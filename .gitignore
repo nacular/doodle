@@ -1,6 +1,4 @@
 .idea/
+.gradle/
 out/
-bin/
 build/
-generated/
-feed_storage/
