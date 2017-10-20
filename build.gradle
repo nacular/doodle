@@ -1,0 +1,71 @@
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+apply plugin: 'kotlin2js'
+apply plugin: 'org.jetbrains.kotlin.frontend'
+
+buildscript {
+    ext.kotlin_version = '1.2.0-beta-31'
+
+    repositories {
+        jcenter()
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.2" }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.21"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo              = false
+    kotlinOptions.sourceMap             = false
+    kotlinOptions.outputFile            = "$project.buildDir.path/js/${project.name}.js"
+    kotlinOptions.moduleKind            = "commonjs"
+    kotlinOptions.sourceMapEmbedSources = "never"
+}
+
+kotlinFrontend {
+//    npm {
+//        dependency   ("google-protobuf",  "3.4.0" )
+//        dependency   ("inversify",        "4.3.0" )
+//        dependency   ("reflect-metadata", "0.1.10")
+//
+//        devDependency("ts2kt"        )
+//        devDependency("ts-protoc-gen")
+//    }
+
+    bundlesDirectory = "$projectDir/src/main/web"
+
+    webpackBundle {
+        bundleName       = "main"
+        sourceMapEnabled = false
+        contentPath      = file('src/main/web')
+    }
+}
+
+sourceSets {
+    main.kotlin.srcDirs    += "src/main/headers"
+    main.resources.srcDirs += "resources"
+}
+
+task copyResources(type: Copy) {
+    from sourceSets.main.resources.srcDirs
+    into "$project.buildDir.path/js"
+}
+
+afterEvaluate {
+    tasks.getByName("webpack-bundle") { dependsOn(copyResources) }
+    tasks.getByName("webpack-run"   ) { dependsOn(copyResources) }
+}
+
+
+dependencies {
+    repositories {
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.2" }
+    }
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+}

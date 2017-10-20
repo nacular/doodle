@@ -1,0 +1,6 @@
+.idea/
+out/
+bin/
+build/
+generated/
+feed_storage/
