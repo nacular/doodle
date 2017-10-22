@@ -35,9 +35,9 @@ private fun toRgb(hex: String): RGB {
 
 class Color private constructor(
         val red    : Int   = 0,
-        var green  : Int   = 0,
-        var blue   : Int   = 0,
-        var opacity: Float = 1f) {
+        val green  : Int   = 0,
+        val blue   : Int   = 0,
+        val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
@@ -52,9 +52,9 @@ class Color private constructor(
         require(opacity in 0..1 ) { "opacity must be in ${0..1}" }
     }
 
-    private var decimal: Int = (red shl 16) + (green shl 8) + blue
+    private val decimal: Int by lazy { (red shl 16) + (green shl 8) + blue }
 
-    var hexString: String = decimal.toHex()
+    val hexString: String by lazy { decimal.toHex() }
 
     fun darker(times: Int = 1): Color {
         var red   = this.red
@@ -96,7 +96,7 @@ class Color private constructor(
 
     fun with(opactiy: Float): Color = Color.create(red, green, blue, opactiy)
 
-    val inverted: Color = Color.create((Int.MAX_VALUE xor decimal).toHex())
+    val inverted: Color by lazy { Color.create((Int.MAX_VALUE xor decimal).toHex()) }
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -122,33 +122,33 @@ class Color private constructor(
         fun create(red: Int, green: Int, blue: Int, opacity: Float) = Color(red, green, blue, opacity)
 
         /** ff0000  */
-        val RED = Color("ff0000")
+        val Red = Color("ff0000")
         /** ffc0cb  */
-        val PINK = Color("ffc0cb")
+        val Pink = Color("ffc0cb")
         /** 0000ff  */
-        val BLUE = Color("0000ff")
+        val Blue = Color("0000ff")
         /** 00ffff  */
-        val CYAN = Color("00ffff")
+        val Cyan = Color("00ffff")
         /** a9a9a9  */
-        val GRAY = Color("a9a9a9")
+        val Gray = Color("a9a9a9")
         /** 000000  */
-        val BLACK = Color("000000")
+        val Black = Color("000000")
         /** 00ff00  */
-        val GREEN = Color("00ff00")
+        val Green = Color("00ff00")
         /** ffffff  */
-        val WHITE = Color("ffffff")
+        val White = Color("ffffff")
         /** ffff00  */
-        val YELLOW = Color("ffff00")
+        val Yellow = Color("ffff00")
         /** ffa500  */
-        val ORANGE = Color("ffa500")
+        val Orange = Color("ffa500")
         /** ff00ff  */
-        val MAGENTA = Color("ff00ff")
+        val Magenta = Color("ff00ff")
         /** 808080  */
-        val DARK_GRAY = Color("808080")
+        val DarkGray = Color("808080")
         /** d3d3d3  */
-        val LIGHT_GRAY = Color("d3d3d3")
+        val LightGray = Color("d3d3d3")
 
-        val TRANSPARENT = Color("000000", 0f)
+        val Transparent = Color("000000", 0f)
 
         private val sScaleFactor = 0.9f
     }

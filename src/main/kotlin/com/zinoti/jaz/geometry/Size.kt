@@ -14,7 +14,7 @@ class Size private constructor(val width: Double, val height: Double) {
 
     companion object {
         /** Creates a (0,0) Dimension. */
-        fun create() = EMPTY
+        fun create() = Empty
 
         /**
          * Creates a Dimension instance.
@@ -24,7 +24,7 @@ class Size private constructor(val width: Double, val height: Double) {
          */
         fun create(width: Double, height: Double) = Size(width, height)
 
-        val EMPTY = Size(0.0, 0.0)
+        val Empty = Size(0.0, 0.0)
     }
 }
 /** Creates a (0,0) Dimension.  */

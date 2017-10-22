@@ -66,9 +66,7 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
     /**
      * @return a Rectangle with the same width/height but positioned at the given x,y
      */
-    fun at(aX: Double, aY: Double): Rectangle {
-        return if (x != aX || y != aY) Rectangle.create(aX, aY, width, height) else this
-    }
+    fun at(x: Double, y: Double) = if (this.x != x || this.y != y) Rectangle.create(x, y, width, height) else this
 
     /**
      * @param inset amount to resize by
@@ -91,7 +89,7 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
 
     companion object {
         /** Creates a Rectangle with 0 width and height at point (0,0). */
-        fun create() = EMPTY
+        fun create() = Empty
 
         /**
          * Creates a Rectangle instance.
@@ -112,6 +110,6 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
         fun create(x: Double, y: Double, width: Double, height: Double) = Rectangle(x, y, width, height)
 
 
-        val EMPTY = Rectangle(0.0, 0.0, 0.0, 0.0)
+        val Empty = Rectangle(0.0, 0.0, 0.0, 0.0)
     }
 }

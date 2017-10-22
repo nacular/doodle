@@ -9,7 +9,7 @@ class DashStyle private constructor(dash: Int, vararg rest: Int) {
     }
 }
 
-class Pen private constructor(val color: Color = Color.BLACK, val thickness: Double = 1.0, val dashStyle: DashStyle? = null) {
+class Pen private constructor(val color: Color = Color.Black, val thickness: Double = 1.0, val dashStyle: DashStyle? = null) {
 
     val visible: Boolean = thickness > 0 && color.opacity > 0
 
