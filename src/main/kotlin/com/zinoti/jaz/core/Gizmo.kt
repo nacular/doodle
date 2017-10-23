@@ -19,6 +19,7 @@ import com.zinoti.jaz.geometry.Point
 import com.zinoti.jaz.geometry.Rectangle
 import com.zinoti.jaz.geometry.Size
 import com.zinoti.jaz.system.Cursor
+import com.zinoti.jaz.ui.UIManager
 import com.zinoti.jaz.utils.ObservableList
 import com.zinoti.jaz.utils.PropertyObservers
 import com.zinoti.jaz.utils.PropertyObserversImpl
@@ -26,11 +27,11 @@ import kotlin.properties.Delegates
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
-private class ObservableProperty<T>(initial: T, val observers: PropertyObserversImpl<T>): ObservableProperty<T>(initial) {
+private class ObservableProperty<T>(initial: T, val owner: () -> Gizmo, val observers: PropertyObserversImpl<Gizmo, T>): ObservableProperty<T>(initial) {
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
         super.afterChange(property, oldValue, newValue)
 
-        observers.forEach { it(oldValue, newValue) }
+        observers.forEach { it(owner(), oldValue, newValue) }
     }
 }
 
@@ -122,9 +123,9 @@ abstract class Gizmo protected constructor() {
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
-    val boundsChange: PropertyObservers<Rectangle> = PropertyObserversImpl(mutableSetOf())
+    val boundsChange: PropertyObservers<Gizmo, Rectangle> = PropertyObserversImpl(mutableSetOf())
 
-    var bounds: Rectangle by ObservableProperty(Rectangle.Empty, boundsChange as PropertyObserversImpl<Rectangle>)
+    var bounds: Rectangle by ObservableProperty(Rectangle.Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
 
     // ================= Container ================= //
     protected open var padding: Padding = Padding.NO_PADDING
@@ -133,9 +134,10 @@ abstract class Gizmo protected constructor() {
         new?.layout(this)
     }
 
-    protected open val children: ObservableList<Gizmo> by lazy {
-        ObservableList(mutableListOf<Gizmo>()).also {
-            it.onChange + { new, _ ->
+    internal val children_ get() = children
+    protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
+        ObservableList(this, mutableListOf<Gizmo>()).also {
+            it.onChange + { _, new, _ ->
                 new.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }
@@ -144,7 +146,8 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    protected val childrenByZIndex: Sequence<Gizmo> get() = childrenZ.asSequence()
+    internal val childrenByZIndex_ get() = childrenByZIndex
+    protected val childrenByZIndex: List<Gizmo> get() = childrenZ
 
     /**
      * Tells whether this Container is an ancestor of the Gizmo.
@@ -153,6 +156,7 @@ abstract class Gizmo protected constructor() {
      * @return true if the Gizmo is a descendant of the Container
      */
 
+    internal fun isAncestor_(of: Gizmo) = isAncestor(of)
     protected open fun isAncestor(of: Gizmo): Boolean {
         if (children.isNotEmpty()) {
             var parent = of.parent
@@ -221,6 +225,7 @@ abstract class Gizmo protected constructor() {
             field = new
         }
 
+    internal fun revalidate_() = revalidate()
     protected fun revalidate() {
         doLayout()
         rerender()
@@ -246,6 +251,7 @@ abstract class Gizmo protected constructor() {
      * Causes Container to layout its children if it has a Layout installed.
      */
 
+    internal fun doLayout_() = doLayout()
     protected fun doLayout() = layout?.layout(this)
 
     /**
@@ -309,9 +315,7 @@ abstract class Gizmo protected constructor() {
 //
 //    var dataTransporter: DataTransporter? = null
 //
-//    var uiManager: UIManager? = null
-//        private set
-
+    private var uiManager    : UIManager?     = null
     private var renderManager: RenderManager? = null
 
 //    private val traversalKeys: MutableMap<FocusTraversalPolicy.TraversalType, Set<KeyState>> by lazy { mutableMapOf<FocusTraversalPolicy.TraversalType, Set<KeyState>>() }
@@ -453,9 +457,9 @@ abstract class Gizmo protected constructor() {
      * or one of it's ancestors is added to the Display.
      */
 
-    internal fun addedToDisplay(aRenderManager: RenderManager/*, aUIManager: UIManager*/) {
-//        uiManager      = aUIManager
-        renderManager = aRenderManager
+    internal fun addedToDisplay(renderManager: RenderManager, uiManager: UIManager) {
+        this.uiManager     = uiManager
+        this.renderManager = renderManager
     }
 
     /**
@@ -465,7 +469,7 @@ abstract class Gizmo protected constructor() {
      */
 
     internal fun removedFromDisplay() {
-//        uiManager      = null
+        uiManager     = null
         renderManager = null
     }
 

@@ -17,10 +17,11 @@ interface Display: Iterable<Gizmo> {
     val size                : Size
     var layout              : Layout?
     var padding             : Padding
-    val children            : ObservableList<Gizmo>
-    val sizeChange          : PropertyObservers<Size>
+    val children            : ObservableList<Gizmo, Gizmo>
+    val sizeChange          : PropertyObservers<Display, Size>
     var minimumSize         : Size
 //    var focusTraversalPolicy: FocusTraversalPolicy
 
     fun fill(brush: Brush)
+    fun isAncestor(gizmo: Gizmo): Boolean
 }

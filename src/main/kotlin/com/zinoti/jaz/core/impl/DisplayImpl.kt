@@ -50,10 +50,10 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)
 
-        root.boundsChange + { old, new ->
+        root.boundsChange + { gizmo, old, new ->
             if (old.size != new.size) {
-                (sizeChange as PropertyObserversImpl<Size>).forEach {
-                    it(old.size, new.size)
+                (sizeChange as PropertyObserversImpl<Display, Size>).forEach {
+                    it(this, old.size, new.size)
                 }
             }
         }
@@ -83,7 +83,7 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
 
     override val children = root.children
 
-    override val sizeChange: PropertyObservers<Size> = PropertyObserversImpl(mutableSetOf())
+    override val sizeChange: PropertyObservers<Display, Size> = PropertyObserversImpl(mutableSetOf())
 
 //    val childrenByZIndex: List<Gizmo>
 //        get() = ROOT_CONTAINER.getChildrenByZIndex()
@@ -115,7 +115,7 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
         }
     }
 
-    fun isAncestor(gizmo: Gizmo) = root.isAncestor(gizmo)
+    override fun isAncestor(gizmo: Gizmo) = root.isAncestor(gizmo)
 
     operator fun contains(aGizmo: Gizmo) = root.contains(aGizmo)
 
