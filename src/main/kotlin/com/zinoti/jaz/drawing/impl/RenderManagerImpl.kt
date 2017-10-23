@@ -22,17 +22,17 @@ class RenderManagerImpl(
         private val scheduler     : Scheduler,
         private val graphicsDevice: GraphicsDevice): RenderManager {
 
-    private val gizmos              = mutableSetOf<Gizmo>()
+    private val gizmos              = mutableSetOf <Gizmo>()
     private var layingOut           = null as Gizmo?
-    private val dirtyGizmos         = mutableSetOf<Gizmo>()
-    private val displayTree         = mutableMapOf<Gizmo, DisplayRectNode>()
-    private val mNeverRendered      = mutableSetOf<Gizmo>()
-    private var pendingLayout       = mutableSetOf<Gizmo>()
+    private val dirtyGizmos         = mutableSetOf <Gizmo>()
+    private val displayTree         = mutableMapOf <Gizmo, DisplayRectNode>()
+    private val mNeverRendered      = mutableSetOf <Gizmo>()
+    private var pendingLayout       = mutableSetOf <Gizmo>()
     private val pendingRender       = mutableListOf<Gizmo>()
-    private val pendingCleanup      = mutableMapOf<Gizmo, Set<Gizmo>>()
-    private val addedInvisible = mutableSetOf<Gizmo>()
-    private val visibilityChanged   = mutableSetOf<Gizmo>()
-    private val pendingBoundsChange = mutableSetOf<Gizmo>()
+    private val pendingCleanup      = mutableMapOf <Gizmo, Set<Gizmo>>()
+    private val addedInvisible      = mutableSetOf <Gizmo>()
+    private val visibilityChanged   = mutableSetOf <Gizmo>()
+    private val pendingBoundsChange = mutableSetOf <Gizmo>()
 
     private var paintTask           = null as Task?
 //    private val mPropertyListener   = InternalPropertyListener()

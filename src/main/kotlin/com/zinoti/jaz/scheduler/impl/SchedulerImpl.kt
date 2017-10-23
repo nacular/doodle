@@ -2,7 +2,6 @@ package com.zinoti.jaz.scheduler.impl
 
 import com.zinoti.jaz.scheduler.Scheduler
 import com.zinoti.jaz.scheduler.Task
-import com.zinoti.jaz.time.Clock
 import com.zinoti.jaz.units.Measure
 import com.zinoti.jaz.units.Time
 import com.zinoti.jaz.units.milliseconds
@@ -20,7 +19,7 @@ private class RecurringTask(value: Int): SimpleTask(value) {
     override fun cancel() = window.clearInterval(value)
 }
 
-class SchedulerImpl(private val clock: Clock): Scheduler {
+class SchedulerImpl: Scheduler {
     override fun after (time : Measure<Time>, job: () -> Unit): Task = SimpleTask   (window.setTimeout(job,  (time  `in` milliseconds).toInt()))
     override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(window.setInterval(job, (every `in` milliseconds).toInt()))
 }

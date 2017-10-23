@@ -1,6 +1,6 @@
 package com.zinoti.jaz.geometry
 
-import com.zinoti.jaz.geometry.Point.Companion.ORIGIN
+import com.zinoti.jaz.geometry.Point.Companion.Origin
 import kotlin.math.PI
 
 
@@ -26,7 +26,7 @@ open class Ellipse protected constructor(val center: Point, val xRadius: Double,
     companion object {
         fun create() = UNIT
 
-        fun create(xRadius: Double, yRadius: Double) = create(ORIGIN, xRadius, yRadius)
+        fun create(xRadius: Double, yRadius: Double) = create(Origin, xRadius, yRadius)
 
         fun create(center: Point, xRadius: Double, yRadius: Double) = Ellipse(center, xRadius, yRadius)
 

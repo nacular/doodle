@@ -4,26 +4,26 @@ import com.zinoti.jaz.core.Gizmo
 import org.w3c.dom.HTMLElement
 
 
-interface GraphicsDevice {
+interface GraphicsDevice<T: GraphicsSurface> {
     /**
      * @param  gizmo
      * @return the graphics surface for this Gizmo
      */
 
-    operator fun get(gizmo: Gizmo): GraphicsSurface
+    operator fun get(gizmo: Gizmo): T
 
     /**
      * @return a top-level graphics surface
      */
 
-    fun create(): GraphicsSurface
+    fun create(): T
 
     /**
-     * @param  aElement
+     * @param  element
      * @return a new GraphicsSurface backed by the given Element
      */
 
-    fun create(aElement: HTMLElement): GraphicsSurface
+    fun create(element: HTMLElement): T
 
     /**
      * Releases the GraphicsSurface associated with Gizmo and its
@@ -40,5 +40,5 @@ interface GraphicsDevice {
      *
      * @param  surface
      */
-    fun release(surface: GraphicsSurface)
+    fun release(surface: T)
 }

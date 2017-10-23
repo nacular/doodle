@@ -285,8 +285,10 @@ abstract class Gizmo protected constructor() {
      * @return The z-index (-1 if the Gizmo is not a child)
      */
 
-    protected fun getChildZIndex(aGizmo: Gizmo): Int {
-        return childrenZ.indexOf(aGizmo)
+    internal fun getChildZIndex_(gizmo: Gizmo) = getChildZIndex(gizmo)
+
+    protected fun getChildZIndex(gizmo: Gizmo): Int {
+        return childrenZ.indexOf(gizmo)
     }
 
     /**

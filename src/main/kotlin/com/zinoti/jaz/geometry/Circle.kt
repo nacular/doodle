@@ -1,14 +1,14 @@
 package com.zinoti.jaz.geometry
 
 
-import com.zinoti.jaz.geometry.Point.Companion.ORIGIN
+import com.zinoti.jaz.geometry.Point.Companion.Origin
 
 class Circle private constructor(center: Point, aRadius: Double) : Ellipse(center, aRadius, aRadius) {
 
     val radius = xRadius
 
     fun atOrigin() = when(center) {
-        ORIGIN -> this
+        Origin -> this
         else   -> Circle.create(radius)
     }
 
@@ -17,7 +17,7 @@ class Circle private constructor(center: Point, aRadius: Double) : Ellipse(cente
     companion object {
         fun create() = UNIT
 
-        fun create(aRadius: Double) = create(ORIGIN, aRadius)
+        fun create(aRadius: Double) = create(Origin, aRadius)
 
         fun create(center: Point, radius: Double) = Circle(center, radius)
 

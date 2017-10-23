@@ -22,7 +22,7 @@ class Point private constructor(val x: Double, val y: Double) {
     companion object {
         /** Creates a Point at (0,0).  */
 
-        fun create(): Point = ORIGIN
+        fun create(): Point = Origin
 
         /**
          * Creates a Point at the given x and y location.
@@ -33,6 +33,6 @@ class Point private constructor(val x: Double, val y: Double) {
 
         fun create(aX: Double, aY: Double): Point = Point(aX, aY)
 
-        val ORIGIN = Point(0.0, 0.0)
+        val Origin = Point(0.0, 0.0)
     }
 }
