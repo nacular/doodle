@@ -33,7 +33,7 @@ private fun toRgb(hex: String): RGB {
     }
 }
 
-class Color private constructor(
+class Color(
         val red    : Int   = 0,
         val green  : Int   = 0,
         val blue   : Int   = 0,
@@ -41,7 +41,7 @@ class Color private constructor(
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
-    private constructor(hex: String, opacity: Float = 1f): this(toRgb(hex), opacity)
+    constructor(hex: String, opacity: Float = 1f): this(toRgb(hex), opacity)
 
     init {
         val range = 0..255
@@ -67,7 +67,7 @@ class Color private constructor(
             blue  = max(0f, blue  * sScaleFactor).toInt()
         }
 
-        return Color.create(red, green, blue, opacity)
+        return Color(red, green, blue, opacity)
     }
 
     fun lighter(times: Int = 1): Color {
@@ -78,7 +78,7 @@ class Color private constructor(
         val i = (1.0 / (1.0 - sScaleFactor)).toInt()
 
         if (red == 0 && green == 0 && blue == 0) {
-            return Color.create(i, i, i, opacity)
+            return Color(i, i, i, opacity)
         }
 
         for (j in 0 until times) {
@@ -91,12 +91,12 @@ class Color private constructor(
             if (blue  in 1 until i) { blue  = i }
         }
 
-        return Color.create(red, green, blue, opacity)
+        return Color(red, green, blue, opacity)
     }
 
-    fun with(opactiy: Float): Color = Color.create(red, green, blue, opactiy)
+    fun with(opactiy: Float) = Color(red, green, blue, opactiy)
 
-    val inverted: Color by lazy { Color.create((Int.MAX_VALUE xor decimal).toHex()) }
+    val inverted by lazy { Color((Int.MAX_VALUE xor decimal).toHex()) }
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -113,14 +113,6 @@ class Color private constructor(
     }
 
     companion object {
-        fun create(hexString: String) = Color(hexString)
-
-        fun create(hexString: String, opacity: Float) = Color(hexString, opacity)
-
-        fun create(red: Int, green: Int, blue: Int) = Color(red, green, blue)
-
-        fun create(red: Int, green: Int, blue: Int, opacity: Float) = Color(red, green, blue, opacity)
-
         /** ff0000  */
         val Red = Color("ff0000")
         /** ffc0cb  */
