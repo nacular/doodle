@@ -7,6 +7,6 @@ import com.zinoti.jaz.drawing.Renderer
  * VectorRenderers provide vector rendering implementations.
  */
 
-interface VectorRenderer: Renderer {
-//    fun setCanvasContext(aCanvasContext: CanvasContext)
-}
+interface VectorRenderer: Renderer
+
+typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

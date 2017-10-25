@@ -28,27 +28,33 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     fun apply(transform: AffineTransform) = AffineTransform(matrix * transform.matrix)
 
+    fun scale(by: Point) = scale(by.x, by.y)
+
     fun scale(x: Double, y: Double) = AffineTransform(
             matrix * Matrix(arrayOf(
                     this[  x, 0.0, 0.0],
                     this[0.0,   y, 0.0],
                     this[0.0, 0.0, 1.0])))
 
-    fun translate(aTranslateX: Double, aTranslateY: Double) = AffineTransform(
+    fun translate(by: Point) = translate(by.x, by.y)
+
+    fun translate(x: Double, y: Double) = AffineTransform(
             matrix * Matrix(arrayOf(
-                    this[1.0, 0.0, aTranslateX],
-                    this[0.0, 1.0, aTranslateY],
+                    this[1.0, 0.0, x],
+                    this[0.0, 1.0, y],
                     this[0.0, 0.0,         1.0])))
 
-    fun skew(aSkewX: Double, aSkewY: Double) = AffineTransform(
+    fun skew(by: Point) = skew(by.x, by.y)
+
+    fun skew(x: Double, y: Double) = AffineTransform(
             matrix * Matrix(arrayOf(
-                    this[   1.0, aSkewX, 0.0],
-                    this[aSkewY,    1.0, 0.0],
+                    this[   1.0, x, 0.0],
+                    this[y,    1.0, 0.0],
                     this[   0.0,    0.0, 1.0])))
 
-    fun rotate(aAngle: Double): AffineTransform {
-        val sin = sin(aAngle)
-        val cos = cos(aAngle)
+    fun rotate(angle: Double): AffineTransform {
+        val sin = sin(angle)
+        val cos = cos(angle)
 
         return AffineTransform(
                 matrix * Matrix(arrayOf(
@@ -70,4 +76,10 @@ class AffineTransform private constructor(private val matrix: Matrix) {
     override fun toString() = matrix.toString()
 
     operator fun get(vararg values: Double): DoubleArray = doubleArrayOf(*values)
+
+    companion object {
+        fun create() = Identity
+
+        val Identity = AffineTransform()
+    }
 }

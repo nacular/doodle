@@ -5,6 +5,8 @@ class Point private constructor(val x: Double, val y: Double) {
 
     operator fun plus(other: Point) = Point(x + other.x, y + other.y)
 
+    operator fun unaryMinus() = Point(-x, -y)
+
     override fun hashCode(): Int = arrayOf(x, y).contentHashCode()
 
     override fun toString(): String = "[$x,$y]"

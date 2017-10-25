@@ -6,41 +6,38 @@ import org.w3c.dom.get
 import kotlin.browser.document
 
 
-fun HTMLElement.cloneNode() = cloneNode(true)
+inline fun HTMLElement.cloneNode() = cloneNode(true)
 
-fun HTMLElement.childAt(index: Int): Node? {
+fun Node.childAt(index: Int): Node? {
     if( index in 0 until childNodes.length ) {
-        return childNodes[index]
+        return childNodes[index] as HTMLElement
     }
 
     return null
 }
 
-val HTMLElement.parent get() = parentNode as HTMLElement?
+inline val Node.parent get() = parentNode
 
-val HTMLElement.numChildren get() = childNodes.length
+inline val Node.numChildren get() = childNodes.length
 
-fun HTMLElement.index(of: HTMLElement) = (0 until childNodes.length).firstOrNull { childNodes[it] == of } ?: -1
+fun Node.index(of: Node) = (0 until childNodes.length).firstOrNull { childNodes[it] == of } ?: -1
 
-fun HTMLElement.add(child: HTMLElement) = appendChild(child)
+inline fun Node.add(child: Node) = appendChild(child)
 
-fun HTMLElement.insert(element: HTMLElement, index: Int) {
-    insertBefore(element, childAt(index))
-}
+inline fun Node.insert(element: Node, index: Int) = insertBefore(element, childAt(index))
 
-fun HTMLElement.remove(element: HTMLElement) = removeChild(element)
+inline fun Node.remove(element: Node) = removeChild(element)
 
-fun HTMLElement.removeAll() {
-    while(firstChild != null)
-    {
+fun Node.removeAll() {
+    while(firstChild != null) {
         firstChild?.let { remove(it as HTMLElement) }
     }
 }
 
-val HTMLElement.top    get() = offsetTop.toDouble   ()
-val HTMLElement.left   get() = offsetLeft.toDouble  ()
-val HTMLElement.width  get() = offsetWidth.toDouble ()
-val HTMLElement.height get() = offsetHeight.toDouble()
+inline val HTMLElement.top    get() = offsetTop.toDouble   ()
+inline val HTMLElement.left   get() = offsetLeft.toDouble  ()
+inline val HTMLElement.width  get() = offsetWidth.toDouble ()
+inline val HTMLElement.height get() = offsetHeight.toDouble()
 
 private val sPrototypes = mutableMapOf<String, HTMLElement>()
 

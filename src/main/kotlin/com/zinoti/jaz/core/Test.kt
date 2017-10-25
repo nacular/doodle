@@ -2,6 +2,7 @@ import com.zinoti.jaz.core.Gizmo
 import com.zinoti.jaz.core.impl.DisplayImpl
 import com.zinoti.jaz.drawing.Color
 import com.zinoti.jaz.drawing.SolidBrush
+import com.zinoti.jaz.drawing.defaultCanvasFactory
 import com.zinoti.jaz.drawing.impl.RealGraphicsDevice
 import com.zinoti.jaz.drawing.impl.RealGraphicsSurfaceFactory
 import com.zinoti.jaz.drawing.impl.RenderManagerImpl
@@ -20,7 +21,9 @@ fun main(args: Array<String>) {
 
     display.fill(SolidBrush.create(Color.Red))
 
-    val renderManager = RenderManagerImpl(display, DummyUIManager, SchedulerImpl(), RealGraphicsDevice(RealGraphicsSurfaceFactory()))
+    val renderManager = RenderManagerImpl(display, DummyUIManager, SchedulerImpl(), RealGraphicsDevice(RealGraphicsSurfaceFactory(::defaultCanvasFactory)))
+
+
 }
 
 object DummyUIManager: UIManager {

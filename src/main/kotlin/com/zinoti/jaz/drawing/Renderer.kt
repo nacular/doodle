@@ -11,7 +11,6 @@ import com.zinoti.jaz.image.Image
  * Created by Nicholas Eddy on 10/23/17.
  */
 interface Renderer {
-    var optimization: Optimization
     fun clear()
     fun flush()
 
@@ -25,23 +24,19 @@ interface Renderer {
 
     fun path(points: List<Point>, pen: Pen)
 
-    fun poly(aPolygon: Polygon, pen: Pen, brush: Brush? = null)
-    fun poly(aPolygon: Polygon, brush: Brush)
+    fun poly(polygon: Polygon, pen: Pen, brush: Brush? = null)
+    fun poly(polygon: Polygon, brush: Brush)
 
-    fun arc(aCenter: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush? = null)
-    fun arc(aCenter: Point, radius: Double, sweep: Double, rotation: Double, brush: Brush)
+    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush? = null)
+    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, brush: Brush)
 
-    fun circle(aCircle: Circle, pen: Pen, brush: Brush? = null)
-    fun circle(aCircle: Circle, brush: Brush)
+    fun circle(circle: Circle, pen: Pen, brush: Brush? = null)
+    fun circle(circle: Circle, brush: Brush)
 
     fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
     fun ellipse(ellipse: Ellipse, brush: Brush)
 
-    fun drawString(aString: String, aFont: Font, aPoint: Point, aBrush: Brush)
-
-    fun drawClippedString(aString: String, aFont: Font, aPoint: Point, aClipRect: Rectangle, aBrush: Brush)
-
-    fun drawImage(aImage: Image, aSource: Rectangle, aDestination: Rectangle, aOpacity: Float)
+    fun text(text: String, font: Font, at: Point, brush: Brush)
 
     fun clippedText(
             text    : String,
@@ -58,9 +53,8 @@ interface Renderer {
             maxBounds: Double,
             brush    : Brush)
 
-    fun image(image: Image,                    destination: Rectangle, opacity: Float = 1f)
-    fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)
 
+    fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)
 
     enum class Optimization {
         Speed,
