@@ -70,19 +70,19 @@ abstract class Gizmo protected constructor() {
     var toolTipText: String = ""
         private set
 
-    var monitorsMouse      : Boolean by Delegates.observable(true) { _,_,_ ->
+    var monitorsMouse      : Boolean by Delegates.observable(true ) { _,_,_ ->
 
     }
-    var monitorsKeyboard   : Boolean by Delegates.observable(true) { _,_,_ ->
+    var monitorsKeyboard   : Boolean by Delegates.observable(true ) { _,_,_ ->
 
     }
-    var monitorsMouseWheel : Boolean by Delegates.observable(true) { _,_,_ ->
+    var monitorsMouseWheel : Boolean by Delegates.observable(true ) { _,_,_ ->
 
     }
-    var monitorsMouseMotion: Boolean by Delegates.observable(true) { _,_,_ ->
+    var monitorsMouseMotion: Boolean by Delegates.observable(true ) { _,_,_ ->
 
     }
-    var monitorsDisplayRect: Boolean by Delegates.observable(true) { _,_,_ ->
+    var monitorsDisplayRect: Boolean by Delegates.observable(false) { _,_,_ ->
         setDisplayRectHandlingReqiured(monitorsDisplayRect, monitorsDisplayRect)
     }
 
@@ -137,10 +137,13 @@ abstract class Gizmo protected constructor() {
     internal val children_ get() = children
     protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
         ObservableList(this, mutableListOf<Gizmo>()).also {
-            it.onChange + { _, new, _ ->
+            it.onChange += { _, old, new ->
+                old.forEach { it.parent = null }
                 new.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }
+
+                    it.parent = this
                 }
             }
         }
@@ -326,10 +329,10 @@ abstract class Gizmo protected constructor() {
      * Gives the Gizmo an opportunity to render itself to the given Canvas.
      * Rendering duties are passed to the UI delegate if one is present.
      *
-     * @param aCanvas The canvas upon which drawing will be done
+     * @param canvas The canvas upon which drawing will be done
      */
 
-    fun render(aCanvas: Canvas) {
+    open fun render(canvas: Canvas) {
 //        if (ui != null) {
 //            (ui as UI<Gizmo>).render(aCanvas, this)
 //        }
@@ -522,7 +525,7 @@ abstract class Gizmo protected constructor() {
      */
 
     private fun setBounds(x: Double, y: Double, width: Double, height: Double) {
-        bounds = Rectangle.create(x, y, width, height)
+        bounds = Rectangle(x, y, width, height)
     }
 
     /**

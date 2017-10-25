@@ -1,7 +1,7 @@
 package com.zinoti.jaz.geometry
 
 
-class Point private constructor(val x: Double, val y: Double) {
+class Point(val x: Double, val y: Double) {
 
     operator fun plus(other: Point) = Point(x + other.x, y + other.y)
 
@@ -22,19 +22,6 @@ class Point private constructor(val x: Double, val y: Double) {
     }
 
     companion object {
-        /** Creates a Point at (0,0).  */
-
-        fun create(): Point = Origin
-
-        /**
-         * Creates a Point at the given x and y location.
-         *
-         * @param aX The x
-         * @param aY The y
-         */
-
-        fun create(aX: Double, aY: Double): Point = Point(aX, aY)
-
         val Origin = Point(0.0, 0.0)
     }
 }

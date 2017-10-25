@@ -4,21 +4,12 @@ import com.zinoti.jaz.geometry.Rectangle
 import com.zinoti.jaz.image.Image
 
 
-class TextureBrush private constructor(
+class TextureBrush(
         val image          : Image,
         val destinationRect: Rectangle,
-        val opacity        : Float): Brush() {
+        val opacity        : Float = 1f): Brush() {
+
+    constructor(image: Image, opacity: Float = 1f): this(image, Rectangle(size = image.size), opacity)
 
     override val visible = opacity > 0 && !destinationRect.empty && !image.size.empty
-
-    companion object {
-
-        fun create(image: Image, opacity: Float = 1.0f): TextureBrush {
-            return create(image, Rectangle.create(image.size.width, image.size.height), opacity)
-        }
-
-        fun create(image: Image, destination: Rectangle, opacity: Float = 1.0f): TextureBrush {
-            return TextureBrush(image, destination, opacity)
-        }
-    }
 }

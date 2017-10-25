@@ -3,7 +3,6 @@ package com.zinoti.jaz.dom
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.get
-import kotlin.browser.document
 
 
 inline fun HTMLElement.cloneNode() = cloneNode(true)
@@ -38,24 +37,6 @@ inline val HTMLElement.top    get() = offsetTop.toDouble   ()
 inline val HTMLElement.left   get() = offsetLeft.toDouble  ()
 inline val HTMLElement.width  get() = offsetWidth.toDouble ()
 inline val HTMLElement.height get() = offsetHeight.toDouble()
-
-private val sPrototypes = mutableMapOf<String, HTMLElement>()
-
-fun create(tag: String): HTMLElement {
-    var master: HTMLElement? = sPrototypes[tag]
-
-    // No cached version exists
-
-    if (master == null) {
-        master = document.createElement(tag) as HTMLElement
-
-        sPrototypes.put(tag, master)
-    }
-
-    return master.cloneNode(false) as HTMLElement
-}
-
-fun createText(text: String) = document.createTextNode(text)
 
 
 //    public static final class Type extends JavaScriptObject

@@ -1,6 +1,7 @@
 package com.zinoti.jaz.drawing.impl
 
 
+import com.zinoti.jaz.dom.HtmlFactory
 import com.zinoti.jaz.drawing.CanvasFactory
 import com.zinoti.jaz.drawing.GraphicsSurface
 import org.w3c.dom.HTMLElement
@@ -13,10 +14,13 @@ interface GraphicsSurfaceFactory<T: GraphicsSurface> {
 }
 
 
-class RealGraphicsSurfaceFactory(private val canvasFactory: CanvasFactory): GraphicsSurfaceFactory<RealGraphicsSurface> {
-    override fun surface(element: HTMLElement?): RealGraphicsSurface = element?.let { RealGraphicsSurface(canvasFactory, it) } ?: RealGraphicsSurface(canvasFactory)
+class RealGraphicsSurfaceFactory(
+        private val htmlFactory  : HtmlFactory,
+        private val canvasFactory: CanvasFactory): GraphicsSurfaceFactory<RealGraphicsSurface> {
+    override fun surface(element: HTMLElement?) =
+            element?.let { RealGraphicsSurface(htmlFactory, canvasFactory, it) } ?: RealGraphicsSurface(htmlFactory, canvasFactory)
 
     override fun surface(parent: RealGraphicsSurface?, isContainer: Boolean): RealGraphicsSurface {
-        return RealGraphicsSurface(canvasFactory, parent, isContainer)
+        return RealGraphicsSurface(htmlFactory, canvasFactory, parent, isContainer)
     }
 }

@@ -1,7 +1,7 @@
 package com.zinoti.jaz.geometry
 
 
-class Polygon protected constructor(first: Point, second: Point, third: Point, vararg points: Point): Shape {
+class Polygon(first: Point, second: Point, third: Point, vararg points: Point): Shape {
     val points: List<Point> = mutableListOf(first) + second + third + points
 
     override val area             : Double    get() = TODO("not implemented")
@@ -23,14 +23,4 @@ class Polygon protected constructor(first: Point, second: Point, third: Point, v
     }
 
     override fun hashCode() = points.hashCode()
-
-    companion object {
-        /**
-         * Creates a Polygon with vertices at the given points.
-         *
-         * @param aPoints The points
-         */
-
-        fun create(first: Point, second: Point, third: Point, vararg points: Point) = Polygon(first, second, third, *points)
-    }
 }

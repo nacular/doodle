@@ -1,17 +1,18 @@
 package com.zinoti.jaz.geometry
 
-import com.zinoti.jaz.geometry.Point.Companion.Origin
 import kotlin.math.PI
 
 
-open class Ellipse protected constructor(val center: Point, val xRadius: Double, val yRadius: Double): Shape {
+open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double): Shape {
+
+    constructor(xRadius: Double, yRadius: Double): this(Point.Origin, xRadius, yRadius)
 
     init {
         require(xRadius >= 0) { "x-radius must be >= 0" }
         require(yRadius >= 0) { "y-radius must be >= 0" }
     }
 
-    override val boundingRectangle = Rectangle.create(center.x - xRadius, center.y - yRadius, 2 * xRadius, 2 * yRadius)
+    override val boundingRectangle = Rectangle(center.x - xRadius, center.y - yRadius, 2 * xRadius, 2 * yRadius)
 
     override val area = PI * xRadius * yRadius
 
@@ -24,12 +25,6 @@ open class Ellipse protected constructor(val center: Point, val xRadius: Double,
     override fun intersects(rectangle: Rectangle) = false // TODO: IMPLEMENT
 
     companion object {
-        fun create() = UNIT
-
-        fun create(xRadius: Double, yRadius: Double) = create(Origin, xRadius, yRadius)
-
-        fun create(center: Point, xRadius: Double, yRadius: Double) = Ellipse(center, xRadius, yRadius)
-
-        val UNIT = create(1.0, 1.0)
+        val Unit = Ellipse(1.0, 1.0)
     }
 }

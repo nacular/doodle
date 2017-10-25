@@ -5,7 +5,7 @@ import com.zinoti.jaz.core.Container
 import com.zinoti.jaz.core.Display
 import com.zinoti.jaz.core.Gizmo
 import com.zinoti.jaz.core.Layout
-import com.zinoti.jaz.dom.create
+import com.zinoti.jaz.dom.HtmlFactory
 import com.zinoti.jaz.dom.height
 import com.zinoti.jaz.dom.insert
 import com.zinoti.jaz.dom.setBackgroundColor
@@ -25,15 +25,15 @@ import org.w3c.dom.events.Event
 import kotlin.math.max
 
 
-class DisplayImpl(private val rootElement: HTMLElement): Display {
+class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
     private fun onResize(event: Event? = null) {
         root.minimumSize.let {
-            root.size = Size.create(max(rootElement.width, it.width), max(rootElement.height, it.height))
+            root.size = Size(max(rootElement.width, it.width), max(rootElement.height, it.height))
         }
     }
 
     private val root         = Container()
-    private val canvasElement: HTMLElement = create("b") as HTMLElement
+    private val canvasElement: HTMLElement = htmlFactory.create("b")
 //        private val sStyles = GWT.create(GraphicsStyles::class.java)
 //        private val sCanvas = GraphicsService.locator().getGraphicsDevice().create(canvasElement).getCanvas()
 
@@ -50,7 +50,7 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)
 
-        root.boundsChange + { gizmo, old, new ->
+        root.boundsChange += { gizmo, old, new ->
             if (old.size != new.size) {
                 (sizeChange as PropertyObserversImpl<Display, Size>).forEach {
                     it(this, old.size, new.size)
@@ -81,7 +81,7 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
         get(   ) = root.layout
         set(new) { root.layout = new }
 
-    override val children = root.children
+    override val children get() = root.children
 
     override val sizeChange: PropertyObservers<Display, Size> = PropertyObserversImpl(mutableSetOf())
 
@@ -97,12 +97,12 @@ class DisplayImpl(private val rootElement: HTMLElement): Display {
     override fun fill(brush: Brush) {
         when (brush) {
             is SolidBrush   -> {
-//                documentBody.remove(canvasElement)
+                canvasElement.parentNode?.removeChild(canvasElement)
 
                 rootElement.style.setBackgroundColor(brush.color)
             }
             is TextureBrush -> {
-//                documentBody.remove(canvasElement)
+                canvasElement.parentNode?.removeChild(canvasElement)
 
                 rootElement.style.setBackgroundImage(brush.image)
             }

@@ -26,7 +26,7 @@ interface Font {
 
     fun wrappedSize(text: String, indent: Double, width: Double): Size
 
-    fun size(text: String): Size = Size.create(width(text), height(text))
+    fun size(text: String) = Size(width(text), height(text))
 
     enum class Style {
         Italic, Bold

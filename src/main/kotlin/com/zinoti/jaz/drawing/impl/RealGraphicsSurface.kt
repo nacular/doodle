@@ -2,8 +2,8 @@ package com.zinoti.jaz.drawing.impl
 
 
 import com.zinoti.jaz.dom.Display
+import com.zinoti.jaz.dom.HtmlFactory
 import com.zinoti.jaz.dom.add
-import com.zinoti.jaz.dom.create
 import com.zinoti.jaz.dom.insert
 import com.zinoti.jaz.dom.numChildren
 import com.zinoti.jaz.dom.parent
@@ -14,21 +14,24 @@ import com.zinoti.jaz.dom.setWidthPercent
 import com.zinoti.jaz.drawing.Canvas
 import com.zinoti.jaz.drawing.CanvasFactory
 import com.zinoti.jaz.drawing.GraphicsSurface
+import com.zinoti.jaz.drawing.Renderer.Optimization.Quality
 import com.zinoti.jaz.geometry.Point
 import com.zinoti.jaz.geometry.Size
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.Node
 import kotlin.browser.document
 
 
 class RealGraphicsSurface private constructor(
-        private val canvasFactory: CanvasFactory,
-        private var parent: RealGraphicsSurface?,
-        private val isContainer: Boolean,
+                    htmlFactory  : HtmlFactory,
+                    canvasFactory: CanvasFactory,
+        private var parent       : RealGraphicsSurface?,
+        private val isContainer  : Boolean,
         private var canvasElement: HTMLElement,
-        addToDocumentIfNoParent: Boolean): GraphicsSurface, Iterable<RealGraphicsSurface> {
+        addToDocumentIfNoParent  : Boolean): GraphicsSurface, Iterable<RealGraphicsSurface> {
 
-    constructor(canvasFactory: CanvasFactory, element: HTMLElement): this(canvasFactory, null, false, element, false)
-    constructor(canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(canvasFactory, parent, isContainer, create("b"), true)
+    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
+    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create("b"), true)
 
     override var visible = true
         set(new) {
@@ -51,7 +54,7 @@ class RealGraphicsSurface private constructor(
 
     init {
         if (isContainer) {
-            canvasElement = create("b")
+            canvasElement = htmlFactory.create("b")
 
             canvasElement.style.setWidthPercent (100.0)
             canvasElement.style.setHeightPercent(100.0)
@@ -59,7 +62,7 @@ class RealGraphicsSurface private constructor(
             rootElement.add(canvasElement)
         }
 
-        canvas = canvasFactory.create(canvasElement)
+        canvas = canvasFactory(canvasElement)
 
         if (parent != null) {
             parent?.add(this)
@@ -78,7 +81,7 @@ class RealGraphicsSurface private constructor(
 
     override fun beginRender() {
         canvas.clear()
-        canvas.optimization = Canvas.Optimization.Quality
+        canvas.optimization = Quality
 
         if (isContainer && canvasElement.numChildren == 0 && canvasElement.parent != null) {
             canvasElement.parent!!.remove(canvasElement)
@@ -88,16 +91,16 @@ class RealGraphicsSurface private constructor(
     override var position = Point.Origin
         set(new) {
             rootElement.parent?.let { it.takeIf { !hasAutoOverflow(it) }?.let {
-                rootElement.style.left = "${new.x}"
-                rootElement.style.top  = "${new.y}"
+                rootElement.style.left = "${new.x}px"
+                rootElement.style.top  = "${new.y}px"
             } }
         }
 
     override var size = Size.Empty
         set(new) {
             rootElement.parent?.let { it.takeIf { !hasAutoOverflow(it) }?.let {
-                rootElement.style.width  = "${new.width}"
-                rootElement.style.height = "${new.height}"
+                rootElement.style.width  = "${new.width}px"
+                rootElement.style.height = "${new.height}px"
             } }
         }
 
@@ -140,5 +143,5 @@ class RealGraphicsSurface private constructor(
         rootElement.insert(child.rootElement, rootElement.numChildren - index)
     }
 
-    private fun hasAutoOverflow(element: HTMLElement) = element.style.overflowWrap != ""
+    private fun hasAutoOverflow(element: Node) = element is HTMLElement && element.style.overflowWrap != ""
 }

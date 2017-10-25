@@ -20,14 +20,14 @@ class RenderManagerImpl(
         private val display       : Display,
         private val uiManager     : UIManager,
         private val scheduler     : Scheduler,
-        private val graphicsDevice: GraphicsDevice): RenderManager {
+        private val graphicsDevice: GraphicsDevice<*>): RenderManager {
 
     private val gizmos              = mutableSetOf <Gizmo>()
     private var layingOut           = null as Gizmo?
     private val dirtyGizmos         = mutableSetOf <Gizmo>()
     private val displayTree         = mutableMapOf <Gizmo, DisplayRectNode>()
-    private val mNeverRendered      = mutableSetOf <Gizmo>()
-    private var pendingLayout       = mutableSetOf <Gizmo>()
+    private val neverRendered       = mutableSetOf <Gizmo>()
+    private val pendingLayout       = mutableSetOf <Gizmo>()
     private val pendingRender       = mutableListOf<Gizmo>()
     private val pendingCleanup      = mutableMapOf <Gizmo, Set<Gizmo>>()
     private val addedInvisible      = mutableSetOf <Gizmo>()
@@ -39,7 +39,7 @@ class RenderManagerImpl(
 //    private val mContainerListener  = InternalContainerListener()
 
     init {
-        display.children.onChange + this::childrenChanged
+        display.children.onChange += this::childrenChanged
 
 //        mDisplay.addContainerListener(mContainerListener)
 //        mDisplay.addBoundsListener(object : BoundsListener() {
@@ -63,7 +63,7 @@ class RenderManagerImpl(
 
     override fun renderNow(gizmo: Gizmo) {
         if (gizmo in gizmos && !gizmo.bounds.empty && display.isAncestor(gizmo)) {
-            dirtyGizmos + gizmo
+            dirtyGizmos += gizmo
 
             if (gizmo in pendingLayout) {
                 performLayout(gizmo)
@@ -71,7 +71,7 @@ class RenderManagerImpl(
 
             val parent = gizmo.parent
 
-            if (parent != null && (parent in mNeverRendered || parent in dirtyGizmos)) {
+            if (parent != null && (parent in neverRendered || parent in dirtyGizmos)) {
                 renderNow(parent)
             } else {
                 performRender(gizmo)
@@ -85,17 +85,17 @@ class RenderManagerImpl(
         displayTree[gizmo]?.let { return it.clipRect }
 
         var child = gizmo
-        var parent: Gizmo? = gizmo.parent ?: return Rectangle.create()
+        var parent: Gizmo? = gizmo.parent ?: return Rectangle.Empty
 
-        var clipRect = if (gizmo.visible) Rectangle.create(size.width, size.width) else Rectangle.create()
+        var clipRect = if (gizmo.visible) Rectangle(size = Size(size.width, size.width)) else Rectangle.Empty
 
         while (parent != null && !clipRect.empty) {
-            clipRect = clipRect.intersect(Rectangle.create(0 - child.x,
+            clipRect = clipRect.intersect(Rectangle(0 - child.x,
                     0 - child.y,
-                    if (parent.visible) parent.width else  0.0,
+                    if (parent.visible) parent.width  else 0.0,
                     if (parent.visible) parent.height else 0.0))
 
-            child = parent
+            child  = parent
             parent = parent.parent
         }
 
@@ -108,15 +108,15 @@ class RenderManagerImpl(
         }
     }
 
-    private fun render(aGizmo: Gizmo, ignoreEmptyBounds: Boolean) {
-        if (prepareRender(aGizmo, ignoreEmptyBounds)) {
+    private fun render(gizmo: Gizmo, ignoreEmptyBounds: Boolean) {
+        if (prepareRender(gizmo, ignoreEmptyBounds)) {
             schedulePaint()
         }
     }
 
     private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean): Boolean {
         if ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display.isAncestor(gizmo)) {
-            dirtyGizmos + gizmo
+            dirtyGizmos += gizmo
 
             val iterator = pendingRender.iterator()
 
@@ -133,7 +133,7 @@ class RenderManagerImpl(
                 }
             }
 
-            pendingRender + gizmo
+            pendingRender += gizmo
 
             return true
         }
@@ -143,21 +143,23 @@ class RenderManagerImpl(
 
     private fun onPaint() {
         do {
-            val copy = pendingLayout
+            val iterator = pendingLayout.iterator()
 
-            pendingLayout = mutableSetOf()
-
-            copy.forEach { performLayout(it) }
+            while (iterator.hasNext()) {
+                val item = iterator.next()
+                iterator.remove()
+                performLayout(item)
+            }
 
             layingOut = null
         } while (!pendingLayout.isEmpty())
 
-        val copy = ArrayList(pendingRender)
+        val copy = pendingRender.toTypedArray()
 
         copy.forEach { performRender(it) }
 
         pendingBoundsChange.forEach {
-            if (it !in mNeverRendered) {
+            if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
             }
         }
@@ -172,24 +174,24 @@ class RenderManagerImpl(
     }
 
     private fun performRender(gizmo: Gizmo) {
-        pendingRender - gizmo
-        mNeverRendered - gizmo
+        pendingRender -= gizmo
+        neverRendered -= gizmo
 
-        val aVisibilityChanged = gizmo in visibilityChanged
+        val visibilityChanged = gizmo in visibilityChanged
 
-        val graphicsSurface = if (gizmo.visible || aVisibilityChanged) graphicsDevice[gizmo] else null
+        val graphicsSurface = if (gizmo.visible || visibilityChanged) graphicsDevice[gizmo] else null
 
         graphicsSurface?.let {
             if (gizmo in pendingBoundsChange) {
                 updateGraphicsSurface(gizmo, graphicsSurface)
 
-                pendingBoundsChange - gizmo
+                pendingBoundsChange -= gizmo
             }
 
-            if (aVisibilityChanged) {
+            if (visibilityChanged) {
                 graphicsSurface.visible = gizmo.visible
 
-                visibilityChanged - gizmo
+                this.visibilityChanged -= gizmo
             }
 
             if (gizmo.visible && !gizmo.bounds.empty) {
@@ -204,11 +206,11 @@ class RenderManagerImpl(
                         graphicsDevice.release(it)
                     }
 
-                    pendingCleanup - gizmo
+                    pendingCleanup -= gizmo
                 }
 
                 if (gizmo in dirtyGizmos) {
-                    dirtyGizmos - gizmo
+                    dirtyGizmos -= gizmo
 
                     graphicsSurface.beginRender()
 
@@ -232,12 +234,12 @@ class RenderManagerImpl(
         if (gizmo !in gizmos) {
             gizmo.addedToDisplay(this, uiManager)
 
-            gizmos              + gizmo
-            dirtyGizmos         + gizmo
-            mNeverRendered      + gizmo
-            pendingBoundsChange + gizmo
+            gizmos              += gizmo
+            dirtyGizmos         += gizmo
+            neverRendered += gizmo
+            pendingBoundsChange += gizmo
 
-            gizmo.boundsChange + this::boundsChanged
+            gizmo.boundsChange += this::boundsChanged
 
 //            gizmo.addPropertyListener(mPropertyListener)
 //            gizmo.addContainerListener(mContainerListener)
@@ -275,13 +277,13 @@ class RenderManagerImpl(
 
 //        gizmo.removeContainerListener(mContainerListener)
 
-        gizmos              - gizmo
-        dirtyGizmos         - gizmo
-        pendingLayout       - gizmo
-        pendingRender       - gizmo
-        pendingBoundsChange - gizmo
+        gizmos              -= gizmo
+        dirtyGizmos         -= gizmo
+        pendingLayout       -= gizmo
+        pendingRender       -= gizmo
+        pendingBoundsChange -= gizmo
 
-        gizmo.boundsChange - this::boundsChanged
+        gizmo.boundsChange -= this::boundsChanged
 
 //        gizmo.removePropertyListener(mPropertyListener)
 
@@ -297,16 +299,16 @@ class RenderManagerImpl(
             pendingCleanup.put(parent, gizmos)
         }
 
-        gizmos + child
+        gizmos += child
 
 //        releaseResources( aChild );
     }
 
     private fun removeFromCleanupList(parent: Gizmo, child: Gizmo) {
-        val gizmos = pendingCleanup[parent]
+        var gizmos = pendingCleanup[parent]
 
         if (gizmos != null) {
-            gizmos - child
+            gizmos -= child
 
             if (gizmos.isEmpty()) {
                 pendingCleanup.remove(parent)
@@ -318,7 +320,7 @@ class RenderManagerImpl(
         if (!displayTree.containsKey(gizmo)) {
             val node = DisplayRectNode(gizmo)
 
-            node.clipRect = Rectangle.create(gizmo.width, gizmo.height)
+            node.clipRect = Rectangle(size = gizmo.size)
 
             displayTree.put(gizmo, node)
 
@@ -329,7 +331,7 @@ class RenderManagerImpl(
 
                 updateClipRect(node, parentNode)
 
-                parentNode!! + node
+                parentNode!! += node
             }
         }
     }
@@ -337,9 +339,9 @@ class RenderManagerImpl(
     private fun unregisterDisplayRectMonitoring(gizmo: Gizmo) {
         displayTree[gizmo]?.let {
             if (it.numChildren == 0) {
-                displayTree - gizmo
+                displayTree -= gizmo
 
-                it.parent?.minus(it)
+                it.parent?.minusAssign(it)
 
                 gizmo.parent?.let { unregisterDisplayRectMonitoring(it) }
             }
@@ -373,13 +375,13 @@ class RenderManagerImpl(
     private fun updateClipRect(node: DisplayRectNode, parent: DisplayRectNode?) {
         val gizmo = node.gizmo
 
-        val gizmoRect = if (gizmo.visible) Rectangle.create(gizmo.width, gizmo.height) else Rectangle.Empty
+        val gizmoRect = if (gizmo.visible) Rectangle(size = gizmo.size) else Rectangle.Empty
 
         if (parent == null) {
             node.clipRect = gizmoRect
         } else {
             val parentClip = parent.clipRect
-            val parentBounds = Rectangle.create(parentClip!!.x - gizmo.x,
+            val parentBounds = Rectangle(parentClip!!.x - gizmo.x,
                     parentClip.y - gizmo.y,
                     parentClip.width,
                     parentClip.height)
@@ -391,7 +393,7 @@ class RenderManagerImpl(
     private fun scheduleLayout(gizmo: Gizmo) {
         // Only take reference identity into account
         if (layingOut != gizmo) {
-            pendingLayout + gizmo
+            pendingLayout += gizmo
         }
     }
 
@@ -405,13 +407,13 @@ class RenderManagerImpl(
         val parent = list.source
 
         old.forEachIndexed { index, gizmo ->
-            if (new[index] != gizmo) {
+            if (index >= new.size || new[index] != gizmo) {
               childRemoved(parent, gizmo)
             }
         }
 
         new.forEachIndexed { index, gizmo ->
-            if (old[index] != gizmo) {
+            if (index >= old.size || old[index] != gizmo) {
                 childAdded(parent, gizmo)
             }
         }
@@ -459,7 +461,7 @@ class RenderManagerImpl(
 
         var reRender = false
 
-        pendingBoundsChange + gizmo
+        pendingBoundsChange += gizmo
 
         if (old.size != new.size) {
             reRender = true
@@ -625,16 +627,14 @@ class RenderManagerImpl(
 
         private val children = mutableListOf<DisplayRectNode>()
 
-        operator fun plus(child: DisplayRectNode): DisplayRectNode {
+        operator fun plusAssign(child: DisplayRectNode) {
             child.parent = this
-            children + child
-            return this
+            children += child
         }
 
-        operator fun minus(child: DisplayRectNode): DisplayRectNode {
+        operator fun minusAssign(child: DisplayRectNode) {
             child.parent = null
-            children - child
-            return this
+            children -= child
         }
 
         operator fun get(index: Int) = children[index]

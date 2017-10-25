@@ -12,8 +12,8 @@ interface ItemEditor<out V> {
     fun cancel      (): Boolean
     fun shouldSelect(event: Event<*>): Boolean
 
-    operator fun plus (listener: Listener): ItemEditor<V>
-    operator fun minus(listener: Listener): ItemEditor<V>
+    operator fun plusAssign (listener: Listener)
+    operator fun minusAssign(listener: Listener)
 
     interface Listener {
         fun editingStopped  (aChangeEvent: ChangeEvent<*>)

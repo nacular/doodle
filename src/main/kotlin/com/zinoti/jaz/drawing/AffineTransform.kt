@@ -69,7 +69,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
             val product = matrix * aPoint
 
-            Point.create(product[0, 0], product[1, 0])
+            Point(product[0, 0], product[1, 0])
         }
     }
 

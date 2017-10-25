@@ -54,7 +54,7 @@ class Color private constructor(
 
     private val decimal: Int by lazy { (red shl 16) + (green shl 8) + blue }
 
-    val hexString: String by lazy { decimal.toHex() }
+    val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
     fun darker(times: Int = 1): Color {
         var red   = this.red

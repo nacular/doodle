@@ -3,9 +3,9 @@ package com.zinoti.jaz.geometry
 import kotlin.math.max
 
 
-class Rectangle private constructor(val position: Point, val size : Size): Shape {
+class Rectangle constructor(val position: Point = Point.Origin, val size: Size = Size.Empty): Shape {
 
-    private constructor(x: Double, y: Double, width: Double, height: Double): this(Point.create(x, y), Size.create(width, height))
+    constructor(x: Double, y: Double, width: Double, height: Double): this(Point(x, y), Size(width, height))
 
     val x      get() = position.x
     val y      get() = position.y
@@ -55,7 +55,7 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
             else                                              -> 0.0
         }
 
-        return Rectangle.create(x1, y1, x2 - x1, y2 - y1)
+        return Rectangle(x1, y1, x2 - x1, y2 - y1)
     }
 
     /**
@@ -66,17 +66,17 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
     /**
      * @return a Rectangle with the same width/height but positioned at the given x,y
      */
-    fun at(x: Double, y: Double) = if (this.x != x || this.y != y) Rectangle.create(x, y, width, height) else this
+    fun at(x: Double, y: Double) = if (this.x != x || this.y != y) Rectangle(x, y, width, height) else this
 
     /**
      * @param inset amount to resize by
      * @return a Rectangle that has been adjusted as follows [x + i, y + i, w + 2i, h + 2i], where i is the inset
      */
-    fun inset(inset: Double) = Rectangle.create(x + inset, y + inset, max(0.0, width  - inset * 2), max(0.0, height - inset * 2))
+    fun inset(inset: Double) = Rectangle(x + inset, y + inset, max(0.0, width  - inset * 2), max(0.0, height - inset * 2))
 
     override operator fun contains(point: Point) = point.x in x..x + width && point.y in y..y + height
 
-    override operator fun contains(rectangle: Rectangle) = contains(rectangle.position) && contains(rectangle.position + Point.create(rectangle.width, rectangle.height))
+    override operator fun contains(rectangle: Rectangle) = contains(rectangle.position) && contains(rectangle.position + Point(rectangle.width, rectangle.height))
 
     override fun intersects(rectangle: Rectangle): Boolean {
         return !(x > rectangle.x + rectangle.width  ||
@@ -88,26 +88,26 @@ class Rectangle private constructor(val position: Point, val size : Size): Shape
     override fun toString() = "[$x,$y,$width,$height]"
 
     companion object {
-        /** Creates a Rectangle with 0 width and height at point (0,0). */
-        fun create() = Empty
-
-        /**
-         * Creates a Rectangle instance.
-         *
-         * @param width  The width
-         * @param height The height
-         */
-        fun create(width: Double, height: Double) = Rectangle(0.0, 0.0, width, height)
-
-        /**
-         * Creates a Rectangle instance.
-         *
-         * @param x      The x
-         * @param y      The y
-         * @param width  The width
-         * @param height The height
-         */
-        fun create(x: Double, y: Double, width: Double, height: Double) = Rectangle(x, y, width, height)
+//        /** Creates a Rectangle with 0 width and height at point (0,0). */
+//        fun create() = Empty
+//
+//        /**
+//         * Creates a Rectangle instance.
+//         *
+//         * @param width  The width
+//         * @param height The height
+//         */
+//        fun create(width: Double, height: Double) = Rectangle(0.0, 0.0, width, height)
+//
+//        /**
+//         * Creates a Rectangle instance.
+//         *
+//         * @param x      The x
+//         * @param y      The y
+//         * @param width  The width
+//         * @param height The height
+//         */
+//        fun create(x: Double, y: Double, width: Double, height: Double) = Rectangle(x, y, width, height)
 
 
         val Empty = Rectangle(0.0, 0.0, 0.0, 0.0)

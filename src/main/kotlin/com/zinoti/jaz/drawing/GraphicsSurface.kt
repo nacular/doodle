@@ -8,7 +8,7 @@ interface GraphicsSurface {
     var position: Point
     var size    : Size
     var bounds  : Rectangle
-        get() = Rectangle.create(position.x, position.y, size.width, size.height)
+        get(   ) = Rectangle(position.x, position.y, size.width, size.height)
         set(new) { position = new.position; size = new.size }
     var zIndex  : Int
     var visible : Boolean

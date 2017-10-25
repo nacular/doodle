@@ -72,7 +72,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
             flush()
 
-            val svg = svgFactory.create(sSvg)
+            val svg = svgFactory(sSvg)
 
             svg.shapeRendering = shapeRendering
 
@@ -217,10 +217,10 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private fun drawRect(rectangle: Rectangle, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            !rectangle.empty -> makeClosedPath(Point.create(rectangle.x, rectangle.y),
-                    Point.create(rectangle.x + rectangle.width, rectangle.y),
-                    Point.create(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
-                    Point.create(rectangle.x, rectangle.y + rectangle.height))
+            !rectangle.empty -> makeClosedPath(Point(rectangle.x, rectangle.y),
+                    Point(rectangle.x + rectangle.width, rectangle.y),
+                    Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
+                    Point(rectangle.x, rectangle.y + rectangle.height))
             else -> null
         }
     }
@@ -443,7 +443,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
 
         if (element == null || element.nodeName != tag) {
-            return svgFactory.create(tag)
+            return svgFactory(tag)
         } else if (element is SVGElement) {
             element.removeAll()
             element.removeTransform()

@@ -1,7 +1,7 @@
 package com.zinoti.jaz.geometry
 
 
-class Size private constructor(val width: Double, val height: Double) {
+class Size(val width: Double, val height: Double) {
     init {
         require(width  >= 0) { "Width cannot be negative"  }
         require(height >= 0) { "Height cannot be negative" }
@@ -13,17 +13,6 @@ class Size private constructor(val width: Double, val height: Double) {
     override fun toString(): String = "[$width,$height]"
 
     companion object {
-        /** Creates a (0,0) Dimension. */
-        fun create() = Empty
-
-        /**
-         * Creates a Dimension instance.
-         *
-         * @param width  The width
-         * @param height The height
-         */
-        fun create(width: Double, height: Double) = Size(width, height)
-
         val Empty = Size(0.0, 0.0)
     }
 }

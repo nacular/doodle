@@ -228,23 +228,23 @@ internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory
     }
 
     override fun flipVertically() {
-        scale(Point.create(1.0, -1.0))
+        scale(Point(1.0, -1.0))
     }
 
     override fun flipVertically(around: Double) {
-        translate(Point.create(0.0, around))
+        translate(Point(0.0, around))
         flipVertically()
-        translate(Point.create(0.0, -around))
+        translate(Point(0.0, -around))
     }
 
     override fun flipHorizontally() {
-        scale(Point.create(-1.0, 1.0))
+        scale(Point(-1.0, 1.0))
     }
 
     override fun flipHorizontally(around: Double) {
-        translate(Point.create(around, 0.0))
+        translate(Point(around, 0.0))
         flipHorizontally()
-        translate(Point.create(-around, 0.0))
+        translate(Point(-around, 0.0))
     }
 
     override fun clear() {
@@ -277,13 +277,14 @@ internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory
 
     private fun transform(rectangle: Rectangle): Rectangle {
         if (isTransformed) {
-            val aPoints = transform.transform(*arrayOf(rectangle.position,
-                    Point.create(rectangle.x + rectangle.width, rectangle.y + rectangle.height)))
+            val points = transform.transform(*arrayOf(rectangle.position,
+                    Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height)))
 
-            return Rectangle.create(aPoints[0].x,
-                    aPoints[0].y,
-                    aPoints[1].x - aPoints[0].x,
-                    aPoints[1].y - aPoints[0].y)
+            return Rectangle(
+                    points[0].x,
+                    points[0].y,
+                    points[1].x - points[0].x,
+                    points[1].y - points[0].y)
         }
 
         return rectangle

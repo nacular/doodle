@@ -6,25 +6,24 @@ package com.zinoti.jaz.utils
 
 typealias PropertyObserver<S, T> = (source: S, old: T, new: T) -> Unit
 
-interface PropertyObservers<S, T> {
-    operator fun plus (observer: PropertyObserver<S, T>): PropertyObservers<S, T>
-    operator fun minus(observer: PropertyObserver<S, T>): PropertyObservers<S, T>
+typealias ListObserver<S, T> = (source: ObservableList<S, T>, removed: List<T>, added: List<T>) -> Unit
+
+interface PropertyObservers<out S, out T> {
+    operator fun plusAssign (observer: PropertyObserver<S, T>)
+    operator fun minusAssign(observer: PropertyObserver<S, T>)
 }
 
 class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObserver<S, T>>): MutableSet<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
-    override fun plus(observer: (source: S, old: T, new: T) -> Unit): PropertyObservers<S, T> {
-        mutableSet + observer
-
-        return this
+    override fun plusAssign(observer: (source: S, old: T, new: T) -> Unit) {
+        mutableSet += observer
     }
 
-    override fun minus(observer: (source: S, old: T, new: T) -> Unit): PropertyObservers<S, T> {
-        mutableSet - observer
-
-        return this
+    override fun minusAssign(observer: (source: S, old: T, new: T) -> Unit) {
+        mutableSet -= observer
     }
 }
 
+// TODO: Change so only deltas are reported
 class ObservableList<S, E>(val source: S, private val l: MutableList<E>): MutableList<E> by l {
 
     private val onChange_ = PropertyObserversImpl<ObservableList<S, E>, List<E>>(mutableSetOf())
@@ -58,7 +57,7 @@ class ObservableList<S, E>(val source: S, private val l: MutableList<E>): Mutabl
             return block().also {
                 if (old != this) {
                     onChange_.forEach {
-                        it(this, this, old)
+                        it(this, old, this)
                     }
                 }
             }
