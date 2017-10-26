@@ -10,6 +10,8 @@ class Size(val width: Double, val height: Double) {
     val area  = width * height
     val empty = area == 0.0
 
+    operator fun times(value: Number) = Size(width * value.toDouble(), height * value.toDouble())
+
     override fun toString(): String = "[$width,$height]"
 
     companion object {

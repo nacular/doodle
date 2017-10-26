@@ -52,8 +52,8 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
 
         root.boundsChange += { gizmo, old, new ->
             if (old.size != new.size) {
-                (sizeChange as PropertyObserversImpl<Display, Size>).forEach {
-                    it(this, old.size, new.size)
+                (sizeChange as PropertyObserversImpl<Gizmo, Size>).forEach {
+                    it(gizmo, old.size, new.size)
                 }
             }
         }
@@ -83,7 +83,7 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
 
     override val children get() = root.children
 
-    override val sizeChange: PropertyObservers<Display, Size> = PropertyObserversImpl(mutableSetOf())
+    override val sizeChange: PropertyObservers<Gizmo, Size> = PropertyObserversImpl(mutableSetOf())
 
 //    val childrenByZIndex: List<Gizmo>
 //        get() = ROOT_CONTAINER.getChildrenByZIndex()

@@ -18,7 +18,7 @@ interface Display: Iterable<Gizmo> {
     var layout              : Layout?
     var padding             : Padding
     val children            : ObservableList<Gizmo, Gizmo>
-    val sizeChange          : PropertyObservers<Display, Size>
+    val sizeChange          : PropertyObservers<Gizmo, Size>
     var minimumSize         : Size
 //    var focusTraversalPolicy: FocusTraversalPolicy
 

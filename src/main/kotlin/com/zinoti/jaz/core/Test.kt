@@ -1,24 +1,47 @@
+
 import com.zinoti.jaz.core.Gizmo
 import com.zinoti.jaz.core.impl.DisplayImpl
 import com.zinoti.jaz.dom.HtmlFactoryImpl
 import com.zinoti.jaz.drawing.Canvas
 import com.zinoti.jaz.drawing.Color
+import com.zinoti.jaz.drawing.Color.Companion.blue
+import com.zinoti.jaz.drawing.Color.Companion.green
+import com.zinoti.jaz.drawing.Pen
 import com.zinoti.jaz.drawing.SolidBrush
 import com.zinoti.jaz.drawing.defaultCanvasFactory
 import com.zinoti.jaz.drawing.impl.RealGraphicsDevice
 import com.zinoti.jaz.drawing.impl.RealGraphicsSurfaceFactory
 import com.zinoti.jaz.drawing.impl.RenderManagerImpl
+import com.zinoti.jaz.geometry.Circle
+import com.zinoti.jaz.geometry.Point
 import com.zinoti.jaz.geometry.Rectangle
 import com.zinoti.jaz.geometry.Size
 import com.zinoti.jaz.scheduler.impl.SchedulerImpl
 import com.zinoti.jaz.ui.UIManager
+import com.zinoti.jaz.units.seconds
 import org.w3c.dom.css.get
 import kotlin.browser.document
+import kotlin.math.min
+import kotlin.properties.Delegates
 
 
-class Box: Gizmo() {
+class Box(color: Color = green): Gizmo() {
+    var color by Delegates.observable(color) { _,_,_ ->
+        rerender()
+    }
+
     override fun render(canvas: Canvas) {
-        canvas.rect(Rectangle(size = Size(width, height)), SolidBrush(Color.Green))
+        canvas.rect(Rectangle(size = Size(width, height)), Pen(color.inverted, 2.0), SolidBrush(color))
+    }
+}
+
+class Circle(color: Color = blue): Gizmo() {
+    var color by Delegates.observable(color) { _,_,_ ->
+        rerender()
+    }
+
+    override fun render(canvas: Canvas) {
+        canvas.circle(Circle(Point(width/2, height/2), min(width/2, height/2)), Pen(color.inverted, 2.0), SolidBrush(color))
     }
 }
 
@@ -33,20 +56,35 @@ fun main(args: Array<String>) {
 
     val htmlFactory = HtmlFactoryImpl()
 
-    val display = DisplayImpl(htmlFactory, document.body!!)
+    val display   = DisplayImpl(htmlFactory, document.body!!)
+    val scheduler = SchedulerImpl()
 
-    display.fill(SolidBrush(Color.Red))
+//    display.fill(SolidBrush(Color.red))
 
-    val renderManager = RenderManagerImpl(display,
+    RenderManagerImpl(
+            display,
             DummyUIManager,
-            SchedulerImpl(),
+            scheduler,
             RealGraphicsDevice(RealGraphicsSurfaceFactory(htmlFactory, ::defaultCanvasFactory)))
 
-    val box = Box()
+    val box    = Box()
+    val circle = Circle()
 
-    box.bounds = Rectangle(100.0, 100.0, 100.0, 100.0)
+    box.bounds    = Rectangle(100.0, 100.0, 100.0, 100.0)
+    circle.bounds = Rectangle(100.0, 100.0, 100.0, 100.0)
 
-    display.children.add(box)
+    display.children.addAll(arrayOf(box, circle))
+
+//    display.children.add(box   )
+//    display.children.add(circle)
+
+    scheduler.after(3.seconds) {
+        box.color = blue
+    }
+
+    scheduler.after(5.seconds) {
+        box.size *= 5
+    }
 }
 
 object DummyUIManager: UIManager {

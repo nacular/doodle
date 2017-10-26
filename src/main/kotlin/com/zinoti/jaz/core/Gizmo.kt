@@ -137,9 +137,9 @@ abstract class Gizmo protected constructor() {
     internal val children_ get() = children
     protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
         ObservableList(this, mutableListOf<Gizmo>()).also {
-            it.onChange += { _, old, new ->
-                old.forEach { it.parent = null }
-                new.forEach {
+            it.onChange += { _, removed, added ->
+                removed.map { children[it] }.forEach { it.parent = null }
+                added.values.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }
 

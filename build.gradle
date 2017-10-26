@@ -21,10 +21,10 @@ buildscript {
 
 compileKotlin2Js {
     kotlinOptions.metaInfo              = false
-    kotlinOptions.sourceMap             = false
+    kotlinOptions.sourceMap             = true
     kotlinOptions.outputFile            = "$project.buildDir.path/js/${project.name}.js"
     kotlinOptions.moduleKind            = "commonjs"
-    kotlinOptions.sourceMapEmbedSources = "never"
+    kotlinOptions.sourceMapEmbedSources = "always"
 }
 
 kotlinFrontend {

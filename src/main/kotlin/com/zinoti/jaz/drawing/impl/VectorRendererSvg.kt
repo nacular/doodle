@@ -4,6 +4,7 @@ import com.zinoti.jaz.dom.ShapeRendering
 import com.zinoti.jaz.dom.SvgFactory
 import com.zinoti.jaz.dom.add
 import com.zinoti.jaz.dom.childAt
+import com.zinoti.jaz.dom.index
 import com.zinoti.jaz.dom.numChildren
 import com.zinoti.jaz.dom.parent
 import com.zinoti.jaz.dom.remove
@@ -23,9 +24,9 @@ import com.zinoti.jaz.dom.setStrokeDash
 import com.zinoti.jaz.dom.setStrokeWidth
 import com.zinoti.jaz.dom.setTransform
 import com.zinoti.jaz.dom.setWidth
+import com.zinoti.jaz.dom.setX
+import com.zinoti.jaz.dom.setY
 import com.zinoti.jaz.dom.shapeRendering
-import com.zinoti.jaz.dom.x
-import com.zinoti.jaz.dom.y
 import com.zinoti.jaz.drawing.Brush
 import com.zinoti.jaz.drawing.Font
 import com.zinoti.jaz.drawing.Pen
@@ -38,56 +39,59 @@ import com.zinoti.jaz.geometry.Polygon
 import com.zinoti.jaz.geometry.Rectangle
 import com.zinoti.jaz.image.Image
 import com.zinoti.jaz.utils.isEven
-import org.w3c.dom.HTMLElement
+import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
+import org.w3c.dom.svg.SVGEllipseElement
+import org.w3c.dom.svg.SVGPathElement
+import org.w3c.dom.svg.SVGRectElement
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
 
 class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
 
-    private val svgElement: SVGElement
-        get() {
-            // Clear the remaining elements from existing SVG element
-            // or they will be missed on the final flush
+    private fun getSvgElement(): SVGElement {
+        // Clear the remaining elements from existing SVG element
+        // or they will be missed on the final flush
 
-            var renderPosition = context.renderPosition
+        var renderPosition = context.renderPosition
 
-            while (renderPosition != null && isCompatibleSvgElement(renderPosition.previousSibling)) {
-                renderPosition = renderPosition.previousSibling
-            }
-
-            if (renderPosition is SVGElement && renderPosition.nodeName == sSvg) {
-                if (renderPosition.shapeRendering === shapeRendering) {
-                    return renderPosition
-                }
-            } else {
-                val lastChild = region.lastChild
-
-                if (lastChild is SVGElement && lastChild.nodeName == sSvg && lastChild.shapeRendering === shapeRendering) {
-                    return lastChild
-                }
-            }
-
-            flush()
-
-            val svg = svgFactory(sSvg)
-
-            svg.shapeRendering = shapeRendering
-
-            return svg
+        while (renderPosition != null && isCompatibleSvgElement(renderPosition.previousSibling)) {
+            renderPosition = renderPosition.previousSibling
         }
+
+        if (renderPosition is SVGElement && renderPosition.nodeName == svgTag) {
+            if (renderPosition.shapeRendering === shapeRendering) {
+                return renderPosition
+            }
+        } else {
+            val lastChild = region.lastChild
+
+            if (lastChild is SVGElement && lastChild.nodeName == svgTag && lastChild.shapeRendering === shapeRendering) {
+                return lastChild
+            }
+        }
+
+        flush()
+
+        val svg: SVGElement = svgFactory.create(svgTag)
+
+        svg.shapeRendering = shapeRendering
+
+        return svg
+    }
 
 
     private val region get() = context.renderRegion
 
-    private var shapeRendering = getShapeRendering(context.optimization)
+    private val shapeRendering get() = when (context.optimization) {
+        Optimization.Speed -> ShapeRendering.CrispEdges
+        else               -> ShapeRendering.Auto
+    }
 
-    private var renderPosition
-        get(   ) = context.renderPosition
-        set(new) { context.renderPosition = new }
-
+    private var renderPosition: Node? = null
 
     override fun text(text: String, font: Font, at: Point, brush: Brush) {
         TODO("Implement")
@@ -177,14 +181,15 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     override fun clear() {}
 
     override fun flush() {
-        var element = renderPosition
+        // Remove all elements after the current render position
+        renderPosition?.let {
+            val index = region.index(it)
 
-        while (element != null) {
-            val next = element.nextSibling
-
-            element.parent?.remove(element)
-
-            element = next
+            if (index >= 0) {
+                while (index < region.numChildren) {
+                    region.remove(region.childAt(index)!!)
+                }
+            }
         }
 
         renderPosition = null
@@ -218,9 +223,9 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private fun drawRect(rectangle: Rectangle, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
             !rectangle.empty -> makeClosedPath(Point(rectangle.x, rectangle.y),
-                    Point(rectangle.x + rectangle.width, rectangle.y),
+                    Point(rectangle.x + rectangle.width, rectangle.y                   ),
                     Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
-                    Point(rectangle.x, rectangle.y + rectangle.height))
+                    Point(rectangle.x,                   rectangle.y + rectangle.height))
             else -> null
         }
     }
@@ -268,12 +273,12 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
     }
 
-    private fun makeRect(rectangle: Rectangle): SVGElement {
-        val element = createElement("rect")
+    private fun makeRect(rectangle: Rectangle): SVGRectElement {
+        val element: SVGRectElement = createElement("rect")
 
-        element.x = rectangle.x
-        element.y = rectangle.y
-        element.setWidth(rectangle.width)
+        element.setX    (rectangle.x      )
+        element.setY    (rectangle.y      )
+        element.setWidth(rectangle.width  )
         element.setHeight(rectangle.height)
 
         element.setFill(null)
@@ -283,7 +288,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeRoundedRect(aRectangle: Rectangle, radius: Double): SVGElement {
-        val element = makeRect(aRectangle)
+        val element: SVGRectElement = makeRect(aRectangle)
 
         element.setRX(radius)
         element.setRY(radius)
@@ -295,7 +300,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeCircle(circle: Circle): SVGElement {
-        val element = createElement("circle")
+        val element: SVGCircleElement = createElement("circle")
 
         element.setCX(circle.center.x)
         element.setCY(circle.center.y)
@@ -308,7 +313,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeEllipse(ellipse: Ellipse): SVGElement {
-        val element = createElement("ellipse")
+        val element: SVGEllipseElement = createElement("ellipse")
 
         element.setCX(ellipse.center.x)
         element.setCY(ellipse.center.y)
@@ -322,7 +327,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeArc(center: Point, radius: Double, sweep: Double, rotation: Double): SVGElement {
-        val element = createElement("path")
+        val element: SVGPathElement = createElement("path")
 
         val startX = center.x + radius * cos(rotation)
         val startY = center.y - radius * sin(rotation)
@@ -373,7 +378,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //    }
 
     private fun makePath(path: Path): SVGElement {
-        val element = createElement("path")
+        val element: SVGPathElement = createElement("path")
 
         element.setPathData(path.data)
 
@@ -413,11 +418,11 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         max(0, dash + if (index.isEven) -1 else 1)
     }?.joinToString(",") ?: ""
 
-    private fun createElement(tag: String): SVGElement {
+    private fun <T: SVGElement> createElement(tag: String): T {
         var element: Node? = context.renderPosition
 
         if (element != null) {
-            val previousSibling = element.previousSibling as HTMLElement?
+            val previousSibling = element.previousSibling
 
             when {
                 isCompatibleSvgElement(previousSibling) -> {
@@ -435,22 +440,18 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         } else if (region.numChildren > 0) {
             val last = region.lastChild
 
-            if (last != null && last is SVGElement && last.nodeName == sSvg && last.shapeRendering === shapeRendering) {
+            if (last != null && last is SVGElement && last.nodeName == svgTag && last.shapeRendering === shapeRendering) {
                 context.renderPosition = last
 
                 element = renderPosition
             }
         }
 
-        if (element == null || element.nodeName != tag) {
-            return svgFactory(tag)
-        } else if (element is SVGElement) {
-            element.removeAll()
-            element.removeTransform()
+        return when {
+            element == null || element.nodeName != tag -> svgFactory.create(tag)
+            element is Element                         -> { element.removeAll(); element.removeTransform(); element as T }
+            else                                       -> throw Exception("Error") // FIXME: handle better
         }
-
-        // FIXME: handle better
-        throw Exception("Error")
     }
 
 //    private fun createClipRect(aRectangle: Rectangle): ClipRegion {
@@ -479,30 +480,25 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //        return ClipRegion(aGroup, aId)
 //    }
 
-    private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && sSvg == node.nodeName && node.shapeRendering == shapeRendering
-
-    private fun getShapeRendering(optimization: Optimization) = when (context.optimization) {
-        Optimization.Speed -> ShapeRendering.CrispEdges
-        else               -> ShapeRendering.Auto
-    }
+    private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName && node.shapeRendering == shapeRendering
 
     private fun completeOperation(element: SVGElement) {
         applyTransform(element)
 
-        val svg = svgElement
+        val svg = getSvgElement()
 
-        if (renderPosition == null) {
+        if (context.renderPosition == null) {
             if (svg.parent == null) {
                 region.add(svg)
             }
-        } else if (renderPosition !== svg) {
-            renderPosition!!.parent?.replaceChild(svg, renderPosition!!)
+        } else if (context.renderPosition !== svg) {
+            context.renderPosition?.parent?.replaceChild(svg, context.renderPosition!!)
         }
 
         if (renderPosition == null) {
             svg.add(element)
         } else {
-            val newRenderPosition = renderPosition?.nextSibling as HTMLElement?
+            val newRenderPosition = renderPosition?.nextSibling
 
             if (renderPosition !== element && renderPosition!!.parent === svg) {
                 svg.replaceChild(element, renderPosition!!)
@@ -511,7 +507,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
             renderPosition = newRenderPosition
         }
 
-        context.renderPosition = svg.nextSibling as HTMLElement?
+        context.renderPosition = svg.nextSibling
     }
 
     private class SVGPath: Path("M", "L", "Z")
@@ -655,7 +651,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //                LinearFillHandler
         )
 
-        private val sSvg = "svg"
+        private val svgTag = "svg"
 //        private var sClipId = 0.0
     }
 }

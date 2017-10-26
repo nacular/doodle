@@ -1,6 +1,6 @@
 package com.zinoti.jaz.drawing
 
-import com.zinoti.jaz.dom.defaultSvgFactory
+import com.zinoti.jaz.dom.SvgFactoryImpl
 import com.zinoti.jaz.drawing.impl.CanvasImpl
 import com.zinoti.jaz.drawing.impl.VectorRendererSvg
 import org.w3c.dom.Node
@@ -12,6 +12,6 @@ typealias CanvasFactory = (region: Node) -> Canvas
 
 fun defaultCanvasFactory(region: Node): Canvas {
     return CanvasImpl(region) {
-        VectorRendererSvg(it, ::defaultSvgFactory)
+        VectorRendererSvg(it, SvgFactoryImpl())
     }
 }

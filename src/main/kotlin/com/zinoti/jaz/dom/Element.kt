@@ -9,7 +9,7 @@ inline fun HTMLElement.cloneNode() = cloneNode(true)
 
 fun Node.childAt(index: Int): Node? {
     if( index in 0 until childNodes.length ) {
-        return childNodes[index] as HTMLElement
+        return childNodes[index]
     }
 
     return null

@@ -40,19 +40,16 @@ class RenderManagerImpl(
 
     init {
         display.children.onChange += this::childrenChanged
+        display.sizeChange        += { gizmo, _, _ ->
+
+            gizmo.doLayout_()
+
+            if (displayTree.containsKey(gizmo)) {
+                checkDisplayRectChange(gizmo)
+            }
+        }
 
 //        mDisplay.addContainerListener(mContainerListener)
-//        mDisplay.addBoundsListener(object : BoundsListener() {
-//            fun boundsChanged(aBoundsEvent: BoundsEvent) {
-//                val aContainer = aBoundsEvent.source as Container
-//
-//                aContainer.doLayout()
-//
-//                if (mDisplayTree.containsKey(aContainer)) {
-//                    checkDisplayRectChange(aContainer)
-//                }
-//            }
-//        })
 
         display.forEach { recordGizmo(it) }
     }
@@ -104,7 +101,7 @@ class RenderManagerImpl(
 
     private fun schedulePaint() {
         if (paintTask == null) {
-            paintTask = scheduler.after(sPaintDelay) { onPaint() }
+            paintTask = scheduler.after(paintDelay) { onPaint() }
         }
     }
 
@@ -403,20 +400,12 @@ class RenderManagerImpl(
         uiManager.revalidateUI(gizmo)
     }
 
-    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, old: List<Gizmo>, new: List<Gizmo>) {
+    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: List<Int>, added: Map<Int, Gizmo>) {
         val parent = list.source
 
-        old.forEachIndexed { index, gizmo ->
-            if (index >= new.size || new[index] != gizmo) {
-              childRemoved(parent, gizmo)
-            }
-        }
+        removed.map { parent.children_[it] }.forEach { childRemoved(parent, it) }
 
-        new.forEachIndexed { index, gizmo ->
-            if (index >= old.size || old[index] != gizmo) {
-                childAdded(parent, gizmo)
-            }
-        }
+        added.values.forEach { childAdded(parent, it) }
 
         if (parent.parent != null) {
             parent.revalidate_()
@@ -450,9 +439,7 @@ class RenderManagerImpl(
     private fun boundsChanged(gizmo: Gizmo, old: Rectangle, new: Rectangle) {
         val parent = gizmo.parent
 
-        // Early exit if this event was triggered
-        // by an item as it is being removed from
-        // the container tree.
+        // Early exit if this event was triggered by an item as it is being removed from the container tree.
         //
         // Same for invisible items.
         if (parent == null || !gizmo.visible) {
@@ -642,6 +629,6 @@ class RenderManagerImpl(
 
     companion object {
         // TODO: This may need to be browser specific
-        private val sPaintDelay = 0.seconds
+        private val paintDelay = 0.seconds
     }
 }

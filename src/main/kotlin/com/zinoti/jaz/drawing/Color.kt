@@ -5,9 +5,9 @@ import kotlin.math.min
 
 private fun Int.toHex(): String {
 
-    var i        = this
-    var hash     = ""
-    val alphabet = "0123456789abcdef"
+    var i              = this
+    var hash           = ""
+    val alphabet       = "0123456789abcdef"
     val alphabetLength = alphabet.length
 
     do {
@@ -62,9 +62,9 @@ class Color(
         var blue  = this.blue
 
         for (i in 0 until times) {
-            red   = max(0f, red   * sScaleFactor).toInt()
-            green = max(0f, green * sScaleFactor).toInt()
-            blue  = max(0f, blue  * sScaleFactor).toInt()
+            red   = max(0f, red   * scaleFactor).toInt()
+            green = max(0f, green * scaleFactor).toInt()
+            blue  = max(0f, blue  * scaleFactor).toInt()
         }
 
         return Color(red, green, blue, opacity)
@@ -75,16 +75,16 @@ class Color(
         var green = this.green
         var blue  = this.blue
 
-        val i = (1.0 / (1.0 - sScaleFactor)).toInt()
+        val i = (1.0 / (1.0 - scaleFactor)).toInt()
 
         if (red == 0 && green == 0 && blue == 0) {
             return Color(i, i, i, opacity)
         }
 
         for (j in 0 until times) {
-            red   = min(red   / sScaleFactor, 255f).toInt()
-            green = min(green / sScaleFactor, 255f).toInt()
-            blue  = min(blue  / sScaleFactor, 255f).toInt()
+            red   = min(red   / scaleFactor, 255f).toInt()
+            green = min(green / scaleFactor, 255f).toInt()
+            blue  = min(blue  / scaleFactor, 255f).toInt()
 
             if (red   in 1 until i) { red   = i }
             if (green in 1 until i) { green = i }
@@ -113,35 +113,21 @@ class Color(
     }
 
     companion object {
-        /** ff0000  */
-        val Red = Color("ff0000")
-        /** ffc0cb  */
-        val Pink = Color("ffc0cb")
-        /** 0000ff  */
-        val Blue = Color("0000ff")
-        /** 00ffff  */
-        val Cyan = Color("00ffff")
-        /** a9a9a9  */
-        val Gray = Color("a9a9a9")
-        /** 000000  */
-        val Black = Color("000000")
-        /** 00ff00  */
-        val Green = Color("00ff00")
-        /** ffffff  */
-        val White = Color("ffffff")
-        /** ffff00  */
-        val Yellow = Color("ffff00")
-        /** ffa500  */
-        val Orange = Color("ffa500")
-        /** ff00ff  */
-        val Magenta = Color("ff00ff")
-        /** 808080  */
-        val DarkGray = Color("808080")
-        /** d3d3d3  */
-        val LightGray = Color("d3d3d3")
+        val red         = Color("ff0000")
+        val pink        = Color("ffc0cb")
+        val blue        = Color("0000ff")
+        val cyan        = Color("00ffff")
+        val gray        = Color("a9a9a9")
+        val black       = Color("000000")
+        val green       = Color("00ff00")
+        val white       = Color("ffffff")
+        val yellow      = Color("ffff00")
+        val orange      = Color("ffa500")
+        val magenta     = Color("ff00ff")
+        val darkgray    = Color("808080")
+        val lightgray   = Color("d3d3d3")
+        val Transparent = black.with(0f)
 
-        val Transparent = Color("000000", 0f)
-
-        private val sScaleFactor = 0.9f
+        private val scaleFactor = 0.9f
     }
 }

@@ -8,7 +8,7 @@ import com.zinoti.jaz.dom.numChildren
 import com.zinoti.jaz.dom.parent
 import com.zinoti.jaz.dom.remove
 import com.zinoti.jaz.dom.top
-import com.zinoti.jaz.drawing.AffineTransform
+import com.zinoti.jaz.drawing.AffineTransform.Companion.Identity
 import com.zinoti.jaz.drawing.Brush
 import com.zinoti.jaz.drawing.Canvas
 import com.zinoti.jaz.drawing.Canvas.ImageData
@@ -28,7 +28,7 @@ import org.w3c.dom.Node
 
 internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
     override var size           = Size.Empty
-    override var transform      = AffineTransform.Identity
+    override var transform      = Identity
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
 
@@ -266,7 +266,7 @@ internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory
 
         vectorRenderer.flush()
 
-        transform = AffineTransform.Identity
+        transform = Identity
     }
 
     private val canTransformFilledRect get() =
