@@ -16,6 +16,7 @@ import com.nectar.doodle.dom.width
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.SolidBrush
 import com.nectar.doodle.drawing.TextureBrush
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.PropertyObservers
@@ -60,8 +61,8 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
     }
 
 
-    override var cursor: Cursor
-        get(   ) = root.cursor ?: Cursor.DEFAULT
+    override var cursor: Cursor?
+        get(   ) = root.cursor
         set(new) { root.cursor = new }
 
     val width  get() = size.width
@@ -116,6 +117,8 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
     }
 
     override fun isAncestor(gizmo: Gizmo) = root.isAncestor(gizmo)
+
+    override fun child(at: Point): Gizmo? = root.child(at)
 
     operator fun contains(aGizmo: Gizmo) = root.contains(aGizmo)
 

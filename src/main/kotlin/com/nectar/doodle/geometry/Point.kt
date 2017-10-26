@@ -3,7 +3,8 @@ package com.nectar.doodle.geometry
 
 class Point(val x: Double, val y: Double) {
 
-    operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+    operator fun plus (other: Point) = Point(x + other.x, y + other.y)
+    operator fun minus(other: Point) = Point(x - other.x, y - other.y)
 
     operator fun unaryMinus() = Point(-x, -y)
 

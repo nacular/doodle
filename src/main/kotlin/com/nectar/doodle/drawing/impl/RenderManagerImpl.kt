@@ -216,7 +216,7 @@ class RenderManagerImpl(
                     wasRendered = true
                 }
 
-                gizmo.childrenByZIndex_.reversed().forEach {
+                gizmo.children_.reversed().forEach {
                     performRender(it)
                 }
 

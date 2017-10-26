@@ -21,11 +21,39 @@ package com.nectar.doodle.containers
  * @author Nicholas Eddy
  */
 
-class Padding private constructor(
-        val top   : Double,
-        val left  : Double,
-        val bottom: Double,
-        val right : Double) {
+class Padding
+
+    /**
+     * Creates a Padding with the specified offsets for each side.
+     *
+     * @param top    The top offset
+     * @param left   The left offset
+     * @param bottom The bottom offset
+     * @param right  The right offset
+     * @return a Padding with the respective offsets
+     */
+    constructor(val top: Double, val left: Double, val bottom: Double, val right: Double) {
+
+    /**
+     * Creates a Padding that defines no offset from
+     * the edges of the Container.
+     *
+     * This factory method provides a useful alternative
+     * to a null Padding instance.
+     *
+     * @return
+     */
+    constructor(): this(0.0)
+
+
+    /**
+     * Creates a Padding with equal offset from all edges.
+     * This is equivalent to calling [.create]
+     *
+     * @param value The offset to use for top, left, bottom, and right
+     * @return a Padding with equal offset from all edges
+     */
+    constructor(value: Double): this(value, value, value, value)
 
     init {
         require(top    >= 0) { "Top cannot be negative"    }
@@ -42,49 +70,16 @@ class Padding private constructor(
         }
 
         if (other is Padding) {
-            val aPadding = other as Padding?
-
-            return top == aPadding!!.top &&
-                    left == aPadding.left &&
-                    right == aPadding.right &&
-                    bottom == aPadding.bottom
+            return top    == other.top   &&
+                   left   == other.left  &&
+                   right  == other.right &&
+                   bottom == other.bottom
         }
 
         return false
     }
 
     companion object {
-        /**
-         * Creates a Padding that defines no offset from
-         * the edges of the Container.
-         *
-         * This factory method provides a useful alternative
-         * to a null Padding instance.
-         *
-         * @return
-         */
-        fun create(): Padding = NO_PADDING
-
-        /**
-         * Creates a Padding with equal offset from all edges.
-         * This is equivalent to calling [.create]
-         *
-         * @param aValue The offset to use for top, left, bottom, and right
-         * @return a Padding with equal offset from all edges
-         */
-        fun create(aValue: Double): Padding = Padding(aValue, aValue, aValue, aValue)
-
-        /**
-         * Creates a Padding with the specified offsets for each side.
-         *
-         * @param aTop    The top offset
-         * @param aLeft   The left offset
-         * @param aBottom The bottom offset
-         * @param aRight  The right offset
-         * @return a Padding with the respective offsets
-         */
-        fun create(aTop: Double, aLeft: Double, aBottom: Double, aRight: Double): Padding = Padding(aTop, aLeft, aBottom, aRight)
-
-        val NO_PADDING = Padding(0.0, 0.0, 0.0, 0.0)
+        val None = Padding(0.0)
     }
 }

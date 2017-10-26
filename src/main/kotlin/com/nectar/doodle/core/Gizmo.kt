@@ -19,6 +19,12 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.SystemMouseEvent.Type.Down
+import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
+import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
+import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
+import com.nectar.doodle.system.SystemMouseEvent.Type.Move
+import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.ui.UIManager
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObservers
@@ -44,7 +50,6 @@ private class ObservableProperty<T>(initial: T, val owner: () -> Gizmo, val obse
  *
  * @author Nicholas Eddy
  */
-
 abstract class Gizmo protected constructor() {
 
     var hasFocus = false
@@ -65,7 +70,8 @@ abstract class Gizmo protected constructor() {
         get() = layout?.idealSize(this) ?: field
     var minimumSize: Size = Size.Empty
         get() = layout?.idealSize(this) ?: field
-    val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Rectangle.Empty
+
+    val displayRect get() = renderManager?.displayRect(this) ?: Rectangle.Empty
 
     var toolTipText: String = ""
         private set
@@ -94,7 +100,6 @@ abstract class Gizmo protected constructor() {
 
     var foregroundColor: Color? = null
         get() = field ?: parent?.foregroundColor
-
 
     var backgroundColor: Color? = null
         get() = field ?: parent?.backgroundColor
@@ -128,9 +133,9 @@ abstract class Gizmo protected constructor() {
     var bounds: Rectangle by ObservableProperty(Rectangle.Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
 
     // ================= Container ================= //
-    protected open var padding: Padding = Padding.NO_PADDING
+    protected open var padding: Padding = Padding.None
 
-    protected open var layout: Layout? by Delegates.observable<Layout?>(null) { _, old, new ->
+    protected open var layout: Layout? by Delegates.observable<Layout?>(null) { _, _, new ->
         new?.layout(this)
     }
 
@@ -149,8 +154,8 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    internal val childrenByZIndex_ get() = childrenByZIndex
-    protected val childrenByZIndex: List<Gizmo> get() = childrenZ
+//    internal val childrenByZIndex_ get() = childrenByZIndex
+//    protected val childrenByZIndex: List<Gizmo> get() = childrenZ
 
     /**
      * Tells whether this Container is an ancestor of the Gizmo.
@@ -176,7 +181,7 @@ abstract class Gizmo protected constructor() {
         return false
     }
 
-    private val childrenZ: MutableList<Gizmo> by lazy { mutableListOf<Gizmo>() }
+//    private val childrenZ: MutableList<Gizmo> by lazy { mutableListOf<Gizmo>() }
 
     protected open var isFocusCycleRoot: Boolean = false
 
@@ -260,24 +265,17 @@ abstract class Gizmo protected constructor() {
     /**
      * Sets the z-index for the given Gizmo.
      *
-     * @param gizmo The Gizmo
+     * @param of The Gizmo
      * @param index the new z-index
      *
      * @throws IndexOutOfBoundsException if `aIndex < 0 || aIndex > this.getNumChildren()`
      */
 
-    protected fun setChildZIndex(gizmo: Gizmo, index: Int) {
-//        Preconditions.checkElementIndex(aIndex, numChildren)
-
-        if (childrenZ.contains(gizmo) && index != getChildZIndex(gizmo)) {
-            childrenZ.remove(gizmo)
-            childrenZ.add(index, gizmo)
-
-            val aChanges = ArrayList<Pair<Gizmo, Int>>()
-
-            aChanges.add(Pair(gizmo, index))
-
-//            informContainerListeners(ContainerEvent(this, ContainerEvent.Type.Z_INDEX, aChanges))
+    protected fun setZIndex(of: Gizmo, index: Int) {
+        // TODO: Make this a bit more efficient
+        if (children.contains(of) && index != zIndex(of)) {
+            children.remove(of)
+            children.add(index, of)
         }
     }
 
@@ -288,11 +286,8 @@ abstract class Gizmo protected constructor() {
      * @return The z-index (-1 if the Gizmo is not a child)
      */
 
-    internal fun getChildZIndex_(gizmo: Gizmo) = getChildZIndex(gizmo)
-
-    protected fun getChildZIndex(gizmo: Gizmo): Int {
-        return childrenZ.indexOf(gizmo)
-    }
+    internal fun zIndex_(of: Gizmo) = zIndex(of)
+    protected fun zIndex(of: Gizmo) = children.size - children.indexOf(of)
 
     /**
      * Gets the Gizmo at the given point.
@@ -301,7 +296,8 @@ abstract class Gizmo protected constructor() {
      * @return The child (null if no child contains the given point)
      */
 
-    protected fun child(at: Point): Gizmo? = layout?.childAtPoint(this, at) ?: childrenZ.firstOrNull { it.visible && it.containsPoint(at) }
+    internal fun child_(at: Point) = child(at)
+    protected open fun child(at: Point): Gizmo? = layout?.childAtPoint(this, at) ?: children.lastOrNull { it.visible && it.contains(at) }
 
 //    var dropHandler: DropHandler? = null
 //        set(new) {
@@ -367,67 +363,65 @@ abstract class Gizmo protected constructor() {
      */
 
     internal fun handleDisplayRectEvent(event: DisplayRectEvent) {
-//        CollectionVisitHandler.visitElements(getListeners(DisplayRectListener::class.java)) { it.displayRectChanged(aEvent) }
     }
+
+    internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 
     /**
      * This is an event invoked on a Gizmo in response to a key event triggered in the subsystem.
      *
      * @param event The event
      */
-
-    internal fun handleKeyEvent(event: KeyEvent) {
+    protected open fun handleKeyEvent(event: KeyEvent) {
         val visitor: (KeyListener) -> Unit = when (event.type) {
             KeyEvent.Type.UP    -> { l -> l.keyReleased(event) }
             KeyEvent.Type.DOWN  -> { l -> l.keyPressed (event) }
             KeyEvent.Type.PRESS -> { l -> l.keyTyped   (event) }
         }
-
-//        CollectionVisitHandler.visitElements(getListeners(KeyListener::class.java), visitor)
     }
+
+    internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
 
     /**
      * This is an event invoked on a Gizmo in response to a mouse event triggered in the subsystem.
      *
      * @param event The event
      */
-
-    internal fun handleMouseEvent(event: MouseEvent) {
+    protected open fun handleMouseEvent(event: MouseEvent) {
         val visitor: (MouseListener) -> Unit = when (event.type) {
-            MouseEvent.Type.Up    -> { l -> l.mouseReleased(event) }
-            MouseEvent.Type.Down  -> { l -> l.mousePressed (event) }
-            MouseEvent.Type.Exit  -> { l -> l.mouseExited  (event) }
-            MouseEvent.Type.Enter -> { l -> l.mouseEntered (event) }
-            else                  -> return
+            Up    -> { l -> l.mouseReleased(event) }
+            Down  -> { l -> l.mousePressed (event) }
+            Exit  -> { l -> l.mouseExited  (event) }
+            Enter -> { l -> l.mouseEntered (event) }
+            else  -> return
         }
-//
-//        CollectionVisitHandler.visitElements(getListeners(MouseListener::class.java), visitor)
+
+        mouseListeners.forEach(visitor)
     }
+
+    internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
 
     /**
      * This is an event invoked on a Gizmo in response to a mouse-motion event triggered in the subsystem.
      *
      * @param event The event
      */
-
-    internal fun handleMouseMotionEvent(event: MouseEvent) {
+    protected open fun handleMouseMotionEvent(event: MouseEvent) {
         val visitor: (MouseMotionListener) -> Unit = when (event.type) {
-            MouseEvent.Type.Move -> { l -> l.mouseMoved  (event) }
-            MouseEvent.Type.Drag -> { l -> l.mouseDragged(event) }
-            else                 -> return
+            Move -> { l -> l.mouseMoved  (event) }
+            Drag -> { l -> l.mouseDragged(event) }
+            else -> return
         }
-
-//        CollectionVisitHandler.visitElements(getListeners(MouseMotionListener::class.java), visitor)
     }
+
+    internal fun handleMouseWheelEvent_(event: MouseWheelEvent) = handleMouseWheelEvent(event)
 
     /**
      * This is an event invoked on a Gizmo in response to a mouse wheel event triggered in the subsystem.
      *
      * @param event The event
      */
-
-    internal fun handleMouseWheelEvent(event: MouseWheelEvent) {
-//        CollectionVisitHandler.visitElements(getListeners(MouseWheelListener::class.java)) { it.mouseWheelMoved(aMouseWheelEvent) }
+    protected open fun handleMouseWheelEvent(event: MouseWheelEvent) {
     }
 
     /**
@@ -513,7 +507,7 @@ abstract class Gizmo protected constructor() {
      * @return true if the point falls within the Gizmo
      */
 
-    fun containsPoint(point: Point): Boolean = false //(ui as UI<Gizmo>?)?.containsPoint(this, point) ?: bounds.contains(point)
+    open fun contains(point: Point): Boolean = bounds.contains(point) //(ui as UI<Gizmo>?)?.contains(this, point) ?: bounds.contains(point)
 
     /**
      * Sets the bounding rectangle.
@@ -592,20 +586,44 @@ abstract class Gizmo protected constructor() {
 //        setDisplayRectHandlingReqiured(aIsDisplayRectHandlingEnabled, displayRectHandlingEnabled)
     }
 
+    fun toLocal(point: Point, from: Gizmo): Point {
+        val source      = from.toAbsolute(point       )
+        val destination = this.toAbsolute(Point.Origin)
+
+        return source - destination
+    }
+
+    fun toAbsolute  (point: Point) = modifyHierarchicically(point) { p, gizmo -> p + gizmo.position }
+    fun fromAbsolute(point: Point) = modifyHierarchicically(point) { p, gizmo -> p - gizmo.position }
+
+    private fun modifyHierarchicically(point: Point, operation: (Point, Gizmo) -> Point): Point {
+        var gizmo  = this as Gizmo?
+        var result = point
+
+        while (gizmo != null) {
+            result = operation(result, gizmo)
+            gizmo  = gizmo.parent
+        }
+
+        return result
+    }
+
 //    operator fun plus (listener: KeyListener        ): Gizmo = this.also { listeners.add   (listener, KeyListener::class.java        ) }
 //    operator fun minus(listener: KeyListener        ): Gizmo = this.also { listeners.remove(listener, KeyListener::class.java        ) }
 //
 //    operator fun plus (listener: FocusListener      ): Gizmo = this.also { listeners.add   (listener, FocusListener::class.java      ) }
 //    operator fun minus(listener: FocusListener      ): Gizmo = this.also { listeners.remove(listener, FocusListener::class.java      ) }
 //
-//    operator fun plus (listener: MouseListener      ): Gizmo = this.also { listeners.add   (listener, MouseListener::class.java      ) }
-//    operator fun minus(listener: MouseListener      ): Gizmo = this.also { listeners.remove(listener, MouseListener::class.java      ) }
+    operator fun plusAssign (listener: MouseListener) { mouseListeners += listener }
+    operator fun minusAssign(listener: MouseListener) { mouseListeners -= listener }
 //
 //    operator fun plus (listener: MouseMotionListener): Gizmo = this.also { listeners.add   (listener, MouseMotionListener::class.java) }
 //    operator fun minus(listener: MouseMotionListener): Gizmo = this.also { listeners.remove(listener, MouseMotionListener::class.java) }
 //
 //    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
+
+    private val mouseListeners = mutableSetOf<MouseListener>()
 
     /**
      * @param aType

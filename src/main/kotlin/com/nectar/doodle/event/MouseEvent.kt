@@ -2,6 +2,9 @@ package com.nectar.doodle.event
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.system.SystemInputEvent.Modifier
+import com.nectar.doodle.system.SystemMouseEvent.Button
+import com.nectar.doodle.system.SystemMouseEvent.Type
 
 
 class MouseEvent(
@@ -10,7 +13,7 @@ class MouseEvent(
         val location  : Point,
         val buttons   : Set<Button>,
         val clickCount: Int,
-        modifiers     : Set<Modifier>) : InputEvent(source, modifiers) {
+        modifiers     : Set<Modifier>): InputEvent(source, modifiers) {
 
     constructor(
             source    : Gizmo,
@@ -20,7 +23,5 @@ class MouseEvent(
             clickCount: Int,
             modifiers : Set<Modifier>): this(source, type, location, setOf(button), clickCount, modifiers)
 
-    enum class Type { Up, Down, Move, Exit, Drag, Click, Enter }
-
-    enum class Button { Button1, Button2, Button3 }
+    override fun toString() = "${this::class.simpleName} -> ${source::class.simpleName}: $type $location $buttons"
 }

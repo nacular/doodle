@@ -1,6 +1,7 @@
 package com.nectar.doodle.event
 
 import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.system.SystemInputEvent.Modifier
 
 
 class KeyEvent(source: Gizmo, val keyCode: Short, val keyChar: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {

@@ -4,6 +4,7 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.dom.Display
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
+import com.nectar.doodle.dom.hasAutoOverflow
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
@@ -18,7 +19,6 @@ import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.Node
 import kotlin.browser.document
 
 
@@ -90,7 +90,7 @@ class RealGraphicsSurface private constructor(
 
     override var position = Point.Origin
         set(new) {
-            rootElement.parent?.let { it.takeIf { !hasAutoOverflow(it) }?.let {
+            rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
                 rootElement.style.left = "${new.x}px"
                 rootElement.style.top  = "${new.y}px"
             } }
@@ -98,7 +98,7 @@ class RealGraphicsSurface private constructor(
 
     override var size = Size.Empty
         set(new) {
-            rootElement.parent?.let { it.takeIf { !hasAutoOverflow(it) }?.let {
+            rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
                 rootElement.style.width  = "${new.width}px"
                 rootElement.style.height = "${new.height}px"
             } }
@@ -142,6 +142,4 @@ class RealGraphicsSurface private constructor(
         rootElement.remove(child.rootElement)
         rootElement.insert(child.rootElement, rootElement.numChildren - index)
     }
-
-    private fun hasAutoOverflow(element: Node) = element is HTMLElement && element.style.overflowWrap != ""
 }

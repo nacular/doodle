@@ -38,6 +38,8 @@ inline val HTMLElement.left   get() = offsetLeft.toDouble  ()
 inline val HTMLElement.width  get() = offsetWidth.toDouble ()
 inline val HTMLElement.height get() = offsetHeight.toDouble()
 
+inline val Node.hasAutoOverflow get() = this is HTMLElement && style.overflowWrap != ""
+
 
 //    public static final class Type extends JavaScriptObject
 //    {

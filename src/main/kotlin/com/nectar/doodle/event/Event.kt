@@ -6,7 +6,6 @@ abstract class Event<out T> protected constructor(val source: T) {
      *
      * @return true if consumed
      */
-
     var consumed: Boolean = false
         private set
 
@@ -14,7 +13,6 @@ abstract class Event<out T> protected constructor(val source: T) {
      * Sets an event's state to consumed.  Consuming an event prevents the default
      * handling by its source.
      */
-
     fun consume() {
         consumed = true
     }

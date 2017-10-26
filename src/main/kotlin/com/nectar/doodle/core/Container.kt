@@ -1,5 +1,7 @@
 package com.nectar.doodle.core
 
+import com.nectar.doodle.geometry.Point
+
 
 class Container: Gizmo(), Iterable<Gizmo> {
     init {
@@ -24,4 +26,6 @@ class Container: Gizmo(), Iterable<Gizmo> {
     public override val children = super.children
 
     public override fun isAncestor(of: Gizmo) = super.isAncestor(of)
+
+    public override fun child(at: Point) = super.child(at)
 }
