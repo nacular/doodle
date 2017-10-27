@@ -1,7 +1,5 @@
 package com.nectar.doodle.units
 
-import com.nectar.doodle.utils.min
-
 /**
  * Created by Nicholas Eddy on 10/19/17.
  */
@@ -28,7 +26,7 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>) {
     operator fun div  (value: Double) = magnitude / value
 
     operator fun plus(other: Measure<T>): Measure<T> {
-        val resultUnit = min(unit, other.unit)
+        val resultUnit = minOf(unit, other.unit)
 
         return Measure((this `in` resultUnit) + (other `in` resultUnit), resultUnit)
     }
