@@ -27,8 +27,10 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.ui.UIManager
 import com.nectar.doodle.utils.ObservableList
+import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
+import com.nectar.doodle.utils.SetPool
 import kotlin.properties.Delegates
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -41,6 +43,12 @@ private class ObservableProperty<T>(initial: T, val owner: () -> Gizmo, val obse
     }
 }
 
+
+interface EventSource {
+    val mouseChanged      : Pool<MouseListener>
+    val mouseMotionChanged: Pool<MouseMotionListener>
+}
+
 /**
  * The smallest unit of displayable, interactive content within the framework.
  * Gizmos are the visual entities used to display components for an application.
@@ -50,7 +58,7 @@ private class ObservableProperty<T>(initial: T, val owner: () -> Gizmo, val obse
  *
  * @author Nicholas Eddy
  */
-abstract class Gizmo protected constructor() {
+abstract class Gizmo protected constructor(): EventSource {
 
     var hasFocus = false
         private set
@@ -396,7 +404,7 @@ abstract class Gizmo protected constructor() {
             else  -> return
         }
 
-        mouseListeners.forEach(visitor)
+        mouseChanged.forEach(visitor)
     }
 
     internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
@@ -412,6 +420,8 @@ abstract class Gizmo protected constructor() {
             Drag -> { l -> l.mouseDragged(event) }
             else -> return
         }
+
+        mouseMotionChanged.forEach(visitor)
     }
 
     internal fun handleMouseWheelEvent_(event: MouseWheelEvent) = handleMouseWheelEvent(event)
@@ -614,8 +624,8 @@ abstract class Gizmo protected constructor() {
 //    operator fun plus (listener: FocusListener      ): Gizmo = this.also { listeners.add   (listener, FocusListener::class.java      ) }
 //    operator fun minus(listener: FocusListener      ): Gizmo = this.also { listeners.remove(listener, FocusListener::class.java      ) }
 //
-    operator fun plusAssign (listener: MouseListener) { mouseListeners += listener }
-    operator fun minusAssign(listener: MouseListener) { mouseListeners -= listener }
+//    operator fun plusAssign (listener: MouseListener) { mouseEvents += listener }
+//    operator fun minusAssign(listener: MouseListener) { mouseEvents -= listener }
 //
 //    operator fun plus (listener: MouseMotionListener): Gizmo = this.also { listeners.add   (listener, MouseMotionListener::class.java) }
 //    operator fun minus(listener: MouseMotionListener): Gizmo = this.also { listeners.remove(listener, MouseMotionListener::class.java) }
@@ -623,7 +633,8 @@ abstract class Gizmo protected constructor() {
 //    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
 
-    private val mouseListeners = mutableSetOf<MouseListener>()
+    override val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
+    override val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
 
     /**
      * @param aType

@@ -21,7 +21,6 @@ class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObs
     }
 }
 
-
 typealias ListObserver<S, T> = (source: ObservableList<S, T>, removed: List<Int>, added: Map<Int, T>) -> Unit
 
 interface ListObservers<S, T> {
@@ -130,4 +129,14 @@ class ObservableList<S, E>(val source: S, private val list: MutableList<E>): Mut
             }
         }
     }
+}
+
+interface Pool<in T> {
+    operator fun plusAssign (item: T)
+    operator fun minusAssign(item: T)
+}
+
+class SetPool<T>(private val delegate: MutableSet<T>): Pool<T>, MutableSet<T> by delegate {
+    override fun plusAssign (item: T) { delegate += item }
+    override fun minusAssign(item: T) { delegate += item }
 }

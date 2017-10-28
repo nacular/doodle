@@ -100,9 +100,11 @@ class RenderManagerImpl(
     }
 
     private fun schedulePaint() {
-        if (paintTask == null) {
-            paintTask = scheduler.after(paintDelay) { onPaint() }
-        }
+        // TODO: Need to see whether this will be an issue for setups
+        onPaint()
+//        if (paintTask == null) {
+//            paintTask = scheduler.after(paintDelay) { onPaint() }
+//        }
     }
 
     private fun render(gizmo: Gizmo, ignoreEmptyBounds: Boolean) {

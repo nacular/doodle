@@ -14,6 +14,18 @@ class Size(val width: Double, val height: Double) {
 
     override fun toString(): String = "[$width,$height]"
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Size) return false
+
+        if (width  != other.width ) return false
+        if (height != other.height) return false
+
+        return true
+    }
+
+    override fun hashCode() = arrayOf(width, height).contentHashCode()
+
     companion object {
         val Empty = Size(0.0, 0.0)
     }

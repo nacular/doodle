@@ -38,7 +38,6 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
 //        private val sStyles = GWT.create(GraphicsStyles::class.java)
 //        private val sCanvas = GraphicsService.locator().getGraphicsDevice().create(canvasElement).getCanvas()
 
-
     init {
 //            sStyles.init()
 

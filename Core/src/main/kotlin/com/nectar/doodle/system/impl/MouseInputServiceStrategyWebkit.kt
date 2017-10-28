@@ -132,8 +132,7 @@ class MouseInputServiceStrategyWebkit(private val elementFactory: HtmlFactory): 
         val isNativeElement = isNativeElement(event.target as Node)
 
         if (!isNativeElement) {
-            overlay!!.style.top  = "${mouseY - 1}px"
-            overlay!!.style.left = "${mouseX - 1}px"
+            overlay!!.style.transform = "translate(${mouseX - 1}px, ${mouseY - 1}px)"
         }
 
         eventHandler!!.handle(createMouseEvent(event, Move, 0))
