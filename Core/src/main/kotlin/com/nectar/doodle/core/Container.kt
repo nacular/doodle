@@ -10,9 +10,9 @@ class Container: Gizmo(), Iterable<Gizmo> {
 
     override fun iterator() = children.iterator()
 
-    public override var padding
-        get(   ) = super.padding
-        set(new) { super.padding = new }
+    public override var insets
+        get(   ) = super.insets
+        set(new) { super.insets = new }
 
     public override var layout
         get(   ) = super.layout

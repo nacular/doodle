@@ -87,29 +87,23 @@ class Rectangle constructor(val position: Point = Point.Origin, val size: Size =
 
     override fun toString() = "[$x,$y,$width,$height]"
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Rectangle) return false
+
+        if (position != other.position) return false
+        if (size != other.size) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = position.hashCode()
+        result = 31 * result + size.hashCode()
+        return result
+    }
+
     companion object {
-//        /** Creates a Rectangle with 0 width and height at point (0,0). */
-//        fun create() = Empty
-//
-//        /**
-//         * Creates a Rectangle instance.
-//         *
-//         * @param width  The width
-//         * @param height The height
-//         */
-//        fun create(width: Double, height: Double) = Rectangle(0.0, 0.0, width, height)
-//
-//        /**
-//         * Creates a Rectangle instance.
-//         *
-//         * @param x      The x
-//         * @param y      The y
-//         * @param width  The width
-//         * @param height The height
-//         */
-//        fun create(x: Double, y: Double, width: Double, height: Double) = Rectangle(x, y, width, height)
-
-
         val Empty = Rectangle(0.0, 0.0, 0.0, 0.0)
     }
 }

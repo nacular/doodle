@@ -1,6 +1,6 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.containers.Padding
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
@@ -69,9 +69,9 @@ class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement:
 
     override val size = root.size
 
-    override var padding: Padding
-        get(   ) = root.padding
-        set(new) { root.padding = new }
+    override var insets: Insets
+        get(   ) = root.insets
+        set(new) { root.insets = new }
 
     override var minimumSize: Size
         get(   ) = root.minimumSize

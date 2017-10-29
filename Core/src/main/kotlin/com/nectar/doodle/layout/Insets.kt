@@ -1,12 +1,12 @@
-package com.nectar.doodle.containers
+package com.nectar.doodle.layout
 
 
 /**
- * Represents the region within a Container's boundary that
+ * Represents the region within a Gizmo's boundary that
  * should be used to bound it's contents.  Each of the 4 sides
  * are specified independently as follows:
  *
- * container
+ * Gizmo
  * +-------------------+
  * |       t           |
  * |   +---------+     |
@@ -21,7 +21,7 @@ package com.nectar.doodle.containers
  * @author Nicholas Eddy
  */
 
-class Padding
+class Insets
 
     /**
      * Creates a Padding with the specified offsets for each side.
@@ -69,7 +69,7 @@ class Padding
             return true
         }
 
-        if (other is Padding) {
+        if (other is Insets) {
             return top    == other.top   &&
                    left   == other.left  &&
                    right  == other.right &&
@@ -80,6 +80,6 @@ class Padding
     }
 
     companion object {
-        val None = Padding(0.0)
+        val None = Insets(0.0)
     }
 }

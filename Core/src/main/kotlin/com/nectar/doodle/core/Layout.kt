@@ -46,13 +46,13 @@ interface Layout {
      *
      * @param gizmo The Gizmo to lay out
      */
-
     fun layout(gizmo: Gizmo)
 
     /**
      * Returns the minimum size of the Gizmo based on its contents.
      *
      * @param  gizmo The Gizmo being investigated
+     * @param  default The size to use if one can't be calculated
      * @return the minimum size
      */
     fun minimumSize(gizmo: Gizmo, default: Size = Size.Empty): Size = default
@@ -61,19 +61,19 @@ interface Layout {
      * Returns the ideal size of the Gizmo based on its contents.
      *
      * @param  gizmo The Gizmo being investigated
+     * @param  default The size to use if one can't be calculated
      * @return the ideal size
      */
     fun idealSize(gizmo: Gizmo, default: Size? = null): Size? = default
 
     /**
-     * Gets the Gizmo within the Gizmo at the given point.
+     * Gets the child within the Gizmo at the given point.
      *
-     * @param gizmo the Gizmo
-     * @param point The point
+     * @param of the Gizmo
+     * @param at The point
      * @return The child (null if no child contains the given point)
      */
-
-    fun childAtPoint(gizmo: Gizmo, point: Point): Gizmo? = null
+    fun child(of: Gizmo, at: Point): Gizmo? = null
 
     /**
      * Indicates that this Layout takes the ideal size of the Gizmo's
@@ -84,7 +84,6 @@ interface Layout {
      *
      * @return true if the Layout takes child ideal size into account when sizing it
      */
-
     val usesChildIdealSize: Boolean get() = false
 
     /**
@@ -96,6 +95,5 @@ interface Layout {
      *
      * @return true if the Layout takes child minimum size into account when sizing it
      */
-
     val usesChildMinimumSize: Boolean get() = false
 }

@@ -1,5 +1,9 @@
 package com.nectar.doodle.utils
 
+import kotlin.properties.ObservableProperty
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
+
 /**
  * Created by Nicholas Eddy on 10/21/17.
  */
@@ -139,4 +143,10 @@ interface Pool<in T> {
 class SetPool<T>(private val delegate: MutableSet<T>): Pool<T>, MutableSet<T> by delegate {
     override fun plusAssign (item: T) { delegate += item }
     override fun minusAssign(item: T) { delegate += item }
+}
+
+inline fun <T> observable(initialValue: T, crossinline onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit):
+        ReadWriteProperty<Any?, T> = object: ObservableProperty<T>(initialValue) {
+    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
+    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = onChange(property, oldValue, newValue)
 }

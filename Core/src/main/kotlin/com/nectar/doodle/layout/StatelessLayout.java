@@ -1,6 +1,6 @@
 //package com.zinoti.jaz.containers;
 //
-//import com.zinoti.jaz.containers.AbstractLayout;
+//import com.nectar.doodle.layout.AbstractLayout;
 //import com.zinoti.jaz.core.Container;
 //import com.zinoti.jaz.core.*;
 //

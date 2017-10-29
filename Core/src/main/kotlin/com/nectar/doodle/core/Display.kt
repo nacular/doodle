@@ -1,9 +1,9 @@
 package com.nectar.doodle.core
 
-import com.nectar.doodle.containers.Padding
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObservers
@@ -17,7 +17,7 @@ interface Display: Iterable<Gizmo> {
 
     val size                : Size
     var layout              : Layout?
-    var padding             : Padding
+    var insets              : Insets
     val children            : ObservableList<Gizmo, Gizmo>
     val sizeChange          : PropertyObservers<Gizmo, Size>
     var minimumSize         : Size

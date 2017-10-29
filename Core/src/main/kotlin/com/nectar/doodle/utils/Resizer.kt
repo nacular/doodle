@@ -17,7 +17,7 @@ import kotlin.properties.Delegates
 
 class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
 
-    var gizmo: Gizmo? by Delegates.observable(gizmo) { _, old, new ->
+    var gizmo: Gizmo? by observable(gizmo) { _, old, new ->
         old?.let { it.mouseChanged -= this; it.mouseMotionChanged -= this }
         new?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
     }

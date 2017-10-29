@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
+import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.index
@@ -7,6 +8,11 @@ import com.nectar.doodle.dom.left
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
+import com.nectar.doodle.dom.removeTransform
+import com.nectar.doodle.dom.setHeight
+import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.top
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
@@ -15,6 +21,7 @@ import com.nectar.doodle.drawing.Canvas.ImageData
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.SolidBrush
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -24,19 +31,32 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import kotlin.dom.clear
 
 
-internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
+internal class CanvasImpl(
+        override val renderRegion: Node,
+        private val htmlFactory: HtmlFactory,
+        vectorRendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
+
     override var size           = Size.Empty
     override var transform      = Identity
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
 
-    override fun rect(rectangle: Rectangle,           brush: Brush ) = vectorRenderer.rect(rectangle,      brush)
-    override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
+    override fun rect(rectangle: Rectangle,           brush: Brush ) = present(null, brush) { getRect(rectangle) }
+    override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush) //= present(pen,  brush) { getRect(rectangle) }
 
-    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = vectorRenderer.rect(rectangle,      brush)
-    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
+    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(null, brush) { roundedRect(rectangle, radius) }
+    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, radius, pen, brush) //present(pen,  brush) { roundedRect(rectangle, radius) }
+
+    override fun circle(circle: Circle,           brush: Brush ) = present(null, brush) { roundedRect(circle.boundingRectangle, circle.radius) }
+    override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush) //= present(pen,  brush) { roundedRect(circle.boundingRectangle, circle.radius) }
+
+    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(null, brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
+    override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush) //= present(pen,  brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
+
+    // =============== Complex =============== //
 
     override fun line(point1: Point, point2: Point, pen: Pen) = vectorRenderer.line(point1, point2, pen)
 
@@ -47,12 +67,6 @@ internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory
 
     override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double,           brush: Brush ) = vectorRenderer.arc(center, radius, sweep, rotation,      brush)
     override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush?) = vectorRenderer.arc(center, radius, sweep, rotation, pen, brush)
-
-    override fun circle(circle: Circle,           brush: Brush ) = vectorRenderer.circle(circle,      brush)
-    override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush)
-
-    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = vectorRenderer.ellipse(ellipse,      brush)
-    override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush)
 
 
     private val vectorRenderer by lazy { vectorRendererFactory(this) }
@@ -274,6 +288,48 @@ internal class CanvasImpl(override val renderRegion: Node, vectorRendererFactory
         transform.scaleY >= 0   &&
         transform.shearX == 0.0 &&
         transform.shearY == 0.0
+
+    private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
+
+    private fun present(pen: Pen?, brush: Brush?, block: () -> HTMLElement?) {
+        if (visible(pen, brush)) {
+            block()?.let {
+                if (brush is SolidBrush) {
+                    it.style.backgroundColor = "#${brush.color.hexString}"
+                }
+                if (pen != null) {
+                    it.style.borderWidth = "${pen.thickness}px"
+                    it.style.borderStyle = "solid" // TODO: Handle dashes
+                    it.style.borderColor = "#${pen.color.hexString}"
+                }
+
+                completeOperation(it)
+            }
+        }
+    }
+
+    private fun getRect(rectangle: Rectangle): HTMLElement {
+        val rect = renderPosition?.let {
+            if (it is HTMLElement && it.nodeName.toLowerCase() == "b") {
+                it.clear()
+                it.style.border = ""
+                it.removeTransform()
+                return@let it as HTMLElement
+            } else null
+        } ?: htmlFactory.create("b").also {
+            it.style.setWidthPercent (100.0)
+            it.style.setHeightPercent(100.0)
+        }
+
+        rect.style.transform = "translate(${rectangle.x}px, ${rectangle.y}px)"
+        rect.style.setWidth (rectangle.width )
+        rect.style.setHeight(rectangle.height)
+
+        return rect
+    }
+
+    private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.borderRadius = "${radius}px" }
+    private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.borderRadius = "${xRadius}px / ${yRadius}px" }
 
     private fun transform(rectangle: Rectangle): Rectangle {
         if (isTransformed) {

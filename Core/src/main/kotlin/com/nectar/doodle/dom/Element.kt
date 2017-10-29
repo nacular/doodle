@@ -27,11 +27,11 @@ inline fun Node.insert(element: Node, index: Int) = insertBefore(element, childA
 
 inline fun Node.remove(element: Node) = removeChild(element)
 
-fun Node.removeAll() {
-    while(firstChild != null) {
-        firstChild?.let { remove(it as HTMLElement) }
-    }
-}
+//fun Node.removeAll() {
+//    while(firstChild != null) {
+//        firstChild?.let { remove(it as HTMLElement) }
+//    }
+//}
 
 inline val HTMLElement.top    get() = offsetTop.toDouble   ()
 inline val HTMLElement.left   get() = offsetLeft.toDouble  ()

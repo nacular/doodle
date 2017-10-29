@@ -7,51 +7,54 @@ import org.w3c.dom.css.CSSStyleDeclaration
 
 private typealias Style = CSSStyleDeclaration
 
-inline fun Style.setTopPercent   (percent: Double        ) { this.top    = "$percent%" }
-inline fun Style.setLeftPercent  (percent: Double        ) { this.left   = "$percent%" }
-inline fun Style.setRightPercent (percent: Double        ) { this.right  = "$percent%" }
-inline fun Style.setWidthPercent (percent: Double? = null) { this.width  = percent?.let { "$it%" } ?: "" }
-inline fun Style.setHeightPercent(percent: Double? = null) { this.height = percent?.let { "$it%" } ?: "" }
-inline fun Style.setBottomPercent(percent: Double        ) { this.bottom = "$percent%" }
+inline fun Style.setWidth (value: Double) { width  = "${value}px" }
+inline fun Style.setHeight(value: Double) { height = "${value}px" }
 
-inline fun Style.setColor (color : Color ) { this.color  = "#${color.hexString}" }
-inline fun Style.setCursor(cursor: Cursor) { this.cursor = cursor.toString() }
+inline fun Style.setTopPercent   (percent: Double        ) { top    = "$percent%" }
+inline fun Style.setLeftPercent  (percent: Double        ) { left   = "$percent%" }
+inline fun Style.setRightPercent (percent: Double        ) { right  = "$percent%" }
+inline fun Style.setWidthPercent (percent: Double? = null) { width  = percent?.let { "$it%" } ?: "" }
+inline fun Style.setHeightPercent(percent: Double? = null) { height = percent?.let { "$it%" } ?: "" }
+inline fun Style.setBottomPercent(percent: Double        ) { bottom = "$percent%" }
 
-inline fun Style.setFontStyle (fontStyle : FontStyle ) { this.fontStyle  = fontStyle.value;      }
-inline fun Style.setFontWeight(fontWeight: FontWeight) { this.fontWeight = "${fontWeight.value}" }
+inline fun Style.setColor (value: Color ) { color  = "#${value.hexString}" }
+inline fun Style.setCursor(value: Cursor) { cursor = value.toString() }
 
-inline fun Style.setDisplay (display : Display?  = null) { this.display  = display?.value  ?: "" }
-inline fun Style.setPosition(position: Position? = null) { this.position = position?.value ?: "" }
+inline fun Style.setFontStyle (value: FontStyle ) { fontStyle  = value.value;     }
+inline fun Style.setFontWeight(value: FontWeight) { fontWeight = "${value.value}" }
+
+inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
+inline fun Style.setPosition(value: Position? = null) { position = value?.value ?: "" }
 
 //fun Style.setOverflow (overflow: Overflow) { this.overflow  = overflow;   }
-inline fun Style.setOverflowX(overflow: Overflow) { this.overflowX = overflow.value; }
-inline fun Style.setOverflowY(overflow: Overflow) { this.overflowY = overflow.value; }
+inline fun Style.setOverflowX(overflow: Overflow) { overflowX = overflow.value; }
+inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflow.value; }
 
-inline fun Style.setVisibility(visibility: Visibility) { this.visibility = visibility.value; }
+inline fun Style.setVisibility(value: Visibility) { visibility = value.value; }
 
-inline fun Style.setBackgroundImage(image: Image? = null) { this.backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
-inline fun Style.setBackgroundColor(color: Color? = null) { this.backgroundColor = color?.let { "#${it.hexString}"  } ?: ""     }
+inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
+inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { "#${it.hexString}"  } ?: ""     }
 
-inline fun Style.setBackgroundRepeat(repeat: Repeat) { this.backgroundRepeat = repeat.value; }
+inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value; }
 
-inline fun Style.setBackgroundPosition(x: Double, y: Double) { this.backgroundPosition = "$x $y" }
+inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
 
-inline fun Style.setBorderWidth(width: Double) { this.borderWidth = width.toString() }
+inline fun Style.setBorderWidth(width: Double) { borderWidth = width.toString() }
 
-inline fun Style.setBorderColor(color: Color? = null) { this.borderColor = color?.let { "#${it.hexString}"  } ?: "" }
+inline fun Style.setBorderColor(color: Color? = null) { borderColor = color?.let { "#${it.hexString}"  } ?: "" }
 
-inline fun Style.setBorderStyle(style: BorderStyle) {this.borderStyle = style.value; }
+inline fun Style.setBorderStyle(style: BorderStyle) {borderStyle = style.value; }
 
-inline fun Style.setBorderTop   (value: Double) {this.borderTop    = value.toString() }
-inline fun Style.setBorderLeft  (value: Double) {this.borderLeft   = value.toString() }
-inline fun Style.setBorderRight (value: Double) {this.borderRight  = value.toString() }
-inline fun Style.setBorderBottom(value: Double) {this.borderBottom = value.toString() }
+inline fun Style.setBorderTop   (value: Double) {borderTop    = value.toString() }
+inline fun Style.setBorderLeft  (value: Double) {borderLeft   = value.toString() }
+inline fun Style.setBorderRight (value: Double) {borderRight  = value.toString() }
+inline fun Style.setBorderBottom(value: Double) {borderBottom = value.toString() }
 
-inline fun Style.setTextAlignment(alignment: TextAlignment) { this.textAlign = alignment.value; }
+inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value; }
 
-inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { this.verticalAlign = alignment.value; }
+inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value; }
 
-inline fun Style.setFloat(float: Float? = null) { this.setPropertyValue("float", float?.value ?: "") }
+inline fun Style.setFloat(float: Float? = null) { setPropertyValue("float", float?.value ?: "") }
 
 //    fun setOpacity( float aOpacity )
 //    {

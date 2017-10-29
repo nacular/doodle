@@ -18,9 +18,9 @@ import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
 import kotlin.browser.document
-import kotlin.properties.Delegates
 
 
 class RealGraphicsSurface private constructor(
@@ -89,17 +89,13 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    override var position: Point by Delegates.observable(Point.Origin) { _,old,new ->
-        if (old == new) { return@observable }
-
+    override var position: Point by observable(Point.Origin) { _,_,new ->
         rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
             rootElement.style.transform = "translate(${new.x}px, ${new.y}px)"
         } }
     }
 
-    override var size: Size by Delegates.observable(Size.Empty) { _,old,new ->
-        if (old == new) { return@observable }
-
+    override var size: Size by observable(Size.Empty) { _,_,new ->
         rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
             rootElement.style.width  = "${new.width }px"
             rootElement.style.height = "${new.height}px"

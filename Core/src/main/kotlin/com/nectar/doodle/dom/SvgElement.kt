@@ -84,7 +84,6 @@ inline fun Element.setTransform(transform: String) = setAttribute("transform", t
 
 inline fun Element.removeTransform() = removeAttribute("transform")
 
-
 enum class ShapeRendering(val value: String) {
     CrispEdges("crispEdges"),
     Auto      ("auto"      )

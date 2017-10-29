@@ -8,7 +8,6 @@ import com.nectar.doodle.dom.index
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
-import com.nectar.doodle.dom.removeAll
 import com.nectar.doodle.dom.removeTransform
 import com.nectar.doodle.dom.setCX
 import com.nectar.doodle.dom.setCY
@@ -46,6 +45,7 @@ import org.w3c.dom.svg.SVGElement
 import org.w3c.dom.svg.SVGEllipseElement
 import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGRectElement
+import kotlin.dom.clear
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
@@ -449,7 +449,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
         return when {
             element == null || element.nodeName != tag -> svgFactory.create(tag)
-            element is Element                         -> { element.removeAll(); element.removeTransform(); element as T }
+            element is Element                         -> { element.clear(); element.removeTransform(); element as T }
             else                                       -> throw Exception("Error") // FIXME: handle better
         }
     }
