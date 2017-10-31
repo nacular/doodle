@@ -27,8 +27,8 @@ inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 inline fun Style.setFontStyle (value: FontStyle ) { fontStyle  = value.value;     }
 inline fun Style.setFontWeight(value: FontWeight) { fontWeight = "${value.value}" }
 
-inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = if (value >= 0) value.toString() else "1em";  }
-inline fun Style.setFontFamily(value: String) { this.fontFamily = value;                                        }
+inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = if (value >= 0) "${value}px" else "1em"  }
+inline fun Style.setFontFamily(value: String) { this.fontFamily = value;                                   }
 
 
 inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
@@ -49,7 +49,7 @@ inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPositio
 
 inline fun Style.setBorderWidth(width: Double) { borderWidth = width.toString() }
 
-inline fun Style.setBorderColor(color: Color? = null) { borderColor = color?.let { "#${it.hexString}"  } ?: "" }
+inline fun Style.setBorderColor(color: Color? = null) { borderColor = color?.let { "#${it.hexString}" } ?: "" }
 
 inline fun Style.setBorderStyle(style: BorderStyle) {borderStyle = style.value; }
 
