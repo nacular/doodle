@@ -20,11 +20,10 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
-import kotlin.browser.document
 
 
 class RealGraphicsSurface private constructor(
-                    htmlFactory  : HtmlFactory,
+        private val htmlFactory  : HtmlFactory,
                     canvasFactory: CanvasFactory,
         private var parent       : RealGraphicsSurface?,
         private val isContainer  : Boolean,
@@ -68,7 +67,7 @@ class RealGraphicsSurface private constructor(
         if (parent != null) {
             parent?.add(this)
         } else if (addToDocumentIfNoParent) {
-            document.body?.add(rootElement)
+            htmlFactory.body.add(rootElement)
         }
     }
 
@@ -108,7 +107,7 @@ class RealGraphicsSurface private constructor(
         if (parent != null) {
             parent!!.remove(this)
         } else {
-            document.body?.remove(rootElement)
+            htmlFactory.body.remove(rootElement)
         }
     }
 

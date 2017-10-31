@@ -1,11 +1,11 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.dom.ElementRuler
+import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.geometry.Size
 import org.w3c.dom.HTMLElement
-import kotlin.browser.document
 
 /**
  * Created by Nicholas Eddy on 10/30/17.
@@ -22,7 +22,7 @@ interface TextMetrics {
 
 private data class WrapedInfo(val font: Font, val text: String, val width: Double)
 
-class TextMetricsImpl(private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
+class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
 
     private val sizes        = mutableMapOf<Pair<Font, String>, Size>()
     private val wrappedSizes = mutableMapOf<WrapedInfo, Size>()
@@ -39,11 +39,11 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementR
     }
 
     private fun measure(element: HTMLElement): Size {
-        document.body?.insert(element, 0)
+        htmlFactory.body.insert(element, 0)
 
         val size = Size(elementRuler.width (element), elementRuler.height(element))
 
-        document.body?.removeChild(element)
+        htmlFactory.body.removeChild(element)
 
         return size
     }

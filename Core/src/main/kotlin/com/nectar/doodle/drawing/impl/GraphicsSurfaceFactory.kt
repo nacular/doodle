@@ -13,7 +13,6 @@ interface GraphicsSurfaceFactory<T: GraphicsSurface> {
     fun surface(parent: T? = null, isContainer: Boolean = false): T
 }
 
-
 class RealGraphicsSurfaceFactory(
         private val htmlFactory  : HtmlFactory,
         private val canvasFactory: CanvasFactory): GraphicsSurfaceFactory<RealGraphicsSurface> {

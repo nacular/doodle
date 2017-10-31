@@ -9,6 +9,8 @@ import kotlin.browser.document
  */
 
 interface HtmlFactory {
+    val body: HTMLElement
+
     fun create     (tag : String): HTMLElement
     fun createText (text: String): Text
     fun createOrUse(tag : String, possible: HTMLElement?): HTMLElement
@@ -16,6 +18,8 @@ interface HtmlFactory {
 
 
 class HtmlFactoryImpl: HtmlFactory {
+    override val body get() = document.body!!
+
     override fun create(tag: String): HTMLElement {
         var master: HTMLElement? = prototypes[tag]
 

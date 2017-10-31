@@ -21,10 +21,9 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
-import kotlin.browser.document
 
 
-class MouseInputServiceStrategyWebkit(private val elementFactory: HtmlFactory): MouseInputServiceStrategy {
+class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {
@@ -52,21 +51,21 @@ class MouseInputServiceStrategyWebkit(private val elementFactory: HtmlFactory): 
         eventHandler = handler
 
         if (inputDevice == null) {
-            inputDevice = document.body!!
+            inputDevice  = htmlFactory.body
             eventHandler = handler
 
             registerCallbacks(this, inputDevice!!)
         }
 
         if (overlay == null) {
-            overlay = elementFactory.create("b")
+            overlay = htmlFactory.create("b")
 
             overlay?.style?.opacity = "0"
             overlay?.style?.width   = "2px"
             overlay?.style?.height  = "2px"
             overlay?.style?.zIndex  = "3"
 
-            document.body?.add(overlay!!)
+            htmlFactory.body.add(overlay!!)
         }
     }
 
@@ -126,8 +125,8 @@ class MouseInputServiceStrategyWebkit(private val elementFactory: HtmlFactory): 
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
-        mouseX = event.clientX + document.body!!.scrollLeft
-        mouseY = event.clientY + document.body!!.scrollLeft
+        mouseX = event.clientX + htmlFactory.body.scrollLeft
+        mouseY = event.clientY + htmlFactory.body.scrollLeft
 
         val isNativeElement = isNativeElement(event.target as Node)
 
