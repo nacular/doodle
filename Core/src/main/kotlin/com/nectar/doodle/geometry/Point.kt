@@ -6,6 +6,9 @@ class Point(val x: Double, val y: Double) {
     operator fun plus (other: Point) = Point(x + other.x, y + other.y)
     operator fun minus(other: Point) = Point(x - other.x, y - other.y)
 
+    operator fun times(value: Double) = Point(x * value, y * value)
+    operator fun div  (value: Double) = Point(x / value, y / value)
+
     operator fun unaryMinus() = Point(-x, -y)
 
     override fun hashCode(): Int = arrayOf(x, y).contentHashCode()

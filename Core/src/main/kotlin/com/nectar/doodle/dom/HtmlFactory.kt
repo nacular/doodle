@@ -9,8 +9,9 @@ import kotlin.browser.document
  */
 
 interface HtmlFactory {
-    fun create    (tag : String): HTMLElement
-    fun createText(text: String): Text
+    fun create     (tag : String): HTMLElement
+    fun createText (text: String): Text
+    fun createOrUse(tag : String, possible: HTMLElement?): HTMLElement
 }
 
 
@@ -30,6 +31,19 @@ class HtmlFactoryImpl: HtmlFactory {
     }
 
     override fun createText(text: String) = document.createTextNode(text)
+
+    override fun createOrUse(tag: String, possible: HTMLElement?): HTMLElement {
+        var result = possible
+
+        if (result == null || result.parentNode != null && result.nodeName != tag) {
+            result = create(tag)
+        } else {
+            result.clearBoundStyles ()
+            result.clearVisualStyles()
+        }
+
+        return result
+    }
 
     companion object {
         private val prototypes = mutableMapOf<String, HTMLElement>()

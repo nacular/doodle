@@ -32,12 +32,12 @@ interface Renderer {
             brush   : Brush)
 
     fun wrappedText(
-            text     : String,
-            font     : Font,
-            point    : Point,
-            minBounds: Double,
-            maxBounds: Double,
-            brush    : Brush)
+            text       : String,
+            font       : Font,
+            point      : Point,
+            leftMargin : Double,
+            rightMargin: Double,
+            brush      : Brush)
 
 
     fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)

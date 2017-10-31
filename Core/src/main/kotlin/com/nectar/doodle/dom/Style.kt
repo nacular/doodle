@@ -4,11 +4,14 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.system.Cursor
 import org.w3c.dom.css.CSSStyleDeclaration
+import kotlin.math.max
 
 private typealias Style = CSSStyleDeclaration
 
-inline fun Style.setWidth (value: Double) { width  = "${value}px" }
-inline fun Style.setHeight(value: Double) { height = "${value}px" }
+inline fun Style.setTop   (value: Double) { top    = "${value}px" }
+inline fun Style.setLeft  (value: Double) { left   = "${value}px" }
+inline fun Style.setWidth (value: Double) { width  = "${max(0.0, value)}px" }
+inline fun Style.setHeight(value: Double) { height = "${max(0.0, value)}px" }
 
 inline fun Style.setTopPercent   (percent: Double        ) { top    = "$percent%" }
 inline fun Style.setLeftPercent  (percent: Double        ) { left   = "$percent%" }
@@ -17,11 +20,16 @@ inline fun Style.setWidthPercent (percent: Double? = null) { width  = percent?.l
 inline fun Style.setHeightPercent(percent: Double? = null) { height = percent?.let { "$it%" } ?: "" }
 inline fun Style.setBottomPercent(percent: Double        ) { bottom = "$percent%" }
 
-inline fun Style.setColor (value: Color ) { color  = "#${value.hexString}" }
-inline fun Style.setCursor(value: Cursor) { cursor = value.toString() }
+inline fun Style.setColor  (value: Color ) { color  = "#${value.hexString}" }
+inline fun Style.setCursor (value: Cursor) { cursor = value.toString() }
+inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 
 inline fun Style.setFontStyle (value: FontStyle ) { fontStyle  = value.value;     }
 inline fun Style.setFontWeight(value: FontWeight) { fontWeight = "${value.value}" }
+
+inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = if (value >= 0) value.toString() else "1em";  }
+inline fun Style.setFontFamily(value: String) { this.fontFamily = value;                                        }
+
 
 inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
 inline fun Style.setPosition(value: Position? = null) { position = value?.value ?: "" }

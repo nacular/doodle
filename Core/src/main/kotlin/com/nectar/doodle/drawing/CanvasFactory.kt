@@ -13,9 +13,9 @@ interface CanvasFactory {
     operator fun invoke(region: Node): Canvas
 }
 
-class DefaultCanvasFactory(private val htmlFactory: HtmlFactory): CanvasFactory {
+class DefaultCanvasFactory(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory): CanvasFactory {
     override operator fun invoke(region: Node): Canvas {
-        return CanvasImpl(region, htmlFactory) {
+        return CanvasImpl(region, htmlFactory, textFactory) {
             VectorRendererSvg(it, SvgFactoryImpl())
         }
     }

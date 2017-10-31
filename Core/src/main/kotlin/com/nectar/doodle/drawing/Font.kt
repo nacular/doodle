@@ -1,7 +1,5 @@
 package com.nectar.doodle.drawing
 
-import com.nectar.doodle.geometry.Size
-
 
 interface Font {
     val size: Int
@@ -19,14 +17,6 @@ interface Font {
     val isRotated: Boolean
 
     val isVertical: Boolean
-
-    fun width(text: String): Double
-
-    fun height(text: String): Double
-
-    fun wrappedSize(text: String, indent: Double, width: Double): Size
-
-    fun size(text: String) = Size(width(text), height(text))
 
     enum class Style {
         Italic, Bold

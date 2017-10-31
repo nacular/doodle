@@ -9,8 +9,12 @@ import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
+import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setLeft
+import com.nectar.doodle.dom.setOpacity
+import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.top
@@ -22,6 +26,7 @@ import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.SolidBrush
+import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -32,29 +37,35 @@ import com.nectar.doodle.image.Image
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import kotlin.dom.clear
+import kotlin.math.max
 
 
 internal class CanvasImpl(
         override val renderRegion: Node,
         private val htmlFactory: HtmlFactory,
-        vectorRendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
+        private val textFactory: TextFactory,
+        rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
 
     override var size           = Size.Empty
     override var transform      = Identity
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
 
+    private val vectorRenderer by lazy { rendererFactory(this) }
+    private val isTransformed get() = !transform.isIdentity
+
+
     override fun rect(rectangle: Rectangle,           brush: Brush ) = present(null, brush) { getRect(rectangle) }
-    override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush) //= present(pen,  brush) { getRect(rectangle) }
+    override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
 
     override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(null, brush) { roundedRect(rectangle, radius) }
-    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, radius, pen, brush) //present(pen,  brush) { roundedRect(rectangle, radius) }
+    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, radius, pen, brush)
 
     override fun circle(circle: Circle,           brush: Brush ) = present(null, brush) { roundedRect(circle.boundingRectangle, circle.radius) }
-    override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush) //= present(pen,  brush) { roundedRect(circle.boundingRectangle, circle.radius) }
+    override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush)
 
     override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(null, brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
-    override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush) //= present(pen,  brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
+    override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush)
 
     // =============== Complex =============== //
 
@@ -67,11 +78,6 @@ internal class CanvasImpl(
 
     override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double,           brush: Brush ) = vectorRenderer.arc(center, radius, sweep, rotation,      brush)
     override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush?) = vectorRenderer.arc(center, radius, sweep, rotation, pen, brush)
-
-
-    private val vectorRenderer by lazy { vectorRendererFactory(this) }
-
-    private val isTransformed get() = !transform.isIdentity
 
 //    override val imageData: ImageData
 //        get () {
@@ -93,37 +99,12 @@ internal class CanvasImpl(
 //        }
     }
 
-    private fun addData(elements: List<HTMLElement>, at: Point) {
-        elements.forEach { element ->
-            element.style.top  = "${element.top  + at.y}"
-            element.style.left = "${element.left + at.x}"
-
-            if (renderPosition != null) {
-                renderPosition?.let {
-                    val nextSibling = it.nextSibling as HTMLElement?
-
-                    renderRegion.replaceChild(element, it)
-
-                    renderPosition = nextSibling
-                }
-            } else {
-                renderRegion.add(element)
-            }
-        }
-    }
-
     override fun text(text: String, font: Font, at: Point, brush: Brush) {
-//        if (text.isEmpty() || !brush.visible) {
-//            return
-//        }
-//
-//        if (!isTransformed && brush is SolidBrush && !isComplexFont(font)) {
-//            val textGlyph = createTextGlyph(brush, font, text, point)
-//
-//            completeOperation(textGlyph.getData())
-//        } else {
-//            vectorRenderer.text(text, font, point, brush)
-//        }
+        when {
+            text.isEmpty() || !brush.visible                              -> return
+            !isTransformed && brush is SolidBrush && !isComplexFont(font) -> completeOperation(createTextGlyph(brush, text, font, at))
+            else                                                          -> vectorRenderer.text(text, font, at, brush)
+        }
     }
 
     override fun clippedText(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
@@ -154,23 +135,21 @@ internal class CanvasImpl(
 //        }
     }
 
-    override fun wrappedText(text: String, font: Font, point: Point, minBounds: Double, maxBounds: Double, brush: Brush) {
-//        if (text.isEmpty() || !brush.visible) {
-//            return
-//        }
-//
-//        if (!isTransformed && brush is SolidBrush && !isComplexFont(font)) {
-//            val aTextGlyph = createWrappedTextGlyph(brush,
-//                    text,
-//                    font,
-//                    point,
-//                    minBounds,
-//                    maxBounds)
-//
-//            completeOperation(aTextGlyph.getData())
-//        } else {
-//            // TODO: IMPLEMENT
-//        }
+    override fun wrappedText(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+        if (text.isEmpty() || !brush.visible) {
+            return
+        }
+
+        if (!isTransformed && brush is SolidBrush && !isComplexFont(font)) {
+            completeOperation(createWrappedTextGlyph(brush,
+                    text,
+                    font,
+                    point,
+                    leftMargin,
+                    rightMargin))
+        } else {
+            // TODO: IMPLEMENT
+        }
     }
 
     override fun image(image: Image, destination: Rectangle, opacity: Float) {
@@ -283,6 +262,25 @@ internal class CanvasImpl(
         transform = Identity
     }
 
+    private fun addData(elements: List<HTMLElement>, at: Point) {
+        elements.forEach { element ->
+            element.style.top  = "${element.top  + at.y}"
+            element.style.left = "${element.left + at.x}"
+
+            if (renderPosition != null) {
+                renderPosition?.let {
+                    val nextSibling = it.nextSibling as HTMLElement?
+
+                    renderRegion.replaceChild(element, it)
+
+                    renderPosition = nextSibling
+                }
+            } else {
+                renderRegion.add(element)
+            }
+        }
+    }
+
     private val canTransformFilledRect get() =
         transform.scaleX >= 0   &&
         transform.scaleY >= 0   &&
@@ -310,13 +308,13 @@ internal class CanvasImpl(
 
     private fun getRect(rectangle: Rectangle): HTMLElement {
         val rect = renderPosition?.let {
-            if (it is HTMLElement && it.nodeName.toLowerCase() == "b") {
+            if (it is HTMLElement && it.nodeName == "B") {
                 it.clear()
                 it.style.border = ""
                 it.removeTransform()
                 return@let it as HTMLElement
             } else null
-        } ?: htmlFactory.create("b").also {
+        } ?: htmlFactory.create("B").also {
             it.style.setWidthPercent (100.0)
             it.style.setHeightPercent(100.0)
         }
@@ -362,28 +360,30 @@ internal class CanvasImpl(
         }
     }
 
-//    private fun createTextGlyph(brush: SolidBrush, font: Font, text: String, position: Point): TextGlyph {
-//        val glyph = TextGlyph(renderPosition, text, font)
-//
-//        glyph.setColor   (brush.color)
-//        glyph.setOpacity (brush.color.opacity)
-//        glyph.setPosition(position)
-//
-//        return glyph
-//    }
-//
-//    private fun createWrappedTextGlyph(brush: SolidBrush, text: String, font: Font, position: Point, minBounds: Double, maxBounds: Double): WrappedTextGlyph {
-//        val indent = position.x - minBounds
-//        val glyph  = WrappedTextGlyph(renderPosition, text, font, indent)
-//
-//        glyph.setColor   (brush.color)
-//        glyph.setWidth   (maxBounds - minBounds)
-//        glyph.setOpacity (brush.color.opacity)
-//        glyph.setPosition(Point.create(minBounds, position.y))
-//
-//        return glyph
-//    }
-//
+    private fun createTextGlyph(brush: SolidBrush, text: String, font: Font, position: Point): HTMLElement {
+        val element = textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+
+        return configure(element, brush, position)
+    }
+
+    private fun createWrappedTextGlyph(brush: SolidBrush, text: String, font: Font, position: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
+        val indent  = max(0.0, position.x - leftMargin)
+        val element = textFactory.wrapped(text, font, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+
+        return configure(element, brush, position).also {
+            it.style.setWidth(rightMargin - leftMargin)
+        }
+    }
+
+    private fun configure(element: HTMLElement, brush: SolidBrush, position: Point): HTMLElement {
+        element.style.setTop      (position.y         )
+        element.style.setLeft     (position.x         )
+        element.style.setColor    (brush.color        )
+        element.style.setOpacity  (brush.color.opacity)
+
+        return element
+    }
+
 //    private fun createImageGlyph(image: Image, rectangle: Rectangle, opacity: Float): ImageGlyph {
 //        val glyph = ImageGlyph(image, renderPosition)
 //

@@ -111,7 +111,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         TODO("Implement")
     }
 
-    override fun wrappedText(text: String, font: Font, point: Point, minBounds: Double, maxBounds: Double, brush: Brush) {
+    override fun wrappedText(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
         TODO("Implement")
     }
 

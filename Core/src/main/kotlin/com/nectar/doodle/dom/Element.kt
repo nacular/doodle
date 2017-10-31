@@ -40,6 +40,29 @@ inline val HTMLElement.height get() = offsetHeight.toDouble()
 
 inline val Node.hasAutoOverflow get() = this is HTMLElement && style.overflowWrap != ""
 
+fun HTMLElement.clearVisualStyles() {
+   style.color      = ""
+   style.filter     = ""
+   style.border     = ""
+   style.background = ""
+
+   style.overflowX  = ""
+   style.overflowY  = ""
+   removeAttribute("scrollbar")
+}
+
+fun HTMLElement.clearBoundStyles() {
+   style.top          = ""
+   style.left         = ""
+   style.right        = ""
+   style.width        = ""
+   style.height       = ""
+   style.bottom       = ""
+   style.marginTop    = ""
+   style.marginLeft   = ""
+   style.marginRight  = ""
+   style.marginBottom = ""
+}
 
 //    public static final class Type extends JavaScriptObject
 //    {
