@@ -6,4 +6,5 @@ rootProject.name = 'doodle'
 
 include 'core'
 include 'testapp'
+include 'Controls'
 

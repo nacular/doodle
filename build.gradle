@@ -17,6 +17,9 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'kotlin2js'
 
+    version = '1.0'
+    group   = 'com.nectar.doodle'
+
     sourceSets {
         main.kotlin.srcDirs    += "src/main/headers"
         main.resources.srcDirs += "resources"
@@ -31,6 +34,7 @@ subprojects {
 
     dependencies {
         repositories {
+            mavenCentral()
             maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.2" }
         }
 

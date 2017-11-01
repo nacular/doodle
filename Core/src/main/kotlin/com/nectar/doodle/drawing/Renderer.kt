@@ -4,6 +4,7 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.text.StyledText
 
 /**
  * Created by Nicholas Eddy on 10/23/17.
@@ -23,6 +24,8 @@ interface Renderer {
     fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, brush: Brush)
 
     fun text(text: String, font: Font, at: Point, brush: Brush)
+
+    fun text(text: StyledText, at: Point)
 
     fun clippedText(
             text    : String,

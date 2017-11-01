@@ -34,6 +34,7 @@ import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.text.StyledText
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import kotlin.dom.clear
@@ -99,11 +100,19 @@ internal class CanvasImpl(
 //        }
     }
 
+    override fun text(text: StyledText, at: Point) {
+        when {
+            !isTransformed -> completeOperation(createStyledTextGlyph(text, at))
+            else           -> vectorRenderer.text(text, at)
+        }
+
+    }
+
     override fun text(text: String, font: Font, at: Point, brush: Brush) {
         when {
-            text.isEmpty() || !brush.visible                              -> return
-            !isTransformed && brush is SolidBrush && !isComplexFont(font) -> completeOperation(createTextGlyph(brush, text, font, at))
-            else                                                          -> vectorRenderer.text(text, font, at, brush)
+            text.isEmpty() || !brush.visible      -> return
+            !isTransformed && brush is SolidBrush -> completeOperation(createTextGlyph(brush, text, font, at))
+            else                                  -> vectorRenderer.text(text, font, at, brush)
         }
     }
 
@@ -140,7 +149,7 @@ internal class CanvasImpl(
             return
         }
 
-        if (!isTransformed && brush is SolidBrush && !isComplexFont(font)) {
+        if (!isTransformed && brush is SolidBrush) {
             completeOperation(createWrappedTextGlyph(brush,
                     text,
                     font,
@@ -306,18 +315,16 @@ internal class CanvasImpl(
         }
     }
 
+    private fun getRectElement(): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
+        it.clear()
+        it.style.border = ""
+        it.removeTransform()
+        it.style.setWidthPercent (100.0)
+        it.style.setHeightPercent(100.0)
+    }
+
     private fun getRect(rectangle: Rectangle): HTMLElement {
-        val rect = renderPosition?.let {
-            if (it is HTMLElement && it.nodeName == "B") {
-                it.clear()
-                it.style.border = ""
-                it.removeTransform()
-                return@let it as HTMLElement
-            } else null
-        } ?: htmlFactory.create("B").also {
-            it.style.setWidthPercent (100.0)
-            it.style.setHeightPercent(100.0)
-        }
+        val rect = getRectElement()
 
         rect.style.transform = "translate(${rectangle.x}px, ${rectangle.y}px)"
         rect.style.setWidth (rectangle.width )
@@ -346,9 +353,7 @@ internal class CanvasImpl(
 
     private fun shouldDrawImage(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) = opacity > 0 && !(source.empty || destination.empty)
 
-    private fun isComplexFont(font: Font) = font.isRotated || font.layout !== Font.Layout.LEFT_RIGHT
-
-    private fun completeOperation(element: HTMLElement) {
+    private fun completeOperation(element: HTMLElement): HTMLElement {
         if (renderPosition == null) {
             renderRegion.add(element)
         } else {
@@ -358,21 +363,32 @@ internal class CanvasImpl(
 
             renderPosition = element.nextSibling as HTMLElement?
         }
+
+        return element
     }
 
-    private fun createTextGlyph(brush: SolidBrush, text: String, font: Font, position: Point): HTMLElement {
+    private fun createTextGlyph(brush: SolidBrush, text: String, font: Font?, at: Point): HTMLElement {
         val element = textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-        return configure(element, brush, position)
+        return configure(element, brush, at)
     }
 
-    private fun createWrappedTextGlyph(brush: SolidBrush, text: String, font: Font, position: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
-        val indent  = max(0.0, position.x - leftMargin)
+    private fun createWrappedTextGlyph(brush: SolidBrush, text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
+        val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(text, font, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-        return configure(element, brush, position).also {
+        return configure(element, brush, at).also {
             it.style.setWidth(rightMargin - leftMargin)
         }
+    }
+
+    private fun createStyledTextGlyph(text: StyledText, at: Point): HTMLElement {
+        val element = textFactory.styled(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+
+        element.style.setTop (at.y)
+        element.style.setLeft(at.x)
+
+        return completeOperation(element)
     }
 
     private fun configure(element: HTMLElement, brush: SolidBrush, position: Point): HTMLElement {

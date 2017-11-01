@@ -37,6 +37,7 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -51,7 +52,6 @@ import kotlin.math.max
 import kotlin.math.sin
 
 class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
-
     private fun getSvgElement(): SVGElement {
         // Clear the remaining elements from existing SVG element
         // or they will be missed on the final flush
@@ -92,6 +92,10 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private var renderPosition: Node? = null
+
+    override fun text(text: StyledText, at: Point) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override fun text(text: String, font: Font, at: Point, brush: Brush) {
         TODO("Implement")

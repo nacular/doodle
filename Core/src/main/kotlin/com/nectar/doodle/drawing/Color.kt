@@ -52,8 +52,9 @@ class Color(
         require(opacity in 0..1 ) { "opacity must be in ${0..1}" }
     }
 
-    private val decimal: Int by lazy { (red shl 16) + (green shl 8) + blue }
+    private val decimal: Int by lazy { /*((opacity * 255).toInt() shl 32) +*/ (red shl 16) + (green shl 8) + blue }
 
+    val visible = opacity > 0
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
     fun darker(times: Int = 1): Color {
@@ -94,7 +95,7 @@ class Color(
         return Color(red, green, blue, opacity)
     }
 
-    fun with(opactiy: Float) = Color(red, green, blue, opactiy)
+    fun with(opacity: Float) = Color(red, green, blue, opacity)
 
     val inverted by lazy { Color((Int.MAX_VALUE xor decimal).toHex()) }
 
@@ -126,7 +127,7 @@ class Color(
         val magenta     = Color("ff00ff")
         val darkgray    = Color("808080")
         val lightgray   = Color("d3d3d3")
-        val Transparent = black.with(0f)
+        val transparent = black.with(opacity = 0f)
 
         private val scaleFactor = 0.9f
     }

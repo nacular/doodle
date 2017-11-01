@@ -1,6 +1,7 @@
 package com.nectar.doodle.dom
 
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.Node
 import org.w3c.dom.Text
 import kotlin.browser.document
 
@@ -13,7 +14,7 @@ interface HtmlFactory {
 
     fun create     (tag : String): HTMLElement
     fun createText (text: String): Text
-    fun createOrUse(tag : String, possible: HTMLElement?): HTMLElement
+    fun createOrUse(tag : String, possible: Node?): HTMLElement
 }
 
 
@@ -36,10 +37,10 @@ class HtmlFactoryImpl: HtmlFactory {
 
     override fun createText(text: String) = document.createTextNode(text)
 
-    override fun createOrUse(tag: String, possible: HTMLElement?): HTMLElement {
+    override fun createOrUse(tag: String, possible: Node?): HTMLElement {
         var result = possible
 
-        if (result == null || result.parentNode != null && result.nodeName != tag) {
+        if (result == null || result !is HTMLElement || result.parentNode != null && result.nodeName != tag) {
             result = create(tag)
         } else {
             result.clearBoundStyles ()
