@@ -1,34 +1,46 @@
 package com.nectar.doodle.text
 
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Font
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-data class Style(val font: Font? = null, val foreground: Color = black, val background: Color? = null)
+interface Style {
+    val font      : Font?
+    val foreground: Color?
+    val background: Color?
+}
 
-class StyledText private constructor(private val data: List<Pair<String, Style>>): Iterable<Pair<String, Style>> {
+private data class MutablePair<A, B>(var first: A, var second: B) {
+    override fun toString() = "($first, $second)"
+}
+
+class StyledText private constructor(var data: List<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
 
     constructor(
         text      : String,
         font      : Font?  = null,
-        foreground: Color  = black,
-        background: Color? = null): this(listOf(Pair(text, Style(font, foreground = foreground, background = background))))
+        foreground: Color? = null,
+        background: Color? = null): this(listOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
-    val count = data.size
+    val count get() = data.size
 
-    override fun iterator() = data.iterator()
+    override fun iterator() = data.map { it.first.to(it.second) }.iterator()
 
-    operator fun plus(other: StyledText) = StyledText(data + other.data)
+    operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
-    operator fun rangeTo(font : Font  ): StyledText = StyledText(data + Pair("", Style(font)))
-    operator fun rangeTo(color: Color ): StyledText = StyledText(data + Pair("", Style(foreground = color)))
-    operator fun rangeTo(text : String): StyledText {
-        val last = data.last()
+    operator fun rangeTo(font : Font  ) = this.also { add(MutablePair("",   StyleImpl(font))) }
+    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = color))) }
+    operator fun rangeTo(text : String) = this.also { add(MutablePair(text, StyleImpl())) }
 
-        return StyledText(data - data.last() + Pair(text, last.second))
+    private fun add(pair: MutablePair<String, StyleImpl>) {
+        val (_, style) = data.last()
+
+        return when (style) {
+            pair.second -> data.last().first += pair.first
+            else        -> data              += pair
+        }
     }
 
     override fun hashCode() = data.hashCode()
@@ -41,27 +53,50 @@ class StyledText private constructor(private val data: List<Pair<String, Style>>
 
         return true
     }
+
+    operator fun Font.invoke(text: StyledText): StyledText {
+        text.data.forEach { (_, style) ->
+            if (style.font == null) {
+                style.font = this
+            }
+        }
+
+        return text
+    }
+
+
+    data class StyleImpl(override var font: Font? = null, override var foreground: Color? = null, override var background: Color? = null): Style
 }
 
-//class StyledTextTree {
-//
-//}
+//operator fun Font.invoke(block: StyledText.() -> Unit) = StyledText(font = this).apply(block)
+
+operator fun Font.invoke(text: String) = StyledText(text = text, font = this)
+operator fun Color.invoke(text: String) = StyledText(text = text, foreground = this)
+
+operator fun Font.invoke(text: StyledText): StyledText {
+    text.data.forEach { (_, style) ->
+        if (style.font == null) {
+            style.font = this
+        }
+    }
+
+    return text
+}
+
+operator fun Color.invoke(text: StyledText): StyledText {
+    text.data.forEach { (_, style) ->
+        if (style.foreground == null) {
+            style.foreground = this
+        }
+    }
+
+    return text
+}
 
 /*
-    font {
-        + "foo bar"
-    }
+    font ("foo bar" + color ("blah")) + color ("blah")
 
 */
 
 
-
-//fun styled()
-
-operator fun Font.rangeTo(text : String ) = StyledText(text, this)
-operator fun Font.rangeTo(color: Color  ) = StyledText("", this, foreground = color)
-operator fun Color.rangeTo(text: String ) = StyledText(text, foreground = this)
-operator fun Color.rangeTo(font: Font   ) = StyledText("", font = font, foreground = this)
-
-operator fun String.rangeTo(font: Font  ) = StyledText(this) + StyledText("", font)
-operator fun String.rangeTo(color: Color) = StyledText(this) + StyledText("", foreground = color)
+operator fun String.rangeTo(styled: StyledText) = StyledText(this) + styled

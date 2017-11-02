@@ -12,8 +12,8 @@ import kotlin.browser.document
 interface HtmlFactory {
     val body: HTMLElement
 
-    fun create     (tag : String): HTMLElement
-    fun createText (text: String): Text
+    fun create     (tag : String                 ): HTMLElement
+    fun createText (text: String                 ): Text
     fun createOrUse(tag : String, possible: Node?): HTMLElement
 }
 
@@ -21,19 +21,9 @@ interface HtmlFactory {
 class HtmlFactoryImpl: HtmlFactory {
     override val body get() = document.body!!
 
-    override fun create(tag: String): HTMLElement {
-        var master: HTMLElement? = prototypes[tag]
-
-        // No cached version exists
-
-        if (master == null) {
-            master = document.createElement(tag) as HTMLElement
-
-            prototypes.put(tag, master)
-        }
-
-        return master.cloneNode(false) as HTMLElement
-    }
+    override fun create(tag: String) = prototypes.getOrPut(tag) {
+        document.createElement(tag) as HTMLElement
+    }.cloneNode(false) as HTMLElement
 
     override fun createText(text: String) = document.createTextNode(text)
 
@@ -50,7 +40,5 @@ class HtmlFactoryImpl: HtmlFactory {
         return result
     }
 
-    companion object {
-        private val prototypes = mutableMapOf<String, HTMLElement>()
-    }
+    private val prototypes = mutableMapOf<String, HTMLElement>()
 }

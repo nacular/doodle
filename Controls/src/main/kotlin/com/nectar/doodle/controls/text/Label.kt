@@ -1,27 +1,17 @@
 package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.core.Gizmo
-import com.nectar.doodle.core.Icon
-import com.nectar.doodle.utils.Anchor.Leading
-import com.nectar.doodle.utils.Location
-import com.nectar.doodle.utils.Location.Center
+import com.nectar.doodle.utils.HorizontalAlignment
+import com.nectar.doodle.utils.VerticalAlignment
 
 
-class Label constructor(
+class Label(
         text               : String,
-        icon               : Icon<Label>? = null,
-        verticalAlignment  : Location     = Center,
-        horizontalAlignment: Location     = Center): Gizmo() {
+        verticalAlignment  : VerticalAlignment   = VerticalAlignment.Center,
+        horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Gizmo() {
 
-
-//    val uiClassKey: String
-//        get() = "LabelUI"
 
     var text                = text
-    var icon                = icon
-    var iconAnchor          = Leading
-    var disabledIcon        = null as Icon<Label>?
-    var iconTextSpacing     = 0
     var verticalAlignment   = verticalAlignment
     var horizontalAlignment = horizontalAlignment
 

@@ -27,14 +27,14 @@ interface Renderer {
 
     fun text(text: StyledText, at: Point)
 
-    fun clippedText(
+    fun clipped(
             text    : String,
             font    : Font,
             point   : Point,
             clipRect: Rectangle,
             brush   : Brush)
 
-    fun wrappedText(
+    fun wrapped(
             text       : String,
             font       : Font,
             point      : Point,
@@ -42,6 +42,11 @@ interface Renderer {
             rightMargin: Double,
             brush      : Brush)
 
+    fun wrapped(
+            text       : StyledText,
+            point      : Point,
+            leftMargin : Double,
+            rightMargin: Double)
 
     fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)
 

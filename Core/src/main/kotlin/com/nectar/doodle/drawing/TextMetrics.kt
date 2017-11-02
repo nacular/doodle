@@ -14,27 +14,25 @@ import org.w3c.dom.HTMLElement
 
 interface TextMetrics {
     fun width (font: Font, text: String): Double
+    fun width (text: StyledText        ): Double
     fun height(font: Font, text: String): Double
+    fun height(text: StyledText        ): Double
 
-    fun size(font: Font, text: String) = Size(width(font, text), height(font, text))
+    fun size(font: Font, text: String                                     ) = Size(width(font, text), height(font, text))
+    fun size(font: Font, text: String, width: Double, indent: Double = 0.0): Size
 
-    fun wrappedSize(font: Font, text: String, width: Double, indent: Double = 0.0): Size
-
-    fun width (text: StyledText): Double
-    fun height(text: StyledText): Double
-
-    fun size(text: StyledText) = Size(width(text), height(text))
-
-//    fun wrappedSize(font: Font, text: String, width: Double, indent: Double = 0.0): Size
+    fun size(text: StyledText                                     ) = Size(width(text), height(text))
+    fun size(text: StyledText, width: Double, indent: Double = 0.0): Size
 }
 
-private data class WrapedInfo(val font: Font, val text: String, val width: Double)
+private data class WrappedInfo(val font: Font, val text: String, val width: Double, val indent: Double)
+private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double)
 
 class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
-
-    private val sizes        = mutableMapOf<Pair<Font, String>, Size>()
-    private val styledSizes  = mutableMapOf<StyledText, Size>()
-    private val wrappedSizes = mutableMapOf<WrapedInfo, Size>()
+    private val sizes              = mutableMapOf<Pair<Font, String>, Size>()
+    private val styledSizes        = mutableMapOf<StyledText, Size>()
+    private val wrappedSizes       = mutableMapOf<WrappedInfo, Size>()
+    private val wrappedStyledSizes = mutableMapOf<WrappedStyleInfo, Size>()
 
     override fun width (font: Font, text: String) = size(font, text).width
     override fun height(font: Font, text: String) = size(font, text).height
@@ -43,7 +41,7 @@ class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFact
         measure(textFactory.create(text, font))
     }
 
-    override fun wrappedSize(font: Font, text: String, width: Double, indent: Double) = wrappedSizes.getOrPut(WrapedInfo(font, text, width)) {
+    override fun size(font: Font, text: String, width: Double, indent: Double) = wrappedSizes.getOrPut(WrappedInfo(font, text, width, indent)) {
         measure(textFactory.wrapped(text, font, indent).also { it.style.setWidth(width) })
     }
 
@@ -51,7 +49,11 @@ class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFact
     override fun height(text: StyledText) = size(text).height
 
     override fun size(text: StyledText) = styledSizes.getOrPut(text) {
-        measure(textFactory.styled(text))
+        measure(textFactory.create(text))
+    }
+
+    override fun size(text: StyledText, width: Double, indent: Double) = wrappedStyledSizes.getOrPut(WrappedStyleInfo(text, width, indent)) {
+        measure(textFactory.wrapped(text, indent).also { it.style.setWidth(width) })
     }
 
     private fun measure(element: HTMLElement): Size {

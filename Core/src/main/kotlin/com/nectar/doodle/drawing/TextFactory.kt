@@ -7,6 +7,8 @@ import com.nectar.doodle.dom.FontWeight.Normal
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Position
 import com.nectar.doodle.dom.add
+import com.nectar.doodle.dom.childAt
+import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setDisplay
@@ -29,8 +31,9 @@ interface TextGlyph {
 
 interface TextFactory {
     fun create (text: String, font: Font? = null, possible: HTMLElement? = null): HTMLElement
+    fun create (text: StyledText, possible: HTMLElement? = null): HTMLElement
     fun wrapped(text: String, font: Font? = null, indent: Double = 0.0, possible: HTMLElement? = null): HTMLElement
-    fun styled (text: StyledText, possible: HTMLElement? = null): HTMLElement
+    fun wrapped(text: StyledText, indent: Double, possible: HTMLElement? = null): HTMLElement
 }
 
 
@@ -68,7 +71,7 @@ class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
         }
     }
 
-    override fun styled(text: StyledText, possible: HTMLElement?): HTMLElement {
+    override fun create(text: StyledText, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
             text.first().also { (text, style) ->
                 return create(text, style.font, possible)
@@ -83,8 +86,9 @@ class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
             element.add(create(text, style.font).also { element ->
                 element.style.setDisplay (Display.Inline)
                 element.style.setPosition(Position.Relative)
-                element.style.setColor   (style.foreground)
-
+                style.foreground?.let {
+                    element.style.setColor(it)
+                }
                 style.background?.let {
                     element.style.setBackgroundColor(it)
                 }
@@ -92,5 +96,18 @@ class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
         }
 
         return element
+    }
+
+    override fun wrapped(text: StyledText, indent: Double, possible: HTMLElement?): HTMLElement {
+        return create(text, possible).also {
+            for (i in 0 until it.numChildren) {
+                val child = it.childAt(i)
+
+                if (child is HTMLElement) {
+                    child.style.whiteSpace = "pre-wrap"
+                    child.style.textIndent = "${indent}px"
+                }
+            }
+        }
     }
 }

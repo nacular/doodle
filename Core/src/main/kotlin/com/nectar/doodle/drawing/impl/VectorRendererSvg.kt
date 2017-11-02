@@ -98,7 +98,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     override fun text(text: String, font: Font, at: Point, brush: Brush) {
-        TODO("Implement")
+        TODO("not implemented")
 
 //        if (brush is SolidBrush && brush.color.opacity == 0f) {
 //            return
@@ -111,12 +111,16 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //        completeOperation(element)
     }
 
-    override fun clippedText(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
-        TODO("Implement")
+    override fun clipped(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
+        TODO("not implemented")
     }
 
-    override fun wrappedText(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-        TODO("Implement")
+    override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+        TODO("not implemented")
+    }
+
+    override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
+        TODO("not implemented")
     }
 
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, point1, point2)

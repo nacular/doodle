@@ -116,7 +116,7 @@ internal class CanvasImpl(
         }
     }
 
-    override fun clippedText(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
+    override fun clipped(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
 //        if (text.isEmpty() || clipRect.empty || !brush.visible) {
 //            return
 //        }
@@ -140,24 +140,31 @@ internal class CanvasImpl(
 //
 //            completeOperation(aData)
 //        } else {
-//            vectorRenderer.clippedText(text, font, point, clipRect, brush)
+//            vectorRenderer.clipped(text, font, point, clipRect, brush)
 //        }
     }
 
-    override fun wrappedText(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-        if (text.isEmpty() || !brush.visible) {
-            return
-        }
-
-        if (!isTransformed && brush is SolidBrush) {
-            completeOperation(createWrappedTextGlyph(brush,
+    override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+        when {
+            text.isEmpty() || !brush.visible      -> return
+            !isTransformed && brush is SolidBrush -> completeOperation(createWrappedTextGlyph(brush,
                     text,
                     font,
                     point,
                     leftMargin,
                     rightMargin))
-        } else {
-            // TODO: IMPLEMENT
+            else                                  -> return // TODO IMPLEMENT
+        }
+    }
+
+    override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
+        when {
+            !isTransformed -> completeOperation(createWrappedStyleTextGlyph(
+                    text,
+                    point,
+                    leftMargin,
+                    rightMargin))
+            else                                  -> return // TODO IMPLEMENT
         }
     }
 
@@ -383,12 +390,24 @@ internal class CanvasImpl(
     }
 
     private fun createStyledTextGlyph(text: StyledText, at: Point): HTMLElement {
-        val element = textFactory.styled(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+        val element = textFactory.create(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
         element.style.setTop (at.y)
         element.style.setLeft(at.x)
 
-        return completeOperation(element)
+        return element
+    }
+
+    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
+        val indent  = max(0.0, at.x - leftMargin)
+        val element = textFactory.wrapped(text, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+
+
+        element.style.setTop (at.y)
+        element.style.setLeft(at.x)
+        element.style.setWidth(rightMargin - leftMargin)
+
+        return element
     }
 
     private fun configure(element: HTMLElement, brush: SolidBrush, position: Point): HTMLElement {
