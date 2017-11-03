@@ -216,15 +216,21 @@ abstract class Gizmo protected constructor(): EventSource {
     // No check to prevent setting self as parent since Container
     // is the only place where this method is called from and it already
     // prevents this by preventing a Container from being added to itself
-    internal var parent: Gizmo? = null
-        set(new) {
+    var parent: Gizmo? = null
+        private set(new) {
             if (field === new) {
                 return
             }
 
             field?.children?.remove(this)
+
+            (parentChange as PropertyObserversImpl).forEach { it(this, field, new) }
+
             field = new
         }
+
+    val parentChange: PropertyObservers<Gizmo, Gizmo?> = PropertyObserversImpl(mutableSetOf())
+
 
     internal fun revalidate_() = revalidate()
     protected fun revalidate() {
