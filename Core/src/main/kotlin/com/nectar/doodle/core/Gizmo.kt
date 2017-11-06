@@ -101,17 +101,10 @@ abstract class Gizmo protected constructor(): EventSource {
         setDisplayRectHandlingReqiured(monitorsDisplayRect, monitorsDisplayRect)
     }
 
-    var font: Font? = null
-        get() = field ?: parent?.font
-
-    var cursor: Cursor? = null
-        get() = field ?: parent?.cursor
-
-    var foregroundColor: Color? = null
-        get() = field ?: parent?.foregroundColor
-
-    var backgroundColor: Color? = null
-        get() = field ?: parent?.backgroundColor
+    var font           : Font?   = null
+    var cursor         : Cursor? = null
+    var foregroundColor: Color?  = null
+    var backgroundColor: Color?  = null
 
     var x: Double
         get( ) = bounds.x
@@ -147,7 +140,7 @@ abstract class Gizmo protected constructor(): EventSource {
 
     internal val layout_ get() = layout
     protected open var layout: Layout? by observable<Layout?>(null) { _, _, new ->
-        new?.layout(this)
+        if (renderManager!= null) new?.layout(this)
     }
 
     internal val children_ get() = children

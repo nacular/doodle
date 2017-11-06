@@ -100,11 +100,11 @@ class RenderManagerImpl(
     }
 
     private fun schedulePaint() {
-        // TODO: Need to see whether this will be an issue for setups
-        onPaint()
-//        if (paintTask == null) {
-//            paintTask = scheduler.after(paintDelay) { onPaint() }
-//        }
+//        // TODO: Need to see whether this will be an issue for setups
+//        onPaint()
+        if (paintTask == null) {
+            paintTask = scheduler.after(paintDelay) { onPaint() }
+        }
     }
 
     private fun render(gizmo: Gizmo, ignoreEmptyBounds: Boolean) {
@@ -142,13 +142,9 @@ class RenderManagerImpl(
 
     private fun onPaint() {
         do {
-            val iterator = pendingLayout.iterator()
+            val copy = pendingLayout.toTypedArray()
 
-            while (iterator.hasNext()) {
-                val item = iterator.next()
-                iterator.remove()
-                performLayout(item)
-            }
+            copy.forEach { performLayout(it) }
 
             layingOut = null
         } while (!pendingLayout.isEmpty())
@@ -167,9 +163,15 @@ class RenderManagerImpl(
     }
 
     private fun performLayout(gizmo: Gizmo) {
+        if (pendingLayout.contains(gizmo.parent)) {
+            gizmo.parent?.let { performLayout(it) }
+        }
+
         layingOut = gizmo
 
         gizmo.doLayout_()
+
+        pendingLayout -= gizmo
     }
 
     private fun performRender(gizmo: Gizmo) {
@@ -235,10 +237,10 @@ class RenderManagerImpl(
 
             gizmos              += gizmo
             dirtyGizmos         += gizmo
-            neverRendered += gizmo
+            neverRendered       += gizmo
             pendingBoundsChange += gizmo
 
-            gizmo.boundsChange += this::boundsChanged
+            gizmo.boundsChange  += this::boundsChanged
 
 //            gizmo.addPropertyListener(mPropertyListener)
 //            gizmo.addContainerListener(mContainerListener)
@@ -391,7 +393,7 @@ class RenderManagerImpl(
 
     private fun scheduleLayout(gizmo: Gizmo) {
         // Only take reference identity into account
-        if (layingOut != gizmo) {
+        if (layingOut !== gizmo) {
             pendingLayout += gizmo
         }
     }

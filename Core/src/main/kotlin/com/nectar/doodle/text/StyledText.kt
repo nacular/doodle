@@ -24,6 +24,7 @@ class StyledText private constructor(var data: List<MutablePair<String, StyleImp
         foreground: Color? = null,
         background: Color? = null): this(listOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
+    val text  get() = data.map { it.first }.joinToString()
     val count get() = data.size
 
     override fun iterator() = data.map { it.first.to(it.second) }.iterator()
@@ -68,8 +69,6 @@ class StyledText private constructor(var data: List<MutablePair<String, StyleImp
     data class StyleImpl(override var font: Font? = null, override var foreground: Color? = null, override var background: Color? = null): Style
 }
 
-//operator fun Font.invoke(block: StyledText.() -> Unit) = StyledText(font = this).apply(block)
-
 operator fun Font.invoke(text: String) = StyledText(text = text, font = this)
 operator fun Color.invoke(text: String) = StyledText(text = text, foreground = this)
 
@@ -92,11 +91,6 @@ operator fun Color.invoke(text: StyledText): StyledText {
 
     return text
 }
-
-/*
-    font ("foo bar" + color ("blah")) + color ("blah")
-
-*/
 
 
 operator fun String.rangeTo(styled: StyledText) = StyledText(this) + styled

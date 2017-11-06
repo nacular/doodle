@@ -3,7 +3,7 @@ package com.nectar.doodle.core
 import com.nectar.doodle.geometry.Point
 
 
-class Container: Gizmo(), Iterable<Gizmo> {
+open class Container: Gizmo(), Iterable<Gizmo> {
     init {
         focusable = false
     }

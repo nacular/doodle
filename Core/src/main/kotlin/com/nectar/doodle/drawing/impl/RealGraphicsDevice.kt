@@ -1,6 +1,5 @@
 package com.nectar.doodle.drawing.impl
 
-
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.GraphicsDevice
 import org.w3c.dom.HTMLElement

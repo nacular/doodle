@@ -92,7 +92,7 @@ class Rectangle constructor(val position: Point = Point.Origin, val size: Size =
         if (other !is Rectangle) return false
 
         if (position != other.position) return false
-        if (size != other.size) return false
+        if (size     != other.size    ) return false
 
         return true
     }
