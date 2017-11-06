@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.0-beta-31'
+    ext.kotlin_version = '1.2.0-rc-39'
 
     repositories {
         mavenCentral()
@@ -24,12 +24,21 @@ subprojects {
     sourceSets {
         main.kotlin.srcDirs    += "src/main/headers"
         main.resources.srcDirs += "resources"
+
+        test.kotlin.srcDirs    += "src/test/headers"
     }
 
     compileKotlin2Js {
         kotlinOptions.metaInfo              = true
         kotlinOptions.sourceMap             = true
         kotlinOptions.moduleKind            = "commonjs"
+        kotlinOptions.sourceMapEmbedSources = "always"
+    }
+
+    compileTestKotlin2Js {
+        kotlinOptions.metaInfo              = true
+        kotlinOptions.sourceMap             = true
+        kotlinOptions.moduleKind            = 'commonjs'
         kotlinOptions.sourceMapEmbedSources = "always"
     }
 
