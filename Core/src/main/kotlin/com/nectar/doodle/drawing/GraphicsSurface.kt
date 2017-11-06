@@ -16,4 +16,5 @@ interface GraphicsSurface {
 
     fun beginRender()
     fun endRender  ()
+    fun release    ()
 }

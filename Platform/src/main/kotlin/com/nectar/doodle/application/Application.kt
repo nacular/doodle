@@ -44,10 +44,10 @@ abstract class Application {
         bind<Display>                  () with singleton { DisplayImpl                    (instance(), document.body!!                   ) }
         bind<Scheduler>                () with singleton { SchedulerImpl                  (                                              ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl                (                                              ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl                (instance()                                    ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl              (instance(), instance()                        ) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl              (instance(), instance(), instance(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice             (instance()                                    ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl(instance()) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl(instance(), instance()) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl(instance(), instance(), instance(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice(instance()) }
         bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                                    ) }
         bind<MouseInputManager>        () with singleton { MouseInputManager              (instance(), instance()                        ) }
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory     (instance(), instance()                        ) }

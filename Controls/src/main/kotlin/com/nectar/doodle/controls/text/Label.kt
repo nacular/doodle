@@ -46,7 +46,7 @@ class Label internal constructor(
 
     var text: String get() = styledText.text
         set(new) {
-            styledText = StyledText(text, font, foregroundColor)
+            styledText = StyledText(new, font, foregroundColor)
         }
 
     // FIXME: Need to handle case where font/colors change after text is set
@@ -76,10 +76,8 @@ class Label internal constructor(
 
     private var textSize = measureText()
         set(new) {
-            if (field != new) {
-                field = new
-                size  = new
-            }
+            field = new
+            size  = new
         }
 
     init {

@@ -409,8 +409,10 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         element.setOpacity(opacity)
         element.setStrokeWidth(pen.thickness)
 
-        if (pen.dashStyle != null && pen.dashStyle.dashes.size > 1) {
-            element.setStrokeDash(dashArray(pen))
+        pen.dashStyle?.let {
+            if (it.dashes.size > 1) {
+                element.setStrokeDash(dashArray(pen))
+            }
         }
     }
 

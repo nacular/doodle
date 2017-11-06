@@ -2,16 +2,16 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.GraphicsDevice
-import org.w3c.dom.HTMLElement
+import com.nectar.doodle.drawing.GraphicsSurface
 
 
-class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<RealGraphicsSurface>): GraphicsDevice<RealGraphicsSurface> {
+class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
 
-    private val gizmoSurfaceMap  = mutableMapOf<Gizmo, RealGraphicsSurface>()
-    private val mSurfaceGizmoMap = mutableMapOf<RealGraphicsSurface, Gizmo>()
+    private val gizmoSurfaceMap  = mutableMapOf<Gizmo, GraphicsSurface>()
+    private val surfaceGizmoMap = mutableMapOf<GraphicsSurface, Gizmo>()
 
-    override operator fun get(gizmo: Gizmo): RealGraphicsSurface {
-        var surface: RealGraphicsSurface? = gizmoSurfaceMap.get(gizmo)
+    override operator fun get(gizmo: Gizmo): GraphicsSurface {
+        var surface: GraphicsSurface? = gizmoSurfaceMap.get(gizmo)
 
         if (surface == null) {
             val parent = gizmo.parent
@@ -21,13 +21,13 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Real
             surface.zIndex = if (parent != null) parent.zIndex_(gizmo) else 0
 
             gizmoSurfaceMap.put(gizmo, surface)
-            mSurfaceGizmoMap.put(surface, gizmo)
+            surfaceGizmoMap.put(surface, gizmo)
         }
 
         return surface
     }
 
-    override fun create(): RealGraphicsSurface {
+    override fun create(): GraphicsSurface {
         val surface = surfaceFactory.surface()
 
         surface.zIndex = 0
@@ -35,26 +35,28 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Real
         return surface
     }
 
-    override fun create(element: HTMLElement) = surfaceFactory.surface(element)
+//    override fun create(element: HTMLElement) = surfaceFactory.surface(element)
 
     override fun release(gizmo: Gizmo) {
         gizmoSurfaceMap[gizmo]?.let {
-            release(it)
-        }
-    }
-
-    override fun release(surface: RealGraphicsSurface) {
-        clearResources(surface)
-
-        surface.release()
-    }
-
-    private fun clearResources(surface: RealGraphicsSurface) {
-        for (aChild in surface) {
-            clearResources(aChild)
+            it.release()
+            surfaceGizmoMap.remove(it   )
+            gizmoSurfaceMap.remove(gizmo)
         }
 
-        gizmoSurfaceMap.remove(mSurfaceGizmoMap[surface])
-        mSurfaceGizmoMap.remove(surface)
+        gizmo.children_.forEach { release(it) }
     }
+
+    override fun release(surface: GraphicsSurface) {
+        surfaceGizmoMap[surface]?.let { release(it) }
+    }
+
+//    private fun clearResources(surface: GraphicsSurface) {
+//        for (aChild in surface) {
+//            clearResources(aChild)
+//        }
+//
+//        gizmoSurfaceMap.remove(surfaceGizmoMap[surface])
+//        surfaceGizmoMap.remove(surface)
+//    }
 }

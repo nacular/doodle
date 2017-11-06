@@ -28,7 +28,7 @@ class RealGraphicsSurface private constructor(
         private var parent       : RealGraphicsSurface?,
         private val isContainer  : Boolean,
         private var canvasElement: HTMLElement,
-        addToDocumentIfNoParent  : Boolean): GraphicsSurface, Iterable<RealGraphicsSurface> {
+        addToDocumentIfNoParent  : Boolean): GraphicsSurface {
 
     constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
     constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create("b"), true)
@@ -101,9 +101,9 @@ class RealGraphicsSurface private constructor(
         } }
     }
 
-    override fun iterator() = children.iterator()
+//    override fun iterator() = children.iterator()
 
-    internal fun release() {
+    override fun release() {
         if (parent != null) {
             parent!!.remove(this)
         } else {
