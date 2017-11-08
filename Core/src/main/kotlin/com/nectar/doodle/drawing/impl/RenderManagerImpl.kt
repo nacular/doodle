@@ -142,16 +142,10 @@ class RenderManagerImpl(
 
     private fun onPaint() {
         do {
-            val copy = pendingLayout.toTypedArray()
-
-            copy.forEach { performLayout(it) }
-
-            layingOut = null
+            pendingLayout.toTypedArray().forEach { performLayout(it) }
         } while (!pendingLayout.isEmpty())
 
-        val copy = pendingRender.toTypedArray()
-
-        copy.forEach { performRender(it) }
+        pendingRender.toTypedArray().forEach { performRender(it) }
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
@@ -170,6 +164,8 @@ class RenderManagerImpl(
         layingOut = gizmo
 
         gizmo.doLayout_()
+
+        layingOut = null
 
         pendingLayout -= gizmo
     }
@@ -233,6 +229,8 @@ class RenderManagerImpl(
 
     private fun recordGizmo(gizmo: Gizmo) {
         if (gizmo !in gizmos) {
+            gizmo.parent?.let { recordGizmo(it) }
+
             gizmo.addedToDisplay(this, uiManager)
 
             gizmos              += gizmo

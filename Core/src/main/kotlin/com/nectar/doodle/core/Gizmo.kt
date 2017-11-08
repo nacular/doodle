@@ -140,7 +140,7 @@ abstract class Gizmo protected constructor(): EventSource {
 
     internal val layout_ get() = layout
     protected open var layout: Layout? by observable<Layout?>(null) { _, _, new ->
-        if (renderManager!= null) new?.layout(this)
+        if (renderManager!= null) doLayout()
     }
 
     internal val children_ get() = children

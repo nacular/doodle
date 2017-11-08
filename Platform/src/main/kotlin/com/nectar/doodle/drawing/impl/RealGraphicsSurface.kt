@@ -133,7 +133,7 @@ class RealGraphicsSurface private constructor(
     }
 
     private fun setZIndex(child: RealGraphicsSurface, index: Int) {
-        rootElement.remove(child.rootElement)
+        if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
         rootElement.insert(child.rootElement, rootElement.numChildren - index)
     }
 }

@@ -164,7 +164,7 @@ internal class CanvasImpl(
                     point,
                     leftMargin,
                     rightMargin))
-            else                                  -> return // TODO IMPLEMENT
+            else           -> return // TODO IMPLEMENT
         }
     }
 

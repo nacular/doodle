@@ -2,6 +2,7 @@ package com.nectar.doodle.core
 
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 
 
 /**
@@ -22,24 +23,6 @@ import com.nectar.doodle.geometry.Size
  */
 
 interface Layout {
-//    /**
-//     * Called whenever a Layout is installed into a Gizmo. Layouts can use
-//     * this notification to perform any initialization.
-//     *
-//     * @param gizmo
-//     */
-//
-//    fun install(gizmo: Gizmo)
-//
-//    /**
-//     * Called whenever a Layout is removed from a Gizmo.  Layouts should use
-//     * this notification to undue any operations that took place in [Layout.install]
-//     *
-//     * @param gizmo
-//     */
-//
-//    fun uninstall(gizmo: Gizmo)
-
     /**
      * Causes the Layout to position the children of the given Gizmo. NOTE: stateful layouts will only
      * position the items they track, while stateless Layouts will iterate over the Gizmo's children.
@@ -55,7 +38,7 @@ interface Layout {
      * @param  default The size to use if one can't be calculated
      * @return the minimum size
      */
-    fun minimumSize(gizmo: Gizmo, default: Size = Size.Empty): Size = default
+    fun minimumSize(gizmo: Gizmo, default: Size = Empty): Size = default
 
     /**
      * Returns the ideal size of the Gizmo based on its contents.

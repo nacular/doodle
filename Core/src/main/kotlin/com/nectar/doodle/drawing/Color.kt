@@ -20,31 +20,29 @@ private fun Int.toHex(): String {
 
 private data class RGB(val red: Int, var green: Int, var blue: Int)
 
-private fun toRgb(hex: String): RGB {
-    try {
-        val rgbValue = hex.toInt(16)
+private fun toRgb(hex: Int): RGB {
+    val range = 0..0xffffff
 
-        return RGB(
-                rgbValue and 0xff0000 shr 16,
-                rgbValue and 0x00ff00 shr 8,
-                rgbValue and 0x0000ff)
-    } catch (e: NumberFormatException) {
-        throw IllegalArgumentException(hex)
-    }
+    require(hex in range) { "hex value must be in $range" }
+
+    return RGB(
+            hex and 0xff0000 shr 16,
+            hex and 0x00ff00 shr  8,
+            hex and 0x0000ff)
 }
 
 class Color(
-        val red    : Int   = 0,
-        val green  : Int   = 0,
-        val blue   : Int   = 0,
+        val red    : Int,
+        val green  : Int,
+        val blue   : Int,
         val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
-    constructor(hex: String, opacity: Float = 1f): this(toRgb(hex), opacity)
+    constructor(hex: Int, opacity: Float = 1f): this(toRgb(hex), opacity)
 
     init {
-        val range = 0..255
+        val range = 0..0xff
 
         require(red     in range) { "red must be in $range"      }
         require(green   in range) { "green must be in $range"    }
@@ -97,7 +95,7 @@ class Color(
 
     fun with(opacity: Float) = Color(red, green, blue, opacity)
 
-    val inverted by lazy { Color((Int.MAX_VALUE xor decimal).toHex()) }
+    val inverted by lazy { Color(Int.MAX_VALUE xor decimal) }
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -114,19 +112,19 @@ class Color(
     }
 
     companion object {
-        val red         = Color("ff0000")
-        val pink        = Color("ffc0cb")
-        val blue        = Color("0000ff")
-        val cyan        = Color("00ffff")
-        val gray        = Color("a9a9a9")
-        val black       = Color("000000")
-        val green       = Color("00ff00")
-        val white       = Color("ffffff")
-        val yellow      = Color("ffff00")
-        val orange      = Color("ffa500")
-        val magenta     = Color("ff00ff")
-        val darkgray    = Color("808080")
-        val lightgray   = Color("d3d3d3")
+        val red         = Color(0xff0000)
+        val pink        = Color(0xffc0cb)
+        val blue        = Color(0x0000ff)
+        val cyan        = Color(0x00ffff)
+        val gray        = Color(0xa9a9a9)
+        val black       = Color(0x000000)
+        val green       = Color(0x00ff00)
+        val white       = Color(0xffffff)
+        val yellow      = Color(0xffff00)
+        val orange      = Color(0xffa500)
+        val magenta     = Color(0xff00ff)
+        val darkgray    = Color(0x808080)
+        val lightgray   = Color(0xd3d3d3)
         val transparent = black.with(opacity = 0f)
 
         private val scaleFactor = 0.9f

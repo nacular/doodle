@@ -1,6 +1,5 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
@@ -18,6 +17,7 @@ import com.nectar.doodle.drawing.SolidBrush
 import com.nectar.doodle.drawing.TextureBrush
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl

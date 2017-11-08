@@ -4,19 +4,25 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.WidthSource.Children
+import com.nectar.doodle.layout.WidthSource.Parent
 import kotlin.math.max
 
 
-class ListLayout constructor(private val spacing: Int = 0): Layout {
+enum class WidthSource {
+    Parent, Children
+}
+
+class ListLayout constructor(private val spacing: Int = 0, private val widthSource: WidthSource = Children): Layout {
 
     override fun layout(gizmo: Gizmo) {
         // TODO: Can this be cleaned up to use idealSize?
         val insets = gizmo.insets_
-        var y       = insets.top
-        var width   = gizmo.run { idealSize?.width ?: width }
+        var y      = insets.top
 
-        gizmo.children_.asSequence().filter { it.visible }.forEach {
-            width = max(width, it.idealSize?.width ?: it.width)
+        val width = when (widthSource) {
+            WidthSource.Parent -> gizmo.run { idealSize?.width ?: width }
+            else               -> gizmo.children_.asSequence().filter { it.visible }.map{ it.idealSize?.width ?: it.width }.max() ?: 0.0
         }
 
         var i = 0
@@ -35,26 +41,23 @@ class ListLayout constructor(private val spacing: Int = 0): Layout {
         if (gizmo.parent?.layout_ == null) {
             gizmo.size = size
         }
-
-        gizmo.idealSize = size
     }
 
     override fun idealSize(gizmo: Gizmo, default: Size?): Size? {
-        var width  = 0.0
         val insets = gizmo.insets_
         var y      = insets.top
 
-        if (gizmo.children_.size > 0) {
-            val firstChild = gizmo.children_.first()
-            val idealSize  = firstChild.idealSize
-
-            width = idealSize?.width ?: firstChild.width
+        var width = when (widthSource) {
+            Parent -> gizmo.width
+            else   -> gizmo.children_.firstOrNull()?.let { it.idealSize?.width ?: it.width } ?: 0.0
         }
 
         var i = 0
 
         gizmo.children_.asSequence().filter { it.visible }.forEach {
-            width = max(width, it.idealSize?.width ?: it.width)
+            if (widthSource == Children) {
+                width = max(width, it.idealSize?.width ?: it.width)
+            }
 
             y += it.height + if (++i < gizmo.children_.size) spacing else 0
         }

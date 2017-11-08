@@ -16,7 +16,7 @@ package com.nectar.doodle.layout
  * +-------------------+
  *
  * The values l,t,r, and b represent the Left, Top, Right, and Bottom
- * values for the Padding respectively.
+ * values for the Insets respectively.
  *
  * @author Nicholas Eddy
  */
@@ -24,42 +24,31 @@ package com.nectar.doodle.layout
 class Insets
 
     /**
-     * Creates a Padding with the specified offsets for each side.
+     * Creates a Insets with the specified value for each side.
      *
      * @param top    The top offset
      * @param left   The left offset
      * @param bottom The bottom offset
      * @param right  The right offset
-     * @return a Padding with the respective offsets
+     * @return a Insets with the respective values
      */
-    constructor(val top: Double, val left: Double, val bottom: Double, val right: Double) {
-
-    /**
-     * Creates a Padding that defines no offset from
-     * the edges of the Container.
-     *
-     * This factory method provides a useful alternative
-     * to a null Padding instance.
-     *
-     * @return
-     */
-    constructor(): this(0.0)
+    constructor(val top: Double = 0.0, val left: Double = 0.0, val bottom: Double = 0.0, val right: Double = 0.0) {
 
 
     /**
-     * Creates a Padding with equal offset from all edges.
+     * Creates a Insets with equal offset from all edges.
      * This is equivalent to calling [.create]
      *
-     * @param value The offset to use for top, left, bottom, and right
-     * @return a Padding with equal offset from all edges
+     * @param all The offset to use for top, left, bottom, and right
+     * @return a Insets with equal offset from all edges
      */
-    constructor(value: Double): this(value, value, value, value)
+    constructor(all: Double): this(all, all, all, all)
 
     init {
-        require(top    >= 0) { "Top cannot be negative"    }
-        require(left   >= 0) { "Left cannot be negative"   }
-        require(bottom >= 0) { "Bottom cannot be negative" }
-        require(right  >= 0) { "Right cannot be negative"  }
+        require(top    >= 0) { "top cannot be negative"    }
+        require(left   >= 0) { "left cannot be negative"   }
+        require(bottom >= 0) { "bottom cannot be negative" }
+        require(right  >= 0) { "right cannot be negative"  }
     }
 
     override fun hashCode(): Int = arrayOf(top, left, right, bottom).contentHashCode()

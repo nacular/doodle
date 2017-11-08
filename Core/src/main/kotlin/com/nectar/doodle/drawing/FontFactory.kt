@@ -4,8 +4,9 @@ import com.nectar.doodle.drawing.Font.Style
 
 
 class FontInfo(
-        var size    : Int = -1,
-        var style   : Set<Style> = setOf(),
+        var size    : Int          = -1,
+        var weight  : Int          = 400,
+        var style   : Set<Style>   = setOf(),
         var families: List<String> = listOf())
 
 interface FontFactory {
@@ -19,13 +20,13 @@ interface FontFactory {
 class FontFactoryImpl: FontFactory {
     override operator fun invoke(builder: FontInfo.() -> Unit) = create(FontInfo(), builder)
 
-    override operator fun invoke(font: Font, builder: FontInfo.() -> Unit) = create(FontInfo(font.size, font.style, font.family.split(",").map { it.drop(1).dropLast(1) }), builder)
+    override operator fun invoke(font: Font, builder: FontInfo.() -> Unit) = create(FontInfo(font.size, font.weight, font.style, font.family.split(",").map { it.drop(1).dropLast(1) }), builder)
 
     private fun create(fontInfo: FontInfo, builder: FontInfo.() -> Unit) = fontInfo.apply(builder).run {
         val family = families.map { "\"$it\"" }.joinToString(",")
 
         fonts.getOrPut(getHash(family, size, style)) {
-            FontImpl(size, style, family)
+            FontImpl(size, weight, style, family)
         }
     }
 
@@ -38,6 +39,7 @@ class FontFactoryImpl: FontFactory {
 
 private class FontImpl(
         override val size  : Int,
+        override val weight: Int,
         override val style : Set<Style>,
         override val family: String): Font {
 }
