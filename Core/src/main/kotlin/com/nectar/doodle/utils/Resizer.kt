@@ -13,7 +13,6 @@ import com.nectar.doodle.utils.Direction.North
 import com.nectar.doodle.utils.Direction.South
 import com.nectar.doodle.utils.Direction.West
 import kotlin.math.max
-import kotlin.properties.Delegates
 
 class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
 
@@ -74,17 +73,19 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     override fun mousePressed(event: MouseEvent) {
         dragMode.clear()
 
-        initialPosition = event.location
-        initialSize     = gizmo!!.size
+        gizmo?.let {
+            initialPosition = event.location
+            initialSize = it.size
 
-        when {
-            initialPosition.y <= hotspotSize                  -> dragMode.plusAssign(North)
-            initialPosition.y >= gizmo!!.height - hotspotSize -> dragMode.plusAssign(South)
-        }
+            when {
+                initialPosition.y <= hotspotSize             -> dragMode.plusAssign(North)
+                initialPosition.y >= it.height - hotspotSize -> dragMode.plusAssign(South)
+            }
 
-        when {
-            initialPosition.x >= gizmo!!.width  - hotspotSize -> dragMode.plusAssign(East )
-            initialPosition.x <= hotspotSize                  -> dragMode.plusAssign(West )
+            when {
+                initialPosition.x >= it.width - hotspotSize -> dragMode.plusAssign(East)
+                initialPosition.x <= hotspotSize            -> dragMode.plusAssign(West)
+            }
         }
     }
 
@@ -94,7 +95,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
 
     override fun mouseExited(event: MouseEvent) {
         if (dragMode.isEmpty()) {
-            gizmo!!.cursor = oldCursor
+            gizmo?.cursor = oldCursor
         }
     }
 
@@ -105,34 +106,36 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     override fun mouseDragged(mouseEvent: MouseEvent) {
         val delta = mouseEvent.location - initialPosition
 
-        if (dragMode.isEmpty() && movable) {
-            gizmo!!.position += delta
-        } else if (!dragMode.isEmpty()) {
-            val bounds = gizmo!!.bounds
+        gizmo?.let {
+            if (dragMode.isEmpty() && movable) {
+                it.position += delta
+            } else if (!dragMode.isEmpty()) {
+                val bounds = it.bounds
 
-            var x      = bounds.x
-            var y      = bounds.y
-            var width  = bounds.width
-            var height = bounds.height
+                var x      = bounds.x
+                var y      = bounds.y
+                var width  = bounds.width
+                var height = bounds.height
 
-            val minWidth  = gizmo!!.minimumSize.width
-            val minHeight = gizmo!!.minimumSize.height
+                val minWidth  = it.minimumSize.width
+                val minHeight = it.minimumSize.height
 
-            if (dragMode.contains(West) && directions.contains(West)) {
-                width = max(minWidth, gizmo!!.width - delta.x)
-                x += bounds.width - width
-            } else if (dragMode.contains(East) && directions.contains(East)) {
-                width = max(minWidth, initialSize.width + delta.x)
+                if (dragMode.contains(West) && directions.contains(West)) {
+                    width  = max(minWidth, it.width - delta.x)
+                    x     += bounds.width - width
+                } else if (dragMode.contains(East) && directions.contains(East)) {
+                    width = max(minWidth, initialSize.width + delta.x)
+                }
+
+                if (dragMode.contains(North) && directions.contains(North)) {
+                    height  = max(minHeight, it.height - delta.y)
+                    y      += bounds.height - height
+                } else if (dragMode.contains(South) && directions.contains(South)) {
+                    height = max(minHeight, initialSize.height + delta.y)
+                }
+
+                it.bounds = Rectangle(x, y, width, height)
             }
-
-            if (dragMode.contains(North) && directions.contains(North)) {
-                height = max(minHeight, gizmo!!.height - delta.y)
-                y += bounds.height - height
-            } else if (dragMode.contains(South) && directions.contains(South)) {
-                height = max(minHeight, initialSize.height + delta.y)
-            }
-
-            gizmo!!.bounds = Rectangle(x, y, width, height)
         }
     }
 
@@ -141,54 +144,56 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
             return
         }
 
-        val x      = mouseEvent.location.x
-        val y      = mouseEvent.location.y
-        val mask   = mutableSetOf<Direction>()
-        var innerX = false
-        var innerY = false
+        gizmo?.let {
+            val x = mouseEvent.location.x
+            val y = mouseEvent.location.y
+            val mask = mutableSetOf<Direction>()
+            var innerX = false
+            var innerY = false
 
-        if (x <= hotspotSize) {
-            if (directions.contains(West)) {
-                mask += West
+            if (x <= hotspotSize) {
+                if (directions.contains(West)) {
+                    mask += West
+                }
+            } else if (x >= it.width - hotspotSize) {
+                if (directions.contains(East)) {
+                    mask += East
+                }
+            } else {
+                innerX = true
             }
-        } else if (x >= gizmo!!.width - hotspotSize) {
-            if (directions.contains(East)) {
-                mask += East
+            if (y <= hotspotSize) {
+                if (directions.contains(North)) {
+                    mask += North
+                }
+            } else if (y >= it.height - hotspotSize) {
+                if (directions.contains(South)) {
+                    mask += South
+                }
+            } else {
+                innerY = true
             }
-        } else {
-            innerX = true
+
+            ignorePropertyChange = true
+
+            it.cursor = when {
+                mask.contains(North)    -> when {
+                    mask.contains(East) -> Cursor.NeResize
+                    mask.contains(West) -> Cursor.NwResize
+                    else                -> Cursor.NResize
+                }
+                mask.contains(South)    -> when {
+                    mask.contains(East) -> Cursor.SeResize
+                    mask.contains(West) -> Cursor.SwResize
+                    else                -> Cursor.SResize
+                }
+                mask.contains(East)         -> Cursor.EResize
+                mask.contains(West)         -> Cursor.WResize
+                movable && innerX && innerY -> Cursor.Move
+                else                        -> oldCursor
+            }
+
+            ignorePropertyChange = false
         }
-        if (y <= hotspotSize) {
-            if (directions.contains(North)) {
-                mask += North
-            }
-        } else if (y >= gizmo!!.height - hotspotSize) {
-            if (directions.contains(South)) {
-                mask += South
-            }
-        } else {
-            innerY = true
-        }
-
-        ignorePropertyChange = true
-
-        gizmo!!.cursor = when {
-            mask.contains(North) -> when {
-                mask.contains(East)     -> Cursor.NeResize
-                mask.contains(West)     -> Cursor.NwResize
-                else                    -> Cursor.NResize
-            }
-            mask.contains(South) -> when {
-                mask.contains(East)     -> Cursor.SeResize
-                mask.contains(West)     -> Cursor.SwResize
-                else                    -> Cursor.SResize
-            }
-            mask.contains(East )        -> Cursor.EResize
-            mask.contains(West )        -> Cursor.WResize
-            movable && innerX && innerY -> Cursor.Move
-            else                        -> oldCursor
-        }
-
-        ignorePropertyChange = false
     }
 }

@@ -13,12 +13,12 @@ interface MouseMotionListener {
      *
      * @param mouseEvent The event
      */
-    fun mouseMoved(mouseEvent: MouseEvent)
+    fun mouseMoved(mouseEvent: MouseEvent) {}
 
     /**
      * Informs listener that the mouse has been dragged.
      *
      * @param mouseEvent The event
      */
-    fun mouseDragged(mouseEvent: MouseEvent)
+    fun mouseDragged(mouseEvent: MouseEvent) {}
 }

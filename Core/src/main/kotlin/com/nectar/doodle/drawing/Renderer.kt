@@ -23,7 +23,7 @@ interface Renderer {
     fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush? = null)
     fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, brush: Brush)
 
-    fun text(text: String, font: Font, at: Point, brush: Brush)
+    fun text(text: String, font: Font? = null, at: Point, brush: Brush)
 
     fun text(text: StyledText, at: Point)
 

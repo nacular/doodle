@@ -95,7 +95,7 @@ class Color(
 
     fun with(opacity: Float) = Color(red, green, blue, opacity)
 
-    val inverted by lazy { Color(Int.MAX_VALUE xor decimal) }
+    val inverted by lazy { Color(0xffffff xor decimal) }
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 

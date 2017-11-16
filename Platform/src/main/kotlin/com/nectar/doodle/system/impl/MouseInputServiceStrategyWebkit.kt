@@ -165,17 +165,17 @@ class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): Mou
     }
 
     private fun createMouseEvent(event: MouseEvent, aType: Type, clickCount: Int): SystemMouseEvent {
-        val button = when {
-            event.buttons.toInt() and 1 == 1 -> Button1
-            event.buttons.toInt() and 2 == 2 -> Button2
-            event.buttons.toInt() and 4 == 4 -> Button3
-            else                             -> null
-        }
+        val buttons    = mutableSetOf<SystemMouseEvent.Button>()
+        val buttonsInt = event.buttons.toInt()
+
+        if (buttonsInt and 1 == 1) buttons.add(Button1)
+        if (buttonsInt and 2 == 2) buttons.add(Button2)
+        if (buttonsInt and 4 == 4) buttons.add(Button3)
 
         return SystemMouseEvent(
                 aType,
                 Point(mouseLocation.x, mouseLocation.y),
-                button?.let { setOf(it) } ?: emptySet(),
+                buttons,
                 clickCount,
                 createModifiers(event))
     }

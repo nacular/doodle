@@ -3,7 +3,7 @@ package com.nectar.doodle.controls.text
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.SolidBrush
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
@@ -108,7 +108,7 @@ class Label internal constructor(
         }
 
         backgroundColor?.let {
-            canvas.rect(bounds.atOrigin(), SolidBrush(it))
+            canvas.rect(bounds.atOrigin(), ColorBrush(it))
         }
 
         if (wrapsWords) {

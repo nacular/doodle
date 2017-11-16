@@ -27,10 +27,10 @@ import com.nectar.doodle.dom.setX
 import com.nectar.doodle.dom.setY
 import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.Optimization
-import com.nectar.doodle.drawing.SolidBrush
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -97,7 +97,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun text(text: String, font: Font, at: Point, brush: Brush) {
+    override fun text(text: String, font: Font?, at: Point, brush: Brush) {
         TODO("not implemented")
 
 //        if (brush is SolidBrush && brush.color.opacity == 0f) {
@@ -530,7 +530,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private object SolidFillHandler: FillHandler {
         override fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
-            if (brush is SolidBrush) {
+            if (brush is ColorBrush) {
                 val aColor = brush.color
                 val aOpacity = aColor.opacity
 

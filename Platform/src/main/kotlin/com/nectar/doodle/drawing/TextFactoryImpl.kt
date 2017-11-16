@@ -13,6 +13,7 @@ import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setFontFamily
 import com.nectar.doodle.dom.setFontSize
 import com.nectar.doodle.dom.setFontStyle
+import com.nectar.doodle.dom.setFontWeight
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
@@ -30,10 +31,11 @@ class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
         }
 
         font?.let {
-            element.style.setFontSize  (it.size  )
-            element.style.setFontFamily(it.family)
-
-            element.style.fontWeight = it.weight.toString()
+            element.run {
+                style.setFontSize  (it.size  )
+                style.setFontFamily(it.family)
+                style.setFontWeight(it.weight)
+            }
 
             if (it.isItalic) {
                 element.style.setFontStyle(FontStyle.Italic)

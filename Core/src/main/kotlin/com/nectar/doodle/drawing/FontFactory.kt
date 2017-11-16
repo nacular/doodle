@@ -1,11 +1,13 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.drawing.Font.Style
+import com.nectar.doodle.drawing.Font.Weight
+import com.nectar.doodle.drawing.Font.Weight.Normal
 
 
 class FontInfo(
         var size    : Int          = -1,
-        var weight  : Int          = 400,
+        var weight  : Weight       = Normal,
         var style   : Set<Style>   = setOf(),
         var families: List<String> = listOf())
 
@@ -39,7 +41,7 @@ class FontFactoryImpl: FontFactory {
 
 private class FontImpl(
         override val size  : Int,
-        override val weight: Int,
+        override val weight: Weight,
         override val style : Set<Style>,
         override val family: String): Font {
 }

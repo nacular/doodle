@@ -14,7 +14,7 @@ interface KeyListener {
      * @param event The event
      */
 
-    fun keyTyped(event: KeyEvent)
+    fun keyTyped(event: KeyEvent) {}
 
     /**
      * Informs listener that a key was pressed.
@@ -22,7 +22,7 @@ interface KeyListener {
      * @param event The event
      */
 
-    fun keyPressed(event: KeyEvent)
+    fun keyPressed(event: KeyEvent) {}
 
     /**
      * Informs listener that a key was released.
@@ -30,5 +30,5 @@ interface KeyListener {
      * @param event The event
      */
 
-    fun keyReleased(event: KeyEvent)
+    fun keyReleased(event: KeyEvent) {}
 }

@@ -26,29 +26,11 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.ui.UIManager
 import com.nectar.doodle.utils.ObservableList
-import com.nectar.doodle.utils.Pool
+import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
-import kotlin.properties.ObservableProperty
-import kotlin.reflect.KProperty
-
-private class ObservableProperty<T>(initial: T, val owner: () -> Gizmo, val observers: PropertyObserversImpl<Gizmo, T>): ObservableProperty<T>(initial) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
-
-    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
-        super.afterChange(property, oldValue, newValue)
-
-        observers.forEach { it(owner(), oldValue, newValue) }
-    }
-}
-
-
-interface EventSource {
-    val mouseChanged      : Pool<MouseListener>
-    val mouseMotionChanged: Pool<MouseMotionListener>
-}
 
 /**
  * The smallest unit of displayable, interactive content within the framework.
@@ -59,7 +41,7 @@ interface EventSource {
  *
  * @author Nicholas Eddy
  */
-abstract class Gizmo protected constructor(): EventSource {
+abstract class Gizmo protected constructor() {
 
     var hasFocus = false
         private set
@@ -130,7 +112,7 @@ abstract class Gizmo protected constructor(): EventSource {
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
-    val boundsChange: PropertyObservers<Gizmo, Rectangle> = PropertyObserversImpl(mutableSetOf())
+    val boundsChange: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(mutableSetOf()) }
 
     var bounds: Rectangle by ObservableProperty(Rectangle.Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
 
@@ -598,8 +580,8 @@ abstract class Gizmo protected constructor(): EventSource {
 //    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
 
-    override val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
-    override val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
+    val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
+    val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
 
     /**
      * @param aType

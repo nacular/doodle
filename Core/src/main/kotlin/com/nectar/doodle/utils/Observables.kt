@@ -8,6 +8,26 @@ import kotlin.reflect.KProperty
  * Created by Nicholas Eddy on 10/21/17.
  */
 
+
+typealias EventObserver<S> = (source: S) -> Unit
+
+interface EventObservers<out S> {
+    operator fun plusAssign (observer: EventObserver<S>)
+    operator fun minusAssign(observer: EventObserver<S>)
+}
+
+class EventObserversImpl<S>(private val source: S, private val mutableSet: MutableSet<EventObserver<S>>): MutableSet<EventObserver<S>> by mutableSet, EventObservers<S> {
+    override fun plusAssign(observer: EventObserver<S>) {
+        mutableSet += observer
+    }
+
+    override fun minusAssign(observer: EventObserver<S>) {
+        mutableSet -= observer
+    }
+
+    operator fun invoke() = mutableSet.forEach { it(source) }
+}
+
 typealias PropertyObserver<S, T> = (source: S, old: T, new: T) -> Unit
 
 interface PropertyObservers<out S, out T> {
@@ -24,6 +44,17 @@ class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObs
         mutableSet -= observer
     }
 }
+
+class ObservableProperty<S, T>(initial: T, val owner: () -> S, val observers: PropertyObserversImpl<S, T>): ObservableProperty<T>(initial) {
+    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
+
+    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
+        super.afterChange(property, oldValue, newValue)
+
+        observers.forEach { it(owner(), oldValue, newValue) }
+    }
+}
+
 
 typealias ListObserver<S, T> = (source: ObservableList<S, T>, removed: List<Int>, added: Map<Int, T>) -> Unit
 

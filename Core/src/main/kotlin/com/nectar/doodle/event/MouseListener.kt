@@ -13,26 +13,26 @@ interface MouseListener {
      *
      * @param event The event
      */
-    fun mouseExited(event: MouseEvent)
+    fun mouseExited(event: MouseEvent) {}
 
     /**
      * Informs listener that the mouse has entered the source.
      *
      * @param event The event
      */
-    fun mouseEntered(event: MouseEvent)
+    fun mouseEntered(event: MouseEvent) {}
 
     /**
      * Informs listener that the mouse was pressed.
      *
      * @param event The event
      */
-    fun mousePressed(event: MouseEvent)
+    fun mousePressed(event: MouseEvent) {}
 
     /**
      * Informs listener that the mouse was released.
      *
      * @param event The event
      */
-    fun mouseReleased(event: MouseEvent)
+    fun mouseReleased(event: MouseEvent) {}
 }

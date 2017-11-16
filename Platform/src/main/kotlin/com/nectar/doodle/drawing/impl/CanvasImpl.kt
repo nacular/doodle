@@ -22,10 +22,10 @@ import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Canvas.ImageData
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
-import com.nectar.doodle.drawing.SolidBrush
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
@@ -108,10 +108,10 @@ internal class CanvasImpl(
 
     }
 
-    override fun text(text: String, font: Font, at: Point, brush: Brush) {
+    override fun text(text: String, font: Font?, at: Point, brush: Brush) {
         when {
             text.isEmpty() || !brush.visible      -> return
-            !isTransformed && brush is SolidBrush -> completeOperation(createTextGlyph(brush, text, font, at))
+            !isTransformed && brush is ColorBrush -> completeOperation(createTextGlyph(brush, text, font, at))
             else                                  -> vectorRenderer.text(text, font, at, brush)
         }
     }
@@ -147,7 +147,7 @@ internal class CanvasImpl(
     override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
         when {
             text.isEmpty() || !brush.visible      -> return
-            !isTransformed && brush is SolidBrush -> completeOperation(createWrappedTextGlyph(brush,
+            !isTransformed && brush is ColorBrush -> completeOperation(createWrappedTextGlyph(brush,
                     text,
                     font,
                     point,
@@ -308,7 +308,7 @@ internal class CanvasImpl(
     private fun present(pen: Pen?, brush: Brush?, block: () -> HTMLElement?) {
         if (visible(pen, brush)) {
             block()?.let {
-                if (brush is SolidBrush) {
+                if (brush is ColorBrush) {
                     it.style.backgroundColor = "#${brush.color.hexString}"
                 }
                 if (pen != null) {
@@ -374,13 +374,13 @@ internal class CanvasImpl(
         return element
     }
 
-    private fun createTextGlyph(brush: SolidBrush, text: String, font: Font?, at: Point): HTMLElement {
+    private fun createTextGlyph(brush: ColorBrush, text: String, font: Font?, at: Point): HTMLElement {
         val element = textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
         return configure(element, brush, at)
     }
 
-    private fun createWrappedTextGlyph(brush: SolidBrush, text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
+    private fun createWrappedTextGlyph(brush: ColorBrush, text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(text, font, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
@@ -410,7 +410,7 @@ internal class CanvasImpl(
         return element
     }
 
-    private fun configure(element: HTMLElement, brush: SolidBrush, position: Point): HTMLElement {
+    private fun configure(element: HTMLElement, brush: ColorBrush, position: Point): HTMLElement {
         element.style.setTop      (position.y         )
         element.style.setLeft     (position.x         )
         element.style.setColor    (brush.color        )

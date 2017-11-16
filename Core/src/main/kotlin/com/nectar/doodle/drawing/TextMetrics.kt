@@ -8,13 +8,13 @@ import com.nectar.doodle.text.StyledText
  */
 
 interface TextMetrics {
-    fun width (font: Font, text: String): Double
-    fun width (text: StyledText        ): Double
-    fun height(font: Font, text: String): Double
-    fun height(text: StyledText        ): Double
+    fun width (text: String, font: Font? = null): Double
+    fun width (text: StyledText                ): Double
+    fun height(text: String, font: Font? = null): Double
+    fun height(text: StyledText                ): Double
 
-    fun size(font: Font, text: String                                     ) = Size(width(font, text), height(font, text))
-    fun size(font: Font, text: String, width: Double, indent: Double = 0.0): Size
+    fun size(text: String, font: Font? = null                                     ) = Size(width(text, font), height(text, font))
+    fun size(text: String, width: Double, indent: Double = 0.0, font: Font? = null): Size
 
     fun size(text: StyledText                                     ) = Size(width(text), height(text))
     fun size(text: StyledText, width: Double, indent: Double = 0.0): Size
