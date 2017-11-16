@@ -45,7 +45,7 @@ class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObs
     }
 }
 
-class ObservableProperty<S, T>(initial: T, val owner: () -> S, val observers: PropertyObserversImpl<S, T>): ObservableProperty<T>(initial) {
+class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private val observers: PropertyObserversImpl<S, T>): ObservableProperty<T>(initial) {
     override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
 
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {

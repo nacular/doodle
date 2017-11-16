@@ -1,6 +1,7 @@
 package com.nectar.doodle.dom
 
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
 import org.w3c.dom.Text
 import kotlin.browser.document
@@ -12,9 +13,10 @@ import kotlin.browser.document
 interface HtmlFactory {
     val body: HTMLElement
 
-    fun create     (tag : String                 ): HTMLElement
-    fun createText (text: String                 ): Text
-    fun createOrUse(tag : String, possible: Node?): HTMLElement
+    fun create     (tag   : String                 ): HTMLElement
+    fun createText (text  : String                 ): Text
+    fun createImage(source: String                 ): HTMLImageElement
+    fun createOrUse(tag   : String, possible: Node?): HTMLElement
 }
 
 class HtmlFactoryImpl: HtmlFactory {
@@ -25,6 +27,8 @@ class HtmlFactoryImpl: HtmlFactory {
     }.cloneNode(false) as HTMLElement
 
     override fun createText(text: String) = document.createTextNode(text)
+
+    override fun createImage(source: String) = (create("IMG") as HTMLImageElement).also { it.src = source }
 
     override fun createOrUse(tag: String, possible: Node?): HTMLElement {
         var result = possible

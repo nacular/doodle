@@ -7,7 +7,7 @@ import com.nectar.doodle.drawing.GraphicsSurface
 
 class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
 
-    private val gizmoSurfaceMap  = mutableMapOf<Gizmo, GraphicsSurface>()
+    private val gizmoSurfaceMap = mutableMapOf<Gizmo, GraphicsSurface>()
     private val surfaceGizmoMap = mutableMapOf<GraphicsSurface, Gizmo>()
 
     override operator fun get(gizmo: Gizmo): GraphicsSurface {
