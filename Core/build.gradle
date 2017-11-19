@@ -14,9 +14,10 @@
 //    }
 //}
 //
-//dependencies {
+dependencies {
+    compile project(":units")
 //    testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
-//}
+}
 //
 //kotlinFrontend {
 //    npm {
