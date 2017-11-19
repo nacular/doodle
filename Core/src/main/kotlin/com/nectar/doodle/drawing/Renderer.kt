@@ -55,3 +55,5 @@ interface Renderer {
         Quality
     }
 }
+
+class Shadow(val horizontal: Double = 0.0, val vertical: Double = 0.0, val blurRadius: Double = 0.0, val color: Color = Color.black)

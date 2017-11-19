@@ -39,7 +39,6 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
-import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
@@ -459,7 +458,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
         return when {
             element == null || element.nodeName != tag -> svgFactory.create(tag)
-            element is Element                         -> { element.clear(); element.removeTransform(); element as T }
+            element is SVGElement                      -> { element.clear(); element.removeTransform(); element as T }
             else                                       -> throw Exception("Error") // FIXME: handle better
         }
     }

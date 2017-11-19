@@ -75,14 +75,14 @@ inline fun SVGElement.setStroke(color: Color?) = convert(color) {
     setAttribute("stroke", it)
 }
 
-fun Element.setTransform(transform: AffineTransform?) = when(transform) {
+fun SVGElement.setTransform(transform: AffineTransform?) = when(transform) {
     null -> removeTransform()
     else -> setTransform(transform.run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" })
 }
 
-inline fun Element.setTransform(transform: String) = setAttribute("transform", transform)
+inline fun SVGElement.setTransform(transform: String) = setAttribute("transform", transform)
 
-inline fun Element.removeTransform() = removeAttribute("transform")
+inline fun SVGElement.removeTransform() = removeAttribute("transform")
 
 enum class ShapeRendering(val value: String) {
     CrispEdges("crispEdges"),

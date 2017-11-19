@@ -1,5 +1,6 @@
 package com.nectar.doodle.dom
 
+import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font.Weight
 import com.nectar.doodle.image.Image
@@ -76,6 +77,12 @@ internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("flo
 //        sStyleImpl.setOpacity( this, aOpacity );
 //    }
 //
+
+fun Style.setTransform(transform: AffineTransform?) = when(transform) {
+    null, AffineTransform.Identity -> this.transform = ""
+    else                           -> transform.run { this@setTransform.transform = "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+}
+
 
 internal enum class Float        (val value: String) { Left     ("left"    ), Right   ("right"   )                                                   }
 internal enum class Repeat       (val value: String) { RepeatAll("repeat"  ), RepeatX ("repeat_x"), RepeatY("repeat_y"), NoRepeat   ("no_repeat")    }

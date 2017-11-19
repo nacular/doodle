@@ -11,6 +11,8 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setLeft
+import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasFactory
@@ -90,7 +92,9 @@ class RealGraphicsSurface private constructor(
 
     override var position: Point by observable(Point.Origin) { _,_,new ->
         rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
-            rootElement.style.transform = "translate(${new.x}px, ${new.y}px)"
+            rootElement.style.setTop (new.y)
+            rootElement.style.setLeft(new.x)
+//            rootElement.style.transform = "translate(${new.x}px, ${new.y}px)"
         } }
     }
 

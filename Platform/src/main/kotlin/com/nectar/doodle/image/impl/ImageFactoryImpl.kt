@@ -1,7 +1,6 @@
 package com.nectar.doodle.image.impl
 
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.ImageFactory
 import com.nectar.doodle.scheduler.Scheduler
@@ -19,41 +18,59 @@ class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val schedul
 
     private var task: Task? = null
 
-//    suspend override fun load(url: String) =  suspendCoroutine<Image> { continuation ->
-//        val image = htmlFactory.createImage(url)
+//    suspend override fun load(source: String) =  suspendCoroutine<Image> { continuation ->
+//        val image = htmlFactory.createImage(source)
 //
 //        while (!image.complete);
 //
-//        continuation.resume(Image(Size(image.width.toDouble(), image.height.toDouble()), url))
+//        continuation.resume(Image(Size(image.width.toDouble(), image.height.toDouble()), source))
 //    }
 
-    override fun load(url: String, result: (Image) -> Unit) {
-        images[url]?.let { result(it); return  }
+    override fun load(source: String, completed: (Image) -> Unit, error: (String) -> Unit) {
+        images[source]?.let { completed(it); return  }
 
-        loading.getOrPut(url) { ImageMonitor(htmlFactory.createImage(url), mutableSetOf()) }.observers += result
+        loading.getOrPut(source) { ImageMonitor(htmlFactory.createImage(source), mutableSetOf()) }.observers += completed
 
         if (task == null ) {
-            task = scheduler.after(10.milliseconds, this::processLoading)
+            scheduleLoadCheck()
+        }
+    }
+
+    override fun unload(image: Image) {
+        images.remove (image.source)
+        loading.remove(image.source)
+
+        task?.let {
+            if (loading.isEmpty()) {
+                it.cancel()
+                task = null
+            }
         }
     }
 
     private fun processLoading() {
-        val iter = loading.iterator()
+        val iterator = loading.iterator()
 
-        while (iter.hasNext()) {
-            iter.next().also { (url, monitor) ->
+        while (iterator.hasNext()) {
+            iterator.next().also { (_, monitor) ->
                 if (monitor.image.complete) {
-                    Image(Size(monitor.image.width.toDouble(), monitor.image.height.toDouble()), url).also { image ->
+                    ImageImpl(monitor.image).also { image ->
                         monitor.observers.forEach { it(image) }
                     }
 
-                    iter.remove()
+                    iterator.remove()
                 }
             }
         }
 
         if (!loading.isEmpty()) {
-            task = scheduler.after(10.milliseconds, this::processLoading)
+            scheduleLoadCheck()
+        } else {
+            task = null
         }
+    }
+
+    private fun scheduleLoadCheck() {
+        task = scheduler.after(10.milliseconds, this::processLoading)
     }
 }

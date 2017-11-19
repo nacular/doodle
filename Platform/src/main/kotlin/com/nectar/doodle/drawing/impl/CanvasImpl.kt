@@ -3,18 +3,20 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
+import com.nectar.doodle.dom.clearBoundStyles
+import com.nectar.doodle.dom.clearVisualStyles
 import com.nectar.doodle.dom.index
 import com.nectar.doodle.dom.left
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
-import com.nectar.doodle.dom.removeTransform
 import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setTop
+import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.top
@@ -26,6 +28,7 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
@@ -34,15 +37,19 @@ import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
 import kotlin.dom.clear
 import kotlin.math.max
 
 
 internal class CanvasImpl(
-        override val renderRegion: Node,
+        override val renderRegion: HTMLElement,
         private val htmlFactory: HtmlFactory,
         private val textFactory: TextFactory,
         rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
@@ -55,6 +62,7 @@ internal class CanvasImpl(
     private val vectorRenderer by lazy { rendererFactory(this) }
     private val isTransformed get() = !transform.isIdentity
 
+    private var shadows = mutableListOf<Shadow>()
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = present(null, brush) { getRect(rectangle) }
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
@@ -102,7 +110,7 @@ internal class CanvasImpl(
 
     override fun text(text: StyledText, at: Point) {
         when {
-            !isTransformed -> completeOperation(createStyledTextGlyph(text, at))
+            true /*!isTransformed*/ -> completeOperation(createStyledTextGlyph(text, at))
             else           -> vectorRenderer.text(text, at)
         }
 
@@ -111,7 +119,7 @@ internal class CanvasImpl(
     override fun text(text: String, font: Font?, at: Point, brush: Brush) {
         when {
             text.isEmpty() || !brush.visible      -> return
-            !isTransformed && brush is ColorBrush -> completeOperation(createTextGlyph(brush, text, font, at))
+            true /*!isTransformed*/ && brush is ColorBrush -> completeOperation(createTextGlyph(brush, text, font, at))
             else                                  -> vectorRenderer.text(text, font, at, brush)
         }
     }
@@ -147,7 +155,7 @@ internal class CanvasImpl(
     override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
         when {
             text.isEmpty() || !brush.visible      -> return
-            !isTransformed && brush is ColorBrush -> completeOperation(createWrappedTextGlyph(brush,
+            true /*!isTransformed*/ && brush is ColorBrush -> completeOperation(createWrappedTextGlyph(brush,
                     text,
                     font,
                     point,
@@ -159,7 +167,7 @@ internal class CanvasImpl(
 
     override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
         when {
-            !isTransformed -> completeOperation(createWrappedStyleTextGlyph(
+            true /*!isTransformed*/ -> completeOperation(createWrappedStyleTextGlyph(
                     text,
                     point,
                     leftMargin,
@@ -168,54 +176,49 @@ internal class CanvasImpl(
         }
     }
 
-    override fun image(image: Image, destination: Rectangle, opacity: Float) {
-//        val rect = Rectangle.create(image.size.width, image.size.width)
-//
-//        if (shouldDrawImage(image, rect, destination, opacity)) {
-//            if (canTransformFilledRect) {
-//                val aImageGlyph = createImageGlyph(image, transform(destination), opacity)
-//
-//                completeOperation(aImageGlyph.getData())
-//            } else {
-//                vectorRenderer.image(image, rect, destination, opacity)
-//            }
-//        }
+    override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
+        val rect = Rectangle(size = image.size)
+
+        if (shouldDrawImage(image, rect, destination, opacity)) {
+            if (canTransformFilledRect) {
+                completeOperation(createImage(image, transform(destination), radius, opacity))
+            } else {
+                vectorRenderer.image(image, rect, destination, opacity)
+            }
+        }
     }
 
     override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
-//        if (shouldDrawImage(image, source, destination, opacity)) {
-//            if (canTransformFilledRect) {
-//                val transformedRect = transform(destination)
-//
-//                val aGlyph = createClipRect(transformedRect)
-//
-//                val aOldRenderPosition = renderPosition
-//
-//                renderPosition = aGlyph.getData().getChildAt(0)
-//
-//                val aXRatio = transformedRect.width / source.width
-//                val aYRatio = transformedRect.height / source.height
-//
-//                val aImageGlyph = createImageGlyph(image,
-//                        Rectangle.create(0 - aXRatio * source.x,
-//                                0 - aYRatio * source.y,
-//                                aXRatio * image.size.width,
-//                                aYRatio * image.size.height),
-//                        opacity)
-//
-//                val aData = aGlyph.getData()
-//
-//                if (renderPosition !== aImageGlyph.getData()) {
-//                    aData.add(aImageGlyph.getData())
-//                }
-//
-//                renderPosition = aOldRenderPosition
-//
-//                completeOperation(aData)
-//            } else {
-//                vectorRenderer.image(image, source, destination, opacity)
-//            }
-//        }
+        if (shouldDrawImage(image, source, destination, opacity)) {
+            if (canTransformFilledRect) {
+                val transformedRect   = transform(destination)
+                val clipRect          = getRect(transformedRect)
+                val oldRenderPosition = renderPosition
+
+                renderPosition = clipRect.childAt(0)
+
+                val xRatio = transformedRect.width  / source.width
+                val yRatio = transformedRect.height / source.height
+
+                val imageElement = createImage(image,
+                        Rectangle(0 - xRatio * source.x,
+                                  0 - yRatio * source.y,
+                                  xRatio * image.size.width,
+                                  yRatio * image.size.height),
+                        0.0,
+                        opacity)
+
+                if (renderPosition !== imageElement) {
+                    clipRect.add(imageElement)
+                }
+
+                renderPosition = oldRenderPosition
+
+                completeOperation(clipRect)
+            } else {
+                vectorRenderer.image(image, source, destination, opacity)
+            }
+        }
     }
 
     override fun translate(by: Point) {
@@ -226,11 +229,11 @@ internal class CanvasImpl(
         transform = transform.scale(pin)
     }
 
-    override fun rotate(angle: Double) {
+    override fun rotate(angle: Measure<Angle>) {
         transform = transform.rotate(angle)
     }
 
-    override fun rotate(around: Point, angle: Double) {
+    override fun rotate(around: Point, angle: Measure<Angle>) {
         translate(around)
         rotate(angle)
         translate(-around)
@@ -278,6 +281,14 @@ internal class CanvasImpl(
         transform = Identity
     }
 
+    override fun shadowed(shadow: Shadow, block: Canvas.() -> Unit) {
+        shadows.add(shadow)
+
+        apply(block)
+
+        shadows.remove(shadow)
+    }
+
     private fun addData(elements: List<HTMLElement>, at: Point) {
         elements.forEach { element ->
             element.style.top  = "${element.top  + at.y}"
@@ -297,11 +308,11 @@ internal class CanvasImpl(
         }
     }
 
-    private val canTransformFilledRect get() =
+    private val canTransformFilledRect = true /*get() =
         transform.scaleX >= 0   &&
         transform.scaleY >= 0   &&
         transform.shearX == 0.0 &&
-        transform.shearY == 0.0
+        transform.shearY == 0.0*/
 
     private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
 
@@ -324,20 +335,17 @@ internal class CanvasImpl(
 
     private fun getRectElement(): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
         it.clear()
-        it.style.border = ""
-        it.removeTransform()
+        it.style.border    = ""
+        it.style.transform = ""
         it.style.setWidthPercent (100.0)
         it.style.setHeightPercent(100.0)
     }
 
-    private fun getRect(rectangle: Rectangle): HTMLElement {
-        val rect = getRectElement()
-
-        rect.style.transform = "translate(${rectangle.x}px, ${rectangle.y}px)"
-        rect.style.setWidth (rectangle.width )
-        rect.style.setHeight(rectangle.height)
-
-        return rect
+    private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
+        it.style.setTop   (rectangle.y     )
+        it.style.setLeft  (rectangle.x     )
+        it.style.setWidth (rectangle.width )
+        it.style.setHeight(rectangle.height)
     }
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.borderRadius = "${radius}px" }
@@ -345,14 +353,14 @@ internal class CanvasImpl(
 
     private fun transform(rectangle: Rectangle): Rectangle {
         if (isTransformed) {
-            val points = transform.transform(*arrayOf(rectangle.position,
-                    Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height)))
+            val points = transform.transform(rectangle.position, Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height))
 
-            return Rectangle(
-                    points[0].x,
-                    points[0].y,
-                    points[1].x - points[0].x,
-                    points[1].y - points[0].y)
+            val x1 = minOf(points[0].x, points[1].x)
+            val x2 = maxOf(points[0].x, points[1].x)
+            val y1 = minOf(points[0].y, points[1].y)
+            val y2 = maxOf(points[0].y, points[1].y)
+
+            return Rectangle(x1, y1, x2 - x1, y2 - y1)
         }
 
         return rectangle
@@ -361,6 +369,15 @@ internal class CanvasImpl(
     private fun shouldDrawImage(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) = opacity > 0 && !(source.empty || destination.empty)
 
     private fun completeOperation(element: HTMLElement): HTMLElement {
+        shadows.forEach {
+            val shadow = "${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
+
+            when (element.nodeName.toLowerCase()) {
+                "pre" -> element.style.textShadow += shadow
+                else  -> element.style.boxShadow  += shadow
+            }
+        }
+
         if (renderPosition == null) {
             renderRegion.add(element)
         } else {
@@ -369,6 +386,11 @@ internal class CanvasImpl(
             }
 
             renderPosition = element.nextSibling as HTMLElement?
+        }
+
+        if (isTransformed) {
+            // TODO: Apply transformation if any
+            element.style.setTransform(transform)
         }
 
         return element
@@ -402,7 +424,6 @@ internal class CanvasImpl(
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(text, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-
         element.style.setTop (at.y)
         element.style.setLeft(at.x)
         element.style.setWidth(rightMargin - leftMargin)
@@ -411,30 +432,38 @@ internal class CanvasImpl(
     }
 
     private fun configure(element: HTMLElement, brush: ColorBrush, position: Point): HTMLElement {
-        element.style.setTop      (position.y         )
-        element.style.setLeft     (position.x         )
-        element.style.setColor    (brush.color        )
-        element.style.setOpacity  (brush.color.opacity)
+        element.style.setTop    (position.y         )
+        element.style.setLeft   (position.x         )
+        element.style.setColor  (brush.color        )
+        element.style.setOpacity(brush.color.opacity)
 
         return element
     }
 
-//    private fun createImageGlyph(image: Image, rectangle: Rectangle, opacity: Float): ImageGlyph {
-//        val glyph = ImageGlyph(image, renderPosition)
-//
-//        glyph.setBounds (rectangle)
-//        glyph.setOpacity(opacity)
-//
-//        return glyph
-//    }
-//
-//    private fun createClipRect(rectangle: Rectangle): Glyph {
-//        val glyph = RectGlyph(renderPosition)
-//
-//        glyph.setBounds(rectangle)
-//
-//        glyph.getData().removeAll()
-//
-//        return glyph
-//    }
+    private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement {
+        val element = pickImageElement((image as ImageImpl).image, renderPosition)
+
+        element.style.setTop    (rectangle.y     )
+        element.style.setLeft   (rectangle.x     )
+        element.style.setWidth  (rectangle.width )
+        element.style.setHeight (rectangle.height)
+        element.style.setOpacity(opacity         )
+
+        element.style.borderRadius = "${radius}px"
+
+        return element
+    }
+
+    private fun pickImageElement(image: HTMLImageElement, possible: Node?): HTMLImageElement {
+        var result = possible
+
+        if (result == null || result !is HTMLImageElement || result.parentNode != null && result.nodeName != image.nodeName) {
+            result = image.cloneNode(false)
+        } else {
+            result.clearBoundStyles ()
+            result.clearVisualStyles()
+        }
+
+        return result as HTMLImageElement
+    }
 }

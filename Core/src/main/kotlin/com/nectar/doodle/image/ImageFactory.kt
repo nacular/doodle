@@ -5,7 +5,14 @@ package com.nectar.doodle.image
  */
 interface ImageFactory {
     // TODO: Use coroutines instead
-//    suspend fun load(url: String): Image
+//    suspend fun load  (source: String): Image
+//    suspend fun unload(image : Image )
 
-    fun load(url: String, result: (Image) -> Unit)
+    fun load(source: String, completed: (Image) -> Unit) {
+        load(source, completed) {}
+    }
+
+    fun load(source: String, completed: (Image) -> Unit, error: (String) -> Unit)
+
+    fun unload(image: Image)
 }

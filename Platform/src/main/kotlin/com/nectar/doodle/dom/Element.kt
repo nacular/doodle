@@ -48,6 +48,7 @@ fun HTMLElement.clearVisualStyles() {
 
    style.overflowX  = ""
    style.overflowY  = ""
+   style.boxShadow  = ""
    removeAttribute("scrollbar")
 }
 

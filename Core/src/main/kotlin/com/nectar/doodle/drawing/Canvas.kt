@@ -6,6 +6,8 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
 
 
 interface Canvas: Renderer {
@@ -17,8 +19,8 @@ interface Canvas: Renderer {
     fun import(imageData: ImageData, at: Point)
 
     fun scale    (pin   : Point )
-    fun rotate   (angle : Double)
-    fun rotate   (around: Point, angle: Double)
+    fun rotate   (angle : Measure<Angle>)
+    fun rotate   (around: Point, angle: Measure<Angle>)
     fun translate(by    : Point)
 
     fun flipVertically()
@@ -39,7 +41,9 @@ interface Canvas: Renderer {
     fun ellipse(ellipse: Ellipse,           brush: Brush        )
     fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
 
-    fun image(image: Image, destination: Rectangle, opacity: Float = 1f)
+    fun image(image: Image, destination: Rectangle, radius: Double = 0.0, opacity: Float = 1f)
+
+    fun shadowed(shadow: Shadow, block: Canvas.() -> Unit)
 
     interface ImageData
 }

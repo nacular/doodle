@@ -1,6 +1,9 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.radians
 import com.nectar.doodle.utils.Matrix
 import kotlin.math.cos
 import kotlin.math.sin
@@ -40,21 +43,22 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     fun translate(x: Double, y: Double) = AffineTransform(
             matrix * Matrix(arrayOf(
-                    this[1.0, 0.0, x],
-                    this[0.0, 1.0, y],
-                    this[0.0, 0.0,         1.0])))
+                    this[1.0, 0.0,   x],
+                    this[0.0, 1.0,   y],
+                    this[0.0, 0.0, 1.0])))
 
     fun skew(by: Point) = skew(by.x, by.y)
 
     fun skew(x: Double, y: Double) = AffineTransform(
             matrix * Matrix(arrayOf(
-                    this[   1.0, x, 0.0],
-                    this[y,    1.0, 0.0],
-                    this[   0.0,    0.0, 1.0])))
+                    this[1.0,   x, 0.0],
+                    this[  y, 1.0, 0.0],
+                    this[0.0, 0.0, 1.0])))
 
-    fun rotate(angle: Double): AffineTransform {
-        val sin = sin(angle)
-        val cos = cos(angle)
+    fun rotate(angle: Measure<Angle>): AffineTransform {
+        val radians = angle.`in`(radians)
+        val sin     = sin(radians)
+        val cos     = cos(radians)
 
         return AffineTransform(
                 matrix * Matrix(arrayOf(
@@ -65,9 +69,9 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     fun transform(vararg points: Point): List<Point> {
         return points.map {
-            val aPoint = Matrix(arrayOf(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0)))
+            val point = Matrix(arrayOf(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0)))
 
-            val product = matrix * aPoint
+            val product = matrix * point
 
             Point(product[0, 0], product[1, 0])
         }
@@ -78,8 +82,6 @@ class AffineTransform private constructor(private val matrix: Matrix) {
     operator fun get(vararg values: Double): DoubleArray = doubleArrayOf(*values)
 
     companion object {
-        fun create() = Identity
-
         val Identity = AffineTransform()
     }
 }

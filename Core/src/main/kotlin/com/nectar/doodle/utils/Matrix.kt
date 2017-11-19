@@ -13,11 +13,7 @@ class Matrix(private val values: Array<DoubleArray> = Array(0) { DoubleArray(0) 
             require(values[i].size == numColums) { "all rows must have the same length" }
 
             if (isIdentity) {
-                var sum = 0.0
-
-                for (j in 0 until values[i].size) {
-                    sum += values[i][j]
-                }
+                val sum = (0 until values[i].size).sumByDouble { values[i][it] }
 
                 isIdentity = sum == 1.0 && values[i][i] == 1.0
             }

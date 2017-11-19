@@ -6,10 +6,10 @@ package com.nectar.doodle.units
 
 interface Time
 
-val milliseconds = Unit<Time>("ms")
-val seconds      = Unit<Time>("s",   1000.0,                  milliseconds)
-val minutes      = Unit<Time>("min", 60 * seconds.multiplier, milliseconds)
-val hours        = Unit<Time>("hr",  60 * minutes.multiplier, milliseconds)
+val milliseconds = Unit<Time>(" ms"                          )
+val seconds      = Unit<Time>(" s",   1000.0                 )
+val minutes      = Unit<Time>(" min", 60 * seconds.multiplier)
+val hours        = Unit<Time>(" hr",  60 * minutes.multiplier)
 
 val Int.   milliseconds: Measure<Time> get() = this * com.nectar.doodle.units.milliseconds
 val Float. milliseconds: Measure<Time> get() = this * com.nectar.doodle.units.milliseconds
