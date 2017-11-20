@@ -28,7 +28,6 @@ import com.nectar.doodle.dom.setY
 import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Circle
@@ -36,8 +35,6 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.image.Image
-import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
 import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement
@@ -92,36 +89,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private var renderPosition: Node? = null
 
-    override fun text(text: StyledText, at: Point) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun text(text: String, font: Font?, at: Point, brush: Brush) {
-        TODO("not implemented")
-
-//        if (brush is SolidBrush && brush.color.opacity == 0f) {
-//            return
-//        }
-//
-//        val element = makeText(font, text, at)
-//
-//        fillElement(element, brush)
-//
-//        completeOperation(element)
-    }
-
-    override fun clipped(text: String, font: Font, point: Point, clipRect: Rectangle, brush: Brush) {
-        TODO("not implemented")
-    }
-
-    override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-        TODO("not implemented")
-    }
-
-    override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
-        TODO("not implemented")
-    }
-
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, point1, point2)
 
     override fun path(points: List<Point>, pen: Pen) = drawPath(pen, *points.toTypedArray())
@@ -144,45 +111,8 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     override fun ellipse(ellipse: Ellipse,           brush: Brush ) = drawEllipse(ellipse, null, brush)
     override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = drawEllipse(ellipse, pen,  brush)
 
-    override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
-        TODO("Implement")
-
-//        var aImageElement: SVGElement?
-//        var element      : SVGElement?
-//
-//        if (source != Rectangle.create(image.size.width, image.size.height)) {
-//            aImageElement = SVGElement.create("image")
-//
-//            val xRatio = destination.width  / source.width
-//            val yRatio = destination.height / source.height
-//
-//            aImageElement!!.setX(destination.x - xRatio * source.x)
-//            aImageElement!!.setY(destination.y - yRatio * source.y)
-//            aImageElement!!.setWidth(xRatio * image.size.width)
-//            aImageElement!!.setHeight(yRatio * image.size.height)
-//
-//            val aRegion = createClipRect(destination)
-//
-//            aImageElement!!.setClipPath(aRegion.clipId)
-//
-//            element = aRegion.element
-//
-//            element!!.add(aImageElement)
-//        } else {
-//            element = createElement("image")
-//            aImageElement = element
-//
-//            aImageElement!!.setX(destination.x)
-//            aImageElement!!.setY(destination.y)
-//            aImageElement!!.setWidth(destination.width)
-//            aImageElement!!.setHeight(destination.height)
-//        }
-//
-//        aImageElement!!.setXLinkHref(image.source)
-//        aImageElement!!.setPreserveAspectRatio(false)
-//        aImageElement!!.setOpacity(opacity)
-//
-//        completeOperation(element)
+    override fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun clear() {}
@@ -366,23 +296,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
         return makePath(path)
     }
-
-//    private fun makeText(aFont: Font, aString: String, aPoint: Point): SVGElement {
-//        //        TextInfo aText = VectorTextGenerator.createText( aString, aFont, createElement( "text" ), aPoint );
-//        //
-//        //        return (SVGElement)aText.getData();
-//
-//        val aText = createElement("text")
-//
-//        aText.add(HTMLElement.createText(aString))
-//
-//        aText.setX(aPoint.x)
-//        aText.setY(aPoint.y + aFont.size)
-//        aText.setFontSize(aFont.size)
-//        aText.setFontFamily(aFont.family)
-//
-//        return aText
-//    }
 
     private fun makePath(path: Path): SVGElement {
         val element: SVGPathElement = createElement("path")

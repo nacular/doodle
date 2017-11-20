@@ -1,6 +1,8 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.units.Angle
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.radians
@@ -29,7 +31,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
     val shearX     get() = matrix[0, 1]
     val shearY     get() = matrix[1, 0]
 
-    fun apply(transform: AffineTransform) = AffineTransform(matrix * transform.matrix)
+    operator fun times(other: AffineTransform) = AffineTransform(matrix * other.matrix)
 
     fun scale(by: Point) = scale(by.x, by.y)
 
@@ -67,7 +69,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
                         this[0.0,  0.0, 1.0])))
     }
 
-    fun transform(vararg points: Point): List<Point> {
+    operator fun invoke(vararg points: Point): List<Point> {
         return points.map {
             val point = Matrix(arrayOf(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0)))
 
@@ -75,6 +77,12 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
             Point(product[0, 0], product[1, 0])
         }
+    }
+
+    operator fun invoke(rectangle: Rectangle): Rectangle {
+        val points = rectangle.run { invoke(position, position + Point(width, height)) }
+
+        return Rectangle(points[0], (points[1] - points[0]).run { Size(x, y) })
     }
 
     override fun toString() = matrix.toString()

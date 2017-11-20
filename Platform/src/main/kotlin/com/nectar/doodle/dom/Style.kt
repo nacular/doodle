@@ -3,6 +3,7 @@ package com.nectar.doodle.dom
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font.Weight
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.system.Cursor
 import org.w3c.dom.css.CSSStyleDeclaration
@@ -14,6 +15,15 @@ internal inline fun Style.setTop   (value: Double) { top    = "${value}px" }
 internal inline fun Style.setLeft  (value: Double) { left   = "${value}px" }
 internal inline fun Style.setWidth (value: Double) { width  = "${max(0.0, value)}px" }
 internal inline fun Style.setHeight(value: Double) { height = "${max(0.0, value)}px" }
+
+internal fun Style.setBounds(value: Rectangle) {
+    value.run {
+        setTop   (y     )
+        setLeft  (x     )
+        setWidth (width )
+        setHeight(height)
+    }
+}
 
 internal inline fun Style.setTopPercent   (percent: Double        ) { top    = "$percent%" }
 internal inline fun Style.setLeftPercent  (percent: Double        ) { left   = "$percent%" }

@@ -102,6 +102,8 @@ class RealGraphicsSurface private constructor(
         rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
             rootElement.style.width  = "${new.width }px"
             rootElement.style.height = "${new.height}px"
+
+            canvas.size = new
         } }
     }
 
