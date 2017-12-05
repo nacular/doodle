@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 
@@ -14,34 +15,22 @@ interface Renderer {
 
     fun path(points: List<Point>, pen: Pen)
 
+    fun path(path: Path,           brush: Brush,         fillRule: FillRule? = null)
+    fun path(path: Path, pen: Pen, brush: Brush? = null, fillRule: FillRule? = null)
+
+    fun poly(polygon: Polygon,           brush: Brush)
     fun poly(polygon: Polygon, pen: Pen, brush: Brush? = null)
-    fun poly(polygon: Polygon, brush: Brush)
 
+    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double,           brush: Brush)
     fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush? = null)
-    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, brush: Brush)
-
-//    fun text(text: String, font: Font? = null, at: Point, brush: Brush)
-//
-//    fun text(text: StyledText, at: Point)
-//
-//    fun wrapped(
-//            text       : String,
-//            font       : Font,
-//            point      : Point,
-//            leftMargin : Double,
-//            rightMargin: Double,
-//            brush      : Brush)
-//
-//    fun wrapped(
-//            text       : StyledText,
-//            point      : Point,
-//            leftMargin : Double,
-//            rightMargin: Double)
-//
-//    fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)
 
     enum class Optimization {
         Speed,
         Quality
+    }
+
+    enum class FillRule {
+        NonZero,
+        EvenOdd
     }
 }

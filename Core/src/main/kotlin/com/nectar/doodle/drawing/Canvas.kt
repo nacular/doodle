@@ -19,7 +19,8 @@ interface Canvas: Renderer {
 
     fun import(imageData: ImageData, at: Point)
 
-    fun scale    (pin      : Point,                        block: Canvas.() -> Unit)
+    fun scale    (by       : Point,                        block: Canvas.() -> Unit)
+    fun scale    (around   : Point, by : Point,            block: Canvas.() -> Unit)
     fun rotate   (angle    : Measure<Angle>,               block: Canvas.() -> Unit)
     fun rotate   (around   : Point, angle: Measure<Angle>, block: Canvas.() -> Unit)
     fun translate(by       : Point,                        block: Canvas.() -> Unit)

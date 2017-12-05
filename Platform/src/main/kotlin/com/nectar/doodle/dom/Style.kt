@@ -3,7 +3,9 @@ package com.nectar.doodle.dom
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font.Weight
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.system.Cursor
 import org.w3c.dom.css.CSSStyleDeclaration
@@ -15,6 +17,8 @@ internal inline fun Style.setTop   (value: Double) { top    = "${value}px" }
 internal inline fun Style.setLeft  (value: Double) { left   = "${value}px" }
 internal inline fun Style.setWidth (value: Double) { width  = "${max(0.0, value)}px" }
 internal inline fun Style.setHeight(value: Double) { height = "${max(0.0, value)}px" }
+
+internal fun Style.setSize(value: Size) { value.run { setWidth(width); setHeight(height) } }
 
 internal fun Style.setBounds(value: Rectangle) {
     value.run {
@@ -87,6 +91,9 @@ internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("flo
 //        sStyleImpl.setOpacity( this, aOpacity );
 //    }
 //
+
+internal inline fun Style.translate(by: Point) = translate(by.x, by.y)
+internal inline fun Style.translate(x: Double, y: Double) { transform = "translate(${x}px, ${y}px)" }
 
 fun Style.setTransform(transform: AffineTransform?) = when(transform) {
     null, AffineTransform.Identity -> this.transform = ""

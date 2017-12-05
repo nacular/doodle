@@ -4,7 +4,7 @@ import com.nectar.doodle.dom.ShapeRendering.Auto
 import com.nectar.doodle.dom.ShapeRendering.CrispEdges
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
-import org.w3c.dom.Element
+import com.nectar.doodle.drawing.Renderer
 import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
 import org.w3c.dom.svg.SVGEllipseElement
@@ -64,6 +64,16 @@ inline fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
 }
 
+inline fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
+    when (fillRule) {
+        Renderer.FillRule.EvenOdd -> "evenodd"
+        Renderer.FillRule.NonZero -> "nonzero"
+        else                      -> ""
+    }.let {
+        setAttribute("fill-rule", it)
+    }
+}
+
 fun SVGElement.setFillPattern(pattern: SVGElement?) = when (pattern) {
     null -> none
     else -> "url(#${pattern.id})"
@@ -88,6 +98,7 @@ enum class ShapeRendering(val value: String) {
     CrispEdges("crispEdges"),
     Auto      ("auto"      )
 }
+
 
 private val none = "none";
 

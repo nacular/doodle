@@ -10,6 +10,8 @@ import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.deviceinput.MouseInputManager
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.HtmlFactoryImpl
+import com.nectar.doodle.dom.SvgFactory
+import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
 import com.nectar.doodle.dom.SystemStylerImpl
 import com.nectar.doodle.drawing.CanvasFactory
@@ -22,6 +24,8 @@ import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
+import com.nectar.doodle.geometry.PathMetrics
+import com.nectar.doodle.geometry.impl.PathMetricsImpl
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.system.MouseInputService
@@ -43,11 +47,13 @@ abstract class Application {
 
         bind<Display>                  () with singleton { DisplayImpl                    (instance(), document.body!!                   ) }
         bind<Scheduler>                () with singleton { SchedulerImpl                  (                                              ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl                 (                                              ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl                (                                              ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl(instance()) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl(instance(), instance()) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl(instance(), instance(), instance(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice(instance()) }
+        bind<PathMetrics>              () with singleton { PathMetricsImpl                (instance()                                    ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl                (instance()                                    ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl              (instance(), instance()                        ) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl              (instance(), instance(), instance(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice             (instance()                                    ) }
         bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                                    ) }
         bind<MouseInputManager>        () with singleton { MouseInputManager              (instance(), instance()                        ) }
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory     (instance(), instance()                        ) }

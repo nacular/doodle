@@ -12,7 +12,6 @@ class Polygon(first: Point, second: Point, third: Point, vararg points: Point): 
     override fun contains  (rectangle: Rectangle): Boolean { TODO("not implemented") }
     override fun intersects(rectangle: Rectangle): Boolean { TODO("not implemented") }
 
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Polygon) return false

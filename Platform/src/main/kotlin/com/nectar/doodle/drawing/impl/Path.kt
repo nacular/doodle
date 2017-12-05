@@ -8,7 +8,7 @@ abstract class Path constructor(
         private val close : String,
         private val end   : String = "") {
 
-    private val pathString: StringBuilder = StringBuilder()
+    private val pathString = StringBuilder()
 
     val data: String get() = pathString.toString().trim { it <= ' ' }
 
@@ -40,9 +40,7 @@ abstract class Path constructor(
         end()
     }
 
-    private fun append(vararg aValues: Double) {
-        for (i in aValues.indices) {
-            pathString.append(if (i > 0) "," else "").append(aValues[i])
-        }
+    private fun append(vararg values: Double) {
+        pathString.append(values.joinToString(","))
     }
 }

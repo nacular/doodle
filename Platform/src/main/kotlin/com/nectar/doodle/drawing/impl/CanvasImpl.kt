@@ -11,14 +11,13 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setColor
-import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
-import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOpacity
-import com.nectar.doodle.dom.setTop
+import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
+import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
@@ -29,9 +28,11 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
+import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
@@ -52,13 +53,13 @@ import kotlin.math.max
 private class Shadow(val horizontal: Double = 0.0, val vertical: Double = 0.0, val blurRadius: Double = 0.0, val color: Color = Color.black)
 
 internal class CanvasImpl(
-        override val renderRegion: HTMLElement,
-        private val htmlFactory: HtmlFactory,
-        private val textFactory: TextFactory,
+        private val renderParent: HTMLElement,
+        private val htmlFactory : HtmlFactory,
+        private val textFactory : TextFactory,
         rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
 
     override var size           = Size.Empty
-    private  var frame          = renderRegion
+    override var renderRegion   = renderParent
     override var transform      = Identity
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
@@ -84,6 +85,9 @@ internal class CanvasImpl(
     override fun line(point1: Point, point2: Point, pen: Pen) = vectorRenderer.line(point1, point2, pen)
 
     override fun path(points: List<Point>, pen: Pen) = vectorRenderer.path(points, pen)
+
+    override fun path(path: Path,           brush: Brush,  fillRule: FillRule?)  = vectorRenderer.path(path,      brush, fillRule)
+    override fun path(path: Path, pen: Pen, brush: Brush?, fillRule: FillRule?)  = vectorRenderer.path(path, pen, brush, fillRule)
 
     override fun poly(polygon: Polygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
     override fun poly(polygon: Polygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
@@ -145,33 +149,13 @@ internal class CanvasImpl(
     }
 
     override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
-        if (shouldDrawImage(Rectangle(size = image.size), destination, opacity)) {
+        if (shouldDrawImage(image, Rectangle(size = image.size), destination, opacity)) {
             completeOperation(createImage(image, destination, radius, opacity))
         }
     }
 
-    private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
-        // TODO: Not sure if this is causing more element creations than necessary on re-draw
-
-        val clipRect = getRectElement()
-
-        if (clipRect.parentNode == null) {
-            frame.add(clipRect)
-        }
-
-        configure(clipRect)
-
-        frame          = clipRect
-        renderPosition = clipRect.childAt(0)
-
-        apply(block)
-
-        frame          = frame.parent as HTMLElement
-        renderPosition = clipRect.nextSibling as HTMLElement?
-    }
-
     override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
-        if (shouldDrawImage(source, destination, opacity)) {
+        if (shouldDrawImage(image, source, destination, opacity)) {
             val clipRect          = getRect(destination)
             val oldRenderPosition = renderPosition
 
@@ -199,11 +183,28 @@ internal class CanvasImpl(
     }
 
     override fun translate(by: Point, block: Canvas.() -> Unit) {
-        transform(transform.translate(by), block)
+        when (by) {
+            Point.Origin -> block()
+            else         -> transform(transform.translate(by), block)
+        }
     }
 
-    override fun scale(pin: Point, block: Canvas.() -> Unit) {
-        transform(transform.scale(pin), block)
+    override fun scale(by: Point, block: Canvas.() -> Unit) {
+        when (by.x * by.y) {
+            1.0  -> block()
+            else -> transform(transform.scale(by), block)
+        }
+    }
+
+    override fun scale(around: Point, by: Point, block: Canvas.() -> Unit) {
+        when (by.x * by.y) {
+            1.0  -> block()
+            else -> {
+                val point = around - (size / 2).run { Point(width, height) }
+
+                transform(transform.translate(point).scale(by).translate(-point), block)
+            }
+        }
     }
 
     override fun rotate(angle: Measure<Angle>, block: Canvas.() -> Unit) {
@@ -226,7 +227,7 @@ internal class CanvasImpl(
     }
 
     override fun flipVertically(block: Canvas.() -> Unit) {
-        scale(Point(1.0, -1.0), block)
+        scale(Point(1.0, -1.0), block = block)
     }
 
     override fun flipVertically(around: Double, block: Canvas.() -> Unit) {
@@ -234,7 +235,7 @@ internal class CanvasImpl(
     }
 
     override fun flipHorizontally(block: Canvas.() -> Unit) {
-        scale(Point(-1.0, 1.0), block)
+        scale(Point(-1.0, 1.0), block = block)
     }
 
     override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) {
@@ -242,18 +243,18 @@ internal class CanvasImpl(
     }
 
     override fun clear() {
-        renderPosition = renderRegion.childAt(0)
+        renderPosition = renderParent.childAt(0)
 
         vectorRenderer.clear()
     }
 
     override fun flush() {
         renderPosition?.let {
-            val index = renderRegion.index(it)
+            val index = renderParent.index(it)
 
             if (index >= 0) {
-                while (index < renderRegion.numChildren) {
-                    renderRegion.remove(renderRegion.childAt(index)!!)
+                while (index < renderParent.numChildren) {
+                    renderParent.remove(renderParent.childAt(index)!!)
                 }
             }
         }
@@ -275,6 +276,26 @@ internal class CanvasImpl(
         apply(block)
 
         shadows.remove(shadow)
+    }
+
+    private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
+        // TODO: Not sure if this is causing more element creations than necessary on re-draw
+
+        val clipRect = getRectElement()
+
+        if (clipRect.parentNode == null) {
+            renderRegion.add(clipRect)
+        }
+
+        configure(clipRect)
+
+        renderRegion   = clipRect
+        renderPosition = clipRect.childAt(0)
+
+        apply(block)
+
+        renderRegion = renderRegion.parent as HTMLElement
+        renderPosition = clipRect.nextSibling as HTMLElement?
     }
 
 //    private fun addData(elements: List<HTMLElement>, at: Point) {
@@ -324,13 +345,15 @@ internal class CanvasImpl(
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
-        it.style.setBounds(rectangle)
+        it.style.translate(rectangle.position)
+
+        it.style.setSize(rectangle.size)
     }
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.borderRadius = "${radius}px" }
     private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.borderRadius = "${xRadius}px / ${yRadius}px" }
 
-    private fun shouldDrawImage(source: Rectangle, destination: Rectangle, opacity: Float) = opacity > 0 && !(source.empty || destination.empty)
+    private fun shouldDrawImage(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) = image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)
 
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {
@@ -343,7 +366,7 @@ internal class CanvasImpl(
         }
 
         if (renderPosition == null) {
-            frame.add(element)
+            renderRegion.add(element)
         } else {
             if (element !== renderPosition) {
                 renderPosition?.parent?.replaceChild(element, renderPosition!!)
@@ -384,8 +407,7 @@ internal class CanvasImpl(
     private fun createStyledTextGlyph(text: StyledText, at: Point): HTMLElement {
         val element = textFactory.create(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-        element.style.setTop (at.y)
-        element.style.setLeft(at.x)
+        element.style.translate(at)
 
         return element
     }
@@ -394,16 +416,16 @@ internal class CanvasImpl(
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(text, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-        element.style.setTop (at.y)
-        element.style.setLeft(at.x)
+        element.style.translate(at)
+
         element.style.setWidth(rightMargin - leftMargin)
 
         return element
     }
 
     private fun configure(element: HTMLElement, brush: ColorBrush, position: Point): HTMLElement {
-        element.style.setTop    (position.y         )
-        element.style.setLeft   (position.x         )
+        element.style.translate(position)
+
         element.style.setColor  (brush.color        )
         element.style.setOpacity(brush.color.opacity)
 
@@ -413,11 +435,10 @@ internal class CanvasImpl(
     private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement {
         val element = pickImageElement((image as ImageImpl).image, renderPosition)
 
-        element.style.setTop    (rectangle.y     )
-        element.style.setLeft   (rectangle.x     )
-        element.style.setWidth  (rectangle.width )
-        element.style.setHeight (rectangle.height)
-        element.style.setOpacity(opacity         )
+        element.style.translate(rectangle.position)
+
+        element.style.setSize   (rectangle.size)
+        element.style.setOpacity(opacity       )
 
         element.style.borderRadius = "${radius}px"
 

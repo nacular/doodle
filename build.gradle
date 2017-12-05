@@ -1,11 +1,8 @@
 buildscript {
-    ext.kotlin_version = '1.2.0-rc-39'
+    ext.kotlin_version = '1.2.0'
 
     repositories {
         mavenCentral()
-        mavenLocal()
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap"     }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.2" }
     }
 
     dependencies {
@@ -45,7 +42,6 @@ subprojects {
     dependencies {
         repositories {
             mavenCentral()
-            maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.2" }
         }
 
         compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"

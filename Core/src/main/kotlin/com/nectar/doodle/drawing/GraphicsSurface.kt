@@ -8,13 +8,13 @@ interface GraphicsSurface {
     var position: Point
     var size    : Size
     var bounds  : Rectangle
-        get(   ) = Rectangle(position.x, position.y, size.width, size.height)
+        get(   ) = Rectangle(position, size)
         set(new) { position = new.position; size = new.size }
     var zIndex  : Int
     var visible : Boolean
     val canvas  : Canvas
 
-    fun beginRender()
-    fun endRender  ()
-    fun release    ()
+    fun render(block: (Canvas) -> Unit)
+
+    fun release()
 }

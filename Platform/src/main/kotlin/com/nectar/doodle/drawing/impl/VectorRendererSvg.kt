@@ -12,6 +12,7 @@ import com.nectar.doodle.dom.removeTransform
 import com.nectar.doodle.dom.setCX
 import com.nectar.doodle.dom.setCY
 import com.nectar.doodle.dom.setFill
+import com.nectar.doodle.dom.setFillRule
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPathData
@@ -29,6 +30,7 @@ import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
+import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
@@ -93,6 +95,9 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     override fun path(points: List<Point>, pen: Pen) = drawPath(pen, *points.toTypedArray())
 
+    override fun path(path: com.nectar.doodle.geometry.Path,           brush: Brush,  fillRule: FillRule?) = drawPath(path.data, null, brush, fillRule)
+    override fun path(path: com.nectar.doodle.geometry.Path, pen: Pen, brush: Brush?, fillRule: FillRule?) = drawPath(path.data, pen,  brush, fillRule)
+
     override fun rect(rectangle: Rectangle,           brush: Brush ) = drawRect(rectangle, null, brush)
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = drawRect(rectangle, pen,  brush)
 
@@ -139,6 +144,13 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
             outlineElement(element, pen)
 
             completeOperation(element)
+        }
+    }
+
+    private fun drawPath(data: String, pen: Pen?, brush: Brush?, fillRule: FillRule?) = present(pen, brush ) {
+        when {
+            !data.isBlank() -> makePath(data).also { it.setFillRule(fillRule) }
+            else            -> null
         }
     }
 
@@ -279,16 +291,16 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         return element
     }
 
-    private fun makePath(vararg points: Point): SVGElement {
-        val aPath = SVGPath()
+    private fun makePath(vararg points: Point): SVGPathElement {
+        val path = SVGPath()
 
-        aPath.addPath(*points)
-        aPath.end()
+        path.addPath(*points)
+        path.end()
 
-        return makePath(aPath)
+        return makePath(path)
     }
 
-    private fun makeClosedPath(vararg points: Point): SVGElement {
+    private fun makeClosedPath(vararg points: Point): SVGPathElement {
         val path = SVGPath()
 
         path.addPath(*points)
@@ -297,15 +309,13 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         return makePath(path)
     }
 
-    private fun makePath(path: Path): SVGElement {
-        val element: SVGPathElement = createElement("path")
+    private fun makePath(path: Path): SVGPathElement = makePath(path.data)
 
-        element.setPathData(path.data)
-
-        return element
+    private fun makePath(pathData: String): SVGPathElement = createElement<SVGPathElement>("path").also {
+        it.setPathData(pathData)
     }
 
-    private fun outlineElement(element: SVGElement, pen: Pen, aClearFill: Boolean = true) {
+    private fun outlineElement(element: SVGElement, pen: Pen, clearFill: Boolean = true) {
         if (!pen.visible) {
             return
         }
@@ -313,7 +323,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         val color   = pen.color
         val opacity = color.opacity
 
-        if (aClearFill) {
+        if (clearFill) {
             element.setFill(null)
         }
 
@@ -443,11 +453,11 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private object SolidFillHandler: FillHandler {
         override fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
             if (brush is ColorBrush) {
-                val aColor = brush.color
-                val aOpacity = aColor.opacity
+                val color   = brush.color
+                val opacity = color.opacity
 
-                element.setFill(aColor)
-                element.setOpacity(aOpacity)
+                element.setFill   (color )
+                element.setOpacity(opacity)
 
                 return true
             }

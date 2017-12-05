@@ -192,8 +192,6 @@ class RenderManagerImpl(
             }
 
             if (gizmo.visible && !gizmo.bounds.empty) {
-                var wasRendered = false
-
                 if (!gizmo.children_.isEmpty()) {
                     val gizmoList = pendingCleanup[gizmo]
 
@@ -209,19 +207,13 @@ class RenderManagerImpl(
                 if (gizmo in dirtyGizmos) {
                     dirtyGizmos -= gizmo
 
-                    graphicsSurface.beginRender()
+                    graphicsSurface.render { canvas ->
+                        gizmo.render(canvas)
 
-                    gizmo.render(graphicsSurface.canvas)
-
-                    wasRendered = true
-                }
-
-                gizmo.children_.reversed().forEach {
-                    performRender(it)
-                }
-
-                if (wasRendered) {
-                    graphicsSurface.endRender()
+                        gizmo.children_.reversed().forEach {
+                            performRender(it)
+                        }
+                    }
                 }
             }
         }

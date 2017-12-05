@@ -10,6 +10,8 @@ class Size(val width: Double, val height: Double) {
     val area  = width * height
     val empty = area == 0.0
 
+    operator fun plus (other: Size  ) = Size(width + other.width, height + other.height)
+    operator fun minus(other: Size  ) = Size(width - other.width, height - other.height)
     operator fun times(value: Number) = Size(width * value.toDouble(), height * value.toDouble())
     operator fun div  (value: Number) = Size(width / value.toDouble(), height / value.toDouble())
 
