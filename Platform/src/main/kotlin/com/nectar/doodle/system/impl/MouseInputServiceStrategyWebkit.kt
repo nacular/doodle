@@ -2,6 +2,7 @@ package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
+import com.nectar.doodle.dom.translate
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.SystemInputEvent.Modifier
@@ -131,7 +132,7 @@ class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): Mou
         val isNativeElement = isNativeElement(event.target as Node)
 
         if (!isNativeElement) {
-            overlay!!.style.transform = "translate(${mouseX - 1}px, ${mouseY - 1}px)"
+            overlay!!.style.translate(mouseX - 1, mouseY - 1)
         }
 
         eventHandler!!.handle(createMouseEvent(event, Move, 0))
