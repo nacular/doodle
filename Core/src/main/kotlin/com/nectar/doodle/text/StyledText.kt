@@ -69,7 +69,7 @@ class StyledText private constructor(var data: List<MutablePair<String, StyleImp
     data class StyleImpl(override var font: Font? = null, override var foreground: Color? = null, override var background: Color? = null): Style
 }
 
-operator fun Font.invoke(text: String) = StyledText(text = text, font = this)
+operator fun Font.invoke (text: String) = StyledText(text = text, font = this)
 operator fun Color.invoke(text: String) = StyledText(text = text, foreground = this)
 
 operator fun Font.invoke(text: StyledText): StyledText {

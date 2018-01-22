@@ -15,8 +15,7 @@ import com.nectar.doodle.geometry.Size
 
 interface Icon<in T: Gizmo> {
 
-    /** @return The icon's size
-     */
+    /** The icon's size */
     val size: Size
 
     /**
@@ -26,8 +25,8 @@ interface Icon<in T: Gizmo> {
      *
      * @param gizmo  The Gizmo this icon is to represent
      * @param canvas The Gizmo's Canvas
-     * @param point  Where the top-left corner of the icon should be rendered
+     * @param at     Where the top-left corner of the icon should be rendered
      */
 
-    fun render(gizmo: T, canvas: Canvas, point: Point)
+    fun render(gizmo: T, canvas: Canvas, at: Point)
 }
