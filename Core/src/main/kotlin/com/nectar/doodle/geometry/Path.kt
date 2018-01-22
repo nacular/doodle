@@ -7,8 +7,10 @@ package com.nectar.doodle.geometry
 interface Path {
     val data: String
     val size: Size
+    val width  get() = size.width
+    val height get() = size.height
 }
 
 interface PathFactory {
-    fun create(data: String): Path?
+    operator fun invoke(data: String): Path?
 }

@@ -27,5 +27,5 @@ private class PathImpl(override val data: String, private val pathMetrics: PathM
 
 
 class PathFactoryImpl(private val pathMetrics: PathMetrics): PathFactory {
-    override fun create(data: String): Path? = PathImpl(data, pathMetrics)
+    override operator fun invoke(data: String): Path? = PathImpl(data, pathMetrics)
 }
