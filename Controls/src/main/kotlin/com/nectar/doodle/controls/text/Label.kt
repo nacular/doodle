@@ -54,7 +54,6 @@ class Label internal constructor(
         set(new) {
             field = new
             measureText()
-//            size     = textSize
         }
 
     var wrapsWords = false
@@ -62,7 +61,6 @@ class Label internal constructor(
             if (field != new) {
                 field = new
                 measureText()
-//            size     = textSize
             }
         }
 
@@ -87,11 +85,9 @@ class Label internal constructor(
             }
         }
 
+        size            = textSize
         focusable       = false
         foregroundColor = black
-
-//        measureText()
-        size = textSize
     }
 
     override fun render(canvas: Canvas) {
