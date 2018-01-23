@@ -3,14 +3,13 @@ package com.nectar.doodle.drawing
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.insert
-import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.text.StyledText
 import org.w3c.dom.HTMLElement
 
 
-private data class WrappedInfo(val text: String, val width: Double, val indent: Double, val font: Font?)
-private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double)
+private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?)
+private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double                 )
 
 class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
     private val sizes              = mutableMapOf<Pair<String, Font?>, Size>()
@@ -26,7 +25,7 @@ class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFact
     }
 
     override fun size(text: String, width: Double, indent: Double, font: Font?) = wrappedSizes.getOrPut(WrappedInfo(text, width, indent, font)) {
-        measure(textFactory.wrapped(text, font, indent).also { it.style.setWidth(width) })
+        measure(textFactory.wrapped(text, font, width, indent))
     }
 
     override fun width (text: StyledText) = size(text).width
@@ -37,7 +36,7 @@ class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFact
     }
 
     override fun size(text: StyledText, width: Double, indent: Double) = wrappedStyledSizes.getOrPut(WrappedStyleInfo(text, width, indent)) {
-        measure(textFactory.wrapped(text, indent).also { it.style.setWidth(width) })
+        measure(textFactory.wrapped(text, width, indent))
     }
 
     private fun measure(element: HTMLElement): Size {

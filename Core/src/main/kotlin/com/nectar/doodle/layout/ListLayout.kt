@@ -1,7 +1,7 @@
 package com.nectar.doodle.layout
 
-import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.WidthSource.Children
@@ -13,53 +13,53 @@ enum class WidthSource {
     Parent, Children
 }
 
-class ListLayout constructor(private val spacing: Int = 0, private val widthSource: WidthSource = Children): Layout {
+class ListLayout constructor(private val spacing: Int = 0, private val widthSource: WidthSource = Children): Layout() {
 
-    override fun layout(gizmo: Gizmo) {
+    override fun layout(positionable: Positionable) {
         // TODO: Can this be cleaned up to use idealSize?
-        val insets = gizmo.insets_
+        val insets = positionable.insets
         var y      = insets.top
 
         val width = when (widthSource) {
-            WidthSource.Parent -> gizmo.run { idealSize?.width ?: width }
-            else               -> gizmo.children_.asSequence().filter { it.visible }.map{ it.idealSize?.width ?: it.width }.max() ?: 0.0
+            WidthSource.Parent -> positionable.run { idealSize?.width ?: width }
+            else               -> positionable.children.asSequence().filter { it.visible }.map{ it.idealSize?.width ?: it.width }.max() ?: 0.0
         }
 
         var i = 0
 
-        gizmo.children_.asSequence().filter { it.visible }.forEach {
+        positionable.children.asSequence().filter { it.visible }.forEach {
             it.bounds = Rectangle(insets.left, y, width, it.height)
 
-            y += it.height + if (++i < gizmo.children_.size) spacing else 0
+            y += it.height + if (++i < positionable.children.size) spacing else 0
         }
 
         val size = Size(width + insets.left + insets.right, y + insets.bottom)
 
-        gizmo.idealSize   = size // FIXME: Do we need this?
-        gizmo.minimumSize = size
+        positionable.idealSize   = size // FIXME: Do we need this?
+        positionable.minimumSize = size
 
-        if (gizmo.parent?.layout_ == null) {
-            gizmo.size = size
+        if (positionable.parent?.layout_ == null) {
+            positionable.size = size
         }
     }
 
-    override fun idealSize(gizmo: Gizmo, default: Size?): Size? {
-        val insets = gizmo.insets_
+    override fun idealSize(positionable: Positionable, default: Size?): Size? {
+        val insets = positionable.insets
         var y      = insets.top
 
         var width = when (widthSource) {
-            Parent -> gizmo.width
-            else   -> gizmo.children_.firstOrNull()?.let { it.idealSize?.width ?: it.width } ?: 0.0
+            Parent -> positionable.width
+            else   -> positionable.children.firstOrNull()?.let { it.idealSize?.width ?: it.width } ?: 0.0
         }
 
         var i = 0
 
-        gizmo.children_.asSequence().filter { it.visible }.forEach {
+        positionable.children.asSequence().filter { it.visible }.forEach {
             if (widthSource == Children) {
                 width = max(width, it.idealSize?.width ?: it.width)
             }
 
-            y += it.height + if (++i < gizmo.children_.size) spacing else 0
+            y += it.height + if (++i < positionable.children.size) spacing else 0
         }
 
         return Size(width + insets.left + insets.right, y + insets.bottom)

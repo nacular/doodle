@@ -2,19 +2,21 @@ package com.nectar.doodle.layout
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.geometry.Rectangle
 import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 11/1/17.
  */
-interface ConstraintLayout: Layout {
-    fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout
-    fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout
-    fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+abstract class ConstraintLayout: Layout() {
+    abstract fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout
+    abstract fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout
+    abstract fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+    abstract fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
 }
 
-private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout {
+private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
     private val constraints = constraints.fold(mutableMapOf<Gizmo, ConstraintsImpl>()) { s, r -> s[r.target] = r; s }
     private val processed   = mutableSetOf<Gizmo>()
     private val processing  = mutableSetOf<Gizmo>()
@@ -33,6 +35,12 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
 
     override fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
         constraints(a, b, c).let { (a, b, c) -> block(a, b, c)
+            return this
+        }
+    }
+
+    override fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
+        constraints(a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
             return this
         }
     }
@@ -106,11 +114,12 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
     }
 
     // FIXME: Gracefully handle circular dependencies
-    override fun layout(gizmo: Gizmo) {
+    override fun layout(positionable: Positionable) {
         processed.clear ()
         processing.clear()
 
-        constraints.filter { it.key.parent == gizmo }.forEach { (child, constraints) ->
+        // FIXME: This check is pretty inefficient; but it.key.parent == positionable won't work
+        constraints.filter { positionable.children.contains(it.key) }.forEach { (child, constraints) ->
             layoutChild(child, constraints)
         }
     }
@@ -151,8 +160,16 @@ class VerticalConstraint(target: Gizmo, default: Boolean = true, block: (Gizmo) 
         block(it) + value.toDouble()
     }
 
+    operator fun plus(value: VerticalConstraint) = MagnitudeConstraint(target) {
+        block(it) + value()
+    }
+
     operator fun minus(value: Number) = VerticalConstraint(target) {
         block(it) - value.toDouble()
+    }
+
+    operator fun minus(value: VerticalConstraint) = MagnitudeConstraint(target) {
+        block(it) - value()
     }
 
     operator fun times(value: Number) = VerticalConstraint(target) {
@@ -171,8 +188,16 @@ class HorizontalConstraint(target: Gizmo, default: Boolean = true, block: (Gizmo
         block(it) + value.toDouble()
     }
 
+    operator fun plus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
+        block(it) + value()
+    }
+
     operator fun minus(value: Number) = HorizontalConstraint(target) {
         block(it) - value.toDouble()
+    }
+
+    operator fun minus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
+        block(it) - value()
     }
 
     operator fun times(value: Number) = HorizontalConstraint(target) {
@@ -276,3 +301,4 @@ private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstrai
 fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, block) }
 fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, block) }
 fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, block) }
+fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, block) }

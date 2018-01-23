@@ -15,7 +15,6 @@ import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
-import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.AffineTransform
@@ -34,6 +33,7 @@ import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -60,7 +60,6 @@ internal class CanvasImpl(
 
     override var size           = Size.Empty
     override var renderRegion   = renderParent
-    override var transform      = Identity
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
 
@@ -184,46 +183,37 @@ internal class CanvasImpl(
 
     override fun translate(by: Point, block: Canvas.() -> Unit) {
         when (by) {
-            Point.Origin -> block()
-            else         -> transform(transform.translate(by), block)
+            Origin -> block()
+            else   -> transform(Identity.translate(by), block)
         }
     }
 
     override fun scale(by: Point, block: Canvas.() -> Unit) {
-        when (by.x * by.y) {
-            1.0  -> block()
-            else -> transform(transform.scale(by), block)
+        when {
+            by.x == 1.0 && by.y == 1.0 -> block()
+            else                       -> transform(Identity.scale(by), block)
         }
     }
 
     override fun scale(around: Point, by: Point, block: Canvas.() -> Unit) {
-        when (by.x * by.y) {
-            1.0  -> block()
-            else -> {
+        when {
+            by.x == 1.0 && by.y == 1.0 -> block()
+            else                       -> {
                 val point = around - (size / 2).run { Point(width, height) }
 
-                transform(transform.translate(point).scale(by).translate(-point), block)
+                transform(Identity.translate(point).scale(by).translate(-point), block)
             }
         }
     }
 
-    override fun rotate(angle: Measure<Angle>, block: Canvas.() -> Unit) {
-        transform(transform.rotate(angle), block)
+    override fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit) {
+        transform(Identity.rotate(by), block)
     }
 
-    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = subFrame(block) {
-        val old        = this.transform
-        this.transform = this.transform * transform
-
-        it.style.setTransform(this.transform)
-
-        this.transform = old
-    }
-
-    override fun rotate(around: Point, angle: Measure<Angle>, block: Canvas.() -> Unit) {
+    override fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
         val point = around - (size / 2).run { Point(width, height) }
 
-        transform(transform.translate(point).rotate(angle).translate(-point), block)
+        transform(Identity.translate(point).rotate(by).translate(-point), block)
     }
 
     override fun flipVertically(block: Canvas.() -> Unit) {
@@ -231,7 +221,7 @@ internal class CanvasImpl(
     }
 
     override fun flipVertically(around: Double, block: Canvas.() -> Unit) {
-        transform(transform.translate(Point(0.0, around)).scale(1.0, -1.0).translate(Point(0.0, -around)), block)
+        transform(Identity.translate(Point(0.0, around)).scale(1.0, -1.0).translate(Point(0.0, -around)), block)
     }
 
     override fun flipHorizontally(block: Canvas.() -> Unit) {
@@ -239,7 +229,11 @@ internal class CanvasImpl(
     }
 
     override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) {
-        transform(transform.translate(Point(around, 0.0)).scale(-1.0, 1.0).translate(Point(-around, 0.0)), block)
+        transform(Identity.translate(Point(around, 0.0)).scale(-1.0, 1.0).translate(Point(-around, 0.0)), block)
+    }
+
+    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = subFrame(block) {
+        it.style.setTransform(transform)
     }
 
     override fun clear() {
@@ -260,8 +254,6 @@ internal class CanvasImpl(
         }
 
         vectorRenderer.flush()
-
-        transform = Identity
     }
 
     override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) = subFrame(block) {
@@ -375,17 +367,6 @@ internal class CanvasImpl(
             renderPosition = element.nextSibling as HTMLElement?
         }
 
-//        if (isTransformed) {
-//            // TODO: Apply transformation if any
-//            val elementCenter = element.run { Point(offsetWidth - offsetLeft.toDouble(), offsetHeight - offsetTop.toDouble()) / 2.0 }
-//            val canvasCenter  = Point(size.width, size.height) / 2.0
-//            val translate     = canvasCenter - elementCenter
-//
-//            val t = (Identity.translate(translate) * transform).translate(-translate)
-//
-//            element.style.setTransform(t) //transform)
-//        }
-
         return element
     }
 
@@ -397,11 +378,14 @@ internal class CanvasImpl(
 
     private fun createWrappedTextGlyph(brush: ColorBrush, text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
-        val element = textFactory.wrapped(text, font, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+        val element = textFactory.wrapped(
+                text,
+                font,
+                width    = rightMargin - leftMargin,
+                indent   = indent,
+                possible = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
-        return configure(element, brush, at).also {
-            it.style.setWidth(rightMargin - leftMargin)
-        }
+        return configure(element, brush, at)
     }
 
     private fun createStyledTextGlyph(text: StyledText, at: Point): HTMLElement {
@@ -414,11 +398,13 @@ internal class CanvasImpl(
 
     private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
-        val element = textFactory.wrapped(text, indent, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
+        val element = textFactory.wrapped(
+                text     = text,
+                width    = rightMargin - leftMargin,
+                indent   = indent,
+                possible = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
 
         element.style.translate(at)
-
-        element.style.setWidth(rightMargin - leftMargin)
 
         return element
     }

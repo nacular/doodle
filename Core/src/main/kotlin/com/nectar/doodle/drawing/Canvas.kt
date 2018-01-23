@@ -14,17 +14,16 @@ import com.nectar.doodle.units.Measure
 interface Canvas: Renderer {
 
     var size        : Size
-    var transform   : AffineTransform
     var optimization: Renderer.Optimization
 
     fun import(imageData: ImageData, at: Point)
 
-    fun scale    (by       : Point,                        block: Canvas.() -> Unit)
-    fun scale    (around   : Point, by : Point,            block: Canvas.() -> Unit)
-    fun rotate   (angle    : Measure<Angle>,               block: Canvas.() -> Unit)
-    fun rotate   (around   : Point, angle: Measure<Angle>, block: Canvas.() -> Unit)
-    fun translate(by       : Point,                        block: Canvas.() -> Unit)
-    fun transform(transform: AffineTransform,              block: Canvas.() -> Unit)
+    fun scale    (by       : Point,                     block: Canvas.() -> Unit)
+    fun scale    (around   : Point, by: Point,          block: Canvas.() -> Unit)
+    fun rotate   (by       : Measure<Angle>,            block: Canvas.() -> Unit)
+    fun rotate   (around   : Point, by: Measure<Angle>, block: Canvas.() -> Unit)
+    fun translate(by       : Point,                     block: Canvas.() -> Unit)
+    fun transform(transform: AffineTransform,           block: Canvas.() -> Unit)
 
     fun flipVertically(                block: Canvas.() -> Unit)
     fun flipVertically(around: Double, block: Canvas.() -> Unit)

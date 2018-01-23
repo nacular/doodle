@@ -22,7 +22,6 @@ import com.nectar.doodle.dom.setRY
 import com.nectar.doodle.dom.setStroke
 import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
-import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setX
 import com.nectar.doodle.dom.setY
@@ -213,12 +212,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         when {
             !ellipse.empty -> makeEllipse(ellipse)
             else           -> null
-        }
-    }
-
-    private fun applyTransform(element: SVGElement) {
-        if (!context.transform.isIdentity) {
-            element.setTransform(context.transform)
         }
     }
 
@@ -415,8 +408,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName && node.shapeRendering == shapeRendering
 
     private fun completeOperation(element: SVGElement) {
-        applyTransform(element)
-
         val svg = getSvgElement()
 
         if (context.renderPosition == null) {

@@ -8,11 +8,9 @@ interface ImageFactory {
 //    suspend fun load  (source: String): Image
 //    suspend fun unload(image : Image )
 
-    fun load(source: String, completed: (Image) -> Unit) {
-        load(source, completed) {}
-    }
+    fun load(source: String, completed: (Image) -> Unit) = load(source, completed) {}
 
-    fun load(source: String, completed: (Image) -> Unit, error: (String) -> Unit)
+    fun load(source: String, completed: (Image) -> Unit, error: (Throwable) -> Unit)
 
     fun unload(image: Image)
 }

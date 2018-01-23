@@ -9,7 +9,7 @@ import com.nectar.doodle.units.milliseconds
 import org.w3c.dom.HTMLImageElement
 
 
-private class ImageMonitor(val image: HTMLImageElement, val observers: MutableSet<(Image) -> Unit>)
+private class ImageMonitor(val image: HTMLImageElement, val completed: MutableSet<(Image) -> Unit> = mutableSetOf(), val error: MutableSet<(Throwable) -> Unit> = mutableSetOf())
 
 class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler): ImageFactory {
 
@@ -26,10 +26,13 @@ class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val schedul
 //        continuation.resume(Image(Size(image.width.toDouble(), image.height.toDouble()), source))
 //    }
 
-    override fun load(source: String, completed: (Image) -> Unit, error: (String) -> Unit) {
+    override fun load(source: String, completed: (Image) -> Unit, error: (Throwable) -> Unit) {
         images[source]?.let { completed(it); return  }
 
-        loading.getOrPut(source) { ImageMonitor(htmlFactory.createImage(source), mutableSetOf()) }.observers += completed
+        loading.getOrPut(source) { ImageMonitor(htmlFactory.createImage(source)) }.also {
+            it.completed += completed
+            it.error     += error
+        }
 
         if (task == null ) {
             scheduleLoadCheck()
@@ -55,7 +58,7 @@ class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val schedul
             iterator.next().also { (_, monitor) ->
                 if (monitor.image.complete) {
                     ImageImpl(monitor.image).also { image ->
-                        monitor.observers.forEach { it(image) }
+                        monitor.completed.forEach { it(image) }
                     }
 
                     iterator.remove()

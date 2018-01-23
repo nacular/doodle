@@ -13,10 +13,17 @@ import kotlin.math.max
 
 private typealias Style = CSSStyleDeclaration
 
-internal inline fun Style.setTop   (value: Double) { top    = "${value}px" }
-internal inline fun Style.setLeft  (value: Double) { left   = "${value}px" }
-internal inline fun Style.setWidth (value: Double) { width  = "${max(0.0, value)}px" }
-internal inline fun Style.setHeight(value: Double) { height = "${max(0.0, value)}px" }
+private fun em(value: Number): String {
+    return "${value.toDouble() / 16}em" // TODO: Fixme
+}
+
+
+internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value) }
+
+internal inline fun Style.setTop   (value: Double) { top    = em(value) }
+internal inline fun Style.setLeft  (value: Double) { left   = em(value) }
+internal inline fun Style.setWidth (value: Double) { width  = em(max(0.0, value)) }
+internal inline fun Style.setHeight(value: Double) { height = em(max(0.0, value)) }
 
 internal fun Style.setSize(value: Size) { value.run { setWidth(width); setHeight(height) } }
 
@@ -38,15 +45,15 @@ internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "
 
 internal fun rgba(color: Color) = color.run { "rgba($red, $green, $blue, $opacity)" }
 
-internal inline fun Style.setColor  (value: Color ) { color  = rgba(value) /*"#${value.hexString}"*/ }
+internal inline fun Style.setColor  (value: Color ) { color  = rgba(value) }
 internal inline fun Style.setCursor (value: Cursor) { cursor = value.toString() }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 
 internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value;     }
 internal inline fun Style.setFontWeight(value: Weight   ) { fontWeight = "${value.value}" }
 
-internal inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = if (value >= 0) "${value}px" else "1em"  }
-internal inline fun Style.setFontFamily(value: String) { this.fontFamily = value;                                   }
+internal inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = em(max(0, value)) }
+internal inline fun Style.setFontFamily(value: String) { this.fontFamily = value;            }
 
 
 internal inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
@@ -93,7 +100,12 @@ internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("flo
 //
 
 internal inline fun Style.translate(by: Point) = translate(by.x, by.y)
-internal inline fun Style.translate(x: Double, y: Double) { transform = "translate(${x}px, ${y}px)" }
+internal inline fun Style.translate(x: Double, y: Double) {
+    when {
+        x == 0.0 && y == 0.0 -> return
+        else                 -> transform = "translate(${em(x)}, ${em(y)})"
+    }
+}
 
 fun Style.setTransform(transform: AffineTransform?) = when(transform) {
     null, AffineTransform.Identity -> this.transform = ""

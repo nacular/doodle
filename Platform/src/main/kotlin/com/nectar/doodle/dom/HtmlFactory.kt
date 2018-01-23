@@ -33,7 +33,7 @@ class HtmlFactoryImpl: HtmlFactory {
     override fun createOrUse(tag: String, possible: Node?): HTMLElement {
         var result = possible
 
-        if (result == null || result !is HTMLElement || result.parentNode != null && result.nodeName != tag) {
+        if (result == null || result !is HTMLElement || result.parentNode != null && !result.nodeName.equals(tag, ignoreCase = true)) {
             result = create(tag)
         } else {
             result.clearBoundStyles ()
