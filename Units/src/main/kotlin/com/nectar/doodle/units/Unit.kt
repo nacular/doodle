@@ -33,7 +33,7 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>) {
 
     operator fun minus(other: Measure<T>): Measure<T> = this + -other
 
-    infix fun `in`(other: Unit<T>): Double = magnitude * (other / unit)
+    infix fun `in`(other: Unit<T>): Double = magnitude * (unit / other)
 
     infix fun `as`(other: Unit<T>): Measure<T> = if (unit == other) this else Measure(`in`(other), other)
 

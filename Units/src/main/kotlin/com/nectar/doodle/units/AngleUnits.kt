@@ -9,7 +9,7 @@ import kotlin.math.PI
 interface Angle
 
 val radians = Unit<Angle>(" rad")
-val degrees = Unit<Angle>("°", 180 / PI)
+val degrees = Unit<Angle>("°", PI / 180)
 
 val Int.   radians: Measure<Angle> get() = this * com.nectar.doodle.units.radians
 val Float. radians: Measure<Angle> get() = this * com.nectar.doodle.units.radians
