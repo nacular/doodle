@@ -12,7 +12,7 @@ internal fun isNativeElement(node: Node) =
         isScrollBar  (node.parentNode) ||
         isType       (node, "button" ) ||
         isType       (node, "label"  ) ||
-        node is HTMLInputElement && (node.type == "bottom" || node.type == "text")
+        node is HTMLInputElement && (node.type.equals("bottom", true) || node.type.equals("text", true))
 
 private fun isType(element: Node?, type: String) = when {
     element == null                        -> false
