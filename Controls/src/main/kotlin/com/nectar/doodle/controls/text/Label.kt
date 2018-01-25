@@ -44,6 +44,8 @@ class Label internal constructor(
                     verticalAlignment  : VerticalAlignment   = Center,
                     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Gizmo() {
 
+    var fitText = true
+
     var text: String get() = styledText.text
         set(new) {
             styledText = StyledText(new, font, foregroundColor)
@@ -75,7 +77,8 @@ class Label internal constructor(
     private var textSize = measureText()
         set(new) {
             field = new
-            size  = new
+
+            if (fitText) size = new
         }
 
     init {
