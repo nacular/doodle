@@ -3,8 +3,11 @@ package com.nectar.doodle.controls.buttons
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
+import com.nectar.doodle.system.SystemMouseEvent.Type.Down
+import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
+import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
+import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.utils.EventObservers
 import com.nectar.doodle.utils.EventObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment
@@ -14,9 +17,9 @@ import com.nectar.doodle.utils.VerticalAlignment
  * Created by Nicholas Eddy on 11/10/17.
  */
 abstract class Button protected constructor(
-        text : String         = "",
-        icon : Icon<Button>?  = null,
-        model: ButtonModel    = ButtonModelImpl()): Gizmo() {
+        var text: String        = "",
+        var icon: Icon<Button>? = null,
+            model: ButtonModel  = ButtonModelImpl()): Gizmo() {
 
     init {
         model.apply {
@@ -24,9 +27,6 @@ abstract class Button protected constructor(
             onSelection += ::onSelection
         }
     }
-
-    var text: String        = text
-    var icon: Icon<Button>? = icon
 
     var iconTextSpacing     = 4.0
     var verticalAlignment   = VerticalAlignment.Center
@@ -73,8 +73,8 @@ abstract class Button protected constructor(
             }
         }
 
-    private val onAction_    by lazy { EventObserversImpl<Button>(this, mutableSetOf()) }
-    private val onSelection_ by lazy { EventObserversImpl<Button>(this, mutableSetOf()) }
+    private val onAction_    by lazy { EventObserversImpl(this, mutableSetOf()) }
+    private val onSelection_ by lazy { EventObserversImpl(this, mutableSetOf()) }
 
     val onAction   : EventObservers<Button> = onAction_
     val onSelection: EventObservers<Button> = onSelection_
@@ -85,11 +85,11 @@ abstract class Button protected constructor(
         super.handleMouseEvent(event)
 
         when (event.type) {
-            SystemMouseEvent.Type.Up    -> mouseReleased(event)
-            SystemMouseEvent.Type.Down  -> mousePressed (event)
-            SystemMouseEvent.Type.Exit  -> mouseExited  (event)
-            SystemMouseEvent.Type.Enter -> mouseEntered (event)
-            else                        -> return
+            Up    -> mouseReleased(event)
+            Down  -> mousePressed (event)
+            Exit  -> mouseExited  (event)
+            Enter -> mouseEntered (event)
+            else  -> return
         }
     }
 
