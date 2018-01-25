@@ -36,7 +36,7 @@ class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFact
     }
 
     override fun size(text: StyledText, width: Double, indent: Double) = wrappedStyledSizes.getOrPut(WrappedStyleInfo(text, width, indent)) {
-        measure(textFactory.wrapped(text, width, indent))
+        Size(width = width, height = measure(textFactory.wrapped(text, width, indent)).height)
     }
 
     private fun measure(element: HTMLElement): Size {
