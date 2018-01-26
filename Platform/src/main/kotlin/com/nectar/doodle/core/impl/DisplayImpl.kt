@@ -26,7 +26,7 @@ import org.w3c.dom.events.Event
 import kotlin.math.max
 
 
-class DisplayImpl(private val htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
+internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
     private fun onResize(event: Event? = null) {
         root.minimumSize.let {
             root.size = Size(max(rootElement.width, it.width), max(rootElement.height, it.height))

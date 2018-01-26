@@ -19,7 +19,7 @@ interface HtmlFactory {
     fun createOrUse(tag   : String, possible: Node?): HTMLElement
 }
 
-class HtmlFactoryImpl: HtmlFactory {
+internal class HtmlFactoryImpl: HtmlFactory {
     override val body get() = document.body!!
 
     override fun create(tag: String) = prototypes.getOrPut(tag) {

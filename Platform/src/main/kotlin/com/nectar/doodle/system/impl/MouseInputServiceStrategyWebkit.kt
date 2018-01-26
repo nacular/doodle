@@ -24,7 +24,7 @@ import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
 
 
-class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
+internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {

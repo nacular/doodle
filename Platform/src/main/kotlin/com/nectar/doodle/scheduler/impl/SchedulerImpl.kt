@@ -19,7 +19,7 @@ private class RecurringTask(value: Int): SimpleTask(value) {
     override fun cancel() = window.clearInterval(value)
 }
 
-class SchedulerImpl: Scheduler {
+internal class SchedulerImpl: Scheduler {
     override fun after (time : Measure<Time>, job: () -> Unit): Task = SimpleTask   (window.setTimeout(job,  (time  `in` milliseconds).toInt()))
     override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(window.setInterval(job, (every `in` milliseconds).toInt()))
 }

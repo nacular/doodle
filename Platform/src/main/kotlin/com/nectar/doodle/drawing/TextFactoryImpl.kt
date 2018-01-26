@@ -23,7 +23,7 @@ import org.w3c.dom.HTMLElement
 import kotlin.dom.clear
 
 
-class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
+internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
 
     override fun create(text: String, font: Font?, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse("PRE", possible)

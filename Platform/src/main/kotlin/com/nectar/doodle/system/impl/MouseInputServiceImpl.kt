@@ -9,7 +9,7 @@ import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseWheelEvent
 
 
-class MouseInputServiceImpl(private val strategy: MouseInputServiceStrategy): MouseInputService {
+internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStrategy): MouseInputService {
 
     override val mouseLocation: Point
         get() = strategy.mouseLocation

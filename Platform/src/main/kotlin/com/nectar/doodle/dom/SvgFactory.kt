@@ -15,7 +15,7 @@ interface SvgFactory {
 
 private val prototypes = mutableMapOf<String, SVGElement>()
 
-class SvgFactoryImpl: SvgFactory {
+internal class SvgFactoryImpl: SvgFactory {
     override val body get() = document.body!!
 
     override fun <T : SVGElement> create(tag: String) = prototypes.getOrPut(tag) {

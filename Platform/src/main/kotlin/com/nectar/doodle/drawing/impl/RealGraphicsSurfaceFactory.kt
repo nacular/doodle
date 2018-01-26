@@ -5,7 +5,7 @@ import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.drawing.CanvasFactory
 
 
-class RealGraphicsSurfaceFactory(
+internal class RealGraphicsSurfaceFactory(
         private val htmlFactory  : HtmlFactory,
         private val canvasFactory: CanvasFactory): GraphicsSurfaceFactory<RealGraphicsSurface> {
 //    override fun surface(element: HTMLElement?) =

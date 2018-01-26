@@ -24,7 +24,6 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
-import com.nectar.doodle.ui.UIManager
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
@@ -278,7 +277,6 @@ abstract class Gizmo protected constructor() {
 //
 //    var dataTransporter: DataTransporter? = null
 //
-    private var uiManager    : UIManager?     = null
     private var renderManager: RenderManager? = null
 
 //    private val traversalKeys: MutableMap<FocusTraversalPolicy.TraversalType, Set<KeyState>> by lazy { mutableMapOf<FocusTraversalPolicy.TraversalType, Set<KeyState>>() }
@@ -416,8 +414,7 @@ abstract class Gizmo protected constructor() {
      * or one of it's ancestors is added to the Display.
      */
 
-    internal fun addedToDisplay(renderManager: RenderManager, uiManager: UIManager) {
-        this.uiManager     = uiManager
+    internal fun addedToDisplay(renderManager: RenderManager) {
         this.renderManager = renderManager
     }
 
@@ -428,16 +425,7 @@ abstract class Gizmo protected constructor() {
      */
 
     internal fun removedFromDisplay() {
-        uiManager     = null
         renderManager = null
-    }
-
-    /**
-     * Causes Gizmo to synchronize its UI delegate from the UIManager.
-     */
-
-    internal fun revalidateUI() {
-//        uiManager?.installUI(this) { this@Gizmo.ui = it }
     }
 
     /**

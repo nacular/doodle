@@ -8,7 +8,7 @@ import kotlin.browser.document
  */
 interface SystemStyler
 
-class SystemStylerImpl: SystemStyler {
+internal class SystemStylerImpl: SystemStyler {
     init {
         document.styleSheets[0].asDynamic().insertRule("body * { position:absolute;overflow:hidden }", 0)
         document.styleSheets[0].asDynamic().insertRule("body pre { overflow:visible }", 0)

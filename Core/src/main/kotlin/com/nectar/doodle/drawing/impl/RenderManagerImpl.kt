@@ -11,15 +11,15 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
-import com.nectar.doodle.ui.UIManager
+import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.units.seconds
 import com.nectar.doodle.utils.ObservableList
 
 
 class RenderManagerImpl(
         private val display       : Display,
-        private val uiManager     : UIManager,
         private val scheduler     : Scheduler,
+        private val themeManager  : InternalThemeManager?,
         private val graphicsDevice: GraphicsDevice<*>): RenderManager {
 
     private val gizmos              = mutableSetOf <Gizmo>()
@@ -223,7 +223,7 @@ class RenderManagerImpl(
         if (gizmo !in gizmos) {
             gizmo.parent?.let { recordGizmo(it) }
 
-            gizmo.addedToDisplay(this, uiManager)
+            gizmo.addedToDisplay(this)
 
             gizmos              += gizmo
             dirtyGizmos         += gizmo
@@ -391,7 +391,7 @@ class RenderManagerImpl(
     private fun handleAddedGizmo(gizmo: Gizmo) {
         recordGizmo(gizmo)
 
-        uiManager.revalidateUI(gizmo)
+        themeManager?.update(gizmo)
     }
 
     private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: List<Int>, added: Map<Int, Gizmo>) {
