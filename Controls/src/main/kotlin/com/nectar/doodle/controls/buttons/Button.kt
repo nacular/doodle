@@ -2,12 +2,14 @@ package com.nectar.doodle.controls.buttons
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.EventObservers
 import com.nectar.doodle.utils.EventObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment
@@ -27,6 +29,8 @@ abstract class Button protected constructor(
             onSelection += ::onSelection
         }
     }
+
+    var renderer: Renderer<Button>? = null
 
     var iconTextSpacing     = 4.0
     var verticalAlignment   = VerticalAlignment.Center
@@ -73,6 +77,10 @@ abstract class Button protected constructor(
             }
         }
 
+    override fun render(canvas: Canvas) {
+        renderer?.render(canvas, this)
+    }
+
     private val onAction_    by lazy { EventObserversImpl(this, mutableSetOf()) }
     private val onSelection_ by lazy { EventObserversImpl(this, mutableSetOf()) }
 
@@ -100,8 +108,6 @@ abstract class Button protected constructor(
             if (event.buttons == setOf(Button1) && model.pressed) {
                 model.armed = true
             }
-
-            rerender()
         }
     }
 
@@ -110,8 +116,6 @@ abstract class Button protected constructor(
 
         if (enabled) {
             model.armed = false
-
-            rerender()
         }
     }
 
@@ -119,8 +123,6 @@ abstract class Button protected constructor(
         if (enabled && event.buttons == setOf(Button1)) {
             model.armed   = true
             model.pressed = true
-
-            rerender()
         }
     }
 
@@ -128,8 +130,6 @@ abstract class Button protected constructor(
         if (enabled) {
             model.pressed = false
             model.armed   = false
-
-            rerender()
         }
     }
 

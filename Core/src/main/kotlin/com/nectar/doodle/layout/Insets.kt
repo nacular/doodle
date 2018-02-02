@@ -68,6 +68,8 @@ class Insets
         return false
     }
 
+    override fun toString() = "[$top, $left, $bottom, $right]"
+
     companion object {
         val None = Insets(0.0)
     }
