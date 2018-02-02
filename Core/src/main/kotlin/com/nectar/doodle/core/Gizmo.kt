@@ -6,15 +6,16 @@ import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.event.FocusEvent
-import com.nectar.doodle.event.FocusListener
+import com.nectar.doodle.event.FocusEvent.Type.Gained
+import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.event.MouseWheelEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.system.Cursor
@@ -40,28 +41,34 @@ import com.nectar.doodle.utils.observable
  *
  * @author Nicholas Eddy
  */
+@Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
 
-    var hasFocus = false
+    val focusChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+
+    var hasFocus: Boolean by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<Gizmo, Boolean>)
         private set
 
     var name       = ""
 
-    var enabled    : Boolean by observable(true) { _,_,_ ->
+    val enabledChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
-    }
+    var enabled: Boolean by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<Gizmo, Boolean>)
+
     var visible    : Boolean by observable(true) { _,_,_ ->
 
     }
-    var focusable  : Boolean by observable(true) { _,_,_ ->
 
-    }
+    val focusableChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+
+    var focusable: Boolean by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
+
     var idealSize  : Size? = null
         get() = layout?.idealSize(this, field) ?: field
     var minimumSize: Size = Size.Empty
         get() = layout?.idealSize(this, field) ?: field
 
-    val displayRect get() = renderManager?.displayRect(this) ?: Rectangle.Empty
+    val displayRect get() = renderManager?.displayRect(this) ?: Empty
 
     var toolTipText: String = ""
         private set
@@ -113,14 +120,14 @@ abstract class Gizmo protected constructor() {
 
     val boundsChange: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(mutableSetOf()) }
 
-    var bounds: Rectangle by ObservableProperty(Rectangle.Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
+    var bounds: Rectangle by ObservableProperty(Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
 
     // ================= Container ================= //
     internal val insets_ get() = insets
     protected open var insets  = Insets.None
 
     internal val layout_ get() = layout
-    protected open var layout: Layout? by observable<Layout?>(null) { _, _, new ->
+    protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
         if (renderManager!= null) doLayout()
     }
 
@@ -142,7 +149,7 @@ abstract class Gizmo protected constructor() {
     /**
      * Tells whether this Container is an ancestor of the Gizmo.
      *
-     * @param gizmo The Gizmo
+     * @param of The Gizmo
      * @return true if the Gizmo is a descendant of the Container
      */
     internal fun isAncestor_(of: Gizmo) = isAncestor(of)
@@ -245,7 +252,7 @@ abstract class Gizmo protected constructor() {
     /**
      * Gets the Gizmo's z-index.
      *
-     * @param aGizmo The Gizmo
+     * @param of The Gizmo
      * @return The z-index (-1 if the Gizmo is not a child)
      */
     internal fun zIndex_(of: Gizmo) = zIndex(of)
@@ -254,7 +261,7 @@ abstract class Gizmo protected constructor() {
     /**
      * Gets the Gizmo at the given point.
      *
-     * @param aPoint The point
+     * @param at The point
      * @return The child (null if no child contains the given point)
      */
     internal fun child_(at: Point) = child(at)
@@ -319,8 +326,7 @@ abstract class Gizmo protected constructor() {
      *
      * @param event The event
      */
-    internal fun handleDisplayRectEvent(event: DisplayRectEvent) {
-    }
+    internal fun handleDisplayRectEvent(@Suppress("UNUSED_PARAMETER") event: DisplayRectEvent) {}
 
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 
@@ -330,11 +336,13 @@ abstract class Gizmo protected constructor() {
      * @param event The event
      */
     protected open fun handleKeyEvent(event: KeyEvent) {
-        val visitor: (KeyListener) -> Unit = when (event.type) {
-            KeyEvent.Type.UP    -> { l -> l.keyReleased(event) }
-            KeyEvent.Type.DOWN  -> { l -> l.keyPressed (event) }
-            KeyEvent.Type.PRESS -> { l -> l.keyTyped   (event) }
-        }
+//        keyChanged.forEach {
+//            when(event.type) {
+//                KeyEvent.Type.UP    -> it.keyReleased(event)
+//                KeyEvent.Type.DOWN  -> it.keyPressed (event)
+//                KeyEvent.Type.PRESS -> it.keyTyped   (event)
+//            }
+//        }
     }
 
     internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
@@ -345,15 +353,15 @@ abstract class Gizmo protected constructor() {
      * @param event The event
      */
     protected open fun handleMouseEvent(event: MouseEvent) {
-        val visitor: (MouseListener) -> Unit = when (event.type) {
-            Up    -> { l -> l.mouseReleased(event) }
-            Down  -> { l -> l.mousePressed (event) }
-            Exit  -> { l -> l.mouseExited  (event) }
-            Enter -> { l -> l.mouseEntered (event) }
-            else  -> return
+        mouseChanged.forEach {
+            when(event.type) {
+                Up    -> it.mouseReleased(event)
+                Down  -> it.mousePressed (event)
+                Exit  -> it.mouseExited  (event)
+                Enter -> it.mouseEntered (event)
+                else  -> return
+            }
         }
-
-        mouseChanged.forEach(visitor)
     }
 
     internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
@@ -364,13 +372,13 @@ abstract class Gizmo protected constructor() {
      * @param event The event
      */
     protected open fun handleMouseMotionEvent(event: MouseEvent) {
-        val visitor: (MouseMotionListener) -> Unit = when (event.type) {
-            Move -> { l -> l.mouseMoved  (event) }
-            Drag -> { l -> l.mouseDragged(event) }
-            else -> return
+        mouseMotionChanged.forEach {
+            when(event.type) {
+                Move -> it.mouseMoved  (event)
+                Drag -> it.mouseDragged(event)
+                else -> return
+            }
         }
-
-        mouseMotionChanged.forEach(visitor)
     }
 
     internal fun handleMouseWheelEvent_(event: MouseWheelEvent) = handleMouseWheelEvent(event)
@@ -390,22 +398,10 @@ abstract class Gizmo protected constructor() {
      */
 
     internal fun handleFocusEvent(event: FocusEvent) {
-        val aVisitor: (FocusListener) -> Unit = when {
-            event.type == FocusEvent.Type.Gained && !hasFocus -> {
-                hasFocus = true
-
-                { l -> l.focusGained(event) }
-            }
-
-            event.type == FocusEvent.Type.Lost && hasFocus -> {
-                hasFocus = false
-
-                { l -> l.focusLost(event) }
-            }
-            else -> return
+        hasFocus = when(event.type) {
+            Gained -> true
+            Lost   -> false
         }
-
-//        CollectionVisitHandler.visitElements(getListeners(FocusListener::class.java), aVisitor)
     }
 
     /**
@@ -445,7 +441,7 @@ abstract class Gizmo protected constructor() {
      * @param event The mouse event to generate a tool-tip for
      * @return The text
      */
-    fun getToolTipText(event: MouseEvent): String = toolTipText
+    fun getToolTipText(@Suppress("UNUSED_PARAMETER") event: MouseEvent): String = toolTipText
 
     /**
      * Checks whether a point is within the boundaries of a Gizmo. Returns UI.ContainsPoint if a UI delegate
@@ -468,15 +464,15 @@ abstract class Gizmo protected constructor() {
         bounds = Rectangle(x, y, width, height)
     }
 
-    /**
-     * Sets the keys used to control focus traversals of the given type.
-     *
-     * @param traversalType
-     * The traversal type
-     * @param keyStates
-     * The set of keys that will trigger this type of traversal
-     */
-
+//    /**
+//     * Sets the keys used to control focus traversals of the given type.
+//     *
+//     * @param traversalType
+//     * The traversal type
+//     * @param keyStates
+//     * The set of keys that will trigger this type of traversal
+//     */
+//
 //    fun setFocusTraversalKeys(traversalType: FocusTraversalPolicy.TraversalType, keyStates: Set<KeyState>?) {
 //        //        if( aSet == null )
 //        //        {
