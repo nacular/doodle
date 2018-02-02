@@ -13,13 +13,17 @@ import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.EventObservers
 import com.nectar.doodle.utils.EventObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment
+import com.nectar.doodle.utils.ObservableProperty
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.VerticalAlignment
 
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
+@Suppress("PrivatePropertyName")
 abstract class Button protected constructor(
-        var text: String        = "",
+            text: String        = "",
         var icon: Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): Gizmo() {
 
@@ -29,6 +33,10 @@ abstract class Button protected constructor(
             onSelection += ::onSelection
         }
     }
+
+    val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(mutableSetOf()) }
+
+    var text: String by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
 
     var renderer: Renderer<Button>? = null
 
@@ -111,7 +119,7 @@ abstract class Button protected constructor(
         }
     }
 
-    private fun mouseExited(event: MouseEvent) {
+    private fun mouseExited(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
         model.mouseOver = false
 
         if (enabled) {
@@ -126,13 +134,13 @@ abstract class Button protected constructor(
         }
     }
 
-    private fun mouseReleased(event: MouseEvent) {
+    private fun mouseReleased(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
         if (enabled) {
             model.pressed = false
             model.armed   = false
         }
     }
 
-    private fun onAction   (model: ButtonModel) = onAction_.forEach    { it(this) }
-    private fun onSelection(model: ButtonModel) = onSelection_.forEach { it(this) }
+    private fun onAction   (@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onAction_.forEach    { it(this) }
+    private fun onSelection(@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onSelection_.forEach { it(this) }
 }
