@@ -51,7 +51,9 @@ class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private v
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
         super.afterChange(property, oldValue, newValue)
 
-        observers.forEach { it(owner(), oldValue, newValue) }
+        if (oldValue != newValue) {
+            observers.forEach { it(owner(), oldValue, newValue) }
+        }
     }
 }
 

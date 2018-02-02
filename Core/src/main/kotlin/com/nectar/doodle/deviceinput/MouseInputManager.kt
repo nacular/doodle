@@ -42,9 +42,9 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 else -> doubleClick(event)
             }
 
-            Move                     -> mouseMove(event)
-            Down                     -> mouseDown(event)
-            else                     -> {}
+            Move -> mouseMove(event)
+            Down -> mouseDown(event)
+            else -> {}
         }
     }
 
