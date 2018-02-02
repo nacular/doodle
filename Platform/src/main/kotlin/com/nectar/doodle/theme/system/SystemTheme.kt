@@ -3,6 +3,7 @@ package com.nectar.doodle.theme.system
 import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.instance
+import com.github.salomonbrys.kodein.erased.provider
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Display
@@ -45,7 +46,7 @@ val systemThemeModule = Kodein.Module {
     // TODO: Can this be handled better?
     bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
-    bind<NativeButtonFactory>() with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
-    bind<NativeEventHandler >() with singleton { NativeEventHandlerImpl() }
-    bind<SystemTheme        >() with singleton { SystemTheme(instance()) }
+    bind<NativeButtonFactory>() with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), { instance() }) }
+    bind<NativeEventHandler >() with provider  { NativeEventHandlerImpl() }
+    bind<SystemTheme        >() with singleton { SystemTheme(instance())  }
 }

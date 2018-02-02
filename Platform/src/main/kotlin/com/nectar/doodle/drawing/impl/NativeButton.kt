@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.Display.Inline
@@ -27,7 +28,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.event.FocusListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
@@ -49,13 +49,13 @@ class NativeButtonFactoryImpl internal constructor(
         private val htmlFactory           : HtmlFactory,
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
         private val elementRuler          : ElementRuler,
-        private val nativeEventHandler    : NativeEventHandler): NativeButtonFactory {
+        private val nativeEventHandler    : () -> NativeEventHandler): NativeButtonFactory {
     override fun invoke(button: Button) = NativeButton(textMetrics,
             textFactory,
             htmlFactory,
             graphicsSurfaceFactory,
             elementRuler,
-            nativeEventHandler,
+            nativeEventHandler(),
             button)
 }
 
@@ -66,7 +66,7 @@ class NativeButton internal constructor(
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
         private val elementRuler: ElementRuler,
                     nativeEventHandler: NativeEventHandler,
-        private val button: Button) : NativeEventListener, /*PropertyListener,*/ FocusListener {
+        private val button: Button) : NativeEventListener /*, PropertyListener,*/ {
 
     var idealSize: Size? = null
         private set
@@ -84,28 +84,36 @@ class NativeButton internal constructor(
 
         println("Insets: $insets")
 
-        buttonElement = htmlFactory.createButton()
+        buttonElement = htmlFactory.createButton().apply {
+            style.setFont         (null )
+            style.setWidthPercent (100.0)
+            style.setHeightPercent(100.0)
 
-        buttonElement.style.setFont         (null )
-        buttonElement.style.setWidthPercent (100.0)
-        buttonElement.style.setHeightPercent(100.0)
+            nativeEventHandler.registerFocusListener    (this)
+            nativeEventHandler.registerClickListener    (this)
+            nativeEventHandler.startConsumingMouseEvents(this)
 
-        glassPanelElement = htmlFactory.create()
+            nativeEventHandler += this@NativeButton
+        }
 
-        glassPanelElement.style.setTop            (0.0              )
-        glassPanelElement.style.setLeft           (0.0              )
-        glassPanelElement.style.setOpacity        (0f               )
-        glassPanelElement.style.setPosition       (Absolute)
-        glassPanelElement.style.setWidthPercent   (100.0            )
-        glassPanelElement.style.setHeightPercent  (100.0            )
-        glassPanelElement.style.setBackgroundColor(Color.red        )
+        glassPanelElement = htmlFactory.create().apply {
+            style.setTop            (0.0      )
+            style.setLeft           (0.0      )
+            style.setOpacity        (0f       )
+            style.setPosition       (Absolute )
+            style.setWidthPercent   (100.0    )
+            style.setHeightPercent  (100.0    )
+            style.setBackgroundColor(Color.red)
 
-        buttonElement.add(glassPanelElement)
+            buttonElement.add(this)
+        }
 
-        nativeEventHandler.registerFocusListener(buttonElement)
-        //        nativeEventHandler.registerClickListener    ( buttonElement );
-        nativeEventHandler.startConsumingMouseEvents(buttonElement)
-        nativeEventHandler.addListener(this)
+        button.apply {
+            textChanged      += ::textChanged
+            focusChanged     += ::focusChanged
+            enabledChanged   += ::enabledChanged
+            focusableChanged += ::focusChanged
+        }
 
         setIconText()
     }
@@ -239,38 +247,33 @@ class NativeButton internal constructor(
         }
 
     fun render(canvas: Canvas) {
-        if (lastIcon !== icon || text != button.text) {
-            setIconText()
+        if (canvas is CanvasImpl) {
+
+            if (lastIcon !== icon || text != button.text) {
+                setIconText()
+            }
+
+            updateIconPosition()
+            updateTextPosition()
+
+            canvas.addData(listOf(buttonElement))
         }
-
-        updateIconPosition()
-        updateTextPosition()
-
-        canvas.import(ImageDataImpl(listOf(buttonElement)), Point.Origin)
     }
 
     fun uninstall(button: Button) {
-//        button.removeFocusListener(this)
-//        button.removePropertyListener(this)
+        button.apply {
+            textChanged      -= ::textChanged
+            focusChanged     -= ::focusChanged
+            enabledChanged   -= ::enabledChanged
+            focusableChanged -= ::focusableChanged
+        }
     }
 
 //    fun propertyChanged(aEvent: PropertyEvent) {
-//        if (aEvent.getProperty() === Gizmo.ENABLED) {
-//            buttonElement.setEnabled(button.enabled)
-//        } else if (aEvent.getProperty() === Button.TEXT || aEvent.getProperty() === Button.ICON_ANCHOR) {
+//        if (aEvent.getProperty() === Button.ICON_ANCHOR) {
 //            button.rerender()
-//        } else if (aEvent.getProperty() === Gizmo.FOCUSABLE) {
-//            buttonElement.setFocusable(button.isFocusable())
 //        }
 //    }
-
-//    external fun focusGained(aFocusEvent: FocusEvent) /*-{
-//        this.@com.nectar.doodle.drawing.impl.NativeButton::buttonElement.focus();
-//    }-*/
-//
-//    external fun focusLost(aFocusEvent: FocusEvent) /*-{
-//        this.@com.nectar.doodle.drawing.impl.NativeButton::buttonElement.blur();
-//    }-*/
 
     override fun onClick(): Boolean {
         button.click()
@@ -293,6 +296,29 @@ class NativeButton internal constructor(
 //        }
 
         return true
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun textChanged(gizmo: Gizmo, old: String, new: String) {
+        button.rerender()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun focusChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+        when (new) {
+            true -> buttonElement.focus()
+            else -> buttonElement.blur ()
+        }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun enabledChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+        buttonElement.disabled = !new
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun focusableChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+        buttonElement.tabIndex = if (new) -1 else 0
     }
 
     private fun measureIdealSize(): Size {
@@ -319,12 +345,12 @@ class NativeButton internal constructor(
 
                 textElement?.let { buttonElement.remove(it) }
 
-                if (!field.isEmpty()) {
-                    textElement = textFactory.create(field, button.font).also {
+                textElement = if (!field.isEmpty()) {
+                    textFactory.create(field, button.font).also {
                         buttonElement.insert(it, 0)
                     }
                 } else {
-                    textElement = null
+                    null
                 }
             }
         }

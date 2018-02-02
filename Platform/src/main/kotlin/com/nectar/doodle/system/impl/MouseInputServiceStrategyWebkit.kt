@@ -53,7 +53,6 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         if (inputDevice == null) {
             inputDevice  = htmlFactory.body
-            eventHandler = handler
 
             registerCallbacks(this, inputDevice!!)
         }

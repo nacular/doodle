@@ -19,56 +19,6 @@ interface NativeEventHandler {
     fun registerKeyListener  (element: HTMLElement)
     fun unregisterKeyListener(element: HTMLElement)
 
-    fun addListener   (listener: NativeEventListener)
-    fun removeListener(listener: NativeEventListener)
-}
-
-class NativeEventHandlerImpl: NativeEventHandler {
-    override fun startConsumingMouseEvents(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopConsumingMouseEvents(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun startConsumingSelectionEvents(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopConsumingSelectionEvents(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun registerFocusListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun unregisterFocusListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun registerClickListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun unregisterClickListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun registerKeyListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun unregisterKeyListener(element: HTMLElement) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun addListener(listener: NativeEventListener) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun removeListener(listener: NativeEventListener) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    operator fun plusAssign(listener: NativeEventListener)
+    operator fun minusAssign(listener: NativeEventListener)
 }

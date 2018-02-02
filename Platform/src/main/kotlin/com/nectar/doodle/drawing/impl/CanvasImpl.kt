@@ -114,7 +114,7 @@ internal class CanvasImpl(
     override fun import(imageData: ImageData, at: Point) {
         if (imageData is ImageDataImpl) {
             val elements = imageData.elements
-            val clones   = elements.mapTo(ArrayList<HTMLElement>(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
+            val clones   = elements.mapTo(ArrayList(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
 
             addData(clones, at)
         }
@@ -296,10 +296,10 @@ internal class CanvasImpl(
         renderPosition = clipRect.nextSibling as HTMLElement?
     }
 
-    private fun addData(elements: List<HTMLElement>, at: Point) {
+    fun addData(elements: List<HTMLElement>, at: Point = Origin) {
         elements.forEach { element ->
-            element.style.setTop (element.top )
-            element.style.setLeft(element.left)
+            element.style.setTop (element.top  + at.y)
+            element.style.setLeft(element.left + at.x)
 
             if (renderPosition != null) {
                 renderPosition?.let {
