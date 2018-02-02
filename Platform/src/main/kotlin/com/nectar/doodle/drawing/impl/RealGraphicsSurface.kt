@@ -34,7 +34,7 @@ class RealGraphicsSurface private constructor(
         addToDocumentIfNoParent  : Boolean): GraphicsSurface {
 
     constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
-    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create("b"), true)
+    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
 
     override var visible = true
         set(new) {
@@ -57,7 +57,7 @@ class RealGraphicsSurface private constructor(
 
     init {
         if (isContainer) {
-            canvasElement = htmlFactory.create("b")
+            canvasElement = htmlFactory.create()
 
             canvasElement.style.setWidthPercent (100.0)
             canvasElement.style.setHeightPercent(100.0)

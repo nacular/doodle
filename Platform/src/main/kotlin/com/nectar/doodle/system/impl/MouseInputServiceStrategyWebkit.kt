@@ -59,7 +59,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         }
 
         if (overlay == null) {
-            overlay = htmlFactory.create("b")
+            overlay = htmlFactory.create()
 
             overlay?.style?.opacity = "0"
             overlay?.style?.width   = "2px"

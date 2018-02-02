@@ -1,5 +1,6 @@
 package com.nectar.doodle.dom
 
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
@@ -13,14 +14,19 @@ import kotlin.browser.document
 interface HtmlFactory {
     val body: HTMLElement
 
+    fun create     (                               ): HTMLElement
     fun create     (tag   : String                 ): HTMLElement
     fun createText (text  : String                 ): Text
     fun createImage(source: String                 ): HTMLImageElement
     fun createOrUse(tag   : String, possible: Node?): HTMLElement
+
+    fun createButton(): HTMLButtonElement
 }
 
 internal class HtmlFactoryImpl: HtmlFactory {
     override val body get() = document.body!!
+
+    override fun create() = create("div")
 
     override fun create(tag: String) = prototypes.getOrPut(tag) {
         document.createElement(tag) as HTMLElement
@@ -42,6 +48,8 @@ internal class HtmlFactoryImpl: HtmlFactory {
 
         return result
     }
+
+    override fun createButton() = create("BUTTON") as HTMLButtonElement
 
     private val prototypes = mutableMapOf<String, HTMLElement>()
 }

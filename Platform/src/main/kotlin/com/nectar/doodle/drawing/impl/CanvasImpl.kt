@@ -1,21 +1,31 @@
 package com.nectar.doodle.drawing.impl
 
+import com.nectar.doodle.dom.BorderStyle
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.clearBoundStyles
 import com.nectar.doodle.dom.clearVisualStyles
 import com.nectar.doodle.dom.index
+import com.nectar.doodle.dom.left
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
+import com.nectar.doodle.dom.setBackgroundColor
+import com.nectar.doodle.dom.setBorderColor
+import com.nectar.doodle.dom.setBorderRadius
+import com.nectar.doodle.dom.setBorderStyle
+import com.nectar.doodle.dom.setBorderWidth
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setSize
+import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
+import com.nectar.doodle.dom.top
 import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
@@ -102,16 +112,12 @@ internal class CanvasImpl(
 //        }
 
     override fun import(imageData: ImageData, at: Point) {
-//        if (imageData is ImageDataImpl) {
-//            val elements = (imageData as ImageDataImpl).getElements()
-//            val clones   = mutableListOf<HTMLElement>(elements.size)
-//
-//            for (aElement in elements) {
-//                clones.add(aElement.cloneNode())
-//            }
-//
-//            addData(clones, at)
-//        }
+        if (imageData is ImageDataImpl) {
+            val elements = imageData.elements
+            val clones   = elements.mapTo(ArrayList<HTMLElement>(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
+
+            addData(clones, at)
+        }
     }
 
     override fun text(text: StyledText, at: Point) {
@@ -290,24 +296,24 @@ internal class CanvasImpl(
         renderPosition = clipRect.nextSibling as HTMLElement?
     }
 
-//    private fun addData(elements: List<HTMLElement>, at: Point) {
-//        elements.forEach { element ->
-//            element.style.top  = "${element.top  + at.y}"
-//            element.style.left = "${element.left + at.x}"
-//
-//            if (renderPosition != null) {
-//                renderPosition?.let {
-//                    val nextSibling = it.nextSibling as HTMLElement?
-//
-//                    frame.replaceChild(element, it)
-//
-//                    renderPosition = nextSibling
-//                }
-//            } else {
-//                frame.add(element)
-//            }
-//        }
-//    }
+    private fun addData(elements: List<HTMLElement>, at: Point) {
+        elements.forEach { element ->
+            element.style.setTop (element.top )
+            element.style.setLeft(element.left)
+
+            if (renderPosition != null) {
+                renderPosition?.let {
+                    val nextSibling = it.nextSibling as HTMLElement?
+
+                    renderRegion.replaceChild(element, it)
+
+                    renderPosition = nextSibling
+                }
+            } else {
+                renderRegion.add(element)
+            }
+        }
+    }
 
     private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
 
@@ -315,12 +321,12 @@ internal class CanvasImpl(
         if (visible(pen, brush)) {
             block()?.let {
                 if (brush is ColorBrush) {
-                    it.style.backgroundColor = "#${brush.color.hexString}"
+                    it.style.setBackgroundColor(brush.color)
                 }
                 if (pen != null) {
-                    it.style.borderWidth = "${pen.thickness}px"
-                    it.style.borderStyle = "solid" // TODO: Handle dashes
-                    it.style.borderColor = "#${pen.color.hexString}"
+                    it.style.setBorderWidth(pen.thickness)
+                    it.style.setBorderStyle(BorderStyle.Solid)
+                    it.style.setBorderColor(pen.color)
                 }
 
                 completeOperation(it)
@@ -342,13 +348,14 @@ internal class CanvasImpl(
         it.style.setSize(rectangle.size)
     }
 
-    private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.borderRadius = "${radius}px" }
-    private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.borderRadius = "${xRadius}px / ${yRadius}px" }
+    private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }
+    private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.setBorderRadius(xRadius, yRadius) }
 
     private fun shouldDrawImage(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) = image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)
 
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {
+            // FIXME: Need to move this to Style and avoid raw px
             val shadow = "${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
 
             when (element.nodeName.toLowerCase()) {
@@ -421,12 +428,10 @@ internal class CanvasImpl(
     private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement {
         val element = pickImageElement((image as ImageImpl).image, renderPosition)
 
-        element.style.translate(rectangle.position)
-
-        element.style.setSize   (rectangle.size)
-        element.style.setOpacity(opacity       )
-
-        element.style.borderRadius = "${radius}px"
+        element.style.translate      (rectangle.position)
+        element.style.setSize        (rectangle.size    )
+        element.style.setOpacity     (opacity           )
+        element.style.setBorderRadius(radius            )
 
         return element
     }
@@ -444,3 +449,5 @@ internal class CanvasImpl(
         return result as HTMLImageElement
     }
 }
+
+class ImageDataImpl(val elements: List<HTMLElement>): ImageData
