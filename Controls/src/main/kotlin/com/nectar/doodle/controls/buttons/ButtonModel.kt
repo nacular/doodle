@@ -20,7 +20,6 @@ interface ButtonModel {
     var buttonGroup: ButtonGroup?
 
     val onAction   : EventObservers<ButtonModel>
-    val onSelection: EventObservers<ButtonModel>
 
     fun fire()
 }

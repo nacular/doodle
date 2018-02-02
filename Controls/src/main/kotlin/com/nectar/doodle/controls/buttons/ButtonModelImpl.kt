@@ -8,9 +8,8 @@ import com.nectar.doodle.utils.observable
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
-class ButtonModelImpl: ButtonModel {
-    override val onAction    by lazy { EventObserversImpl<ButtonModel>(this, mutableSetOf()) }
-    override val onSelection by lazy { EventObserversImpl<ButtonModel>(this, mutableSetOf()) }
+open class ButtonModelImpl: ButtonModel {
+    override val onAction by lazy { EventObserversImpl<ButtonModel>(this, mutableSetOf()) }
 
     override val selectedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(mutableSetOf()) }
     override var selected        by ObservableProperty(false, { this }, selectedChanged)

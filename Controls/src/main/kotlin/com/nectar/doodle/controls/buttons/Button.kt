@@ -29,8 +29,7 @@ abstract class Button protected constructor(
 
     init {
         model.apply {
-            onAction    += ::onAction
-            onSelection += ::onSelection
+            onAction += ::onAction
         }
     }
 
@@ -70,18 +69,16 @@ abstract class Button protected constructor(
             model.selected = new
         }
 
-    var model: ButtonModel = model
+    open var model: ButtonModel = model
         set(new) {
             field.apply {
-                onAction    -= ::onAction
-                onSelection -= ::onSelection
+                onAction -= ::onAction
             }
 
             field = new
 
             field.apply {
-                onAction    += ::onAction
-                onSelection += ::onSelection
+                onAction += ::onAction
             }
         }
 
@@ -89,11 +86,9 @@ abstract class Button protected constructor(
         renderer?.render(canvas, this)
     }
 
-    private val onAction_    by lazy { EventObserversImpl(this, mutableSetOf()) }
-    private val onSelection_ by lazy { EventObserversImpl(this, mutableSetOf()) }
+    private val onAction_ by lazy { EventObserversImpl(this, mutableSetOf()) }
 
-    val onAction   : EventObservers<Button> = onAction_
-    val onSelection: EventObservers<Button> = onSelection_
+    val onAction: EventObservers<Button> = onAction_
 
     abstract fun click()
 
@@ -141,6 +136,5 @@ abstract class Button protected constructor(
         }
     }
 
-    private fun onAction   (@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onAction_.forEach    { it(this) }
-    private fun onSelection(@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onSelection_.forEach { it(this) }
+    private fun onAction(@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onAction_.forEach { it(this) }
 }
