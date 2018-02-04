@@ -117,19 +117,22 @@ internal inline fun Style.translate(x: Double, y: Double) {
     }
 }
 
-fun Style.setTransform(transform: AffineTransform?) = when(transform) {
+internal fun Style.setTransform(transform: AffineTransform?) = when(transform) {
     null, AffineTransform.Identity -> this.transform = ""
     else                           -> transform.run { this@setTransform.transform = "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
 }
 
+internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }
 
-internal enum class Float        (val value: String) { Left     ("left"    ), Right   ("right"   )                                                   }
-internal enum class Repeat       (val value: String) { RepeatAll("repeat"  ), RepeatX ("repeat_x"), RepeatY("repeat_y"), NoRepeat   ("no_repeat")    }
-internal enum class Display      (val value: String) { None     ("none"    ), Block   ("block"   ), Inline ("inline"  ), InlineBlock("inline-block") }
-internal enum class Position     (val value: String) { Absolute ("absolute"), Relative("relative"), Static ("static"  )                              }
-internal enum class Overflow     (val value: String) { Hidden   ("hidden"  ), Scroll  ("scroll"  )                                                   }
-internal enum class FontStyle    (val value: String) { Normal   ("normal"  ), Italic  ("italic"  ), Oblique("oblique" )                              }
-internal enum class Visibility   (val value: String) { Hidden   ("hidden"  ), Visible ("visible" )                                                   }
-internal enum class BorderStyle  (val value: String) { None     ("none"    ), Dotted   ("dotted"  ), Dashed  ("dashed"  ), Solid  ("solid"   )       }
-internal enum class TextAlignment(val value: String) { Right    ("right"   ), Center  ("center"  )                                                   }
-internal enum class VerticalAlign(val value: String) { Middle   ("middle"  )                                                                         }
+
+internal enum class Float        (val value: String) { Left     ("left"       ), Right   ("right"     )                                                   }
+internal enum class Repeat       (val value: String) { RepeatAll("repeat"     ), RepeatX ("repeat_x"  ), RepeatY("repeat_y"), NoRepeat   ("no_repeat"   ) }
+internal enum class Display      (val value: String) { None     ("none"       ), Block   ("block"     ), Inline ("inline"  ), InlineBlock("inline-block") }
+internal enum class Position     (val value: String) { Absolute ("absolute"   ), Relative("relative"  ), Static ("static"  )                              }
+internal enum class Overflow     (val value: String) { Hidden   ("hidden"     ), Scroll  ("scroll"    )                                                   }
+internal enum class FontStyle    (val value: String) { Normal   ("normal"     ), Italic  ("italic"    ), Oblique("oblique" )                              }
+internal enum class Visibility   (val value: String) { Hidden   ("hidden"     ), Visible ("visible"   )                                                   }
+internal enum class BorderStyle  (val value: String) { None     ("none"       ), Dotted  ("dotted"    ), Dashed  ("dashed"  ), Solid     ("solid"       ) }
+internal enum class TextAlignment(val value: String) { Right    ("right"      ), Center  ("center"    )                                                   }
+internal enum class VerticalAlign(val value: String) { Middle   ("middle"     )                                                                           }
+internal enum class BoxSizing    (val value: String) { Content  ("content-box"), Border  ("border-box")                                                   }

@@ -7,7 +7,7 @@ import com.nectar.doodle.system.Cursor
 
 internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: Button): AbstractSystemButtonUI(button) {
 
-    private val nativePeer = nativeButtonFactory(button)
+    private val nativePeer by lazy{ nativeButtonFactory(button) }
 
     override fun render(canvas: Canvas, gizmo: Button) {
         nativePeer.render(canvas)
@@ -35,7 +35,7 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: 
     override fun uninstall(gizmo: Button) {
         super.uninstall(gizmo)
 
-        nativePeer.uninstall(gizmo)
+        nativePeer.discard()
 
         gizmo.cursor = null
     }

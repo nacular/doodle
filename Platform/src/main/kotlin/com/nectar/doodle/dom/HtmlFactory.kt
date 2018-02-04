@@ -3,6 +3,7 @@ package com.nectar.doodle.dom
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
 import org.w3c.dom.Text
 import kotlin.browser.document
@@ -14,23 +15,24 @@ import kotlin.browser.document
 interface HtmlFactory {
     val body: HTMLElement
 
-    fun create     (                               ): HTMLElement
-    fun create     (tag   : String                 ): HTMLElement
+    fun <T: HTMLElement> create     (                               ): T
+    fun <T: HTMLElement> create     (tag   : String                 ): T
     fun createText (text  : String                 ): Text
     fun createImage(source: String                 ): HTMLImageElement
     fun createOrUse(tag   : String, possible: Node?): HTMLElement
 
+    fun createInput (): HTMLInputElement
     fun createButton(): HTMLButtonElement
 }
 
 internal class HtmlFactoryImpl: HtmlFactory {
     override val body get() = document.body!!
 
-    override fun create() = create("div")
+    override fun <T: HTMLElement> create() = create("div") as T
 
-    override fun create(tag: String) = prototypes.getOrPut(tag) {
-        document.createElement(tag) as HTMLElement
-    }.cloneNode(false) as HTMLElement
+    override fun <T: HTMLElement> create(tag: String) = prototypes.getOrPut(tag) {
+        document.createElement(tag) as T
+    }.cloneNode(false) as T
 
     override fun createText(text: String) = document.createTextNode(text)
 
@@ -49,7 +51,9 @@ internal class HtmlFactoryImpl: HtmlFactory {
         return result
     }
 
-    override fun createButton() = create("BUTTON") as HTMLButtonElement
+    override fun createInput(): HTMLInputElement = create("INPUT")
+
+    override fun createButton(): HTMLButtonElement = create("BUTTON")
 
     private val prototypes = mutableMapOf<String, HTMLElement>()
 }

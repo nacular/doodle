@@ -4,6 +4,7 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.dom.BorderStyle.None
+import com.nectar.doodle.dom.BoxSizing
 import com.nectar.doodle.dom.Display.Inline
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
@@ -14,6 +15,7 @@ import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderStyle
+import com.nectar.doodle.dom.setBoxSizing
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setHeight
@@ -50,7 +52,8 @@ class NativeButtonFactoryImpl internal constructor(
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
         private val elementRuler          : ElementRuler,
         private val nativeEventHandler    : () -> NativeEventHandler): NativeButtonFactory {
-    override fun invoke(button: Button) = NativeButton(textMetrics,
+    override fun invoke(button: Button) = NativeButton(
+            textMetrics,
             textFactory,
             htmlFactory,
             graphicsSurfaceFactory,
@@ -96,14 +99,15 @@ class NativeButton internal constructor(
             nativeEventHandler += this@NativeButton
         }
 
-        glassPanelElement = htmlFactory.create().apply {
-            style.setTop            (0.0      )
-            style.setLeft           (0.0      )
-            style.setOpacity        (0f       )
-            style.setPosition       (Absolute )
-            style.setWidthPercent   (100.0    )
-            style.setHeightPercent  (100.0    )
-            style.setBackgroundColor(Color.red)
+        glassPanelElement = htmlFactory.create<HTMLElement>().apply {
+            style.setTop            (0.0             )
+            style.setLeft           (0.0             )
+            style.setOpacity        (0f              )
+            style.setPosition       (Absolute        )
+            style.setBoxSizing      (BoxSizing.Border)
+            style.setWidthPercent   (100.0           )
+            style.setHeightPercent  (100.0           )
+            style.setBackgroundColor(Color.red       )
 
             buttonElement.add(this)
         }
@@ -112,10 +116,19 @@ class NativeButton internal constructor(
             textChanged      += ::textChanged
             focusChanged     += ::focusChanged
             enabledChanged   += ::enabledChanged
-            focusableChanged += ::focusChanged
+            focusableChanged += ::focusableChanged
         }
 
         setIconText()
+    }
+
+    fun discard() {
+        button.apply {
+            textChanged      -= ::textChanged
+            focusChanged     -= ::focusChanged
+            enabledChanged   -= ::enabledChanged
+            focusableChanged -= ::focusableChanged
+        }
     }
 
     private val textPosition: Point get() {
@@ -225,7 +238,7 @@ class NativeButton internal constructor(
                 iconElement?.let { buttonElement.remove(it) }
 
                 field?.let {
-                    iconElement = htmlFactory.create().also { iconElement ->
+                    iconElement = htmlFactory.create<HTMLElement>().also { iconElement ->
 
                         iconElement.style.setWidth (it.size.width )
                         iconElement.style.setHeight(it.size.height)
@@ -257,15 +270,6 @@ class NativeButton internal constructor(
             updateTextPosition()
 
             canvas.addData(listOf(buttonElement))
-        }
-    }
-
-    fun uninstall(button: Button) {
-        button.apply {
-            textChanged      -= ::textChanged
-            focusChanged     -= ::focusChanged
-            enabledChanged   -= ::enabledChanged
-            focusableChanged -= ::focusableChanged
         }
     }
 
@@ -398,7 +402,7 @@ class NativeButton internal constructor(
     }
 
     private fun calculateButtonInsets(): Insets {
-        val block  = htmlFactory.create      ()
+        val block  = htmlFactory.create<HTMLElement>()
         val button = htmlFactory.createButton().also {
             it.textContent = "foo"
         }
