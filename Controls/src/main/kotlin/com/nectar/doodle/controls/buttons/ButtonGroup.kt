@@ -14,13 +14,13 @@ class ButtonGroup {
     operator fun plusAssign(button: Button) {
         buttons += button
 
-        button.model?.buttonGroup = this
+        button.model.buttonGroup = this
 
-        if (button.model?.selected == true) {
+        if (button.model.selected == true) {
             if (selectedModel == null) {
                 selectedModel = button.model
             } else {
-                button.model?.selected = false
+                button.model.selected = false
             }
         }
 
@@ -28,7 +28,7 @@ class ButtonGroup {
 
     operator fun minusAssign(button: Button) {
         if (buttons.remove(button)) {
-            button.model?.buttonGroup = null
+            button.model.buttonGroup = null
 
             if (button.model === selectedModel) {
                 selectedModel = null
@@ -38,7 +38,7 @@ class ButtonGroup {
 
     fun clear() {
         buttons.forEach {
-            it.model?.buttonGroup = null
+            it.model.buttonGroup = null
         }
 
         buttons.clear()

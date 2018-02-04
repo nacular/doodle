@@ -41,6 +41,7 @@ private class ToggleButtonModel: ButtonModelImpl() {
         }
 }
 
+// FIXME: It is possible to assign a non-ToggleButtonModel to these types.  Is that desirable?
 @Suppress("PrivatePropertyName")
 open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButton(text, icon, ToggleButtonModel()) {
     constructor(icon: Icon<Button>): this("", icon)
