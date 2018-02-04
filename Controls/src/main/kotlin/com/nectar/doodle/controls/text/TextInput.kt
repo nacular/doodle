@@ -1,34 +1,22 @@
 package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.core.Gizmo
-import com.nectar.doodle.event.Event
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KProperty
 
 
-class SelectionEvent(textInput: TextInput,
-        val newPosition: Int,
-        val newAnchor  : Int,
-        val oldPosition: Int,
-        val oldAnchor  : Int): Event<TextInput>(textInput)
-
-
-typealias SelectionListener = (SelectionEvent) -> Unit
+class Selection(val position: Int, val anchor: Int) {
+    val start get() = min(position, anchor)
+    val end   get() = max(position, anchor)
+}
 
 abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
-
-    val selectionStart get() = min(cursorPosition, cursorAnchor)
-    val selectionEnd   get() = max(cursorPosition, cursorAnchor)
-    val selectionRange get() = abs(cursorAnchor - cursorPosition)
-
-    private val selectionListeners = mutableSetOf<SelectionListener>()
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(mutableSetOf()) }
 
@@ -40,7 +28,7 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
         override fun afterChange(property: KProperty<*>, oldValue: String, newValue: String) {
             super.afterChange(property, oldValue, validator?.validate(newValue) ?: newValue)
 
-            select(min(text.length, cursorPosition) .. min(text.length, cursorAnchor))
+            select(min(text.length, selection.position) .. min(text.length, selection.anchor))
         }
     }
 
@@ -53,9 +41,9 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
             field?.let { text = text /* re-validate text */ }
         }
 
-    var cursorAnchor = 0
-        private set
-    var cursorPosition = 0
+    val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(mutableSetOf()) }
+
+    var selection: Selection by ObservableProperty(Selection(0, 0), { this }, selectionChanged as PropertyObserversImpl<TextInput, Selection>)
         private set
 
     init {
@@ -68,14 +56,6 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 //                this@TextInput.text = aText
 //            }
 //        })
-    }
-
-    operator fun plusAssign(listener: SelectionListener) {
-        selectionListeners += listener
-    }
-
-    operator fun minusAssign(listener: SelectionListener) {
-        selectionListeners -= listener
     }
 
 //    fun contentsRetrieved(aDataBundle: DataBundle?) {
@@ -103,7 +83,7 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
     }
 
     open fun copy() {
-        val text = text.substring(selectionStart, selectionEnd)
+        val text = text.substring(selection.start, selection.end)
 
         if (!text.isEmpty()) {
 //            Service.locator().getClipboard().setContents(TextBundle(text))
@@ -119,16 +99,11 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
     }
 
     fun deleteSelected() {
-        if (cursorPosition != cursorAnchor) {
-            val oldAnchor         = cursorAnchor
-            val oldPosition       = cursorPosition
-            val oldSelectionEnd   = selectionEnd
-            val oldSelectionStart = selectionStart
+        if (selection.position != selection.anchor) {
+            val oldSelectionEnd   = selection.end
+            val oldSelectionStart = selection.start
 
-            cursorAnchor = cursorPosition
-            cursorPosition = oldSelectionStart
-
-            notifySelectionChanged(oldPosition, oldAnchor)
+            selection = Selection(selection.position, selection.start)
 
             text = text.substring(0, oldSelectionStart) + text.substring(oldSelectionEnd)
         }
@@ -138,7 +113,7 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
         if (range.start >= 0 && range.endInclusive <= text.length) {
             val newText = text.substring(0, range.start) + text.substring(range.endInclusive)
 
-            select(min(newText.length, cursorPosition) .. min(newText.length, cursorAnchor))
+            select(min(newText.length, selection.position) .. min(newText.length, selection.anchor))
 
             text = newText
         }
@@ -148,25 +123,19 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
         val start = range.start
         val end   = range.endInclusive
 
-        if (cursorPosition != start &&
+        if (selection.position != start &&
                 start >= 0 &&
-                start <= text.length || cursorAnchor != end &&
+                start <= text.length || selection.anchor != end &&
                 end >= 0 &&
                 end <= text.length) {
-            val oldAnchor   = cursorAnchor
-            val oldPosition = cursorPosition
+            val oldAnchor   = selection.anchor
+            val oldPosition = selection.position
 
-            cursorAnchor   = end
             cursorVisible  = true
-            cursorPosition = start
 
-            notifySelectionChanged(oldPosition, oldAnchor)
-        }
-    }
+            selection = Selection(start, end)
 
-    private fun notifySelectionChanged(oldPosition: Int, oldAnchor: Int) {
-        SelectionEvent(this, cursorPosition, cursorAnchor, oldPosition, oldAnchor).also { event ->
-            selectionListeners.forEach { it(event) }
+//            notifySelectionChanged(oldPosition, oldAnchor)
         }
     }
 

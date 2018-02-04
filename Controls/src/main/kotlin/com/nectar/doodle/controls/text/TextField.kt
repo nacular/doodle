@@ -69,7 +69,7 @@ class TextField: TextInput() {
     }
 
     override fun copy() {
-        displayText.substring(selectionStart, selectionEnd).takeIf { !it.isEmpty() }.also {
+        displayText.substring(selection.start, selection.end).takeIf { !it.isEmpty() }.also {
 //            Service.locator().getClipboard().setContents(TextBundle(it))
         }
     }

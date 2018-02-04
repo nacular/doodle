@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.controls.text.SelectionEvent
+import com.nectar.doodle.controls.text.Selection
+import com.nectar.doodle.controls.text.TextInput
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.HtmlFactory
@@ -10,8 +11,6 @@ import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.zinoti.jaz.controls.text.TextField
-import kotlin.math.max
-import kotlin.math.min
 
 
 interface NativeTextFieldFactory {
@@ -70,8 +69,7 @@ class NativeTextField(
             focusChanged     += ::focusChanged
             enabledChanged   += ::enabledChanged
             focusableChanged += ::focusableChanged
-
-            this += ::selectionChanged
+            selectionChanged += ::selectionChanged
         }
     }
 
@@ -81,6 +79,7 @@ class NativeTextField(
             focusChanged     -= ::focusChanged
             enabledChanged   -= ::enabledChanged
             focusableChanged -= ::focusableChanged
+            selectionChanged -= ::selectionChanged
         }
     }
 
@@ -122,19 +121,17 @@ class NativeTextField(
 
     private fun select(range: ClosedRange<Int>) = inputElement.setSelectionRange(range.start, range.endInclusive)
 
-    private fun selectionChanged(event: SelectionEvent) {
-        val start = min(event.newPosition, event.newAnchor)
-        val end   = max(event.newPosition, event.newAnchor)
-
+    @Suppress("UNUSED_PARAMETER")
+    private fun selectionChanged(textInput: TextInput, old: Selection, new: Selection) {
         ignoreSync = true
 
-        select(start .. end)
+        select(new.start .. new.end)
 
         ignoreSync = false
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun textChanged(gizmo: Gizmo, old: String, new: String) {
+    private fun textChanged(textInput: TextInput, old: String, new: String) {
         text = new
     }
 
@@ -166,14 +163,14 @@ class NativeTextField(
         // by modifying the start/end position.  They are also
         // redundant.
 
-        textField.textChanged -= ::textChanged
-        textField             -= ::selectionChanged
+        textField.textChanged      -= ::textChanged
+        textField.selectionChanged -= ::selectionChanged
 
         textField.text = text
 
         textField.select(selection)
 
-        textField.textChanged += ::textChanged
-        textField             += ::selectionChanged
+        textField.textChanged      += ::textChanged
+        textField.selectionChanged += ::selectionChanged
     }
 }
