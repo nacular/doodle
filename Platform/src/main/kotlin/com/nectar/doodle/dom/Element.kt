@@ -38,7 +38,7 @@ inline val HTMLElement.left   get() = offsetLeft.toDouble  ()
 inline val HTMLElement.width  get() = offsetWidth.toDouble ()
 inline val HTMLElement.height get() = offsetHeight.toDouble()
 
-inline val Node.hasAutoOverflow get() = this is HTMLElement && style.overflowWrap != ""
+inline val HTMLElement.hasAutoOverflow get() = style.run { !overflowX.isEmpty() || !overflowY.isEmpty() }
 
 fun HTMLElement.clearVisualStyles() {
    style.color      = ""

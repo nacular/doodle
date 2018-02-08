@@ -1,5 +1,6 @@
 dependencies {
     compile 'com.github.salomonbrys.kodein:kodein-js:4.1.0'
 
-    compile project(":core")
+    compile project(":core"    )
+    compile project(":controls")
 }

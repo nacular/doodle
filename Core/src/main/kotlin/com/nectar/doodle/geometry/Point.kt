@@ -11,9 +11,9 @@ class Point(val x: Double, val y: Double) {
 
     operator fun unaryMinus() = Point(-x, -y)
 
-    override fun hashCode(): Int = arrayOf(x, y).contentHashCode()
+    override fun hashCode() = arrayOf(x, y).contentHashCode()
 
-    override fun toString(): String = "[$x,$y]"
+    override fun toString() = "[$x,$y]"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

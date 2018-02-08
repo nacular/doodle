@@ -4,6 +4,7 @@ import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.PositionableWrapper
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.height
 import com.nectar.doodle.dom.insert
@@ -33,14 +34,10 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    private val root         = Container()
-    private val canvasElement: HTMLElement = htmlFactory.create()
-//        private val sStyles = GWT.create(GraphicsStyles::class.java)
-//        private val sCanvas = GraphicsService.locator().getGraphicsDevice().create(canvasElement).getCanvas()
+    private val root          = Container()
+    private val canvasElement = htmlFactory.create<HTMLElement>()
 
     init {
-//            sStyles.init()
-
         rootElement.onresize = this::onResize
 
         onResize()
@@ -52,13 +49,12 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
         root.boundsChange += { gizmo, old, new ->
             if (old.size != new.size) {
-                (sizeChange as PropertyObserversImpl<Gizmo, Size>).forEach {
-                    it(gizmo, old.size, new.size)
+                (sizeChanged as PropertyObserversImpl<Display, Size>).forEach {
+                    it(this, old.size, new.size)
                 }
             }
         }
     }
-
 
     override var cursor: Cursor?
         get(   ) = root.cursor
@@ -83,7 +79,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override val children get() = root.children
 
-    override val sizeChange: PropertyObservers<Gizmo, Size> = PropertyObserversImpl(mutableSetOf())
+    override val sizeChanged: PropertyObservers<Display, Size> = PropertyObserversImpl(mutableSetOf())
 
 //    val childrenByZIndex: List<Gizmo>
 //        get() = ROOT_CONTAINER.getChildrenByZIndex()
@@ -122,4 +118,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
     operator fun contains(aGizmo: Gizmo) = root.contains(aGizmo)
 
     override fun iterator() = root.iterator()
+
+    override fun doLayout() {
+        layout?.layout(PositionableWrapper(root))
+    }
 }

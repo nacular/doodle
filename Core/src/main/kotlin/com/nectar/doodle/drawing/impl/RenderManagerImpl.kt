@@ -40,13 +40,11 @@ class RenderManagerImpl(
 
     init {
         display.children.onChange += this::childrenChanged
-        display.sizeChange        += { gizmo, _, _ ->
+        display.sizeChanged += { display, _, _ ->
 
-            gizmo.doLayout_()
+            display.doLayout()
 
-            if (displayTree.containsKey(gizmo)) {
-                checkDisplayRectChange(gizmo)
-            }
+            display.forEach { checkDisplayRectChange(it) }
         }
 
 //        mDisplay.addContainerListener(mContainerListener)

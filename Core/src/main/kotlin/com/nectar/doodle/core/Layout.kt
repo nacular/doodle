@@ -17,7 +17,7 @@ interface Positionable {
     var minimumSize: Size
 }
 
-private class PositionableWrapper(val gizmo: Gizmo): Positionable {
+class PositionableWrapper(val gizmo: Gizmo): Positionable {
     override var size        get() = gizmo.size
         set(value) { gizmo.size = value }
     override val width       get() = gizmo.width

@@ -21,6 +21,7 @@ import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
 
@@ -52,8 +53,8 @@ class RealGraphicsSurface private constructor(
 
     override val canvas: Canvas
 
-    private val children    = mutableListOf<RealGraphicsSurface>()
-    private val rootElement = canvasElement
+    private  val children    = mutableListOf<RealGraphicsSurface>()
+    internal val rootElement = canvasElement
 
     init {
         if (isContainer) {
@@ -92,20 +93,18 @@ class RealGraphicsSurface private constructor(
     }
 
     override var position: Point by observable(Point.Origin) { _,_,new ->
-        rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
-//            rootElement.style.setTop (new.y)
-//            rootElement.style.setLeft(new.x)
+        rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
             rootElement.style.translate(new)
         } }
     }
 
-    override var size: Size by observable(Size.Empty) { _,_,new ->
-        rootElement.parent?.let { it.takeIf { !it.hasAutoOverflow }?.let {
+    override var size: Size by observable(Empty) { _,_,new ->
+        rootElement.parent?.let {
             rootElement.style.setWidth (new.width )
             rootElement.style.setHeight(new.height)
 
             canvas.size = new
-        } }
+        }
     }
 
 //    override fun iterator() = children.iterator()

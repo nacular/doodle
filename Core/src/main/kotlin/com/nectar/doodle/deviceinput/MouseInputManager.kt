@@ -68,18 +68,16 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
     private fun mouseUp(event: SystemMouseEvent) {
         var cursor: Cursor? = null
-        val gizmo = getMouseEventHandler(getGizmoAt(event.location))
+        val gizmo = getMouseEventHandler(gizmo(event.location))
 
         if (clickedEventAwareGizmo != null || mouseDown) {
 
-            if (clickedEventAwareGizmo != null) {
-                val aHandler = getMouseEventHandler(clickedEventAwareGizmo)
+            clickedEventAwareGizmo?.let {
+                getMouseEventHandler(it)?.let {
+                    it.handleMouseEvent_(createMouseEvent(event, it))
 
-                if (aHandler != null) {
-                    aHandler.handleMouseEvent_(createMouseEvent(event, aHandler))
-
-                    if (gizmo === aHandler) {
-                        aHandler.handleMouseEvent_(createMouseEvent(event, aHandler, Click))
+                    if (gizmo === it) {
+                        it.handleMouseEvent_(createMouseEvent(event, it, Click))
                     }
 
                     event.consume()
@@ -87,14 +85,14 @@ class MouseInputManager(private val display: Display, private val inputService: 
             }
 
             if (gizmo !== clickedEventAwareGizmo) {
-                if (clickedEventAwareGizmo != null) {
-                    clickedEventAwareGizmo!!.handleMouseEvent_(createMouseEvent(event, clickedEventAwareGizmo!!, Exit))
+                clickedEventAwareGizmo?.let {
+                    it.handleMouseEvent_(createMouseEvent(event, it, Exit))
                 }
 
-                if (gizmo != null) {
-                    gizmo.handleMouseEvent_(createMouseEvent(event, gizmo, Enter))
+                gizmo?.let {
+                    it.handleMouseEvent_(createMouseEvent(event, it, Enter))
 
-                    cursor = getGizmoCursor(gizmo)
+                    cursor = getGizmoCursor(it)
 
                     event.consume()
                 }
@@ -109,7 +107,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
             event.consume()
         }
 
-        setCursor(cursor)
+        this.cursor = cursor
 
         mouseDown = false
 
@@ -122,12 +120,10 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun mouseDown(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        val gizmo = getMouseEventHandler(getGizmoAt(event.location))
+        getMouseEventHandler(gizmo(event.location))?.let {
+            it.handleMouseEvent_(createMouseEvent(event, it))
 
-        if (gizmo != null) {
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo))
-
-            clickedEventAwareGizmo = gizmo
+            clickedEventAwareGizmo = it
 
             event.consume()
         }
@@ -138,34 +134,32 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun doubleClick(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        val gizmo = getMouseEventHandler(getGizmoAt(event.location))
-
-        if (gizmo != null) {
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo, Up))
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo, Click))
+        getMouseEventHandler(gizmo(event.location))?.let {
+            it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
+            it.handleMouseEvent_(createMouseEvent(event, it, Click))
 
             event.consume()
         }
     }
 
     private fun mouseMove(event: SystemMouseEvent) {
-        val coveredGizmo = getGizmoAt(event.location)
+        val coveredGizmo = gizmo(event.location)
 
-        if (clickedEventAwareGizmo != null && clickedEventAwareGizmo!!.monitorsMouseMotion) {
-            clickedEventAwareGizmo!!.handleMouseMotionEvent_(createMouseEvent(event, clickedEventAwareGizmo!!, Drag))
+        clickedEventAwareGizmo?.let {
+            if (it.monitorsMouseMotion) {
+                it.handleMouseMotionEvent_(createMouseEvent(event, clickedEventAwareGizmo!!, Drag))
 
-            event.consume()
+                event.consume()
+            }
         }
 
         val gizmo = getMouseEventHandler(coveredGizmo)
 
         if (gizmo !== coveredEventAwareGizmo) {
-            if (coveredEventAwareGizmo != null) {
-                if (!mouseDown || coveredEventAwareGizmo === clickedEventAwareGizmo) {
-                    val handler = getMouseEventHandler(coveredEventAwareGizmo)
-
-                    if (handler != null) {
-                        handler.handleMouseEvent_(createMouseEvent(event, handler, Exit))
+            coveredEventAwareGizmo?.let {
+                if (!mouseDown || it === clickedEventAwareGizmo) {
+                    getMouseEventHandler(it)?.let {
+                        it.handleMouseEvent_(createMouseEvent(event, it, Exit))
 
                         event.consume()
                     }
@@ -182,14 +176,14 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
                     inputService.toolTipText = gizmo.getToolTipText(enterEvent)
 
-                    setCursor(getGizmoCursor(coveredGizmo))
+                    cursor = getGizmoCursor(coveredGizmo)
 
                     event.consume()
                 }
             } else if (clickedEventAwareGizmo == null) {
                 inputService.toolTipText = ""
 
-                setCursor(null)
+                cursor = null
             }
 
             coveredEventAwareGizmo = gizmo
@@ -210,7 +204,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 inputService.toolTipText = ""
             }
 
-            setCursor(getGizmoCursor(coveredGizmo))
+            cursor = getGizmoCursor(coveredGizmo)
         }
 
 //        sScrollInputImpl.setCoveredGizmo(coveredGizmo)
@@ -222,7 +216,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 //        if (gizmo != null) {
 //            gizmo = getMouseWheelEventHandler(gizmo)
 //        } else {
-//            gizmo = getMouseWheelEventHandler(getGizmoAt(event.location))
+//            gizmo = getMouseWheelEventHandler(gizmo(event.location))
 //        }
 //
 //        if (gizmo != null) {
@@ -241,8 +235,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     private fun getMouseEventHandler      (gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouse       }
-    private fun getMouseMotionEventHandler(gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouseMotion }
     private fun getMouseWheelEventHandler (gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouseWheel  }
+    private fun getMouseMotionEventHandler(gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouseMotion }
 
     private fun findInHierarchy(gizmo: Gizmo?, block: (Gizmo) -> Boolean): Gizmo? {
         var result: Gizmo? = gizmo
@@ -288,13 +282,15 @@ class MouseInputManager(private val display: Display, private val inputService: 
         else -> display.cursor
     }
 
-    private fun setCursor(cursor: Cursor?) {
-        inputService.cursor = cursor ?: display.cursor ?: Cursor.Default
-    }
+    private var cursor: Cursor? = null
+        set(new) {
+            field = new
+            inputService.cursor = cursor ?: display.cursor ?: Cursor.Default
+        }
 
-    private fun getGizmoAt(point: Point): Gizmo? {
-        var newPoint = point
-        var gizmo    = display.child(at = point)
+    private fun gizmo(at: Point): Gizmo? {
+        var newPoint = at
+        var gizmo    = display.child(at = at)
 
         while(gizmo != null) {
             newPoint -= gizmo.position

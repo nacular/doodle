@@ -4,147 +4,110 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
 
-class NativeEventHandlerImpl: NativeEventHandler {
-    private val listeners = mutableListOf<NativeEventListener>()
+class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
 
-    override fun startConsumingMouseEvents(element: HTMLElement) {
-        registerMuteCallbacksMouseEvents(this, element)
-    }
+    override fun startConsumingMouseMoveEvents(onlySelf: Boolean) = registerMuteCallbacksMouseMoveEvents(onlySelf)
+    override fun stopConsumingMouseMoveEvents() = unregisterMuteCallbacksMouseMoveEvents()
 
-    override fun stopConsumingMouseEvents(element: HTMLElement) {
-        unregisterMuteCallbacksMouseEvents(element)
-    }
+    override fun startConsumingMousePressEvents() = registerMuteCallbacksMousePressEvents  ()
+    override fun stopConsumingMousePressEvents () = unregisterMuteCallbacksMousePressEvents()
 
-    override fun startConsumingSelectionEvents(element: HTMLElement) {
-        registerMuteCallbacksSelectEvents(this, element)
-    }
+    override fun startConsumingSelectionEvents() = registerMuteCallbacksSelectEvents()
+    override fun stopConsumingSelectionEvents () = unregisterMuteCallbacksSelectEvents()
 
-    override fun stopConsumingSelectionEvents(element: HTMLElement) {
-        unregisterMuteCallbacksSelectEvents(element)
-    }
+    override fun registerFocusListener  () = registerFocusCallbacks  ()
+    override fun unregisterFocusListener() = unregisterFocusCallbacks()
 
-    override fun registerFocusListener(element: HTMLElement) {
-        registerFocusCallbacks(this, element)
-    }
+    override fun registerKeyListener  () = registerKeyCallback  ()
+    override fun unregisterKeyListener() = unregisterKeyCallback()
 
-    override fun unregisterFocusListener(element: HTMLElement) {
-        unregisterFocusCallbacks(element)
-    }
+    override fun registerClickListener  () = registerClickCallback  ()
+    override fun unregisterClickListener() = unregisterClickCallback()
 
-    override fun registerKeyListener(element: HTMLElement) {
-        registerKeyCallback(this, element)
-    }
+    override fun registerScrollListener  () = registerScrollCallback  ()
+    override fun unregisterScrollListener() = unregisterScrollCallback()
 
-    override fun unregisterKeyListener(element: HTMLElement) {
-        unregisterKeyCallback(element)
-    }
+    private fun muteEvent(event: Event, onlySelf: Boolean = false): Boolean {
+        if (onlySelf && event.target != element) {
+            return true
+        }
 
-    override fun registerClickListener(element: HTMLElement) {
-        registerClickCallback(this, element)
-    }
-
-    override fun unregisterClickListener(element: HTMLElement) {
-        unregisterClickCallback(element)
-    }
-
-    override operator fun plusAssign(listener: NativeEventListener) {
-        listeners += listener
-    }
-
-    override operator fun minusAssign(listener: NativeEventListener) {
-        listeners -= listener
-    }
-
-    private fun muteEvent(event: Event): Boolean {
-//        event.preventDefault()
         event.stopPropagation()
 
         return false
     }
 
-    private fun onBlur(): Boolean {
-        listeners.forEach { it.onFocusLost() }
+    private fun onBlur    () = true.also { listener.onFocusLost  () }
+    private fun onFocus   () = true.also { listener.onFocusGained() }
+    private fun onKeyUp   () = true.also { listener.onKeyUp      () }
+    private fun onKeyDown () = true.also { listener.onKeyDown    () }
+    private fun onKeyPress() = true.also { listener.onKeyPress   () }
+    private fun onClick   () = true.also { listener.onClick      () }
+    private fun onScroll  () = true.also { listener.onScroll     () }
 
-        return true
+    private fun registerFocusCallbacks() {
+        element.onblur  = { onBlur()  }
+        element.onfocus = { onFocus() }
     }
 
-    private fun onFocus(): Boolean {
-        listeners.forEach { it.onFocusGained() }
-
-        return true
-    }
-
-    private fun onKeyUp(): Boolean {
-        listeners.forEach { it.onKeyUp() }
-
-        return true
-    }
-
-    private fun onKeyDown(): Boolean {
-        listeners.forEach { it.onKeyDown() }
-
-        return true
-    }
-
-    private fun onKeyPress(): Boolean {
-        listeners.forEach { it.onKeyPress() }
-
-        return true
-    }
-
-    private fun onClick(): Boolean {
-        listeners.forEach { it.onClick() }
-
-        return true
-    }
-
-    protected fun registerFocusCallbacks(handler: NativeEventHandlerImpl, element: HTMLElement) {
-        element.onblur  = { handler.onBlur()  }
-        element.onfocus = { handler.onFocus() }
-    }
-
-    protected fun unregisterFocusCallbacks(element: HTMLElement) {
+    private fun unregisterFocusCallbacks() {
         element.onblur  = null
         element.onfocus = null
     }
 
-    protected fun registerKeyCallback(handler: NativeEventHandlerImpl, element: HTMLElement) {
-        element.onkeyup    = { handler.onKeyUp   () }
-        element.onkeydown  = { handler.onKeyDown () }
-        element.onkeypress = { handler.onKeyPress() }
+    private fun registerKeyCallback() {
+        element.onkeyup    = { onKeyUp   () }
+        element.onkeydown  = { onKeyDown () }
+        element.onkeypress = { onKeyPress() }
     }
 
-    protected fun unregisterKeyCallback(element: HTMLElement) {
+    private fun unregisterKeyCallback() {
         element.onkeyup    = null
         element.onkeydown  = null
         element.onkeypress = null
     }
 
-    protected fun registerClickCallback(handler: NativeEventHandlerImpl, element: HTMLElement) {
-        element.onclick = { handler.onClick() }
+    private fun registerClickCallback() {
+        element.onclick = { onClick() }
     }
 
-    protected fun unregisterClickCallback(element: HTMLElement) {
+    private fun unregisterClickCallback() {
         element.onclick = null
     }
 
-    protected fun registerMuteCallbacksMouseEvents(handler: NativeEventHandlerImpl, element: HTMLElement) {
-        element.onmouseup   = { handler.muteEvent(it) }
-        element.onmousedown = { handler.muteEvent(it) }
-        element.ondblclick  = { handler.muteEvent(it) }
+    private fun registerMuteCallbacksMouseMoveEvents(onlySelf: Boolean) {
+        element.onmousemove = { muteEvent(it, onlySelf) }
     }
 
-    protected fun registerMuteCallbacksSelectEvents(handler: NativeEventHandlerImpl, element: HTMLElement) {
-        element.onselect = { handler.muteEvent(it) }
+    private fun unregisterMuteCallbacksMouseMoveEvents() {
+        element.onmousemove = null
     }
 
-    protected fun unregisterMuteCallbacksMouseEvents(element: HTMLElement) {
+    private fun registerMuteCallbacksMousePressEvents() {
+        element.onmouseup   = { muteEvent(it) }
+        element.onmousedown = { muteEvent(it) }
+        element.ondblclick  = { muteEvent(it) }
+    }
+
+    private fun unregisterMuteCallbacksMousePressEvents() {
         element.onmouseup   = null
         element.onmousedown = null
         element.ondblclick  = null
     }
 
-    protected fun unregisterMuteCallbacksSelectEvents(element: HTMLElement) {
+    private fun registerMuteCallbacksSelectEvents() {
+        element.onselect = { muteEvent(it) }
+    }
+
+    private fun unregisterMuteCallbacksSelectEvents() {
         element.onselect = null
+    }
+
+    private fun registerScrollCallback() {
+        element.onscroll = { onScroll() }
+    }
+
+    private fun unregisterScrollCallback() {
+        element.onscroll = null
     }
 }

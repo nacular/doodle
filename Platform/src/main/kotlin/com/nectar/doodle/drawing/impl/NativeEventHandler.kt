@@ -3,22 +3,27 @@ package com.nectar.doodle.drawing.impl
 import org.w3c.dom.HTMLElement
 
 
+typealias NativeEventHandlerFactory = (element: HTMLElement, listener: NativeEventListener) -> NativeEventHandler
+
 interface NativeEventHandler {
-    fun startConsumingMouseEvents(element: HTMLElement)
-    fun stopConsumingMouseEvents (element: HTMLElement)
+    fun startConsumingMouseMoveEvents(onlySelf: Boolean = false)
+    fun stopConsumingMouseMoveEvents ()
 
-    fun startConsumingSelectionEvents(element: HTMLElement)
-    fun stopConsumingSelectionEvents (element: HTMLElement)
+    fun startConsumingMousePressEvents()
+    fun stopConsumingMousePressEvents ()
 
-    fun registerFocusListener  (element: HTMLElement)
-    fun unregisterFocusListener(element: HTMLElement)
+    fun startConsumingSelectionEvents()
+    fun stopConsumingSelectionEvents ()
 
-    fun registerClickListener  (element: HTMLElement)
-    fun unregisterClickListener(element: HTMLElement)
+    fun registerFocusListener  ()
+    fun unregisterFocusListener()
 
-    fun registerKeyListener  (element: HTMLElement)
-    fun unregisterKeyListener(element: HTMLElement)
+    fun registerClickListener  ()
+    fun unregisterClickListener()
 
-    operator fun plusAssign(listener: NativeEventListener)
-    operator fun minusAssign(listener: NativeEventListener)
+    fun registerKeyListener  ()
+    fun unregisterKeyListener()
+
+    fun registerScrollListener  ()
+    fun unregisterScrollListener()
 }

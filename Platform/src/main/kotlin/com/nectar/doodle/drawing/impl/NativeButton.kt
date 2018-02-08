@@ -46,19 +46,19 @@ interface NativeButtonFactory {
 }
 
 class NativeButtonFactoryImpl internal constructor(
-        private val textMetrics           : TextMetrics,
-        private val textFactory           : TextFactory,
-        private val htmlFactory           : HtmlFactory,
-        private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-        private val elementRuler          : ElementRuler,
-        private val nativeEventHandler    : () -> NativeEventHandler): NativeButtonFactory {
+        private val textMetrics              : TextMetrics,
+        private val textFactory              : TextFactory,
+        private val htmlFactory              : HtmlFactory,
+        private val graphicsSurfaceFactory   : RealGraphicsSurfaceFactory,
+        private val elementRuler             : ElementRuler,
+        private val nativeEventHandlerFactory: NativeEventHandlerFactory): NativeButtonFactory {
     override fun invoke(button: Button) = NativeButton(
             textMetrics,
             textFactory,
             htmlFactory,
             graphicsSurfaceFactory,
             elementRuler,
-            nativeEventHandler(),
+            nativeEventHandlerFactory,
             button)
 }
 
@@ -67,8 +67,8 @@ class NativeButton internal constructor(
         private val textFactory: TextFactory,
         private val htmlFactory: HtmlFactory,
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-        private val elementRuler: ElementRuler,
-                    nativeEventHandler: NativeEventHandler,
+        private val elementRuler   : ElementRuler,
+        handlerFactory : NativeEventHandlerFactory,
         private val button: Button) : NativeEventListener /*, PropertyListener,*/ {
 
     var idealSize: Size? = null
@@ -80,23 +80,22 @@ class NativeButton internal constructor(
     private val glassPanelElement: HTMLElement
     private val insets           : Insets
     private val border           : Insets
+    private val nativeEventHandler: NativeEventHandler
 
     init {
         insets = calculateButtonInsets()
         border = calculateButtonBorder()
 
-        println("Insets: $insets")
-
         buttonElement = htmlFactory.createButton().apply {
             style.setFont         (null )
             style.setWidthPercent (100.0)
             style.setHeightPercent(100.0)
+        }
 
-            nativeEventHandler.registerFocusListener    (this)
-            nativeEventHandler.registerClickListener    (this)
-            nativeEventHandler.startConsumingMouseEvents(this)
-
-            nativeEventHandler += this@NativeButton
+        nativeEventHandler = handlerFactory(buttonElement, this).apply {
+            registerFocusListener         ()
+            registerClickListener         ()
+            startConsumingMousePressEvents()
         }
 
         glassPanelElement = htmlFactory.create<HTMLElement>().apply {

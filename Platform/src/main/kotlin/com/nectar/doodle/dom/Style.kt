@@ -60,25 +60,25 @@ internal fun Style.setFont(value: Font?) {
     font = "inherit"
 }
 
-internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value;     }
+internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value     }
 internal inline fun Style.setFontWeight(value: Weight   ) { fontWeight = "${value.value}" }
 
 internal inline fun Style.setFontSize  (value: Int   ) { this.fontSize   = em(max(0, value)) }
-internal inline fun Style.setFontFamily(value: String) { this.fontFamily = value;            }
+internal inline fun Style.setFontFamily(value: String) { this.fontFamily = value            }
 
 internal inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
 internal inline fun Style.setPosition(value: Position? = null) { position = value?.value ?: "" }
 
-//fun Style.setOverflow (overflow: Overflow) { this.overflow  = overflow;   }
-internal inline fun Style.setOverflowX(overflow: Overflow) { overflowX = overflow.value; }
-internal inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflow.value; }
+internal inline fun Style.setOverflow (overflow: Overflow) { overflow.also { setOverflowX(it); setOverflowY(it) } }
+internal inline fun Style.setOverflowX(overflow: Overflow) { overflowX = overflow.value }
+internal inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflow.value }
 
-internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value; }
+internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value }
 
 internal inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
 internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) /*"#${it.hexString}"*/  } ?: ""     }
 
-internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value; }
+internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value }
 
 internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
 
@@ -86,16 +86,16 @@ internal inline fun Style.setBorderWidth (value: Double           ) { borderWidt
 internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }
 internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor = color?.let { rgba(it) /*"#${it.hexString}"*/ } ?: "" }
-internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle = style.value; }
+internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle = style.value }
 
 internal inline fun Style.setBorderTop   (value: Double) {borderTop    = value.toString() }
 internal inline fun Style.setBorderLeft  (value: Double) {borderLeft   = value.toString() }
 internal inline fun Style.setBorderRight (value: Double) {borderRight  = value.toString() }
 internal inline fun Style.setBorderBottom(value: Double) {borderBottom = value.toString() }
 
-internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value; }
+internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value }
 
-internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value; }
+internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value }
 
 internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("float", float?.value ?: "") }
 
@@ -103,9 +103,9 @@ internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("flo
 //    {
 //        // FIXME: This is here b/c GWT SuperDevMode refuses to call this class' static
 //        // initializer.s
-//        if( sStyleImpl == null ) { sStyleImpl = GWT.create( StyleImpl.class ); }
+//        if( sStyleImpl == null ) { sStyleImpl = GWT.create( StyleImpl.class ) }
 //
-//        sStyleImpl.setOpacity( this, aOpacity );
+//        sStyleImpl.setOpacity( this, aOpacity )
 //    }
 //
 

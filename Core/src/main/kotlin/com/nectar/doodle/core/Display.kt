@@ -19,11 +19,13 @@ interface Display: Iterable<Gizmo> {
     var layout              : Layout?
     var insets              : Insets
     val children            : ObservableList<Gizmo, Gizmo>
-    val sizeChange          : PropertyObservers<Gizmo, Size>
+    val sizeChanged         : PropertyObservers<Display, Size>
     var minimumSize         : Size
-//    var focusTraversalPolicy: FocusTraversalPolicy
+//  var focusTraversalPolicy: FocusTraversalPolicy
 
-    fun fill(brush: Brush)
-    fun child(at: Point): Gizmo?
+    fun fill      (brush: Brush)
+    fun child     (at   : Point): Gizmo?
     fun isAncestor(gizmo: Gizmo): Boolean
+
+    fun doLayout()
 }

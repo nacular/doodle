@@ -18,16 +18,16 @@ interface NativeTextFieldFactory {
 }
 
 class NativeTextFieldFactoryImpl internal constructor(
-        private val htmlFactory           : HtmlFactory,
-        private val nativeEventHandler    : () -> NativeEventHandler): NativeTextFieldFactory {
+        private val htmlFactory        : HtmlFactory,
+        private val eventHandlerFactory: NativeEventHandlerFactory): NativeTextFieldFactory {
     override fun invoke(textField: TextField) = NativeTextField(
-            nativeEventHandler(),
+            eventHandlerFactory,
             htmlFactory,
             textField)
 }
 
 class NativeTextField(
-        private val eventHandler: NativeEventHandler,
+        private val eventHandlerFactory: NativeEventHandlerFactory,
         htmlFactory: HtmlFactory,
         private val textField: TextField): NativeEventListener {
 
@@ -49,6 +49,7 @@ class NativeTextField(
 
     private var ignoreSync   = false
     private val inputElement = htmlFactory.createInput()
+    private val eventHandler: NativeEventHandler
 
     init {
         text = textField.text
@@ -59,10 +60,11 @@ class NativeTextField(
             style.setBoxSizing(Border)
         }
 
-        eventHandler.registerKeyListener  (inputElement)
-        eventHandler.registerFocusListener(inputElement)
-        eventHandler.registerClickListener(inputElement)
-        eventHandler += this
+        eventHandler = eventHandlerFactory(inputElement, this).apply {
+            registerKeyListener  ()
+            registerFocusListener()
+            registerClickListener()
+        }
 
         textField.apply {
             textChanged      += ::textChanged

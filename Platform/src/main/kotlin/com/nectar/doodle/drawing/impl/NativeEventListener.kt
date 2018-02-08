@@ -8,4 +8,5 @@ interface NativeEventListener {
     fun onKeyUp      () = true
     fun onKeyDown    () = true
     fun onKeyPress   () = true
+    fun onScroll     () = true
 }
