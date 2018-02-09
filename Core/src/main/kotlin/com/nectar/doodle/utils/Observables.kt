@@ -177,8 +177,9 @@ class SetPool<T>(private val delegate: MutableSet<T>): Pool<T>, MutableSet<T> by
     override fun minusAssign(item: T) { delegate += item }
 }
 
-inline fun <T> observable(initialValue: T, crossinline onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit):
-        ReadWriteProperty<Any?, T> = object: ObservableProperty<T>(initialValue) {
+open class OverridableProperty<T>(initialValue: T, private val onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
     override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
     override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = onChange(property, oldValue, newValue)
 }
+
+fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)

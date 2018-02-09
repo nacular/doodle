@@ -105,7 +105,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
             else            -> {
                 rootElement.insert(canvasElement, 0)
 
-                return // FIXME
 //                sCanvas.drawRect(root.bounds, brush)
             }
         }

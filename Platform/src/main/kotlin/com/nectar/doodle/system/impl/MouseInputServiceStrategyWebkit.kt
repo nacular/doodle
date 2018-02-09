@@ -1,10 +1,6 @@
 package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.setHeight
-import com.nectar.doodle.dom.setOpacity
-import com.nectar.doodle.dom.setWidth
-import com.nectar.doodle.dom.translate
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
@@ -49,7 +45,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     override var mouseLocation = Origin
         private set
 
-    private var overlay      = null as HTMLElement?
+//    private var overlay      = null as HTMLElement?
     private var inputDevice  = null as HTMLElement?
     private var eventHandler = null as EventHandler?
 
@@ -62,16 +58,16 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
             }
         }
 
-        if (overlay == null) {
-            overlay = htmlFactory.create<HTMLElement>().apply {
-                style.setOpacity(0f )
-                style.setWidth  (2.0)
-                style.setHeight (2.0)
-                style.zIndex  = "3"
-
-//                htmlFactory.body.add(this)
-            }
-        }
+//        if (overlay == null) {
+//            overlay = htmlFactory.create<HTMLElement>().apply {
+//                style.setOpacity(0f )
+//                style.setWidth  (2.0)
+//                style.setHeight (2.0)
+//                style.zIndex  = "3"
+//
+////                htmlFactory.body.add(this)
+//            }
+//        }
     }
 
     override fun shutdown() {
@@ -135,9 +131,9 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         val isNativeElement = isNativeElement(event.target as HTMLElement)
 
-        if (!isNativeElement) {
-            overlay?.style?.translate(mouseLocation - unitPoint)
-        }
+//        if (!isNativeElement) {
+//            overlay?.style?.translate(mouseLocation - unitPoint)
+//        }
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 

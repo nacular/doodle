@@ -111,8 +111,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
         mouseDown = false
 
-        // Work-around to re-synch state in case events were not delivered (due to consumption at the MouseInputService
-        // layer).
+        // Work-around to re-synch state in case events were not delivered (due to consumption at the MouseInputService layer).
 
         mouseMove(event)
     }
@@ -147,7 +146,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
         clickedEventAwareGizmo?.let {
             if (it.monitorsMouseMotion) {
-                it.handleMouseMotionEvent_(createMouseEvent(event, clickedEventAwareGizmo!!, Drag))
+                it.handleMouseMotionEvent_(createMouseEvent(event, it, Drag))
 
                 event.consume()
             }
@@ -303,15 +302,11 @@ class MouseInputManager(private val display: Display, private val inputService: 
         return gizmo
     }
 
-    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: SystemMouseEvent.Type = mouseEvent.type) =
-            MouseEvent(gizmo,
-                type,
-                mouseEvent.location - gizmo.toAbsolute(Point.Origin),
-                mouseEvent.buttons,
-                mouseEvent.clickCount,
-                mouseEvent.modifiers)
-
-//    companion object {
-//        private val sScrollInputImpl = GWT.create(ScrollInputImpl::class.java)
-//    }
+    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: SystemMouseEvent.Type = mouseEvent.type) = MouseEvent(
+            gizmo,
+            type,
+            mouseEvent.location - gizmo.toAbsolute(Point.Origin),
+            mouseEvent.buttons,
+            mouseEvent.clickCount,
+            mouseEvent.modifiers)
 }

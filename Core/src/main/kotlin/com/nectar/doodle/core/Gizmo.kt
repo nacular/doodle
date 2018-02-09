@@ -27,10 +27,12 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
+import com.nectar.doodle.utils.OverridableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
+import kotlin.reflect.KProperty
 
 /**
  * The smallest unit of displayable, interactive content within the framework.
@@ -73,9 +75,14 @@ abstract class Gizmo protected constructor() {
     var toolTipText: String = ""
         private set
 
-    var monitorsMouse      : Boolean by observable(true ) { _,_,_ ->
+    var monitorsMouse: Boolean by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
+    }) {
+        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
+            return super.getValue(thisRef, property) && !mouseChanged.isEmpty()
+        }
     }
+
     var monitorsKeyboard   : Boolean by observable(true ) { _,_,_ ->
 
     }
@@ -91,6 +98,7 @@ abstract class Gizmo protected constructor() {
 
     var font           : Font?   = null
     var cursor         : Cursor? = null
+            get() = field ?: parent?.cursor
     var foregroundColor: Color?  = null
     var backgroundColor: Color?  = null
 
