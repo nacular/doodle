@@ -16,6 +16,8 @@ class Selection(val position: Int, val anchor: Int) {
     val end   get() = max(position, anchor)
 }
 
+typealias Validator = (String) -> String
+
 abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(mutableSetOf()) }
@@ -26,7 +28,7 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 
     open var text: String by object: ObservableProperty<TextInput, String>("", { this }, textChanged as PropertyObserversImpl<TextInput, String>) {
         override fun afterChange(property: KProperty<*>, oldValue: String, newValue: String) {
-            super.afterChange(property, oldValue, validator?.validate(newValue) ?: newValue)
+            super.afterChange(property, oldValue, validator(newValue))
 
             select(min(text.length, selection.position) .. min(text.length, selection.anchor))
         }
@@ -34,11 +36,9 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 
     var cursorVisible = true
 
-    var validator: Validator? = null
+    var validator: Validator = { it }
         set(new) {
-            field = new
-
-            field?.let { text = text /* re-validate text */ }
+            text = text /* re-validate text */
         }
 
     val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(mutableSetOf()) }
@@ -151,13 +151,4 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 //                text = aValue ?: ""
 //            }
 //    }
-
-    interface Validator {
-        fun validate(text: String): String
-    }
-
-    companion object {
-//        val TEXT = TextInput::class.simpleName + ".TEXT"
-        private val DEFAULT_CURSOR_INTERVAL = 600
-    }
 }
