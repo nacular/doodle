@@ -5,7 +5,7 @@ import kotlin.math.max
 
 class Rectangle constructor(val position: Point = Point.Origin, val size: Size = Size.Empty): Shape {
 
-    constructor(x: Double, y: Double, width: Double, height: Double): this(Point(x, y), Size(width, height))
+    constructor(x: Double = 0.0, y: Double = 0.0, width: Double, height: Double): this(Point(x, y), Size(width, height))
 
     val x      get() = position.x
     val y      get() = position.y

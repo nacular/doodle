@@ -293,7 +293,7 @@ internal class CanvasImpl(
         apply(block)
 
         renderRegion = renderRegion.parent as HTMLElement
-        renderPosition = clipRect.nextSibling as HTMLElement?
+        renderPosition = clipRect.nextSibling
     }
 
     fun addData(elements: List<HTMLElement>, at: Point = Origin) {
@@ -303,7 +303,7 @@ internal class CanvasImpl(
 
             if (renderPosition != null) {
                 renderPosition?.let {
-                    val nextSibling = it.nextSibling as HTMLElement?
+                    val nextSibling = it.nextSibling
 
                     renderRegion.replaceChild(element, it)
 
@@ -371,7 +371,7 @@ internal class CanvasImpl(
                 renderPosition?.parent?.replaceChild(element, renderPosition!!)
             }
 
-            renderPosition = element.nextSibling as HTMLElement?
+            renderPosition = element.nextSibling
         }
 
         return element

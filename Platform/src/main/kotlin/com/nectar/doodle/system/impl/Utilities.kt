@@ -4,15 +4,17 @@ import com.nectar.doodle.dom.hasAutoOverflow
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.events.EventTarget
 
 
-internal fun isNativeElement(element: HTMLElement) =
-    element.hasAutoOverflow ||
+internal fun isNativeElement(target: EventTarget?) =
+        target is HTMLElement && (
+                target.hasAutoOverflow ||
 //        isScrollBar  (node           ) ||
 //        isScrollBar  (node.parentNode) ||
 //    isType(node, "button") ||
 //    isType(node, "label") ||
-    element is HTMLButtonElement || element is HTMLInputElement
+                        target is HTMLButtonElement || target is HTMLInputElement)
 
 //private fun isType(element: Node?, type: String) = when {
 //    element == null                        -> false

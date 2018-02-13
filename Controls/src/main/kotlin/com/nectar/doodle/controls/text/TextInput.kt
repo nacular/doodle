@@ -18,7 +18,7 @@ class Selection(val position: Int, val anchor: Int) {
 
 typealias Validator = (String) -> String
 
-abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
+abstract class TextInput : Gizmo() /*, ContentRequestMonitor*/ {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(mutableSetOf()) }
 
@@ -58,56 +58,29 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
 //        })
     }
 
-//    fun contentsRetrieved(aDataBundle: DataBundle?) {
-//        if (aDataBundle != null && aDataBundle!!.isSupportedType(DataType.TEXT)) {
-//            val aClipboardText = (aDataBundle!!.getData(DataType.TEXT) as String).replace("\n", " ")
-//
-//            deleteSelectedText()
-//
-//            insert(aClipboardText, this.cursorPosition)
-//
-//            val aSelectionStart = min(selectionStart + aClipboardText.length, text.length)
-//
-//            select(aSelectionStart, aSelectionStart)
-//        }
-//    }
+    fun selectAll() = select(0 .. text.length)
 
-    fun selectAll() {
-        select(0..text.length)
-    }
-
-    open fun cut() {
-//        Service.locator().getClipboard().setContents(TextBundle(text.substring(selectionStart, selectionEnd)))
-
+    open fun cut() = copy().also {
         deleteSelected()
     }
 
-    open fun copy() {
-        val text = text.substring(selection.start, selection.end)
+    open fun copy() = text.substring(selection.start, selection.end)
 
-        if (!text.isEmpty()) {
-//            Service.locator().getClipboard().setContents(TextBundle(text))
-        }
-    }
+    fun paste(text: String) {
+        deleteSelected()
 
-    fun paste() {
-//        Service.locator().getClipboard().getContents(this)
+        insert(text, selection.start)
+
+        val selectionStart = min(selection.start + text.length, text.length)
+
+        select(selectionStart .. selectionStart)
     }
 
     fun insert(text: String, at: Int) {
         this.text = text.substring(0, at) + text + text.substring(at)
     }
 
-    fun deleteSelected() {
-        if (selection.position != selection.anchor) {
-            val oldSelectionEnd   = selection.end
-            val oldSelectionStart = selection.start
-
-            selection = Selection(selection.position, selection.start)
-
-            text = text.substring(0, oldSelectionStart) + text.substring(oldSelectionEnd)
-        }
-    }
+    fun deleteSelected() = delete(selection.start .. selection.end)
 
     fun delete(range: ClosedRange<Int>) {
         if (range.start >= 0 && range.endInclusive <= text.length) {
@@ -126,29 +99,11 @@ abstract class TextInput: Gizmo() /*, ContentRequestMonitor*/ {
         if (selection.position != start &&
                 start >= 0 &&
                 start <= text.length || selection.anchor != end &&
-                end >= 0 &&
-                end <= text.length) {
-            val oldAnchor   = selection.anchor
-            val oldPosition = selection.position
+                end   >= 0 &&
+                end   <= text.length) {
 
-            cursorVisible  = true
-
-            selection = Selection(start, end)
-
-//            notifySelectionChanged(oldPosition, oldAnchor)
+            cursorVisible = true
+            selection     = Selection(start, end)
         }
     }
-
-//    private inner class TextProperty: NamedProperty<String> {
-//        val name: String
-//            get() = TEXT
-//        var value: String?
-//            get() = text
-//            set(aValue) {
-//                select(min(aValue!!.length, cursorPosition),
-//                        min(aValue.length, cursorAnchor))
-//
-//                text = aValue ?: ""
-//            }
-//    }
 }

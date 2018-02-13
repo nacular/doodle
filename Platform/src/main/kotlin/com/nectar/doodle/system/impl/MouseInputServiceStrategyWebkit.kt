@@ -89,7 +89,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun mouseUp(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 1))
 
-        if (isNativeElement(event.target as HTMLElement)) {
+        if (isNativeElement(event.target)) {
             return true
         }
 
@@ -102,7 +102,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun mouseDown(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
-        if (isNativeElement(event.target as HTMLElement)) {
+        if (isNativeElement(event.target)) {
             return true
         }
 
@@ -115,7 +115,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun doubleClick(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 2))
 
-        if (isNativeElement(event.target as HTMLElement)) {
+        if (isNativeElement(event.target)) {
             return true
         }
 
@@ -129,7 +129,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         mouseLocation = Point(x = event.clientX + htmlFactory.body.scrollLeft,
                 y = event.clientY + htmlFactory.body.scrollLeft)
 
-        val isNativeElement = isNativeElement(event.target as HTMLElement)
+        val isNativeElement = isNativeElement(event.target)
 
 //        if (!isNativeElement) {
 //            overlay?.style?.translate(mouseLocation - unitPoint)

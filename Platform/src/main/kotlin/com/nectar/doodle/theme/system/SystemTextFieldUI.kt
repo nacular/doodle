@@ -3,7 +3,7 @@ package com.nectar.doodle.theme.system
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.theme.Renderer
-import com.zinoti.jaz.controls.text.TextField
+import com.nectar.doodle.controls.text.TextField
 
 
 class SystemTextFieldUI(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): Renderer<TextField> {

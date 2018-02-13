@@ -75,7 +75,7 @@ interface Renderer<in T: Gizmo> {
  */
 interface ThemeManager {
     /** Convenient set of [Theme]s that an application can manage */
-    val themes  : MutableSet<Theme>
+    val themes: MutableSet<Theme>
 
     /** The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [Gizmo]s therein. */
     var selected: Theme?

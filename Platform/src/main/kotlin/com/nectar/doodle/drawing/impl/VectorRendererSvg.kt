@@ -393,7 +393,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //
 //        aPath.close()
 //
-//        aPathElement.setPathData(aPath.getData())
+//        aPathElement.setPathData(aPath.get())
 //
 //        val aId = "clip" + sClipId++
 //

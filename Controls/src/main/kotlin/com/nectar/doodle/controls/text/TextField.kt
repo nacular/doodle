@@ -1,6 +1,5 @@
-package com.zinoti.jaz.controls.text
+package com.nectar.doodle.controls.text
 
-import com.nectar.doodle.controls.text.TextInput
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.PropertyObservers
@@ -12,9 +11,7 @@ class TextField: TextInput() {
     val masked get() = mask != null
 
     var displayText = ""
-        get() = if (mask == null) {
-            text
-        } else field
+        get() = if (mask == null) { text } else field
         private set
 
     val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(mutableSetOf()) }
@@ -63,14 +60,7 @@ class TextField: TextInput() {
             }
         }
 
-    override fun cut() {
-        copy          ()
-        deleteSelected()
-    }
+    override fun cut() = copy().also { deleteSelected() }
 
-    override fun copy() {
-        displayText.substring(selection.start, selection.end).takeIf { !it.isEmpty() }.also {
-//            Service.locator().getClipboard().setContents(TextBundle(it))
-        }
-    }
+    override fun copy() = displayText.substring(selection.start, selection.end)
 }

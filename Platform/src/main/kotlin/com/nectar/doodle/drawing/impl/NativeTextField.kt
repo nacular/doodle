@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.text.Selection
+import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextInput
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.dom.BoxSizing.Border
@@ -10,7 +11,6 @@ import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Size.Companion.Empty
-import com.zinoti.jaz.controls.text.TextField
 
 
 interface NativeTextFieldFactory {

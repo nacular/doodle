@@ -6,6 +6,7 @@ import com.github.salomonbrys.kodein.erased.instance
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
+import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
@@ -20,7 +21,6 @@ import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Theme
-import com.zinoti.jaz.controls.text.TextField
 import org.w3c.dom.HTMLElement
 
 /**

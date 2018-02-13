@@ -63,7 +63,7 @@ abstract class Gizmo protected constructor() {
 
     val focusableChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
-    var focusable: Boolean by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    open var focusable: Boolean by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
     var idealSize  : Size? = null
         get() = layout?.idealSize(this, field) ?: field
