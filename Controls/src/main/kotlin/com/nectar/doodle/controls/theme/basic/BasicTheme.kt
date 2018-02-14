@@ -5,6 +5,7 @@ import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
+import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Color
@@ -24,12 +25,14 @@ class BasicTheme: Theme {
     override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
         when (it) {
             is ProgressBar -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) }
+            is Slider      -> it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) }
         }
     }
 
     override fun uninstall(display: Display, all: Sequence<Gizmo>) = all.forEach {
         when (it) {
             is ProgressBar -> it.renderer?.uninstall(it)
+            is Slider      -> it.renderer?.uninstall(it)
         }
     }
 }

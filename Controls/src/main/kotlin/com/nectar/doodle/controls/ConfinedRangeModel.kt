@@ -49,7 +49,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
     override var range = range
         set(new) {
             val old = field
-            field = new intersect limits
+            field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
 
             if (old != field) {
                 onChanged_.set.forEach { it(this) }
