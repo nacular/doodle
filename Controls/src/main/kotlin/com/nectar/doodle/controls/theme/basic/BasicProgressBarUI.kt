@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.ProgressBar
-import com.nectar.doodle.controls.theme.ProgressBarUI
+import com.nectar.doodle.controls.theme.ProgressIndicatorUI
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -12,15 +12,17 @@ import com.nectar.doodle.utils.Orientation.Vertical
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-class BasicProgressBarUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressBarUI() {
+class BasicProgressBarUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressBar>() {
     override fun render(canvas: Canvas, gizmo: ProgressBar) {
 
-        var rect = Rectangle(size = gizmo.size)
+        val border = 1.0
+        var rect   = Rectangle(size = gizmo.size)
+        val brush  = ColorBrush(gizmo.backgroundColor ?: defaultBackgroundColor)
 
-        canvas.rect(rect, ColorBrush(gizmo.backgroundColor ?: defaultBackgroundColor))
-
-        if (gizmo.height > 2) {
-            canvas.rect(rect, Pen(darkBackgroundColor))
+        // Draw background with optional outline
+        when {
+            gizmo.height > 2 -> canvas.rect(rect.inset(border / 2), Pen(darkBackgroundColor, border), brush)
+            else             -> canvas.rect(rect,                                                     brush)
         }
 
         rect = when (gizmo.orientation) {
@@ -28,6 +30,7 @@ class BasicProgressBarUI(private val defaultBackgroundColor: Color, private val 
             else     -> Rectangle(width = gizmo.width * gizmo.progress, height = gizmo.height)
         }
 
+        // Draw progress
         canvas.rect(rect, ColorBrush(darkBackgroundColor))
     }
 }

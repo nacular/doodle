@@ -12,7 +12,11 @@ class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Uni
     override fun toString() = display
 }
 
-class Measure<T>(private val magnitude: Double, private val unit: Unit<T>) {
+class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comparable<Measure<T>> {
+    override fun compareTo(other: Measure<T>): Int {
+        return ((this `as` other.unit).magnitude - other.magnitude).toInt()
+    }
+
     operator fun times(value: Int   ): Measure<T> = magnitude * value * unit
     operator fun times(value: Float ): Measure<T> = magnitude * value * unit
     operator fun times(value: Long  ): Measure<T> = magnitude * value * unit

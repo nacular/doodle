@@ -36,6 +36,11 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.cos
+import com.nectar.doodle.units.degrees
+import com.nectar.doodle.units.sin
 import com.nectar.doodle.utils.isEven
 import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement
@@ -44,9 +49,7 @@ import org.w3c.dom.svg.SVGEllipseElement
 import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGRectElement
 import kotlin.dom.clear
-import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.sin
 
 class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
     private fun getSvgElement(): SVGElement {
@@ -106,8 +109,11 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = drawRect(rectangle, radius, null, brush)
     override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = drawRect(rectangle, radius, pen,  brush)
 
-    override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double,           brush: Brush ) = drawArc(center, radius, sweep, rotation, null, brush)
-    override fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush?) = drawArc(center, radius, sweep, rotation, pen,  brush)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush ) = drawArc(center, radius, sweep, rotation, null, brush)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) = drawArc(center, radius, sweep, rotation, pen,  brush)
+
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush ) = drawWedge(center, radius, sweep, rotation, null, brush)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) = drawWedge(center, radius, sweep, rotation, pen,  brush)
 
     override fun circle(circle: Circle,           brush: Brush ) = drawCircle(circle, null, brush)
     override fun circle(circle: Circle, pen: Pen, brush: Brush?) = drawCircle(circle, pen,  brush)
@@ -194,10 +200,19 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
     }
 
-    private fun drawArc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen?, brush: Brush?) = present(pen, brush) {
+    private fun drawArc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            radius > 0 && sweep != 0.0 -> makeArc(center, radius, sweep, rotation)
-            else                       -> null
+            radius <= 0 || sweep == 0.degrees -> null
+            sweep < 360.degrees               -> makeArc(center, radius, sweep, rotation)
+            else                              -> makeCircle(Circle(center, radius))
+        }
+    }
+
+    private fun drawWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
+        when {
+            radius <= 0 || sweep == 0.degrees -> null
+            sweep < 360.degrees               -> makeWedge(center, radius, sweep, rotation)
+            else                              -> makeCircle(Circle(center, radius))
         }
     }
 
@@ -268,20 +283,29 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         return element
     }
 
-    private fun makeArc(center: Point, radius: Double, sweep: Double, rotation: Double): SVGElement {
+    private fun makeArc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath(makeArcPathData(center, radius, sweep, rotation))
+    private fun makeWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath("${makeArcPathData(center, radius, sweep, rotation)} L${center.x},${center.y}")
+
+    private fun withPath(path: String): SVGElement {
         val element: SVGPathElement = createElement("path")
 
-        val startX = center.x + radius * cos(rotation)
-        val startY = center.y - radius * sin(rotation)
-        val endX   = center.x + radius * cos(sweep + rotation)
-        val endY   = center.y - radius * sin(sweep + rotation)
-
-        element.setPathData("M$startX,$startY A$radius,$radius $rotation 0,0 $endX,$endY")
+        element.setPathData(path)
 
         element.setFill  (null)
         element.setStroke(null)
 
         return element
+    }
+
+    private fun makeArcPathData(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>): String {
+        val startX = center.x + radius * cos(rotation)
+        val startY = center.y - radius * sin(rotation)
+        val endX   = center.x + radius * cos(sweep + rotation)
+        val endY   = center.y - radius * sin(sweep + rotation)
+
+        val largeArc = if (sweep > 180.degrees) "1" else "0"
+
+        return "M$startX,$startY A$radius,$radius ${rotation `in` degrees } $largeArc,0 $endX,$endY"
     }
 
     private fun makePath(vararg points: Point): SVGPathElement {

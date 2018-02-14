@@ -4,9 +4,11 @@ import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.ProgressBar
+import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.theme.Theme
 
 /**
@@ -21,7 +23,7 @@ class BasicTheme: Theme {
 
     override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
         when (it) {
-            is ProgressBar -> it.renderer = progressBarUI.apply { install(it) }
+            is ProgressBar -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) }
         }
     }
 

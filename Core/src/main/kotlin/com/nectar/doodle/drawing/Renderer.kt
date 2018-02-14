@@ -3,6 +3,8 @@ package com.nectar.doodle.drawing
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
 
 /**
  * Created by Nicholas Eddy on 10/23/17.
@@ -21,8 +23,10 @@ interface Renderer {
     fun poly(polygon: Polygon,           brush: Brush)
     fun poly(polygon: Polygon, pen: Pen, brush: Brush? = null)
 
-    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double,           brush: Brush)
-    fun arc(center: Point, radius: Double, sweep: Double, rotation: Double, pen: Pen, brush: Brush? = null)
+    fun arc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush)
+    fun arc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush? = null)
+    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush)
+    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush? = null)
 
     enum class Optimization {
         Speed,
