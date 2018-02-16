@@ -2,6 +2,7 @@ package com.nectar.doodle.controls
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.ranges.size
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.Orientation
@@ -54,6 +55,8 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     override fun render(canvas: Canvas) {
         renderer?.render(canvas, this)
     }
+
+    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
     @Suppress("PrivatePropertyName")
     private val onChanged_ = ChangeObserversImpl<Slider>()

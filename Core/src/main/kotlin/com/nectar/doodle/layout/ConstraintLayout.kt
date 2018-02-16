@@ -156,76 +156,132 @@ open class Constraint(internal val target: Gizmo, internal val default: Boolean 
 }
 
 class VerticalConstraint(target: Gizmo, default: Boolean = true, block: (Gizmo) -> Double): Constraint(target, default, block) {
-    operator fun plus(value: Number) = VerticalConstraint(target) {
-        block(it) + value.toDouble()
+    operator fun plus(value: Number) = plus { value }
+
+    operator fun plus(value: () -> Number) = VerticalConstraint(target) {
+        block(it) + value().toDouble()
+    }
+
+    operator fun plus(value: MagnitudeConstraint) = VerticalConstraint(target) {
+        block(it) + value()
     }
 
     operator fun plus(value: VerticalConstraint) = MagnitudeConstraint(target) {
         block(it) + value()
     }
 
-    operator fun minus(value: Number) = VerticalConstraint(target) {
-        block(it) - value.toDouble()
+    operator fun minus(value: Number) = minus { value }
+
+    operator fun minus(value: () -> Number) = VerticalConstraint(target) {
+        block(it) - value().toDouble()
     }
 
     operator fun minus(value: VerticalConstraint) = MagnitudeConstraint(target) {
         block(it) - value()
     }
 
-    operator fun times(value: Number) = VerticalConstraint(target) {
-        block(it) * value.toDouble()
+    operator fun minus(value: MagnitudeConstraint) = VerticalConstraint(target) {
+        block(it) - value()
     }
 
-    operator fun div(value: Number) = VerticalConstraint(target) {
-        block(it) / value.toDouble()
+    operator fun times(value: Number) = times { value }
+
+    operator fun times(value: () -> Number) = VerticalConstraint(target) {
+        block(it) * value().toDouble()
+    }
+
+    operator fun div(value: Number) = div { value }
+
+    operator fun div(value: () -> Number) = VerticalConstraint(target) {
+        block(it) / value().toDouble()
+    }
+
+    operator fun times(value: MagnitudeConstraint) = VerticalConstraint(target) {
+        block(it) * value()
+    }
+
+    operator fun div(value: MagnitudeConstraint) = VerticalConstraint(target) {
+        block(it) / value()
     }
 
 //    override fun toString() = "V ($default) <- $dependencies"
 }
 
 class HorizontalConstraint(target: Gizmo, default: Boolean = true, block: (Gizmo) -> Double): Constraint(target, default, block) {
-    operator fun plus(value: Number) = HorizontalConstraint(target) {
-        block(it) + value.toDouble()
+    operator fun plus(value: Number) = plus { value }
+
+    operator fun plus(value: () -> Number) = HorizontalConstraint(target) {
+        block(it) + value().toDouble()
+    }
+
+    operator fun plus(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+        block(it) + value()
     }
 
     operator fun plus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
         block(it) + value()
     }
 
-    operator fun minus(value: Number) = HorizontalConstraint(target) {
-        block(it) - value.toDouble()
+    operator fun minus(value: Number) = minus { value }
+
+    operator fun minus(value: () -> Number) = HorizontalConstraint(target) {
+        block(it) - value().toDouble()
+    }
+
+    operator fun minus(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+        block(it) - value()
     }
 
     operator fun minus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
         block(it) - value()
     }
 
-    operator fun times(value: Number) = HorizontalConstraint(target) {
-        block(it) * value.toDouble()
+    operator fun times(value: Number) = times { value }
+
+    operator fun times(value: () -> Number) = HorizontalConstraint(target) {
+        block(it) * value().toDouble()
     }
 
-    operator fun div(value: Number) = HorizontalConstraint(target) {
-        block(it) / value.toDouble()
+    operator fun div(value: Number) = div { value }
+
+    operator fun div(value: () -> Number) = HorizontalConstraint(target) {
+        block(it) / value().toDouble()
+    }
+
+    operator fun times(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+        block(it) * value()
+    }
+
+    operator fun div(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+        block(it) / value()
     }
 
 //    override fun toString() = "H ($default) <- $dependencies"
 }
 
 class MagnitudeConstraint(target: Gizmo, default: Boolean = true, block: (Gizmo) -> Double): Constraint(target, default, block) {
-    operator fun plus(value: Number) = MagnitudeConstraint(target) {
-        block(it) + value.toDouble()
+    operator fun plus(value: Number) = plus { value }
+
+    operator fun plus(value: () -> Number) = MagnitudeConstraint(target) {
+        block(it) + value().toDouble()
     }
 
-    operator fun minus(value: Number) = MagnitudeConstraint(target) {
-        block(it) - value.toDouble()
+    operator fun minus(value: Number) = minus { value }
+
+    operator fun minus(value: () -> Number) = MagnitudeConstraint(target) {
+        block(it) - value().toDouble()
     }
 
-    operator fun times(value: Number) = MagnitudeConstraint(target) {
-        block(it) * value.toDouble()
+    operator fun times(value: Number) = times { value }
+
+    operator fun times(value: () -> Number) = MagnitudeConstraint(target) {
+        block(it) * value().toDouble()
     }
 
-    operator fun div(value: Number) = MagnitudeConstraint(target) {
-        block(it) / value.toDouble()
+    operator fun div(value: Number) = div { value }
+
+    operator fun div(value: () -> Number) = MagnitudeConstraint(target) {
+        block(it) / value().toDouble()
     }
 
 //    override fun toString() = "H ($default) <- $dependencies"
@@ -277,7 +333,7 @@ private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstrai
     override var left = HorizontalConstraint(target) { it.x }
         set(new) { field = HorizontalConstraint(new.target, false, new.block) }
 
-    override var centerY = VerticalConstraint(target) { top () + it.height / 2 }
+    override var centerY = VerticalConstraint(target) { top() + it.height / 2 }
         set(new) { field = VerticalConstraint(new.target, false, new.block) }
 
     override var centerX = HorizontalConstraint(target) { left() + it.width  / 2 }
@@ -286,7 +342,7 @@ private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstrai
     override var right = HorizontalConstraint(target) { left() + it.width }
         set(new) { field = HorizontalConstraint(new.target, false, new.block) }
 
-    override var bottom = VerticalConstraint(target) { top () + it.height }
+    override var bottom = VerticalConstraint(target) { top() + it.height }
         set(new) { field = VerticalConstraint(new.target, false, new.block) }
 
     override var width = MagnitudeConstraint(target) { it.width }

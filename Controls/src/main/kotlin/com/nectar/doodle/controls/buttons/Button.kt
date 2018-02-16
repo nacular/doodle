@@ -4,6 +4,7 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
@@ -85,6 +86,8 @@ abstract class Button protected constructor(
     override fun render(canvas: Canvas) {
         renderer?.render(canvas, this)
     }
+
+    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
     private val onAction_ by lazy { EventObserversImpl(this, mutableSetOf()) }
 

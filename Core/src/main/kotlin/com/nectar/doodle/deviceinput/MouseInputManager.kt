@@ -173,7 +173,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
                     gizmo.handleMouseEvent_(enterEvent)
 
-                    inputService.toolTipText = gizmo.getToolTipText(enterEvent)
+                    inputService.toolTipText = gizmo.toolTipText(enterEvent)
 
                     cursor = getGizmoCursor(coveredGizmo)
 

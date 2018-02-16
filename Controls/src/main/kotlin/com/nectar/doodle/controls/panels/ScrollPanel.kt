@@ -60,6 +60,8 @@ class ScrollPanel: Gizmo() {
         renderer?.render(canvas, this)
     }
 
+    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+
     fun scrollTo(point: Point) {
         renderer?.scrollTo(point)
     }

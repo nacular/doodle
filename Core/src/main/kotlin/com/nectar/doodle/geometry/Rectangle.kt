@@ -1,5 +1,6 @@
 package com.nectar.doodle.geometry
 
+import com.nectar.doodle.layout.Insets
 import kotlin.math.max
 
 
@@ -70,9 +71,16 @@ class Rectangle constructor(val position: Point = Point.Origin, val size: Size =
 
     /**
      * @param inset amount to resize by
-     * @return a Rectangle that has been adjusted as follows [x + i, y + i, w + 2i, h + 2i], where i is the inset
+     * @return a Rectangle that has been adjusted as follows [x + i, y + i, w - 2i, h - 2i], where i is the inset
      */
-    fun inset(inset: Double) = Rectangle(x + inset, y + inset, max(0.0, width  - inset * 2), max(0.0, height - inset * 2))
+    fun inset(inset: Double) = Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
+
+    /**
+     * @param inset amount to resize by
+     * @return a Rectangle that has been adjusted as follows [x + left, y + top, w - (left + right), h - (top + bottom)], where
+     * the adjustments are from the inset
+     */
+    fun inset(inset: Insets) = Rectangle(x + inset.left, y + inset.top, max(0.0, width  - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
 
     override operator fun contains(point: Point) = point.x in x..x + width && point.y in y..y + height
 
