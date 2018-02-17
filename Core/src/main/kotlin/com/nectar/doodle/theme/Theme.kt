@@ -42,10 +42,10 @@ interface Renderer<in T: Gizmo> {
     /**
      * Invoked to render the given Gizmo
      *
-     * @param canvas the Canvas given to the Gizmo during a system call to [Gizmo.render]
      * @param gizmo  the Gizmo being rendered
+     * @param canvas the Canvas given to the Gizmo during a system call to [Gizmo.render]
      */
-    fun render(canvas: Canvas, gizmo: T)
+    fun render(gizmo: T, canvas: Canvas)
 
     /**
      * Returns true if the gizmo contains point.  This can be used to handle cases when the [Renderer] wants to control hit detection.

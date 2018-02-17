@@ -43,7 +43,7 @@ class TextField: TextInput() {
     var renderer: Renderer<TextField>? = null
 
     override fun render(canvas: Canvas) {
-        renderer?.render(canvas, this)
+        renderer?.render(this, canvas)
     }
 
     override var text

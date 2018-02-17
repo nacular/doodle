@@ -57,7 +57,7 @@ open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, priv
     }
 }
 
-typealias ListObserver<S, T> = (source: ObservableList<S, T>, removed: List<Int>, added: Map<Int, T>) -> Unit
+typealias ListObserver<S, T> = (source: ObservableList<S, T>, removed: Map<Int, T>, added: Map<Int, T>) -> Unit
 
 interface ListObservers<S, T> {
     operator fun plusAssign (observer: ListObserver<S, T>)
@@ -75,14 +75,17 @@ class ListObserversImpl<S, T>(private val mutableSet: MutableSet<ListObserver<S,
 }
 
 // TODO: Change so only deltas are reported
-class ObservableList<S, E>(val source: S, private val list: MutableList<E>): MutableList<E> by list {
+class ObservableList<S, E>(val source: S, list: MutableList<E>): MutableList<E> by list {
+
+    var list = list
+        private set
 
     private val onChange_ = ListObserversImpl<S, E>(mutableSetOf())
     val onChange: ListObservers<S, E> = onChange_
 
     override fun add(element: E) = list.add(element).ifTrue {
         onChange_.forEach {
-            it(this, listOf(), mapOf(Pair(list.size - 1, element)))
+            it(this, mapOf(), mapOf(list.size - 1 to element))
         }
     }
 
@@ -91,7 +94,7 @@ class ObservableList<S, E>(val source: S, private val list: MutableList<E>): Mut
 
         return when {
             index < 0 -> false
-            else      -> list.remove(element).ifTrue { onChange_.forEach { it(this, listOf(index), mapOf()) } }
+            else      -> list.remove(element).ifTrue { onChange_.forEach { it(this, mapOf(index to element), mapOf()) } }
         }
     }
 
@@ -103,19 +106,20 @@ class ObservableList<S, E>(val source: S, private val list: MutableList<E>): Mut
     override fun retainAll(elements: Collection<E>) = batch { list.retainAll(elements) }
 
     override fun clear() {
-        val size = list.size
+        val size    = list.size
+        val oldList = list
 
-        list.clear()
+        list = mutableListOf()
 
         onChange_.forEach {
-            it(this, (0 until size).mapTo(mutableListOf()) { it }, mapOf())
+            it(this, (0 until size).associate { it to oldList[it] }, mapOf())
         }
     }
 
     override operator fun set(index: Int, element: E) = list.set(index, element).also {
         if (it !== element) {
             onChange_.forEach {
-                it(this, listOf(index), mapOf(Pair(index, element)))
+                it(this, mapOf(index to element), mapOf(Pair(index, element)))
             }
         }
     }
@@ -124,13 +128,13 @@ class ObservableList<S, E>(val source: S, private val list: MutableList<E>): Mut
         list.add(index, element)
 
         onChange_.forEach {
-            it(this, listOf(), mapOf(Pair(index, element)))
+            it(this, mapOf(), mapOf(Pair(index, element)))
         }
     }
 
-    override fun removeAt(index: Int) = list.removeAt(index).also {
+    override fun removeAt(index: Int) = list.removeAt(index).also { removed ->
         onChange_.forEach {
-            it(this, listOf(index), mapOf())
+            it(this, mapOf(index to removed), mapOf())
         }
     }
 
@@ -143,12 +147,12 @@ class ObservableList<S, E>(val source: S, private val list: MutableList<E>): Mut
 
             return block().also {
                 if (old != this) {
-                    val removed = mutableListOf<Int   >()
-                    val added   = mutableMapOf <Int, E>()
+                    val removed = mutableMapOf<Int, E>()
+                    val added   = mutableMapOf<Int, E>()
 
                     old.forEachIndexed { index, item ->
                         if (index >= this.size || this[index] != item) {
-                            removed += index
+                            removed[index] = item
                         }
                     }
 

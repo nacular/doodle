@@ -15,7 +15,7 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 2/12/18.
  */
 class CircularProgressUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressIndicator>() {
-    override fun render(canvas: Canvas, gizmo: ProgressIndicator) {
+    override fun render(gizmo: ProgressIndicator, canvas: Canvas) {
         val border = 1.0
         val radius = min(gizmo.width, gizmo.height) / 2
         val center = (gizmo.size / 2).run { Point(width, height) }

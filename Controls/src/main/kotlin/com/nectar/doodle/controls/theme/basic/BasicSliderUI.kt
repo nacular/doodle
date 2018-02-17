@@ -14,7 +14,7 @@ import com.nectar.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/13/18.
  */
 class BasicSliderUI(slider: Slider, private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderUI(slider) {
-    override fun render(canvas: Canvas, gizmo: Slider) {
+    override fun render(gizmo: Slider, canvas: Canvas) {
         val rect1: Rectangle
         val rect2: Rectangle
 

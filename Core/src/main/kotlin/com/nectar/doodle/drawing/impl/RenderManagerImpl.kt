@@ -228,10 +228,8 @@ class RenderManagerImpl(
             neverRendered       += gizmo
             pendingBoundsChange += gizmo
 
-            gizmo.boundsChange  += this::boundsChanged
-
-//            gizmo.addPropertyListener(mPropertyListener)
-//            gizmo.addContainerListener(mContainerListener)
+            gizmo.boundsChange       += ::boundsChanged
+            gizmo.children_.onChange += ::childrenChanged
 
             gizmo.children_.forEach { recordGizmo(it) }
 
@@ -264,28 +262,22 @@ class RenderManagerImpl(
             releaseResources(it)
         }
 
-//        gizmo.removeContainerListener(mContainerListener)
-
         gizmos              -= gizmo
         dirtyGizmos         -= gizmo
         pendingLayout       -= gizmo
         pendingRender       -= gizmo
         pendingBoundsChange -= gizmo
 
-        gizmo.boundsChange -= this::boundsChanged
-
-//        gizmo.removePropertyListener(mPropertyListener)
+        gizmo.boundsChange       -= ::boundsChanged
+        gizmo.children_.onChange -= ::childrenChanged
 
         unregisterDisplayRectMonitoring(gizmo)
     }
 
     private fun addToCleanupList(parent: Gizmo, child: Gizmo) {
-        var gizmos = pendingCleanup[parent]
 
-        if (gizmos == null) {
-            gizmos = mutableSetOf()
-
-            pendingCleanup.put(parent, gizmos)
+        var gizmos = pendingCleanup.getOrPut(parent) {
+            mutableSetOf<Gizmo>().also { pendingCleanup[parent] = it }
         }
 
         gizmos += child
@@ -392,12 +384,11 @@ class RenderManagerImpl(
         themeManager?.update(gizmo)
     }
 
-    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: List<Int>, added: Map<Int, Gizmo>) {
+    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: Map<Int, Gizmo>, added: Map<Int, Gizmo>) {
         val parent = list.source
 
-        removed.map { parent.children_[it] }.forEach { childRemoved(parent, it) }
-
-        added.values.forEach { childAdded(parent, it) }
+        removed.values.forEach { childRemoved(parent, it) }
+        added.values.forEach   { childAdded  (parent, it) }
 
         if (parent.parent != null) {
             parent.revalidate_()

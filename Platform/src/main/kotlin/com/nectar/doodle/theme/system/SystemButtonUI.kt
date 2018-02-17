@@ -9,7 +9,7 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: 
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 
-    override fun render(canvas: Canvas, gizmo: Button) {
+    override fun render(gizmo: Button, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 

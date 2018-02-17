@@ -104,7 +104,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
             else                                              -> { left  =  child.x  }
         }
 
-        rawWidth  = max(0.0,  rawWidth)
+        rawWidth  = max(0.0, rawWidth )
         rawHeight = max(0.0, rawHeight)
 
         child.bounds = Rectangle(left, top, rawWidth, rawHeight)

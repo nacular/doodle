@@ -32,9 +32,6 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
         gizmo.mouseMotionChanged -= this
     }
 
-//    fun mouseExited(aMouseEvent: MouseEvent) {}
-//    fun mouseEntered(aMouseEvent: MouseEvent) {}
-
     override fun mousePressed(event: MouseEvent) {
         val scaleFactor_ = if (scaleFactor != 0f) 1 / scaleFactor else 0f
 

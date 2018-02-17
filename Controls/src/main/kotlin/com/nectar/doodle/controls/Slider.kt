@@ -53,7 +53,7 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
 
     override fun render(canvas: Canvas) {
-        renderer?.render(canvas, this)
+        renderer?.render(this, canvas)
     }
 
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)

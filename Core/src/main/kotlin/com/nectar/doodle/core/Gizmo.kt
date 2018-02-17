@@ -143,7 +143,7 @@ abstract class Gizmo protected constructor() {
     protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
         ObservableList(this, mutableListOf<Gizmo>()).also {
             it.onChange += { _, removed, added ->
-                removed.map { children[it] }.forEach { it.parent = null }
+                removed.values.forEach { it.parent = null }
                 added.values.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }

@@ -13,7 +13,7 @@ import com.nectar.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/12/18.
  */
 class BasicProgressBarUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressBar>() {
-    override fun render(canvas: Canvas, gizmo: ProgressBar) {
+    override fun render(gizmo: ProgressBar, canvas: Canvas) {
 
         val border = 1.0
         var rect   = Rectangle(size = gizmo.size)
