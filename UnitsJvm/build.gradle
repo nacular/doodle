@@ -1,0 +1,10 @@
+apply plugin: 'kotlin-platform-jvm'
+
+dependencies {
+    expectedBy project(':units')
+
+    implementation dep.kotlin_stdlib_jre8
+
+    testImplementation dep.junit
+    testImplementation dep.kotlin_junit
+}

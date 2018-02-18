@@ -1,13 +1,16 @@
 apply plugin: 'kotlin-platform-js'
 
-dependencies {
-    compile 'com.github.salomonbrys.kodein:kodein-js:4.1.0'
 
-    compile project(":corejs"    )
-    compile project(":controlsjs")
+dependencies {
+    expectedBy project(':controls')
+
+    compile project(':corejs')
+    compile project(':unitsjs')
 
     implementation dep.kotlin_stdlib_js
+
     testImplementation dep.kotlin_test_js
+    testCompile dep.mockk_js
 }
 
 [compileKotlin2Js, compileTestKotlin2Js]*.configure {

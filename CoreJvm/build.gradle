@@ -1,0 +1,13 @@
+apply plugin: 'kotlin-platform-jvm'
+
+dependencies {
+    expectedBy project(':core')
+
+    compile project(':unitsjvm')
+
+    implementation dep.kotlin_stdlib_jre8
+
+    testImplementation dep.junit
+    testImplementation dep.kotlin_junit
+    testCompile dep.mockk
+}

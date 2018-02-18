@@ -47,7 +47,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)
 
-        root.boundsChange += { gizmo, old, new ->
+        root.boundsChange += { _, old, new ->
             if (old.size != new.size) {
                 (sizeChanged as PropertyObserversImpl<Display, Size>).forEach {
                     it(this, old.size, new.size)

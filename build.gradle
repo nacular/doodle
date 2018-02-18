@@ -1,49 +1,81 @@
-buildscript {
-    ext.kotlin_version = '1.2.10'
+//buildscript {
+//    ext.kotlin_version = '1.2.20'
+//
+//    repositories {
+//        mavenCentral()
+//    }
+//
+//    dependencies {
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//    }
+//}
+//
+//subprojects {
+//    apply plugin: 'idea'
+//    apply plugin: 'maven'
+//    //apply plugin: 'kotlin2js'
+//
+//    version = '1.0'
+//    group   = 'com.nectar.doodle'
+//
+//    sourceSets {
+//        main.kotlin.srcDirs    += "src/main/headers"
+//        main.resources.srcDirs += "resources"
+//
+//        test.kotlin.srcDirs    += "src/test/headers"
+//    }
+//
+//    compileKotlin2Js {
+//        kotlinOptions.metaInfo              = true
+//        kotlinOptions.sourceMap             = true
+//        kotlinOptions.moduleKind            = "commonjs"
+//        kotlinOptions.sourceMapEmbedSources = "always"
+//    }
+//
+//    compileTestKotlin2Js {
+//        kotlinOptions.metaInfo              = true
+//        kotlinOptions.sourceMap             = true
+//        kotlinOptions.moduleKind            = 'commonjs'
+//        kotlinOptions.sourceMapEmbedSources = "always"
+//    }
+//
+//    dependencies {
+//        repositories {
+//            mavenCentral()
+//        }
+//
+//        compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+//    }
+//}
 
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
-subprojects {
+allprojects {
     apply plugin: 'idea'
     apply plugin: 'maven'
-    apply plugin: 'kotlin2js'
 
     version = '1.0'
     group   = 'com.nectar.doodle'
 
-    sourceSets {
-        main.kotlin.srcDirs    += "src/main/headers"
-        main.resources.srcDirs += "resources"
+    buildscript {
+        ext.kotlin_version = '1.2.30-eap-47'
 
-        test.kotlin.srcDirs    += "src/test/headers"
-    }
-
-    compileKotlin2Js {
-        kotlinOptions.metaInfo              = true
-        kotlinOptions.sourceMap             = true
-        kotlinOptions.moduleKind            = "commonjs"
-        kotlinOptions.sourceMapEmbedSources = "always"
-    }
-
-    compileTestKotlin2Js {
-        kotlinOptions.metaInfo              = true
-        kotlinOptions.sourceMap             = true
-        kotlinOptions.moduleKind            = 'commonjs'
-        kotlinOptions.sourceMapEmbedSources = "always"
-    }
-
-    dependencies {
         repositories {
+            maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+            jcenter()
             mavenCentral()
+            mavenLocal()
+        }
+        dependencies {
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.27"
         }
 
-        compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    }
+    repositories {
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+        mavenCentral()
+
+        jcenter()
     }
 }
+
+apply from: 'dependencies.gradle'

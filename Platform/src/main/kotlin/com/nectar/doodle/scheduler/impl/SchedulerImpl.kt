@@ -11,15 +11,30 @@ import kotlin.browser.window
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-private open class SimpleTask(protected val value: Int): Task {
-    override fun cancel() = window.clearTimeout(value)
+private open class SimpleTask(time : Measure<Time>, job: () -> Unit): Task {
+
+    private val value = window.setTimeout({ job(); completed = true },  (time  `in` milliseconds).toInt())
+
+    override var completed = false
+    
+    override fun cancel() {
+        window.clearTimeout(value)
+        completed = true
+    }
 }
 
-private class RecurringTask(value: Int): SimpleTask(value) {
-    override fun cancel() = window.clearInterval(value)
+private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
+    private val value: Int = window.setInterval(job,  (time  `in` milliseconds).toInt())
+
+    override var completed = false
+
+    override fun cancel() {
+        window.clearInterval(value)
+        completed = true
+    }
 }
 
 internal class SchedulerImpl: Scheduler {
-    override fun after (time : Measure<Time>, job: () -> Unit): Task = SimpleTask   (window.setTimeout(job,  (time  `in` milliseconds).toInt()))
-    override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(window.setInterval(job, (every `in` milliseconds).toInt()))
+    override fun after (time : Measure<Time>, job: () -> Unit): Task = SimpleTask   (time,  job)
+    override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(every, job)
 }

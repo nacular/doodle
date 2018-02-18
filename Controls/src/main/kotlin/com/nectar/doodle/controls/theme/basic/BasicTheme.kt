@@ -1,8 +1,5 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.github.salomonbrys.kodein.Kodein
-import com.github.salomonbrys.kodein.erased.bind
-import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.Slider
@@ -40,6 +37,6 @@ class BasicTheme: Theme {
     }
 }
 
-val basicThemeModule = Kodein.Module {
-    bind<BasicTheme>() with singleton { BasicTheme() }
-}
+//val basicThemeModule = Kodein.Module {
+//    bind<BasicTheme>() with singleton { BasicTheme() }
+//}

@@ -9,6 +9,8 @@ import com.nectar.doodle.units.milliseconds
  */
 
 interface Task {
+    val completed: Boolean
+
     fun cancel()
 }
 

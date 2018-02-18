@@ -1,0 +1,26 @@
+ext {
+    // Common
+    mockk         = '1.7.1'
+
+    // JVM
+    junit_version = '4.12'
+
+    // JS
+
+    dep = [
+            kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version",
+            kotlin_stdlib_jre8  : "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version",
+            kotlin_stdlib_js    : "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version",
+            kotlin_test_common  : ["org.jetbrains.kotlin:kotlin-test-common:$kotlin_version", "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"],
+            mockk_common        :  "io.mockk:mockk-common:$mockk",
+
+            // JS
+            kotlin_test_js      : ["org.jetbrains.kotlin:kotlin-test-js:$kotlin_version", "org.jetbrains.kotlin:kotlin-test:$kotlin_version"],
+            mockk_js            :  "io.mockk:mockk-js:$mockk",
+
+            // JVM
+            junit                : "junit:junit:$junit_version",
+            kotlin_junit         : ["org.jetbrains.kotlin:kotlin-test:$kotlin_version", "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"],
+            mockk                :  "io.mockk:mockk:$mockk",
+    ]
+}

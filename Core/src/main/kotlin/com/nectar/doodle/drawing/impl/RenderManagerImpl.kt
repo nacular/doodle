@@ -100,7 +100,7 @@ class RenderManagerImpl(
     private fun schedulePaint() {
 //        // TODO: Need to see whether this will be an issue for setups
 //        onPaint()
-        if (paintTask == null) {
+        if (paintTask == null || paintTask?.completed == true) {
             paintTask = scheduler.after(paintDelay) { onPaint() }
         }
     }
