@@ -1,4 +1,5 @@
 apply plugin: 'kotlin-platform-jvm'
+apply plugin: 'jacoco'
 
 dependencies {
     expectedBy project(':core')
@@ -10,4 +11,40 @@ dependencies {
     testImplementation dep.junit
     testImplementation dep.kotlin_junit
     testImplementation dep.mockk
+}
+
+jacoco {
+    toolVersion = "0.7.9"
+}
+
+/*task*/ jacocoTestReport/*(type: JacocoReport, dependsOn: "testDebugUnitTest")*/ {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports for Debug build"
+
+    reports {
+        xml.enabled  = false
+        html.enabled = true
+    }
+
+    // what to exclude from coverage report: generated classes, platform classes, etc.
+    def excludes = [
+        '**/Manifest*.*',
+        '**/*Test*.*',
+    ]
+
+    // generated classes
+    classDirectories = fileTree(
+            dir: "$buildDir/intermediates/classes/debug",
+            excludes: excludes
+    ) + fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/debug",
+            excludes: excludes
+    )
+
+    // sources
+    sourceDirectories = files([
+            //android.sourceSets.main.java.srcDirs,
+            "../Core/src/main/kotlin"
+    ])
+    executionData = files("$buildDir/jacoco/test.exec")
 }

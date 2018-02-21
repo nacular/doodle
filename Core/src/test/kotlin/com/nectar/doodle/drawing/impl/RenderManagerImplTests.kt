@@ -14,7 +14,10 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
+import com.nectar.doodle.utils.PropertyObserver
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
@@ -46,6 +49,23 @@ class RenderManagerImplTests {
         verify(exactly = 1) { gizmo.render(any()) }
     }
 
+    @Test @JsName("laysOutDisplayOnSizeChange")
+    fun `lays out display on size change`() {
+
+        val display = display(gizmo())
+
+        val slot = slot<PropertyObserver<Display, Size>>()
+
+        every { display.sizeChanged.plusAssign(capture(slot)) } just Runs
+
+        renderManager(display)
+
+        verify(exactly = 0) { display.doLayout() }
+
+        slot.captured(display, display.size, display.size * 2.0)
+
+        verify(exactly = 1) { display.doLayout() }
+    }
 
     @Test @JsName("renderIgnoresUnknownGizmos")
     fun `render ignores unknown Gizmos`() {
@@ -60,9 +80,7 @@ class RenderManagerImplTests {
     fun `renders displayed Gizmos`() {
         val gizmos = (0 until 2).mapTo(mutableListOf()) { spyk(gizmo()) }
 
-        val display = display(*gizmos.toTypedArray())
-
-        renderManager(display)
+        renderManager(display(*gizmos.toTypedArray()))
 
         gizmos.forEach {
             verify(exactly = 1) { it.render(any()) }
@@ -181,6 +199,19 @@ class RenderManagerImplTests {
         renderManager().renderNow(gizmo)
 
         verify(exactly = 0) { gizmo.render(any()) }
+    }
+
+    @Test @JsName("renderNowWorks")
+    fun `renderNow works`() {
+        val gizmo = spyk(gizmo())
+
+        renderManager(display(gizmo)).also {
+            verify(exactly = 1) { gizmo.render(any()) }
+
+            it.renderNow(gizmo)
+
+            verify(exactly = 2) { gizmo.render(any()) }
+        }
     }
 
     @Test @JsName("revalidatesParentWhenNewGizmos")

@@ -228,11 +228,14 @@ class RenderManagerImpl(
                 }
             }
 
-            gizmo.addedToDisplay(this)
+            if (gizmo.parent != null) {
+                gizmo.addedToDisplay(this)
+
+                dirtyGizmos   += gizmo
+                neverRendered += gizmo
+            }
 
             gizmos              += gizmo
-            dirtyGizmos         += gizmo
-            neverRendered       += gizmo
             pendingBoundsChange += gizmo
 
             gizmo.boundsChange       += ::boundsChanged
