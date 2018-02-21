@@ -22,7 +22,6 @@ import kotlin.test.Test
 /**
  * Created by Nicholas Eddy on 11/6/17.
  */
-
 class RenderManagerImplTests {
     @Test
     @JsName("renderIgnoresUnknownGizmos")
@@ -141,6 +140,69 @@ class RenderManagerImplTests {
 
         verify(exactly = 0) { gizmo.render(any()) }
     }
+
+    @Test
+    @JsName("revalidatesParentWhenNewGizmos")
+    fun `revalidates parent out when new Gizmos`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = gizmo()
+
+        val display = display(container)
+
+        renderManager(display)
+
+        verify(exactly = 0) { container.revalidate_() }
+
+        container.children += child
+
+        verify(exactly = 1) { container.revalidate_() }
+    }
+
+    @Test
+    @JsName("laysOutParentOnBoundsChanged")
+    fun `lays out parent on bounds changed`() {
+        val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = gizmo()
+
+        container.children += child
+
+        renderManager(display(container))
+
+        verify(exactly = 1) { container.doLayout_() }
+
+        child.size *= 2.0
+
+        verify(exactly = 2) { container.doLayout_() }
+    }
+
+//    @Test
+//    @JsName("doesNotRerenderOnBoundsZeroed")
+//    fun `does not rerender on bounds zeroed`() {
+//        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+//
+//        renderManager(display(gizmo))
+//
+//        verify(exactly = 1) { gizmo.render(any()) }
+//
+//        gizmo.size *= 0.0
+//
+//        verify(exactly = 1) { gizmo.render(any()) }
+//    }
+//
+//    @Test
+//    @JsName("doesNotRerenderOnPositionChanged")
+//    fun `does not rerender on position changed`() {
+//        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+//
+//        renderManager(display(gizmo))
+//
+//        verify(exactly = 1) { gizmo.render(any()) }
+//
+//        gizmo.x *= 2.0
+//
+//        verify(exactly = 1) { gizmo.render(any()) }
+//    }
+
 
     private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
     private fun container(): Container = Container().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }

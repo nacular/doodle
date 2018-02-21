@@ -12,7 +12,7 @@ private interface Something
 
 class UnitTests {
     @Test
-    @JsName("defaultMultiplier is 1")
+    @JsName("defaultMultiplierIs1")
     fun `default multiplier is 1`() {
         val a = Unit<Something>("a")
 
@@ -108,12 +108,12 @@ interface Operation<T> {
     operator fun invoke(first: Measure<T>, second: Double): Measure<T>
 }
 
-private val times = object: Operation<Something> {
+private val times: Operation<Something> = object: Operation<Something> {
     override fun invoke(first: Double,             second: Double) = first * second
     override fun invoke(first: Measure<Something>, second: Double) = first * second
 }
 
-private val divide = object: Operation<Something> {
+private val divide: Operation<Something> = object: Operation<Something> {
     override fun invoke(first: Double,             second: Double) = first / second
     override fun invoke(first: Measure<Something>, second: Double) = first / second
 }

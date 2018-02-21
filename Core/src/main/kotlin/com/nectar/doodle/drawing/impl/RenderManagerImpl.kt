@@ -140,10 +140,12 @@ class RenderManagerImpl(
 
     private fun onPaint() {
         do {
-            pendingLayout.toTypedArray().forEach { performLayout(it) }
+            pendingLayout.firstOrNull()?.let { performLayout(it) }
         } while (!pendingLayout.isEmpty())
 
-        pendingRender.toTypedArray().forEach { performRender(it) }
+        do {
+            pendingRender.firstOrNull()?.let { performRender(it) }
+        } while (!pendingRender.isEmpty())
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
@@ -220,9 +222,8 @@ class RenderManagerImpl(
     private fun recordGizmo(gizmo: Gizmo) {
         if (gizmo !in gizmos) {
             gizmo.parent?.let {
-                recordGizmo(it)
-
-                if (gizmo in gizmos) {
+                if (it !in gizmos) {
+                    recordGizmo(it)
                     return
                 }
             }
