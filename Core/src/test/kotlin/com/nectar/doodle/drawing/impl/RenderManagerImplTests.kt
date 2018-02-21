@@ -12,6 +12,8 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
+import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.Time
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -23,8 +25,29 @@ import kotlin.test.Test
  * Created by Nicholas Eddy on 11/6/17.
  */
 class RenderManagerImplTests {
-    @Test
-    @JsName("renderIgnoresUnknownGizmos")
+    // TODO: Add layout tests
+
+    @Test @JsName("rendersAreBatched")
+    fun `renders are batched`() {
+        val gizmo     = spyk(gizmo())
+        val scheduler = ManualScheduler()
+
+        gizmo.visible = false
+
+        renderManager(display(gizmo), scheduler = scheduler)
+
+        gizmo.visible  = true
+        gizmo.size    *= 2.0
+
+        verify(exactly = 0) { gizmo.render(any()) }
+
+        scheduler.runJobs()
+
+        verify(exactly = 1) { gizmo.render(any()) }
+    }
+
+
+    @Test @JsName("renderIgnoresUnknownGizmos")
     fun `render ignores unknown Gizmos`() {
         val gizmo = spyk(gizmo())
 
@@ -33,8 +56,7 @@ class RenderManagerImplTests {
         verify(exactly = 0) { gizmo.render(any()) }
     }
 
-    @Test
-    @JsName("rendersDisplayedGizmos")
+    @Test @JsName("rendersDisplayedGizmos")
     fun `renders displayed Gizmos`() {
         val gizmos = (0 until 2).mapTo(mutableListOf()) { spyk(gizmo()) }
 
@@ -47,8 +69,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test
-    @JsName("rendersNewGizmos")
+    @Test @JsName("rendersNewGizmos")
     fun `renders new Gizmos`() {
         val container = container()
         val child = spyk(gizmo())
@@ -64,8 +85,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { child.render(any()) }
     }
 
-    @Test
-    @JsName("rerendersOnBoundsChanged")
+    @Test @JsName("rerendersOnBoundsChanged")
     fun `rerenders on bounds changed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
@@ -78,8 +98,22 @@ class RenderManagerImplTests {
         verify(exactly = 2) { gizmo.render(any()) }
     }
 
-    @Test
-    @JsName("doesNotRerenderOnBoundsZeroed")
+    @Test @JsName("rerendersOnBecomingVisible")
+    fun `rerenders on becoming visible`() {
+        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        gizmo.visible = false
+
+        renderManager(display(gizmo))
+
+        verify(exactly = 0) { gizmo.render(any()) }
+
+        gizmo.visible = true
+
+        verify(exactly = 1) { gizmo.render(any()) }
+    }
+
+    @Test @JsName("doesNotRerenderOnBoundsZeroed")
     fun `does not rerender on bounds zeroed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
@@ -92,8 +126,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { gizmo.render(any()) }
     }
 
-    @Test
-    @JsName("doesNotRerenderOnPositionChanged")
+    @Test @JsName("doesNotRerenderOnPositionChanged")
     fun `does not rerender on position changed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
@@ -106,8 +139,20 @@ class RenderManagerImplTests {
         verify(exactly = 1) { gizmo.render(any()) }
     }
 
-    @Test
-    @JsName("rendersNewNestedGizmos")
+    @Test @JsName("doesNotRerenderOnSizeZeroed")
+    fun `does not rerender on size zeroed`() {
+        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        renderManager(display(gizmo))
+
+        verify(exactly = 1) { gizmo.render(any()) }
+
+        gizmo.size = Size.Empty
+
+        verify(exactly = 1) { gizmo.render(any()) }
+    }
+
+    @Test @JsName("rendersNewNestedGizmos")
     fun `renders new nested Gizmos`() {
         val container = container()
         val child = spyk(gizmo())
@@ -123,16 +168,13 @@ class RenderManagerImplTests {
         verify(exactly = 1) { child.render(any()) }
     }
 
-    @Test
-    @JsName("doesNotRenderInvisibleGizmos")
+    @Test @JsName("doesNotRenderInvisibleGizmos")
     fun `does not render invisible Gizmos`() = doesNotRender(spyk(gizmo()).apply { visible = false })
 
-    @Test
-    @JsName("doesNotRenderZeroBoundsGizmos")
+    @Test @JsName("doesNotRenderZeroBoundsGizmos")
     fun `does not render zero bounds Gizmos`() = doesNotRender(spyk(gizmo()).apply { bounds = Rectangle.Empty })
 
-    @Test
-    @JsName("renderNowIgnoresUnknownGizmos")
+    @Test @JsName("renderNowIgnoresUnknownGizmos")
     fun `renderNow ignores unknown Gizmos`() {
         val gizmo = spyk(gizmo())
 
@@ -141,8 +183,7 @@ class RenderManagerImplTests {
         verify(exactly = 0) { gizmo.render(any()) }
     }
 
-    @Test
-    @JsName("revalidatesParentWhenNewGizmos")
+    @Test @JsName("revalidatesParentWhenNewGizmos")
     fun `revalidates parent out when new Gizmos`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
@@ -158,9 +199,16 @@ class RenderManagerImplTests {
         verify(exactly = 1) { container.revalidate_() }
     }
 
-    @Test
-    @JsName("laysOutParentOnBoundsChanged")
-    fun `lays out parent on bounds changed`() {
+    @Test @JsName("laysOutParentOnSizeChanged")
+    fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
+
+    @Test @JsName("laysOutParentOnPositionChanged")
+    fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
+
+    @Test @JsName("laysOutParentOnVisibilityChanged")
+    fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
+
+    private fun verifyLayout(block: (Gizmo) -> Unit) {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
 
@@ -170,38 +218,10 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { container.doLayout_() }
 
-        child.size *= 2.0
+        block(child)
 
         verify(exactly = 2) { container.doLayout_() }
     }
-
-//    @Test
-//    @JsName("doesNotRerenderOnBoundsZeroed")
-//    fun `does not rerender on bounds zeroed`() {
-//        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
-//
-//        renderManager(display(gizmo))
-//
-//        verify(exactly = 1) { gizmo.render(any()) }
-//
-//        gizmo.size *= 0.0
-//
-//        verify(exactly = 1) { gizmo.render(any()) }
-//    }
-//
-//    @Test
-//    @JsName("doesNotRerenderOnPositionChanged")
-//    fun `does not rerender on position changed`() {
-//        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
-//
-//        renderManager(display(gizmo))
-//
-//        verify(exactly = 1) { gizmo.render(any()) }
-//
-//        gizmo.x *= 2.0
-//
-//        verify(exactly = 1) { gizmo.render(any()) }
-//    }
 
 
     private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
@@ -257,4 +277,31 @@ class RenderManagerImplTests {
             task
         }
     }}
+
+    private class ManualScheduler: Scheduler {
+        private class SimpleTask(override var completed: Boolean = false) : Task {
+            override fun cancel() {
+                completed = true
+            }
+        }
+
+        val tasks = mutableListOf<Pair<SimpleTask, () -> Unit>>()
+
+        fun runJobs() = tasks.forEach {
+            it.first.completed = true
+            it.second()
+        }
+
+        override fun after(time: Measure<Time>, job: () -> Unit): Task {
+            val task = SimpleTask()
+
+            tasks += task to job
+
+            return task
+        }
+
+        override fun repeat(every: Measure<Time>, job: () -> Unit): Task {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+    }
 }

@@ -236,6 +236,7 @@ class RenderManagerImpl(
             pendingBoundsChange += gizmo
 
             gizmo.boundsChange       += ::boundsChanged
+            gizmo.visibilityChanged  += ::visibilityChanged
             gizmo.children_.onChange += ::childrenChanged
 
             gizmo.children_.forEach { recordGizmo(it) }
@@ -276,6 +277,7 @@ class RenderManagerImpl(
         pendingBoundsChange -= gizmo
 
         gizmo.boundsChange       -= ::boundsChanged
+        gizmo.visibilityChanged  -= ::visibilityChanged
         gizmo.children_.onChange -= ::childrenChanged
 
         unregisterDisplayRectMonitoring(gizmo)
@@ -423,6 +425,43 @@ class RenderManagerImpl(
             releaseResources(child)
 
             graphicsDevice.release(child)
+        }
+    }
+
+    private fun visibilityChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+        val parent = gizmo.parent
+
+        if (addedInvisible.contains(gizmo)) {
+            handleAddedGizmo(gizmo)
+
+            addedInvisible.remove(gizmo)
+        }
+
+        if (parent != null && gizmo !in display) {
+            scheduleLayout(parent)
+
+            // Gizmos that change bounds while invisible are never scheduled
+            // for bounds synch, so catch them here
+            if (new) {
+                pendingBoundsChange += gizmo
+            }
+
+            visibilityChanged += gizmo
+
+            render(parent)
+        } else if (gizmo in display) {
+            if (new) {
+                visibilityChanged   += gizmo
+                pendingBoundsChange += gizmo // See above
+
+                render(gizmo)
+            } else {
+                graphicsDevice[gizmo].visible = false
+            }
+        }
+
+        if (gizmo in displayTree) {
+            checkDisplayRectChange(gizmo)
         }
     }
 
