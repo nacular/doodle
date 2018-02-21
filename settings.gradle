@@ -7,12 +7,16 @@ rootProject.name = 'doodle'
 include 'core'
 include 'units'
 include 'controls'
+include 'testing'
 
 include 'corejvm'
 include 'corejs'
 include 'unitsjvm'
 include 'unitsjs'
 include 'controlsjs'
+include 'testingjvm'
+include 'testingjs'
 
 include 'platform'
 include 'testapp'
+

@@ -5,9 +5,9 @@ dependencies {
 //    compile 'com.github.salomonbrys.kodein:kodein:4.1.0'
 //    compile 'com.github.salomonbrys.kodein:kodein-js:4.1.0'
 
-    compile project(":core")
-    compile project(":units")
-
+    implementation project(":core")
+    implementation project(":units")
     implementation dep.kotlin_stdlib_common
+
     testImplementation dep.kotlin_test_common
 }

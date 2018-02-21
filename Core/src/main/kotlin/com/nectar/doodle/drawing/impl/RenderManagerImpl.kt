@@ -219,7 +219,13 @@ class RenderManagerImpl(
 
     private fun recordGizmo(gizmo: Gizmo) {
         if (gizmo !in gizmos) {
-            gizmo.parent?.let { recordGizmo(it) }
+            gizmo.parent?.let {
+                recordGizmo(it)
+
+                if (gizmo in gizmos) {
+                    return
+                }
+            }
 
             gizmo.addedToDisplay(this)
 

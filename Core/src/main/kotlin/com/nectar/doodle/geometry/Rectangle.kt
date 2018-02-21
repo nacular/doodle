@@ -1,10 +1,11 @@
 package com.nectar.doodle.geometry
 
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.layout.Insets
 import kotlin.math.max
 
 
-class Rectangle constructor(val position: Point = Point.Origin, val size: Size = Size.Empty): Shape {
+class Rectangle constructor(val position: Point = Origin, val size: Size = Size.Empty): Shape {
 
     constructor(x: Double = 0.0, y: Double = 0.0, width: Double, height: Double): this(Point(x, y), Size(width, height))
 
@@ -67,13 +68,18 @@ class Rectangle constructor(val position: Point = Point.Origin, val size: Size =
     /**
      * @return a Rectangle with the same width/height but positioned at the given x,y
      */
-    fun at(x: Double, y: Double) = if (this.x != x || this.y != y) Rectangle(x, y, width, height) else this
+    fun at(x: Double = this.x, y: Double = this.y) = if (this.x != x || this.y != y) Rectangle(x, y, width, height) else this
+
+    /**
+     * @return a Rectangle with the same width/height but positioned at the given point
+     */
+    fun at(position: Point) = at(position.x, position.y)
 
     /**
      * @param inset amount to resize by
      * @return a Rectangle that has been adjusted as follows [x + i, y + i, w - 2i, h - 2i], where i is the inset
      */
-    fun inset(inset: Double) = Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
+    fun inset(inset: Double) = if (inset == 0.0) this else Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
 
     /**
      * @param inset amount to resize by
@@ -112,6 +118,6 @@ class Rectangle constructor(val position: Point = Point.Origin, val size: Size =
     }
 
     companion object {
-        val Empty = Rectangle(0.0, 0.0, 0.0, 0.0)
+        val Empty = Rectangle()
     }
 }

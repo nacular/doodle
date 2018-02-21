@@ -44,8 +44,84 @@ class RenderManagerImplTests {
         renderManager(display)
 
         gizmos.forEach {
-            verify(atLeast = 1) { it.render(any()) } // TODO: tighten this up
+            verify(exactly = 1) { it.render(any()) }
         }
+    }
+
+    @Test
+    @JsName("rendersNewGizmos")
+    fun `renders new Gizmos`() {
+        val container = container()
+        val child = spyk(gizmo())
+
+        val display = display(container)
+
+        renderManager(display)
+
+        verify(exactly = 0) { child.render(any()) }
+
+        display.children += child
+
+        verify(exactly = 1) { child.render(any()) }
+    }
+
+    @Test
+    @JsName("rerendersOnBoundsChanged")
+    fun `rerenders on bounds changed`() {
+        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        renderManager(display(gizmo))
+
+        verify(exactly = 1) { gizmo.render(any()) }
+
+        gizmo.size *= 2.0
+
+        verify(exactly = 2) { gizmo.render(any()) }
+    }
+
+    @Test
+    @JsName("doesNotRerenderOnBoundsZeroed")
+    fun `does not rerender on bounds zeroed`() {
+        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        renderManager(display(gizmo))
+
+        verify(exactly = 1) { gizmo.render(any()) }
+
+        gizmo.size *= 0.0
+
+        verify(exactly = 1) { gizmo.render(any()) }
+    }
+
+    @Test
+    @JsName("doesNotRerenderOnPositionChanged")
+    fun `does not rerender on position changed`() {
+        val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        renderManager(display(gizmo))
+
+        verify(exactly = 1) { gizmo.render(any()) }
+
+        gizmo.x *= 2.0
+
+        verify(exactly = 1) { gizmo.render(any()) }
+    }
+
+    @Test
+    @JsName("rendersNewNestedGizmos")
+    fun `renders new nested Gizmos`() {
+        val container = container()
+        val child = spyk(gizmo())
+
+        val display = display(container)
+
+        renderManager(display)
+
+        verify(exactly = 0) { child.render(any()) }
+
+        container.children += child
+
+        verify(exactly = 1) { child.render(any()) }
     }
 
     @Test
@@ -67,6 +143,7 @@ class RenderManagerImplTests {
     }
 
     private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun container(): Container = Container().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
     private fun doesNotRender(gizmo: Gizmo) {
         renderManager(display(gizmo))

@@ -5,6 +5,7 @@ dependencies {
 
     implementation dep.kotlin_stdlib_jre8
 
+    testImplementation project(':testingjvm')
     testImplementation dep.junit
     testImplementation dep.kotlin_junit
 }

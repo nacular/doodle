@@ -106,7 +106,7 @@ class Color(
         if (other !is Color) return false
 
         if (opacity != other.opacity) return false
-        if (decimal != other.decimal) return false
+        if (opacity != 0f && decimal != other.decimal) return false
 
         return true
     }
@@ -127,6 +127,6 @@ class Color(
         val lightgray   = Color(0xd3d3d3)
         val transparent = black.with(opacity = 0f)
 
-        private val scaleFactor = 0.9f
+        private const val scaleFactor = 0.9f
     }
 }

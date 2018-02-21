@@ -10,6 +10,22 @@ class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Uni
     override fun compareTo(other: Unit<T>): Int = multiplier.compareTo(other.multiplier)
 
     override fun toString() = display
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Unit<*>) return false
+
+        if (display    != other.display   ) return false
+        if (multiplier != other.multiplier) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = display.hashCode()
+        result = 31 * result + multiplier.hashCode()
+        return result
+    }
 }
 
 class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comparable<Measure<T>> {
@@ -42,6 +58,22 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comp
     infix fun `as`(other: Unit<T>): Measure<T> = if (unit == other) this else Measure(`in`(other), other)
 
     override fun toString() = "$magnitude$unit"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Measure<*>) return false
+
+        if (magnitude != other.magnitude) return false
+        if (unit      != other.unit     ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = magnitude.hashCode()
+        result = 31 * result + unit.hashCode()
+        return result
+    }
 }
 
 operator fun <T> Int   .times(unit: Unit<T>): Measure<T> = Measure(this.toDouble(), unit)

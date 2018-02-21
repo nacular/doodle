@@ -5,6 +5,7 @@ dependencies {
 
     implementation dep.kotlin_stdlib_js
 
+    testImplementation project(':testingjs')
     testImplementation dep.kotlin_test_js
 }
 
