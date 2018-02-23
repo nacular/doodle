@@ -22,8 +22,9 @@ open class Container: Gizmo(), Iterable<Gizmo> {
         get(   ) = super.isFocusCycleRoot
         set(new) { super.isFocusCycleRoot = new }
 
-    //    val childrenByZIndex: Sequence<Gizmo> get() = childrenZ.asSequence()
     public override val children = super.children
+
+    public override fun setZIndex(of: Gizmo, to: Int) = super.setZIndex(of, to)
 
     public override fun isAncestor(of: Gizmo) = super.isAncestor(of)
 

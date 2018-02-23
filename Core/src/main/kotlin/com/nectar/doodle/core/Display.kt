@@ -21,6 +21,17 @@ interface Display: Iterable<Gizmo> {
     val children            : ObservableList<Gizmo, Gizmo>
     val sizeChanged         : PropertyObservers<Display, Size>
     var minimumSize         : Size
+
+    /**
+     * Gets the Gizmo's z-index.
+     *
+     * @param of The Gizmo
+     * @return The z-index (-1 if the Gizmo is not a child)
+     */
+    fun zIndex(of: Gizmo): Int
+
+    fun setZIndex(of: Gizmo, to: Int)
+
 //  var focusTraversalPolicy: FocusTraversalPolicy
 
     fun fill      (brush: Brush)

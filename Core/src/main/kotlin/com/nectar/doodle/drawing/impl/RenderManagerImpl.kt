@@ -29,7 +29,7 @@ class RenderManagerImpl(
     private val neverRendered       = mutableSetOf <Gizmo>()
     private val pendingLayout       = mutableSetOf <Gizmo>()
     private val pendingRender       = mutableListOf<Gizmo>()
-    private val pendingCleanup      = mutableMapOf <Gizmo, Set<Gizmo>>()
+    private val pendingCleanup      = mutableMapOf <Gizmo, MutableSet<Gizmo>>()
     private val addedInvisible      = mutableSetOf <Gizmo>()
     private val visibilityChanged   = mutableSetOf <Gizmo>()
     private val pendingBoundsChange = mutableSetOf <Gizmo>()
@@ -288,20 +288,18 @@ class RenderManagerImpl(
 
     private fun addToCleanupList(parent: Gizmo, child: Gizmo) {
 
-        var gizmos = pendingCleanup.getOrPut(parent) {
-            mutableSetOf<Gizmo>().also { pendingCleanup[parent] = it }
-        }
+        val gizmos = pendingCleanup.getOrPut(parent) { mutableSetOf() }
 
-        gizmos += child
+        gizmos.add(child)
 
 //        releaseResources( aChild );
     }
 
     private fun removeFromCleanupList(parent: Gizmo, child: Gizmo) {
-        var gizmos = pendingCleanup[parent]
+        val gizmos = pendingCleanup[parent]
 
         if (gizmos != null) {
-            gizmos -= child
+            gizmos.remove(child)
 
             if (gizmos.isEmpty()) {
                 pendingCleanup.remove(parent)
@@ -396,15 +394,31 @@ class RenderManagerImpl(
         themeManager?.update(gizmo)
     }
 
-    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: Map<Int, Gizmo>, added: Map<Int, Gizmo>) {
+    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: Map<Int, Gizmo>, added: Map<Int, Gizmo>, moved: Map<Int, Pair<Int, Gizmo>>) {
         val parent = list.source
 
         removed.values.forEach { childRemoved(parent, it) }
         added.values.forEach   { childAdded  (parent, it) }
 
-        if (parent.parent != null) {
+        moved.forEach {
+            val surface = graphicsDevice[it.value.second]
+
+            surface.zIndex = it.key
+        }
+
+        if (removed.isEmpty() && added.isEmpty()) {
+            return
+        }
+
+        if (parent.parent != null && parent.visible && !parent.size.empty) {
             parent.revalidate_()
         } else {
+            pendingCleanup[parent]?.forEach {
+                releaseResources(it)
+
+                graphicsDevice.release(it)
+            }
+
             parent.doLayout_()
         }
     }
@@ -507,51 +521,6 @@ class RenderManagerImpl(
     }
 
 //    private inner class InternalPropertyListener : PropertyListener {
-//        fun propertyChanged(aPropertyEvent: PropertyEvent) {
-//            val aProperty = aPropertyEvent.getProperty()
-//
-//            if (aProperty === Gizmo.VISIBLE) {
-//                val aGizmo = aPropertyEvent.getSource() as Gizmo
-//                val aParent = aGizmo.parent
-//
-//                if (mAddedInvisible.contains(aGizmo)) {
-//                    aGizmo.removePropertyListener(mPropertyListener)
-//
-//                    handleAddedGizmo(aGizmo)
-//
-//                    mAddedInvisible.remove(aGizmo)
-//                }
-//
-//                if (aParent != null && !display.contains(aGizmo)) {
-//                    scheduleLayout(aParent)
-//
-//                    // Gizmos that change bounds while invisible are never scheduled
-//                    // for bounds synch, so catch them here
-//                    if (aGizmo.visible) {
-//                        pendingBoundsChange.add(aGizmo)
-//                    }
-//
-//                    visibilityChanged.add(aGizmo)
-//
-//                    render(aParent!!)
-//                } else if (display.contains(aGizmo)) {
-//                    if (aGizmo.visible) {
-//                        visibilityChanged.add(aGizmo)
-//                        pendingBoundsChange.add(aGizmo) // See above
-//
-//                        render(aGizmo)
-//                    } else {
-//                        val aScreenContext = graphicsDevice.get(aGizmo)
-//
-//                        if (aScreenContext != null) {
-//                            aScreenContext!!.setVisible(false)
-//                        }
-//                    }
-//                }
-//
-//                if (displayTree.containsKey(aGizmo)) {
-//                    checkDisplayRectChange(aGizmo)
-//                }
 //            } else if (aProperty === Gizmo.DISPLAYRECT_HANDLING_REQUIRED) {
 //                val aGizmo = aPropertyEvent.getSource() as Gizmo
 //
@@ -579,62 +548,6 @@ class RenderManagerImpl(
 //                        }
 //                    }
 //                }
-//            }
-//        }
-//    }
-//
-//    private inner class InternalContainerListener : ContainerListener {
-//        fun itemsAdded(aContainerEvent: ContainerEvent) {
-//            val aChanges = aContainerEvent.getChanges()
-//            val aContainer = aContainerEvent.getSource()
-//
-//            for (aChange in aChanges) {
-//                val aGizmo = aChange.getFirst()
-//
-//                removeFromCleanupList(aContainer, aGizmo)
-//
-//                if (aGizmo.visible) {
-//                    handleAddedGizmo(aGizmo)
-//                } else {
-//                    aGizmo.addPropertyListener(mPropertyListener)
-//
-//                    mAddedInvisible.add(aGizmo)
-//                }
-//            }
-//
-//            if (aContainer.parent != null) {
-//                aContainer.revalidate()
-//            } else {
-//                aContainer.doLayout()
-//            }
-//        }
-//
-//        fun itemsRemoved(aContainerEvent: ContainerEvent) {
-//            val aChanges = aContainerEvent.getChanges()
-//            val aContainer = aContainerEvent.getSource()
-//
-//            if (aContainer.parent != null) {
-//                for (aChange in aChanges) {
-//                    addToCleanupList(aContainer, aChange.getFirst())
-//                }
-//
-//                aContainer.revalidate()
-//            } else {
-//                for (aChange in aChanges) {
-//                    releaseResources(aChange.getFirst())
-//
-//                    graphicsDevice.release(aChange.getFirst())
-//                }
-//            }
-//        }
-//
-//        fun itemsZIndexChanged(aContainerEvent: ContainerEvent) {
-//            val aChanges = aContainerEvent.getChanges()
-//
-//            for (aChange in aChanges) {
-//                val aSurface = graphicsDevice.get(aChange.getFirst())
-//
-//                aSurface.setZIndex(aChange.getSecond())
 //            }
 //        }
 //    }

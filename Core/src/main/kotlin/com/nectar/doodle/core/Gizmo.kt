@@ -142,9 +142,12 @@ abstract class Gizmo protected constructor() {
     internal val children_ get() = children
     protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
         ObservableList(this, mutableListOf<Gizmo>()).also {
-            it.onChange += { _, removed, added ->
-                removed.values.forEach { it.parent = null }
-                added.values.forEach {
+            it.onChange += { _, removed, added, _ ->
+                val addedSet   = added.values.toMutableSet  ().apply { removeAll(removed.values) }
+                val removedSet = removed.values.toMutableSet().apply { removeAll(added.values  ) }
+
+                removedSet.forEach { it.parent = null }
+                addedSet.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }
 
@@ -234,16 +237,12 @@ abstract class Gizmo protected constructor() {
      * Sets the z-index for the given Gizmo.
      *
      * @param of The Gizmo
-     * @param index the new z-index
+     * @param to the new z-index
      *
      * @throws IndexOutOfBoundsException if `index !in 0 until this.children.size`
      */
-    protected fun setZIndex(of: Gizmo, index: Int) {
-        // TODO: Make this a bit more efficient
-        if (children.contains(of) && index != zIndex(of)) {
-            children.remove(of)
-            children.add(index, of)
-        }
+    protected open fun setZIndex(of: Gizmo, to: Int) {
+        children.move(of, to)
     }
 
     /**

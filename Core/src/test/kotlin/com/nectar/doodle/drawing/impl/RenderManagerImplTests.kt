@@ -7,6 +7,7 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.GraphicsSurface
+import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Scheduler
@@ -37,7 +38,7 @@ class RenderManagerImplTests {
 
         gizmo.visible = false
 
-        renderManager(display(gizmo), scheduler = scheduler)
+        val renderManager = renderManager(display(gizmo), scheduler = scheduler)
 
         gizmo.visible  = true
         gizmo.size    *= 2.0
@@ -46,7 +47,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
     }
 
     @Test @JsName("laysOutDisplayOnSizeChange")
@@ -68,7 +69,7 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("renderIgnoresUnknownGizmos")
-    fun `render ignores unknown Gizmos`() {
+    fun `render ignores unknown gizmos`() {
         val gizmo = spyk(gizmo())
 
         renderManager().render(gizmo)
@@ -77,39 +78,99 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("rendersDisplayedGizmos")
-    fun `renders displayed Gizmos`() {
+    fun `renders displayed gizmos`() {
         val gizmos = (0 until 2).mapTo(mutableListOf()) { spyk(gizmo()) }
 
-        renderManager(display(*gizmos.toTypedArray()))
+        val renderManager = renderManager(display(*gizmos.toTypedArray()))
 
         gizmos.forEach {
-            verify(exactly = 1) { it.render(any()) }
+            verifyChildAddedProperly(renderManager, it)
         }
     }
 
     @Test @JsName("rendersNewGizmos")
-    fun `renders new Gizmos`() {
-        val container = container()
+    fun `renders new gizmos`() {
         val child = spyk(gizmo())
 
-        val display = display(container)
+        val display = display()
 
-        renderManager(display)
+        val renderManager = renderManager(display)
 
         verify(exactly = 0) { child.render(any()) }
 
         display.children += child
 
-        verify(exactly = 1) { child.render(any()) }
+        verifyChildAddedProperly(renderManager, child)
+    }
+
+    @Test @JsName("removesTopLevelGizmos")
+    fun `removes top-level gizmos`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+
+        val display = display(container)
+
+        val renderManager = renderManager(display)
+
+        verifyChildAddedProperly(renderManager, container)
+
+        display.children.remove(container)
+
+        verifyChildRemovedProperly(container)
+    }
+
+    private fun testDisplayZIndex(block: (Display, Gizmo) -> Unit) {
+        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val display    = display(container1, container2)
+        val surface1   = mockk<GraphicsSurface>(relaxed = true)
+        val surface2   = mockk<GraphicsSurface>(relaxed = true)
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
+
+        listOf(container1, container2).forEach {
+            verifyChildAddedProperly(renderManager, it)
+        }
+
+        block(display, container2)
+
+        verify(exactly = 1) { surface2.zIndex = 0 }
+
+        listOf(container1, container2).forEach {
+            verify(exactly = 0) { it.removedFromDisplay(     ) }
+            verify(exactly = 1) { it.render            (any()) }
+            verify(exactly = 1) { it.doLayout_         (     ) }
+        }
+    }
+
+    @Test @JsName("noopRemoveAddTopLevelGizmos")
+    fun `no-op remove, add top-level gizmos`() = testDisplayZIndex { display, gizmo -> display.children.move(gizmo, 0) }
+
+    @Test @JsName("noopZIdexChangeTopLevelGizmos")
+    fun `no-op z-index change top-level gizmos`() = testDisplayZIndex { display, gizmo -> display.setZIndex(gizmo, 0) }
+
+    @Test @JsName("removesNestedGizmos")
+    fun `removes nested gizmos`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+
+        val display = display(container)
+
+        val renderManager = renderManager(display)
+
+        verifyChildAddedProperly(renderManager, container)
+
+        val firstChild = container.children.first()
+        container.children -= firstChild
+
+        verifyChildRemovedProperly(firstChild)
     }
 
     @Test @JsName("rerendersOnBoundsChanged")
     fun `rerenders on bounds changed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
-        renderManager(display(gizmo))
+        val renderManager = renderManager(display(gizmo))
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
 
         gizmo.size *= 2.0
 
@@ -122,22 +183,23 @@ class RenderManagerImplTests {
 
         gizmo.visible = false
 
-        renderManager(display(gizmo))
+        val renderManager = renderManager(display(gizmo))
 
-        verify(exactly = 0) { gizmo.render(any()) }
+        verify(exactly = 1) { gizmo.addedToDisplay(renderManager) }
+        verify(exactly = 0) { gizmo.render        (any()        ) }
 
         gizmo.visible = true
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
     }
 
     @Test @JsName("doesNotRerenderOnBoundsZeroed")
     fun `does not rerender on bounds zeroed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
-        renderManager(display(gizmo))
+        val renderManager = renderManager(display(gizmo))
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
 
         gizmo.size *= 0.0
 
@@ -148,9 +210,9 @@ class RenderManagerImplTests {
     fun `does not rerender on position changed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
-        renderManager(display(gizmo))
+        val renderManager = renderManager(display(gizmo))
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
 
         gizmo.x *= 2.0
 
@@ -161,9 +223,9 @@ class RenderManagerImplTests {
     fun `does not rerender on size zeroed`() {
         val gizmo = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
-        renderManager(display(gizmo))
+        val renderManager = renderManager(display(gizmo))
 
-        verify(exactly = 1) { gizmo.render(any()) }
+        verifyChildAddedProperly(renderManager, gizmo)
 
         gizmo.size = Size.Empty
 
@@ -171,29 +233,29 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("rendersNewNestedGizmos")
-    fun `renders new nested Gizmos`() {
+    fun `renders new nested gizmos`() {
         val container = container()
         val child = spyk(gizmo())
 
         val display = display(container)
 
-        renderManager(display)
+        val renderManager = renderManager(display)
 
         verify(exactly = 0) { child.render(any()) }
 
         container.children += child
 
-        verify(exactly = 1) { child.render(any()) }
+        verifyChildAddedProperly(renderManager, child)
     }
 
     @Test @JsName("doesNotRenderInvisibleGizmos")
-    fun `does not render invisible Gizmos`() = doesNotRender(spyk(gizmo()).apply { visible = false })
+    fun `does not render invisible gizmos`() = doesNotRender(spyk(gizmo()).apply { visible = false })
 
     @Test @JsName("doesNotRenderZeroBoundsGizmos")
-    fun `does not render zero bounds Gizmos`() = doesNotRender(spyk(gizmo()).apply { bounds = Rectangle.Empty })
+    fun `does not render zero bounds gizmos`() = doesNotRender(spyk(gizmo()).apply { bounds = Rectangle.Empty })
 
     @Test @JsName("renderNowIgnoresUnknownGizmos")
-    fun `renderNow ignores unknown Gizmos`() {
+    fun `renderNow ignores unknown gizmos`() {
         val gizmo = spyk(gizmo())
 
         renderManager().renderNow(gizmo)
@@ -215,7 +277,7 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("revalidatesParentWhenNewGizmos")
-    fun `revalidates parent out when new Gizmos`() {
+    fun `revalidates parent out when new gizmos`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
 
@@ -254,6 +316,16 @@ class RenderManagerImplTests {
         verify(exactly = 2) { container.doLayout_() }
     }
 
+    private fun verifyChildAddedProperly(renderManager: RenderManager, gizmo: Gizmo) {
+        verify(exactly = 1) { gizmo.addedToDisplay(renderManager) }
+        verify(exactly = 1) { gizmo.render        (any()        ) }
+    }
+
+    private fun verifyChildRemovedProperly(gizmo: Gizmo) {
+        verify(exactly = 1) { gizmo.removedFromDisplay() }
+
+        gizmo.children_.forEach { verifyChildRemovedProperly(it) }
+    }
 
     private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
     private fun container(): Container = Container().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
@@ -271,17 +343,27 @@ class RenderManagerImplTests {
             graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, graphicsDevice)
 
     private val defaultGraphicsDevice by lazy {
-        val result = mockk<GraphicsDevice<*>>(relaxed = true)
+        graphicsDevice()
+    }
 
-        val surface = mockk<GraphicsSurface>(relaxed = true)
+    private fun graphicsDevice(mapping: Map<Gizmo, GraphicsSurface> = mapOf()): GraphicsDevice<*> {
+        val result         = mockk<GraphicsDevice<*>>(relaxed = true)
+        val defaultSurface = mockk<GraphicsSurface>(relaxed = true)
+        val canvas         = mockk<Canvas>(relaxed = true)
 
-        every { surface.render(captureLambda()) } answers {
-            lambda<(Canvas) -> Unit>().captured(mockk(relaxed = true))
+        every { defaultSurface.render(captureLambda()) } answers {
+            lambda<(Canvas) -> Unit>().captured(canvas)
         }
 
-        every { result[any()] } answers { surface }
+        mapping.forEach {
+            every { it.value.render(captureLambda()) } answers {
+                lambda<(Canvas) -> Unit>().captured(canvas)
+            }
+        }
 
-        result
+        every { result[any()] } answers { mapping[firstArg()] ?: defaultSurface }
+
+        return result
     }
 
     private fun display(vararg children: Gizmo): Display = mockk<Display>(relaxed = true).apply {
@@ -290,11 +372,13 @@ class RenderManagerImplTests {
         container.children.addAll(children)
 
         val gizmo = slot<Gizmo>()
+        val to    = slot<Int>  ()
 
-        every { this@apply.children                   } returns container.children
-        every { this@apply.iterator()                 } answers { container.children.iterator() }
-        every { sizeChanged                           } returns mockk(relaxed = true)
-        every { this@apply.isAncestor(capture(gizmo)) } answers { container.isAncestor(gizmo.captured) }
+        every { this@apply.children                                } returns container.children
+        every { this@apply.iterator()                              } answers { container.children.iterator() }
+        every { sizeChanged                                        } returns mockk(relaxed = true)
+        every { this@apply.isAncestor(capture(gizmo)             ) } answers { container.isAncestor(gizmo.captured) }
+        every { this@apply.setZIndex (capture(gizmo), capture(to)) } answers { container.setZIndex(gizmo.captured, to.captured) }
     }
 
     private val instantScheduler by lazy { mockk<Scheduler>(relaxed = true).apply {
