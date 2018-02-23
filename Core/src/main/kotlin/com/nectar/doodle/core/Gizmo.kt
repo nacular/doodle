@@ -252,7 +252,7 @@ abstract class Gizmo protected constructor() {
      * @return The z-index (-1 if the Gizmo is not a child)
      */
     internal fun zIndex_(of: Gizmo) = zIndex(of)
-    protected fun zIndex(of: Gizmo) = children.size - children.indexOf(of)
+    protected open fun zIndex(of: Gizmo) = children.size - children.indexOf(of)
 
     /**
      * Gets the Gizmo at the given point.

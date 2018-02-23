@@ -69,10 +69,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         get(   ) = root.insets
         set(new) { root.insets = new }
 
-    override var minimumSize: Size
-        get(   ) = root.minimumSize
-        set(new) { root.minimumSize = new }
-
     override var layout: Layout?
         get(   ) = root.layout
         set(new) { root.layout = new }
@@ -81,8 +77,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override val sizeChanged: PropertyObservers<Display, Size> = PropertyObserversImpl(mutableSetOf())
 
-//    val childrenByZIndex: List<Gizmo>
-//        get() = ROOT_CONTAINER.getChildrenByZIndex()
+    override fun zIndex(of: Gizmo) = root.zIndex(of)
+
+    override fun setZIndex(of: Gizmo, to: Int) = root.setZIndex(of, to)
 
 //    var focusTraversalPolicy: FocusTraversalPolicy
 //        get() = ROOT_CONTAINER.getFocusTraversalPolicy()

@@ -8,7 +8,7 @@ import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
@@ -33,21 +33,16 @@ class RenderManagerImpl(
     private val addedInvisible      = mutableSetOf <Gizmo>()
     private val visibilityChanged   = mutableSetOf <Gizmo>()
     private val pendingBoundsChange = mutableSetOf <Gizmo>()
-
     private var paintTask           = null as Task?
-//    private val mPropertyListener   = InternalPropertyListener()
-//    private val mContainerListener  = InternalContainerListener()
 
     init {
-        display.children.onChange += this::childrenChanged
+        display.children.onChange += ::childrenChanged
         display.sizeChanged += { display, _, _ ->
 
             display.doLayout()
 
             display.forEach { checkDisplayRectChange(it) }
         }
-
-//        mDisplay.addContainerListener(mContainerListener)
 
         display.forEach { recordGizmo(it) }
     }
@@ -74,15 +69,13 @@ class RenderManagerImpl(
         }
     }
 
-    override fun displayRect(of: Gizmo): Rectangle? = displayRect(of, of.size)
+    override fun displayRect(of: Gizmo): Rectangle? {
+        displayTree[of]?.let { return it.clipRect }
 
-    private fun displayRect(gizmo: Gizmo, size: Size): Rectangle? {
-        displayTree[gizmo]?.let { return it.clipRect }
+        var child = of
+        var parent: Gizmo? = of.parent ?: return Empty
 
-        var child = gizmo
-        var parent: Gizmo? = gizmo.parent ?: return Rectangle.Empty
-
-        var clipRect = if (gizmo.visible) Rectangle(size = Size(size.width, size.width)) else Rectangle.Empty
+        var clipRect = if (of.visible) Rectangle(size = of.size) else Empty
 
         while (parent != null && !clipRect.empty) {
             clipRect = clipRect.intersect(Rectangle(0 - child.x,
@@ -95,6 +88,49 @@ class RenderManagerImpl(
         }
 
         return clipRect
+    }
+
+    private fun recordGizmo(gizmo: Gizmo) {
+        if (gizmo !in gizmos) {
+            gizmo.parent?.let {
+                if (it !in gizmos) {
+                    recordGizmo(it)
+                    return
+                }
+            }
+
+            if (gizmo.parent != null) {
+                gizmo.addedToDisplay(this)
+
+                dirtyGizmos   += gizmo
+                neverRendered += gizmo
+            }
+
+            gizmos              += gizmo
+            pendingBoundsChange += gizmo
+
+            gizmo.boundsChange       += ::boundsChanged
+            gizmo.visibilityChanged  += ::visibilityChanged
+            gizmo.children_.onChange += ::childrenChanged
+
+            gizmo.children_.forEach { recordGizmo(it) }
+
+            scheduleLayout(gizmo)
+
+            if (gizmo.monitorsDisplayRect) {
+                registerDisplayRectMonitoring(gizmo)
+
+                notifyDisplayRectChange(gizmo, Empty, displayRect(gizmo))
+            }
+
+            if (displayTree.containsKey(gizmo)) {
+                // TODO: IMPLEMENT
+            }
+
+            if (gizmo in display) {
+                render(gizmo, true)
+            }
+        }
     }
 
     private fun schedulePaint() {
@@ -154,6 +190,13 @@ class RenderManagerImpl(
         }
 
         paintTask = null
+    }
+
+    private fun scheduleLayout(gizmo: Gizmo) {
+        // Only take reference identity into account
+        if (layingOut !== gizmo) {
+            pendingLayout += gizmo
+        }
     }
 
     private fun performLayout(gizmo: Gizmo) {
@@ -219,49 +262,6 @@ class RenderManagerImpl(
         }
     }
 
-    private fun recordGizmo(gizmo: Gizmo) {
-        if (gizmo !in gizmos) {
-            gizmo.parent?.let {
-                if (it !in gizmos) {
-                    recordGizmo(it)
-                    return
-                }
-            }
-
-            if (gizmo.parent != null) {
-                gizmo.addedToDisplay(this)
-
-                dirtyGizmos   += gizmo
-                neverRendered += gizmo
-            }
-
-            gizmos              += gizmo
-            pendingBoundsChange += gizmo
-
-            gizmo.boundsChange       += ::boundsChanged
-            gizmo.visibilityChanged  += ::visibilityChanged
-            gizmo.children_.onChange += ::childrenChanged
-
-            gizmo.children_.forEach { recordGizmo(it) }
-
-            scheduleLayout(gizmo)
-
-            if (gizmo.monitorsDisplayRect) {
-                registerDisplayRectMonitoring(gizmo)
-
-                notifyDisplayRectChange(gizmo, Rectangle.Empty, displayRect(gizmo))
-            }
-
-            if (displayTree.containsKey(gizmo)) {
-                // TODO: IMPLEMENT
-            }
-
-            if (gizmo in display) {
-                render(gizmo, true)
-            }
-        }
-    }
-
     private fun updateGraphicsSurface(gizmo: Gizmo, surface: GraphicsSurface) {
         surface.bounds = gizmo.bounds
     }
@@ -287,12 +287,7 @@ class RenderManagerImpl(
     }
 
     private fun addToCleanupList(parent: Gizmo, child: Gizmo) {
-
-        val gizmos = pendingCleanup.getOrPut(parent) { mutableSetOf() }
-
-        gizmos.add(child)
-
-//        releaseResources( aChild );
+        pendingCleanup.getOrPut(parent) { mutableSetOf() }.apply { add(child) }
     }
 
     private fun removeFromCleanupList(parent: Gizmo, child: Gizmo) {
@@ -305,93 +300,6 @@ class RenderManagerImpl(
                 pendingCleanup.remove(parent)
             }
         }
-    }
-
-    private fun registerDisplayRectMonitoring(gizmo: Gizmo) {
-        if (!displayTree.containsKey(gizmo)) {
-            val node = DisplayRectNode(gizmo)
-
-            node.clipRect = Rectangle(size = gizmo.size)
-
-            displayTree.put(gizmo, node)
-
-            gizmo.parent?.let {
-                registerDisplayRectMonitoring(it)
-
-                val parentNode = displayTree[it]
-
-                updateClipRect(node, parentNode)
-
-                parentNode!! += node
-            }
-        }
-    }
-
-    private fun unregisterDisplayRectMonitoring(gizmo: Gizmo) {
-        displayTree[gizmo]?.let {
-            if (it.numChildren == 0) {
-                displayTree -= gizmo
-
-                it.parent?.minusAssign(it)
-
-                gizmo.parent?.let { unregisterDisplayRectMonitoring(it) }
-            }
-        }
-    }
-
-    private fun checkDisplayRectChange(gizmo: Gizmo) {
-        displayTree[gizmo]?.let { node ->
-            val oldDisplayRect = node.clipRect
-
-            updateClipRect(node, displayTree[gizmo.parent])
-
-            if (oldDisplayRect != node.clipRect) {
-                if (gizmo.monitorsDisplayRect) {
-                    notifyDisplayRectChange(gizmo, oldDisplayRect, node.clipRect)
-                }
-
-                for (i in 0 until node.numChildren) {
-                    checkDisplayRectChange(node[i].gizmo)
-                }
-            }
-        }
-    }
-
-    private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle?, new: Rectangle?) {
-        if (old != new) {
-            gizmo.handleDisplayRectEvent(DisplayRectEvent(gizmo, old, new))
-        }
-    }
-
-    private fun updateClipRect(node: DisplayRectNode, parent: DisplayRectNode?) {
-        val gizmo = node.gizmo
-
-        val gizmoRect = if (gizmo.visible) Rectangle(size = gizmo.size) else Rectangle.Empty
-
-        if (parent == null) {
-            node.clipRect = gizmoRect
-        } else {
-            val parentClip = parent.clipRect
-            val parentBounds = Rectangle(parentClip!!.x - gizmo.x,
-                    parentClip.y - gizmo.y,
-                    parentClip.width,
-                    parentClip.height)
-
-            node.clipRect = gizmoRect.intersect(parentBounds)
-        }
-    }
-
-    private fun scheduleLayout(gizmo: Gizmo) {
-        // Only take reference identity into account
-        if (layingOut !== gizmo) {
-            pendingLayout += gizmo
-        }
-    }
-
-    private fun handleAddedGizmo(gizmo: Gizmo) {
-        recordGizmo(gizmo)
-
-        themeManager?.update(gizmo)
     }
 
     private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: Map<Int, Gizmo>, added: Map<Int, Gizmo>, moved: Map<Int, Pair<Int, Gizmo>>) {
@@ -429,10 +337,14 @@ class RenderManagerImpl(
         if (child.visible) {
             handleAddedGizmo(child)
         } else {
-//                child.addPropertyListener(mPropertyListener)
-
             addedInvisible.add(child)
         }
+    }
+
+    private fun handleAddedGizmo(gizmo: Gizmo) {
+        recordGizmo(gizmo)
+
+        themeManager?.update(gizmo)
     }
 
     private fun childRemoved(parent: Gizmo, child: Gizmo) {
@@ -445,6 +357,7 @@ class RenderManagerImpl(
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun visibilityChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
         val parent = gizmo.parent
 
@@ -551,6 +464,80 @@ class RenderManagerImpl(
 //            }
 //        }
 //    }
+
+    private fun registerDisplayRectMonitoring(gizmo: Gizmo) {
+        if (!displayTree.containsKey(gizmo)) {
+            val node = DisplayRectNode(gizmo)
+
+            node.clipRect = Rectangle(size = gizmo.size)
+
+            displayTree[gizmo] = node
+
+            gizmo.parent?.let {
+                registerDisplayRectMonitoring(it)
+
+                val parentNode = displayTree[it]
+
+                updateClipRect(node, parentNode)
+
+                parentNode!! += node
+            }
+        }
+    }
+
+    private fun unregisterDisplayRectMonitoring(gizmo: Gizmo) {
+        displayTree[gizmo]?.let {
+            if (it.numChildren == 0) {
+                displayTree -= gizmo
+
+                it.parent?.minusAssign(it)
+
+                gizmo.parent?.let { unregisterDisplayRectMonitoring(it) }
+            }
+        }
+    }
+
+    private fun checkDisplayRectChange(gizmo: Gizmo) {
+        displayTree[gizmo]?.let { node ->
+            val oldDisplayRect = node.clipRect
+
+            updateClipRect(node, displayTree[gizmo.parent])
+
+            if (oldDisplayRect != node.clipRect) {
+                if (gizmo.monitorsDisplayRect) {
+                    notifyDisplayRectChange(gizmo, oldDisplayRect, node.clipRect)
+                }
+
+                for (i in 0 until node.numChildren) {
+                    checkDisplayRectChange(node[i].gizmo)
+                }
+            }
+        }
+    }
+
+    private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle?, new: Rectangle?) {
+        if (old != new) {
+            gizmo.handleDisplayRectEvent(DisplayRectEvent(gizmo, old, new))
+        }
+    }
+
+    private fun updateClipRect(node: DisplayRectNode, parent: DisplayRectNode?) {
+        val gizmo = node.gizmo
+
+        val gizmoRect = if (gizmo.visible) Rectangle(size = gizmo.size) else Empty
+
+        if (parent == null) {
+            node.clipRect = gizmoRect
+        } else {
+            val parentClip = parent.clipRect
+            val parentBounds = Rectangle(parentClip!!.x - gizmo.x,
+                    parentClip.y - gizmo.y,
+                    parentClip.width,
+                    parentClip.height)
+
+            node.clipRect = gizmoRect.intersect(parentBounds)
+        }
+    }
 
     private class DisplayRectNode(val gizmo: Gizmo) {
         var parent: DisplayRectNode? = null

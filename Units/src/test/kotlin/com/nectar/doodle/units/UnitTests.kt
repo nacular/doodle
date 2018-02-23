@@ -42,10 +42,13 @@ class UnitTests {
     fun `comparisons work`() {
         val a = Unit<Something>("a", 10.0)
         val b = Unit<Something>("b",  1.0)
+        val c = Unit<Something>("a", 10.0)
 
         expect(true,  "$a > $b" ) { a  > b }
         expect(false, "$a < $b" ) { a  < b }
+        expect(true,  "$a == $a") { a == a }
         expect(false, "$a == $b") { a == b }
+        expect(true,  "$a == $c") { a == c }
     }
 }
 
@@ -56,8 +59,8 @@ class MeasureTests {
         val unitA = Unit<Something>("a", 10.0)
         val unitB = Unit<Something>("b",  1.0)
 
-        val measureA = Measure<Something>(10.0, unitA)
-        val measureB = Measure<Something>(10.0, unitB)
+        val measureA = Measure(10.0, unitA)
+        val measureB = Measure(10.0, unitB)
 
         expect(true,  "$measureA > $measureB" ) { measureA  > measureB }
         expect(false, "$measureA < $measureB" ) { measureA  < measureB }
@@ -70,8 +73,8 @@ class MeasureTests {
         val unitA = Unit<Something>("a", 10.0)
         val unitB = Unit<Something>("b",  1.0)
 
-        val measureA = Measure<Something>(10.0, unitA)
-        val measureB = Measure<Something>(10.0, unitB)
+        val measureA = Measure(10.0, unitA)
+        val measureB = Measure(10.0, unitB)
 
         expect(Measure(110.0, unitB)) { measureA + measureB }
         expect(Measure( 90.0, unitB)) { measureA - measureB }
@@ -82,7 +85,7 @@ class MeasureTests {
     fun `unary -`() {
         val unit = Unit<Something>("a")
 
-        val measure = Measure<Something>(10.0, unit)
+        val measure = Measure(10.0, unit)
 
         expect(Measure(-10.0, unit)) { -measure }
     }

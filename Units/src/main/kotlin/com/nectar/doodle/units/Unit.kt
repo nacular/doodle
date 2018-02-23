@@ -76,7 +76,7 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comp
     }
 }
 
-operator fun <T> Int   .times(unit: Unit<T>): Measure<T> = Measure(this.toDouble(), unit)
-operator fun <T> Float .times(unit: Unit<T>): Measure<T> = Measure(this.toDouble(), unit)
-operator fun <T> Long  .times(unit: Unit<T>): Measure<T> = Measure(this.toDouble(), unit)
-operator fun <T> Double.times(unit: Unit<T>): Measure<T> = Measure(this,            unit)
+operator fun <T> Int   .times(unit: Unit<T>): Measure<T> = this.toDouble() * unit
+operator fun <T> Float .times(unit: Unit<T>): Measure<T> = this.toDouble() * unit
+operator fun <T> Long  .times(unit: Unit<T>): Measure<T> = this.toDouble() * unit
+operator fun <T> Double.times(unit: Unit<T>): Measure<T> = Measure(this, unit)

@@ -22,5 +22,9 @@ ext {
             junit                : "junit:junit:$junit_version",
             kotlin_junit         : ["org.jetbrains.kotlin:kotlin-test:$kotlin_version", "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"],
             mockk                :  "io.mockk:mockk:$mockk",
+
+            log4j                : "org.slf4j:slf4j-api:1.7.25",
+            logback              : "ch.qos.logback:logback-classic:1.2.3"
+
     ]
 }

@@ -8,4 +8,15 @@ dependencies {
     testImplementation project(':testingjvm')
     testImplementation dep.junit
     testImplementation dep.kotlin_junit
+
+    testImplementation dep.log4j
+    testImplementation dep.logback
+}
+
+apply from: '../jacoco.gradle'
+
+jacocoTestReport {
+    sourceDirectories = files([
+            "../Units/src/main/kotlin"
+    ])
 }

@@ -118,30 +118,6 @@ class RenderManagerImplTests {
         verifyChildRemovedProperly(container)
     }
 
-    private fun testDisplayZIndex(block: (Display, Gizmo) -> Unit) {
-        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
-        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
-        val display    = display(container1, container2)
-        val surface1   = mockk<GraphicsSurface>(relaxed = true)
-        val surface2   = mockk<GraphicsSurface>(relaxed = true)
-
-        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
-
-        listOf(container1, container2).forEach {
-            verifyChildAddedProperly(renderManager, it)
-        }
-
-        block(display, container2)
-
-        verify(exactly = 1) { surface2.zIndex = 0 }
-
-        listOf(container1, container2).forEach {
-            verify(exactly = 0) { it.removedFromDisplay(     ) }
-            verify(exactly = 1) { it.render            (any()) }
-            verify(exactly = 1) { it.doLayout_         (     ) }
-        }
-    }
-
     @Test @JsName("noopRemoveAddTopLevelGizmos")
     fun `no-op remove, add top-level gizmos`() = testDisplayZIndex { display, gizmo -> display.children.move(gizmo, 0) }
 
@@ -300,6 +276,30 @@ class RenderManagerImplTests {
 
     @Test @JsName("laysOutParentOnVisibilityChanged")
     fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
+
+    private fun testDisplayZIndex(block: (Display, Gizmo) -> Unit) {
+        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val display    = display(container1, container2)
+        val surface1   = mockk<GraphicsSurface>(relaxed = true)
+        val surface2   = mockk<GraphicsSurface>(relaxed = true)
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
+
+        listOf(container1, container2).forEach {
+            verifyChildAddedProperly(renderManager, it)
+        }
+
+        block(display, container2)
+
+        verify(exactly = 1) { surface2.zIndex = 0 }
+
+        listOf(container1, container2).forEach {
+            verify(exactly = 0) { it.removedFromDisplay(     ) }
+            verify(exactly = 1) { it.render            (any()) }
+            verify(exactly = 1) { it.doLayout_         (     ) }
+        }
+    }
 
     private fun verifyLayout(block: (Gizmo) -> Unit) {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }

@@ -25,6 +25,7 @@ open class Container: Gizmo(), Iterable<Gizmo> {
     public override val children = super.children
 
     public override fun setZIndex(of: Gizmo, to: Int) = super.setZIndex(of, to)
+    public override fun zIndex(of: Gizmo) = super.zIndex(of)
 
     public override fun isAncestor(of: Gizmo) = super.isAncestor(of)
 
