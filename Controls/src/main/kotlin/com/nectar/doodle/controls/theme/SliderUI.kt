@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.ranges.size
+import com.nectar.doodle.utils.size
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical

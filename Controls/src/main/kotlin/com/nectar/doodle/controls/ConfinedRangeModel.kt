@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls
 
-import com.nectar.doodle.ranges.intersect
+import com.nectar.doodle.utils.intersect
 
 /**
  * Created by Nicholas Eddy on 2/12/18.

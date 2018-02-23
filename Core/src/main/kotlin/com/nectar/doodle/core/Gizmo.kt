@@ -75,6 +75,9 @@ abstract class Gizmo protected constructor() {
     var toolTipText = ""
         private set
 
+
+    val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
+
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
@@ -89,9 +92,17 @@ abstract class Gizmo protected constructor() {
     var monitorsMouseWheel by observable(true ) { _,_,_ ->
 
     }
-    var monitorsMouseMotion by observable(true ) { _,_,_ ->
 
+    val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
+
+    var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
+
+    }) {
+        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
+            return super.getValue(thisRef, property) && !mouseMotionChanged.isEmpty()
+        }
     }
+
     var monitorsDisplayRect: Boolean by observable(false) { _,_,_ ->
         setDisplayRectHandlingRequired(monitorsDisplayRect, monitorsDisplayRect)
     }
@@ -533,9 +544,6 @@ abstract class Gizmo protected constructor() {
 //
 //    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
-
-    val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
-    val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
 
     /**
      * Updates property that indicates display rect monitoring is required for this Gizmo.

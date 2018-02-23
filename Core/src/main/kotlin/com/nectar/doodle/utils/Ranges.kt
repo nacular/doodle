@@ -1,4 +1,4 @@
-package com.nectar.doodle.ranges
+package com.nectar.doodle.utils
 
 /**
  * Created by Nicholas Eddy on 2/12/18.

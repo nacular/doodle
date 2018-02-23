@@ -3,7 +3,7 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.ranges.size
+import com.nectar.doodle.utils.size
 import com.nectar.doodle.theme.Renderer
 
 /**
