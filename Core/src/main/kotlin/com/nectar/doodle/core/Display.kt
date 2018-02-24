@@ -15,7 +15,7 @@ import com.nectar.doodle.utils.PropertyObservers
  */
 interface Display: Iterable<Gizmo> {
 
-    override fun iterator(): Iterator<Gizmo> = children.iterator()
+    override fun iterator() = children.iterator()
 
     /**
      * The top-level cursor.  This will be the cursor used for Gizmo hierarchies that do not have one set.

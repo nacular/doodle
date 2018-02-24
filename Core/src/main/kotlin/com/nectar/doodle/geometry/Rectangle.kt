@@ -88,7 +88,7 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
      */
     fun inset(inset: Insets) = Rectangle(x + inset.left, y + inset.top, max(0.0, width  - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
 
-    override operator fun contains(point: Point) = point.x in x..x + width && point.y in y..y + height
+    override operator fun contains(point: Point) = area > 0 && point.x in x..x + width && point.y in y..y + height
 
     override operator fun contains(rectangle: Rectangle) = contains(rectangle.position) && contains(rectangle.position + Point(rectangle.width, rectangle.height))
 

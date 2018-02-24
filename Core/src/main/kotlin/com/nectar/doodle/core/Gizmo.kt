@@ -73,10 +73,8 @@ abstract class Gizmo protected constructor() {
     val displayRect get() = renderManager?.displayRect(this) ?: Empty
 
     var toolTipText = ""
-        private set
 
-
-    val mouseChanged       = SetPool<MouseListener      >(mutableSetOf())
+    val mouseChanged = SetPool<MouseListener>(mutableSetOf())
 
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
