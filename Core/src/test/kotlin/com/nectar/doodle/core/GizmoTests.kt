@@ -10,6 +10,7 @@ import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
@@ -226,6 +227,118 @@ class GizmoTests {
         expect("foo", "${gizmo.toolTipText} == \"\"") { gizmo.toolTipText(event) }
     }
 
+    @Test @JsName("isAncestorWorks")
+    fun `is-ancestor works`() {
+        val root   = object: Gizmo() {}
+        val parent = object: Gizmo() {}
+        val child  = object: Gizmo() {}
+
+        expect(false) { root.isAncestor_(root ) }
+        expect(false) { root.isAncestor_(child) }
+
+        root.children_   += parent
+        parent.children_ += child
+
+        expect(true) { root.isAncestor_(parent) }
+        expect(true) { root.isAncestor_(child ) }
+    }
+
+    @Test @JsName("toAbsoluteWorks")
+    fun `to absolute works`() {
+        val root   = gizmo()
+        val parent = gizmo().apply { x += 10.0; y += 12.0 }
+        val child  = gizmo().apply { x += 10.0; y += 12.0 }
+
+        root.children_   += parent
+        parent.children_ += child
+
+        val point = Point(100.0, 56.0)
+
+        expect(point + parent.position                 ) { parent.toAbsolute(point) }
+        expect(point + parent.position + child.position) { child.toAbsolute (point) }
+    }
+
+    @Test @JsName("fromAbsoluteWorks")
+    fun `from absolute works`() {
+        val root   = gizmo()
+        val parent = gizmo().apply { x += 10.0; y += 12.0 }
+        val child  = gizmo().apply { x += 10.0; y += 12.0 }
+
+        root.children_   += parent
+        parent.children_ += child
+
+        val point = Point(100.0, 56.0)
+
+        expect(point -  parent.position                  ) { parent.fromAbsolute(point) }
+        expect(point - (parent.position + child.position)) { child.fromAbsolute (point) }
+
+        expect(child.fromAbsolute(point)) { child.toLocal(point, root) }
+    }
+
+    @Test @JsName("toLocalWorks")
+    fun `to local works`() {
+        val root   = gizmo()
+        val parent = gizmo().apply { x += 10.0; y += 12.0 }
+        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
+        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
+
+        root.children_   += parent
+        parent.children_ += child1
+        parent.children_ += child2
+
+        expect(Origin                           ) { parent.toLocal(parent.position,    root  ) }
+        expect(Point(-45.0, 0.89)               ) { root.toLocal  (Point(-45.0, 0.89), root  ) }
+        expect(child2.position - child1.position) { child1.toLocal(Origin,             child2) }
+    }
+
+    @Test @JsName("childAtWorks")
+    fun `child at works`() {
+        val root   = gizmo()
+        val child0 = gizmo().apply { x += 10.0; y += 12.0 }
+        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
+        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
+        val child3 = gizmo().apply { x += 10.0; y += 23.0; width = 0.0 }
+
+        root.children_ += child0
+        root.children_ += child1
+        root.children_ += child2
+        root.children_ += child3
+
+        expect(child1) { root.child_(Point(11.0, 13.0)) }
+        expect(child2) { root.child_(Point(20.0, 12.0)) }
+        expect(null  ) { root.child_(child3.position  ) }
+
+        child1.visible = false
+
+        expect(child0) { root.child_(Point(11.0, 13.0)) }
+    }
+
+    @Test @JsName("zIndexWorks")
+    fun `z-index works`() {
+        val root   = gizmo()
+        val child0 = gizmo().apply { x += 10.0; y += 12.0 }
+        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
+        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
+        val child3 = gizmo().apply { x += 10.0; y += 23.0; width = 0.0 }
+
+        root.children_ += child0
+        root.children_ += child1
+        root.children_ += child2
+        root.children_ += child3
+
+        expect(3) { root.zIndex_(child0) }
+        expect(2) { root.zIndex_(child1) }
+        expect(1) { root.zIndex_(child2) }
+        expect(0) { root.zIndex_(child3) }
+
+        root.children_.move(child0, 3)
+
+        expect(3) { root.zIndex_(child1) }
+        expect(2) { root.zIndex_(child2) }
+        expect(1) { root.zIndex_(child3) }
+        expect(0) { root.zIndex_(child0) }
+    }
+
     private fun validateFocusChanged(event: FocusEvent, block: (Gizmo, PropertyObserver<Gizmo, Boolean>, FocusEvent) -> Unit) {
         val gizmo    = object: Gizmo() {}
         val observer = mockk<PropertyObserver<Gizmo, Boolean>>(relaxed = true)
@@ -276,7 +389,6 @@ class GizmoTests {
         verify(exactly = 1) { observer(gizmo, old, property.get(gizmo)) }
     }
 
-
     private fun <T> validateDefault(p: KProperty1<Gizmo, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(object: Gizmo() {}) }
     }
@@ -288,4 +400,6 @@ class GizmoTests {
             expect(value, "$p set to $value") { p.get(it) }
         }
     }
+
+    private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 }

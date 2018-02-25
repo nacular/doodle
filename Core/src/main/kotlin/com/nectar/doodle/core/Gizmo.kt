@@ -193,19 +193,18 @@ abstract class Gizmo protected constructor() {
 
     protected val focusCycleRoot: Gizmo? = null
         get() {
-            var parent = field
+            var result = field
 
-            while (parent != null && !parent.isFocusCycleRoot) {
-                parent = parent.parent
+            while (result != null && !result.isFocusCycleRoot) {
+                result = result.parent
             }
 
-            return parent
+            return result
         }
 
     // [Performance]
-    // No check to prevent setting self as parent since Gizmo
-    // is the only place where this method is called from and it already
-    // prevents this by preventing a Gizmo from being added to itself
+    // No check to prevent setting self as parent since Gizmo is the only place where this method is called from and it already
+    // prevents this by preventing a Gizmo from being added to itself.
     var parent: Gizmo? = null
         private set(new) {
             if (field === new) {
@@ -261,7 +260,7 @@ abstract class Gizmo protected constructor() {
      * @return The z-index (-1 if the Gizmo is not a child)
      */
     internal fun zIndex_(of: Gizmo) = zIndex(of)
-    protected open fun zIndex(of: Gizmo) = children.size - children.indexOf(of)
+    protected open fun zIndex(of: Gizmo) = children.size - children.indexOf(of) - 1
 
     /**
      * Gets the Gizmo at the given point.

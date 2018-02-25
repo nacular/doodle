@@ -1,7 +1,7 @@
 package com.nectar.doodle.geometry
 
 
-class Point(val x: Double, val y: Double) {
+class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
     operator fun plus (other: Point) = Point(x + other.x, y + other.y)
     operator fun minus(other: Point) = Point(x - other.x, y - other.y)
@@ -26,6 +26,6 @@ class Point(val x: Double, val y: Double) {
     }
 
     companion object {
-        val Origin = Point(0.0, 0.0)
+        val Origin = Point()
     }
 }
