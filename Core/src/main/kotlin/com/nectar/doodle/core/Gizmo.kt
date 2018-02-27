@@ -108,9 +108,23 @@ abstract class Gizmo protected constructor() {
         setDisplayRectHandlingRequired(monitorsDisplayRect, monitorsDisplayRect)
     }
 
-    var font           : Font?   = null
-    var cursor         : Cursor? = null
-            get() = field ?: parent?.cursor
+    var font  : Font?   = null
+    var cursor: Cursor? = null
+        get() = field ?: parent?.cursor
+        set(new) {
+            if (new == field) {
+                return
+            }
+
+            val old = field
+
+            field = new
+
+            (cursorChanged as PropertyObserversImpl<Gizmo, Cursor?>).forEach { it(this, old, new) }
+        }
+
+    val cursorChanged: PropertyObservers<Gizmo, Cursor?> by lazy { PropertyObserversImpl<Gizmo, Cursor?>(mutableSetOf()) }
+
     var foregroundColor: Color?  = null
     var backgroundColor: Color?  = null
 
@@ -138,9 +152,9 @@ abstract class Gizmo protected constructor() {
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
-    val boundsChange: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(mutableSetOf()) }
+    val boundsChanged: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(mutableSetOf()) }
 
-    var bounds by ObservableProperty(Empty, { this }, boundsChange as PropertyObserversImpl<Gizmo, Rectangle>)
+    var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<Gizmo, Rectangle>)
 
     // ================= Container ================= //
     internal val insets_ get() = insets

@@ -34,6 +34,9 @@ interface Display: Iterable<Gizmo> {
     /** The list of top-level items added to the Display */
     val children: ObservableList<Gizmo, Gizmo>
 
+    /** Fires when the display cursor changes */
+    val cursorChanged: PropertyObservers<Display, Cursor?>
+
     /** Fires when the display re-sizes */
     val sizeChanged: PropertyObservers<Display, Size>
 

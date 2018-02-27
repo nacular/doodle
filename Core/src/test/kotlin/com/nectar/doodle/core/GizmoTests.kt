@@ -133,8 +133,8 @@ class GizmoTests {
     @Test @JsName("changeEventsWork")
     fun `change events work`() {
         listOf(
-            Gizmo::enabled to Gizmo::enabledChanged,
-            Gizmo::visible to Gizmo::visibilityChanged,
+            Gizmo::enabled   to Gizmo::enabledChanged,
+            Gizmo::visible   to Gizmo::visibilityChanged,
             Gizmo::focusable to Gizmo::focusableChanged
         ).forEach {
             validateChanged(it.first, it.second)
@@ -188,15 +188,28 @@ class GizmoTests {
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = gizmo.bounds
 
-        gizmo.boundsChange += observer
-
-        gizmo.bounds = new
+        gizmo.boundsChanged += observer
+        gizmo.bounds         = new
 
         verify(exactly = 1) { observer(gizmo, old, new) }
 
         gizmo.x = 67.0
 
         verify(exactly = 1) { observer(gizmo, new, new.at(x = 67.0)) }
+    }
+
+    @Test @JsName("cursorChangedWorks")
+    fun `cursor changed works`() {
+        val gizmo    = object: Gizmo() {}
+        val observer = mockk<PropertyObserver<Gizmo, Cursor?>>(relaxed = true)
+        val new      = Cursor.Crosshair
+        val old      = gizmo.cursor
+
+        gizmo.cursorChanged += observer
+        gizmo.cursor         = new
+        gizmo.cursor         = new
+
+        verify(exactly = 1) { observer(gizmo, old, new) }
     }
 
     @Test @JsName("containsPointWorks")

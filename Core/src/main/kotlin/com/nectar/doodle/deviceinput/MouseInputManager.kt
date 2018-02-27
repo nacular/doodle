@@ -26,13 +26,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     init {
         inputService += this
 
-//        mDisplay.addPropertyListener(object : PropertyListener() {
-//            fun propertyChanged(aPropertyEvent: PropertyEvent) {
-//                if (aPropertyEvent.getProperty() === Gizmo.CURSOR) {
-//                    this@MouseInputManager.setCursor(aPropertyEvent.getNewValue() as Cursor)
-//                }
-//            }
-//        })
+        display.cursorChanged += { _,_,new -> cursor = new }
     }
 
     override fun changed(event: SystemMouseEvent) {
@@ -52,19 +46,15 @@ class MouseInputManager(private val display: Display, private val inputService: 
         mouseScroll(event)
     }
 
-//    fun propertyChanged(aEvent: PropertyEvent) {
-//        val aSource = aEvent.getSource() as Gizmo
-//
-//        if (aEvent.getProperty() === Gizmo.CURSOR) {
-//            if (aEvent.getOldValue() == null) {
-//                unregisterPropertyListeners(aSource.getParent())
-//            } else if (aEvent.getNewValue() == null) {
-//                registerPropertyListeners(aSource.getParent())
-//            }
-//
-//            setCursor(getGizmoCursor(aSource))
-//        }
-//    }
+    private fun cursorChanged(gizmo: Gizmo, old: Cursor?, new: Cursor?) {
+        if (old == null) {
+            gizmo.parent?.let { unregisterCursorListeners(it) }
+        } else if (new == null) {
+            gizmo.parent?.let { registerCursorListeners(it) }
+        }
+
+        cursor = getGizmoCursor(gizmo)
+    }
 
     private fun mouseUp(event: SystemMouseEvent) {
         var cursor: Cursor? = null
@@ -164,7 +154,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
                     }
                 }
 
-//                unregisterPropertyListeners(coveredEventAwareGizmo)
+                unregisterCursorListeners(it)
             }
 
             if (gizmo != null) {
@@ -185,11 +175,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 cursor = null
             }
 
-            coveredEventAwareGizmo = gizmo
+            coveredEventAwareGizmo = gizmo?.also { registerCursorListeners(it) }
 
-            if (coveredEventAwareGizmo != null) {
-//                registerPropertyListeners(coveredEventAwareGizmo)
-            }
         } else if (!mouseDown) {
             if (coveredEventAwareGizmo != null) {
                 val handler = getMouseMotionEventHandler(coveredEventAwareGizmo)
@@ -250,31 +237,33 @@ class MouseInputManager(private val display: Display, private val inputService: 
         return result
     }
 
-//    private fun registerPropertyListeners(gizmo: Gizmo?) {
-//        var gizmo = gizmo
-//        while (gizmo != null && gizmo!!.getParent() != null) {
-//            gizmo!!.addPropertyListener(this)
-//
-//            if (gizmo!!.getCursor() != null) {
-//                break
-//            } else {
-//                gizmo = gizmo!!.getParent()
-//            }
-//        }
-//    }
-//
-//    private fun unregisterPropertyListeners(gizmo: Gizmo?) {
-//        var gizmo = gizmo
-//        while (gizmo != null && gizmo!!.getParent() != null) {
-//            gizmo!!.removePropertyListener(this)
-//
-//            if (gizmo!!.getCursor() != null) {
-//                break
-//            } else {
-//                gizmo = gizmo!!.getParent()
-//            }
-//        }
-//    }
+    private fun registerCursorListeners(gizmo: Gizmo) {
+        var value: Gizmo? = gizmo
+
+        while (value?.parent != null) {
+            value.cursorChanged += ::cursorChanged
+
+            if (value.cursor != null) {
+                break
+            } else {
+                value = value.parent
+            }
+        }
+    }
+
+    private fun unregisterCursorListeners(gizmo: Gizmo) {
+        var value: Gizmo? = gizmo
+
+        while (value?.parent != null) {
+            value.cursorChanged -= ::cursorChanged
+
+            if (value.cursor != null) {
+                break
+            } else {
+                value = value.parent
+            }
+        }
+    }
 
     private fun getGizmoCursor(gizmo: Gizmo?) = when (display.cursor) {
         null -> gizmo?.cursor

@@ -82,7 +82,7 @@ class Label internal constructor(
         }
 
     init {
-        boundsChange += { _,old,new ->
+        boundsChanged += { _,old,new ->
             if (old.size != new.size) {
                 measureText()
             }

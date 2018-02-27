@@ -109,7 +109,7 @@ class RenderManagerImpl(
             gizmos              += gizmo
             pendingBoundsChange += gizmo
 
-            gizmo.boundsChange       += ::boundsChanged
+            gizmo.boundsChanged       += ::boundsChanged
             gizmo.visibilityChanged  += ::visibilityChanged
             gizmo.children_.onChange += ::childrenChanged
 
@@ -279,7 +279,7 @@ class RenderManagerImpl(
         pendingRender       -= gizmo
         pendingBoundsChange -= gizmo
 
-        gizmo.boundsChange       -= ::boundsChanged
+        gizmo.boundsChanged       -= ::boundsChanged
         gizmo.visibilityChanged  -= ::visibilityChanged
         gizmo.children_.onChange -= ::childrenChanged
 
