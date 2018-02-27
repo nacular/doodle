@@ -34,6 +34,8 @@ import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
 import kotlin.reflect.KProperty
 
+private typealias ChangeObservers = PropertyObservers<Gizmo, Boolean>
+
 /**
  * The smallest unit of displayable, interactive content within the framework.
  * Gizmos are the visual entities used to display components for an application.
@@ -46,27 +48,28 @@ import kotlin.reflect.KProperty
 @Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
 
-    val focusChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<Gizmo, Boolean>)
         private set
 
     var name = ""
 
-    val enabledChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val enabledChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val visibilityChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val visibilityChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val focusableChanged: PropertyObservers<Gizmo, Boolean> by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusableChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     open var focusable by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
     var idealSize: Size? = null
         get() = layout?.idealSize(this, field) ?: field
+
     var minimumSize: Size = Size.Empty
         get() = layout?.idealSize(this, field) ?: field
 

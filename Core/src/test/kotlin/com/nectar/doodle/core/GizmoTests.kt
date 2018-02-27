@@ -382,7 +382,7 @@ class GizmoTests {
         val old      = property.get(gizmo)
         val observer = mockk<PropertyObserver<Gizmo, Boolean>>(relaxed = true)
 
-        changed.get(gizmo) += observer
+        changed.get(gizmo).plusAssign(observer)
 
         property.set(gizmo, !property.get(gizmo))
 

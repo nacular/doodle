@@ -1,7 +1,7 @@
 package com.nectar.doodle.geometry
 
 
-class Size(val width: Double, val height: Double) {
+class Size(val width: Double = 0.0, val height: Double = 0.0) {
     init {
         require(width  >= 0) { "Width cannot be negative"  }
         require(height >= 0) { "Height cannot be negative" }
@@ -10,10 +10,8 @@ class Size(val width: Double, val height: Double) {
     val area  = width * height
     val empty = area == 0.0
 
-    operator fun plus (other: Size  ) = Size(width + other.width, height + other.height)
-    operator fun minus(other: Size  ) = Size(width - other.width, height - other.height)
-    operator fun times(value: Number) = Size(width * value.toDouble(), height * value.toDouble())
-    operator fun div  (value: Number) = Size(width / value.toDouble(), height / value.toDouble())
+    operator fun times(value: Double) = Size(width * value, height * value)
+    operator fun div  (value: Double) = Size(width / value, height / value)
 
     override fun toString(): String = "[$width,$height]"
 
@@ -33,4 +31,3 @@ class Size(val width: Double, val height: Double) {
         val Empty = Size(0.0, 0.0)
     }
 }
-/** Creates a (0,0) Dimension.  */

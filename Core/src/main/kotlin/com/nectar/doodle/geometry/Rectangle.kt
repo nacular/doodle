@@ -7,22 +7,22 @@ import kotlin.math.max
 
 class Rectangle constructor(val position: Point = Origin, val size: Size = Size.Empty): Shape {
 
-    constructor(x: Double = 0.0, y: Double = 0.0, width: Double, height: Double): this(Point(x, y), Size(width, height))
+    constructor(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): this(Point(x, y), Size(width, height))
 
     val x      get() = position.x
     val y      get() = position.y
     val width  get() = size.width
     val height get() = size.height
 
-    override val area              = size.area
-    override val empty             = size.empty
-    override val boundingRectangle = this
+    override val area              get() = size.area
+    override val empty             get() = size.empty
+    override val boundingRectangle get() = this
 
     /**
      * @param rectangle
      * @return a Rectangle representing the intersection of the 2 rectangles
      */
-    fun intersect(rectangle: Rectangle): Rectangle {
+    infix fun intersect(rectangle: Rectangle): Rectangle {
         if (rectangle === this) {
             return this
         }
@@ -73,7 +73,7 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     /**
      * @return a Rectangle with the same width/height but positioned at the given point
      */
-    fun at(position: Point) = at(position.x, position.y)
+    infix fun at(position: Point) = at(position.x, position.y)
 
     /**
      * @param inset amount to resize by
@@ -93,10 +93,12 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     override operator fun contains(rectangle: Rectangle) = contains(rectangle.position) && contains(rectangle.position + Point(rectangle.width, rectangle.height))
 
     override fun intersects(rectangle: Rectangle): Boolean {
-        return !(x > rectangle.x + rectangle.width  ||
-                 y > rectangle.y + rectangle.height ||
-                 x + width  < rectangle.x ||
-                 y + height < rectangle.y)
+        return !(x          >= rectangle.x + rectangle.width  ||
+                 y          >= rectangle.y + rectangle.height ||
+                 x + width  <= rectangle.x                    ||
+                 y + height <= rectangle.y                    ||
+                empty                                         ||
+                rectangle.empty)
     }
 
     override fun toString() = "[$x,$y,$width,$height]"

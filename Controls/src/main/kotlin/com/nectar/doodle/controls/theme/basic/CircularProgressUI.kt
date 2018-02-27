@@ -18,7 +18,7 @@ class CircularProgressUI(private val defaultBackgroundColor: Color, private val 
     override fun render(gizmo: ProgressIndicator, canvas: Canvas) {
         val border = 1.0
         val radius = min(gizmo.width, gizmo.height) / 2
-        val center = (gizmo.size / 2).run { Point(width, height) }
+        val center = (gizmo.size / 2.0).run { Point(width, height) }
         val brush  = ColorBrush(gizmo.backgroundColor ?: defaultBackgroundColor)
 
         // Draw background with optional outline

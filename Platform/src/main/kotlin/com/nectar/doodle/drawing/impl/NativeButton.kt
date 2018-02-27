@@ -69,7 +69,7 @@ class NativeButton internal constructor(
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
         private val elementRuler   : ElementRuler,
         handlerFactory : NativeEventHandlerFactory,
-        private val button: Button) : NativeEventListener /*, PropertyListener,*/ {
+        private val button: Button): NativeEventListener /*, PropertyListener,*/ {
 
     var idealSize: Size? = null
         private set
@@ -392,10 +392,10 @@ class NativeButton internal constructor(
 
         val size = elementRuler.size(button)
 
-        println("Border size: ${s - size}")
+//        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
 
         // TODO: Get values for each side properly
-        return ((s - size) / 2).run {
+        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
             Insets(height, width, height, width)
         }
     }
@@ -418,7 +418,7 @@ class NativeButton internal constructor(
         val size = elementRuler.size(button)
 
         // TODO: Get values for each side properly
-        return ((size - s) / 2).run {
+        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
             Insets(height, width, height, width)
         }
     }

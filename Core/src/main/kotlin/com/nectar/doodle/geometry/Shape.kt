@@ -56,5 +56,5 @@ interface Shape {
      * @return true if the Shape intersects the rectangle
      */
 
-    fun intersects(rectangle: Rectangle): Boolean
+    infix fun intersects(rectangle: Rectangle): Boolean
 }

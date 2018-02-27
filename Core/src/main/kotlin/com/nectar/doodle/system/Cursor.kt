@@ -6,7 +6,7 @@ class Cursor private constructor(private val type: String) {
     override fun toString() = type
 
     companion object {
-        fun create(type: String) = cursors.getOrPut(type) {
+        operator fun invoke(type: String) = cursors.getOrPut(type) {
             Cursor(type)
         }
 

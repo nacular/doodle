@@ -106,7 +106,7 @@ class Color(
         if (other !is Color) return false
 
         if (opacity != other.opacity) return false
-        if (opacity != 0f && decimal != other.decimal) return false
+        if (decimal != other.decimal) return false
 
         return true
     }

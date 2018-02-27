@@ -1,16 +1,15 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.drawing.Font.Style.Italic
+
 
 interface Font {
-    val size: Int
-
+    val size  : Int
+    val style : Set<Style>
     val weight: Weight
-
-    val style: Set<Style>
-
     val family: String
 
-    val isItalic get() = style.contains(Style.Italic)
+    val isItalic get() = style.contains(Italic)
 
     enum class Style {
         Italic

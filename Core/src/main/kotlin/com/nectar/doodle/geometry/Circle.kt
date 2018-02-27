@@ -7,9 +7,9 @@ import kotlin.math.sqrt
 
 class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
 
-    constructor(radius: Double): this(Point.Origin, radius)
+    constructor(radius: Double): this(Origin, radius)
 
-    val radius = xRadius
+    val radius get() = xRadius
 
     override fun contains(point: Point): Boolean {
         val fromCenter = point - center
@@ -22,12 +22,9 @@ class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
         else  -> Circle(point, radius)
     }
 
-    fun atOrigin() = when(center) {
-        Origin -> this
-        else   -> Circle(radius)
-    }
+    fun atOrigin() = at(Origin)
 
-    fun inset(aInset: Double) = Circle(center, radius - aInset)
+    fun inset(inset: Double) = Circle(center, radius - inset)
 
     companion object {
         val Unit = Circle(1.0)

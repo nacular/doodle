@@ -208,7 +208,7 @@ internal class CanvasImpl(
         when {
             by.x == 1.0 && by.y == 1.0 -> block()
             else                       -> {
-                val point = around - (size / 2).run { Point(width, height) }
+                val point = around - (size / 2.0).run { Point(width, height) }
 
                 transform(Identity.translate(point).scale(by).translate(-point), block)
             }
@@ -220,7 +220,7 @@ internal class CanvasImpl(
     }
 
     override fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
-        val point = around - (size / 2).run { Point(width, height) }
+        val point = around - (size / 2.0).run { Point(width, height) }
 
         transform(Identity.translate(point).rotate(by).translate(-point), block)
     }

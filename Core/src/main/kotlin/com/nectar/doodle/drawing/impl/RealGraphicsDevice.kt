@@ -20,20 +20,14 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
 
             surface.zIndex = if (parent != null) parent.zIndex_(gizmo) else 0
 
-            gizmoSurfaceMap.put(gizmo, surface)
-            surfaceGizmoMap.put(surface, gizmo)
+            gizmoSurfaceMap[gizmo  ] = surface
+            surfaceGizmoMap[surface] = gizmo
         }
 
         return surface
     }
 
-    override fun create(): GraphicsSurface {
-        val surface = surfaceFactory.surface()
-
-        surface.zIndex = 0
-
-        return surface
-    }
+    override fun create() = surfaceFactory.surface().apply { zIndex = 0 }
 
 //    override fun create(element: HTMLElement) = surfaceFactory.surface(element)
 
@@ -50,13 +44,4 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
     override fun release(surface: GraphicsSurface) {
         surfaceGizmoMap[surface]?.let { release(it) }
     }
-
-//    private fun clearResources(surface: GraphicsSurface) {
-//        for (aChild in surface) {
-//            clearResources(aChild)
-//        }
-//
-//        gizmoSurfaceMap.remove(surfaceGizmoMap[surface])
-//        surfaceGizmoMap.remove(surface)
-//    }
 }
