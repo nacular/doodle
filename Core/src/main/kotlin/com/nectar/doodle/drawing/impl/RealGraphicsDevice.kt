@@ -18,7 +18,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
 
             surface = surfaceFactory.surface(gizmoSurfaceMap[parent], !gizmo.children_.isEmpty())
 
-            surface.zIndex = if (parent != null) parent.zIndex_(gizmo) else 0
+            surface.zIndex = parent?.zIndex_(gizmo) ?: 0
 
             gizmoSurfaceMap[gizmo  ] = surface
             surfaceGizmoMap[surface] = gizmo

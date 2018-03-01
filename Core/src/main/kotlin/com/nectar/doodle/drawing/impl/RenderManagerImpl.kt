@@ -308,10 +308,12 @@ class RenderManagerImpl(
         removed.values.forEach { childRemoved(parent, it) }
         added.values.forEach   { childAdded  (parent, it) }
 
-        moved.forEach {
-            val surface = graphicsDevice[it.value.second]
+        if (parent !in pendingRender) {
+            moved.forEach {
+                val surface = graphicsDevice[it.value.second]
 
-            surface.zIndex = it.key
+                surface.zIndex = it.key
+            }
         }
 
         if (removed.isEmpty() && added.isEmpty()) {

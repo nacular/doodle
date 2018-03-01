@@ -418,7 +418,7 @@ class NativeButton internal constructor(
         val size = elementRuler.size(button)
 
         // TODO: Get values for each side properly
-        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
+        return (Size(size.width - s.width, size.height - s.height) / 2.0).run {
             Insets(height, width, height, width)
         }
     }

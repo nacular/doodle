@@ -4,9 +4,11 @@ import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.SystemMouseEvent
+import com.nectar.doodle.system.SystemMouseEvent.Type
 import com.nectar.doodle.system.SystemMouseEvent.Type.Click
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
@@ -22,11 +24,29 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private var mouseDown              = false
     private var clickedEventAwareGizmo = null as Gizmo?
     private var coveredEventAwareGizmo = null as Gizmo?
+    private var coveredGizmo           = null as Gizmo?
+        set(new) {
+            if (new == field) {
+                return
+            }
+
+            field?.let { unregisterCursorListeners(it) }
+            field = new
+            field?.let { registerCursorListeners(it) }
+        }
+
+    private var cursor = null as Cursor?
+        set(new) {
+            field = new
+            inputService.cursor = cursor ?: display.cursor ?: Cursor.Default
+        }
 
     init {
         inputService += this
 
         display.cursorChanged += { _,_,new -> cursor = new }
+
+        cursor = display.cursor
     }
 
     override fun changed(event: SystemMouseEvent) {
@@ -42,9 +62,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    override fun changed(event: SystemMouseWheelEvent) {
-        mouseScroll(event)
-    }
+    override fun changed(event: SystemMouseWheelEvent) = mouseScroll(event)
 
     private fun cursorChanged(gizmo: Gizmo, old: Cursor?, new: Cursor?) {
         if (old == null) {
@@ -132,7 +150,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     private fun mouseMove(event: SystemMouseEvent) {
-        val coveredGizmo = gizmo(event.location)
+        coveredGizmo = gizmo(event.location)
 
         clickedEventAwareGizmo?.let {
             if (it.monitorsMouseMotion) {
@@ -240,7 +258,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun registerCursorListeners(gizmo: Gizmo) {
         var value: Gizmo? = gizmo
 
-        while (value?.parent != null) {
+        while (value != null) {
             value.cursorChanged += ::cursorChanged
 
             if (value.cursor != null) {
@@ -254,7 +272,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun unregisterCursorListeners(gizmo: Gizmo) {
         var value: Gizmo? = gizmo
 
-        while (value?.parent != null) {
+        while (value != null) {
             value.cursorChanged -= ::cursorChanged
 
             if (value.cursor != null) {
@@ -270,12 +288,6 @@ class MouseInputManager(private val display: Display, private val inputService: 
         else -> display.cursor
     }
 
-    private var cursor: Cursor? = null
-        set(new) {
-            field = new
-            inputService.cursor = cursor ?: display.cursor ?: Cursor.Default
-        }
-
     private fun gizmo(at: Point): Gizmo? {
         var newPoint = at
         var gizmo    = display.child(at = at)
@@ -283,18 +295,16 @@ class MouseInputManager(private val display: Display, private val inputService: 
         while(gizmo != null) {
             newPoint -= gizmo.position
 
-            val child = gizmo.child_(at = newPoint) ?: break
-
-            gizmo = child
+            gizmo = gizmo.child_(at = newPoint) ?: break
         }
 
         return gizmo
     }
 
-    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: SystemMouseEvent.Type = mouseEvent.type) = MouseEvent(
+    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: Type = mouseEvent.type) = MouseEvent(
             gizmo,
             type,
-            mouseEvent.location - gizmo.toAbsolute(Point.Origin),
+            mouseEvent.location - gizmo.toAbsolute(Origin),
             mouseEvent.buttons,
             mouseEvent.clickCount,
             mouseEvent.modifiers)
