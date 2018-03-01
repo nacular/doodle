@@ -102,16 +102,16 @@ class RenderManagerImpl(
             if (gizmo.parent != null) {
                 gizmo.addedToDisplay(this)
 
-                dirtyGizmos   += gizmo
-                neverRendered += gizmo
+                dirtyGizmos         += gizmo
+                neverRendered       += gizmo
+                pendingBoundsChange += gizmo
+
+                gizmo.boundsChanged      += ::boundsChanged
+                gizmo.visibilityChanged  += ::visibilityChanged
+                gizmo.children_.onChange += ::childrenChanged
             }
 
-            gizmos              += gizmo
-            pendingBoundsChange += gizmo
-
-            gizmo.boundsChanged       += ::boundsChanged
-            gizmo.visibilityChanged  += ::visibilityChanged
-            gizmo.children_.onChange += ::childrenChanged
+            gizmos += gizmo
 
             gizmo.children_.forEach { recordGizmo(it) }
 
