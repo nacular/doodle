@@ -99,6 +99,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
                 gizmo?.let {
                     it.handleMouseEvent_(createMouseEvent(event, it, Enter))
+                    it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
 
                     cursor = getGizmoCursor(it)
 
@@ -108,7 +109,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
             clickedEventAwareGizmo = null
         } else if (gizmo != null) {
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo))
+            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo, Enter))
+            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo       ))
 
             cursor = getGizmoCursor(gizmo)
 
@@ -120,8 +122,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         mouseDown = false
 
         // Work-around to re-synch state in case events were not delivered (due to consumption at the MouseInputService layer).
-
-        mouseMove(event)
+//        mouseMove(event)
     }
 
     private fun mouseDown(event: SystemMouseEvent) {
@@ -177,11 +178,11 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
             if (gizmo != null) {
                 if (!mouseDown || gizmo === clickedEventAwareGizmo) {
-                    val enterEvent = createMouseEvent(event, gizmo, Enter)
+                    createMouseEvent(event, gizmo, Enter).also {
+                        gizmo.handleMouseEvent_(it)
 
-                    gizmo.handleMouseEvent_(enterEvent)
-
-                    inputService.toolTipText = gizmo.toolTipText(enterEvent)
+                        inputService.toolTipText = gizmo.toolTipText(it)
+                    }
 
                     cursor = getGizmoCursor(coveredGizmo)
 
@@ -197,15 +198,21 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
         } else if (!mouseDown) {
             if (coveredEventAwareGizmo != null) {
-                val handler = getMouseMotionEventHandler(coveredEventAwareGizmo)
-
-                if (handler != null) {
-                    handler.handleMouseMotionEvent_(createMouseEvent(event, handler, Move))
+                getMouseMotionEventHandler(coveredEventAwareGizmo)?.let {
+                    it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
 
                     event.consume()
                 }
             } else {
-                inputService.toolTipText = ""
+                val handler = getMouseMotionEventHandler(coveredGizmo)?.let {
+                    it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
+
+                    event.consume()
+                }
+
+                if (handler == null) {
+                    inputService.toolTipText = ""
+                }
             }
 
             cursor = getGizmoCursor(coveredGizmo)

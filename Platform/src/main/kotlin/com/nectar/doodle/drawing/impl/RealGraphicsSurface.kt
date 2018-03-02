@@ -20,6 +20,7 @@ import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.observable
@@ -92,7 +93,7 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    override var position: Point by observable(Point.Origin) { _,_,new ->
+    override var position: Point by observable(Origin) { _,_,new ->
         rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
             rootElement.style.translate(new)
         } }

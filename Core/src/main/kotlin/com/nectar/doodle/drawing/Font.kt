@@ -9,7 +9,7 @@ interface Font {
     val weight: Weight
     val family: String
 
-    val isItalic get() = style.contains(Italic)
+    val italic get() = Italic in style
 
     enum class Style {
         Italic

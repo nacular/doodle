@@ -120,17 +120,17 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
                 val minWidth  = it.minimumSize.width
                 val minHeight = it.minimumSize.height
 
-                if (dragMode.contains(West) && directions.contains(West)) {
+                if (West in dragMode && West in directions) {
                     width  = max(minWidth, it.width - delta.x)
                     x     += bounds.width - width
-                } else if (dragMode.contains(East) && directions.contains(East)) {
+                } else if (East in dragMode && East in directions) {
                     width = max(minWidth, initialSize.width + delta.x)
                 }
 
-                if (dragMode.contains(North) && directions.contains(North)) {
+                if (North in dragMode && North in directions) {
                     height  = max(minHeight, it.height - delta.y)
                     y      += bounds.height - height
-                } else if (dragMode.contains(South) && directions.contains(South)) {
+                } else if (South in dragMode && South in directions) {
                     height = max(minHeight, initialSize.height + delta.y)
                 }
 
@@ -152,18 +152,18 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
             var innerY = false
 
             if (x <= hotspotSize) {
-                if (directions.contains(West)) {
+                if (West in directions) {
                     mask += West
                 }
             } else if (x >= it.width - hotspotSize) {
-                if (directions.contains(East)) {
+                if (East in directions) {
                     mask += East
                 }
             } else {
                 innerX = true
             }
             if (y <= hotspotSize) {
-                if (directions.contains(North)) {
+                if (North in directions) {
                     mask += North
                 }
             } else if (y >= it.height - hotspotSize) {
@@ -177,18 +177,18 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
             ignorePropertyChange = true
 
             it.cursor = when {
-                mask.contains(North)    -> when {
-                    mask.contains(East) -> Cursor.NeResize
-                    mask.contains(West) -> Cursor.NwResize
-                    else                -> Cursor.NResize
+                North in mask    -> when {
+                    East in mask -> Cursor.NeResize
+                    West in mask -> Cursor.NwResize
+                    else         -> Cursor.NResize
                 }
-                mask.contains(South)    -> when {
-                    mask.contains(East) -> Cursor.SeResize
-                    mask.contains(West) -> Cursor.SwResize
-                    else                -> Cursor.SResize
+                South in mask           -> when {
+                    East in mask -> Cursor.SeResize
+                    West in mask -> Cursor.SwResize
+                    else         -> Cursor.SResize
                 }
-                mask.contains(East)         -> Cursor.EResize
-                mask.contains(West)         -> Cursor.WResize
+                East in mask                -> Cursor.EResize
+                West in mask                -> Cursor.WResize
                 movable && innerX && innerY -> Cursor.Move
                 else                        -> oldCursor
             }

@@ -161,11 +161,11 @@ class RectangleTests {
         }
     }
 
-    private fun validateContains(rect: Rectangle, point: Point, expected: Boolean) = expect(expected, "$rect contains $point") { rect.contains(point) }
+    private fun validateContains(rect: Rectangle, point: Point, expected: Boolean) = expect(expected, "$rect contains $point") { point in rect }
 
     private fun validateIn(rect: Rectangle, point: Point, expected: Boolean) = expect(expected, "$point in $rect") { point in rect }
 
-    private fun validateContains(rect: Rectangle, other: Rectangle, expected: Boolean) = expect(expected, "$rect contains $other") { rect.contains(other) }
+    private fun validateContains(rect: Rectangle, other: Rectangle, expected: Boolean) = expect(expected, "$rect contains $other") { other in rect }
 
     private fun validateIn(rect: Rectangle, other: Rectangle, expected: Boolean) = expect(expected, "$other in $rect") { other in rect }
 

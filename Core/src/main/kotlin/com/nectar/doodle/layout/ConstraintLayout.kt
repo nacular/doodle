@@ -119,7 +119,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         processing.clear()
 
         // FIXME: This check is pretty inefficient; but it.key.parent == positionable won't work
-        constraints.filter { positionable.children.contains(it.key) }.forEach { (child, constraints) ->
+        constraints.filter { it.key in positionable.children }.forEach { (child, constraints) ->
             layoutChild(child, constraints)
         }
     }

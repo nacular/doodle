@@ -53,7 +53,7 @@ interface Renderer<in T: Gizmo> {
      * @param gizmo
      * @param point
      */
-    fun contains(gizmo: T, point: Point): Boolean = gizmo.bounds.contains(point)
+    fun contains(gizmo: T, point: Point): Boolean = point in gizmo.bounds
 
     /**
      * Called when the Renderer is applied to a [Gizmo].

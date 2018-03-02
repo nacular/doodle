@@ -217,15 +217,15 @@ class GizmoTests {
         val gizmo = object: Gizmo() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
-        expect(false, "$gizmo contains ${bounds.position}") { gizmo.contains(bounds.position) }
+        expect(false, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
 
         gizmo.bounds = bounds
 
-        expect(true, "$gizmo contains ${bounds.position}") { gizmo.contains(bounds.position) }
+        expect(true, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
 
         gizmo.size = Size.Empty
 
-        expect(false, "$gizmo contains ${bounds.position}") { gizmo.contains(bounds.position) }
+        expect(false, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
     }
 
     @Test @JsName("toolTipTextWorks")

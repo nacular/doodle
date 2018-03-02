@@ -119,7 +119,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override fun child(at: Point): Gizmo? = root.child(at)
 
-    operator fun contains(aGizmo: Gizmo) = root.contains(aGizmo)
+    operator fun contains(gizmo: Gizmo) = gizmo in root
 
     override fun iterator() = root.iterator()
 

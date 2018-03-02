@@ -40,7 +40,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
                 style.setFontWeight(it.weight)
             }
 
-            if (it.isItalic) {
+            if (it.italic) {
                 element.style.setFontStyle(FontStyle.Italic)
             }
         }

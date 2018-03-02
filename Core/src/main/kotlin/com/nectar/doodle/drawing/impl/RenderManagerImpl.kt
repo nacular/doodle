@@ -200,7 +200,7 @@ class RenderManagerImpl(
     }
 
     private fun performLayout(gizmo: Gizmo) {
-        if (pendingLayout.contains(gizmo.parent)) {
+        if (gizmo.parent in pendingLayout) {
             gizmo.parent?.let { performLayout(it) }
         }
 
@@ -363,7 +363,7 @@ class RenderManagerImpl(
     private fun visibilityChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
         val parent = gizmo.parent
 
-        if (addedInvisible.contains(gizmo)) {
+        if (gizmo in addedInvisible) {
             handleAddedGizmo(gizmo)
 
             addedInvisible.remove(gizmo)

@@ -51,7 +51,7 @@ internal fun Style.setFont(value: Font?) {
     value?.let {
         setFontSize(it.size)
         setFontFamily(it.family)
-        if(it.isItalic) setFontStyle(FontStyle.Italic)
+        if(it.italic) setFontStyle(FontStyle.Italic)
         setFontWeight(it.weight)
 
         return

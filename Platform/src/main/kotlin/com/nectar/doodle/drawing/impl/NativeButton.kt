@@ -59,17 +59,65 @@ class NativeButtonFactoryImpl internal constructor(
             graphicsSurfaceFactory,
             elementRuler,
             nativeEventHandlerFactory,
-            button)
+            button,
+            buttonInsets,
+            buttonBorder)
+
+
+    private val buttonBorder: Insets by lazy {
+        val button = htmlFactory.createButton().also {
+            it.textContent = "foo"
+        }
+
+        val s = elementRuler.size(button)
+
+        button.style.setBorderStyle(None)
+
+        val size = elementRuler.size(button)
+
+//        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
+
+        // TODO: Get values for each side properly
+        (Size(s.width - size.width, s.height - size.height) / 2.0).run {
+            Insets(height, width, height, width)
+        }
+    }
+
+    private val buttonInsets: Insets by lazy {
+        val block  = htmlFactory.create<HTMLElement>()
+        val button = htmlFactory.createButton().also {
+            it.textContent = "foo"
+        }
+
+        block.style.setDisplay (Inline )
+        block.style.setPosition(Static)
+
+        block.add(htmlFactory.createText("foo"))
+
+        val s = elementRuler.size(block)
+
+        button.add(block)
+
+        val size = elementRuler.size(button)
+
+        // TODO: Get values for each side properly
+        (Size(size.width - s.width, size.height - s.height) / 2.0).run {
+            Insets(height, width, height, width)
+        }
+    }
+
 }
 
 class NativeButton internal constructor(
-        private val textMetrics: TextMetrics,
-        private val textFactory: TextFactory,
-        private val htmlFactory: HtmlFactory,
+        private val textMetrics           : TextMetrics,
+        private val textFactory           : TextFactory,
+        private val htmlFactory           : HtmlFactory,
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-        private val elementRuler   : ElementRuler,
-        handlerFactory : NativeEventHandlerFactory,
-        private val button: Button): NativeEventListener /*, PropertyListener,*/ {
+        private val elementRuler          : ElementRuler,
+        handlerFactory                    : NativeEventHandlerFactory,
+        private val button: Button,
+        private val insets: Insets,
+        private val border: Insets): NativeEventListener /*, PropertyListener,*/ {
 
     var idealSize: Size? = null
         private set
@@ -78,24 +126,25 @@ class NativeButton internal constructor(
     private var iconElement      : HTMLElement? = null
     private val buttonElement    : HTMLButtonElement
     private val glassPanelElement: HTMLElement
-    private val insets           : Insets
-    private val border           : Insets
+//    private val insets           : Insets
+//    private val border           : Insets
     private val nativeEventHandler: NativeEventHandler
 
     init {
-        insets = calculateButtonInsets()
-        border = calculateButtonBorder()
+//        insets = calculateButtonInsets()
+//        border = calculateButtonBorder()
 
         buttonElement = htmlFactory.createButton().apply {
             style.setFont         (null )
             style.setWidthPercent (100.0)
             style.setHeightPercent(100.0)
+            style.cursor = "inherit"
         }
 
         nativeEventHandler = handlerFactory(buttonElement, this).apply {
             registerFocusListener         ()
             registerClickListener         ()
-            startConsumingMousePressEvents()
+//            startConsumingMousePressEvents()
         }
 
         glassPanelElement = htmlFactory.create<HTMLElement>().apply {
@@ -381,45 +430,57 @@ class NativeButton internal constructor(
         idealSize = measureIdealSize()
     }
 
-    private fun calculateButtonBorder(): Insets {
-        val button = htmlFactory.createButton().also {
-            it.textContent = "foo"
-        }
-
-        val s = elementRuler.size(button)
-
-        button.style.setBorderStyle(None)
-
-        val size = elementRuler.size(button)
-
-//        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
-
-        // TODO: Get values for each side properly
-        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
-            Insets(height, width, height, width)
-        }
-    }
-
-    private fun calculateButtonInsets(): Insets {
-        val block  = htmlFactory.create<HTMLElement>()
-        val button = htmlFactory.createButton().also {
-            it.textContent = "foo"
-        }
-
-        block.style.setDisplay (Inline )
-        block.style.setPosition(Static)
-
-        block.add(htmlFactory.createText("foo"))
-
-        val s = elementRuler.size(block)
-
-        button.add(block)
-
-        val size = elementRuler.size(button)
-
-        // TODO: Get values for each side properly
-        return (Size(size.width - s.width, size.height - s.height) / 2.0).run {
-            Insets(height, width, height, width)
-        }
-    }
+//    private fun calculateButtonBorder(): Insets {
+//        buttonBorder?.let {
+//            return it
+//        }
+//
+//        val button = htmlFactory.createButton().also {
+//            it.textContent = "foo"
+//        }
+//
+//        val s = elementRuler.size(button)
+//
+//        button.style.setBorderStyle(None)
+//
+//        val size = elementRuler.size(button)
+//
+////        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
+//
+//        // TODO: Get values for each side properly
+//        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
+//            Insets(height, width, height, width)
+//        }.also {
+//            buttonBorder = it
+//        }
+//    }
+//
+//    private fun calculateButtonInsets(): Insets {
+//        buttonInsets?.let {
+//            return it
+//        }
+//
+//        val block  = htmlFactory.create<HTMLElement>()
+//        val button = htmlFactory.createButton().also {
+//            it.textContent = "foo"
+//        }
+//
+//        block.style.setDisplay (Inline )
+//        block.style.setPosition(Static)
+//
+//        block.add(htmlFactory.createText("foo"))
+//
+//        val s = elementRuler.size(block)
+//
+//        button.add(block)
+//
+//        val size = elementRuler.size(button)
+//
+//        // TODO: Get values for each side properly
+//        return (Size(size.width - s.width, size.height - s.height) / 2.0).run {
+//            Insets(height, width, height, width)
+//        }.also {
+//            buttonInsets = it
+//        }
+//    }
 }

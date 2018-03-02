@@ -286,7 +286,7 @@ abstract class Gizmo protected constructor() {
      * @return The child (null if no child contains the given point)
      */
     internal fun child_(at: Point) = child(at)
-    protected open fun child(at: Point): Gizmo? = layout?.child(this, at) ?: children.lastOrNull { it.visible && it.contains(at) }
+    protected open fun child(at: Point): Gizmo? = layout?.child(this, at) ?: children.lastOrNull { it.visible && at in it }
 
 //    var dropHandler: DropHandler? = null
 //        set(new) {
@@ -454,7 +454,7 @@ abstract class Gizmo protected constructor() {
      * @param point The point to check
      * @return true if the point falls within the Gizmo
      */
-    open fun contains(point: Point) = bounds.contains(point)
+    operator open fun contains(point: Point) = point in bounds
 
     /**
      * Sets the bounding rectangle.

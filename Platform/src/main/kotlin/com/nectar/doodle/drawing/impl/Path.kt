@@ -12,11 +12,8 @@ abstract class Path constructor(
 
     val data: String get() = pathString.toString().trim { it <= ' ' }
 
-    fun moveTo(point: Point) {
-        pathString.append(moveTo)
-
-        append(point.x, point.y)
-    }
+    fun moveTo(point: Point) = operation(moveTo, point)
+    fun lineTo(point: Point) = operation(lineTo, point)
 
     fun addPath(vararg points: Point) {
         moveTo(points[0])
@@ -24,12 +21,6 @@ abstract class Path constructor(
         for (i in 1 until points.size) {
             lineTo(points[i])
         }
-    }
-
-    fun lineTo(point: Point) {
-        pathString.append(lineTo)
-
-        append(point.x, point.y)
     }
 
     fun end() = pathString.append(end)
@@ -40,7 +31,9 @@ abstract class Path constructor(
         end()
     }
 
-    private fun append(vararg values: Double) {
-        pathString.append(values.joinToString(","))
+    private fun operation(name: String, point: Point) {
+        pathString.append(name)
+
+        pathString.append("${point.x},${point.y}")
     }
 }

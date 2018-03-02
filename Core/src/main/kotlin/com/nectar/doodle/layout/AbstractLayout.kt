@@ -6,5 +6,5 @@ import com.nectar.doodle.geometry.Point
 
 
 abstract class AbstractLayout: Layout() {
-    override fun child(of: Positionable, at: Point) = of.children.lastOrNull { it.visible && it.contains(at) }
+    override fun child(of: Positionable, at: Point) = of.children.lastOrNull { it.visible && at in it }
 }

@@ -34,27 +34,27 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
 
 
         val x1 = when {
-            otherHorizontal.contains(x)      -> x
-            horizontal.contains(rectangle.x) -> rectangle.x
-            else                             -> 0.0
+            x in otherHorizontal      -> x
+            rectangle.x in horizontal -> rectangle.x
+            else                      -> 0.0
         }
 
         val y1 = when {
-            otherVertical.contains(y)      -> y
-            vertical.contains(rectangle.y) -> rectangle.y
-            else                           -> 0.0
+            y in otherVertical      -> y
+            rectangle.y in vertical -> rectangle.y
+            else                    -> 0.0
         }
 
         val x2 = when {
-            otherHorizontal.contains(x + width)                -> x + width
-            horizontal.contains(rectangle.x + rectangle.width) -> rectangle.x + rectangle.width
-            else                                               -> 0.0
+            x + width in otherHorizontal                -> x + width
+            rectangle.x + rectangle.width in horizontal -> rectangle.x + rectangle.width
+            else                                        -> 0.0
         }
 
         val y2 = when {
-            otherVertical.contains(y + height)                -> y + height
-            vertical.contains(rectangle.y + rectangle.height) -> rectangle.y + rectangle.height
-            else                                              -> 0.0
+            y + height in otherVertical                -> y + height
+            rectangle.y + rectangle.height in vertical -> rectangle.y + rectangle.height
+            else                                       -> 0.0
         }
 
         return Rectangle(x1, y1, x2 - x1, y2 - y1)
