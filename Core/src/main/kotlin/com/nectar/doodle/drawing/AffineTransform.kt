@@ -1,8 +1,6 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.units.Angle
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.radians
@@ -11,6 +9,17 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class AffineTransform private constructor(private val matrix: Matrix) {
+
+    /**
+     * Creates a transform with the given properties
+     *
+     * @param scaleX     how much to scale the x direction
+     * @param shearX     how much to shear the x direction
+     * @param translateX how much to translate in the x direction
+     * @param scaleY     how much to scale the y direction
+     * @param shearY     how much to shear the y direction
+     * @param translateY how much to translate in the y direction
+     */
     constructor(
             scaleX    : Double = 1.0,
             shearX    : Double = 0.0,
@@ -23,7 +32,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
                 doubleArrayOf(shearY, scaleY, translateY),
                 doubleArrayOf(   0.0,    0.0,        1.0)))
 
-    val isIdentity get() = matrix.isIdentity
+    val isIdentity       = matrix.isIdentity
     val translateX get() = matrix[0, 2]
     val translateY get() = matrix[1, 2]
     val scaleX     get() = matrix[0, 0]
@@ -65,6 +74,12 @@ class AffineTransform private constructor(private val matrix: Matrix) {
                                 this[0.0,  0.0, 1.0]))
     }
 
+    /**
+     * Transforms the given set of points.
+     *
+     * @param points that will be transformed
+     * @return a list of points transformed by this object
+     */
     operator fun invoke(vararg points: Point): List<Point> {
         return points.map {
             val point = Matrix(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0))
@@ -75,15 +90,15 @@ class AffineTransform private constructor(private val matrix: Matrix) {
         }
     }
 
-    operator fun invoke(rectangle: Rectangle): Rectangle {
-        val points = rectangle.run { invoke(position, position + Point(width, height)) }
-
-        return Rectangle(points[0], (points[1] - points[0]).run { Size(x, y) })
-    }
+//    operator fun invoke(rectangle: Rectangle): Rectangle {
+//        val points = rectangle.run { invoke(position, position + Point(width, height)) }
+//
+//        return Rectangle(points[0], (points[1] - points[0]).run { Size(x, y) })
+//    }
 
     override fun toString() = matrix.toString()
 
-    operator fun get(vararg values: Double): DoubleArray = doubleArrayOf(*values)
+    private operator fun get(vararg values: Double): DoubleArray = doubleArrayOf(*values)
 
     companion object {
         val Identity = AffineTransform()
