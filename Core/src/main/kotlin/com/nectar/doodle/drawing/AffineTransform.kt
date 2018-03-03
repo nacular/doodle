@@ -18,10 +18,10 @@ class AffineTransform private constructor(private val matrix: Matrix) {
             scaleY    : Double = 1.0,
             shearY    : Double = 0.0,
             translateY: Double = 0.0):
-            this(Matrix(arrayOf(
+            this(Matrix(
                 doubleArrayOf(scaleX, shearX, translateX),
                 doubleArrayOf(shearY, scaleY, translateY),
-                doubleArrayOf(   0.0,    0.0,        1.0))))
+                doubleArrayOf(   0.0,    0.0,        1.0)))
 
     val isIdentity get() = matrix.isIdentity
     val translateX get() = matrix[0, 2]
@@ -36,26 +36,23 @@ class AffineTransform private constructor(private val matrix: Matrix) {
     fun scale(by: Point) = scale(by.x, by.y)
 
     fun scale(x: Double, y: Double) = AffineTransform(
-            matrix * Matrix(arrayOf(
-                    this[  x, 0.0, 0.0],
-                    this[0.0,   y, 0.0],
-                    this[0.0, 0.0, 1.0])))
+            matrix * Matrix(this[  x, 0.0, 0.0],
+                            this[0.0,   y, 0.0],
+                            this[0.0, 0.0, 1.0]))
 
     fun translate(by: Point) = translate(by.x, by.y)
 
     fun translate(x: Double, y: Double) = AffineTransform(
-            matrix * Matrix(arrayOf(
-                    this[1.0, 0.0,   x],
-                    this[0.0, 1.0,   y],
-                    this[0.0, 0.0, 1.0])))
+            matrix * Matrix(this[1.0, 0.0,   x],
+                            this[0.0, 1.0,   y],
+                            this[0.0, 0.0, 1.0]))
 
     fun skew(by: Point) = skew(by.x, by.y)
 
     fun skew(x: Double, y: Double) = AffineTransform(
-            matrix * Matrix(arrayOf(
-                    this[1.0,   x, 0.0],
-                    this[  y, 1.0, 0.0],
-                    this[0.0, 0.0, 1.0])))
+            matrix * Matrix(this[1.0,   x, 0.0],
+                            this[  y, 1.0, 0.0],
+                            this[0.0, 0.0, 1.0]))
 
     fun rotate(angle: Measure<Angle>): AffineTransform {
         val radians = angle.`in`(radians)
@@ -63,15 +60,14 @@ class AffineTransform private constructor(private val matrix: Matrix) {
         val cos     = cos(radians)
 
         return AffineTransform(
-                matrix * Matrix(arrayOf(
-                        this[cos, -sin, 0.0],
-                        this[sin,  cos, 0.0],
-                        this[0.0,  0.0, 1.0])))
+                matrix * Matrix(this[cos, -sin, 0.0],
+                                this[sin,  cos, 0.0],
+                                this[0.0,  0.0, 1.0]))
     }
 
     operator fun invoke(vararg points: Point): List<Point> {
         return points.map {
-            val point = Matrix(arrayOf(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0)))
+            val point = Matrix(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0))
 
             val product = matrix * point
 

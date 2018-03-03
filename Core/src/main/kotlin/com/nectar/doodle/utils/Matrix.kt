@@ -1,21 +1,30 @@
 package com.nectar.doodle.utils
 
 
-class Matrix(private val values: Array<DoubleArray> = Array(0) { DoubleArray(0) }) {
+class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
 
+    val values     = arrayOf(firstRow) + rest
     val numRows    = values.size
     val numColumns = if (numRows > 0) values[0].size else 0
     var isIdentity = true
         private set
 
     init {
-        for (i in values.indices) {
-            require(values[i].size == numColumns) { "all rows must have the same length" }
+        require(numColumns > 0) { "empty Matrixes are invalid" }
+
+        for (row in values.indices) {
+            require(values[row].size == numColumns) { "all rows must have the same length" }
 
             if (isIdentity) {
-                val sum = (0 until values[i].size).sumByDouble { values[i][it] }
+                values[row].forEachIndexed { index, value ->
+                    isIdentity = when {
+                        value != 1.0 && index == row -> false
+                        value != 0.0 && index != row -> false
+                        else                         -> true
+                    }
 
-                isIdentity = sum == 1.0 && values[i][i] == 1.0
+                    if (!isIdentity) { return@forEachIndexed }
+                }
             }
         }
     }
@@ -43,7 +52,7 @@ class Matrix(private val values: Array<DoubleArray> = Array(0) { DoubleArray(0) 
             }
         }
 
-        return Matrix(values)
+        return Matrix(values[0], *values.sliceArray(1 until values.size))
     }
 
     override fun toString(): String {
@@ -61,4 +70,13 @@ class Matrix(private val values: Array<DoubleArray> = Array(0) { DoubleArray(0) 
 
         return result.toString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Matrix) return false
+
+        return values.contentDeepEquals(other.values)
+    }
+
+    override fun hashCode() = values.hashCode()
 }
