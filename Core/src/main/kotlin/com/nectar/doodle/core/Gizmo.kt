@@ -13,6 +13,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.event.MouseWheelEvent
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
@@ -156,6 +157,8 @@ abstract class Gizmo protected constructor() {
 
     var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<Gizmo, Rectangle>)
 
+    fun shouldYieldFocus() = true
+
     // ================= Container ================= //
     internal val insets_ get() = insets
     protected open var insets  = None
@@ -206,9 +209,13 @@ abstract class Gizmo protected constructor() {
         return false
     }
 
-    protected open var isFocusCycleRoot = false
+    internal open var isFocusCycleRoot get() = isFocusCycleRoot_
+        set(new) { isFocusCycleRoot_ = new }
 
-    protected val focusCycleRoot: Gizmo? = null
+    protected open var isFocusCycleRoot_ = false
+
+    internal val focusCycleRoot get() = focusCycleRoot_
+    protected val focusCycleRoot_: Gizmo? = null
         get() {
             var result = field
 
@@ -218,6 +225,9 @@ abstract class Gizmo protected constructor() {
 
             return result
         }
+
+    internal val focusTraversalPolicy get() = focusTraversalPolicy_
+    protected open var focusTraversalPolicy_: FocusTraversalPolicy? = null
 
     // [Performance]
     // No check to prevent setting self as parent since Gizmo is the only place where this method is called from and it already

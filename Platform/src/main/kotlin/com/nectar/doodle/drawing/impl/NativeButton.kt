@@ -30,6 +30,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
@@ -51,14 +52,15 @@ class NativeButtonFactoryImpl internal constructor(
         private val htmlFactory              : HtmlFactory,
         private val graphicsSurfaceFactory   : RealGraphicsSurfaceFactory,
         private val elementRuler             : ElementRuler,
-        private val nativeEventHandlerFactory: NativeEventHandlerFactory): NativeButtonFactory {
+        private val nativeEventHandlerFactory: NativeEventHandlerFactory,
+        private val focusManager             : FocusManager?): NativeButtonFactory {
     override fun invoke(button: Button) = NativeButton(
             textMetrics,
             textFactory,
             htmlFactory,
             graphicsSurfaceFactory,
-            elementRuler,
             nativeEventHandlerFactory,
+            focusManager,
             button,
             buttonInsets,
             buttonBorder)
@@ -113,11 +115,11 @@ class NativeButton internal constructor(
         private val textFactory           : TextFactory,
         private val htmlFactory           : HtmlFactory,
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-        private val elementRuler          : ElementRuler,
         handlerFactory                    : NativeEventHandlerFactory,
-        private val button: Button,
-        private val insets: Insets,
-        private val border: Insets): NativeEventListener /*, PropertyListener,*/ {
+        private val focusManager          : FocusManager?,
+        private val button                : Button,
+        private val insets                : Insets,
+        private val border                : Insets): NativeEventListener {
 
     var idealSize: Size? = null
         private set
@@ -126,14 +128,9 @@ class NativeButton internal constructor(
     private var iconElement      : HTMLElement? = null
     private val buttonElement    : HTMLButtonElement
     private val glassPanelElement: HTMLElement
-//    private val insets           : Insets
-//    private val border           : Insets
     private val nativeEventHandler: NativeEventHandler
 
     init {
-//        insets = calculateButtonInsets()
-//        border = calculateButtonBorder()
-
         buttonElement = htmlFactory.createButton().apply {
             style.setFont         (null )
             style.setWidthPercent (100.0)
@@ -337,15 +334,15 @@ class NativeButton internal constructor(
             return false
         }
 
-//        focusManager.requestFocus(button)
+        focusManager?.requestFocus(button)
 
         return true
     }
 
     override fun onFocusLost(): Boolean {
-//        if (button === focusManager.focusOwner) {
-//            focusManager.clearFocus()
-//        }
+        if (button === focusManager?.focusOwner) {
+            focusManager.clearFocus()
+        }
 
         return true
     }
@@ -429,58 +426,4 @@ class NativeButton internal constructor(
         text      = button.text
         idealSize = measureIdealSize()
     }
-
-//    private fun calculateButtonBorder(): Insets {
-//        buttonBorder?.let {
-//            return it
-//        }
-//
-//        val button = htmlFactory.createButton().also {
-//            it.textContent = "foo"
-//        }
-//
-//        val s = elementRuler.size(button)
-//
-//        button.style.setBorderStyle(None)
-//
-//        val size = elementRuler.size(button)
-//
-////        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
-//
-//        // TODO: Get values for each side properly
-//        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
-//            Insets(height, width, height, width)
-//        }.also {
-//            buttonBorder = it
-//        }
-//    }
-//
-//    private fun calculateButtonInsets(): Insets {
-//        buttonInsets?.let {
-//            return it
-//        }
-//
-//        val block  = htmlFactory.create<HTMLElement>()
-//        val button = htmlFactory.createButton().also {
-//            it.textContent = "foo"
-//        }
-//
-//        block.style.setDisplay (Inline )
-//        block.style.setPosition(Static)
-//
-//        block.add(htmlFactory.createText("foo"))
-//
-//        val s = elementRuler.size(block)
-//
-//        button.add(block)
-//
-//        val size = elementRuler.size(button)
-//
-//        // TODO: Get values for each side properly
-//        return (Size(size.width - s.width, size.height - s.height) / 2.0).run {
-//            Insets(height, width, height, width)
-//        }.also {
-//            buttonInsets = it
-//        }
-//    }
 }

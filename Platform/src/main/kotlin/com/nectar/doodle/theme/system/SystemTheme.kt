@@ -3,6 +3,7 @@ package com.nectar.doodle.theme.system
 import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.instance
+import com.github.salomonbrys.kodein.erased.instanceOrNull
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
@@ -53,7 +54,7 @@ val systemThemeModule = Kodein.Module {
     bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
     bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()) }
-    bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
+    bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
     bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl(instance(), instance()) }
     bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
     bind<SystemTheme>              () with singleton { SystemTheme(instance(), instance(), instance())  }
