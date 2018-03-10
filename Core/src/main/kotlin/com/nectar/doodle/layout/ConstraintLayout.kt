@@ -131,7 +131,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
             val children = arrayOf(child) + others
 
             val constraints = children.filter { it.parent == parent.target } .map {
-                it.parentChange += this::parentChanged
+                it.parentChange += parentChanged_
 
                 constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
             }
@@ -142,10 +142,13 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         } ?: throw Exception("Must all share same parent")
     }
 
+    private val parentChanged_ = ::parentChanged
+
+    @Suppress("UNUSED_PARAMETER")
     private fun parentChanged(child: Gizmo, old: Gizmo?, new: Gizmo?) {
         constraints.remove(child)
 
-        child.parentChange -= this::parentChanged
+        child.parentChange -= parentChanged_
     }
 }
 

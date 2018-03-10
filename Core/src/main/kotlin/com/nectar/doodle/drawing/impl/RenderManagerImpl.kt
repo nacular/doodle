@@ -34,9 +34,12 @@ class RenderManagerImpl(
     private val visibilityChanged   = mutableSetOf <Gizmo>()
     private val pendingBoundsChange = mutableSetOf <Gizmo>()
     private var paintTask           = null as Task?
+    private val childrenChanged_    = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
+    private val boundsChanged_      = ::boundsChanged
+    private val visibilityChanged_  = ::visibilityChangedFunc
 
     init {
-        display.children.onChange += ::childrenChanged
+        display.children.onChange += childrenChanged_
         display.sizeChanged += { display, _, _ ->
 
             display.doLayout()
@@ -106,9 +109,9 @@ class RenderManagerImpl(
                 neverRendered       += gizmo
                 pendingBoundsChange += gizmo
 
-                gizmo.boundsChanged      += ::boundsChanged
-                gizmo.visibilityChanged  += ::visibilityChanged
-                gizmo.children_.onChange += ::childrenChanged
+                gizmo.boundsChanged      += boundsChanged_
+                gizmo.visibilityChanged  += visibilityChanged_
+                gizmo.children_.onChange += childrenChanged_
             }
 
             gizmos += gizmo
@@ -175,6 +178,7 @@ class RenderManagerImpl(
     }
 
     private fun onPaint() {
+        // TODO: Spread this across multiple frames instead to avoid long running paint
         do {
             pendingLayout.firstOrNull()?.let { performLayout(it) }
         } while (!pendingLayout.isEmpty())
@@ -279,9 +283,9 @@ class RenderManagerImpl(
         pendingRender       -= gizmo
         pendingBoundsChange -= gizmo
 
-        gizmo.boundsChanged       -= ::boundsChanged
-        gizmo.visibilityChanged  -= ::visibilityChanged
-        gizmo.children_.onChange -= ::childrenChanged
+        gizmo.boundsChanged      -= boundsChanged_
+        gizmo.visibilityChanged  -= visibilityChanged_
+        gizmo.children_.onChange -= childrenChanged_
 
         unregisterDisplayRectMonitoring(gizmo)
     }
@@ -360,7 +364,7 @@ class RenderManagerImpl(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun visibilityChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private fun visibilityChangedFunc(gizmo: Gizmo, old: Boolean, new: Boolean) {
         val parent = gizmo.parent
 
         if (gizmo in addedInvisible) {
@@ -416,13 +420,13 @@ class RenderManagerImpl(
             scheduleLayout(gizmo)
         }
 
-        if (parent in display) {
-            parent.doLayout_()
-        } else {
+//        if (parent in display) {
+//            parent.doLayout_()
+//        } else {
             scheduleLayout(parent)
 
             schedulePaint()
-        }
+//        }
 
         if (reRender) {
             render(gizmo, true)

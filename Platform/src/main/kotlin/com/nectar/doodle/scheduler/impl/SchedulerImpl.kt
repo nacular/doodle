@@ -13,12 +13,24 @@ import kotlin.browser.window
 
 private open class SimpleTask(time : Measure<Time>, job: () -> Unit): Task {
 
-    private val value = window.setTimeout({ job(); completed = true },  (time  `in` milliseconds).toInt())
+    private val value = window.setTimeout({ job(); completed = true }, (time  `in` milliseconds).toInt())
 
     override var completed = false
-    
+
     override fun cancel() {
         window.clearTimeout(value)
+        completed = true
+    }
+}
+
+private open class AnimationTask(job: () -> Unit): Task {
+
+    private val value = window.requestAnimationFrame { job(); completed = true }
+
+    override var completed = false
+
+    override fun cancel() {
+        window.cancelAnimationFrame(value)
         completed = true
     }
 }
@@ -35,6 +47,7 @@ private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
 }
 
 internal class SchedulerImpl: Scheduler {
-    override fun after (time : Measure<Time>, job: () -> Unit): Task = SimpleTask   (time,  job)
+    // TODO: Separate animation scheduler into different interface
+    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero()) AnimationTask(job) else SimpleTask(time, job)
     override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(every, job)
 }

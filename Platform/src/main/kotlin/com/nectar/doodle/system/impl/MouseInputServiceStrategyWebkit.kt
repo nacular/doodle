@@ -54,7 +54,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         if (inputDevice == null) {
             inputDevice = htmlFactory.body.also {
-                registerCallbacks(this, it)
+                registerCallbacks(it)
             }
         }
 
@@ -193,14 +193,14 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         }
     }
 
-    private fun registerCallbacks(handler: MouseInputServiceStrategyWebkit, element: HTMLElement) = element.apply {
-        onmouseup   = { handler.mouseUp    (it as MouseEvent) }
-        onmousedown = { handler.mouseDown  (it as MouseEvent) }
-        onmousemove = { handler.mouseMove  (it as MouseEvent) }
-        ondblclick  = { handler.doubleClick(it as MouseEvent) }
-        onwheel     = { handler.mouseScroll(it as WheelEvent) }
-        onmouseout  = { handler.mouseExit  (it as MouseEvent) }
-        onmouseover = { handler.mouseEnter (it as MouseEvent) }
+    private fun registerCallbacks(element: HTMLElement) = element.apply {
+        onmouseup   = { this@MouseInputServiceStrategyWebkit.mouseUp    (it as MouseEvent) }
+        onmousedown = { this@MouseInputServiceStrategyWebkit.mouseDown  (it as MouseEvent) }
+        onmousemove = { this@MouseInputServiceStrategyWebkit.mouseMove  (it as MouseEvent) }
+        ondblclick  = { this@MouseInputServiceStrategyWebkit.doubleClick(it as MouseEvent) }
+        onwheel     = { this@MouseInputServiceStrategyWebkit.mouseScroll(it as WheelEvent) }
+        onmouseout  = { this@MouseInputServiceStrategyWebkit.mouseExit  (it as MouseEvent) }
+        onmouseover = { this@MouseInputServiceStrategyWebkit.mouseEnter (it as MouseEvent) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

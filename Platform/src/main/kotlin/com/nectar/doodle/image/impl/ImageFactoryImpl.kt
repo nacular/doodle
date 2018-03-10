@@ -74,6 +74,6 @@ class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val schedul
     }
 
     private fun scheduleLoadCheck() {
-        task = scheduler.after(10.milliseconds, this::processLoading)
+        task = scheduler.after(10.milliseconds, ::processLoading)
     }
 }

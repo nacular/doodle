@@ -301,14 +301,17 @@ internal class CanvasImpl(
 
     fun addData(elements: List<HTMLElement>, at: Point = Origin) {
         elements.forEach { element ->
-            element.style.setTop (element.top  + at.y)
-            element.style.setLeft(element.left + at.x)
+
+            if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
+            if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)
 
             if (renderPosition != null) {
                 renderPosition?.let {
                     val nextSibling = it.nextSibling
 
-                    renderRegion.replaceChild(element, it)
+                    if (element !== it) {
+                        renderRegion.replaceChild(element, it)
+                    }
 
                     renderPosition = nextSibling
                 }

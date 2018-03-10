@@ -77,8 +77,6 @@ class NativeButtonFactoryImpl internal constructor(
 
         val size = elementRuler.size(button)
 
-//        println("Border size: ${Size(s.width - size.width, s.height - size.height)}")
-
         // TODO: Get values for each side properly
         (Size(s.width - size.width, s.height - size.height) / 2.0).run {
             Insets(height, width, height, width)
@@ -91,7 +89,7 @@ class NativeButtonFactoryImpl internal constructor(
             it.textContent = "foo"
         }
 
-        block.style.setDisplay (Inline )
+        block.style.setDisplay (Inline)
         block.style.setPosition(Static)
 
         block.add(htmlFactory.createText("foo"))
@@ -107,7 +105,6 @@ class NativeButtonFactoryImpl internal constructor(
             Insets(height, width, height, width)
         }
     }
-
 }
 
 class NativeButton internal constructor(
@@ -158,10 +155,10 @@ class NativeButton internal constructor(
         }
 
         button.apply {
-            textChanged      += ::textChanged
-            focusChanged     += ::focusChanged
-            enabledChanged   += ::enabledChanged
-            focusableChanged += ::focusableChanged
+            textChanged      += this@NativeButton.textChanged
+            focusChanged     += this@NativeButton.focusChanged
+            enabledChanged   += this@NativeButton.enabledChanged
+            focusableChanged += this@NativeButton.focusableChanged
         }
 
         setIconText()
@@ -169,10 +166,10 @@ class NativeButton internal constructor(
 
     fun discard() {
         button.apply {
-            textChanged      -= ::textChanged
-            focusChanged     -= ::focusChanged
-            enabledChanged   -= ::enabledChanged
-            focusableChanged -= ::focusableChanged
+            textChanged      -= this@NativeButton.textChanged
+            focusChanged     -= this@NativeButton.focusChanged
+            enabledChanged   -= this@NativeButton.enabledChanged
+            focusableChanged -= this@NativeButton.focusableChanged
         }
     }
 
@@ -347,26 +344,22 @@ class NativeButton internal constructor(
         return true
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun textChanged(gizmo: Gizmo, old: String, new: String) {
+    private val textChanged: (Gizmo, String, String) -> Unit = { _,_,_ ->
         button.rerender()
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun focusChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private val focusChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
             true -> buttonElement.focus()
             else -> buttonElement.blur ()
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun enabledChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private val enabledChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
         buttonElement.disabled = !new
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun focusableChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private val focusableChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
         buttonElement.tabIndex = if (new) -1 else 0
     }
 

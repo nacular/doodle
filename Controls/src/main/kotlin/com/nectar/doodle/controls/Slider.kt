@@ -3,9 +3,9 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.utils.size
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.Orientation
+import com.nectar.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.round
 
@@ -17,8 +17,12 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var renderer: Renderer<Slider>? = null
 
+    private val onChange: (ConfinedValueModel<Double>) -> Unit = {
+        onChanged_.set.forEach { it(this) }
+    }
+
     init {
-        model.onChanged += this::onChange
+        model.onChanged += onChange
     }
 
     var ticks = 0
@@ -34,10 +38,10 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var model =  model
         set(new) {
-            field.onChanged -= this::onChange
+            field.onChanged -= onChange
 
             field = new.also {
-                it.onChanged += this::onChange
+                it.onChanged += onChange
             }
         }
 
@@ -62,8 +66,4 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     private val onChanged_ = ChangeObserversImpl<Slider>()
 
     val onChanged: ChangeObservers<Slider> = onChanged_
-
-    private fun onChange(@Suppress("UNUSED_PARAMETER") model: ConfinedValueModel<Double>) {
-        onChanged_.set.forEach { it(this) }
-    }
 }

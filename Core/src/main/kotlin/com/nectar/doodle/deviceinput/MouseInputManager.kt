@@ -64,12 +64,14 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
     override fun changed(event: SystemMouseWheelEvent) = mouseScroll(event)
 
+    private val cursorChanged_ = ::cursorChanged
+    @Suppress("UNUSED_PARAMETER")
     private fun cursorChanged(gizmo: Gizmo, old: Cursor?, new: Cursor?) {
-        if (old == null) {
-            gizmo.parent?.let { unregisterCursorListeners(it) }
-        } else if (new == null) {
-            gizmo.parent?.let { registerCursorListeners(it) }
-        }
+//        if (old == null) {
+//            gizmo.parent?.let { unregisterCursorListeners(it) }
+//        } else if (new == null) {
+//            gizmo.parent?.let { registerCursorListeners(it) }
+//        }
 
         cursor = getGizmoCursor(gizmo)
     }
@@ -172,8 +174,6 @@ class MouseInputManager(private val display: Display, private val inputService: 
                         event.consume()
                     }
                 }
-
-                unregisterCursorListeners(it)
             }
 
             if (gizmo != null) {
@@ -194,7 +194,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 cursor = null
             }
 
-            coveredEventAwareGizmo = gizmo?.also { registerCursorListeners(it) }
+            coveredEventAwareGizmo = gizmo
 
         } else if (!mouseDown) {
             if (coveredEventAwareGizmo != null) {
@@ -266,7 +266,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         var value: Gizmo? = gizmo
 
         while (value != null) {
-            value.cursorChanged += ::cursorChanged
+            value.cursorChanged += cursorChanged_
 
             if (value.cursor != null) {
                 break
@@ -280,13 +280,13 @@ class MouseInputManager(private val display: Display, private val inputService: 
         var value: Gizmo? = gizmo
 
         while (value != null) {
-            value.cursorChanged -= ::cursorChanged
+            value.cursorChanged -= cursorChanged_
 
-            if (value.cursor != null) {
-                break
-            } else {
+//            if (value.cursor != null) {
+//                break
+//            } else {
                 value = value.parent
-            }
+//            }
         }
     }
 

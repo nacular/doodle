@@ -1,7 +1,6 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.dom.ElementRuler
-import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.text.StyledText
 
@@ -9,7 +8,7 @@ import com.nectar.doodle.text.StyledText
 private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?)
 private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double                 )
 
-class TextMetricsImpl(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
+class TextMetricsImpl(private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
     private val sizes              = mutableMapOf<Pair<String, Font?>, Size>()
     private val styledSizes        = mutableMapOf<StyledText, Size>()
     private val wrappedSizes       = mutableMapOf<WrappedInfo, Size>()

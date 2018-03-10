@@ -15,7 +15,7 @@ class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
     override fun size(element: HTMLElement): Size {
         htmlFactory.body.insert(element, 0)
 
-        val size = Size(element.offsetWidth.toDouble(), element.offsetHeight.toDouble())
+        val size = Size(element.width, element.height)
 
         htmlFactory.body.removeChild(element)
 

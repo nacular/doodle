@@ -28,9 +28,13 @@ abstract class Button protected constructor(
         var icon: Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): Gizmo() {
 
+
+    private val onActionFun: (ButtonModel) -> Unit = { onAction_.forEach { it(this) } }
+
+
     init {
         model.apply {
-            onAction += ::onAction
+            onAction += onActionFun
         }
     }
 
@@ -73,13 +77,13 @@ abstract class Button protected constructor(
     open var model: ButtonModel = model
         set(new) {
             field.apply {
-                onAction -= ::onAction
+                onAction -= onActionFun
             }
 
             field = new
 
             field.apply {
-                onAction += ::onAction
+                onAction += onActionFun
             }
         }
 
@@ -138,6 +142,4 @@ abstract class Button protected constructor(
             model.armed   = false
         }
     }
-
-    private fun onAction(@Suppress("UNUSED_PARAMETER") model: ButtonModel) = onAction_.forEach { it(this) }
 }

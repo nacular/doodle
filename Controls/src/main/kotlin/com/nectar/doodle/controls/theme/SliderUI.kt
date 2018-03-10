@@ -4,10 +4,10 @@ import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.utils.size
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
+import com.nectar.doodle.utils.size
 import kotlin.math.round
 
 /**
@@ -20,14 +20,17 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
     protected var lastMousePosition = -1.0
         private set
 
+
+    private val onChanged: (Slider) -> Unit = { it.rerender() }
+
     init {
-        slider.onChanged          += this::onChanged
+        slider.onChanged          += onChanged
         slider.mouseChanged       += this
         slider.mouseMotionChanged += this
     }
 
     override fun uninstall(gizmo: Slider) {
-        gizmo.onChanged          -= this::onChanged
+        gizmo.onChanged          -= onChanged
         gizmo.mouseChanged       -= this
         gizmo.mouseMotionChanged -= this
     }
@@ -63,8 +66,6 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
 
         slider.value = lastStart + deltaValue
     }
-
-    private fun onChanged(slider: Slider) = slider.rerender()
 
     private val scaleFactor: Float get() {
         val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize

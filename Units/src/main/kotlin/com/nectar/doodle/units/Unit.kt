@@ -33,6 +33,8 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comp
         return ((this `as` other.unit).magnitude - other.magnitude).toInt()
     }
 
+    fun isZero() = magnitude == 0.0
+
     operator fun times(value: Int   ): Measure<T> = magnitude * value * unit
     operator fun times(value: Float ): Measure<T> = magnitude * value * unit
     operator fun times(value: Long  ): Measure<T> = magnitude * value * unit

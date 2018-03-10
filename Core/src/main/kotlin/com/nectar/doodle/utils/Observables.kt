@@ -16,7 +16,7 @@ interface EventObservers<out S> {
     operator fun minusAssign(observer: EventObserver<S>)
 }
 
-class EventObserversImpl<S>(private val source: S, private val mutableSet: MutableSet<EventObserver<S>>): MutableSet<EventObserver<S>> by mutableSet, EventObservers<S> {
+class EventObserversImpl<S>(private val source: S, private val mutableSet: MutableSet<EventObserver<S>>): Set<EventObserver<S>> by mutableSet, EventObservers<S> {
     override fun plusAssign(observer: EventObserver<S>) {
         mutableSet += observer
     }
@@ -35,7 +35,7 @@ interface PropertyObservers<out S, out T> {
     operator fun minusAssign(observer: PropertyObserver<S, T>)
 }
 
-class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObserver<S, T>>): MutableSet<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
+class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObserver<S, T>>): Set<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
     override fun plusAssign(observer: PropertyObserver<S, T>) {
         mutableSet += observer
     }
@@ -64,7 +64,7 @@ interface ListObservers<S, T> {
     operator fun minusAssign(observer: ListObserver<S, T>)
 }
 
-class ListObserversImpl<S, T>(private val mutableSet: MutableSet<ListObserver<S, T>>): MutableSet<ListObserver<S, T>> by mutableSet, ListObservers<S, T> {
+class ListObserversImpl<S, T>(private val mutableSet: MutableSet<ListObserver<S, T>>): Set<ListObserver<S, T>> by mutableSet, ListObservers<S, T> {
     override fun plusAssign(observer: ListObserver<S, T>) {
         mutableSet += observer
     }
@@ -192,7 +192,7 @@ interface Pool<in T> {
     operator fun minusAssign(item: T)
 }
 
-class SetPool<T>(private val delegate: MutableSet<T>): Pool<T>, MutableSet<T> by delegate {
+class SetPool<T>(private val delegate: MutableSet<T>): Pool<T>, Set<T> by delegate {
     override fun plusAssign (item: T) { delegate += item }
     override fun minusAssign(item: T) { delegate += item }
 }

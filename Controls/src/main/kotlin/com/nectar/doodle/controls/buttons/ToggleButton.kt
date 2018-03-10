@@ -48,24 +48,25 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButt
 
     init {
         super.model.apply {
-            selectedChanged += ::selectedChanged
+            selectedChanged += selectedChanged_
         }
     }
 
     override var model = super.model
         set(new) {
             field.apply {
-                selectedChanged -= ::selectedChanged
+                selectedChanged -= selectedChanged_
             }
 
             super.model = new
 
             field.apply {
-                selectedChanged += ::selectedChanged
+                selectedChanged += selectedChanged_
             }
         }
 
     val selectedChanged by lazy { PropertyObserversImpl<ToggleButton, Boolean>(mutableSetOf()) }
 
-    private fun selectedChanged(@Suppress("UNUSED_PARAMETER") model: ButtonModel, old: Boolean, new: Boolean) = selectedChanged.forEach { it(this, old, new) }
+    private val selectedChanged_ = ::selectedChangedFun
+    private fun selectedChangedFun(@Suppress("UNUSED_PARAMETER") model: ButtonModel, old: Boolean, new: Boolean) = selectedChanged.forEach { it(this, old, new) }
 }

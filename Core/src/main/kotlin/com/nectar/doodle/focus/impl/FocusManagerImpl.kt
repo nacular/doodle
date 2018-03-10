@@ -111,7 +111,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
         var parent = focusOwner?.parent
 
         while (parent != null && parent !in display) {
-            parent.children_.onChange += ::childrenChanged
+            parent.children_.onChange += childrenChanged
 
             ancestors += parent
 
@@ -121,14 +121,13 @@ class FocusManagerImpl(private val display: Display): FocusManager {
 
     private fun clearAncestorListeners() {
         for (ancestor in ancestors) {
-            ancestor.children_.onChange -= ::childrenChanged
+            ancestor.children_.onChange -= childrenChanged
         }
 
         ancestors.clear()
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun childrenChanged(list: ObservableList<Gizmo, Gizmo>, removed: Map<Int, Gizmo>, added: Map<Int, Gizmo>, moved: Map<Int, Pair<Int, Gizmo>>) {
+    private val childrenChanged: (ObservableList<Gizmo, Gizmo>, Map<Int, Gizmo>, Map<Int, Gizmo>, Map<Int, Pair<Int, Gizmo>>) -> Unit = { _,_,added,_ ->
         added.values.forEach {
             if (it === focusOwner || it in ancestors) {
                 val owner = focusOwner
@@ -138,21 +137,19 @@ class FocusManagerImpl(private val display: Display): FocusManager {
                 return@forEach
             }
         }
-
     }
 
     private fun startMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged    += ::focusabilityChanged
-        gizmo.focusableChanged  += ::focusabilityChanged
-        gizmo.visibilityChanged += ::focusabilityChanged
+        gizmo.enabledChanged    += focusabilityChanged
+        gizmo.focusableChanged  += focusabilityChanged
+        gizmo.visibilityChanged += focusabilityChanged
     }
 
     private fun stopMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged    -= ::focusabilityChanged
-        gizmo.focusableChanged  -= ::focusabilityChanged
-        gizmo.visibilityChanged -= ::focusabilityChanged
+        gizmo.enabledChanged    -= focusabilityChanged
+        gizmo.focusableChanged  -= focusabilityChanged
+        gizmo.visibilityChanged -= focusabilityChanged
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun focusabilityChanged(gizmo: Gizmo, old: Boolean, new: Boolean) = moveFocusForward(gizmo)
+    private val focusabilityChanged: (Gizmo, Boolean, Boolean) -> Unit = { gizmo,_,_ -> moveFocusForward(gizmo) }
 }

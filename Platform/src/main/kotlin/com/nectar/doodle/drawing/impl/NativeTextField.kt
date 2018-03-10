@@ -67,21 +67,21 @@ class NativeTextField(
         }
 
         textField.apply {
-            textChanged      += ::textChanged
-            focusChanged     += ::focusChanged
-            enabledChanged   += ::enabledChanged
-            focusableChanged += ::focusableChanged
-            selectionChanged += ::selectionChanged
+            textChanged      += textChanged_
+            focusChanged     += focusChanged_
+            enabledChanged   += enabledChanged_
+            focusableChanged += focusableChanged_
+            selectionChanged += selectionChanged_
         }
     }
 
     fun discard() {
         textField.apply {
-            textChanged      -= ::textChanged
-            focusChanged     -= ::focusChanged
-            enabledChanged   -= ::enabledChanged
-            focusableChanged -= ::focusableChanged
-            selectionChanged -= ::selectionChanged
+            textChanged      -= textChanged_
+            focusChanged     -= focusChanged_
+            enabledChanged   -= enabledChanged_
+            focusableChanged -= focusableChanged_
+            selectionChanged -= selectionChanged_
         }
     }
 
@@ -155,6 +155,12 @@ class NativeTextField(
         inputElement.tabIndex = if (new) -1 else 0
     }
 
+    private val textChanged_      = ::textChanged
+    private val focusChanged_     = ::focusChanged
+    private val enabledChanged_   = ::enabledChanged
+    private val focusableChanged_ = ::focusableChanged
+    private val selectionChanged_ = ::selectionChanged
+
     private fun syncTextField() {
         if (ignoreSync) {
             return
@@ -165,14 +171,14 @@ class NativeTextField(
         // by modifying the start/end position.  They are also
         // redundant.
 
-        textField.textChanged      -= ::textChanged
-        textField.selectionChanged -= ::selectionChanged
+        textField.textChanged      -= textChanged_
+        textField.selectionChanged -= selectionChanged_
 
         textField.text = text
 
         textField.select(selection)
 
-        textField.textChanged      += ::textChanged
-        textField.selectionChanged += ::selectionChanged
+        textField.textChanged      += textChanged_
+        textField.selectionChanged += selectionChanged_
     }
 }

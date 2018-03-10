@@ -1,7 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 
-import com.nectar.doodle.dom.Display
+import com.nectar.doodle.dom.Display.None
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.hasAutoOverflow
@@ -10,9 +10,8 @@ import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
-import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
-import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.Canvas
@@ -43,7 +42,7 @@ class RealGraphicsSurface private constructor(
             if (new) {
                 rootElement.style.setDisplay()
             } else {
-                rootElement.style.setDisplay(Display.None)
+                rootElement.style.setDisplay(None)
             }
         }
 
@@ -80,8 +79,8 @@ class RealGraphicsSurface private constructor(
         canvas.clear()
         canvas.optimization = Quality
 
-        if (isContainer && canvasElement.numChildren == 0 && canvasElement.parent != null) {
-            canvasElement.parent!!.remove(canvasElement)
+        if (isContainer && canvasElement.numChildren == 0) {
+            canvasElement.parent?.remove(canvasElement)
         }
 
         block(canvas)
@@ -101,8 +100,7 @@ class RealGraphicsSurface private constructor(
 
     override var size: Size by observable(Empty) { _,_,new ->
         rootElement.parent?.let {
-            rootElement.style.setWidth (new.width )
-            rootElement.style.setHeight(new.height)
+            rootElement.style.setSize(new)
 
             canvas.size = new
         }
