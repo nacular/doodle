@@ -1,10 +1,10 @@
 package com.nectar.doodle.system.impl
 
+import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.system.KeyInputService
 import com.nectar.doodle.system.KeyInputService.Listener
 import com.nectar.doodle.system.KeyInputService.Postprocessor
 import com.nectar.doodle.system.KeyInputService.Preprocessor
-import com.nectar.doodle.utils.KeyState
 
 /**
  * Created by Nicholas Eddy on 3/10/18.

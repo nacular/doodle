@@ -1,7 +1,6 @@
 package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_ALT
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
@@ -13,14 +12,16 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_R
 import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyEvent.Companion.VK_V
 import com.nectar.doodle.event.KeyEvent.Companion.VK_X
-import com.nectar.doodle.event.KeyEvent.Type.Down
-import com.nectar.doodle.event.KeyEvent.Type.Up
+import com.nectar.doodle.event.KeyState
+import com.nectar.doodle.event.KeyState.Type
+import com.nectar.doodle.event.KeyState.Type.Down
+import com.nectar.doodle.event.KeyState.Type.Press
+import com.nectar.doodle.event.KeyState.Type.Up
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy.EventHandler
-import com.nectar.doodle.utils.KeyState
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -94,7 +95,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
         var result = false
 
         if (!event.altKey && !event.ctrlKey && event.keyCode != VK_TAB) {
-            result = dispatchKeyEvent(event, KeyEvent.Type.Press)
+            result = dispatchKeyEvent(event, Press)
         }
 
         if (isNativeElement(event.target)) {
@@ -104,13 +105,13 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
         return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else result
     }
 
-    private fun dispatchKeyEvent(event: KeyboardEvent, aType: KeyEvent.Type): Boolean {
+    private fun dispatchKeyEvent(event: KeyboardEvent, type: Type): Boolean {
         eventHandler?.let {
             val keyEvent = KeyState(
                     event.keyCode,
                     event.keyCode.toChar(),
                     createModifiers(event),
-                    aType)
+                    type)
 
             return it.invoke(keyEvent)
         }

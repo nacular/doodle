@@ -1,6 +1,6 @@
 package com.nectar.doodle.system.impl
 
-import com.nectar.doodle.utils.KeyState
+import com.nectar.doodle.event.KeyState
 
 /**
  * Created by Nicholas Eddy on 3/10/18.
