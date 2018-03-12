@@ -1,125 +1,167 @@
 package com.nectar.doodle.event
 
 import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 
-
-class KeyEvent(source: Gizmo, val keyCode: Short, val keyChar: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
+class KeyState private constructor(
+        val code     : Int,
+        val char     : Char,
+        val modifiers: Set<Modifier>,
+        val type     : Type) {
 
     enum class Type {
-        UP, DOWN, PRESS
+        Up, Down, Press
     }
+
+    override fun hashCode(): Int {
+        return code + char.toInt() + modifiers.hashCode() + type.ordinal
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other    ) return true
+        if (other !is KeyState) return false
+
+        if (code      != other.code     ) return false
+        if (char      != other.char     ) return false
+        if (modifiers != other.modifiers) return false
+        if (type      != other.type     ) return false
+
+        return true
+    }
+
+    companion object {
+        operator fun invoke(
+                keyCode  : Int,
+                keyChar  : Char,
+                modifiers: Set<Modifier>,
+                type     : Type): KeyState {
+            val hashKey = keyCode + keyChar.toInt() + modifiers.hashCode() + type.ordinal
+
+            return sHashValues.getOrPut(hashKey) {
+                KeyState(keyCode, keyChar, modifiers, type)
+            }
+        }
+
+        private val sHashValues = HashMap<Int, KeyState>(256)
+    }
+}
+
+
+class KeyEvent(source: Gizmo, val code: Int, val char: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
+
+    constructor(source: Gizmo, keyState: KeyState): this(source, keyState.code, keyState.char, keyState.modifiers, keyState.type)
 
     companion object {
 
         // Key Codes
 
-        val VK_BACKSPACE    : Short = 8
-        val VK_TAB          : Short = 9
+        val VK_BACKSPACE    : Int = 8
+        val VK_TAB          : Int = 9
 
-        val VK_RETURN       : Short = 13
-        val VK_SHIFT        : Short = 16
-        val VK_CONTROL      : Short = 17
-        val VK_ALT          : Short = 18
+        val VK_RETURN       : Int = 13
+        val VK_SHIFT        : Int = 16
+        val VK_CONTROL      : Int = 17
+        val VK_ALT          : Int = 18
 
-        val VK_CAPSLOCK     : Short = 20
+        val VK_CAPSLOCK     : Int = 20
 
-        val VK_ESCAPE       : Short = 27
-        val VK_SPACE        : Short = 32
-        val VK_PAGEUP       : Short = 33
-        val VK_PAGEDOWN     : Short = 34
-        val VK_END          : Short = 35
-        val VK_HOME         : Short = 36
-        val VK_LEFT         : Short = 37
-        val VK_UP           : Short = 38
-        val VK_RIGHT        : Short = 39
-        val VK_DOWN         : Short = 40
+        val VK_ESCAPE       : Int = 27
+        val VK_SPACE        : Int = 32
+        val VK_PAGEUP       : Int = 33
+        val VK_PAGEDOWN     : Int = 34
+        val VK_END          : Int = 35
+        val VK_HOME         : Int = 36
+        val VK_LEFT         : Int = 37
+        val VK_UP           : Int = 38
+        val VK_RIGHT        : Int = 39
+        val VK_DOWN         : Int = 40
 
-        val VK_INSERT       : Short = 45
-        val VK_DELETE       : Short = 46
+        val VK_INSERT       : Int = 45
+        val VK_DELETE       : Int = 46
 
-        val VK_0            : Short = 48
-        val VK_1            : Short = 49
-        val VK_2            : Short = 50
-        val VK_3            : Short = 51
-        val VK_4            : Short = 52
-        val VK_5            : Short = 53
-        val VK_6            : Short = 54
-        val VK_7            : Short = 55
-        val VK_8            : Short = 56
-        val VK_9            : Short = 57
+        val VK_0            : Int = 48
+        val VK_1            : Int = 49
+        val VK_2            : Int = 50
+        val VK_3            : Int = 51
+        val VK_4            : Int = 52
+        val VK_5            : Int = 53
+        val VK_6            : Int = 54
+        val VK_7            : Int = 55
+        val VK_8            : Int = 56
+        val VK_9            : Int = 57
 
-        val VK_SEMICOLAN    : Short = 59
+        val VK_SEMICOLAN    : Int = 59
 
-        val VK_EQUAL        : Short = 61
+        val VK_EQUAL        : Int = 61
 
-        val VK_A            : Short = 65
-        val VK_B            : Short = 66
-        val VK_C            : Short = 67
-        val VK_D            : Short = 68
-        val VK_E            : Short = 69
-        val VK_F            : Short = 70
-        val VK_G            : Short = 71
-        val VK_H            : Short = 72
-        val VK_I            : Short = 73
-        val VK_J            : Short = 74
-        val VK_K            : Short = 75
-        val VK_L            : Short = 76
-        val VK_M            : Short = 77
-        val VK_N            : Short = 78
-        val VK_O            : Short = 79
-        val VK_P            : Short = 80
-        val VK_Q            : Short = 81
-        val VK_R            : Short = 82
-        val VK_S            : Short = 83
-        val VK_T            : Short = 84
-        val VK_U            : Short = 85
-        val VK_V            : Short = 86
-        val VK_W            : Short = 87
-        val VK_X            : Short = 88
-        val VK_Y            : Short = 89
-        val VK_Z            : Short = 90
-        val VK_WINDOWS      : Short = 91
-        val VK_CONTEXT      : Short = 93
+        val VK_A            : Int = 65
+        val VK_B            : Int = 66
+        val VK_C            : Int = 67
+        val VK_D            : Int = 68
+        val VK_E            : Int = 69
+        val VK_F            : Int = 70
+        val VK_G            : Int = 71
+        val VK_H            : Int = 72
+        val VK_I            : Int = 73
+        val VK_J            : Int = 74
+        val VK_K            : Int = 75
+        val VK_L            : Int = 76
+        val VK_M            : Int = 77
+        val VK_N            : Int = 78
+        val VK_O            : Int = 79
+        val VK_P            : Int = 80
+        val VK_Q            : Int = 81
+        val VK_R            : Int = 82
+        val VK_S            : Int = 83
+        val VK_T            : Int = 84
+        val VK_U            : Int = 85
+        val VK_V            : Int = 86
+        val VK_W            : Int = 87
+        val VK_X            : Int = 88
+        val VK_Y            : Int = 89
+        val VK_Z            : Int = 90
+        val VK_WINDOWS      : Int = 91
+        val VK_CONTEXT      : Int = 93
 
-        val VK_NUM_0        : Short = 96
-        val VK_NUM_1        : Short = 97
-        val VK_NUM_2        : Short = 98
-        val VK_NUM_3        : Short = 99
-        val VK_NUM_4        : Short = 100
-        val VK_NUM_5        : Short = 101
-        val VK_NUM_6        : Short = 102
-        val VK_NUM_7        : Short = 103
-        val VK_NUM_8        : Short = 104
-        val VK_NUM_9        : Short = 105
-        val VK_MULTIPLY     : Short = 106
-        val VK_PLUS         : Short = 107
-        val VK_MINUS        : Short = 109
-        val VK_DECIMAL      : Short = 110
-        val VK_DIVIDE       : Short = 111
-        val VK_F1           : Short = 112
-        val VK_F2           : Short = 113
-        val VK_F3           : Short = 114
-        val VK_F4           : Short = 115
-        val VK_F5           : Short = 116
-        val VK_F6           : Short = 117
-        val VK_F7           : Short = 118
-        val VK_F8           : Short = 119
-        val VK_F9           : Short = 120
-        val VK_F10          : Short = 121
-        val VK_F11          : Short = 122
-        val VK_F12          : Short = 123
-        val VK_NUMLOCK      : Short = 144
+        val VK_NUM_0        : Int = 96
+        val VK_NUM_1        : Int = 97
+        val VK_NUM_2        : Int = 98
+        val VK_NUM_3        : Int = 99
+        val VK_NUM_4        : Int = 100
+        val VK_NUM_5        : Int = 101
+        val VK_NUM_6        : Int = 102
+        val VK_NUM_7        : Int = 103
+        val VK_NUM_8        : Int = 104
+        val VK_NUM_9        : Int = 105
+        val VK_MULTIPLY     : Int = 106
+        val VK_PLUS         : Int = 107
+        val VK_MINUS        : Int = 109
+        val VK_DECIMAL      : Int = 110
+        val VK_DIVIDE       : Int = 111
+        val VK_F1           : Int = 112
+        val VK_F2           : Int = 113
+        val VK_F3           : Int = 114
+        val VK_F4           : Int = 115
+        val VK_F5           : Int = 116
+        val VK_F6           : Int = 117
+        val VK_F7           : Int = 118
+        val VK_F8           : Int = 119
+        val VK_F9           : Int = 120
+        val VK_F10          : Int = 121
+        val VK_F11          : Int = 122
+        val VK_F12          : Int = 123
+        val VK_NUMLOCK      : Int = 144
 
-        val VK_COMMA        : Short = 188
+        val VK_COMMA        : Int = 188
 
-        val VK_PERIOD       : Short = 190
-        val VK_FORWARD_SLASH: Short = 191
-        val VK_ACUTE        : Short = 192
+        val VK_PERIOD       : Int = 190
+        val VK_FORWARD_SLASH: Int = 191
+        val VK_ACUTE        : Int = 192
 
-        val VK_LEFT_BRACKET : Short = 219
-        val VK_BACK_SLASH   : Short = 220
-        val VK_RIGHT_BRACKET: Short = 221
-        val VK_APOSTROPHE   : Short = 222
+        val VK_LEFT_BRACKET : Int = 219
+        val VK_BACK_SLASH   : Int = 220
+        val VK_RIGHT_BRACKET: Int = 221
+        val VK_APOSTROPHE   : Int = 222
     }
 }

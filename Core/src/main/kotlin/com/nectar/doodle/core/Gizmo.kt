@@ -9,11 +9,13 @@ import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.event.FocusEvent.Type.Gained
 import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.event.MouseWheelEvent
 import com.nectar.doodle.focus.FocusTraversalPolicy
+import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
@@ -317,7 +319,7 @@ abstract class Gizmo protected constructor() {
 //
     private var renderManager: RenderManager? = null
 
-//    private val traversalKeys: MutableMap<FocusTraversalPolicy.TraversalType, Set<KeyState>> by lazy { mutableMapOf<FocusTraversalPolicy.TraversalType, Set<KeyState>>() }
+    private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
 
     /**
      * Gives the Gizmo an opportunity to render itself to the given Canvas.
@@ -478,41 +480,28 @@ abstract class Gizmo protected constructor() {
         bounds = Rectangle(x, y, width, height)
     }
 
-//    /**
-//     * Sets the keys used to control focus traversals of the given type.
-//     *
-//     * @param traversalType
-//     * The traversal type
-//     * @param keyStates
-//     * The set of keys that will trigger this type of traversal
-//     */
-//
-//    fun setFocusTraversalKeys(traversalType: FocusTraversalPolicy.TraversalType, keyStates: Set<KeyState>?) {
-//        //        if( aSet == null )
-//        //        {
-//        //            Gizmo aParent = mParent;
-//        //
-//        //            while( aParent != null && aParent.getFocusTraversalKeys( aTraversalType ) == null )
-//        //            {
-//        //                aParent = aParent.getParent();
-//        //            }
-//        //
-//        //            if( aParent != null && aParent.getFocusTraversalKeys( aTraversalType ) != null )
-//        //            {
-//        //                aSet = aParent.getFocusTraversalKeys( aTraversalType );
-//        //            }
-//        //        }
-//
-//        keyStates?.let { traversalKeys?.put(traversalType, it) } ?: traversalKeys?.remove(traversalType)
-//    }
-
     /**
      * Gets the set of keys used to trigger this type of focus traversal.
      *
      * @return The set of keys that will trigger this type of traversal
      */
+    operator fun get(traversalType: TraversalType): Set<KeyState>? {
+        return traversalKeys[traversalType]
+    }
 
-//    fun getFocusTraversalKeys(aTraversalType: FocusTraversalPolicy.TraversalType): Set<KeyState>? = traversalKeys[aTraversalType]
+    /**
+     * Sets the keys used to control focus traversals of the given type.
+     *
+     * @param traversalType The traversal type
+     * @param keyStates     The set of keys that will trigger this type of traversal
+     */
+    operator fun set(traversalType: TraversalType, keyStates: Set<KeyState>?) {
+        if (keyStates != null) {
+            traversalKeys[traversalType] = keyStates
+        } else {
+            traversalKeys.remove(traversalType)
+        }
+    }
 
 //    /**
 //     * Adds a DisplayRectListener to the Gizmo to receive DisplayRectEvents.
