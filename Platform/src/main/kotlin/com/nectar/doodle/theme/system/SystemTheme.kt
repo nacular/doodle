@@ -55,7 +55,7 @@ val systemThemeModule = Kodein.Module {
 
     bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()) }
     bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
-    bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl(instance(), instance()) }
+    bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance()) }
     bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
     bind<SystemTheme>              () with singleton { SystemTheme(instance(), instance(), instance())  }
 }

@@ -10,6 +10,7 @@ import com.nectar.doodle.dom.setBoxSizing
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Size.Companion.Empty
 
 
@@ -19,25 +20,29 @@ interface NativeTextFieldFactory {
 
 class NativeTextFieldFactoryImpl internal constructor(
         private val htmlFactory        : HtmlFactory,
+        private val focusManager       : FocusManager?,
         private val eventHandlerFactory: NativeEventHandlerFactory): NativeTextFieldFactory {
     override fun invoke(textField: TextField) = NativeTextField(
             eventHandlerFactory,
             htmlFactory,
+            focusManager,
             textField)
 }
 
+@Suppress("PrivatePropertyName")
 class NativeTextField(
-        private val eventHandlerFactory: NativeEventHandlerFactory,
-        htmlFactory: HtmlFactory,
-        private val textField: TextField): NativeEventListener {
+                    eventHandlerFactory: NativeEventHandlerFactory,
+                    htmlFactory        : HtmlFactory,
+        private val focusManager       : FocusManager?,
+        private val textField          : TextField): NativeEventListener {
 
-    var text: String
+    var text
         get(   ) = inputElement.value
         set(new) {
             inputElement.value = new
         }
 
-    val selection: ClosedRange<Int>
+    val selection
         get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 
     var size = Empty
@@ -51,13 +56,19 @@ class NativeTextField(
     private val inputElement = htmlFactory.createInput()
     private val eventHandler: NativeEventHandler
 
+    private val textChanged_      = ::textChanged
+    private val focusChanged_     = ::focusChanged
+    private val enabledChanged_   = ::enabledChanged
+    private val focusableChanged_ = ::focusableChanged
+    private val selectionChanged_ = ::selectionChanged
+
     init {
         text = textField.text
 
         inputElement.apply {
-            style.setWidthPercent (100.0)
-            style.setHeightPercent(100.0)
-            style.setBoxSizing(Border)
+            style.setWidthPercent (100.0 )
+            style.setHeightPercent(100.0 )
+            style.setBoxSizing    (Border)
         }
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
@@ -108,18 +119,17 @@ class NativeTextField(
 
     override fun onFocusGained(): Boolean {
         if (!ignoreSync) {
-//            Service.locator().getFocusManager().requestFocus(textField)
+            focusManager?.requestFocus(textField)
         }
         return true
     }
 
     override fun onFocusLost(): Boolean {
-        if (!ignoreSync) {
-//            Service.locator().getFocusManager().requestFocus(null)
+        if (!ignoreSync && focusManager?.focusOwner == textField) {
+            focusManager.clearFocus()
         }
         return true
     }
-
 
     private fun select(range: ClosedRange<Int>) = inputElement.setSelectionRange(range.start, range.endInclusive)
 
@@ -154,12 +164,6 @@ class NativeTextField(
     private fun focusableChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
         inputElement.tabIndex = if (new) -1 else 0
     }
-
-    private val textChanged_      = ::textChanged
-    private val focusChanged_     = ::focusChanged
-    private val enabledChanged_   = ::enabledChanged
-    private val focusableChanged_ = ::focusableChanged
-    private val selectionChanged_ = ::selectionChanged
 
     private fun syncTextField() {
         if (ignoreSync) {

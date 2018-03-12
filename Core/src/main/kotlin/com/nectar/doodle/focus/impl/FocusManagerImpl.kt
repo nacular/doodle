@@ -46,10 +46,6 @@ class FocusManagerImpl(private val display: Display): FocusManager {
                     oldFocusOwner.handleFocusEvent(FocusEvent(oldFocusOwner, Lost, gizmo))
 
                     stopMonitorProperties(oldFocusOwner)
-
-                    (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>).forEach {
-                        it(this, oldFocusOwner, gizmo)
-                    }
                 } else {
                     return
                 }
@@ -67,10 +63,10 @@ class FocusManagerImpl(private val display: Display): FocusManager {
                 // Listen for removal of this item or any of its ancestors
 
                 registerAncestorListeners()
+            }
 
-                (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>).forEach {
-                    it(this, oldFocusOwner, focusOwner)
-                }
+            (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>).forEach {
+                it(this, oldFocusOwner, gizmo)
             }
         }
     }
