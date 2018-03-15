@@ -26,7 +26,7 @@ import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
-import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
 import com.nectar.doodle.focus.FocusManager
@@ -74,7 +74,8 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
         injector.instance<SystemStyler> ()
         injector.instance<RenderManager>()
 
-        injector.instanceOrNull<MouseInputManager>()
+        injector.instanceOrNull<MouseInputManager>   ()
+        injector.instanceOrNull<KeyboardFocusManager>()
 
         run(injector.instance())
     }
@@ -94,7 +95,7 @@ val mouseModule = Module {
     bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()             ) }
 }
 
-val focusModule = Module {
+val focusModule = Module(allowSilentOverride = true) {
     bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
 }
 
@@ -103,8 +104,8 @@ val keyboardModule = Module {
 
     val keys = mutableMapOf<TraversalType, Set<KeyState>>()
 
-    keys[Forward ] = setOf(KeyState(KeyEvent.VK_TAB, KeyEvent.VK_TAB.toChar(), emptySet(),   Down))
-    keys[Backward] = setOf(KeyState(KeyEvent.VK_TAB, KeyEvent.VK_TAB.toChar(), setOf(Shift), Down))
+    keys[Forward ] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down))
+    keys[Backward] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
 
     bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                   ) }
     bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManager         (instance(), instance(), keys ) }

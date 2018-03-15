@@ -344,6 +344,7 @@ class RenderManagerImpl(
             handleAddedGizmo(child)
         } else {
             addedInvisible.add(child)
+            child.visibilityChanged += visibilityChanged_
         }
     }
 

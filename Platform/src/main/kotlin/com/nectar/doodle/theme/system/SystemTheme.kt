@@ -1,6 +1,6 @@
 package com.nectar.doodle.theme.system
 
-import com.github.salomonbrys.kodein.Kodein
+import com.github.salomonbrys.kodein.Kodein.Module
 import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.instance
 import com.github.salomonbrys.kodein.erased.instanceOrNull
@@ -49,7 +49,7 @@ class SystemTheme internal constructor(
     }
 }
 
-val systemThemeModule = Kodein.Module {
+val systemThemeModule = Module {
     // TODO: Can this be handled better?
     bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 

@@ -9,6 +9,7 @@ import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.event.FocusEvent.Type.Gained
 import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -81,6 +82,8 @@ abstract class Gizmo protected constructor() {
     var toolTipText = ""
 
     val mouseChanged = SetPool<MouseListener>(mutableSetOf())
+
+    val keyChanged = SetPool<KeyListener>(mutableSetOf())
 
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -363,13 +366,13 @@ abstract class Gizmo protected constructor() {
      * @param event The event
      */
     protected open fun handleKeyEvent(event: KeyEvent) {
-//        keyChanged.forEach {
-//            when(event.type) {
-//                KeyEvent.Type.UP    -> it.keyReleased(event)
-//                KeyEvent.Type.DOWN  -> it.keyPressed (event)
-//                KeyEvent.Type.PRESS -> it.keyTyped   (event)
-//            }
-//        }
+        keyChanged.forEach {
+            when(event.type) {
+                KeyState.Type.Up    -> it.keyReleased(event)
+                KeyState.Type.Down  -> it.keyPressed (event)
+                KeyState.Type.Press -> it.keyTyped   (event)
+            }
+        }
     }
 
     internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)

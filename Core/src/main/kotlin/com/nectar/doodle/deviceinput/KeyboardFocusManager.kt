@@ -67,8 +67,8 @@ class KeyboardFocusManager(
     operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.add   (preprocessor) }
     operator fun minusAssign(preprocessor: Preprocessor) { preprocessors.remove(preprocessor) }
 
-    operator fun plusAssign (preprocessor: Postprocessor) { postprocessors.add   (preprocessor) }
-    operator fun minusAssign(preprocessor: Postprocessor) { postprocessors.remove(preprocessor) }
+    operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
+    operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
     private fun handleKeyEvent(gizmo: Gizmo, keyEvent: KeyEvent) {
         val keyState = keyEvent.run { KeyState(code, char, modifiers, type) }

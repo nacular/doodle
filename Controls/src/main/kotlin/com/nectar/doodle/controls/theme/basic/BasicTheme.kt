@@ -24,7 +24,7 @@ class BasicTheme: Theme {
         when (it) {
             is ProgressBar -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) }
             is Slider      -> it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) }
-            is SplitPanel  -> it.renderer = BasicSplitPanelUI(defaultBackgroundColor = defaultBackgroundColor)
+            is SplitPanel  -> it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) }
         }
     }
 

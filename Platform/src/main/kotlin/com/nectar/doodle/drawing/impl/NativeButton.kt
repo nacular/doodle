@@ -36,7 +36,6 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.VerticalAlignment
-import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import kotlin.math.max
 import kotlin.math.min
@@ -121,20 +120,38 @@ class NativeButton internal constructor(
     var idealSize: Size? = null
         private set
 
-    private var textElement      : HTMLElement? = null
-    private var iconElement      : HTMLElement? = null
-    private val buttonElement    : HTMLButtonElement
-    private val glassPanelElement: HTMLElement
+    private var textElement       : HTMLElement? = null
+    private var iconElement       : HTMLElement? = null
+    private val glassPanelElement : HTMLElement
     private val nativeEventHandler: NativeEventHandler
 
-    init {
-        buttonElement = htmlFactory.createButton().apply {
-            style.setFont         (null )
-            style.setWidthPercent (100.0)
-            style.setHeightPercent(100.0)
-            style.cursor = "inherit"
-        }
+    private val buttonElement    = htmlFactory.createButton().apply {
+        style.setFont         (null )
+        style.setWidthPercent (100.0)
+        style.setHeightPercent(100.0)
+        style.cursor = "inherit"
+    }
 
+    private val textChanged: (Gizmo, String, String) -> Unit = { _,_,_ ->
+        button.rerender()
+    }
+
+    private val focusChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+        when (new) {
+            true -> buttonElement.focus()
+            else -> buttonElement.blur ()
+        }
+    }
+
+    private val enabledChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+        buttonElement.disabled = !new
+    }
+
+    private val focusableChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+        buttonElement.tabIndex = if (new) -1 else 0
+    }
+
+    init {
         nativeEventHandler = handlerFactory(buttonElement, this).apply {
             registerFocusListener         ()
             registerClickListener         ()
@@ -342,25 +359,6 @@ class NativeButton internal constructor(
         }
 
         return true
-    }
-
-    private val textChanged: (Gizmo, String, String) -> Unit = { _,_,_ ->
-        button.rerender()
-    }
-
-    private val focusChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
-        when (new) {
-            true -> buttonElement.focus()
-            else -> buttonElement.blur ()
-        }
-    }
-
-    private val enabledChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
-        buttonElement.disabled = !new
-    }
-
-    private val focusableChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
-        buttonElement.tabIndex = if (new) -1 else 0
     }
 
     private fun measureIdealSize(): Size {
