@@ -8,7 +8,7 @@ package com.nectar.doodle.utils
  */
 interface Node<T> {
     val value   : T
-    val children: List<Node<T>>
+    val children: Sequence<Node<T>>
 }
 
 /**
@@ -16,22 +16,18 @@ interface Node<T> {
  */
 class BreadthFirstTreeIterator<out T>(root: Node<T>): Iterator<T> {
 
-    private val history = ArrayList<Node<T>>()
+    private var history = sequenceOf(root)
 
-    init {
-        history.add(root)
-    }
-
-    override fun hasNext() = history.isNotEmpty()
+    override fun hasNext() = !history.none()
 
     override fun next(): T {
         if (!hasNext()) {
             throw NoSuchElementException("The tree has no more elements")
         }
 
-        val node = history.removeAt(history.lastIndex)
+        val node = history.first()
 
-        history.addAll(node.children.reversed())
+        history = history.drop(1) + node.children
 
         return node.value
     }

@@ -271,7 +271,7 @@ class RenderManagerImpl(
     }
 
     private fun releaseResources(gizmo: Gizmo) {
-        gizmo.removedFromDisplay()
+        gizmo.removedFromDisplay_()
 
         gizmo.children_.forEach {
             releaseResources(it)

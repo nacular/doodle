@@ -5,7 +5,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.system.Cursor
 
-internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: Button): AbstractSystemButtonUI(button) {
+internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: Button): AbstractButtonUI(button) {
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 
@@ -39,4 +39,6 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: 
 
         gizmo.cursor = null
     }
+
+    override val mouseReleaseAutoClicks = true
 }

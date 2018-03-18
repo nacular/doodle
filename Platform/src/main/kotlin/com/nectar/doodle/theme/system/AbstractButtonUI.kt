@@ -1,14 +1,14 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.ButtonRenderer
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
-import com.nectar.doodle.theme.Renderer
 
 
-abstract class AbstractSystemButtonUI(button: Button): Renderer<Button>, MouseListener, KeyListener {
+abstract class AbstractButtonUI(button: Button): ButtonRenderer, MouseListener, KeyListener {
     init {
 //        button.addKeyListener(this)
         button.mouseChanged += this

@@ -75,10 +75,7 @@ class ListObserversImpl<S, T>(private val mutableSet: MutableSet<ListObserver<S,
 }
 
 // TODO: Change so only deltas are reported
-class ObservableList<S, E>(val source: S, list: MutableList<E>): MutableList<E> by list {
-
-    var list = list
-        private set
+class ObservableList<S, E>(val source: S, val list: MutableList<E>): MutableList<E> by list {
 
     private val onChange_ = ListObserversImpl<S, E>(mutableSetOf())
     val onChange: ListObservers<S, E> = onChange_
@@ -124,7 +121,7 @@ class ObservableList<S, E>(val source: S, list: MutableList<E>): MutableList<E> 
         val size    = list.size
         val oldList = list
 
-        list = mutableListOf()
+        list.clear()
 
         onChange_.forEach {
             it(this, (0 until size).associate { it to oldList[it] }, mapOf(), mapOf())

@@ -110,5 +110,5 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
 private class DummyRoot(override val children: ObservableList<Gizmo, Gizmo>): Gizmo()
 
 private class NodeAdapter(override val value: Gizmo): Node<Gizmo> {
-    override val children get() = value.children_.map { NodeAdapter(it) }
+    override val children get() = value.children_.asSequence().map { NodeAdapter(it) }
 }

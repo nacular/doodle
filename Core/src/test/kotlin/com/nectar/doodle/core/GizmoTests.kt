@@ -66,7 +66,7 @@ class GizmoTests {
                 Gizmo::monitorsMouse       to false,
                 Gizmo::foregroundColor     to null,
                 Gizmo::backgroundColor     to null,
-                Gizmo::monitorsKeyboard    to true,
+                Gizmo::monitorsKeyboard    to false,
                 Gizmo::monitorsMouseWheel  to true,
                 Gizmo::monitorsMouseMotion to false,
                 Gizmo::monitorsDisplayRect to false
@@ -100,7 +100,7 @@ class GizmoTests {
         validateSetter(Gizmo::monitorsMouse,       false                           )
         validateSetter(Gizmo::foregroundColor,     red                             )
         validateSetter(Gizmo::backgroundColor,     green                           )
-        validateSetter(Gizmo::monitorsKeyboard,    true                            )
+        validateSetter(Gizmo::monitorsKeyboard,    false                           )
         validateSetter(Gizmo::monitorsMouseWheel,  true                            )
         validateSetter(Gizmo::monitorsMouseMotion, false                           )
         validateSetter(Gizmo::monitorsDisplayRect, false                           )

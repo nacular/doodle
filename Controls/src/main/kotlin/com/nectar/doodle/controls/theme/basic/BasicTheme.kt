@@ -4,6 +4,9 @@ import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.panels.SplitPanel
+import com.nectar.doodle.controls.spinner.Spinner
+import com.nectar.doodle.controls.text.LabelFactory
+import com.nectar.doodle.controls.theme.CommonSpinnerUI
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Color
@@ -16,7 +19,7 @@ import com.nectar.doodle.theme.Theme
 private val defaultBackgroundColor = Color(0xcccccc)
 private val darkBackgroundColor    = Color(0xaaaaaa)
 
-class BasicTheme: Theme {
+class BasicTheme(private val labelFactory: LabelFactory): Theme {
 
     private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor)}
 
@@ -25,6 +28,7 @@ class BasicTheme: Theme {
             is ProgressBar -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) }
             is Slider      -> it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) }
             is SplitPanel  -> it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) }
+            is Spinner<*>  -> (it as Spinner<Any>).renderer = CommonSpinnerUI(labelFactory = labelFactory)
         }
     }
 

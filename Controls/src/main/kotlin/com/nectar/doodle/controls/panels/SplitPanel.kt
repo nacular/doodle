@@ -4,138 +4,17 @@ import com.nectar.doodle.controls.ChangeObservers
 import com.nectar.doodle.controls.ChangeObserversImpl
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.Cursor.Companion.ColResize
-import com.nectar.doodle.system.Cursor.Companion.RowResize
-import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.Orientation
-import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
-import kotlin.math.max
-import kotlin.math.min
 
-
-interface SplitPanelRenderer: Renderer<SplitPanel> {
-    fun divider(panel: SplitPanel): Gizmo?
-    fun resizer(panel: SplitPanel): Gizmo?
-}
-
-abstract class AbstractSplitPanelRenderer(
-        private val spacing: Double = 7.0,
-        private val divider: Gizmo,
-        private val resizer: Gizmo? = null): SplitPanelRenderer, MouseListener, MouseMotionListener {
-
-    private var splitPanel      = null as SplitPanel?
-    private var orientation     = Vertical
-    private var pressedLocation = 0.0
-
-    init {
-        divider.mouseChanged       += this
-        divider.mouseMotionChanged += this
-
-        resizer?.visible            = false
-    }
-
-    override fun divider(panel: SplitPanel): Gizmo? = divider
-    override fun resizer(panel: SplitPanel): Gizmo? = resizer
-
-    override fun install(gizmo: SplitPanel) {
-        splitPanel  = gizmo.also { it.panelSpacing = spacing }
-        orientation = gizmo.orientation
-
-        when (gizmo.orientation) {
-            Vertical   -> divider.cursor = ColResize
-            Horizontal -> divider.cursor = RowResize
-        }
-    }
-
-    override fun uninstall(gizmo: SplitPanel) {
-        splitPanel = null
-    }
-
-    override fun mousePressed(event: MouseEvent) {
-        resizer?.bounds  = divider.bounds
-        resizer?.visible = true
-
-        pressedLocation = when (orientation) {
-            Vertical   -> event.location.x
-            Horizontal -> event.location.y
-        }
-    }
-
-    override fun mouseReleased(event: MouseEvent) {
-        splitPanel?.let { splitPanel ->
-            resizer?.let { resizer ->
-                var minPosition = 0.0
-                var position = 0.0
-                var maxPosition = 0.0
-
-                when (orientation) {
-                    Vertical   -> {
-                        minPosition = splitPanel.insets.left
-                        position = resizer.x
-                        maxPosition = splitPanel.width - splitPanel.panelSpacing - splitPanel.insets.run { right }
-                    }
-
-                    Horizontal -> {
-                        minPosition = splitPanel.insets.bottom
-                        position = resizer.y
-                        maxPosition = splitPanel.height - splitPanel.panelSpacing - splitPanel.insets.run { bottom }
-                    }
-                }
-
-                splitPanel.ratio = ((position - minPosition) / (maxPosition - minPosition)).toFloat()
-
-                resizer.visible = false
-            }
-        }
-    }
-
-    override fun mouseDragged(mouseEvent: MouseEvent) {
-        splitPanel?.let { splitPanel ->
-
-            var minPosition = 0.0
-            var maxPosition = 0.0
-            var position    = 0.0
-
-            when (orientation) {
-                Vertical -> {
-                    minPosition = splitPanel.insets.left
-                    position    = divider.x + mouseEvent.location.x - pressedLocation
-                    maxPosition = splitPanel.run { width - panelSpacing - insets.run { right } }
-                }
-
-                Horizontal -> {
-
-                    minPosition = splitPanel.insets.top
-                    position    = divider.y + mouseEvent.location.y - pressedLocation
-                    maxPosition = splitPanel.run { height - panelSpacing - insets.run { bottom } }
-                }
-            }
-
-            val newPosition = min(maxPosition, max(minPosition, position))
-
-            if (resizer != null) {
-                when (orientation) {
-                    Vertical   -> resizer.x = newPosition
-                    Horizontal -> resizer.y = newPosition
-                }
-            } else {
-                splitPanel.ratio = ((newPosition - minPosition) / (maxPosition - minPosition)).toFloat()
-            }
-        }
-    }
-}
 
 class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizmo() {
 
-    var renderer: SplitPanelRenderer? = null
+    var renderer: SplitPanelUI? = null
         set(new) {
 
             divider?.let { children -= it }

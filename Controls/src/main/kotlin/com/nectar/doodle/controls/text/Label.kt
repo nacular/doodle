@@ -54,8 +54,12 @@ class Label internal constructor(
     // FIXME: Need to handle case where font/colors change after text is set
     var styledText = font?.invoke(foregroundColor?.invoke(styledText) ?: styledText) ?: styledText
         set(new) {
+            if (new == field) { return }
+
             field = new
             measureText()
+
+            rerender()
         }
 
     var wrapsWords = false

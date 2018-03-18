@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.panels.AbstractSplitPanelRenderer
+import com.nectar.doodle.controls.panels.AbstractSplitPanelUI
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
@@ -22,7 +22,7 @@ private class Resizer(color: Color? = null): Gizmo() {
     }
 }
 
-class BasicSplitPanelUI(darkBackgroundColor: Color): AbstractSplitPanelRenderer(divider = Resizer(darkBackgroundColor) /*, resizer = Resizer(darkBackgroundColor.with(opacity = 0.2f))*/) {
+class BasicSplitPanelUI(darkBackgroundColor: Color): AbstractSplitPanelUI(divider = Resizer(darkBackgroundColor) /*, resizer = Resizer(darkBackgroundColor.with(opacity = 0.2f))*/) {
     override fun render(gizmo: SplitPanel, canvas: Canvas) {
 //        canvas.rect(gizmo.bounds.atOrigin(), ColorBrush(defaultBackgroundColor))
     }

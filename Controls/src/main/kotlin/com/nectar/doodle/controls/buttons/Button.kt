@@ -3,13 +3,7 @@ package com.nectar.doodle.controls.buttons
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
-import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
-import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
-import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.EventObservers
 import com.nectar.doodle.utils.EventObserversImpl
@@ -22,6 +16,11 @@ import com.nectar.doodle.utils.VerticalAlignment
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
+
+interface ButtonRenderer: Renderer<Button> {
+    val mouseReleaseAutoClicks: Boolean get() = false
+}
+
 @Suppress("PrivatePropertyName")
 abstract class Button protected constructor(
             text: String        = "",
@@ -31,18 +30,21 @@ abstract class Button protected constructor(
 
     private val onActionFun: (ButtonModel) -> Unit = { onAction_.forEach { it(this) } }
 
-
     init {
-        model.apply {
-            onAction += onActionFun
-        }
+        model.onAction += onActionFun
+    }
+
+    override fun removedFromDisplay() {
+        super.removedFromDisplay()
+
+        model.onAction -= onActionFun
     }
 
     val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(mutableSetOf()) }
 
-    var text: String by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
+    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
 
-    var renderer: Renderer<Button>? = null
+    var renderer: ButtonRenderer? = null
 
     var iconTextSpacing     = 4.0
     var verticalAlignment   = VerticalAlignment.Center
@@ -99,47 +101,49 @@ abstract class Button protected constructor(
 
     abstract fun click()
 
-    override fun handleMouseEvent(event: MouseEvent) {
-        super.handleMouseEvent(event)
-
-        when (event.type) {
-            Up    -> mouseReleased(event)
-            Down  -> mousePressed (event)
-            Exit  -> mouseExited  (event)
-            Enter -> mouseEntered (event)
-            else  -> return
-        }
-    }
-
-    private fun mouseEntered(event: MouseEvent) {
-        model.mouseOver = true
-
-        if (enabled) {
-            if (event.buttons == setOf(Button1) && model.pressed) {
-                model.armed = true
-            }
-        }
-    }
-
-    private fun mouseExited(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
-        model.mouseOver = false
-
-        if (enabled) {
-            model.armed = false
-        }
-    }
-
-    private fun mousePressed(event: MouseEvent) {
-        if (enabled && event.buttons == setOf(Button1)) {
-            model.armed   = true
-            model.pressed = true
-        }
-    }
-
-    private fun mouseReleased(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
-        if (enabled) {
-            model.pressed = false
-            model.armed   = false
-        }
-    }
+//    override fun handleMouseEvent(event: MouseEvent) {
+//        super.handleMouseEvent(event)
+//
+//        when (event.type) {
+//            Up    -> mouseReleased(event)
+//            Down  -> mousePressed (event)
+//            Exit  -> mouseExited  (event)
+//            Enter -> mouseEntered (event)
+//            else  -> return
+//        }
+//    }
+//
+//    private fun mouseEntered(event: MouseEvent) {
+//        model.mouseOver = true
+//
+//        if (enabled) {
+//            if (event.buttons == setOf(Button1) && model.pressed) {
+//                model.armed = true
+//            }
+//        }
+//    }
+//
+//    private fun mouseExited(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
+//        model.mouseOver = false
+//
+//        if (enabled) {
+//            model.armed = false
+//        }
+//    }
+//
+//    private fun mousePressed(event: MouseEvent) {
+//        if (enabled && event.buttons == setOf(Button1)) {
+//            model.armed   = true
+//            model.pressed = true
+//        }
+//    }
+//
+//    private fun mouseReleased(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
+//        if (enabled) {
+//            renderer?.mouseReleaseAutoClicks?.ifTrue { model.armed = false }
+//
+//            model.pressed = false
+//            model.armed   = false
+//        }
+//    }
 }

@@ -83,21 +83,22 @@ abstract class Gizmo protected constructor() {
 
     val mouseChanged = SetPool<MouseListener>(mutableSetOf())
 
-    val keyChanged = SetPool<KeyListener>(mutableSetOf())
-
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
         override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-            return super.getValue(thisRef, property) && !mouseChanged.isEmpty()
+            return super.getValue(thisRef, property) && mouseChanged.isNotEmpty()
         }
     }
 
-    var monitorsKeyboard by observable(true ) { _,_,_ ->
+    val keyChanged = SetPool<KeyListener>(mutableSetOf())
 
-    }
-    var monitorsMouseWheel by observable(true ) { _,_,_ ->
+    var monitorsKeyboard by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
+    }) {
+        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
+            return super.getValue(thisRef, property) && keyChanged.isNotEmpty()
+        }
     }
 
     val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
@@ -106,8 +107,12 @@ abstract class Gizmo protected constructor() {
 
     }) {
         override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-            return super.getValue(thisRef, property) && !mouseMotionChanged.isEmpty()
+            return super.getValue(thisRef, property) && mouseMotionChanged.isNotEmpty()
         }
+    }
+
+    var monitorsMouseWheel by observable(true ) { _,_,_ ->
+
     }
 
     var monitorsDisplayRect: Boolean by observable(false) { _,_,_ ->
@@ -439,9 +444,12 @@ abstract class Gizmo protected constructor() {
      * to the Display hierarchy.  This happens when the Gizmo itself,
      * or one of it's ancestors is added to the Display.
      */
-
     internal fun addedToDisplay(renderManager: RenderManager) {
         this.renderManager = renderManager
+    }
+
+    protected open fun removedFromDisplay() {
+        renderManager = null
     }
 
     /**
@@ -449,10 +457,7 @@ abstract class Gizmo protected constructor() {
      * included in the Display hierarchy.  This happens when the Gizmo itself,
      * or one of it's ancestors is removed from the Display.
      */
-
-    internal fun removedFromDisplay() {
-        renderManager = null
-    }
+    internal fun removedFromDisplay_() = removedFromDisplay()
 
     /**
      * Gets the tool-tip text based on the given mouse event. Override this method to provide

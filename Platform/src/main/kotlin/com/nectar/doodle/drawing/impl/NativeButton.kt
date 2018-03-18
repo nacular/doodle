@@ -130,6 +130,7 @@ class NativeButton internal constructor(
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
         style.cursor = "inherit"
+        disabled     = !button.enabled
     }
 
     private val textChanged: (Gizmo, String, String) -> Unit = { _,_,_ ->
