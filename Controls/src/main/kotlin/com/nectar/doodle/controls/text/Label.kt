@@ -111,7 +111,7 @@ class Label internal constructor(
         }
 
         backgroundColor?.let {
-            canvas.rect(bounds.atOrigin(), ColorBrush(it))
+            canvas.rect(bounds.atOrigin, ColorBrush(it))
         }
 
         if (wrapsWords) {

@@ -16,11 +16,6 @@ import com.nectar.doodle.utils.VerticalAlignment
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
-
-interface ButtonRenderer: Renderer<Button> {
-    val mouseReleaseAutoClicks: Boolean get() = false
-}
-
 @Suppress("PrivatePropertyName")
 abstract class Button protected constructor(
             text: String        = "",
@@ -44,7 +39,7 @@ abstract class Button protected constructor(
 
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
 
-    var renderer: ButtonRenderer? = null
+    var renderer: Renderer<Button>? = null
 
     var iconTextSpacing     = 4.0
     var verticalAlignment   = VerticalAlignment.Center

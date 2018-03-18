@@ -17,7 +17,7 @@ private class Resizer(color: Color? = null): Gizmo() {
 
     override fun render(canvas: Canvas) {
         backgroundColor?.let {
-            canvas.rect(bounds.atOrigin(), ColorBrush(it))
+            canvas.rect(bounds.atOrigin, ColorBrush(it))
         }
     }
 }

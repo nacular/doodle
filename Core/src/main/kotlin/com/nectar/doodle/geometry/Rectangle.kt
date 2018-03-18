@@ -63,7 +63,7 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     /**
      * @return a Rectangle with the same width/height but positioned at 0,0
      */
-    fun atOrigin(): Rectangle = at(0.0, 0.0)
+    val atOrigin: Rectangle = at(0.0, 0.0)
 
     /**
      * @return a Rectangle with the same width/height but positioned at the given x,y

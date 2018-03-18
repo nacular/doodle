@@ -10,6 +10,7 @@ import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactoryImpl
@@ -28,13 +29,14 @@ import org.w3c.dom.HTMLElement
  * Created by Nicholas Eddy on 1/28/18.
  */
 class SystemTheme internal constructor(
+        private val textMetrics             : TextMetrics,
         private val nativeButtonFactory     : NativeButtonFactory,
         private val nativeTextFieldFactory  : NativeTextFieldFactory,
         private val nativeScrollPanelFactory: NativeScrollPanelFactory): Theme {
 
     override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
         when (it) {
-            is Button      -> it.renderer = SystemButtonUI     (nativeButtonFactory,      it)
+            is Button      -> it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it)
             is TextField   -> it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it)
             is ScrollPanel -> it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it)
         }
@@ -57,5 +59,5 @@ val systemThemeModule = Module {
     bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
     bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance()) }
     bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
-    bind<SystemTheme>              () with singleton { SystemTheme(instance(), instance(), instance())  }
+    bind<SystemTheme>              () with singleton { SystemTheme(instance(), instance(), instance(), instance())  }
 }

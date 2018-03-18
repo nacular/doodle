@@ -1,11 +1,15 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.theme.AbstractButtonUI
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
+import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.SystemMouseEvent
 
-internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: Button): AbstractButtonUI(button) {
+internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractButtonUI(textMetrics) {
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 
@@ -40,5 +44,15 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, button: 
         gizmo.cursor = null
     }
 
-    override val mouseReleaseAutoClicks = true
+    override fun mouseReleased(event: MouseEvent) {
+        val button = event.source as Button
+        val model  = button.model
+
+        if (button.enabled && event.buttons == setOf(SystemMouseEvent.Button.Button1)) {
+            model.armed   = false
+            model.pressed = false
+        }
+    }
+
+    override fun mouseChanged(button: Button) {}
 }

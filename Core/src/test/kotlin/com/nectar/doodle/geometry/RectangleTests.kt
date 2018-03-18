@@ -36,7 +36,7 @@ class RectangleTests {
             (1   by  1).at(-4.0,  4.5),
             (100 by 37).at( 1.0, -4.5)
     ).forEach {
-        expect(Rectangle(Origin, size = it.size)) { it.atOrigin() }
+        expect(Rectangle(Origin, size = it.size)) { it.atOrigin }
     }
 
     @Test @JsName("negativeSideFails")

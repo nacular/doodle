@@ -24,7 +24,7 @@ class Photo private constructor(private var image: Image?): Gizmo() {
 
     override fun render(canvas: Canvas) {
         image?.let {
-            canvas.image(it, bounds.atOrigin())
+            canvas.image(it, bounds.atOrigin)
         }
     }
 }

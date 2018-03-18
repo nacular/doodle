@@ -76,6 +76,7 @@ class Color(
 
         val i = (1.0 / (1.0 - scaleFactor)).toInt()
 
+        // FIXME: Fix this for black
         if (red == 0 && green == 0 && blue == 0) {
             return Color(i, i, i, opacity)
         }
