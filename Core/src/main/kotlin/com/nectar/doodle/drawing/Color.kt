@@ -1,7 +1,10 @@
 package com.nectar.doodle.drawing
 
-import kotlin.math.max
-import kotlin.math.min
+import com.nectar.doodle.units.Angle
+import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.degrees
+import kotlin.math.abs
+import kotlin.math.round
 
 private fun Int.toHex(): String {
 
@@ -55,44 +58,9 @@ class Color(
     val visible = opacity > 0
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
-    fun darker(times: Int = 1): Color {
-        var red   = this.red
-        var green = this.green
-        var blue  = this.blue
+    fun darker(percent: Float = 0.5f) = HslColor(this).darker(percent).toRgb()
 
-        for (i in 0 until times) {
-            red   = max(0f, red   * scaleFactor).toInt()
-            green = max(0f, green * scaleFactor).toInt()
-            blue  = max(0f, blue  * scaleFactor).toInt()
-        }
-
-        return Color(red, green, blue, opacity)
-    }
-
-    fun lighter(times: Int = 1): Color {
-        var red   = this.red
-        var green = this.green
-        var blue  = this.blue
-
-        val i = (1.0 / (1.0 - scaleFactor)).toInt()
-
-        // FIXME: Fix this for black
-        if (red == 0 && green == 0 && blue == 0) {
-            return Color(i, i, i, opacity)
-        }
-
-        for (j in 0 until times) {
-            red   = min(red   / scaleFactor, 255f).toInt()
-            green = min(green / scaleFactor, 255f).toInt()
-            blue  = min(blue  / scaleFactor, 255f).toInt()
-
-            if (red   in 1 until i) { red   = i }
-            if (green in 1 until i) { green = i }
-            if (blue  in 1 until i) { blue  = i }
-        }
-
-        return Color(red, green, blue, opacity)
-    }
+    fun lighter(percent: Float = 0.5f) = HslColor(this).lighter(percent).toRgb()
 
     fun with(opacity: Float) = Color(red, green, blue, opacity)
 
@@ -127,7 +95,88 @@ class Color(
         val darkgray    = Color(0x808080)
         val lightgray   = Color(0xd3d3d3)
         val transparent = black.with(opacity = 0f)
+    }
+}
 
-        private const val scaleFactor = 0.9f
+class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
+
+    fun darker(percent: Float = 0.5f): HslColor {
+        require(percent in 0f .. 1f)
+
+        return if (percent == 0f) this else HslColor(hue, saturation, lightness * (1f - percent), opacity)
+    }
+
+    fun lighter(percent: Float = 0.5f): HslColor {
+        require(percent in 0f .. 1f)
+
+        return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
+    }
+
+    fun toRgb(): Color {
+        val c = (1.0 - abs(2 * lightness - 1)) * saturation
+        val x = c * (1.0 - abs((hue / 60.degrees) % 2 - 1))
+        val m = lightness - c / 2
+
+        val rgb: List<Double> = when (hue `in` degrees) {
+            in   0 until  60 -> listOf(  c,   x, 0.0)
+            in  60 until 120 -> listOf(  x,   c, 0.0)
+            in 120 until 180 -> listOf(0.0,   c,   x)
+            in 180 until 240 -> listOf(0.0,   x,   c)
+            in 240 until 300 -> listOf(  x, 0.0,   c)
+            in 300 until 360 -> listOf(  c, 0.0,   x)
+            else -> emptyList() // FIXME: Handle case
+        }
+
+        return Color(
+                round(255 * (rgb[0] + m)).toInt(),
+                round(255 * (rgb[1] + m)).toInt(),
+                round(255 * (rgb[2] + m)).toInt(),
+                opacity)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other    ) return true
+        if (other !is HslColor) return false
+
+        if (hue        != other.hue       ) return false
+        if (saturation != other.saturation) return false
+        if (lightness  != other.lightness ) return false
+        if (opacity    != other.opacity   ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = hue.hashCode()
+        result = 31 * result + saturation.hashCode()
+        result = 31 * result + lightness.hashCode ()
+        result = 31 * result + opacity.hashCode   ()
+        return result
+    }
+
+    override fun toString() = "$hue, $saturation, $lightness"
+
+    companion object {
+        operator fun invoke(rgb: Color): HslColor {
+            val r     = rgb.red   / 255.0
+            val g     = rgb.green / 255.0
+            val b     = rgb.blue  / 255.0
+            val max   = maxOf(r, g, b)
+            val min   = minOf(r, g, b)
+            val delta = max - min
+
+            val hue = 60 * when {
+                delta == 0.0 -> 0.0
+                r     == max -> (((g - b) / delta) % 6)
+                g     == max -> (( b - r) / delta  + 2)
+                b     == max -> (( r - g) / delta  + 4)
+                else         -> 0.0
+            }
+
+            val lightness  = (max + min).toFloat() / 2
+            val saturation = if (delta == 0.0) 0f else (delta / (1 - abs(2 * lightness - 1))).toFloat()
+
+            return HslColor(hue.degrees, saturation, lightness, rgb.opacity)
+        }
     }
 }

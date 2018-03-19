@@ -45,6 +45,12 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comp
     operator fun div  (value: Long  ): Measure<T> = magnitude / value * unit
     operator fun div  (value: Double): Measure<T> = magnitude / value * unit
 
+    operator fun div(other: Measure<T>): Double {
+        val resultUnit = minOf(unit, other.unit)
+
+        return (this `in` resultUnit) / (other `in` resultUnit)
+    }
+
     operator fun unaryMinus(): Measure<T> = Measure(-magnitude, unit)
 
     operator fun plus(other: Measure<T>): Measure<T> {

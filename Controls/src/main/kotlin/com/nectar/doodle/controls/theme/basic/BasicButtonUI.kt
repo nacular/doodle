@@ -32,9 +32,9 @@ class BasicButtonUI(
         var borderColor = borderColor
 
         if (!gizmo.enabled) {
-            textColor   = textColor.lighter  (4)
-            fillColor   = fillColor.lighter  (1)
-            borderColor = borderColor.lighter(2)
+            textColor   = textColor.lighter  ()
+            fillColor   = fillColor.lighter  ()
+            borderColor = borderColor.lighter()
         }
 
         val penWidth = if (gizmo.enabled && (model.pressed || model.mouseOver)) 2.0 else 1.0
