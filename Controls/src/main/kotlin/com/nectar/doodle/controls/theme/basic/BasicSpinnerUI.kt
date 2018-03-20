@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
+import com.nectar.doodle.controls.spinner.Model
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.theme.CommonSpinnerUI
@@ -15,7 +16,7 @@ import com.nectar.doodle.layout.Insets
 class BasicSpinnerUI(labelFactory  : LabelFactory,
         private val borderColor    : Color,
         private val backgroundColor: Color): CommonSpinnerUI(Insets(1.0), labelFactory) {
-    override fun render(gizmo: Spinner<Any>, canvas: Canvas) {
+    override fun render(gizmo: Spinner<Any, Model<Any>>, canvas: Canvas) {
         canvas.rect(gizmo.bounds.atOrigin, Pen(borderColor), ColorBrush(backgroundColor))
     }
 }

@@ -17,70 +17,11 @@ interface Model<T> {
     val onChanged  : ChangeObservers<Model<T>>
 }
 
-abstract class AbstractModel<T>: Model<T> {
-    @Suppress("PrivatePropertyName")
-    protected val onChanged_ = ChangeObserversImpl<Model<T>>()
-
-    override val onChanged: ChangeObservers<Model<T>> = onChanged_
+interface MutableModel<T>: Model<T> {
+    override var value: T
 }
 
-class IntModel(private val progression: IntProgression): AbstractModel<Int>() {
-
-    override val hasNext     get() = value + progression.step <= progression.last
-    override val hasPrevious get() = value - progression.step >= progression.first
-
-    override fun next    () { if (hasNext    ) { value += progression.step } }
-    override fun previous() { if (hasPrevious) { value -= progression.step } }
-
-    override var value = progression.first
-        private set(new) {
-            if (new == field) { return }
-
-            field = new
-
-            onChanged_.set.forEach { it(this) }
-        }
-}
-
-class LongModel(private val progression: LongProgression): AbstractModel<Long>() {
-
-    override val hasNext     get() = value + progression.step <= progression.last
-    override val hasPrevious get() = value - progression.step >= progression.first
-
-    override fun next    () { if (hasNext    ) { value += progression.step } }
-    override fun previous() { if (hasPrevious) { value -= progression.step } }
-
-    override var value = progression.first
-        private set(new) {
-            if (new == field) { return }
-
-            field = new
-
-            onChanged_.set.forEach { it(this) }
-        }
-}
-
-class ListModel<T>(private val values: List<T>): AbstractModel<T>() {
-    private var index = 0
-        private set(new) {
-            if (new == field) { return }
-
-            field = new
-
-            onChanged_.set.forEach { it(this) }
-        }
-
-    override val hasNext     get() = index < values.lastIndex
-    override val hasPrevious get() = index > 0
-
-    override fun next    () { if (hasNext    ) { ++index } }
-    override fun previous() { if (hasPrevious) { --index } }
-
-    override val value get() = values[index]
-}
-
-class Spinner<T>(model: Model<T>): Gizmo() {
-    constructor(values: List<T>): this(ListModel(values))
+open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
 
     fun next    () = model.next()
     fun previous() = model.previous()
@@ -92,11 +33,11 @@ class Spinner<T>(model: Model<T>): Gizmo() {
             field.onChanged += onModelChanged
         }
 
-    val value       get() = model.value
-    val hasNext     get() = model.hasNext
-    val hasPrevious get() = model.hasPrevious
+    open val value       get() = model.value
+         val hasNext     get() = model.hasNext
+         val hasPrevious get() = model.hasPrevious
 
-    var renderer: SpinnerUI<T>? = null
+    var renderer: SpinnerUI<T, M>? = null
         set(new) {
             children.clear()
 
@@ -113,9 +54,9 @@ class Spinner<T>(model: Model<T>): Gizmo() {
     }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl<Spinner<T>>()
+    private val onChanged_ = ChangeObserversImpl<Spinner<T, M>>()
 
-    val onChanged: ChangeObservers<Spinner<T>> = onChanged_
+    val onChanged: ChangeObservers<Spinner<T, M>> = onChanged_
 
     private val onModelChanged: (Model<T>) -> Unit = {
         onChanged_.set.forEach { it(this) }
@@ -124,6 +65,18 @@ class Spinner<T>(model: Model<T>): Gizmo() {
     init {
         this.model.onChanged += onModelChanged
     }
+
+    companion object {
+        operator fun invoke(progression: IntProgression) = Spinner(IntModel(progression))
+        operator fun <T> invoke(values: List<T>) = Spinner(ListModel(values))
+    }
+}
+
+class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(model) {
+    override var value: T
+        get(   ) = super.value
+        set(new) { model.value = new }
+
 
 //     private val mEditorGenerator = new DefaultEditorGenerator()
 
@@ -181,6 +134,6 @@ class Spinner<T>(model: Model<T>): Gizmo() {
 //    }
 
     companion object {
-        operator fun invoke(progression: IntProgression) = Spinner(IntModel(progression))
+        operator fun <T> invoke(values: MutableList<T>) = MutableSpinner(MutableListModel(values))
     }
 }

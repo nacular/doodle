@@ -138,14 +138,12 @@ abstract class AbstractButtonUI(
             Right  -> max(maxX, minX)
             Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2))
             Left   -> minX
-            else   -> minX
         }
 
         val y = when (button.verticalAlignment) {
             Bottom                   -> bounds.height - insets.bottom
             VerticalAlignment.Center -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - stringSize.height) / 2))
             Top                      -> insets.top
-            else                     -> insets.top
         }
 
         return Point(x, y)

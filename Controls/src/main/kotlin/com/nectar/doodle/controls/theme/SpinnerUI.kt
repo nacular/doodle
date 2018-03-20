@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.PushButton
+import com.nectar.doodle.controls.spinner.Model
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.core.Gizmo
@@ -15,14 +16,14 @@ import com.nectar.doodle.theme.Renderer
  */
 data class Config(val components: List<Gizmo>, val layout: () -> Layout, val insets: Insets? = null)
 
-interface SpinnerUI<T>: Renderer<Spinner<T>> {
-    fun components(spinner: Spinner<T>): Config
+interface SpinnerUI<T, M: Model<T>>: Renderer<Spinner<T, M>> {
+    fun components(spinner: Spinner<T, M>): Config
 }
 
 abstract class CommonSpinnerUI(
         private val insets         : Insets = None,
-        private val labelFactory   : LabelFactory): SpinnerUI<Any> {
-    override fun components(spinner: Spinner<Any>): Config {
+        private val labelFactory   : LabelFactory): SpinnerUI<Any, Model<Any>> {
+    override fun components(spinner: Spinner<Any, Model<Any>>): Config {
         val center = labelFactory(spinner.value.toString()).apply { fitText = false }
         val up     = PushButton("-").apply { enabled = spinner.hasPrevious }
         val down   = PushButton("+").apply { enabled = spinner.hasNext     }

@@ -200,3 +200,68 @@ open class OverridableProperty<T>(initialValue: T, private val onChange: (proper
 }
 
 fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)
+
+
+typealias SetObserver<S, T> = (source: ObservableSet<S, T>, removed: Set<T>, added: Set<T>) -> Unit
+
+interface SetObservers<S, T> {
+    operator fun plusAssign (observer: SetObserver<S, T>)
+    operator fun minusAssign(observer: SetObserver<S, T>)
+}
+
+class SetObserversImpl<S, T>(private val mutableSet: MutableSet<SetObserver<S, T>>): Set<SetObserver<S, T>> by mutableSet, SetObservers<S, T> {
+    override fun plusAssign(observer: SetObserver<S, T>) {
+        mutableSet += observer
+    }
+
+    override fun minusAssign(observer: SetObserver<S, T>) {
+        mutableSet -= observer
+    }
+}
+
+class ObservableSet<S, E>(val source: S, val set: MutableSet<E>): MutableSet<E> by set {
+    private val onChange_ = SetObserversImpl<S, E>(mutableSetOf())
+    val onChange: SetObservers<S, E> = onChange_
+
+    override fun add(element: E) = set.add(element).ifTrue {
+        onChange_.forEach {
+            it(this, emptySet(), setOf(element))
+        }
+    }
+
+    override fun remove(element: E): Boolean {
+        return set.remove(element).ifTrue { onChange_.forEach { it(this, setOf(element), emptySet()) } }
+    }
+
+    override fun addAll(elements: Collection<E>) = batch { set.addAll(elements) }
+
+    override fun removeAll(elements: Collection<E>) = batch { set.removeAll(elements) }
+    override fun retainAll(elements: Collection<E>) = batch { set.retainAll(elements) }
+
+    override fun clear() {
+        val oldSet = HashSet(set)
+
+        set.clear()
+
+        onChange_.forEach {
+            it(this, oldSet, emptySet())
+        }
+    }
+
+    private fun <T> batch(block: () -> T): T {
+        if (onChange_.isEmpty()) {
+            return block()
+        } else {
+            // TODO: Can this be optimized?
+            val old = HashSet(set)
+
+            return block().also {
+                if (old != this) {
+                    onChange_.forEach {
+                        it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
+                    }
+                }
+            }
+        }
+    }
+}
