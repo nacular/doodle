@@ -1,6 +1,6 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.core.Container
+import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
@@ -34,11 +34,11 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    private val root          = Container()
+    private val root          = Box()
     private val canvasElement = htmlFactory.create<HTMLElement>()
 
     init {
-        rootElement.onresize = this::onResize
+        rootElement.onresize = ::onResize
 
         onResize()
 

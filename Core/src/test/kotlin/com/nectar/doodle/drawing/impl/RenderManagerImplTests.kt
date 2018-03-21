@@ -1,7 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.core.Container
+import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
@@ -10,11 +10,13 @@ import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
+import com.nectar.doodle.units.milliseconds
+import com.nectar.doodle.units.seconds
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.Runs
 import io.mockk.every
@@ -34,7 +36,7 @@ class RenderManagerImplTests {
     @Test @JsName("rendersAreBatched")
     fun `renders are batched`() {
         val gizmo     = spyk(gizmo())
-        val scheduler = ManualScheduler()
+        val scheduler = ManualAnimationScheduler()
 
         gizmo.visible = false
 
@@ -105,7 +107,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("removesTopLevelGizmos")
     fun `removes top-level gizmos`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
 
         val display = display(container)
 
@@ -126,7 +128,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("removesNestedGizmos")
     fun `removes nested gizmos`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
 
         val display = display(container)
 
@@ -163,6 +165,25 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { gizmo.addedToDisplay(renderManager) }
         verify(exactly = 0) { gizmo.render        (any()        ) }
+
+        gizmo.visible = true
+
+        verifyChildAddedProperly(renderManager, gizmo)
+    }
+
+    @Test @JsName("rerendersOnAddedBecomingVisible")
+    fun `rerenders on added becoming visible`() {
+        val parent = container()
+        val gizmo  = spyk<Gizmo>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        gizmo.visible = false
+
+        val renderManager = renderManager(display(parent))
+
+        verify(exactly = 0) { gizmo.addedToDisplay(renderManager) }
+        verify(exactly = 0) { gizmo.render        (any()        ) }
+
+        parent.children_ += gizmo
 
         gizmo.visible = true
 
@@ -254,7 +275,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("revalidatesParentWhenNewGizmos")
     fun `revalidates parent out when new gizmos`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
 
         val display = display(container)
@@ -278,8 +299,8 @@ class RenderManagerImplTests {
     fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
 
     private fun testDisplayZIndex(block: (Display, Gizmo) -> Unit) {
-        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
-        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
+        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
         val display    = display(container1, container2)
         val surface1   = mockk<GraphicsSurface>(relaxed = true)
         val surface2   = mockk<GraphicsSurface>(relaxed = true)
@@ -295,14 +316,14 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface2.zIndex = 0 }
 
         listOf(container1, container2).forEach {
-            verify(exactly = 0) { it.removedFromDisplay(     ) }
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
             verify(exactly = 1) { it.render            (any()) }
             verify(exactly = 1) { it.doLayout_         (     ) }
         }
     }
 
     private fun verifyLayout(block: (Gizmo) -> Unit) {
-        val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
 
         container.children += child
@@ -322,13 +343,13 @@ class RenderManagerImplTests {
     }
 
     private fun verifyChildRemovedProperly(gizmo: Gizmo) {
-        verify(exactly = 1) { gizmo.removedFromDisplay() }
+        verify(exactly = 1) { gizmo.removedFromDisplay_() }
 
         gizmo.children_.forEach { verifyChildRemovedProperly(it) }
     }
 
     private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
-    private fun container(): Container = Container().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun container(): Box = Box().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
     private fun doesNotRender(gizmo: Gizmo) {
         renderManager(display(gizmo))
@@ -339,7 +360,7 @@ class RenderManagerImplTests {
     private fun renderManager(
             display       : Display              = mockk(relaxed = true),
             themeManager  : InternalThemeManager = mockk(relaxed = true),
-            scheduler     : Scheduler            = instantScheduler,
+            scheduler     : AnimationScheduler   = instantScheduler,
             graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, graphicsDevice)
 
     private val defaultGraphicsDevice by lazy {
@@ -367,7 +388,7 @@ class RenderManagerImplTests {
     }
 
     private fun display(vararg children: Gizmo): Display = mockk<Display>(relaxed = true).apply {
-        val container = Container()
+        val container = Box()
 
         container.children.addAll(children)
 
@@ -381,9 +402,9 @@ class RenderManagerImplTests {
         every { this@apply.setZIndex (capture(gizmo), capture(to)) } answers { container.setZIndex(gizmo.captured, to.captured) }
     }
 
-    private val instantScheduler by lazy { mockk<Scheduler>(relaxed = true).apply {
-        every { this@apply.after(any(), captureLambda()) } answers {
-            lambda<() -> Unit>().captured()
+    private val instantScheduler by lazy { mockk<AnimationScheduler>(relaxed = true).apply {
+        every { this@apply.onNextFrame(captureLambda()) } answers {
+            lambda<(Measure<Time>) -> Unit>().captured(0.milliseconds)
 
             val task = mockk<Task>()
 
@@ -393,30 +414,27 @@ class RenderManagerImplTests {
         }
     }}
 
-    private class ManualScheduler: Scheduler {
+    private class ManualAnimationScheduler: AnimationScheduler {
         private class SimpleTask(override var completed: Boolean = false) : Task {
             override fun cancel() {
                 completed = true
             }
         }
 
-        val tasks = mutableListOf<Pair<SimpleTask, () -> Unit>>()
+        val tasks = mutableListOf<Pair<SimpleTask, (Measure<Time>) -> Unit>>()
 
         fun runJobs() = tasks.forEach {
             it.first.completed = true
-            it.second()
+            it.second(0.milliseconds)
         }
 
-        override fun after(time: Measure<Time>, job: () -> Unit): Task {
+        override fun onNextFrame(job: (Measure<Time>) -> Unit): Task {
             val task = SimpleTask()
 
             tasks += task to job
 
             return task
         }
-
-        override fun repeat(every: Measure<Time>, job: () -> Unit): Task {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
     }
+
 }

@@ -1,33 +1,21 @@
 package com.nectar.doodle.core
 
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.layout.Insets
 
+interface Container: Iterable<Gizmo> {
+    var insets: Insets
 
-open class Container: Gizmo(), Iterable<Gizmo> {
-    init {
-        focusable = false
-    }
+    var layout: Layout?
 
-    override fun iterator() = children.iterator()
+    var isFocusCycleRoot: Boolean
 
-    public override var insets
-        get(   ) = super.insets
-        set(new) { super.insets = new }
+    val children: List<Gizmo>
 
-    public override var layout
-        get(   ) = super.layout
-        set(new) { super.layout = new }
+    fun setZIndex(of: Gizmo, to: Int)
+    fun zIndex(of: Gizmo): Int
 
-    public override var isFocusCycleRoot
-        get(   ) = super.isFocusCycleRoot
-        set(new) { super.isFocusCycleRoot = new }
+    fun isAncestor(of: Gizmo): Boolean
 
-    public override val children = super.children
-
-    public override fun setZIndex(of: Gizmo, to: Int) = super.setZIndex(of, to)
-    public override fun zIndex(of: Gizmo) = super.zIndex(of)
-
-    public override fun isAncestor(of: Gizmo) = super.isAncestor(of)
-
-    public override fun child(at: Point) = super.child(at)
+    fun child(at: Point): Gizmo?
 }
