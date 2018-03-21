@@ -1,6 +1,8 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
@@ -14,27 +16,50 @@ interface ItemUIGenerator<T> {
     operator fun invoke(list: List<T, *>, row: T, index: Int, selected: Boolean, hasFocus: Boolean): Gizmo
 }
 
-interface ItemPositioner {
-    operator fun invoke(list: List<*, *>, index: Int): Rectangle
+interface ItemPositioner<T> {
+    operator fun invoke(list: List<T, *>, row: T, index: Int, selected: Boolean, hasFocus: Boolean): Rectangle
 }
 
 interface ListRenderer<T>: Renderer<List<T, *>> {
-    val positioner : ItemPositioner
+    val positioner : ItemPositioner<T>
     val uiGenerator: ItemUIGenerator<T>
 }
 
-open class List<T, out M: Model<T>>(protected open val model: M, selectionModel: SelectionModel): Gizmo() {
+private class InternalLayout<T>(private val list: List<T,*>, private val positioner: ItemPositioner<T>): Layout() {
+    override fun layout(positionable: Positionable) {
+        val insets = positionable.insets
+        var y      = insets.top
 
-    private val selectionChanged: SetObserver<SelectionModel, Int> = { _,added,removed ->
+        positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
+            val bounds = positioner(list, list[index], index, list.selected(index), child.hasFocus)
 
+            child.bounds = Rectangle(insets.left, y, list.width - insets.run { left + right }, bounds.height)
+
+            y += child.height
+        }
+    }
+}
+
+open class List<T, out M: Model<T>>(protected open val model: M, protected val selectionModel: SelectionModel? = null): Gizmo() {
+
+    private val selectionChanged: SetObserver<SelectionModel, Int> = { _,removed,added ->
+        itemUIGenerator?.let {
+            added.forEach { index ->
+                children[index] = it(this, model[index], index, selected = true, hasFocus = false)
+            }
+
+            removed.forEach { index ->
+                children[index] = it(this, model[index], index, selected = false, hasFocus = false)
+            }
+        }
     }
 
-    var selectionModel = selectionModel
-        set(new) {
-            field.onChanged -= selectionChanged
-            field = new
-            field.onChanged += selectionChanged
-        }
+//    var selectionModel = selectionModel
+//        set(new) {
+//            field?.onChanged -= selectionChanged
+//            field = new
+//            field?.onChanged += selectionChanged
+//        }
 
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
@@ -48,12 +73,20 @@ open class List<T, out M: Model<T>>(protected open val model: M, selectionModel:
                 children.clear()
 
                 updateVisibleItems()
+
+                layout = InternalLayout(this, it.positioner)
             }
         }
 
+    public override var insets
+        get(   ) = super.insets
+        set(new) { super.insets = new }
+
     init {
-        selectionModel.onChanged += selectionChanged
+        selectionModel?.let { it.onChanged += selectionChanged }
     }
+
+    operator fun get(index: Int) = model[index]
 
     private fun updateVisibleItems() {
         itemUIGenerator?.let {
@@ -68,26 +101,21 @@ open class List<T, out M: Model<T>>(protected open val model: M, selectionModel:
     }
 
     override fun removedFromDisplay() {
-        selectionModel.onChanged -= selectionChanged
+        selectionModel?.let { it.onChanged -= selectionChanged }
 
         super.removedFromDisplay()
     }
 
-    fun addSelection   (rows: Set<Int>) { selectionModel.addAll    (rows) }
-    fun setSelection   (rows: Set<Int>) { selectionModel.replaceAll(rows) }
-    fun removeSelection(rows: Set<Int>) { selectionModel.removeAll (rows) }
-    fun clearSelection (              ) = selectionModel.clear     (    )
+    fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
+    fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
+    fun setSelection   (rows: Set<Int>) { selectionModel?.replaceAll(rows) }
+    fun removeSelection(rows: Set<Int>) { selectionModel?.removeAll (rows) }
+    fun clearSelection (              ) = selectionModel?.clear     (    )
 
-//    public ItemUIGenerator getItemUIGenerator(                                  ) { return mItemUIGenerator; }
-//    public void            setItemUIGenerator( ItemUIGenerator aItemUIGenerator )
-//    {
-//        setProperty( new AbstractNamedProperty<ItemUIGenerator>( ITEM_UI_GENERATOR )
-//                     {
-//                         @Override public void            setValue( ItemUIGenerator aValue ) { mItemUIGenerator = aValue; }
-//                         @Override public ItemUIGenerator getValue(                        ) { return mItemUIGenerator;   }
-//                     },
-//                     aItemUIGenerator );
-//    }
+    companion object {
+        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel? = null) = List(ListModel(progression.toList()), selectionModel)
+        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel? = null): List<T, ListModel<T>> = List(ListModel(values), selectionModel)
+    }
 }
 
 class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel): List<T, MutableModel<T>>(model, selectionModel) {
@@ -114,43 +142,48 @@ class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel): Li
     }
 
     private fun itemsAdded(values: Map<Int, T>) {
-        val updatedSelection = mutableSetOf<Int>()
+        if (selectionModel != null) {
+            val updatedSelection = mutableSetOf<Int>()
 
-        for (selectionItem in selectionModel) {
-            var delta = 0
+            for (selectionItem in selectionModel) {
+                var delta = 0
 
-            for (index in values.keys) {
-                if (selectionItem >= index) {
-                    ++delta
+                for (index in values.keys) {
+                    if (selectionItem >= index) {
+                        ++delta
+                    }
                 }
+
+                updatedSelection.add(selectionItem + delta)
             }
 
-            updatedSelection.add(selectionItem + delta)
+            setSelection(updatedSelection)
         }
-
-        setSelection(updatedSelection)
     }
 
     private fun itemsRemoved(values: Map<Int, T>) {
-        val updatedSelection = mutableSetOf<Int>()
+        if (selectionModel != null) {
 
-        for (selectionItem in selectionModel) {
-            var delta = 0
+            val updatedSelection = mutableSetOf<Int>()
 
-            for (aIndex in values.keys) {
-                if (selectionItem > aIndex) {
-                    delta--
+            for (selectionItem in selectionModel) {
+                var delta = 0
+
+                for (aIndex in values.keys) {
+                    if (selectionItem > aIndex) {
+                        delta--
+                    }
+                }
+
+                if (delta > 0) {
+                    updatedSelection.add(selectionItem + delta)
+                } else {
+                    updatedSelection.add(selectionItem)
                 }
             }
 
-            if (delta > 0) {
-                updatedSelection.add(selectionItem + delta)
-            } else {
-                updatedSelection.add(selectionItem)
-            }
+            setSelection(updatedSelection)
         }
-
-        setSelection(updatedSelection)
     }
 
 //

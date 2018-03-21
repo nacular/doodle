@@ -1,29 +1,12 @@
 package com.nectar.doodle.controls
 
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.intersect
 
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-typealias ChangeObserver<T> = (source: T) -> Unit
-
-// TODO: Move to Utils
-interface ChangeObservers<out T> {
-    operator fun plusAssign (observer: ChangeObserver<T>)
-    operator fun minusAssign(observer: ChangeObserver<T>)
-}
-
-class ChangeObserversImpl<T>: ChangeObservers<T> {
-    val set = mutableSetOf<ChangeObserver<T>>()
-
-    override fun plusAssign(observer: ChangeObserver<T>) {
-        set += observer
-    }
-
-    override fun minusAssign(observer: ChangeObserver<T>) {
-        set -= observer
-    }
-}
 
 interface ConfinedRangeModel<T: Comparable<T>> {
     var range : ClosedRange<T>

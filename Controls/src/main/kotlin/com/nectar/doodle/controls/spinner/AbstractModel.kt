@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.spinner
 
-import com.nectar.doodle.controls.ChangeObservers
-import com.nectar.doodle.controls.ChangeObserversImpl
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 
 abstract class AbstractModel<T>: Model<T> {
     @Suppress("PrivatePropertyName")

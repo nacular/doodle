@@ -29,6 +29,8 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.OverridableProperty
@@ -38,7 +40,7 @@ import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
 import kotlin.reflect.KProperty
 
-private typealias ChangeObservers = PropertyObservers<Gizmo, Boolean>
+private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
 
 /**
  * The smallest unit of displayable, interactive content within the framework.
@@ -52,22 +54,22 @@ private typealias ChangeObservers = PropertyObservers<Gizmo, Boolean>
 @Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
 
-    val focusChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<Gizmo, Boolean>)
         private set
 
     var name = ""
 
-    val enabledChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val visibilityChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val focusableChanged: ChangeObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusableChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
 
     open var focusable by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
@@ -119,7 +121,6 @@ abstract class Gizmo protected constructor() {
         setDisplayRectHandlingRequired(monitorsDisplayRect, monitorsDisplayRect)
     }
 
-    var font  : Font?   = null
     var cursor: Cursor? = null
         get() = field ?: parent?.cursor
         set(new) {
@@ -136,8 +137,20 @@ abstract class Gizmo protected constructor() {
 
     val cursorChanged: PropertyObservers<Gizmo, Cursor?> by lazy { PropertyObserversImpl<Gizmo, Cursor?>(mutableSetOf()) }
 
-    var foregroundColor: Color?  = null
-    var backgroundColor: Color?  = null
+    var font: Font? = null
+        set(new) { field = new; styleChanged() }
+
+    var foregroundColor: Color? = null
+        set(new) { field = new; styleChanged() }
+
+    var backgroundColor: Color? = null
+        set(new) { field = new; styleChanged() }
+
+    val styleChanged: ChangeObservers<Gizmo> by lazy { ChangeObserversImpl<Gizmo>() }
+
+    private fun styleChanged() {
+        (styleChanged as ChangeObserversImpl).set.forEach { it(this) }
+    }
 
     var x: Double
         get( ) = bounds.x

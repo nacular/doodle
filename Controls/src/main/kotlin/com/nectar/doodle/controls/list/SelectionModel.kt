@@ -23,7 +23,9 @@ interface SelectionModel: Iterable<Int> {
     val onChanged: SetObservers<SelectionModel, Int>
 }
 
-open class MultiSelectionModel(private val set: MutableSet<Int>): SelectionModel {
+open class MultiSelectionModel: SelectionModel {
+
+    private val set           = mutableSetOf<Int>()
     private val observableSet = ObservableSet(this as SelectionModel, set)
 
     override val size get() = observableSet.size
@@ -39,11 +41,7 @@ open class MultiSelectionModel(private val set: MutableSet<Int>): SelectionModel
     override fun removeAll  (elements: Collection<Int>) = observableSet.removeAll  (elements)
     override fun retainAll  (elements: Collection<Int>) = observableSet.retainAll  (elements)
     override fun containsAll(elements: Collection<Int>) = observableSet.containsAll(elements)
-    override fun replaceAll (elements: Collection<Int>): Boolean {
-        set.clear()
-
-        return observableSet.addAll(elements)
-    }
+    override fun replaceAll (elements: Collection<Int>) = observableSet.replaceAll(elements)
 
     override val onChanged = observableSet.onChange
 }

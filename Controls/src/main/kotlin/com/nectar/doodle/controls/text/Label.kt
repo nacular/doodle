@@ -92,6 +92,8 @@ class Label internal constructor(
             }
         }
 
+        styleChanged += { rerender() }
+
         size            = textSize
         focusable       = false
         foregroundColor = black

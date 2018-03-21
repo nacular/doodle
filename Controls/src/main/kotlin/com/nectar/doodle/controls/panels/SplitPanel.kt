@@ -1,13 +1,13 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.controls.ChangeObservers
-import com.nectar.doodle.controls.ChangeObserversImpl
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.Orientation.Vertical
 

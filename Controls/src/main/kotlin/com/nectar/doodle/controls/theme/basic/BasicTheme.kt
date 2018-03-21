@@ -44,7 +44,7 @@ class BasicTheme(
             is SplitPanel    -> it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) }
             is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory)
             is Button        -> it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) }
-            is List<*, *>    -> (it as List<Any, ListModel<Any>>).renderer = BasicListUI(labelFactory)
+            is List<*, *>    -> (it as List<Any, ListModel<Any>>).renderer = BasicListUI<Any>(labelFactory).apply { install(it) }
         }
     }
 
@@ -54,6 +54,7 @@ class BasicTheme(
             is Slider      -> { it.renderer?.uninstall(it); it.renderer = null }
             is SplitPanel  -> { it.renderer?.uninstall(it); it.renderer = null }
             is Button      -> { it.renderer?.uninstall(it); it.renderer = null }
+            is List<*, *>  -> { (it as List<Any, ListModel<Any>>).renderer?.uninstall(it); (it as List<Any, ListModel<Any>>).renderer = null }
         }
     }
 }

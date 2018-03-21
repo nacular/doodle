@@ -4,6 +4,8 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.size
 
 /**

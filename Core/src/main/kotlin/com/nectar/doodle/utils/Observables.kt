@@ -131,7 +131,7 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E>): MutableList
     override operator fun set(index: Int, element: E) = list.set(index, element).also { new ->
         if (new !== element) {
             onChange_.forEach {
-                it(this, mapOf(index to element), mapOf(index to new), mapOf())
+                it(this, mapOf(index to new), mapOf(index to element), mapOf())
             }
         }
     }
@@ -151,13 +151,13 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E>): MutableList
     }
 
     private fun <T> batch(block: () -> T): T {
-        if (onChange_.isEmpty()) {
-            return block()
+        return if (onChange_.isEmpty()) {
+            block()
         } else {
             // TODO: Can this be optimized?
             val old = ArrayList(list)
 
-            return block().also {
+            block().also {
                 if (old != this) {
                     val removed = mutableMapOf<Int, E>()
                     val added   = mutableMapOf<Int, E>()
@@ -201,7 +201,6 @@ open class OverridableProperty<T>(initialValue: T, private val onChange: (proper
 
 fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)
 
-
 typealias SetObserver<S, T> = (source: ObservableSet<S, T>, removed: Set<T>, added: Set<T>) -> Unit
 
 interface SetObservers<S, T> {
@@ -235,8 +234,9 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E>): MutableSet<E> 
 
     override fun addAll(elements: Collection<E>) = batch { set.addAll(elements) }
 
-    override fun removeAll(elements: Collection<E>) = batch { set.removeAll(elements) }
-    override fun retainAll(elements: Collection<E>) = batch { set.retainAll(elements) }
+    override fun removeAll (elements: Collection<E>) = batch { set.removeAll(elements) }
+    override fun retainAll (elements: Collection<E>) = batch { set.retainAll(elements) }
+             fun replaceAll(elements: Collection<E>) = batch { set.run { clear(); addAll(elements) } }
 
     override fun clear() {
         val oldSet = HashSet(set)
@@ -249,13 +249,13 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E>): MutableSet<E> 
     }
 
     private fun <T> batch(block: () -> T): T {
-        if (onChange_.isEmpty()) {
-            return block()
+        return if (onChange_.isEmpty()) {
+            block()
         } else {
             // TODO: Can this be optimized?
             val old = HashSet(set)
 
-            return block().also {
+            block().also {
                 if (old != this) {
                     onChange_.forEach {
                         it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
@@ -263,5 +263,24 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E>): MutableSet<E> 
                 }
             }
         }
+    }
+}
+
+typealias ChangeObserver<T> = (source: T) -> Unit
+
+interface ChangeObservers<out T> {
+    operator fun plusAssign (observer: ChangeObserver<T>)
+    operator fun minusAssign(observer: ChangeObserver<T>)
+}
+
+class ChangeObserversImpl<T>: ChangeObservers<T> {
+    val set = mutableSetOf<ChangeObserver<T>>()
+
+    override fun plusAssign(observer: ChangeObserver<T>) {
+        set += observer
+    }
+
+    override fun minusAssign(observer: ChangeObserver<T>) {
+        set -= observer
     }
 }

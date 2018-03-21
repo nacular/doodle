@@ -1,10 +1,10 @@
 package com.nectar.doodle.controls.spinner
 
-import com.nectar.doodle.controls.ChangeObservers
-import com.nectar.doodle.controls.ChangeObserversImpl
 import com.nectar.doodle.controls.theme.SpinnerUI
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 
 
 interface Model<T> {
