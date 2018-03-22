@@ -8,6 +8,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.SetObserver
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
@@ -33,7 +34,7 @@ private class InternalLayout<T>(private val list: List<T,*>, private val positio
         positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
             val bounds = positioner(list, list[index], index, list.selected(index), child.hasFocus)
 
-            child.bounds = Rectangle(insets.left, y, list.width - insets.run { left + right }, bounds.height)
+            child.bounds = Rectangle(insets.left, y, max(0.0, list.width - insets.run { left + right }), bounds.height)
 
             y += child.height
         }

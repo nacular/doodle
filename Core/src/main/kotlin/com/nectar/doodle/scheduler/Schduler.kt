@@ -19,3 +19,7 @@ interface Scheduler {
     fun after (time : Measure<Time>, job: () -> Unit): Task
     fun repeat(every: Measure<Time>, job: () -> Unit): Task
 }
+
+interface AnimationScheduler {
+    fun onNextFrame(job: (Measure<Time>) -> Unit): Task
+}

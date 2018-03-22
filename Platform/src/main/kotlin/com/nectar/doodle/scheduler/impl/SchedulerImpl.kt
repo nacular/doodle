@@ -1,5 +1,6 @@
 package com.nectar.doodle.scheduler.impl
 
+import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.units.Measure
@@ -13,7 +14,7 @@ import kotlin.browser.window
 
 private open class SimpleTask(time : Measure<Time>, job: () -> Unit): Task {
 
-    private val value = window.setTimeout({ job(); completed = true }, (time  `in` milliseconds).toInt())
+    private val value = window.setTimeout({ completed = true; job() }, (time  `in` milliseconds).toInt())
 
     override var completed = false
 
@@ -23,9 +24,9 @@ private open class SimpleTask(time : Measure<Time>, job: () -> Unit): Task {
     }
 }
 
-private open class AnimationTask(job: () -> Unit): Task {
+private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
 
-    private val value = window.requestAnimationFrame { job(); completed = true }
+    private val value = window.requestAnimationFrame { time -> completed = true; job(time.milliseconds) }
 
     override var completed = false
 
@@ -48,6 +49,10 @@ private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
 
 internal class SchedulerImpl: Scheduler {
     // TODO: Separate animation scheduler into different interface
-    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero()) AnimationTask(job) else SimpleTask(time, job)
+    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero()) AnimationTask({ job() }) else SimpleTask(time, job)
     override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(every, job)
+}
+
+internal class AnimationSchedulerImpl: AnimationScheduler {
+    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(job)
 }

@@ -9,16 +9,21 @@ import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
-import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
-import com.nectar.doodle.units.seconds
+import com.nectar.doodle.time.Timer
+import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.Time
+import com.nectar.doodle.units.milliseconds
 import com.nectar.doodle.utils.ObservableList
 
 
+@Suppress("PrivatePropertyName")
 class RenderManagerImpl(
+        private val timer         : Timer,
         private val display       : Display,
-        private val scheduler     : Scheduler,
+        private val scheduler     : AnimationScheduler,
         private val themeManager  : InternalThemeManager?,
         private val graphicsDevice: GraphicsDevice<*>): RenderManager {
 
@@ -107,6 +112,7 @@ class RenderManagerImpl(
 
                 dirtyGizmos         += gizmo
                 neverRendered       += gizmo
+                pendingRender       += gizmo
                 pendingBoundsChange += gizmo
 
                 gizmo.boundsChanged      += boundsChanged_
@@ -137,10 +143,8 @@ class RenderManagerImpl(
     }
 
     private fun schedulePaint() {
-//        // TODO: Need to see whether this will be an issue for setups
-//        onPaint()
         if (paintTask == null || paintTask?.completed == true) {
-            paintTask = scheduler.after(paintDelay) { onPaint() }
+            paintTask = scheduler.onNextFrame { onPaint() }
         }
     }
 
@@ -154,20 +158,20 @@ class RenderManagerImpl(
         if ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display.isAncestor(gizmo)) {
             dirtyGizmos += gizmo
 
-            val iterator = pendingRender.iterator()
-
-            while (iterator.hasNext()) {
-                val item = iterator.next()
-
-                // Only take reference identity into account
-                if (item === gizmo || item.isAncestor_(gizmo)) {
-                    return false
-                }
-
-                if (gizmo.isAncestor_(item)) {
-                    iterator.remove()
-                }
-            }
+//            val iterator = pendingRender.iterator()
+//
+//            while (iterator.hasNext()) {
+//                val item = iterator.next()
+//
+//                // Only take reference identity into account
+//                if (item === gizmo || item.isAncestor_(gizmo)) {
+//                    return false
+//                }
+//
+//                if (gizmo.isAncestor_(item)) {
+//                    iterator.remove()
+//                }
+//            }
 
             pendingRender += gizmo
 
@@ -177,23 +181,46 @@ class RenderManagerImpl(
         return false
     }
 
+    private fun frameTimeExpired(start: Measure<Time>) = timer.now() - start >= 16.milliseconds
+
     private fun onPaint() {
+        val start = timer.now()
+
         // TODO: Spread this across multiple frames instead to avoid long running paint
         do {
             pendingLayout.firstOrNull()?.let { performLayout(it) }
+
+            if (frameTimeExpired(start)) {
+                println("++paint time: ${timer.now() - start}")
+                schedulePaint()
+                return
+            }
         } while (!pendingLayout.isEmpty())
 
         do {
             pendingRender.firstOrNull()?.let { performRender(it) }
+
+            if (frameTimeExpired(start)) {
+                println("++paint time: ${timer.now() - start}")
+                schedulePaint()
+                return
+            }
         } while (!pendingRender.isEmpty())
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
             }
+            if (frameTimeExpired(start)) {
+                println("++paint time: ${timer.now() - start}")
+                schedulePaint()
+                return
+            }
         }
 
         paintTask = null
+
+//        println("paint time: ${timer.now() - start}")
     }
 
     private fun scheduleLayout(gizmo: Gizmo) {
@@ -256,11 +283,11 @@ class RenderManagerImpl(
 
                     graphicsSurface.render { canvas ->
                         gizmo.render(canvas)
-
-                        gizmo.children_.reversed().forEach {
-                            performRender(it)
-                        }
                     }
+
+//                    gizmo.children_.reversed().forEach {
+//                        performRender(it)
+//                    }
                 }
             }
         }
@@ -564,10 +591,5 @@ class RenderManagerImpl(
         }
 
         operator fun get(index: Int) = children[index]
-    }
-
-    companion object {
-        // TODO: This may need to be browser specific
-        private val paintDelay = 0.seconds
     }
 }

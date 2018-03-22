@@ -34,7 +34,9 @@ import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
+import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.system.KeyInputService
 import com.nectar.doodle.system.MouseInputService
@@ -47,6 +49,8 @@ import com.nectar.doodle.system.impl.MouseInputServiceStrategy
 import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
 import com.nectar.doodle.theme.ThemeManager
 import com.nectar.doodle.theme.ThemeManagerImpl
+import com.nectar.doodle.time.Timer
+import com.nectar.doodle.time.impl.PerformanceTimer
 import kotlin.browser.document
 
 /**
@@ -58,10 +62,12 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
     val injector = Kodein {
         bind<SystemStyler>() with instance  ( SystemStylerImpl() )
 
-        bind<Display>     () with singleton { DisplayImpl    (instance(), document.body!!) }
-        bind<Scheduler>   () with singleton { SchedulerImpl  (                           ) }
-        bind<HtmlFactory> () with singleton { HtmlFactoryImpl(                           ) }
-        bind<TextFactory> () with singleton { TextFactoryImpl(instance()                 ) }
+        bind<Timer>             () with singleton { PerformanceTimer      (                           ) }
+        bind<Display>           () with singleton { DisplayImpl           (instance(), document.body!!) }
+        bind<Scheduler>         () with singleton { SchedulerImpl         (                           ) }
+        bind<HtmlFactory>       () with singleton { HtmlFactoryImpl       (                           ) }
+        bind<TextFactory>       () with singleton { TextFactoryImpl       (instance()                 ) }
+        bind<AnimationScheduler>() with singleton { AnimationSchedulerImpl(                           ) } // FIXME: Provide fallback in case not supported
 
         import(renderModule)
 
@@ -82,11 +88,11 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
 }
 
 private val renderModule = Module {
-    bind<SvgFactory>               () with singleton { SvgFactoryImpl            (                                                    ) }
-    bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance()                              ) }
-    bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instance()) }
-    bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                          ) }
-    bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                              ) }
+    bind<SvgFactory>               () with singleton { SvgFactoryImpl            (                                                                ) }
+    bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance()                                          ) }
+    bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
+    bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
+    bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
 }
 
 val mouseModule = Module {

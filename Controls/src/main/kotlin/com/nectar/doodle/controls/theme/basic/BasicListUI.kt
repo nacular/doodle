@@ -52,7 +52,8 @@ class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGen
                 }
 
                 override fun mousePressed(event: MouseEvent) {
-                    pressed = true
+                    pressed   = true
+                    mouseOver = true
                 }
 
                 override fun mouseReleased(event: MouseEvent) {

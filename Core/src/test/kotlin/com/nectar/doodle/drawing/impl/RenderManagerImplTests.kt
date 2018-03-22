@@ -13,10 +13,10 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
+import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
-import com.nectar.doodle.units.seconds
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.Runs
 import io.mockk.every
@@ -359,12 +359,17 @@ class RenderManagerImplTests {
 
     private fun renderManager(
             display       : Display              = mockk(relaxed = true),
+            timer         : Timer                = timer(),
             themeManager  : InternalThemeManager = mockk(relaxed = true),
             scheduler     : AnimationScheduler   = instantScheduler,
-            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, graphicsDevice)
+            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(timer, display, scheduler, themeManager, graphicsDevice)
 
     private val defaultGraphicsDevice by lazy {
         graphicsDevice()
+    }
+
+    private fun timer(): Timer = mockk<Timer>(relaxed = true).apply {
+        every { now() } returns 0.milliseconds
     }
 
     private fun graphicsDevice(mapping: Map<Gizmo, GraphicsSurface> = mapOf()): GraphicsDevice<*> {

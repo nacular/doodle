@@ -9,3 +9,7 @@ import com.nectar.doodle.units.Time
 interface Clock {
     val epoch: Measure<Time>
 }
+
+interface Timer {
+    fun now(): Measure<Time>
+}
