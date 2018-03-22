@@ -18,7 +18,7 @@ interface ScrollPanelRenderer: Renderer<ScrollPanel> {
     fun scrollTo(point: Point)
 }
 
-class ScrollPanel: Gizmo() {
+class ScrollPanel(content: Gizmo? = null): Gizmo() {
 
     var content = null as Gizmo?
         set(new) {
@@ -53,7 +53,8 @@ class ScrollPanel: Gizmo() {
         }
 
     init {
-        layout = ViewLayout(this)
+        this.content = content
+        layout = ViewLayout()
     }
 
     override fun render(canvas: Canvas) {
@@ -115,7 +116,7 @@ class ScrollPanel: Gizmo() {
         moveToVisible(Point(rect.x + rect.width, rect.y + rect.height))
     }
 
-    private inner class ViewLayout(private val panel: ScrollPanel): Layout() {
+    private inner class ViewLayout: Layout() {
         override fun layout(positionable: Positionable) {
             positionable.children.forEach  {
                 var width  = it.width

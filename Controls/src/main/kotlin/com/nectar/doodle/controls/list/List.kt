@@ -26,22 +26,10 @@ interface ListRenderer<T>: Renderer<List<T, *>> {
     val uiGenerator: ItemUIGenerator<T>
 }
 
-private class InternalLayout<T>(private val list: List<T,*>, private val positioner: ItemPositioner<T>): Layout() {
-    override fun layout(positionable: Positionable) {
-        val insets = positionable.insets
-        var y      = insets.top
-
-        positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
-            val bounds = positioner(list, list[index], index, list.selected(index), child.hasFocus)
-
-            child.bounds = Rectangle(insets.left, y, max(0.0, list.width - insets.run { left + right }), bounds.height)
-
-            y += child.height
-        }
-    }
-}
-
-open class List<T, out M: Model<T>>(protected open val model: M, protected val selectionModel: SelectionModel? = null): Gizmo() {
+open class List<T, out M: Model<T>>(
+        protected open val model         : M,
+        protected      val selectionModel: SelectionModel? = null,
+        private        val fitContent    : Boolean         = true): Gizmo() {
 
     private val selectionChanged: SetObserver<SelectionModel, Int> = { _,removed,added ->
         itemUIGenerator?.let {
@@ -75,7 +63,7 @@ open class List<T, out M: Model<T>>(protected open val model: M, protected val s
 
                 updateVisibleItems()
 
-                layout = InternalLayout(this, it.positioner)
+                layout = InternalLayout(it.positioner)
             }
         }
 
@@ -114,8 +102,29 @@ open class List<T, out M: Model<T>>(protected open val model: M, protected val s
     fun clearSelection (              ) = selectionModel?.clear     (    )
 
     companion object {
-        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel? = null) = List(ListModel(progression.toList()), selectionModel)
-        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel? = null): List<T, ListModel<T>> = List(ListModel(values), selectionModel)
+        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel? = null, fitContent: Boolean = true) =
+                List(ListModel(progression.toList()), selectionModel, fitContent)
+        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel? = null, fitContent: Boolean = true):
+                List<T, ListModel<T>> = List(ListModel(values), selectionModel, fitContent)
+    }
+
+    private inner class InternalLayout(private val positioner: ItemPositioner<T>): Layout() {
+        override fun layout(positionable: Positionable) {
+            val insets = positionable.insets
+            var y      = insets.top
+
+            positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
+                val bounds = positioner(this@List, this@List[index], index, this@List.selected(index), child.hasFocus)
+
+                child.bounds = Rectangle(insets.left, y, max(0.0, this@List.width - insets.run { left + right }), bounds.height)
+
+                y += child.height
+            }
+
+            if (this@List.fitContent) {
+                this@List.height = y
+            }
+        }
     }
 }
 
