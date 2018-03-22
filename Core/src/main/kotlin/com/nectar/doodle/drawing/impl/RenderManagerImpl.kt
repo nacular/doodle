@@ -17,6 +17,7 @@ import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
 import com.nectar.doodle.utils.ObservableList
+import com.nectar.doodle.utils.ifTrue
 
 
 @Suppress("PrivatePropertyName")
@@ -154,68 +155,47 @@ class RenderManagerImpl(
         }
     }
 
-    private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean): Boolean {
-        if ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display.isAncestor(gizmo)) {
-            dirtyGizmos += gizmo
-
-//            val iterator = pendingRender.iterator()
-//
-//            while (iterator.hasNext()) {
-//                val item = iterator.next()
-//
-//                // Only take reference identity into account
-//                if (item === gizmo || item.isAncestor_(gizmo)) {
-//                    return false
-//                }
-//
-//                if (gizmo.isAncestor_(item)) {
-//                    iterator.remove()
-//                }
-//            }
-
-            pendingRender += gizmo
-
-            return true
-        }
-
-        return false
+    private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display.isAncestor(gizmo)).ifTrue {
+        dirtyGizmos  += gizmo
+        pendingRender += gizmo
     }
 
-    private fun frameTimeExpired(start: Measure<Time>) = timer.now() - start >= 16.milliseconds
+    private fun checkFrameTime(start: Measure<Time>) = (timer.now() - start).let {
+        (it >= 16.milliseconds).ifTrue {
+            println("++paint time: $it")
+            schedulePaint()
+        }
+    }
 
     private fun onPaint() {
         val start = timer.now()
 
-        // TODO: Spread this across multiple frames instead to avoid long running paint
         do {
-            pendingLayout.firstOrNull()?.let { performLayout(it) }
+            pendingLayout.firstOrNull()?.let {
+                performLayout(it)
 
-            if (frameTimeExpired(start)) {
-                println("++paint time: ${timer.now() - start}")
-                schedulePaint()
-                return
+//                if (it in pendingRender) { performRender(it) }
+//                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
+
+            if (checkFrameTime(start)) { return }
         } while (!pendingLayout.isEmpty())
 
         do {
-            pendingRender.firstOrNull()?.let { performRender(it) }
-
-            if (frameTimeExpired(start)) {
-                println("++paint time: ${timer.now() - start}")
-                schedulePaint()
-                return
+            pendingRender.firstOrNull()?.let {
+                performRender(it)
+//                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
+
+            if (checkFrameTime(start)) { return }
         } while (!pendingRender.isEmpty())
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
             }
-            if (frameTimeExpired(start)) {
-                println("++paint time: ${timer.now() - start}")
-                schedulePaint()
-                return
-            }
+
+            if (checkFrameTime(start)) { return }
         }
 
         paintTask = null

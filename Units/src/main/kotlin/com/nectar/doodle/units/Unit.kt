@@ -29,8 +29,8 @@ class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Uni
 }
 
 class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comparable<Measure<T>> {
-    override fun compareTo(other: Measure<T>): Int {
-        return ((this `as` other.unit).magnitude - other.magnitude).toInt()
+    override fun compareTo(other: Measure<T>) = minOf(unit, other.unit).let {
+        ((this `in` it).compareTo((other `in` it)))
     }
 
     fun isZero() = magnitude == 0.0
@@ -45,10 +45,8 @@ class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comp
     operator fun div  (value: Long  ): Measure<T> = magnitude / value * unit
     operator fun div  (value: Double): Measure<T> = magnitude / value * unit
 
-    operator fun div(other: Measure<T>): Double {
-        val resultUnit = minOf(unit, other.unit)
-
-        return (this `in` resultUnit) / (other `in` resultUnit)
+    operator fun div(other: Measure<T>): Double = minOf(unit, other.unit).let {
+        (this `in` it) / (other `in` it)
     }
 
     operator fun unaryMinus(): Measure<T> = Measure(-magnitude, unit)
