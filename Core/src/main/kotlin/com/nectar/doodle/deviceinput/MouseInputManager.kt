@@ -1,11 +1,12 @@
 package com.nectar.doodle.deviceinput
 
+import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.Cursor.Companion.Default
 import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Type
@@ -38,7 +39,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private var cursor = null as Cursor?
         set(new) {
             field = new
-            inputService.cursor = cursor ?: display.cursor ?: Cursor.Default
+            inputService.cursor = cursor ?: display.cursor ?: Default
         }
 
     init {
@@ -78,7 +79,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
     private fun mouseUp(event: SystemMouseEvent) {
         var cursor: Cursor? = null
-        val gizmo = getMouseEventHandler(gizmo(event.location))
+        val gizmo = getMouseEventHandler(gizmo(event))
 
         if (clickedEventAwareGizmo != null || mouseDown) {
 
@@ -130,7 +131,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun mouseDown(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        getMouseEventHandler(gizmo(event.location))?.let {
+        getMouseEventHandler(gizmo(event))?.let {
             it.handleMouseEvent_(createMouseEvent(event, it))
 
             clickedEventAwareGizmo = it
@@ -144,7 +145,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun doubleClick(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        getMouseEventHandler(gizmo(event.location))?.let {
+        getMouseEventHandler(gizmo(event))?.let {
             it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
             it.handleMouseEvent_(createMouseEvent(event, it, Click))
 
@@ -153,7 +154,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     private fun mouseMove(event: SystemMouseEvent) {
-        coveredGizmo = gizmo(event.location)
+        coveredGizmo = gizmo(event)
 
         clickedEventAwareGizmo?.let {
             if (it.monitorsMouseMotion) {
@@ -295,9 +296,9 @@ class MouseInputManager(private val display: Display, private val inputService: 
         else -> display.cursor
     }
 
-    private fun gizmo(at: Point): Gizmo? {
-        var newPoint = at
-        var gizmo    = display.child(at = at)
+    private fun gizmo(event: SystemMouseEvent): Gizmo? {
+        var newPoint = event.location
+        var gizmo    = display.child(at = event.location)
 
         while(gizmo != null) {
             newPoint -= gizmo.position
@@ -305,7 +306,15 @@ class MouseInputManager(private val display: Display, private val inputService: 
             gizmo = gizmo.child_(at = newPoint) ?: break
         }
 
-        return gizmo
+        return gizmo?.let {
+            if (event.nativeScrollPanel) {
+                while(gizmo != null && gizmo !is ScrollPanel) {
+                    gizmo = gizmo?.parent
+                }
+            }
+
+            gizmo
+        }
     }
 
     private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: Type = mouseEvent.type) = MouseEvent(

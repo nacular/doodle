@@ -15,6 +15,8 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.isEven
 
@@ -60,10 +62,11 @@ class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGen
                     if (mouseOver && pressed) {
                         setOf(index).also {
                             list.apply {
-                                if (selected(index)) {
-                                    removeSelection(it)
-                                } else {
-                                    setSelection(it)
+                                when {
+                                    selected(index)         -> removeSelection(it)
+                                    Ctrl in event.modifiers ||
+                                    Meta in event.modifiers -> addSelection   (it)
+                                    else                    -> setSelection   (it)
                                 }
                             }
                         }

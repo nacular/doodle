@@ -7,6 +7,7 @@ import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
@@ -20,6 +21,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.system.SystemMouseWheelEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
+import com.nectar.doodle.utils.ifTrue
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
@@ -45,7 +47,6 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     override var mouseLocation = Origin
         private set
 
-//    private var overlay      = null as HTMLElement?
     private var inputDevice  = null as HTMLElement?
     private var eventHandler = null as EventHandler?
 
@@ -57,17 +58,6 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
                 registerCallbacks(it)
             }
         }
-
-//        if (overlay == null) {
-//            overlay = htmlFactory.create<HTMLElement>().apply {
-//                style.setOpacity(0f )
-//                style.setWidth  (2.0)
-//                style.setHeight (2.0)
-//                style.zIndex  = "3"
-//
-////                htmlFactory.body.add(this)
-//            }
-//        }
     }
 
     override fun shutdown() {
@@ -129,15 +119,9 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         mouseLocation = Point(x = event.clientX + htmlFactory.body.scrollLeft,
                 y = event.clientY + htmlFactory.body.scrollLeft)
 
-        val isNativeElement = isNativeElement(event.target)
-
-//        if (!isNativeElement) {
-//            overlay?.style?.translate(mouseLocation - unitPoint)
-//        }
-
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 
-        if (isNativeElement) {
+        if (isNativeElement(event.target)) {
             return true
         }
 
@@ -178,19 +162,15 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
                 Point(mouseLocation.x, mouseLocation.y),
                 buttons,
                 clickCount,
-                createModifiers(event))
+                createModifiers(event),
+                nativeScrollPanel(event.target))
     }
 
     private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().apply {
-        if (event.altKey) {
-            add(Alt)
-        }
-        if (event.ctrlKey) {
-            add(Ctrl)
-        }
-        if (event.shiftKey) {
-            add(Shift)
-        }
+        event.altKey.ifTrue   { add(Alt  ) }
+        event.ctrlKey.ifTrue  { add(Ctrl ) }
+        event.shiftKey.ifTrue { add(Shift) }
+        event.metaKey.ifTrue  { add(Meta ) }
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {

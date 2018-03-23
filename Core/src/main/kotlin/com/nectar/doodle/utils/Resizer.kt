@@ -25,29 +25,6 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
         this.gizmo?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
     }
 
-//    var gizmo: Gizmo? = null
-//        set(new) {
-//            if (gizmo == null || !gizmo!!.equals(new)) {
-//                if (gizmo != null) {
-//                    gizmo!!.removeMouseListener(this)
-//                    gizmo!!.removePropertyListener(this)
-//                    gizmo!!.removeMouseMotionListener(this)
-//
-//                    gizmo!!.setCursor(mOldCursor)
-//                }
-//
-//                field = new
-//
-//                if (gizmo != null) {
-//                    gizmo!!.addMouseListener(this)
-//                    gizmo!!.addPropertyListener(this)
-//                    gizmo!!.addMouseMotionListener(this)
-//
-//                    mOldCursor = if (new.isCursorSet()) new.getCursor() else null
-//                }
-//            }
-//        }
-
     var movable     = true
     var directions  = mutableSetOf<Direction>(North, East, South, West)
     var hotspotSize = 5.0
