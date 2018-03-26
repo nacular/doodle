@@ -54,12 +54,12 @@ open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
     }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl<Spinner<T, M>>()
+    private val onChanged_ = ChangeObserversImpl(this)
 
     val onChanged: ChangeObservers<Spinner<T, M>> = onChanged_
 
     private val onModelChanged: (Model<T>) -> Unit = {
-        onChanged_.set.forEach { it(this) }
+        onChanged_()
     }
 
     init {

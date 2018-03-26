@@ -8,6 +8,8 @@ import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
+import com.nectar.doodle.controls.theme.AbstractTreeUI
+import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Color
@@ -45,6 +47,7 @@ class BasicTheme(
             is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory)
             is Button        -> it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) }
             is List<*, *>    -> (it as List<Any, ListModel<Any>>).renderer = BasicListUI<Any>(labelFactory).apply { install(it) }
+            is Tree<*>       -> (it as Tree<Any>).renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) }
         }
     }
 
@@ -55,6 +58,7 @@ class BasicTheme(
             is SplitPanel  -> { it.renderer?.uninstall(it); it.renderer = null }
             is Button      -> { it.renderer?.uninstall(it); it.renderer = null }
             is List<*, *>  -> { (it as List<Any, ListModel<Any>>).renderer?.uninstall(it); (it as List<Any, ListModel<Any>>).renderer = null }
+            is Tree<*>     -> { (it as Tree<Any>).renderer?.uninstall(it); (it as Tree<Any>).renderer = null }
         }
     }
 }

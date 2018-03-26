@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.buttons
 
-import com.nectar.doodle.utils.EventObservers
+import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.PropertyObservers
 
 /**
@@ -19,7 +19,7 @@ interface ButtonModel {
     var mouseOver  : Boolean
     var buttonGroup: ButtonGroup?
 
-    val onAction   : EventObservers<ButtonModel>
+    val onAction   : ChangeObservers<ButtonModel>
 
     fun fire()
 }

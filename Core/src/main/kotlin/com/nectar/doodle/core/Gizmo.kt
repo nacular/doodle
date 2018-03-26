@@ -146,10 +146,10 @@ abstract class Gizmo protected constructor() {
     var backgroundColor: Color? = null
         set(new) { field = new; styleChanged() }
 
-    val styleChanged: ChangeObservers<Gizmo> by lazy { ChangeObserversImpl<Gizmo>() }
+    val styleChanged: ChangeObservers<Gizmo> by lazy { ChangeObserversImpl(this) }
 
     private fun styleChanged() {
-        (styleChanged as ChangeObserversImpl).set.forEach { it(this) }
+        (styleChanged as ChangeObserversImpl)()
     }
 
     var x: Double

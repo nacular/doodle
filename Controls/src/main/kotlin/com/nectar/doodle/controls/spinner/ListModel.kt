@@ -7,7 +7,7 @@ open class ListModel<T, out L: List<T>>(protected val values: L): AbstractModel<
 
             field = new
 
-            onChanged_.set.forEach { it(this) }
+            onChanged_()
         }
 
     override val hasNext     get() = index < values.lastIndex

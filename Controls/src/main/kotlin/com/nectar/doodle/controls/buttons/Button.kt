@@ -5,8 +5,8 @@ import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
-import com.nectar.doodle.utils.EventObservers
-import com.nectar.doodle.utils.EventObserversImpl
+import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
@@ -90,9 +90,9 @@ abstract class Button protected constructor(
 
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
-    private val onAction_ by lazy { EventObserversImpl(this, mutableSetOf()) }
+    private val onAction_ by lazy { ChangeObserversImpl(this) }
 
-    val onAction: EventObservers<Button> = onAction_
+    val onAction: ChangeObservers<Button> = onAction_
 
     abstract fun click()
 

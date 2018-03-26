@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
@@ -28,10 +29,10 @@ interface ListRenderer<T>: Renderer<List<T, *>> {
 
 open class List<T, out M: Model<T>>(
         protected open val model         : M,
-        protected      val selectionModel: SelectionModel? = null,
-        private        val fitContent    : Boolean         = true): Gizmo() {
+        protected      val selectionModel: SelectionModel<Int>? = null,
+        private        val fitContent    : Boolean              = true): Gizmo() {
 
-    private val selectionChanged: SetObserver<SelectionModel, Int> = { _,removed,added ->
+    private val selectionChanged: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         itemUIGenerator?.let {
             added.forEach { index ->
                 children[index] = it(this, model[index], index, selected = true, hasFocus = false)
@@ -102,9 +103,9 @@ open class List<T, out M: Model<T>>(
     fun clearSelection (              ) = selectionModel?.clear     (    )
 
     companion object {
-        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel? = null, fitContent: Boolean = true) =
+        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
                 List(ListModel(progression.toList()), selectionModel, fitContent)
-        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel? = null, fitContent: Boolean = true):
+        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true):
                 List<T, ListModel<T>> = List(ListModel(values), selectionModel, fitContent)
     }
 
@@ -122,13 +123,13 @@ open class List<T, out M: Model<T>>(
             }
 
             if (this@List.fitContent) {
-                this@List.height = y
+                this@List.height = y + insets.bottom
             }
         }
     }
 }
 
-class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel): List<T, MutableModel<T>>(model, selectionModel) {
+class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
     private val modelChanged: ListObserver<MutableModel<T>, T> = { _,removed,added,moved ->
         itemsRemoved(removed)
         itemsAdded  (added  )

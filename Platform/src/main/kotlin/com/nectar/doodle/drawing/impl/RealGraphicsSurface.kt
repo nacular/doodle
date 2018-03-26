@@ -124,6 +124,7 @@ class RealGraphicsSurface private constructor(
         if (child.parent === this) {
             children.remove(child)
             rootElement.remove(child.rootElement)
+            zIndexSet.remove(child.zIndex)
 
             child.parent = null
         }

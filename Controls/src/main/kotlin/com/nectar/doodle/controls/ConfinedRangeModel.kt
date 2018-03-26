@@ -35,7 +35,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
             field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
 
             if (old != field) {
-                onChanged_.set.forEach { it(this) }
+                onChanged_()
             }
         }
 
@@ -51,24 +51,24 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
 
                         // onChanged will be fired
                     } else {
-                        onChanged_.set.forEach { it(this) }
+                        onChanged_()
                     }
                 }
             }
         }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl<ConfinedRangeModel<T>>()
+    private val onChanged_ = ChangeObserversImpl(this)
     override val onChanged: ChangeObservers<ConfinedRangeModel<T>> = onChanged_
 }
 
 class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, value: T = limit.start): ConfinedValueModel<T> {
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl<ConfinedValueModel<T>>()
+    private val onChanged_ = ChangeObserversImpl(this)
     override val onChanged: ChangeObservers<ConfinedValueModel<T>> = onChanged_
 
-    private val delegate = BasicConfinedRangeModel(limit, value .. value).also { it.onChanged += { onChanged_.set.forEach { it(this) } } }
+    private val delegate = BasicConfinedRangeModel(limit, value .. value).also { it.onChanged += { onChanged_() } }
 
     override var value: T
         get(   ) = delegate.range.start

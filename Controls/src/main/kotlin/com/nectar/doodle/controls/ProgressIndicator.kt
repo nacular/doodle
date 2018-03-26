@@ -17,7 +17,7 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): Gizmo() {
     var renderer: Renderer<ProgressIndicator>? = null
 
     private val onChange: (ConfinedValueModel<Double>) -> Unit = {
-        onChanged_.set.forEach { it(this) }
+        onChanged_()
     }
 
     init {
@@ -56,7 +56,7 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): Gizmo() {
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl<ProgressIndicator>()
+    private val onChanged_ = ChangeObserversImpl(this)
 
     val onChanged: ChangeObservers<ProgressIndicator> = onChanged_
 }
