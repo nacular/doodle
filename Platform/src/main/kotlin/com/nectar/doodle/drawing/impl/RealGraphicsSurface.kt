@@ -63,13 +63,13 @@ class RealGraphicsSurface private constructor(
             canvasElement.style.setWidthPercent (100.0)
             canvasElement.style.setHeightPercent(100.0)
 
-            rootElement.add(canvasElement)
+            rootElement.insert(canvasElement, 0)
         }
 
         canvas = canvasFactory(canvasElement)
 
         if (parent != null) {
-            parent?.add(this)
+            parent?.rootElement?.add(rootElement)
         } else if (addToDocumentIfNoParent) {
             htmlFactory.body.add(rootElement)
         }
@@ -139,6 +139,9 @@ class RealGraphicsSurface private constructor(
 
     private fun setZIndex(child: RealGraphicsSurface, index: Int) {
         if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
-        rootElement.insert(child.rootElement, rootElement.numChildren - (index + 1))
+
+        val indexStart = if (rootElement.contains(canvasElement)) 1 else 0
+
+        rootElement.insert(child.rootElement, rootElement.numChildren - (index + 1 + indexStart))
     }
 }
