@@ -24,6 +24,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
+import kotlin.math.max
 
 
 class RealGraphicsSurface private constructor(
@@ -53,7 +54,9 @@ class RealGraphicsSurface private constructor(
 
     override val canvas: Canvas
 
-    private  val children    = mutableListOf<RealGraphicsSurface>()
+    private  val children    by lazy { mutableListOf<RealGraphicsSurface>() }
+    private  var zIndexSet   = mutableSetOf<Int>()
+    private  var zIndexStart = 0
     internal val rootElement = canvasElement
 
     init {
@@ -89,6 +92,7 @@ class RealGraphicsSurface private constructor(
 
         if (isContainer && canvasElement.numChildren > 0) {
             rootElement.insert(canvasElement, 0)
+            zIndexStart = 1
         }
     }
 
@@ -116,18 +120,6 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    private fun add(child: RealGraphicsSurface) {
-        if (child.parent === this) {
-            return
-        }
-
-        child.parent?.remove(child)
-        children.add(child)
-        rootElement.add(child.rootElement)
-
-        child.parent = this
-    }
-
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
             children.remove(child)
@@ -140,8 +132,10 @@ class RealGraphicsSurface private constructor(
     private fun setZIndex(child: RealGraphicsSurface, index: Int) {
         if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
 
-        val indexStart = if (rootElement.contains(canvasElement)) 1 else 0
+        if (zIndexSet.add(index)) {
+            zIndexSet = zIndexSet.sorted().toMutableSet()
+        }
 
-        rootElement.insert(child.rootElement, rootElement.numChildren - (index + 1 + indexStart))
+        rootElement.insert(child.rootElement, max(zIndexStart, zIndexSet.indexOf(index)))
     }
 }
