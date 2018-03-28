@@ -14,9 +14,9 @@ include 'corejs'
 include 'unitsjvm'
 include 'unitsjs'
 include 'controlsjs'
+include 'controlsjvm'
 include 'testingjvm'
 include 'testingjs'
 
 include 'platform'
 include 'testapp'
-

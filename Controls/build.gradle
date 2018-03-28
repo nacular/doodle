@@ -10,4 +10,5 @@ dependencies {
     implementation dep.kotlin_stdlib_common
 
     testImplementation dep.kotlin_test_common
+    testImplementation dep.mockk_common
 }

@@ -79,40 +79,28 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun mouseUp(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 1))
 
-        if (isNativeElement(event.target)) {
-            return true
-        }
-
         event.preventDefault ()
         event.stopPropagation()
 
-        return false
+        return isNativeElement(event.target)
     }
 
     private fun mouseDown(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
-        if (isNativeElement(event.target)) {
-            return true
-        }
-
         event.preventDefault ()
         event.stopPropagation()
 
-        return false
+        return isNativeElement(event.target)
     }
 
     private fun doubleClick(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 2))
 
-        if (isNativeElement(event.target)) {
-            return true
-        }
-
         event.preventDefault ()
         event.stopPropagation()
 
-        return false
+        return isNativeElement(event.target)
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
@@ -121,14 +109,10 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 
-        if (isNativeElement(event.target)) {
-            return true
-        }
-
         event.preventDefault ()
         event.stopPropagation()
 
-        return false
+        return isNativeElement(event.target)
     }
 
     private fun mouseScroll(event: WheelEvent): Boolean {

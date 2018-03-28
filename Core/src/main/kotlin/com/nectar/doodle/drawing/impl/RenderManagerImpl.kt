@@ -230,7 +230,7 @@ class RenderManagerImpl(
 
         val visibilityChanged = gizmo in visibilityChanged
 
-        val graphicsSurface = if (gizmo.visible || visibilityChanged) graphicsDevice[gizmo] else null
+        val graphicsSurface = if ((gizmo.visible || visibilityChanged) && gizmo.parent != null) graphicsDevice[gizmo] else null
 
         graphicsSurface?.let {
             if (gizmo in pendingBoundsChange) {
@@ -264,10 +264,6 @@ class RenderManagerImpl(
                     graphicsSurface.render { canvas ->
                         gizmo.render(canvas)
                     }
-
-//                    gizmo.children_.reversed().forEach {
-//                        performRender(it)
-//                    }
                 }
             }
         }

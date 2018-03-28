@@ -11,7 +11,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
     private val surfaceGizmoMap = mutableMapOf<GraphicsSurface, Gizmo>()
 
     override operator fun get(gizmo: Gizmo): GraphicsSurface {
-        var surface: GraphicsSurface? = gizmoSurfaceMap.get(gizmo)
+        var surface: GraphicsSurface? = gizmoSurfaceMap[gizmo]
 
         if (surface == null) {
             val parent = gizmo.parent

@@ -1,0 +1,25 @@
+apply plugin: 'kotlin-platform-jvm'
+
+dependencies {
+    expectedBy project(':controls')
+
+    implementation project(':corejvm')
+    implementation project(':unitsjvm')
+    implementation dep.kotlin_stdlib_jre8
+
+    testImplementation project(':testingjvm')
+    testImplementation dep.junit
+    testImplementation dep.kotlin_junit
+    testImplementation dep.mockk
+
+    testImplementation dep.log4j
+    testImplementation dep.logback
+}
+
+apply from: '../jacoco.gradle'
+
+jacocoTestReport {
+    sourceDirectories = files([
+            "../Controls/src/main/kotlin"
+    ])
+}

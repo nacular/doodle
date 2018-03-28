@@ -31,7 +31,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return false
     }
 
-    fun getDecendant(node: T) = Path(items + node)
+    operator fun plus(node: T) = Path(items + node)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

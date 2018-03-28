@@ -10,8 +10,6 @@ import com.nectar.doodle.image.ImageFactory
  */
 class Photo private constructor(private var image: Image?): Gizmo() {
 
-    constructor(image: Image): this(image as Image?)
-
     constructor(imageFactory: ImageFactory, source: String): this(null) {
         imageFactory.load(source) {
             image     = it
@@ -26,5 +24,9 @@ class Photo private constructor(private var image: Image?): Gizmo() {
         image?.let {
             canvas.image(it, bounds.atOrigin)
         }
+    }
+
+    companion object {
+        operator fun invoke(image: Image) = Photo(image)
     }
 }
