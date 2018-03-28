@@ -28,7 +28,7 @@ import kotlin.math.max
 
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
-    private fun onResize(event: Event? = null) {
+    private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         root.minimumSize.let {
             root.size = Size(max(rootElement.width, it.width), max(rootElement.height, it.height))
         }
@@ -49,16 +49,12 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
         root.boundsChanged += { _, old, new ->
             if (old.size != new.size) {
-                (sizeChanged as PropertyObserversImpl<Display, Size>).forEach {
-                    it(this, old.size, new.size)
-                }
+                (sizeChanged as PropertyObserversImpl<Display, Size>)(old.size, new.size)
             }
         }
 
         root.cursorChanged += { _, old, new ->
-            (cursorChanged as PropertyObserversImpl<Display, Cursor?>).forEach {
-                it(this, old, new)
-            }
+            (cursorChanged as PropertyObserversImpl<Display, Cursor?>)(old, new)
         }
     }
 
@@ -81,9 +77,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override val children get() = root.children
 
-    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(mutableSetOf()) }
+    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
 
-    override val sizeChanged: PropertyObservers<Display, Size> by lazy { PropertyObserversImpl<Display, Size>(mutableSetOf()) }
+    override val sizeChanged: PropertyObservers<Display, Size> by lazy { PropertyObserversImpl<Display, Size>(this) }
 
     override fun zIndex(of: Gizmo) = root.zIndex(of)
 

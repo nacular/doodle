@@ -46,7 +46,7 @@ class ChangeObserversImpl<S>(private val source: S, private val mutableSet: Muta
     operator fun invoke() = mutableSet.forEach { it(source) }
 }
 
-class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObserver<S, T>>): Set<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
+class PropertyObserversImpl<S, T>(private val source: S, private val mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): Set<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
     override fun plusAssign(observer: PropertyObserver<S, T>) {
         mutableSet += observer
     }
@@ -54,6 +54,8 @@ class PropertyObserversImpl<S, T>(private val mutableSet: MutableSet<PropertyObs
     override fun minusAssign(observer: PropertyObserver<S, T>) {
         mutableSet -= observer
     }
+
+    operator fun invoke(old: T, new: T) = mutableSet.forEach { it(source, old, new) }
 }
 
 open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private val observers: Iterable<PropertyObserver<S, T>>): ObservableProperty<T>(initial) {

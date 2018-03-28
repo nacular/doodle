@@ -18,6 +18,7 @@ private val prototypes = mutableMapOf<String, SVGElement>()
 internal class SvgFactoryImpl: SvgFactory {
     override val body get() = document.body!!
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : SVGElement> create(tag: String) = prototypes.getOrPut(tag) {
         document.createElementNS( "http://www.w3.org/2000/svg", tag) as T
     }.cloneNode(false) as T

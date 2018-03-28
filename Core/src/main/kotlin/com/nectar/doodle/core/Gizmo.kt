@@ -54,22 +54,22 @@ private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
 @Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
 
-    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
 
     var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<Gizmo, Boolean>)
         private set
 
     var name = ""
 
-    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
 
     var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
 
     var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
-    val focusableChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(mutableSetOf()) }
+    val focusableChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
 
     open var focusable by ObservableProperty(true, { this }, focusableChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
@@ -117,9 +117,9 @@ abstract class Gizmo protected constructor() {
 
     }
 
-    var monitorsDisplayRect: Boolean by observable(false) { _,_,_ ->
-        setDisplayRectHandlingRequired(monitorsDisplayRect, monitorsDisplayRect)
-    }
+    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+
+    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<Gizmo, Boolean>)
 
     var cursor: Cursor? = null
         get() = field ?: parent?.cursor
@@ -132,10 +132,10 @@ abstract class Gizmo protected constructor() {
 
             field = new
 
-            (cursorChanged as PropertyObserversImpl<Gizmo, Cursor?>).forEach { it(this, old, new) }
+            (cursorChanged as PropertyObserversImpl<Gizmo, Cursor?>)(old, new)
         }
 
-    val cursorChanged: PropertyObservers<Gizmo, Cursor?> by lazy { PropertyObserversImpl<Gizmo, Cursor?>(mutableSetOf()) }
+    val cursorChanged: PropertyObservers<Gizmo, Cursor?> by lazy { PropertyObserversImpl<Gizmo, Cursor?>(this) }
 
     var font: Font? = null
         set(new) { field = new; styleChanged() }
@@ -176,7 +176,7 @@ abstract class Gizmo protected constructor() {
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
-    val boundsChanged: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(mutableSetOf()) }
+    val boundsChanged: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(this) }
 
     var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<Gizmo, Rectangle>)
 
@@ -265,10 +265,10 @@ abstract class Gizmo protected constructor() {
 
             field = new
 
-            (parentChange as PropertyObserversImpl).forEach { it(this, field, new) }
+            (parentChange as PropertyObserversImpl)(field, new)
         }
 
-    val parentChange: PropertyObservers<Gizmo, Gizmo?> = PropertyObserversImpl(mutableSetOf())
+    val parentChange: PropertyObservers<Gizmo, Gizmo?> by lazy { PropertyObserversImpl<Gizmo, Gizmo?>(this) }
 
 
     internal fun revalidate_() = revalidate()
@@ -369,12 +369,14 @@ abstract class Gizmo protected constructor() {
         renderManager?.renderNow(this) // TODO: Remove?
     }
 
+    internal fun handleDisplayRectEvent_(event: DisplayRectEvent) = handleDisplayRectEvent(event)
+
     /**
      * This is an event invoked on a Gizmo in response to a change in the display rectangle.
      *
      * @param event The event
      */
-    internal fun handleDisplayRectEvent(@Suppress("UNUSED_PARAMETER") event: DisplayRectEvent) {}
+    protected fun handleDisplayRectEvent(@Suppress("UNUSED_PARAMETER") event: DisplayRectEvent) {}
 
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 
@@ -524,33 +526,6 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-//    /**
-//     * Adds a DisplayRectListener to the Gizmo to receive DisplayRectEvents.
-//     *
-//     * @param listener The listener
-//     */
-//    fun addDisplayRectListener(listener: DisplayRectListener) {
-//        val aIsDisplayRectHandlingEnabled = displayRectHandlingEnabled
-//
-//        listeners.add(listener, DisplayRectListener::class.java)
-//
-//        setDisplayRectHandlingRequired(aIsDisplayRectHandlingEnabled, displayRectHandlingEnabled)
-//    }
-
-//    /**
-//     * Removes a DisplayRectListener to the Gizmo.
-//     *
-//     * @param listener The listener
-//     */
-//
-//    fun removeDisplayRectListener(listener: DisplayRectListener) {
-//        val aIsDisplayRectHandlingEnabled = displayRectHandlingEnabled
-//
-//        listeners.remove(listener, DisplayRectListener::class.java)
-//
-//        setDisplayRectHandlingRequired(aIsDisplayRectHandlingEnabled, displayRectHandlingEnabled)
-//    }
-
     fun toLocal(point: Point, from: Gizmo): Point {
         val source      = from.toAbsolute(point       )
         val destination = this.toAbsolute(Point.Origin)
@@ -573,22 +548,6 @@ abstract class Gizmo protected constructor() {
         return result
     }
 
-//    operator fun plus (listener: KeyListener        ): Gizmo = this.also { listeners.add   (listener, KeyListener::class.java        ) }
-//    operator fun minus(listener: KeyListener        ): Gizmo = this.also { listeners.remove(listener, KeyListener::class.java        ) }
-//
 //    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
-
-    /**
-     * Updates property that indicates display rect monitoring is required for this Gizmo.
-     * This requirement takes effect whenever [.isDisplayRectHandlingEnabled] becomes true.
-     *
-     * @param oldValue
-     * @param newValue
-     */
-
-    private fun setDisplayRectHandlingRequired(oldValue: Boolean, newValue: Boolean) {
-//        setProperty(NamedPropertyDecorator(DISPLAYRECT_HANDLING_REQUIRED, SimpleProperty(aOldValue)),
-//                aNewValue)
-    }
 }

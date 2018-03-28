@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.buttons
 
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
 
@@ -65,8 +66,8 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButt
             }
         }
 
-    val selectedChanged by lazy { PropertyObserversImpl<ToggleButton, Boolean>(mutableSetOf()) }
+    val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
 
     private val selectedChanged_ = ::selectedChangedFun
-    private fun selectedChangedFun(@Suppress("UNUSED_PARAMETER") model: ButtonModel, old: Boolean, new: Boolean) = selectedChanged.forEach { it(this, old, new) }
+    private fun selectedChangedFun(@Suppress("UNUSED_PARAMETER") model: ButtonModel, old: Boolean, new: Boolean) = (selectedChanged as PropertyObserversImpl)(old, new)
 }

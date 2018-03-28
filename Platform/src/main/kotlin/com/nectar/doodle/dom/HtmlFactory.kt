@@ -30,6 +30,7 @@ internal class HtmlFactoryImpl: HtmlFactory {
 
     override fun <T: HTMLElement> create() = create("div") as T
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T: HTMLElement> create(tag: String) = prototypes.getOrPut(tag) {
         document.createElement(tag) as T
     }.cloneNode(false) as T

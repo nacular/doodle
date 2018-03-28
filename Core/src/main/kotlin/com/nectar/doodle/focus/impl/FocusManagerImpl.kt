@@ -65,9 +65,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
                 registerAncestorListeners()
             }
 
-            (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>).forEach {
-                it(this, oldFocusOwner, gizmo)
-            }
+            (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>)(oldFocusOwner, gizmo)
         }
     }
 
@@ -77,7 +75,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
     override fun moveFocusUpward  (from: Gizmo) = moveFocus(from, Upward  )
     override fun moveFocusDownward(from: Gizmo) = moveFocus(from, Downward)
 
-    override val focusChanged: PropertyObservers<FocusManager, Gizmo?> by lazy { PropertyObserversImpl<FocusManager, Gizmo?>(mutableSetOf()) }
+    override val focusChanged: PropertyObservers<FocusManager, Gizmo?> by lazy { PropertyObserversImpl<FocusManager, Gizmo?>(this) }
 
     private fun moveFocus(gizmo: Gizmo?, traversalType: TraversalType) {
         var focusGizmo: Gizmo? = gizmo ?: focusOwner

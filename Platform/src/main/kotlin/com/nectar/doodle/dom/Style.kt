@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.nectar.doodle.dom
 
 import com.nectar.doodle.drawing.AffineTransform

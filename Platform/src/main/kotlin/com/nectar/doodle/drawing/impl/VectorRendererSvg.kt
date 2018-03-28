@@ -398,7 +398,9 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
         return when {
             element == null || element.nodeName != tag -> svgFactory.create(tag)
-            element is SVGElement                      -> { element.clear(); element.removeTransform(); element as T }
+            element is SVGElement                      -> { element.clear(); element.removeTransform(); @Suppress("UNCHECKED_CAST")
+            element as T
+            }
             else                                       -> throw Exception("Error") // FIXME: handle better
         }
     }

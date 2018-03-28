@@ -20,11 +20,11 @@ typealias Validator = (String) -> String
 
 abstract class TextInput : Gizmo() /*, ContentRequestMonitor*/ {
 
-    val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(mutableSetOf()) }
+    val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
     var horizontalAlignment: HorizontalAlignment by ObservableProperty(Left, { this }, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
 
-    val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(mutableSetOf()) }
+    val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(this) }
 
     open var text: String by object: ObservableProperty<TextInput, String>("", { this }, textChanged as PropertyObserversImpl<TextInput, String>) {
         override fun afterChange(property: KProperty<*>, oldValue: String, newValue: String) {
@@ -41,7 +41,7 @@ abstract class TextInput : Gizmo() /*, ContentRequestMonitor*/ {
             text = text /* re-validate text */
         }
 
-    val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(mutableSetOf()) }
+    val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(this) }
 
     var selection: Selection by ObservableProperty(Selection(0, 0), { this }, selectionChanged as PropertyObserversImpl<TextInput, Selection>)
         private set

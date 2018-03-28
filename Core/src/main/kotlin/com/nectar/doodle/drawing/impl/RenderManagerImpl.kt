@@ -28,21 +28,22 @@ class RenderManagerImpl(
         private val themeManager  : InternalThemeManager?,
         private val graphicsDevice: GraphicsDevice<*>): RenderManager {
 
-    private val gizmos              = mutableSetOf <Gizmo>()
-    private var layingOut           = null as Gizmo?
-    private val dirtyGizmos         = mutableSetOf <Gizmo>()
-    private val displayTree         = mutableMapOf <Gizmo, DisplayRectNode>()
-    private val neverRendered       = mutableSetOf <Gizmo>()
-    private val pendingLayout       = mutableSetOf <Gizmo>()
-    private val pendingRender       = mutableListOf<Gizmo>()
-    private val pendingCleanup      = mutableMapOf <Gizmo, MutableSet<Gizmo>>()
-    private val addedInvisible      = mutableSetOf <Gizmo>()
-    private val visibilityChanged   = mutableSetOf <Gizmo>()
-    private val pendingBoundsChange = mutableSetOf <Gizmo>()
-    private var paintTask           = null as Task?
-    private val childrenChanged_    = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
-    private val boundsChanged_      = ::boundsChanged
-    private val visibilityChanged_  = ::visibilityChangedFunc
+    private val gizmos                      = mutableSetOf <Gizmo>()
+    private var layingOut                   = null as Gizmo?
+    private val dirtyGizmos                 = mutableSetOf <Gizmo>()
+    private val displayTree                 = mutableMapOf <Gizmo, DisplayRectNode>()
+    private val neverRendered               = mutableSetOf <Gizmo>()
+    private val pendingLayout               = mutableSetOf <Gizmo>()
+    private val pendingRender               = mutableListOf<Gizmo>()
+    private val pendingCleanup              = mutableMapOf <Gizmo, MutableSet<Gizmo>>()
+    private val addedInvisible              = mutableSetOf <Gizmo>()
+    private val visibilityChanged           = mutableSetOf <Gizmo>()
+    private val pendingBoundsChange         = mutableSetOf <Gizmo>()
+    private var paintTask                   = null as Task?
+    private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
+    private val boundsChanged_              = ::boundsChanged
+    private val visibilityChanged_          = ::visibilityChangedFunc
+    private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     init {
         display.children.onChange += childrenChanged_
@@ -116,9 +117,10 @@ class RenderManagerImpl(
                 pendingRender       += gizmo
                 pendingBoundsChange += gizmo
 
-                gizmo.boundsChanged      += boundsChanged_
-                gizmo.visibilityChanged  += visibilityChanged_
-                gizmo.children_.onChange += childrenChanged_
+                gizmo.boundsChanged              += boundsChanged_
+                gizmo.visibilityChanged          += visibilityChanged_
+                gizmo.children_.onChange         += childrenChanged_
+                gizmo.displayRectHandlingChanged += displayRectHandlingChanged_
             }
 
             gizmos += gizmo
@@ -286,9 +288,10 @@ class RenderManagerImpl(
         pendingRender       -= gizmo
         pendingBoundsChange -= gizmo
 
-        gizmo.boundsChanged      -= boundsChanged_
-        gizmo.visibilityChanged  -= visibilityChanged_
-        gizmo.children_.onChange -= childrenChanged_
+        gizmo.boundsChanged              -= boundsChanged_
+        gizmo.visibilityChanged          -= visibilityChanged_
+        gizmo.children_.onChange         -= childrenChanged_
+        gizmo.displayRectHandlingChanged -= displayRectHandlingChanged_
 
         unregisterDisplayRectMonitoring(gizmo)
     }
@@ -402,6 +405,14 @@ class RenderManagerImpl(
 
         if (gizmo in displayTree) {
             checkDisplayRectChange(gizmo)
+        }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun displayRectHandlingChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+        when (new) {
+            true -> registerDisplayRectMonitoring  (gizmo)
+            else -> unregisterDisplayRectMonitoring(gizmo)
         }
     }
 
@@ -527,7 +538,7 @@ class RenderManagerImpl(
 
     private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle?, new: Rectangle?) {
         if (old != new) {
-            gizmo.handleDisplayRectEvent(DisplayRectEvent(gizmo, old, new))
+            gizmo.handleDisplayRectEvent_(DisplayRectEvent(gizmo, old, new))
         }
     }
 

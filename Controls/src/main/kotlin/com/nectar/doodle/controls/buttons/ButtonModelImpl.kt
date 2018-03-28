@@ -11,21 +11,21 @@ import com.nectar.doodle.utils.observable
 open class ButtonModelImpl: ButtonModel {
     override val onAction by lazy { ChangeObserversImpl(this) }
 
-    override val selectedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(mutableSetOf()) }
+    override val selectedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
     override var selected        by ObservableProperty(false, { this }, selectedChanged)
 
-    override val armedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(mutableSetOf()) }
+    override val armedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
     override var armed        by ObservableProperty(false, { this }, armedChanged)
 
-    override val pressedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(mutableSetOf()) }
+    override val pressedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
     override var pressed        by observable(false) { _,old,new ->
         // TODO: should this just call fire()?  It's strange that armed remains true after this
         if (!new && armed) { onAction() }
 
-        pressedChanged.forEach { it(this, old, new) }
+        pressedChanged(old, new)
     }
 
-    override val mouseOverChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(mutableSetOf()) }
+    override val mouseOverChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
     override var mouseOver        by ObservableProperty(false, { this }, mouseOverChanged)
 
     override var buttonGroup: ButtonGroup? = null

@@ -108,6 +108,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
         onChanged_()
     }
 
+    @Suppress("NAME_SHADOWING")
     private fun updateLayout() {
         val first   = firstItem
         val last    = lastItem

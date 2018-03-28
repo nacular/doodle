@@ -35,7 +35,7 @@ abstract class Button protected constructor(
         model.onAction -= onActionFun
     }
 
-    val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(mutableSetOf()) }
+    val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(this) }
 
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
 

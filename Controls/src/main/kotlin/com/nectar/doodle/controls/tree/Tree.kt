@@ -48,6 +48,8 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
 
             field = new
 
+            // TODO: make more efficient?
+            children.clear()
             insertAll()
         }
 
@@ -294,13 +296,8 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
     }
 
     private fun rowFromPath(path: Path<Int>): Int {
-        var row       = -1
-        var pathIndex = 0
-
-        if (rootVisible) {
-            row++
-        }
-
+        var row         = if (rootVisible) 0 else -1
+        var pathIndex   = 0
         var currentPath = Path<Int>()
         var numChildren = model.numChildren(currentPath)
 

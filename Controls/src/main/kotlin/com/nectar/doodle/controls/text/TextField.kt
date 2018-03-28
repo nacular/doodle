@@ -14,7 +14,7 @@ class TextField: TextInput() {
         get() = if (mask == null) { text } else field
         private set
 
-    val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(mutableSetOf()) }
+    val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
 
     var mask: Char? = null
         set(new) {
@@ -27,7 +27,7 @@ class TextField: TextInput() {
                 displayText = "".padEnd(text.length, it)
             }
 
-            (maskChanged as PropertyObserversImpl<TextField, Char?>).forEach { it(this, old, new) }
+            (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
 //    var mask: Char? by object: ObservableProperty<TextField, Char?>(null, { this }, maskChanged as PropertyObserversImpl<TextField, Char?>) {

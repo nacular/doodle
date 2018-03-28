@@ -130,7 +130,7 @@ open class List<T, out M: Model<T>>(
 }
 
 class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
-    private val modelChanged: ListObserver<MutableModel<T>, T> = { _,removed,added,moved ->
+    private val modelChanged: ListObserver<MutableModel<T>, T> = { _,removed,added,_ ->
         itemsRemoved(removed)
         itemsAdded  (added  )
     }
