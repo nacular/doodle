@@ -1,10 +1,9 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.PositionableWrapper
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.height
 import com.nectar.doodle.dom.insert
@@ -18,72 +17,57 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextureBrush
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.utils.ObservableList
+import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
-import kotlin.math.max
 
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
     private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
-        root.minimumSize.let {
-            root.size = Size(max(rootElement.width, it.width), max(rootElement.height, it.height))
-        }
+        size = Size(rootElement.width, rootElement.height)
     }
 
-    private val root          = Box()
     private val canvasElement = htmlFactory.create<HTMLElement>()
+
+    val width  get() = size.width
+    val height get() = size.height
+
+    override var insets = None
+
+    override var layout: Layout? = null
+
+    override val children by lazy { ObservableList<Display, Gizmo>(this) }
+
+    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
+
+    override var cursor: Cursor? by ObservableProperty(null, { this }, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
+
+    override val sizeChanged: PropertyObservers<Display, Size> by lazy { PropertyObserversImpl<Display, Size>(this) }
+
+    override var size by ObservableProperty(Empty, { this }, sizeChanged as PropertyObserversImpl<Display, Size>)
 
     init {
         rootElement.onresize = ::onResize
 
         onResize()
 
-        root.isFocusCycleRoot = true
+//        isFocusCycleRoot = true
 
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)
-
-        root.boundsChanged += { _, old, new ->
-            if (old.size != new.size) {
-                (sizeChanged as PropertyObserversImpl<Display, Size>)(old.size, new.size)
-            }
-        }
-
-        root.cursorChanged += { _, old, new ->
-            (cursorChanged as PropertyObserversImpl<Display, Cursor?>)(old, new)
-        }
     }
 
-    override var cursor: Cursor?
-        get(   ) = root.cursor
-        set(new) { root.cursor = new }
+    override fun zIndex(of: Gizmo) = children.size - children.indexOf(of) - 1
 
-    val width  get() = size.width
-    val height get() = size.height
-
-    override val size = root.size
-
-    override var insets: Insets
-        get(   ) = root.insets
-        set(new) { root.insets = new }
-
-    override var layout: Layout?
-        get(   ) = root.layout
-        set(new) { root.layout = new }
-
-    override val children get() = root.children
-
-    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
-
-    override val sizeChanged: PropertyObservers<Display, Size> by lazy { PropertyObserversImpl<Display, Size>(this) }
-
-    override fun zIndex(of: Gizmo) = root.zIndex(of)
-
-    override fun setZIndex(of: Gizmo, to: Int) = root.setZIndex(of, to)
+    override fun setZIndex(of: Gizmo, to: Int)  {
+        children.move(of, to)
+    }
 
 //    var focusTraversalPolicy: FocusTraversalPolicy
 //        get() = ROOT_CONTAINER.getFocusTraversalPolicy()
@@ -111,15 +95,43 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    override fun isAncestor(gizmo: Gizmo) = root.isAncestor(gizmo)
+    override fun isAncestor(of: Gizmo) : Boolean {
+        if (children.isNotEmpty()) {
+            var parent: Gizmo? = of
 
-    override fun child(at: Point): Gizmo? = root.child(at)
+            do {
+                if (parent in children) {
+                    return true
+                }
 
-    operator fun contains(gizmo: Gizmo) = gizmo in root
+                parent = parent?.parent
+            } while (parent != null)
+        }
 
-    override fun iterator() = root.iterator()
+        return false
+    }
+
+    override fun child(at: Point): Gizmo? = layout?.child(positionableWrapper, at) ?: children.lastOrNull { it.visible && at in it }
+
+    operator fun contains(gizmo: Gizmo) = gizmo in children
+
+    override fun iterator() = children.iterator()
 
     override fun doLayout() {
-        layout?.layout(PositionableWrapper(root))
+        layout?.layout(positionableWrapper)
     }
+
+    private inner class PositionableWrapper(): Positionable {
+        override var size        get() = this@DisplayImpl.size
+            set(value) { this@DisplayImpl.size = value }
+        override val width       get() = this@DisplayImpl.width
+        override val height      get() = this@DisplayImpl.height
+        override val insets      get() = this@DisplayImpl.insets
+        override val parent      = null
+        override val children    get() = this@DisplayImpl.children
+        override var idealSize   = null as Size?
+        override var minimumSize = Empty
+    }
+
+    private val positionableWrapper = PositionableWrapper()
 }

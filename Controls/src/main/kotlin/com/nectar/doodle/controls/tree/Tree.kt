@@ -9,6 +9,7 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import kotlin.math.max
 
@@ -80,6 +81,14 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
     private val expandedPaths = mutableSetOf<Path<Int>>()
+
+    init {
+        monitorsDisplayRect = true
+    }
+
+    override fun handleDisplayRectEvent(event: DisplayRectEvent) {
+        println("display rect changed: ${event.newValue}")
+    }
 
     operator fun get(path: Path<Int>): T? = model[path]
 

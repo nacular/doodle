@@ -17,6 +17,7 @@ import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
+import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.Runs
 import io.mockk.every
@@ -318,8 +319,8 @@ class RenderManagerImplTests {
 
         listOf(container1, container2).forEach {
             verify(exactly = 0) { it.removedFromDisplay_(     ) }
-            verify(exactly = 1) { it.render            (any()) }
-            verify(exactly = 1) { it.doLayout_         (     ) }
+            verify(exactly = 1) { it.render             (any()) }
+            verify(exactly = 1) { it.doLayout_          (     ) }
         }
     }
 
@@ -394,18 +395,35 @@ class RenderManagerImplTests {
     }
 
     private fun display(vararg children: Gizmo): Display = mockk<Display>(relaxed = true).apply {
-        val container = Box()
+        val displayChildren = ObservableList<Display, Gizmo>(this)
 
-        container.children.addAll(children)
+        displayChildren.addAll(children)
 
         val gizmo = slot<Gizmo>()
         val to    = slot<Int>  ()
 
-        every { this@apply.children                                } returns container.children
-        every { this@apply.iterator()                              } answers { container.children.iterator() }
-        every { sizeChanged                                        } returns mockk(relaxed = true)
-        every { this@apply.isAncestor(capture(gizmo)             ) } answers { container.isAncestor(gizmo.captured) }
-        every { this@apply.setZIndex (capture(gizmo), capture(to)) } answers { container.setZIndex(gizmo.captured, to.captured) }
+        every { this@apply.children                   } returns displayChildren
+        every { this@apply.iterator()                 } answers { displayChildren.iterator() }
+        every { sizeChanged                           } returns mockk(relaxed = true)
+        every { this@apply.isAncestor(capture(gizmo)) } answers {
+            var result = false
+
+            if (this@apply.children.isNotEmpty()) {
+                var parent: Gizmo? = gizmo.captured
+
+                do {
+                    if (parent in this@apply.children) {
+                        result = true
+                        break
+                    }
+
+                    parent = parent?.parent
+                } while (parent != null)
+            }
+
+            result
+        }
+        every { this@apply.setZIndex(capture(gizmo), capture(to)) } answers { displayChildren.move(gizmo.captured, to.captured) }
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>(relaxed = true).apply {

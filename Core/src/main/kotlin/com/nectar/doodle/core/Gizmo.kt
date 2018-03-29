@@ -192,8 +192,8 @@ abstract class Gizmo protected constructor() {
     }
 
     internal val children_ get() = children
-    protected open val children: ObservableList<Gizmo, Gizmo> by lazy {
-        ObservableList(this, mutableListOf<Gizmo>()).also {
+    protected open val children by lazy {
+        ObservableList<Gizmo, Gizmo>(this).also {
             it.onChange += { _, removed, added, _ ->
                 val addedSet   = added.values.toMutableSet  ().apply { removeAll(removed.values) }
                 val removedSet = removed.values.toMutableSet().apply { removeAll(added.values  ) }
@@ -376,7 +376,7 @@ abstract class Gizmo protected constructor() {
      *
      * @param event The event
      */
-    protected fun handleDisplayRectEvent(@Suppress("UNUSED_PARAMETER") event: DisplayRectEvent) {}
+    protected open fun handleDisplayRectEvent(@Suppress("UNUSED_PARAMETER") event: DisplayRectEvent) {}
 
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 

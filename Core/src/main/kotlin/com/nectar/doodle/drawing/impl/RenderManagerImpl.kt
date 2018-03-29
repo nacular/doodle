@@ -31,7 +31,7 @@ class RenderManagerImpl(
     private val gizmos                      = mutableSetOf <Gizmo>()
     private var layingOut                   = null as Gizmo?
     private val dirtyGizmos                 = mutableSetOf <Gizmo>()
-    private val displayTree                 = mutableMapOf <Gizmo, DisplayRectNode>()
+    private val displayTree                 = mutableMapOf <Gizmo?, DisplayRectNode>()
     private val neverRendered               = mutableSetOf <Gizmo>()
     private val pendingLayout               = mutableSetOf <Gizmo>()
     private val pendingRender               = mutableListOf<Gizmo>()
@@ -46,7 +46,22 @@ class RenderManagerImpl(
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     init {
-        display.children.onChange += childrenChanged_
+        display.children.onChange += { _,removed,added,moved ->
+
+            removed.values.forEach { childRemoved(null, it) }
+            added.values.forEach   { childAdded  (null, it) }
+
+            moved.forEach {
+                val surface = graphicsDevice[it.value.second]
+
+                surface.zIndex = it.key
+            }
+
+            if (removed.isNotEmpty() || added.isNotEmpty()) {
+                display.doLayout()
+            }
+        }
+
         display.sizeChanged += { display, _, _ ->
 
             display.doLayout()
@@ -88,10 +103,10 @@ class RenderManagerImpl(
         var clipRect = if (of.visible) Rectangle(size = of.size) else Empty
 
         while (parent != null && !clipRect.empty) {
-            clipRect = clipRect.intersect(Rectangle(0 - child.x,
-                    0 - child.y,
-                    if (parent.visible) parent.width  else 0.0,
-                    if (parent.visible) parent.height else 0.0))
+            clipRect = clipRect intersect Rectangle(-child.x,
+                                                    -child.y,
+                                                    if (parent.visible) parent.width  else 0.0,
+                                                    if (parent.visible) parent.height else 0.0)
 
             child  = parent
             parent = parent.parent
@@ -109,7 +124,7 @@ class RenderManagerImpl(
                 }
             }
 
-            if (gizmo.parent != null) {
+            if (display.isAncestor(gizmo)) {
                 gizmo.addedToDisplay(this)
 
                 dirtyGizmos         += gizmo
@@ -232,7 +247,7 @@ class RenderManagerImpl(
 
         val visibilityChanged = gizmo in visibilityChanged
 
-        val graphicsSurface = if ((gizmo.visible || visibilityChanged) && gizmo.parent != null) graphicsDevice[gizmo] else null
+        val graphicsSurface = if ((gizmo.visible || visibilityChanged) && display.isAncestor(gizmo)) graphicsDevice[gizmo] else null
 
         graphicsSurface?.let {
             if (gizmo in pendingBoundsChange) {
@@ -300,7 +315,7 @@ class RenderManagerImpl(
         pendingCleanup.getOrPut(parent) { mutableSetOf() }.apply { add(child) }
     }
 
-    private fun removeFromCleanupList(parent: Gizmo, child: Gizmo) {
+    private fun removeFromCleanupList(parent: Gizmo?, child: Gizmo) {
         val gizmos = pendingCleanup[parent]
 
         if (gizmos != null) {
@@ -330,7 +345,7 @@ class RenderManagerImpl(
             return
         }
 
-        if (parent.parent != null && parent.visible && !parent.size.empty) {
+        if (parent.visible && !parent.size.empty) {
             parent.revalidate_()
         } else {
             pendingCleanup[parent]?.forEach {
@@ -343,7 +358,7 @@ class RenderManagerImpl(
         }
     }
 
-    private fun childAdded(parent: Gizmo, child: Gizmo) {
+    private fun childAdded(parent: Gizmo?, child: Gizmo) {
         removeFromCleanupList(parent, child)
 
         if (child.visible) {
@@ -360,8 +375,8 @@ class RenderManagerImpl(
         themeManager?.update(gizmo)
     }
 
-    private fun childRemoved(parent: Gizmo, child: Gizmo) {
-        if (parent.parent != null) {
+    private fun childRemoved(parent: Gizmo?, child: Gizmo) {
+        if (parent != null) {
             addToCleanupList(parent, child)
         } else {
             releaseResources(child)
@@ -422,7 +437,7 @@ class RenderManagerImpl(
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
         //
         // Same for invisible items.
-        if (parent == null || !gizmo.visible) {
+        if ((parent == null && gizmo !in display) || !gizmo.visible) {
             return
         }
 
@@ -435,13 +450,12 @@ class RenderManagerImpl(
             scheduleLayout(gizmo)
         }
 
-//        if (parent in display) {
-//            parent.doLayout_()
-//        } else {
-            scheduleLayout(parent)
+        when (parent) {
+            null -> display.layout
+            else -> scheduleLayout(parent)
+        }
 
-            schedulePaint()
-//        }
+        schedulePaint()
 
         if (reRender) {
             render(gizmo, true)
@@ -455,14 +469,6 @@ class RenderManagerImpl(
     }
 
 //    private inner class InternalPropertyListener : PropertyListener {
-//            } else if (aProperty === Gizmo.DISPLAYRECT_HANDLING_REQUIRED) {
-//                val aGizmo = aPropertyEvent.getSource() as Gizmo
-//
-//                if (aGizmo.getDisplayRectHandlingEnabled()) {
-//                    registerDisplayRectMonitoring(aGizmo)
-//                } else {
-//                    unregisterDisplayRectMonitoring(aGizmo)
-//                }
 //            } else if (aProperty === Gizmo.IDEAL_SIZE || aProperty === Gizmo.MINIMUM_SIZE) {
 //                val aParent = (aPropertyEvent.getSource() as Gizmo).parent
 //
@@ -497,11 +503,11 @@ class RenderManagerImpl(
             gizmo.parent?.let {
                 registerDisplayRectMonitoring(it)
 
-                val parentNode = displayTree[it]
+                displayTree[it]?.let {
+                    updateClipRect(node, it)
 
-                updateClipRect(node, parentNode)
-
-                parentNode!! += node
+                    it += node
+                }
             }
         }
     }
@@ -547,17 +553,12 @@ class RenderManagerImpl(
 
         val gizmoRect = if (gizmo.visible) Rectangle(size = gizmo.size) else Empty
 
-        if (parent == null) {
-            node.clipRect = gizmoRect
-        } else {
-            val parentClip = parent.clipRect
-            val parentBounds = Rectangle(parentClip!!.x - gizmo.x,
-                    parentClip.y - gizmo.y,
-                    parentClip.width,
-                    parentClip.height)
-
-            node.clipRect = gizmoRect.intersect(parentBounds)
+        val parentBounds = when (parent) {
+            null -> Rectangle(-gizmo.x, -gizmo.y, display.size.width, display.size.height)
+            else -> parent.clipRect?.let { Rectangle(it.x - gizmo.x, it.y - gizmo.y, it.width, it.height) }
         }
+
+        node.clipRect = parentBounds?.let { gizmoRect intersect it } ?: gizmoRect
     }
 
     private class DisplayRectNode(val gizmo: Gizmo) {

@@ -32,7 +32,7 @@ interface Display: Iterable<Gizmo> {
     var insets: Insets
 
     /** The list of top-level items added to the Display */
-    val children: ObservableList<Gizmo, Gizmo>
+    val children: ObservableList<Display, Gizmo>
 
     /** Fires when the display cursor changes */
     val cursorChanged: PropertyObservers<Display, Cursor?>
@@ -60,7 +60,7 @@ interface Display: Iterable<Gizmo> {
 
     fun fill      (brush: Brush)
     fun child     (at   : Point): Gizmo?
-    fun isAncestor(gizmo: Gizmo): Boolean
+    fun isAncestor(of   : Gizmo): Boolean
 
     fun doLayout()
 }
