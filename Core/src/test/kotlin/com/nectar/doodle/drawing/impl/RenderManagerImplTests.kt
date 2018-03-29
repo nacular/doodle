@@ -34,6 +34,7 @@ import kotlin.test.Test
 class RenderManagerImplTests {
     // TODO: Add layout tests
     // TODO: Add tests to make sure things in cleanup list never get rendered
+    // TODO: Add tests for display rect handling
 
     @Test @JsName("rendersAreBatched")
     fun `renders are batched`() {

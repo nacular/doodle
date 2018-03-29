@@ -104,7 +104,7 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
     fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 }.apply { sortBy { it.depth + (it.bottom ?: 0) } }
+        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && !expanded(it) }.apply { sortBy { it.depth + (it.bottom ?: 0) } }
 
         if (pathList.isNotEmpty()) {
             expandedPaths += pathList
@@ -143,7 +143,7 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
     fun collapse(path: Path<Int>) = collapse(setOf(path))
 
     fun collapse(paths: Set<Path<Int>>) {
-        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 }.apply { sortBy { it.bottom } }
+        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && expanded(it) }.apply { sortBy { it.bottom } }
 
         if (pathList.isNotEmpty()) {
             expandedPaths -= pathList
@@ -205,7 +205,6 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
         }
     }
 
-//    @Throws(ExpansionVetoException::class)
     fun makeVisible(path: Path<Int>) {
         var parent = path.parent
 
@@ -235,6 +234,8 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
 
     private fun insert(path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
+
+
 
         itemUIGenerator?.let {
             model[path]?.let { value ->
@@ -422,6 +423,29 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
             if (this@Tree.fitContent) {
                 this@Tree.height = y + insets.bottom
             }
+        }
+
+        // TODO: Re-use more of the layout code
+        fun rowForY(target: Double): Int {
+            val insets = this@Tree.insets
+            var y      = insets.top
+            var row    = 0
+
+            this@Tree.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
+                this@Tree.pathFromRow(index)?.let { path ->
+                    val height = positioner(this@Tree, this@Tree[path]!!, path, index, this@Tree.selected(index), child.hasFocus, path in expandedPaths).height
+
+                    y += height
+
+                    if (y > target) {
+                        return@forEachIndexed
+                    }
+
+                    ++row
+                }
+            }
+
+            return row
         }
     }
 }

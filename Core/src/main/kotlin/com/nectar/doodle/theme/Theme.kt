@@ -9,7 +9,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.utils.BreadthFirstTreeIterator
 import com.nectar.doodle.utils.Node
-import com.nectar.doodle.utils.ObservableList
 
 
 /**
@@ -101,16 +100,15 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
     }
 
     private val allGizmos: Sequence<Gizmo> get() {
-        val iterator = BreadthFirstTreeIterator(NodeAdapter(DummyRoot(display.children)))
+        val iterator = BreadthFirstTreeIterator(DummyRoot(display.children))
 
         return Sequence { iterator }.drop(1)
     }
 }
 
-private class DummyRoot(children: ObservableList<Display, Gizmo>): Gizmo() {
-    init {
-        children_.addAll(children)
-    }
+private class DummyRoot(children: List<Gizmo>): Node<Gizmo> {
+    override val value    = object: Gizmo() {}
+    override val children = children.asSequence().map { NodeAdapter(it) }
 }
 
 private class NodeAdapter(override val value: Gizmo): Node<Gizmo> {

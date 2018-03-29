@@ -83,7 +83,7 @@ abstract class Gizmo protected constructor() {
 
     var toolTipText = ""
 
-    val mouseChanged = SetPool<MouseListener>(mutableSetOf())
+    val mouseChanged = SetPool<MouseListener>()
 
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -93,7 +93,7 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    val keyChanged = SetPool<KeyListener>(mutableSetOf())
+    val keyChanged = SetPool<KeyListener>()
 
     var monitorsKeyboard by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -103,7 +103,7 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    val mouseMotionChanged = SetPool<MouseMotionListener>(mutableSetOf())
+    val mouseMotionChanged = SetPool<MouseMotionListener>()
 
     var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 

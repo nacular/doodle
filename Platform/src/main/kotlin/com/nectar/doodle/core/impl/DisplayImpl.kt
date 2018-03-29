@@ -95,17 +95,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    override fun isAncestor(of: Gizmo) : Boolean {
+    override fun isAncestor(of: Gizmo): Boolean {
         if (children.isNotEmpty()) {
-            var parent: Gizmo? = of
+            var child: Gizmo? = of
 
-            do {
-                if (parent in children) {
-                    return true
-                }
+            while (child?.parent != null) {
+                child = child.parent
+            }
 
-                parent = parent?.parent
-            } while (parent != null)
+            return child in children
         }
 
         return false

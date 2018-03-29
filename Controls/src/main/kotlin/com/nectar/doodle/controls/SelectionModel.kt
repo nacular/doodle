@@ -29,7 +29,7 @@ interface SelectionModel<T>: Iterable<T> {
 open class MultiSelectionModel<T>: SelectionModel<T> {
 
     private val set           = mutableSetOf<T>()
-    private val observableSet = ObservableSet(this as SelectionModel<T>, set)
+    private val observableSet by lazy { ObservableSet(this as SelectionModel<T>, set) }
 
     override val size  get() = observableSet.size
     override val first get() = set.firstOrNull()
