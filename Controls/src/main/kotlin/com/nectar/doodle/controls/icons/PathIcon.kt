@@ -31,7 +31,7 @@ open class PathIcon<in T: Gizmo>(
         if (brush != null) {
             canvas.translate(at) {
                 when (pen) {
-                    null -> path(path, brush, fillRule)
+                    null -> path(path,      brush, fillRule)
                     else -> path(path, pen, brush, fillRule)
                 }
             }
