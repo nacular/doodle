@@ -10,7 +10,7 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class FixedSpeedLinearTransition(private val speed: Double, private val endValue: Double): Transition {
+class FixedSpeedLinear(private val speed: Double, private val endValue: Double): Transition {
 
     // FIXME: Specify velocity units?
     override fun duration(initialState: Moment): Measure<Time> = ((endValue - initialState.position) / speed).milliseconds

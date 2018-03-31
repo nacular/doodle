@@ -9,18 +9,13 @@ import kotlin.math.pow
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class SmoothStopTransition(private val endValue: Double): Transition { //FixedDurationTransition(duration) {
+class SmoothStop(private val endValue: Double): Transition {
     override fun value(initialState: Moment, timeOffset: Measure<Time>): Moment {
-        // TODO: handle case where initial velocity in opposite direction
-
         val acceleration = -initialState.velocity.pow(2.0) / (2 * (endValue - initialState.position))
 
         if (timeOffset >= duration(initialState, acceleration)) {
             return endState(initialState)
         }
-
-        // TODO: Handle case where time to zero velocity exceeds duration
-
 
         val time = timeOffset `in` milliseconds
 

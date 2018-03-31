@@ -18,10 +18,14 @@ interface Listener {
     fun changed(animation: Animation, properties: Map<AnimatableProperty, ChangeEvent>) {}
 }
 
-interface Animation {
-    fun addTransition(property: AnimatableProperty, transition: Transition)
+interface PropertyTransitions {
+    infix fun then(transition: Transition): PropertyTransitions
+}
 
-    fun schedule(delay: Measure<Time> = 0.milliseconds)
+interface Animation {
+    infix fun of(property: AnimatableProperty): PropertyTransitions
+
+    fun schedule(after: Measure<Time> = 0.milliseconds)
     fun cancel  ()
 
     operator fun plusAssign (listener: Listener)

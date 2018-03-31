@@ -4,6 +4,7 @@ import com.nectar.doodle.animation.AnimatableProperty
 import com.nectar.doodle.animation.Animation
 import com.nectar.doodle.animation.Listener
 import com.nectar.doodle.animation.Moment
+import com.nectar.doodle.animation.PropertyTransitions
 import com.nectar.doodle.animation.transition.Transition
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
@@ -17,6 +18,14 @@ import com.nectar.doodle.units.milliseconds
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
+
+private class PropertyTransitionsImpl(private val property: InternalProperty): PropertyTransitions {
+    override infix fun then(transition: Transition): PropertyTransitions {
+        property.add(transition)
+        return this
+    }
+}
+
 class AnimationImpl(
         private val timer             : Timer,
         private val scheduler         : Scheduler,
@@ -27,14 +36,14 @@ class AnimationImpl(
     private val transitions = mutableMapOf<AnimatableProperty, InternalProperty>()
     private val listeners   = mutableSetOf<Listener>()
 
-    override fun addTransition(property: AnimatableProperty, transition: Transition) = transitions.getOrPut(property) { InternalProperty(property) }.add(transition)
+    override infix fun of(property: AnimatableProperty): PropertyTransitions = PropertyTransitionsImpl(transitions.getOrPut(property) { InternalProperty(property) })
 
-    override fun schedule(delay: Measure<Time>) {
+    override fun schedule(after: Measure<Time>) {
         if (task?.completed == false) {
             return
         }
 
-        task = scheduler.after(delay) {
+        task = scheduler.after(after) {
             task = animationScheduler.onNextFrame {
                 startTime = it
                 onAnimate()
