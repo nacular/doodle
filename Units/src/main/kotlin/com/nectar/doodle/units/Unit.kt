@@ -4,7 +4,7 @@ package com.nectar.doodle.units
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Unit<T>> {
+open class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Unit<T>> {
     operator fun div(other: Unit<T>): Double = multiplier / other.multiplier
 
     override fun compareTo(other: Unit<T>): Int = multiplier.compareTo(other.multiplier)
@@ -28,7 +28,7 @@ class Unit<T>(val display: String, val multiplier: Double = 1.0): Comparable<Uni
     }
 }
 
-class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comparable<Measure<T>> {
+open class Measure<T>(private val magnitude: Double, private val unit: Unit<T>): Comparable<Measure<T>> {
     override fun compareTo(other: Measure<T>) = minOf(unit, other.unit).let {
         ((this `in` it).compareTo((other `in` it)))
     }

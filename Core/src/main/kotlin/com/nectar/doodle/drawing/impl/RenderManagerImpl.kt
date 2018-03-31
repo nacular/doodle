@@ -177,7 +177,7 @@ class RenderManagerImpl(
         pendingRender += gizmo
     }
 
-    private fun checkFrameTime(start: Measure<Time>) = (timer.now() - start).let {
+    private fun checkFrameTime(start: Measure<Time>) = (timer.now - start).let {
         (it >= 16.milliseconds).ifTrue {
             println("++paint time: $it")
             schedulePaint()
@@ -185,7 +185,7 @@ class RenderManagerImpl(
     }
 
     private fun onPaint() {
-        val start = timer.now()
+        val start = timer.now
 
         do {
             pendingLayout.firstOrNull()?.let {

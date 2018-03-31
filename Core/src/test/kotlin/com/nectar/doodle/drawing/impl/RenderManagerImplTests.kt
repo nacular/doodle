@@ -372,7 +372,7 @@ class RenderManagerImplTests {
     }
 
     private fun timer(): Timer = mockk<Timer>(relaxed = true).apply {
-        every { now() } returns 0.milliseconds
+        every { now } returns 0.milliseconds
     }
 
     private fun graphicsDevice(mapping: Map<Gizmo, GraphicsSurface> = mapOf()): GraphicsDevice<*> {

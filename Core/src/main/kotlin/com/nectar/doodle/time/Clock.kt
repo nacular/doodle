@@ -11,5 +11,5 @@ interface Clock {
 }
 
 interface Timer {
-    fun now(): Measure<Time>
+    val now: Measure<Time>
 }

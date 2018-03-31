@@ -4,11 +4,13 @@
 
 rootProject.name = 'doodle'
 
+include 'animation'
 include 'core'
 include 'units'
 include 'controls'
 include 'testing'
 
+include 'animationjs'
 include 'corejvm'
 include 'corejs'
 include 'unitsjvm'

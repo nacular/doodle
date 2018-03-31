@@ -1,0 +1,13 @@
+apply plugin: 'kotlin-platform-common'
+
+
+dependencies {
+    implementation project(':core')
+    implementation project(':units')
+
+    implementation dep.kotlin_stdlib_common
+    testImplementation dep.kotlin_test_common
+
+    testImplementation dep.kotlin_test_common
+    testImplementation dep.mockk_common
+}

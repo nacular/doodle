@@ -16,5 +16,5 @@ class SystemClock: Clock {
 }
 
 class PerformanceTimer: Timer {
-    override fun now() = window.performance.now().milliseconds
+    override val now get() = window.performance.now().milliseconds
 }
