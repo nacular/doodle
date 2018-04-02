@@ -1,7 +1,7 @@
 package com.nectar.doodle.animation.transition
 
 import com.nectar.doodle.animation.Moment
-import com.nectar.doodle.units.Distance
+import com.nectar.doodle.units.Length
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.pixels_second
@@ -10,7 +10,7 @@ import com.nectar.doodle.units.seconds
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class SmoothStop(private val endValue: Measure<Distance>): Transition {
+class SmoothStop(private val endValue: Measure<Length>): Transition {
     override fun value(initialState: Moment, timeOffset: Measure<Time>): Moment {
 //        val acceleration = -(initialState.velocity * initialState.velocity) / ((endValue - initialState.position) * 2)
 

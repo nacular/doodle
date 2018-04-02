@@ -1,7 +1,7 @@
 package com.nectar.doodle.animation.transition
 
 import com.nectar.doodle.animation.Moment
-import com.nectar.doodle.units.Distance
+import com.nectar.doodle.units.Length
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.MeasureRatio
 import com.nectar.doodle.units.Time
@@ -11,7 +11,7 @@ import com.nectar.doodle.units.pixels
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class FixedSpeedLinear(private val speed: MeasureRatio<Distance, Time>, private val endValue: Measure<Distance>): Transition {
+class FixedSpeedLinear(private val speed: MeasureRatio<Length, Time>, private val endValue: Measure<Length>): Transition {
 
     override fun duration(initialState: Moment): Measure<Time> = (endValue - initialState.position) / speed
 
