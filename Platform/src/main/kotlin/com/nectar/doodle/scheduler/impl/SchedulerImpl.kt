@@ -49,7 +49,7 @@ private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
 
 internal class SchedulerImpl: Scheduler {
     // TODO: Separate animation scheduler into different interface
-    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero()) AnimationTask({ job() }) else SimpleTask(time, job)
+    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero) AnimationTask({ job() }) else SimpleTask(time, job)
     override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(every, job)
 }
 

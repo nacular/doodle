@@ -6,6 +6,7 @@ import com.nectar.doodle.animation.Listener
 import com.nectar.doodle.animation.Moment
 import com.nectar.doodle.animation.PropertyTransitions
 import com.nectar.doodle.animation.transition.Transition
+import com.nectar.doodle.units.pixels_second
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
@@ -117,7 +118,7 @@ private class InternalProperty(val property: AnimatableProperty) {
     var activeTransition = null as TransitionNode?
         private set
 
-    var value = Moment(property.initialValue, 0.0)
+    var value = Moment(property.initialValue, 0.pixels_second)
 
     fun add(transition: Transition) {
         val start = if (transitions.isEmpty()) KeyFrame() else transitions.last().endTime

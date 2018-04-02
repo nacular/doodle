@@ -19,7 +19,6 @@ class UnitTests {
         expect(1.0, "$a.multiplier") { a.multiplier }
     }
 
-
     @Test
     @JsName("divWorks")
     fun `div works`() {
