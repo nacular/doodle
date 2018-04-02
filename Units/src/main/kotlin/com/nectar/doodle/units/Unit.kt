@@ -279,14 +279,13 @@ open class MeasureRatio<N, D>(internal val magnitude: Double, internal val unit:
 }
 
 
-inline operator fun <T>    Number.times(value: Unit<T>          ): Measure<T>           = Measure       (this.toDouble(), value)
-inline operator fun <N, D> Number.times(value: UnitRatio<N, D>  ): MeasureRatio<N, D>   = MeasureRatio  (this.toDouble(), value)
-inline operator fun <A, B> Number.times(value: UnitProduct<A, B>): MeasureProduct<A, B> = MeasureProduct(this.toDouble(), value)
+operator fun <T>    Number.times(value: Unit<T>          ): Measure<T>           = Measure       (this.toDouble(), value)
+operator fun <N, D> Number.times(value: UnitRatio<N, D>  ): MeasureRatio<N, D>   = MeasureRatio  (this.toDouble(), value)
+operator fun <A, B> Number.times(value: UnitProduct<A, B>): MeasureProduct<A, B> = MeasureProduct(this.toDouble(), value)
 
-inline operator fun <T>    Number.times(value: Measure<T>          ): Measure<T>           = value * this.toDouble()
-inline operator fun <N, D> Number.times(value: MeasureRatio<N, D>  ): MeasureRatio<N, D>   = value * this.toDouble()
-inline operator fun <A, B> Number.times(value: MeasureProduct<A, B>): MeasureProduct<A, B> = value * this.toDouble()
-
+operator fun <T>    Number.times(value: Measure<T>          ): Measure<T>           = value * this.toDouble()
+operator fun <N, D> Number.times(value: MeasureRatio<N, D>  ): MeasureRatio<N, D>   = value * this.toDouble()
+operator fun <A, B> Number.times(value: MeasureProduct<A, B>): MeasureProduct<A, B> = value * this.toDouble()
 
 fun <T>    abs(value: Measure<T>          ) = kotlin.math.abs(value.magnitude) * value.unit
 fun <N, D> abs(value: MeasureRatio<N, D>  ) = kotlin.math.abs(value.magnitude) * value.unit

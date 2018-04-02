@@ -9,6 +9,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.utils.BreadthFirstTreeIterator
 import com.nectar.doodle.utils.Node
+import com.nectar.doodle.utils.ObservableSet
 
 
 /**
@@ -74,7 +75,7 @@ interface Renderer<in T: Gizmo> {
  */
 interface ThemeManager {
     /** Convenient set of [Theme]s that an application can manage */
-    val themes: MutableSet<Theme>
+    val themes: ObservableSet<ThemeManager, Theme>
 
     /** The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [Gizmo]s therein. */
     var selected: Theme?
@@ -85,7 +86,8 @@ abstract class InternalThemeManager: ThemeManager {
 }
 
 class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
-    override val themes   = mutableSetOf<Theme>()
+    override val themes by lazy { ObservableSet<ThemeManager, Theme>(this) }
+
     override var selected = null as Theme?
         set(new) {
             field?.uninstall(display, allGizmos)
