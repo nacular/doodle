@@ -2,9 +2,9 @@ package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JvmName
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.theme.ItemPositioner
-import com.nectar.doodle.controls.theme.ItemUIGenerator
 import com.nectar.doodle.controls.theme.TreeUI
+import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
+import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable

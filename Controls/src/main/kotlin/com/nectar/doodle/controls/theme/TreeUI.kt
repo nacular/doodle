@@ -1,6 +1,8 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.text.LabelFactory
+import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
+import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import com.nectar.doodle.controls.tree.Path
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Box
@@ -25,15 +27,15 @@ import com.nectar.doodle.utils.isEven
  * Created by Nicholas Eddy on 3/23/18.
  */
 
-interface ItemUIGenerator<T> {
-    operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Gizmo
-}
-
-interface ItemPositioner<T> {
-    operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Rectangle
-}
-
 interface TreeUI<T>: Renderer<Tree<T>> {
+    interface ItemUIGenerator<T> {
+        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Gizmo
+    }
+
+    interface ItemPositioner<T> {
+        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Rectangle
+    }
+
     val positioner : ItemPositioner<T>
     val uiGenerator: ItemUIGenerator<T>
 }
