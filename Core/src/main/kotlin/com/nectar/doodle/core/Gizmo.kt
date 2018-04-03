@@ -29,11 +29,12 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
-import com.nectar.doodle.utils.ChangeObservers
+import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.OverridableProperty
+import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.SetPool
@@ -146,7 +147,7 @@ abstract class Gizmo protected constructor() {
     var backgroundColor: Color? = null
         set(new) { field = new; styleChanged() }
 
-    val styleChanged: ChangeObservers<Gizmo> by lazy { ChangeObserversImpl(this) }
+    val styleChanged: Pool<ChangeObserver<Gizmo>> by lazy { ChangeObserversImpl(this) }
 
     private fun styleChanged() {
         (styleChanged as ChangeObserversImpl)()

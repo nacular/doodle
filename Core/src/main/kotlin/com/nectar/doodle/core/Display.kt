@@ -38,7 +38,7 @@ interface Display: Iterable<Gizmo> {
     val cursorChanged: PropertyObservers<Display, Cursor?>
 
     /** Fires when the display re-sizes */
-    val sizeChanged: PropertyObservers<Display, Size>
+    val sizeChanged: /*Pool<PropertyObserver<Display, Size>> / */PropertyObservers<Display, Size>
 
     /**
      * Gets the Gizmo's z-index.

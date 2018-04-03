@@ -235,8 +235,6 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
     private fun insert(path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
-
-
         itemUIGenerator?.let {
             model[path]?.let { value ->
                 val expanded = path in expandedPaths

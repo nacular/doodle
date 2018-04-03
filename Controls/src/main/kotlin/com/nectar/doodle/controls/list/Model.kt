@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.list
 
-import com.nectar.doodle.utils.ListObservers
+import com.nectar.doodle.utils.ListObserver
+import com.nectar.doodle.utils.Pool
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
@@ -17,8 +18,9 @@ interface Model<T>: Iterable<T> {
 }
 
 interface MutableModel<T>: Model<T> {
-    fun editable(index: Int             ): Boolean
-    val onChanged: ListObservers<MutableModel<T>, T>;
+    fun editable(index: Int): Boolean
+
+    val onChanged: Pool<ListObserver<MutableModel<T>, T>>
 }
 
 open class ListModel<T>(private val list: kotlin.collections.List<T>): Model<T> {

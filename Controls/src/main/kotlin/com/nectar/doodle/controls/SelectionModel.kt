@@ -1,7 +1,8 @@
 package com.nectar.doodle.controls
 
 import com.nectar.doodle.utils.ObservableSet
-import com.nectar.doodle.utils.SetObservers
+import com.nectar.doodle.utils.Pool
+import com.nectar.doodle.utils.SetObserver
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
@@ -23,7 +24,7 @@ interface SelectionModel<T>: Iterable<T> {
     fun replaceAll (items: Collection<T>): Boolean
     fun containsAll(items: Collection<T>): Boolean
 
-    val onChanged: SetObservers<SelectionModel<T>, T>
+    val onChanged: Pool<SetObserver<SelectionModel<T>, T>>
 }
 
 open class MultiSelectionModel<T>: SelectionModel<T> {

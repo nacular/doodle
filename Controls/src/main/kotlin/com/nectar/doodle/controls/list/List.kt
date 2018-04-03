@@ -8,6 +8,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.ListObserver
+import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.SetObserver
 import kotlin.math.max
 
@@ -31,6 +32,10 @@ open class List<T, out M: Model<T>>(
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true): Gizmo() {
+
+    private val observableSet by lazy { ObservableSet<List<T, *>, T>(this) }
+
+    val onSelectionChanged = observableSet.onChange
 
     private val selectionChanged: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         itemUIGenerator?.let {
@@ -105,8 +110,9 @@ open class List<T, out M: Model<T>>(
     companion object {
         operator fun invoke(progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
                 List(ListModel(progression.toList()), selectionModel, fitContent)
-        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true):
-                List<T, ListModel<T>> = List(ListModel(values), selectionModel, fitContent)
+
+        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
+                List(ListModel(values), selectionModel, fitContent)
     }
 
     private inner class InternalLayout(private val positioner: ItemPositioner<T>): Layout() {

@@ -14,77 +14,32 @@ typealias ListObserver    <S, T> = (source: ObservableList<S, T>, removed: Map<I
 typealias ChangeObserver  <S>    = (source: S                                                                                            ) -> Unit
 typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                            ) -> Unit
 
-interface ChangeObservers<out S> {
-    operator fun plusAssign (observer: ChangeObserver<S>)
-    operator fun minusAssign(observer: ChangeObserver<S>)
+interface Pool<in T> {
+    operator fun plusAssign (item: T)
+    operator fun minusAssign(item: T)
 }
 
-interface PropertyObservers<out S, out T> {
-    operator fun plusAssign (observer: PropertyObserver<S, T>)
-    operator fun minusAssign(observer: PropertyObserver<S, T>)
+typealias ChangeObservers<S>      = Pool<ChangeObserver<S>>
+typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
+
+open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
+    override fun plusAssign (item: T) { delegate += item }
+    override fun minusAssign(item: T) { delegate += item }
 }
 
-interface ListObservers<S, T> {
-    operator fun plusAssign (observer: ListObserver<S, T>)
-    operator fun minusAssign(observer: ListObserver<S, T>)
+class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
+    operator fun invoke() = delegate.forEach { it(source) }
 }
 
-interface SetObservers<S, T> {
-    operator fun plusAssign (observer: SetObserver<S, T>)
-    operator fun minusAssign(observer: SetObserver<S, T>)
-}
-
-class ChangeObserversImpl<S>(private val source: S, private val mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): Set<ChangeObserver<S>> by mutableSet, ChangeObservers<S> {
-    override fun plusAssign(observer: ChangeObserver<S>) {
-        mutableSet += observer
-    }
-
-    override fun minusAssign(observer: ChangeObserver<S>) {
-        mutableSet -= observer
-    }
-
-    operator fun invoke() = mutableSet.forEach { it(source) }
-}
-
-class PropertyObserversImpl<S, T>(private val source: S, private val mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): Set<PropertyObserver<S, T>> by mutableSet, PropertyObservers<S, T> {
-    override fun plusAssign(observer: PropertyObserver<S, T>) {
-        mutableSet += observer
-    }
-
-    override fun minusAssign(observer: PropertyObserver<S, T>) {
-        mutableSet -= observer
-    }
-
-    operator fun invoke(old: T, new: T) = mutableSet.forEach { it(source, old, new) }
-}
-
-open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private val observers: Iterable<PropertyObserver<S, T>>): ObservableProperty<T>(initial) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
-
-    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
-        super.afterChange(property, oldValue, newValue)
-
-        if (oldValue != newValue) {
-            observers.forEach { it(owner(), oldValue, newValue) }
-        }
-    }
-}
-
-class ListObserversImpl<S, T>(private val mutableSet: MutableSet<ListObserver<S, T>> = mutableSetOf()): Set<ListObserver<S, T>> by mutableSet, ListObservers<S, T> {
-    override fun plusAssign(observer: ListObserver<S, T>) {
-        mutableSet += observer
-    }
-
-    override fun minusAssign(observer: ListObserver<S, T>) {
-        mutableSet -= observer
-    }
+class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
+    operator fun invoke(old: T, new: T) = delegate.forEach { it(source, old, new) }
 }
 
 // TODO: Change so only deltas are reported
 class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
 
-    private val onChange_ = ListObserversImpl<S, E>()
-    val onChange: ListObservers<S, E> = onChange_
+    private val onChange_ = SetPool<ListObserver<S, E>>()
+    val onChange: Pool<ListObserver<S, E>> = onChange_
 
     fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
@@ -190,36 +145,9 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
     }
 }
 
-interface Pool<in T> {
-    operator fun plusAssign (item: T)
-    operator fun minusAssign(item: T)
-}
-
-class SetPool<T>(private val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
-    override fun plusAssign (item: T) { delegate += item }
-    override fun minusAssign(item: T) { delegate += item }
-}
-
-open class OverridableProperty<T>(initialValue: T, private val onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
-    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = onChange(property, oldValue, newValue)
-}
-
-fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)
-
-class SetObserversImpl<S, T>(private val mutableSet: MutableSet<SetObserver<S, T>> = mutableSetOf()): Set<SetObserver<S, T>> by mutableSet, SetObservers<S, T> {
-    override fun plusAssign(observer: SetObserver<S, T>) {
-        mutableSet += observer
-    }
-
-    override fun minusAssign(observer: SetObserver<S, T>) {
-        mutableSet -= observer
-    }
-}
-
 class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
-    private val onChange_ = SetObserversImpl<S, E>()
-    val onChange: SetObservers<S, E> = onChange_
+    private val onChange_ = SetPool<SetObserver<S, E>>()
+    val onChange: Pool<SetObserver<S, E>> = onChange_
 
     override fun add(element: E) = set.add(element).ifTrue {
         onChange_.forEach {
@@ -235,7 +163,7 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
 
     override fun removeAll (elements: Collection<E>) = batch { set.removeAll(elements) }
     override fun retainAll (elements: Collection<E>) = batch { set.retainAll(elements) }
-             fun replaceAll(elements: Collection<E>) = batch { set.run { clear(); addAll(elements) } }
+    fun replaceAll(elements: Collection<E>) = batch { set.run { clear(); addAll(elements) } }
 
     override fun clear() {
         val oldSet = HashSet(set)
@@ -264,3 +192,22 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
         }
     }
 }
+
+open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private val observers: Iterable<PropertyObserver<S, T>>): ObservableProperty<T>(initial) {
+    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
+
+    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
+        super.afterChange(property, oldValue, newValue)
+
+        if (oldValue != newValue) {
+            observers.forEach { it(owner(), oldValue, newValue) }
+        }
+    }
+}
+
+open class OverridableProperty<T>(initialValue: T, private val onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
+    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
+    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = onChange(property, oldValue, newValue)
+}
+
+fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)

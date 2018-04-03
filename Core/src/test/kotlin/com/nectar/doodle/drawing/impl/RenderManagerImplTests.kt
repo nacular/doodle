@@ -18,6 +18,7 @@ import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
 import com.nectar.doodle.utils.ObservableList
+import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.Runs
 import io.mockk.every
@@ -405,7 +406,9 @@ class RenderManagerImplTests {
 
         every { this@apply.children                   } returns displayChildren
         every { this@apply.iterator()                 } answers { displayChildren.iterator() }
-        every { sizeChanged                           } returns mockk(relaxed = true)
+
+        // FIXME: compiler fails to build w/o hint
+        every { sizeChanged as Pool<PropertyObserver<Display, Size>>                          } returns mockk(relaxed = true)
         every { this@apply.isAncestor(capture(gizmo)) } answers {
             var result = false
 
