@@ -28,17 +28,17 @@ abstract class CommonSpinnerUI(
         val up     = PushButton("-").apply { enabled = spinner.hasPrevious }
         val down   = PushButton("+").apply { enabled = spinner.hasNext     }
 
-        spinner.onChanged += {
+        spinner.changed += {
             center.text  = spinner.value.toString()
             up.enabled   = spinner.hasPrevious
             down.enabled = spinner.hasNext
         }
 
-        up.onAction += {
+        up.fired += {
             spinner.previous()
         }
 
-        down.onAction += {
+        down.fired += {
             spinner.next()
         }
 

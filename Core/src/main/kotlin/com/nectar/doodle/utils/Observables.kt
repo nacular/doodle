@@ -38,8 +38,8 @@ class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<
 // TODO: Change so only deltas are reported
 class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
 
-    private val onChange_ = SetPool<ListObserver<S, E>>()
-    val onChange: Pool<ListObserver<S, E>> = onChange_
+    private val changed_ = SetPool<ListObserver<S, E>>()
+    val changed: Pool<ListObserver<S, E>> = changed_
 
     fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
@@ -49,7 +49,7 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
         list.remove(element    )
         list.add   (to, element)
 
-        onChange_.forEach {
+        changed_.forEach {
             it(this, mapOf(), mapOf(), mapOf(to to (oldIndex to element)))
         }
 
@@ -57,7 +57,7 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
     }
 
     override fun add(element: E) = list.add(element).ifTrue {
-        onChange_.forEach {
+        changed_.forEach {
             it(this, mapOf(), mapOf(list.size - 1 to element), mapOf())
         }
     }
@@ -67,7 +67,7 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
 
         return when {
             index < 0 -> false
-            else      -> list.remove(element).ifTrue { onChange_.forEach { it(this, mapOf(index to element), mapOf(), mapOf()) } }
+            else      -> list.remove(element).ifTrue { changed_.forEach { it(this, mapOf(index to element), mapOf(), mapOf()) } }
         }
     }
 
@@ -84,14 +84,14 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
 
         list.clear()
 
-        onChange_.forEach {
+        changed_.forEach {
             it(this, (0 until size).associate { it to oldList[it] }, mapOf(), mapOf())
         }
     }
 
     override operator fun set(index: Int, element: E) = list.set(index, element).also { new ->
         if (new !== element) {
-            onChange_.forEach {
+            changed_.forEach {
                 it(this, mapOf(index to new), mapOf(index to element), mapOf())
             }
         }
@@ -100,19 +100,19 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
     override fun add(index: Int, element: E) {
         list.add(index, element)
 
-        onChange_.forEach {
+        changed_.forEach {
             it(this, mapOf(), mapOf(index to element), mapOf())
         }
     }
 
     override fun removeAt(index: Int) = list.removeAt(index).also { removed ->
-        onChange_.forEach {
+        changed_.forEach {
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
 
     private fun <T> batch(block: () -> T): T {
-        return if (onChange_.isEmpty()) {
+        return if (changed_.isEmpty()) {
             block()
         } else {
             // TODO: Can this be optimized?
@@ -136,7 +136,7 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
                         }
                     }
 
-                    onChange_.forEach {
+                    changed_.forEach {
                         it(this, removed, added, moved)
                     }
                 }
@@ -146,17 +146,17 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
 }
 
 class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
-    private val onChange_ = SetPool<SetObserver<S, E>>()
-    val onChange: Pool<SetObserver<S, E>> = onChange_
+    private val changed_ = SetPool<SetObserver<S, E>>()
+    val changed: Pool<SetObserver<S, E>> = changed_
 
     override fun add(element: E) = set.add(element).ifTrue {
-        onChange_.forEach {
+        changed_.forEach {
             it(this, emptySet(), setOf(element))
         }
     }
 
     override fun remove(element: E): Boolean {
-        return set.remove(element).ifTrue { onChange_.forEach { it(this, setOf(element), emptySet()) } }
+        return set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
     }
 
     override fun addAll(elements: Collection<E>) = batch { set.addAll(elements) }
@@ -170,13 +170,13 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
 
         set.clear()
 
-        onChange_.forEach {
+        changed_.forEach {
             it(this, oldSet, emptySet())
         }
     }
 
     private fun <T> batch(block: () -> T): T {
-        return if (onChange_.isEmpty()) {
+        return if (changed_.isEmpty()) {
             block()
         } else {
             // TODO: Can this be optimized?
@@ -184,7 +184,7 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
 
             block().also {
                 if (old != this) {
-                    onChange_.forEach {
+                    changed_.forEach {
                         it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
                     }
                 }
@@ -205,9 +205,9 @@ open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, priv
     }
 }
 
-open class OverridableProperty<T>(initialValue: T, private val onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
+open class OverridableProperty<T>(initialValue: T, private val changed: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
     override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
-    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = onChange(property, oldValue, newValue)
+    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = changed(property, oldValue, newValue)
 }
 
 fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)

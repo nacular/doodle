@@ -195,7 +195,7 @@ abstract class Gizmo protected constructor() {
     internal val children_ get() = children
     protected open val children by lazy {
         ObservableList<Gizmo, Gizmo>(this).also {
-            it.onChange += { _, removed, added, _ ->
+            it.changed += { _, removed, added, _ ->
                 val addedSet   = added.values.toMutableSet  ().apply { removeAll(removed.values) }
                 val removedSet = removed.values.toMutableSet().apply { removeAll(added.values  ) }
 

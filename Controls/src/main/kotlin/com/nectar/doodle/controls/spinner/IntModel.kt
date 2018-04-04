@@ -14,6 +14,6 @@ class IntModel(private val progression: IntProgression): AbstractModel<Int>() {
 
             field = new
 
-            onChanged_()
+            changed_()
         }
 }

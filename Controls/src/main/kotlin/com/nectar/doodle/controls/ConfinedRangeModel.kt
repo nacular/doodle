@@ -15,7 +15,7 @@ interface ConfinedRangeModel<T: Comparable<T>> {
     val atLowerLimit get() = range.start        == limits.start
     val atUpperLimit get() = range.endInclusive == limits.endInclusive
 
-    val onChanged: ChangeObservers<ConfinedRangeModel<T>>
+    val changed: ChangeObservers<ConfinedRangeModel<T>>
 }
 
 interface ConfinedValueModel<T: Comparable<T>> {
@@ -25,7 +25,7 @@ interface ConfinedValueModel<T: Comparable<T>> {
     val atLowerLimit get() = value == limits.start
     val atUpperLimit get() = value == limits.endInclusive
 
-    val onChanged: ChangeObservers<ConfinedValueModel<T>>
+    val changed: ChangeObservers<ConfinedValueModel<T>>
 }
 
 class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: ClosedRange<T> = limit): ConfinedRangeModel<T> {
@@ -35,7 +35,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
             field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
 
             if (old != field) {
-                onChanged_()
+                changed_()
             }
         }
 
@@ -51,24 +51,24 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
 
                         // onChanged will be fired
                     } else {
-                        onChanged_()
+                        changed_()
                     }
                 }
             }
         }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl(this)
-    override val onChanged: ChangeObservers<ConfinedRangeModel<T>> = onChanged_
+    private val changed_ = ChangeObserversImpl(this)
+    override val changed: ChangeObservers<ConfinedRangeModel<T>> = changed_
 }
 
 class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, value: T = limit.start): ConfinedValueModel<T> {
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl(this)
-    override val onChanged: ChangeObservers<ConfinedValueModel<T>> = onChanged_
+    private val changed_ = ChangeObserversImpl(this)
+    override val changed: ChangeObservers<ConfinedValueModel<T>> = changed_
 
-    private val delegate = BasicConfinedRangeModel(limit, value .. value).also { it.onChanged += { onChanged_() } }
+    private val delegate = BasicConfinedRangeModel(limit, value .. value).also { it.changed += { changed_() } }
 
     override var value: T
         get(   ) = delegate.range.start

@@ -35,9 +35,9 @@ open class List<T, out M: Model<T>>(
 
     private val observableSet by lazy { ObservableSet<List<T, *>, T>(this) }
 
-    val onSelectionChanged = observableSet.onChange
+    val selectionChanged = observableSet.changed
 
-    private val selectionChanged: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         itemUIGenerator?.let {
             added.forEach { index ->
                 children[index] = it(this, model[index], index, selected = true, hasFocus = false)
@@ -78,7 +78,7 @@ open class List<T, out M: Model<T>>(
         set(new) { super.insets = new }
 
     init {
-        selectionModel?.let { it.onChanged += selectionChanged }
+        selectionModel?.let { it.changed += selectionChanged_ }
     }
 
     operator fun get(index: Int) = model[index]
@@ -96,7 +96,7 @@ open class List<T, out M: Model<T>>(
     }
 
     override fun removedFromDisplay() {
-        selectionModel?.let { it.onChanged -= selectionChanged }
+        selectionModel?.let { it.changed -= selectionChanged_ }
 
         super.removedFromDisplay()
     }
@@ -143,17 +143,17 @@ class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>
 
     override var model = model
         set(new) {
-            field.onChanged -= modelChanged
+            field.changed -= modelChanged
             field = new
-            field.onChanged += modelChanged
+            field.changed += modelChanged
         }
 
     init {
-        model.onChanged += modelChanged
+        model.changed += modelChanged
     }
 
     override fun removedFromDisplay() {
-        model.onChanged -= modelChanged
+        model.changed -= modelChanged
 
         super.removedFromDisplay()
     }

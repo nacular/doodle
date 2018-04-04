@@ -14,6 +14,6 @@ class LongModel(private val progression: LongProgression): AbstractModel<Long>()
 
             field = new
 
-            onChanged_()
+            changed_()
         }
 }

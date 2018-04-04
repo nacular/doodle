@@ -19,12 +19,12 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var renderer: Renderer<Slider>? = null
 
-    private val onChange: (ConfinedValueModel<Double>) -> Unit = {
-        onChanged_()
+    private val modelChanged: (ConfinedValueModel<Double>) -> Unit = {
+        changed_()
     }
 
     init {
-        model.onChanged += onChange
+        model.changed += modelChanged
     }
 
     var ticks = 0
@@ -40,10 +40,10 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var model =  model
         set(new) {
-            field.onChanged -= onChange
+            field.changed -= modelChanged
 
             field = new.also {
-                it.onChanged += onChange
+                it.changed += modelChanged
             }
         }
 
@@ -65,7 +65,7 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl(this)
+    private val changed_ = ChangeObserversImpl(this)
 
-    val onChanged: ChangeObservers<Slider> = onChanged_
+    val changed: ChangeObservers<Slider> = changed_
 }

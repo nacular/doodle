@@ -20,7 +20,7 @@ interface Model<T>: Iterable<T> {
 interface MutableModel<T>: Model<T> {
     fun editable(index: Int): Boolean
 
-    val onChanged: Pool<ListObserver<MutableModel<T>, T>>
+    val changed: Pool<ListObserver<MutableModel<T>, T>>
 }
 
 open class ListModel<T>(private val list: kotlin.collections.List<T>): Model<T> {

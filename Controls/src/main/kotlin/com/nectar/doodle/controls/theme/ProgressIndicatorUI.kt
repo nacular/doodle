@@ -8,12 +8,12 @@ import com.nectar.doodle.theme.Renderer
  */
 abstract class ProgressIndicatorUI<in T: ProgressIndicator>: Renderer<T> {
     override fun install(gizmo: T) {
-        gizmo.onChanged += onChanged
+        gizmo.changed += changed
     }
 
     override fun uninstall(gizmo: T) {
-        gizmo.onChanged -= onChanged
+        gizmo.changed -= changed
     }
 
-    private val onChanged: (indicator: ProgressIndicator) -> Unit = { it.rerender() }
+    private val changed: (indicator: ProgressIndicator) -> Unit = { it.rerender() }
 }

@@ -23,16 +23,16 @@ abstract class Button protected constructor(
             model: ButtonModel  = ButtonModelImpl()): Gizmo() {
 
 
-    private val onActionFun: (ButtonModel) -> Unit = { onAction_.forEach { it(this) } }
+    private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
 
     init {
-        model.onAction += onActionFun
+        model.fired += modelFired
     }
 
     override fun removedFromDisplay() {
         super.removedFromDisplay()
 
-        model.onAction -= onActionFun
+        model.fired -= modelFired
     }
 
     val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(this) }
@@ -74,13 +74,13 @@ abstract class Button protected constructor(
     open var model: ButtonModel = model
         set(new) {
             field.apply {
-                onAction -= onActionFun
+                fired -= modelFired
             }
 
             field = new
 
             field.apply {
-                onAction += onActionFun
+                fired += modelFired
             }
         }
 
@@ -90,9 +90,9 @@ abstract class Button protected constructor(
 
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
-    private val onAction_ by lazy { ChangeObserversImpl(this) }
+    private val fired_ by lazy { ChangeObserversImpl(this) }
 
-    val onAction: ChangeObservers<Button> = onAction_
+    val fired: ChangeObservers<Button> = fired_
 
     abstract fun click()
 

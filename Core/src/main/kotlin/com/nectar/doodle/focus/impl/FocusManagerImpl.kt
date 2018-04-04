@@ -105,7 +105,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
         var parent = focusOwner?.parent
 
         while (parent != null && parent !in display) {
-            parent.children_.onChange += childrenChanged
+            parent.children_.changed += childrenChanged
 
             ancestors += parent
 
@@ -115,7 +115,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
 
     private fun clearAncestorListeners() {
         for (ancestor in ancestors) {
-            ancestor.children_.onChange -= childrenChanged
+            ancestor.children_.changed -= childrenChanged
         }
 
         ancestors.clear()

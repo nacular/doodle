@@ -21,16 +21,16 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
         private set
 
 
-    private val onChanged: (Slider) -> Unit = { it.rerender() }
+    private val changed: (Slider) -> Unit = { it.rerender() }
 
     init {
-        slider.onChanged          += onChanged
+        slider.changed            += changed
         slider.mouseChanged       += this
         slider.mouseMotionChanged += this
     }
 
     override fun uninstall(gizmo: Slider) {
-        gizmo.onChanged          -= onChanged
+        gizmo.changed          -= changed
         gizmo.mouseChanged       -= this
         gizmo.mouseMotionChanged -= this
     }

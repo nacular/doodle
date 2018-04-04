@@ -14,7 +14,7 @@ interface Model<T> {
     val value      : T
     val hasNext    : Boolean
     val hasPrevious: Boolean
-    val onChanged  : ChangeObservers<Model<T>>
+    val changed  : ChangeObservers<Model<T>>
 }
 
 interface MutableModel<T>: Model<T> {
@@ -28,9 +28,9 @@ open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
 
     var model = model
         set(new) {
-            field.onChanged -= onModelChanged
+            field.changed -= modelChanged
             field = new
-            field.onChanged += onModelChanged
+            field.changed += modelChanged
         }
 
     open val value       get() = model.value
@@ -54,16 +54,16 @@ open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
     }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl(this)
+    private val changed_ = ChangeObserversImpl(this)
 
-    val onChanged: ChangeObservers<Spinner<T, M>> = onChanged_
+    val changed: ChangeObservers<Spinner<T, M>> = changed_
 
-    private val onModelChanged: (Model<T>) -> Unit = {
-        onChanged_()
+    private val modelChanged: (Model<T>) -> Unit = {
+        changed_()
     }
 
     init {
-        this.model.onChanged += onModelChanged
+        this.model.changed += modelChanged
     }
 
     companion object {

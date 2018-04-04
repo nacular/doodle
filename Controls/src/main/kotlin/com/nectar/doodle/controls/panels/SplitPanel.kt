@@ -79,12 +79,12 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
         set(new) { if (new != field) { field = new; fireChanged() } }
 
     var ratio = ratio
-        set(new) { if (new != field) { field = new; doLayout(); onChanged_() } }
+        set(new) { if (new != field) { field = new; doLayout(); changed_() } }
 
     @Suppress("PrivatePropertyName")
-    private val onChanged_ = ChangeObserversImpl(this)
+    private val changed_ = ChangeObserversImpl(this)
 
-    val onChanged: ChangeObservers<SplitPanel> = onChanged_
+    val changed: ChangeObservers<SplitPanel> = changed_
 
     var panelSpacing = 0.0
         set(new) { if (new != field) { field = new; doLayout() } }
@@ -105,7 +105,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
 
     private fun fireChanged() {
         updateLayout()
-        onChanged_()
+        changed_()
     }
 
     @Suppress("NAME_SHADOWING")

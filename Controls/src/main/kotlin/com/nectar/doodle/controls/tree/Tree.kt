@@ -75,8 +75,8 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
             }
         }
 
-    val onExpanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
-    val onCollapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
 
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
@@ -121,7 +121,7 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
                 updateRecursively(it)
             }
 
-            (onExpanded as ExpansionObserversImpl)(pathList.toSet())
+            (expanded as ExpansionObserversImpl)(pathList.toSet())
         }
     }
 
@@ -163,7 +163,7 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
                 }
             }
 
-            (onCollapsed as ExpansionObserversImpl)(pathList.toSet())
+            (collapsed as ExpansionObserversImpl)(pathList.toSet())
         }
     }
 

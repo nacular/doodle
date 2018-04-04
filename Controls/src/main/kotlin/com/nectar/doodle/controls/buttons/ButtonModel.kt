@@ -19,7 +19,7 @@ interface ButtonModel {
     var mouseOver  : Boolean
     var buttonGroup: ButtonGroup?
 
-    val onAction   : ChangeObservers<ButtonModel>
+    val fired      : ChangeObservers<ButtonModel>
 
     fun fire()
 }

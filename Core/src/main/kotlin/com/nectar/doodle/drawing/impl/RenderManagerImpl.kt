@@ -46,7 +46,7 @@ class RenderManagerImpl(
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     init {
-        display.children.onChange += { _,removed,added,moved ->
+        display.children.changed += { _,removed,added,moved ->
 
             removed.values.forEach { childRemoved(null, it) }
             added.values.forEach   { childAdded  (null, it) }
@@ -134,7 +134,7 @@ class RenderManagerImpl(
 
                 gizmo.boundsChanged              += boundsChanged_
                 gizmo.visibilityChanged          += visibilityChanged_
-                gizmo.children_.onChange         += childrenChanged_
+                gizmo.children_.changed         += childrenChanged_
                 gizmo.displayRectHandlingChanged += displayRectHandlingChanged_
             }
 
@@ -305,7 +305,7 @@ class RenderManagerImpl(
 
         gizmo.boundsChanged              -= boundsChanged_
         gizmo.visibilityChanged          -= visibilityChanged_
-        gizmo.children_.onChange         -= childrenChanged_
+        gizmo.children_.changed         -= childrenChanged_
         gizmo.displayRectHandlingChanged -= displayRectHandlingChanged_
 
         unregisterDisplayRectMonitoring(gizmo)

@@ -24,7 +24,7 @@ interface SelectionModel<T>: Iterable<T> {
     fun replaceAll (items: Collection<T>): Boolean
     fun containsAll(items: Collection<T>): Boolean
 
-    val onChanged: Pool<SetObserver<SelectionModel<T>, T>>
+    val changed: Pool<SetObserver<SelectionModel<T>, T>>
 }
 
 open class MultiSelectionModel<T>: SelectionModel<T> {
@@ -49,7 +49,7 @@ open class MultiSelectionModel<T>: SelectionModel<T> {
     override fun containsAll(items: Collection<T>) = observableSet.containsAll(items)
     override fun replaceAll (items: Collection<T>) = observableSet.replaceAll (items)
 
-    override val onChanged = observableSet.onChange
+    override val changed = observableSet.changed
 }
 
 class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {

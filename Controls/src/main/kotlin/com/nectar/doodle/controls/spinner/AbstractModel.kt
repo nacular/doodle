@@ -5,7 +5,7 @@ import com.nectar.doodle.utils.ChangeObserversImpl
 
 abstract class AbstractModel<T>: Model<T> {
     @Suppress("PrivatePropertyName")
-    protected val onChanged_ = ChangeObserversImpl(this)
+    protected val changed_ = ChangeObserversImpl(this)
 
-    override val onChanged: ChangeObservers<Model<T>> = onChanged_
+    override val changed: ChangeObservers<Model<T>> = changed_
 }

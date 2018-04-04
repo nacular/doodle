@@ -29,7 +29,7 @@ class NativeScrollPanel internal constructor(
                     handlerFactory: NativeEventHandlerFactory,
                     graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
         private val panel         : ScrollPanel,
-        private val onScroll      : (Point) -> Unit): NativeEventListener {
+        private val scrolled      : (Point) -> Unit): NativeEventListener {
 
     private val eventHandler: NativeEventHandler
     private val rootElement = graphicsDevice[panel].rootElement
@@ -57,7 +57,7 @@ class NativeScrollPanel internal constructor(
     }
 
     override fun onScroll() = true.also {
-        onScroll(Point(x = rootElement.scrollLeft, y = rootElement.scrollTop))
+        scrolled(Point(x = rootElement.scrollLeft, y = rootElement.scrollTop))
     }
 
     fun scrollTo(point: Point) {
