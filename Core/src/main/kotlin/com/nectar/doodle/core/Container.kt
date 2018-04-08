@@ -15,7 +15,7 @@ interface Container: Iterable<Gizmo> {
     fun setZIndex(of: Gizmo, to: Int)
     fun zIndex(of: Gizmo): Int
 
-    fun isAncestor(of: Gizmo): Boolean
+    infix fun ancestorOf(gizmo: Gizmo): Boolean
 
     fun child(at: Point): Gizmo?
 }

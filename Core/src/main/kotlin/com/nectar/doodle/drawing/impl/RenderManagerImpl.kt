@@ -77,7 +77,7 @@ class RenderManagerImpl(
     }
 
     override fun renderNow(gizmo: Gizmo) {
-        if (gizmo in gizmos && !gizmo.bounds.empty && display.isAncestor(gizmo)) {
+        if (gizmo in gizmos && !gizmo.bounds.empty && display ancestorOf gizmo) {
             dirtyGizmos += gizmo
 
             if (gizmo in pendingLayout) {
@@ -124,7 +124,7 @@ class RenderManagerImpl(
                 }
             }
 
-            if (display.isAncestor(gizmo)) {
+            if (display ancestorOf gizmo) {
                 gizmo.addedToDisplay(this)
 
                 dirtyGizmos         += gizmo
@@ -172,7 +172,7 @@ class RenderManagerImpl(
         }
     }
 
-    private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display.isAncestor(gizmo)).ifTrue {
+    private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display ancestorOf gizmo).ifTrue {
         dirtyGizmos  += gizmo
         pendingRender += gizmo
     }
@@ -247,7 +247,7 @@ class RenderManagerImpl(
 
         val visibilityChanged = gizmo in visibilityChanged
 
-        val graphicsSurface = if ((gizmo.visible || visibilityChanged) && display.isAncestor(gizmo)) graphicsDevice[gizmo] else null
+        val graphicsSurface = if ((gizmo.visible || visibilityChanged) && display ancestorOf gizmo) graphicsDevice[gizmo] else null
 
         graphicsSurface?.let {
             if (gizmo in pendingBoundsChange) {

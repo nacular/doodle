@@ -58,9 +58,10 @@ interface Display: Iterable<Gizmo> {
 
 //  var focusTraversalPolicy: FocusTraversalPolicy
 
-    fun fill      (brush: Brush)
-    fun child     (at   : Point): Gizmo?
-    fun isAncestor(of   : Gizmo): Boolean
+    fun fill (brush: Brush)
+    fun child(at   : Point): Gizmo?
+
+    infix fun ancestorOf(gizmo: Gizmo): Boolean
 
     fun doLayout()
 }

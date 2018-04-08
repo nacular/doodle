@@ -29,7 +29,7 @@ open class Box: Gizmo(), Container {
     override fun setZIndex(of: Gizmo, to: Int) = super.setZIndex(of, to)
     override fun zIndex(of: Gizmo) = super.zIndex(of)
 
-    override fun isAncestor(of: Gizmo) = super.isAncestor(of)
+    override fun ancestorOf(gizmo: Gizmo) = super.ancestorOf(gizmo)
 
     override fun child(at: Point) = super.child(at)
 }

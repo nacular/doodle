@@ -71,12 +71,80 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
         }
     }
 
-    override fun addAll(elements: Collection<E>) = batch { list.addAll(elements) }
+    override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
 
-    override fun addAll(index: Int, elements: Collection<E>) = batch { list.addAll(index, elements) }
+    override fun addAll(index: Int, elements: Collection<E>) = batch { addAll(index, elements) }
 
-    override fun removeAll(elements: Collection<E>) = batch { list.removeAll(elements) }
-    override fun retainAll(elements: Collection<E>) = batch { list.retainAll(elements) }
+    override fun removeAll(elements: Collection<E>) = batch { removeAll(elements) }
+    override fun retainAll(elements: Collection<E>) = batch { retainAll(elements) }
+
+    fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
+
+    fun <T> batch(block: MutableList<E>.() -> T): T {
+        return if (changed_.isEmpty()) {
+            list.run(block)
+        } else {
+            // TODO: Can this be optimized?
+            val old = ArrayList(list)
+
+            list.run(block).also {
+                if (old != this) {
+                    val removed       = mutableMapOf<Int, E>()
+                    val added         = mutableMapOf<Int, E>()
+                    val moved         = mutableMapOf<Int, Pair<Int, E>>()
+                    var unusedIndexes = (0 until this.size).toSet()
+
+                    old.forEachIndexed { index, item ->
+                        if (index >= this.size || this[index] != item) {
+
+                            val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }
+
+                            when (newIndex) {
+                                null -> removed[index] = item
+                                else -> {
+                                    moved[index]   = newIndex to item
+                                    unusedIndexes -= newIndex
+                                }
+                            }
+                        }
+                    }
+
+                    removed.forEach { (removedIndex, _) ->
+                        moved.filterKeys { index -> index >= removedIndex }.entries.sortedBy { it.key }.forEach {
+                            if (it.key - 1 == it.value.first) {
+                                moved.remove(it.key)
+                            } else {
+                                moved[it.key - 1] = it.value
+                                moved.remove(it.key)
+                            }
+                        }
+                    }
+
+                    unusedIndexes.forEach {
+                        val item = this[it]
+
+                        if (it >= old.size || old[it] != item) {
+                            added[it] = item
+
+                            // Adjust all the moves
+                            moved.filterKeys { index -> index >= it }.entries.sortedByDescending { it.key } .forEach {
+                                if (it.key + 1 == it.value.first) {
+                                    moved.remove(it.key)
+                                } else {
+                                    moved[it.key + 1] = it.value
+                                    moved.remove(it.key)
+                                }
+                            }
+                        }
+                    }
+
+                    changed_.forEach {
+                        it(this, removed, added, moved)
+                    }
+                }
+            }
+        }
+    }
 
     override fun clear() {
         val size    = list.size
@@ -110,42 +178,9 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
-
-    private fun <T> batch(block: () -> T): T {
-        return if (changed_.isEmpty()) {
-            block()
-        } else {
-            // TODO: Can this be optimized?
-            val old = ArrayList(list)
-
-            block().also {
-                if (old != this) {
-                    val removed = mutableMapOf<Int, E>()
-                    val added   = mutableMapOf<Int, E>()
-                    val moved   = mutableMapOf<Int, Pair<Int, E>>()
-
-                    old.forEachIndexed { index, item ->
-                        if (index >= this.size || this[index] != item) {
-                            removed[index] = item
-                        }
-                    }
-
-                    this.forEachIndexed { index, item ->
-                        if (index >= old.size || old[index] != item) {
-                            added[index] = item
-                        }
-                    }
-
-                    changed_.forEach {
-                        it(this, removed, added, moved)
-                    }
-                }
-            }
-        }
-    }
 }
 
-class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
+class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<S, E>>()
     val changed: Pool<SetObserver<S, E>> = changed_
 
@@ -159,11 +194,29 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
         return set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
     }
 
-    override fun addAll(elements: Collection<E>) = batch { set.addAll(elements) }
+    override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
 
-    override fun removeAll (elements: Collection<E>) = batch { set.removeAll(elements) }
-    override fun retainAll (elements: Collection<E>) = batch { set.retainAll(elements) }
-    fun replaceAll(elements: Collection<E>) = batch { set.run { clear(); addAll(elements) } }
+    override fun removeAll (elements: Collection<E>) = batch { removeAll(elements) }
+    override fun retainAll (elements: Collection<E>) = batch { retainAll(elements) }
+
+    fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
+
+    fun <T> batch(block: MutableSet<E>.() -> T): T {
+        return if (changed_.isEmpty()) {
+            set.run(block)
+        } else {
+            // TODO: Can this be optimized?
+            val old = HashSet(set)
+
+            set.run(block).also {
+                if (old != this) {
+                    changed_.forEach {
+                        it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
+                    }
+                }
+            }
+        }
+    }
 
     override fun clear() {
         val oldSet = HashSet(set)
@@ -172,23 +225,6 @@ class ObservableSet<S, E>(val source: S, val set: MutableSet<E> = mutableSetOf()
 
         changed_.forEach {
             it(this, oldSet, emptySet())
-        }
-    }
-
-    private fun <T> batch(block: () -> T): T {
-        return if (changed_.isEmpty()) {
-            block()
-        } else {
-            // TODO: Can this be optimized?
-            val old = HashSet(set)
-
-            block().also {
-                if (old != this) {
-                    changed_.forEach {
-                        it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
-                    }
-                }
-            }
         }
     }
 }

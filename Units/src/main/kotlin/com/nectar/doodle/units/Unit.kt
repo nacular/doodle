@@ -8,13 +8,11 @@ import com.nectar.doodle.JvmName
 
 
 open class Unit<T>(val display: String, internal val multiplier: Double = 1.0): Comparable<Unit<T>> {
-    operator fun div(other: Unit<T>): Double = multiplier / other.multiplier
-
+    operator fun     div(other: Unit<T>): Double          = multiplier / other.multiplier
     operator fun <D> div(other: Unit<D>): UnitRatio<T, D> = UnitRatio(this, other)
 
-    operator fun times(other: Unit<T>): UnitProduct<T, T> = UnitProduct(this, other)
-
-    operator fun <N> times(other: UnitRatio<N, T>): Measure<N> = other * this
+    operator fun     times(other: Unit<T>        ): UnitProduct<T, T> = UnitProduct(this, other)
+    operator fun <N> times(other: UnitRatio<N, T>): Measure<N>        = other * this
 
     override fun compareTo(other: Unit<T>): Int = multiplier.compareTo(other.multiplier)
 

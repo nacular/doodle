@@ -246,14 +246,14 @@ class GizmoTests {
         val parent = object: Gizmo() {}
         val child  = object: Gizmo() {}
 
-        expect(false) { root.isAncestor_(root ) }
-        expect(false) { root.isAncestor_(child) }
+        expect(false) { root ancestorOf_ root  }
+        expect(false) { root ancestorOf_ child }
 
         root.children_   += parent
         parent.children_ += child
 
-        expect(true) { root.isAncestor_(parent) }
-        expect(true) { root.isAncestor_(child ) }
+        expect(true) { root ancestorOf_ parent }
+        expect(true) { root ancestorOf_ child  }
     }
 
     @Test @JsName("toAbsoluteWorks")

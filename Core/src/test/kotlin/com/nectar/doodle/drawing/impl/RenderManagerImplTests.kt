@@ -242,9 +242,32 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display)
 
+        container.children += gizmo()
+        container.children += gizmo()
+
         verify(exactly = 0) { child.render(any()) }
 
         container.children += child
+
+        verifyChildAddedProperly(renderManager, child)
+    }
+
+    @Test @JsName("rendersNewNestedGizmoInserted")
+    fun `renders new nested gizmo inserted`() {
+        val container = container()
+        val child     = spyk(gizmo())
+        val display   = display(container)
+        val surface   = mockk<GraphicsSurface>(relaxed = true)
+        val device    = graphicsDevice(mapOf(child to surface))
+
+        val renderManager = renderManager(display, graphicsDevice = device)
+
+        container.children += gizmo()
+        container.children += gizmo()
+
+        verify(exactly = 0) { child.render(any()) }
+
+        container.children.add(1, child)
 
         verifyChildAddedProperly(renderManager, child)
     }
@@ -409,7 +432,7 @@ class RenderManagerImplTests {
 
         // FIXME: compiler fails to build w/o hint
         every { sizeChanged as Pool<PropertyObserver<Display, Size>>                          } returns mockk(relaxed = true)
-        every { this@apply.isAncestor(capture(gizmo)) } answers {
+        every { this@apply.ancestorOf(capture(gizmo)) } answers {
             var result = false
 
             if (this@apply.children.isNotEmpty()) {

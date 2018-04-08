@@ -11,6 +11,7 @@ import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
 
 
@@ -22,27 +23,16 @@ private class Property<T>(var value: T)
 
 typealias ExpansionObserver<T> = (source: Tree<T>, paths: Set<Path<Int>>) -> Unit
 
-interface ExpansionObservers<T> {
-    operator fun plusAssign (observer: ExpansionObserver<T>)
-    operator fun minusAssign(observer: ExpansionObserver<T>)
-}
+typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 private class ExpansionObserversImpl<T>(
         private val source: Tree<T>,
-        private val mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): Set<ExpansionObserver<T>> by mutableSet, ExpansionObservers<T> {
-    override fun plusAssign(observer: ExpansionObserver<T>) {
-        mutableSet += observer
-    }
-
-    override fun minusAssign(observer: ExpansionObserver<T>) {
-        mutableSet -= observer
-    }
-
-    operator fun invoke(paths: Set<Path<Int>>) = mutableSet.forEach { it(source, paths) }
+        mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
+    operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
 }
 
 
-class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>? = null, private val fitContent: Boolean = true): Gizmo() {
+class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null, private val fitContent: Boolean = true): Gizmo() {
     var rootVisible = false
         set(new) {
             if (field == new) { return }
@@ -50,8 +40,11 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
             field = new
 
             // TODO: make more efficient?
-            children.clear()
-            insertAll()
+
+            children.batch {
+                clear()
+                insertAll(this)
+            }
         }
 
     val numRows get() = rowsBelow(Path()) + if(rootVisible) 1 else 0
@@ -67,9 +60,10 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
             field = new?.also {
                 itemUIGenerator = it.uiGenerator
 
-                children.clear()
-
-                insertAll()
+                children.batch {
+                    clear()
+                    insertAll(this)
+                }
 
                 layout = InternalLayout(it.positioner)
             }
@@ -111,14 +105,16 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
 
             var index = children.size
 
-            // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
-            pathList.filter { visible(it) }.forEach {
-                update(it)
-                index = insertChildren(it)
-            }
+            children.batch {
+                // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
+                pathList.filter { visible(it) }.forEach {
+                    update(this, it)
+                    index = insertChildren(this, it)
+                }
 
-            (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
-                updateRecursively(it)
+                (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
+                    updateRecursively(this, it)
+                }
             }
 
             (expanded as ExpansionObserversImpl)(pathList.toSet())
@@ -148,18 +144,20 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
         if (pathList.isNotEmpty()) {
             expandedPaths -= pathList
 
-            // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
-            pathList.first { visible(it) }.let {
-                val index   = update(it)
-                val numRows = numRows
+            children.batch {
+                // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
+                pathList.first { visible(it) }.let {
+                    val index = update(this, it)
+                    val numRows = numRows
 
-                (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
-                    updateRecursively(it)
-                }
+                    (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
+                        updateRecursively(this, it)
+                    }
 
-                // Remove old children
-                (numRows until children.size).forEach {
-                    children.removeAt(numRows)
+                    // Remove old children
+                    (numRows until size).forEach {
+                        removeAt(numRows)
+                    }
                 }
             }
 
@@ -215,77 +213,83 @@ class Tree<T>(val model: Model<T>, val selectionModel: SelectionModel<Path<Int>>
         }
     }
 
-    private fun insertAll() {
+    private fun insertAll(children: MutableList<Gizmo>) {
         val root = Path<Int>()
 
         when (rootVisible) {
-            true -> insert        (root)
-            else -> insertChildren(root)
+            true -> insert        (children, root)
+            else -> insertChildren(children, root)
         }
     }
 
-    private fun insertChildren(parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
+    private fun insertChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
-        (0 until model.numChildren(parent)).forEach { index = insert(parent + it, index) }
+        (0 until model.numChildren(parent)).forEach { index = insert(children, parent + it, index) }
 
         return index
     }
 
-    private fun insert(path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun insert(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
-        itemUIGenerator?.let {
-            model[path]?.let { value ->
-                val expanded = path in expandedPaths
+        // Path index not found (could be invisible)
+        if (index >= 0) {
+            itemUIGenerator?.let {
+                model[path]?.let { value ->
+                    val expanded = path in expandedPaths
 
-                it(this, value, path, index, selected(path), false, expanded).also {
-                    when {
-                        index > children.lastIndex -> children.add(it)
-                        else                       -> children.add(index, it)
+                    it(this, value, path, index, selected(path), false, expanded).also {
+                        when {
+                            index > children.lastIndex -> children.add(it)
+                            else                       -> children.add(index, it)
+                        }
+                    }
+
+                    ++result
+
+                    if (path.depth == 0 || expanded) {
+                        result = insertChildren(children, path, index)
                     }
                 }
-
-                ++result
-
-                if (path.depth == 0 || expanded) {
-                    result = insertChildren(path, index)
-                }
             }
         }
 
         return result
     }
 
-    private fun updateChildren(parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
+    private fun updateChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
-        (0 until model.numChildren(parent)).forEach { index = updateRecursively(parent + it, index) }
+        (0 until model.numChildren(parent)).forEach { index = updateRecursively(children, parent + it, index) }
 
         return index
     }
 
-    private fun update(path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun update(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
-        itemUIGenerator?.let {
-            model[path]?.let { value ->
-                it(this, value, path, index, selected(path), false, path in expandedPaths).also {
-                    children[index] = it
-                }
+        // Path index not found (could be invisible)
+        if (index >= 0) {
+            itemUIGenerator?.let {
+                model[path]?.let { value ->
+                    it(this, value, path, index, selected(path), false, path in expandedPaths).also {
+                        children[index] = it
+                    }
 
-                ++result
+                    ++result
+                }
             }
         }
 
         return result
     }
 
-    private fun updateRecursively(path: Path<Int>, index: Int = rowFromPath(path)): Int {
-        var result = update(path, index)
+    private fun updateRecursively(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+        var result = update(children, path, index)
 
-        if (path.depth == 0 || path in expandedPaths) {
-            result = updateChildren(path, index)
+        if (result >= 0 && path.depth == 0 || path in expandedPaths) {
+            result = updateChildren(children, path, index)
         }
 
         return result

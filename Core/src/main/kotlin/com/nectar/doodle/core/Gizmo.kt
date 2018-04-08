@@ -202,7 +202,7 @@ abstract class Gizmo protected constructor() {
                 removedSet.forEach { it.parent = null }
                 addedSet.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
-                    require(!it.isAncestor(this)) { "cannot add ancestor to descendant"  }
+                    require(!it.ancestorOf(this)) { "cannot add ancestor to descendant"  }
 
                     it.parent = this
                 }
@@ -213,13 +213,13 @@ abstract class Gizmo protected constructor() {
     /**
      * Tells whether this Gizmo is an ancestor of the Gizmo.
      *
-     * @param of The Gizmo
+     * @param gizmo The Gizmo
      * @return true if the Gizmo is a descendant of the Gizmo
      */
-    internal fun isAncestor_(of: Gizmo) = isAncestor(of)
-    protected open infix fun isAncestor(of: Gizmo): Boolean {
+    internal infix fun ancestorOf_(gizmo: Gizmo) = ancestorOf(gizmo)
+    protected open infix fun ancestorOf(gizmo: Gizmo): Boolean {
         if (children.isNotEmpty()) {
-            var parent = of.parent
+            var parent = gizmo.parent
 
             while (parent != null) {
                 if (this === parent) {

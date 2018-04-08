@@ -95,9 +95,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    override fun isAncestor(of: Gizmo): Boolean {
+    override infix fun ancestorOf(gizmo: Gizmo): Boolean {
         if (children.isNotEmpty()) {
-            var child: Gizmo? = of
+            var child: Gizmo? = gizmo
 
             while (child?.parent != null) {
                 child = child.parent
