@@ -5,6 +5,8 @@ import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.theme.TreeUI
 import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
+import com.nectar.doodle.controls.tree.Tree.Direction.Down
+import com.nectar.doodle.controls.tree.Tree.Direction.Up
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
@@ -58,12 +60,16 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             if (new == renderer) { return }
 
             field = new?.also {
+                itemPositioner  = it.positioner
                 itemUIGenerator = it.uiGenerator
 
                 children.batch {
                     clear()
                     insertAll(this)
                 }
+
+//                children.clear()
+//                insertAll(children)
 
                 layout = InternalLayout(it.positioner)
             }
@@ -72,16 +78,70 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
     val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
 
+    private var itemPositioner : ItemPositioner<T>? = null
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
     private val expandedPaths = mutableSetOf<Path<Int>>()
+
+    private var firstVisibleRow = 0
+    private var lastVisibleRow  = 0
+//        set(new) {
+//            if (new == field) return
+//
+//            field = new
+//
+//            pathFromRow(field)?.let {
+//                insert(children, it, field)
+//            }
+//        }
 
     init {
         monitorsDisplayRect = true
     }
 
     override fun handleDisplayRectEvent(event: DisplayRectEvent) {
-        println("display rect changed: ${event.newValue}")
+        event.apply {
+            firstVisibleRow = new.y.let { when {
+                it > old.y -> findRowAt(it, firstVisibleRow, Down)
+                it < old.y -> findRowAt(it, firstVisibleRow, Up  )
+                else       -> firstVisibleRow
+            }}
+
+            lastVisibleRow = (new.y + new.height).let { when {
+                it > old.y + old.height -> findRowAt(it, lastVisibleRow, Down)
+                it < old.y + old.height -> findRowAt(it, lastVisibleRow, Up  )
+                else                    -> lastVisibleRow
+            }}
+        }
+
+        println("display rect changed: ${event.new}")
+
+        println("first: $firstVisibleRow, last: $lastVisibleRow")
+    }
+
+    private enum class Direction {
+        Up, Down
+    }
+
+    private fun findRowAt(y: Double, nearbyRow: Int, direction: Direction): Int {
+        var index = nearbyRow
+
+        itemPositioner?.let { positioner ->
+            while (true) {
+                pathFromRow(index)?.let { path ->
+                    val bounds = positioner(this, this[path]!!, path, index, selected(index), false, path in expandedPaths).let {
+                        it.at(y = it.y + insets.top)
+                    }
+
+                    when (direction) {
+                        Up   -> if (index <= 0           || y >= bounds.y                ) return index else --index
+                        else -> if (index >= numRows - 1 || y <= bounds.y + bounds.height) return index else ++index
+                    }
+                }
+            }
+        }
+
+        return index
     }
 
     operator fun get(path: Path<Int>): T? = model[path]
@@ -234,7 +294,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         var result = index
 
         // Path index not found (could be invisible)
-        if (index >= 0) {
+        if (index >= 0 /*index in firstVisibleRow .. lastVisibleRow*/) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
                     val expanded = path in expandedPaths
@@ -242,7 +302,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     it(this, value, path, index, selected(path), false, expanded).also {
                         when {
                             index > children.lastIndex -> children.add(it)
-                            else                       -> children.add(index, it)
+                            else                       -> children.add(index /*- firstVisibleRow*/, it)
                         }
                     }
 
@@ -274,7 +334,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             itemUIGenerator?.let {
                 model[path]?.let { value ->
                     it(this, value, path, index, selected(path), false, path in expandedPaths).also {
-                        children[index] = it
+                        children[index /*- firstVisibleRow*/] = it
                     }
 
                     ++result
@@ -425,29 +485,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             if (this@Tree.fitContent) {
                 this@Tree.height = y + insets.bottom
             }
-        }
-
-        // TODO: Re-use more of the layout code
-        fun rowForY(target: Double): Int {
-            val insets = this@Tree.insets
-            var y      = insets.top
-            var row    = 0
-
-            this@Tree.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
-                this@Tree.pathFromRow(index)?.let { path ->
-                    val height = positioner(this@Tree, this@Tree[path]!!, path, index, this@Tree.selected(index), child.hasFocus, path in expandedPaths).height
-
-                    y += height
-
-                    if (y > target) {
-                        return@forEachIndexed
-                    }
-
-                    ++row
-                }
-            }
-
-            return row
         }
     }
 }

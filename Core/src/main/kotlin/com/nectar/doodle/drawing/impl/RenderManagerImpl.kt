@@ -94,7 +94,7 @@ class RenderManagerImpl(
         }
     }
 
-    override fun displayRect(of: Gizmo): Rectangle? {
+    override fun displayRect(of: Gizmo): Rectangle {
         displayTree[of]?.let { return it.clipRect }
 
         var child = of
@@ -542,7 +542,7 @@ class RenderManagerImpl(
         }
     }
 
-    private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle?, new: Rectangle?) {
+    private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle, new: Rectangle) {
         if (old != new) {
             gizmo.handleDisplayRectEvent_(DisplayRectEvent(gizmo, old, new))
         }
@@ -555,15 +555,15 @@ class RenderManagerImpl(
 
         val parentBounds = when (parent) {
             null -> Rectangle(-gizmo.x, -gizmo.y, display.size.width, display.size.height)
-            else -> parent.clipRect?.let { Rectangle(it.x - gizmo.x, it.y - gizmo.y, it.width, it.height) }
+            else -> parent.clipRect.let { Rectangle(it.x - gizmo.x, it.y - gizmo.y, it.width, it.height) }
         }
 
-        node.clipRect = parentBounds?.let { gizmoRect intersect it } ?: gizmoRect
+        node.clipRect = parentBounds.let { gizmoRect intersect it } ?: gizmoRect
     }
 
     private class DisplayRectNode(val gizmo: Gizmo) {
-        var parent: DisplayRectNode? = null
-        var clipRect: Rectangle? = null
+        var parent            = null as DisplayRectNode?
+        var clipRect          = Empty
         val numChildren get() = children.size
 
         private val children = mutableListOf<DisplayRectNode>()
