@@ -558,7 +558,7 @@ class RenderManagerImpl(
             else -> parent.clipRect.let { Rectangle(it.x - gizmo.x, it.y - gizmo.y, it.width, it.height) }
         }
 
-        node.clipRect = parentBounds.let { gizmoRect intersect it } ?: gizmoRect
+        node.clipRect = parentBounds.let { gizmoRect intersect it }
     }
 
     private class DisplayRectNode(val gizmo: Gizmo) {

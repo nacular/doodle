@@ -1,8 +1,8 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import com.nectar.doodle.controls.theme.TreeUI
+import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -25,14 +25,11 @@ class TreeTests {
 
     @Test @JsName("hasRightNumberOfRows")
     fun `has right number of rows`() {
-        val model = SimpleModel(node(0) { node(1); node(2); node(3) })
+        val root = node(0) { node(1); node(2); node(3) }
 
-        val ui          = mockk<TreeUI<Int>>         (relaxed = true)
-        val uiGenerator = mockk<ItemUIGenerator<Int>>(relaxed = true)
+        val uiGenerator = uiGenerator<Int>()
 
-        every { ui.uiGenerator } returns uiGenerator
-
-        var tree = Tree(model).apply { renderer = ui }
+        var tree = tree(root, ui(uiGenerator))
 
         expect(3) { tree.numRows }
 
@@ -42,7 +39,7 @@ class TreeTests {
 
         clearMocks(uiGenerator)
 
-        tree = Tree(model).apply { renderer = ui; rootVisible = true }
+        tree = tree(root, ui(uiGenerator)).apply { rootVisible = true }
 
         expect(4) { tree.numRows }
 
@@ -52,9 +49,9 @@ class TreeTests {
         verify { uiGenerator(tree, 3, Path(2), 3, false, false, false) }
     }
 
-    @Test @JsName("foo")
-    fun `foo`() {
-        val model = SimpleModel(node("root") {
+    @Test @JsName("hasRightChildren")
+    fun `has right children`() {
+        val root = node("root") {
             node("child1") {
                 node("child1_1")
                 node("child1_2") }
@@ -62,14 +59,11 @@ class TreeTests {
                 node("child2_1")
             }
             node("child3")
-        })
+        }
 
-        val ui          = mockk<TreeUI<String>>         (relaxed = true)
-        val uiGenerator = mockk<ItemUIGenerator<String>>(relaxed = true)
+        val uiGenerator = uiGenerator<String>()
 
-        every { ui.uiGenerator } returns uiGenerator
-
-        val tree = Tree(model).apply { renderer = ui; expand(0) }
+        val tree = tree(root, ui(uiGenerator)).apply { expand(0) }
 
         expect(5) { tree.numRows }
 
@@ -109,8 +103,29 @@ class TreeTests {
         }
     }
 
+    @Test @JsName("expandAll")
+    fun `expand all`() {
+        val tree = tree(node("root") {
+            addChildren(this, listOf(2, 2, 2))
+        })
+
+        tree.expandAll()
+    }
+
+    private fun <T> uiGenerator(): ItemUIGenerator<T> = mockk(relaxed = true)
+
+    private fun <T> ui(uiGenerator: ItemUIGenerator<T> = uiGenerator()): TreeUI<T> {
+        val ui = mockk<TreeUI<T>>(relaxed = true)
+
+        every { ui.uiGenerator } returns uiGenerator
+
+        return ui
+    }
+
+    private fun <T> tree(root: TreeNode<T>, ui: TreeUI<T> = ui()) = Tree(SimpleModel(root)).apply { renderer = ui }
+
     private fun <T> validateGetRow(root: TreeNode<T>, expected: List<T>, block: Tree<T>.() -> Unit = {}) {
-        val tree = Tree(SimpleModel(root)).also{ block(it) }
+        val tree = tree(root).also{ block(it) }
 
         expected.forEachIndexed { index, value ->
             expect(value) { tree[index] }
@@ -118,7 +133,7 @@ class TreeTests {
     }
 
     private fun <T> validateGetPath(root: TreeNode<T>, expected: Map<Path<Int>, T>, block: Tree<T>.() -> Unit = {}) {
-        val tree = Tree(SimpleModel(root)).also{ block(it) }
+        val tree = tree(root).also{ block(it) }
 
         expected.forEach { (path, value) ->
             expect(value) { tree[path] }
@@ -131,5 +146,17 @@ class TreeTests {
         every { result.isEmpty() } returns true
 
         return result
+    }
+}
+
+private fun addChildren(node: NodeBuilder<String>, config: kotlin.collections.List<Int>) {
+    if (config.isNotEmpty()) {
+        (0 until config[0]).forEach { i ->
+            val child = NodeBuilder("${node.value}[$i]") //getRandomText( 20, 100 ) );
+
+            node.children += child
+
+            addChildren(child, config.drop(1))
+        }
     }
 }

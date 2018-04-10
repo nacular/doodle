@@ -6,7 +6,9 @@ allprojects {
     group   = 'com.nectar.doodle'
 
     buildscript {
-        ext.kotlin_version = '1.2.30-eap-47'
+        ext.kotlin_version          = '1.2.40-eap-51'
+        ext.kotlin_frontend_version = '0.0.27'
+        ext.dokka_version           = '0.9.14'
 
         repositories {
             maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
@@ -16,7 +18,8 @@ allprojects {
         }
         dependencies {
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-            classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.27"
+            classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:$kotlin_frontend_version"
+            classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         }
 
     }

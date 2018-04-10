@@ -158,16 +158,15 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && !expanded(it) }.apply { sortBy { it.depth + (it.bottom ?: 0) } }
+        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && !expanded(it) && model.numChildren(it) > 0 }.apply { sortBy { it.depth } }
 
         if (pathList.isNotEmpty()) {
-            expandedPaths += pathList
-
             var index = children.size
 
             children.batch {
                 // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
                 pathList.filter { visible(it) }.forEach {
+                    expandedPaths += it
                     update(this, it)
                     index = insertChildren(this, it)
                 }

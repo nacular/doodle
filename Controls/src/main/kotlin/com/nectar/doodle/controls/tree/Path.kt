@@ -17,7 +17,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
 
     operator fun get(index: Int) = items[index]
 
-    fun isAncestor(path: Path<T>): Boolean {
+    infix fun ancestorOf(path: Path<T>): Boolean {
         var parent: Path<T>? = path
 
         while (parent != null && depth <= parent.depth) {

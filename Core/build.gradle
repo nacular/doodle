@@ -1,4 +1,5 @@
 apply plugin: 'kotlin-platform-common'
+apply plugin: 'org.jetbrains.dokka'
 
 dependencies {
     implementation project(':units')
@@ -7,4 +8,9 @@ dependencies {
     testImplementation project(':testing')
     testImplementation dep.kotlin_test_common
     testImplementation dep.mockk_common
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
 }
