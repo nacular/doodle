@@ -10,6 +10,9 @@ class Size(val width: Double = 0.0, val height: Double = 0.0) {
     val area  = width * height
     val empty = area == 0.0
 
+    @Suppress("PrivatePropertyName")
+    private val hashCode_ by lazy { arrayOf(width, height).contentHashCode() }
+
     operator fun times(value: Double) = Size(width * value, height * value)
     operator fun div  (value: Double) = Size(width / value, height / value)
 
@@ -25,7 +28,7 @@ class Size(val width: Double = 0.0, val height: Double = 0.0) {
         return true
     }
 
-    override fun hashCode() = arrayOf(width, height).contentHashCode()
+    override fun hashCode() = hashCode_
 
     companion object {
         val Empty = Size(0.0, 0.0)

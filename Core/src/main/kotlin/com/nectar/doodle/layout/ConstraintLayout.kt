@@ -17,9 +17,9 @@ abstract class ConstraintLayout: Layout() {
 }
 
 private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
-    private val constraints = constraints.fold(mutableMapOf<Gizmo, ConstraintsImpl>()) { s, r -> s[r.target] = r; s }
-    private val processed   = mutableSetOf<Gizmo>()
-    private val processing  = mutableSetOf<Gizmo>()
+    private val constraints by lazy { constraints.fold(mutableMapOf<Gizmo, ConstraintsImpl>()) { s, r -> s[r.target] = r; s } }
+    private val processed   by lazy { mutableSetOf<Gizmo>()                                                                   }
+    private val processing  by lazy { mutableSetOf<Gizmo>()                                                                   }
 
     override fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout {
         constraints(a).let { (a) -> block(a)
@@ -154,7 +154,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
 }
 
 open class Constraint(internal val target: Gizmo, internal val default: Boolean = true, internal var block: (Gizmo) -> Double) {
-    internal val dependencies = mutableSetOf(target)
+    internal val dependencies by lazy { mutableSetOf(target) }
 
     internal operator fun invoke() = block(target)
 }

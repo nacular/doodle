@@ -70,20 +70,26 @@ class Label internal constructor(
             }
         }
 
-    var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> rerender() }
-    var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> rerender() }
+    var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
+    var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
 
     private fun measureText(): Size {
-        textSize = if (wrapsWords) textMetrics.size(styledText, width) else textMetrics.size(styledText)
-        return textSize
+        val height = when {
+            fitText || verticalAlignment != Top -> if (wrapsWords) textMetrics.height(styledText, width) else textMetrics.height(styledText)
+            else                                -> 0.0
+        }
+
+        val width = when {
+            fitText || horizontalAlignment != Left -> if (wrapsWords) textMetrics.width(styledText, width) else textMetrics.width(styledText)
+            else                                   -> 0.0
+        }
+
+        return Size(width, height).also { textSize = it }
     }
 
-    private var textSize = measureText()
-        set(new) {
-            field = new
-
-            if (fitText) size = new
-        }
+    private var textSize by observable(Size.Empty) { _,_,new ->
+        if (fitText) size = new
+    }
 
     init {
         boundsChanged += { _,old,new ->

@@ -15,6 +15,7 @@ import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -31,6 +32,20 @@ private class ExpansionObserversImpl<T>(
         private val source: Tree<T>,
         mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
     operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
+}
+
+private object PathComparator: Comparator<Path<Int>> {
+    override fun compare(a: Path<Int>, b: Path<Int>): Int {
+        (0 until min(a.depth, b.depth)).forEach {
+            (a[it] - b[it]).let {
+                if (it != 0) {
+                    return it
+                }
+            }
+        }
+
+        return b.depth - a.depth
+    }
 }
 
 
@@ -82,6 +97,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
     private val expandedPaths = mutableSetOf<Path<Int>>()
+
+//    private val rowToPath = mutableMapOf<Int, Path<Int>>()
+//    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
     private var firstVisibleRow = 0
     private var lastVisibleRow  = 0
@@ -158,27 +176,54 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && !expanded(it) && model.numChildren(it) > 0 }.apply { sortBy { it.depth } }
+        val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator)
 
-        if (pathList.isNotEmpty()) {
-            var index = children.size
+        var empty         = true
+        val pathsToUpdate = mutableSetOf<Path<Int>>()
 
-            children.batch {
-                // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
-                pathList.filter { visible(it) }.forEach {
-                    expandedPaths += it
-                    update(this, it)
-                    index = insertChildren(this, it)
-                }
+        children.batch {
 
-                (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
-                    updateRecursively(this, it)
+            pathList.forEach {
+                empty = false
+
+                expandedPaths += it
+
+                if (visible(it)) {
+                    pathsToUpdate -= it
+
+                    update        (this, it)
+                    insertChildren(this, it)
+
+                    var parent = it.parent
+                    var child  = it
+
+                    while (parent != null) {
+                        pathsToUpdate += siblingsAfter(child, parent)
+                        child  = parent
+                        parent = parent.parent
+                    }
+
+                    pathsToUpdate += siblingsAfter(child, parent ?: Path())
                 }
             }
 
+//            println("pathsToUpdate: $pathsToUpdate")
+
+            pathsToUpdate.forEach {
+                updateRecursively(this, it)
+            }
+        }
+
+        expandedPaths.addAll(paths)
+
+        if (!empty) {
             (expanded as ExpansionObserversImpl)(pathList.toSet())
         }
     }
+
+    private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
+        (it + 1 until model.numChildren(parent)).map { parent + it }
+    } ?: emptyList()
 
     override fun render(canvas: Canvas) {
         renderer?.render(this, canvas)
@@ -206,16 +251,17 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             children.batch {
                 // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
                 pathList.first { visible(it) }.let {
-                    val index = update(this, it)
+                    val index   = update(this, it)
                     val numRows = numRows
 
-                    (index until numRows).mapNotNull { pathFromRow(it) }.forEach {
+                    (index until numRows).asSequence().mapNotNull { pathFromRow(it) }.forEach {
                         updateRecursively(this, it)
                     }
 
                     // Remove old children
                     (numRows until size).forEach {
                         removeAt(numRows)
+//                        rowToPath.remove(it)?.let { pathToRow.remove(it) }
                     }
                 }
             }
@@ -257,7 +303,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             else            -> {
                 val parent = path.parent
 
-                if (parent == null) false else visible(parent)
+                when {
+                    parent == null || !expanded(parent) -> false
+                    else                                -> visible(parent)
+                }
             }
         }
     }
@@ -296,6 +345,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         if (index >= 0 /*index in firstVisibleRow .. lastVisibleRow*/) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
+//                    rowToPath[index] = path
+//                    pathToRow[path ] = index
+
                     val expanded = path in expandedPaths
 
                     it(this, value, path, index, selected(path), false, expanded).also {
@@ -332,6 +384,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         if (index >= 0) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
+//                    rowToPath[index] = path
+//                    pathToRow[path ] = index
+
                     it(this, value, path, index, selected(path), false, path in expandedPaths).also {
                         children[index /*- firstVisibleRow*/] = it
                     }
@@ -347,28 +402,33 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun updateRecursively(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = update(children, path, index)
 
-        if (result >= 0 && path.depth == 0 || path in expandedPaths) {
+        if (result >= 0 && expanded(path)) {
             result = updateChildren(children, path, index)
         }
 
         return result
     }
 
-    private fun rowExpanded(index: Int) = pathFromRow(index)?.let { pathExpanded(it) } ?: false
-
-    private fun pathExpanded(path: Path<Int>) = path.depth == 0 || path in expandedPaths
+    private fun rowExpanded(index: Int) = pathFromRow(index)?.let { expanded(it) } ?: false
 
     private fun pathFromRow(index: Int): Path<Int>? {
         if (model.isEmpty()) {
             return null
         }
 
-        return addRowsToPath(Path(), Property(index + if (!rootVisible) 1 else 0))
+//        return rowToPath.getOrPut(index) {
+//            addRowsToPath(Path(), Property(index + if (!rootVisible) 1 else 0)).also {
+//                pathToRow[it] = index
+//            }
+//        }
+
+        return addRowsToPath(Path(), index + if (!rootVisible) 1 else 0).first
     }
 
-    private fun rowFromPath(path: Path<Int>): Int {
-        var row         = if (rootVisible) 0 else -1
-        var pathIndex   = 0
+    // TODO: Have this return an Int?
+    private fun rowFromPath(path: Path<Int>): Int /*= pathToRow.getOrPut(path)*/ {
+        var row = if (rootVisible) 0 else -1
+        var pathIndex = 0
         var currentPath = Path<Int>()
         var numChildren = model.numChildren(currentPath)
 
@@ -389,8 +449,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     }
 
                     currentPath += i
-                    numChildren  = model.numChildren(currentPath)
-                    i            = -1
+                    numChildren = model.numChildren(currentPath)
+                    i = -1
                 } else {
                     row += rowsBelow(currentPath + i)
                 }
@@ -406,10 +466,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun rowsBelow(path: Path<Int>): Int {
         var numRows = 0
 
-        if (path.depth == 0 || (pathExpanded(path) && visible(path))) {
+        if (path.depth == 0 || (path in expandedPaths && visible(path))) {
             val numChildren = model.numChildren(path)
 
-            (0 until numChildren).map { path + it }.forEach { numRows += rowsBelow(it) + 1 }
+            (0 until numChildren).asSequence().map { path + it }.forEach { numRows += rowsBelow(it) + 1 }
         }
 
         return numRows
@@ -437,10 +497,12 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
     }
 
-    private fun addRowsToPath(path: Path<Int>, index: Property<Int>): Path<Int> {
-        if (index.value <= 0) {
-            return path
+    private fun addRowsToPath(path: Path<Int>, index: Int): Pair<Path<Int>, Int> {
+        if (index <= 0) {
+            return path to index
         }
+
+        var newIndex = index
 
         var newPath     = path
         val numChildren = model.numChildren(path)
@@ -448,22 +510,25 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         for(i in 0 until numChildren) {
             newPath = path + i
 
-            --index.value
+            --newIndex
 
-            if (index.value == 0) {
+            if (newIndex == 0) {
                 break
             }
 
-            if (pathExpanded(newPath)) {
-                newPath = addRowsToPath(newPath, index)
+            if (expanded(newPath)) {
+                addRowsToPath(newPath, newIndex).also {
+                    newPath  = it.first
+                    newIndex = it.second
+                }
 
-                if (index.value == 0) {
+                if (newIndex == 0) {
                     break
                 }
             }
         }
 
-        return newPath
+        return newPath to newIndex
     }
 
     private inner class InternalLayout(private val positioner: ItemPositioner<T>): Layout() {

@@ -11,7 +11,7 @@ class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
     operator fun unaryMinus() = Point(-x, -y)
 
-    override fun hashCode() = arrayOf(x, y).contentHashCode()
+    override fun hashCode() = hashCode_
 
     override fun toString() = "[$x,$y]"
 
@@ -24,6 +24,9 @@ class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
         return true
     }
+
+    @Suppress("PrivatePropertyName")
+    private val hashCode_ by lazy { arrayOf(x, y).contentHashCode() }
 
     companion object {
         val Origin = Point()

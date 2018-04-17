@@ -12,13 +12,16 @@ interface ElementRuler {
 }
 
 class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
-    override fun size(element: HTMLElement): Size {
+
+    override fun width (element: HTMLElement) = measure(element) { width               }
+    override fun height(element: HTMLElement) = measure(element) { height              }
+    override fun size  (element: HTMLElement) = measure(element) { Size(width, height) }
+
+    private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
         htmlFactory.body.insert(element, 0)
 
-        val size = Size(element.width, element.height)
-
-        htmlFactory.body.removeChild(element)
-
-        return size
+        return element.run(block).also {
+            htmlFactory.body.removeChild(element)
+        }
     }
 }

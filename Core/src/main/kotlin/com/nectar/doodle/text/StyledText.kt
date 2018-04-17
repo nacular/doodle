@@ -16,16 +16,18 @@ private data class MutablePair<A, B>(var first: A, var second: B) {
     override fun toString() = "($first, $second)"
 }
 
-class StyledText private constructor(var data: List<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
+class StyledText private constructor(var data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
 
     constructor(
         text      : String,
         font      : Font?  = null,
         foreground: Color? = null,
-        background: Color? = null): this(listOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
+        background: Color? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
     val text  get() = data.map { it.first }.joinToString()
     val count get() = data.size
+
+    private var hashCode = data.hashCode()
 
     override fun iterator() = data.map { it.first.to(it.second) }.iterator()
 
@@ -40,11 +42,13 @@ class StyledText private constructor(var data: List<MutablePair<String, StyleImp
 
         return when (style) {
             pair.second -> data.last().first += pair.first
-            else        -> data              += pair
+            else        -> data.plusAssign(pair)
+        }.also {
+            hashCode = data.hashCode()
         }
     }
 
-    override fun hashCode() = data.hashCode()
+    override fun hashCode() = hashCode
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

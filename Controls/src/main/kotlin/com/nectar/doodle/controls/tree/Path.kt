@@ -7,12 +7,14 @@ class Path<T>(private val items: List<T>): Iterable<T> {
     constructor(item: T): this(listOf(item))
     constructor(       ): this(listOf())
 
-    val top   : T? get() = items.first()
-    val bottom: T? get() = items.last ()
-    val depth      get() = items.size
+    val top    = items.firstOrNull()
+    val bottom = items.lastOrNull ()
+    val depth  = items.size
+
+    private val hashCode = items.hashCode()
 
     val parent: Path<T>? get() = if (items.size > 1) {
-        Path(items.drop(1))
+        Path(items.dropLast(1))
     } else null
 
     operator fun get(index: Int) = items[index]
@@ -37,22 +39,13 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         if (this === other) return true
         if (other !is Path<*>) return false
 
-        if (items != other.items) return false
-
-        return true
+        // Kotlin list equals is not as efficient
+        return items.size == other.items.size && items == other.items
     }
 
     override fun iterator() = items.iterator()
 
-    override fun hashCode() = items.hashCode()
+    override fun hashCode() = hashCode
 
-    override fun toString(): String {
-        val aValue = StringBuilder()
-
-        for (aItem in items) {
-            aValue.append("[" + aItem.toString() + "]")
-        }
-
-        return aValue.toString()
-    }
+    override fun toString() = items.toString()
 }

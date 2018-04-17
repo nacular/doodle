@@ -14,6 +14,9 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     val width  get() = size.width
     val height get() = size.height
 
+    @Suppress("PrivatePropertyName")
+    private val hashCode_ by lazy { 31 * position.hashCode() + size.hashCode() }
+
     override val area              get() = size.area
     override val empty             get() = size.empty
     override val boundingRectangle get() = this
@@ -113,11 +116,7 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = position.hashCode()
-        result = 31 * result + size.hashCode()
-        return result
-    }
+    override fun hashCode() = hashCode_
 
     companion object {
         val Empty = Rectangle()

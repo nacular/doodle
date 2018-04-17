@@ -84,7 +84,7 @@ abstract class Gizmo protected constructor() {
 
     var toolTipText = ""
 
-    val mouseChanged = SetPool<MouseListener>()
+    val mouseChanged by lazy { SetPool<MouseListener>() }
 
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -94,7 +94,7 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    val keyChanged = SetPool<KeyListener>()
+    val keyChanged by lazy { SetPool<KeyListener>() }
 
     var monitorsKeyboard by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -104,7 +104,7 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    val mouseMotionChanged = SetPool<MouseMotionListener>()
+    val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
 
     var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
@@ -196,11 +196,8 @@ abstract class Gizmo protected constructor() {
     protected open val children by lazy {
         ObservableList<Gizmo, Gizmo>(this).also {
             it.changed += { _, removed, added, _ ->
-                val addedSet   = added.values.toMutableSet  ().apply { removeAll(removed.values) }
-                val removedSet = removed.values.toMutableSet().apply { removeAll(added.values  ) }
-
-                removedSet.forEach { it.parent = null }
-                addedSet.forEach {
+                removed.values.forEach { it.parent = null }
+                added.values.forEach {
                     require(it !== this         ) { "cannot add to self"                 }
                     require(!it.ancestorOf(this)) { "cannot add ancestor to descendant"  }
 
