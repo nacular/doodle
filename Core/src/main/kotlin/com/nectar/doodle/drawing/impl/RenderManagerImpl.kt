@@ -16,9 +16,17 @@ import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
+import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ifTrue
 
+private object AncestorComparator: Comparator<Gizmo> {
+    override fun compare(a: Gizmo, b: Gizmo) = when {
+        a ancestorOf_ b -> -1
+        b ancestorOf_ a ->  1
+        else            ->  0
+    }
+}
 
 @Suppress("PrivatePropertyName")
 class RenderManagerImpl(
@@ -33,7 +41,7 @@ class RenderManagerImpl(
     private val dirtyGizmos                 = mutableSetOf <Gizmo>()
     private val displayTree                 = mutableMapOf <Gizmo?, DisplayRectNode>()
     private val neverRendered               = mutableSetOf <Gizmo>()
-    private val pendingLayout               = mutableSetOf <Gizmo>()
+    private val pendingLayout               = MutableTreeSet(AncestorComparator) //mutableSetOf <Gizmo>()
     private val pendingRender               = mutableListOf<Gizmo>()
     private val pendingCleanup              = mutableMapOf <Gizmo, MutableSet<Gizmo>>()
     private val addedInvisible              = mutableSetOf <Gizmo>()
@@ -191,28 +199,28 @@ class RenderManagerImpl(
             pendingLayout.firstOrNull()?.let {
                 performLayout(it)
 
+                if (checkFrameTime(start)) { println("layout: ${it::class.simpleName ?: it}"); return }
+
 //                if (it in pendingRender) { performRender(it) }
 //                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
-
-            if (checkFrameTime(start)) { return }
         } while (!pendingLayout.isEmpty())
 
         do {
             pendingRender.firstOrNull()?.let {
                 performRender(it)
+
+                if (checkFrameTime(start)) { println("render: ${it::class.simpleName ?: it}"); return }
 //                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
-
-            if (checkFrameTime(start)) { return }
         } while (!pendingRender.isEmpty())
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
-            }
 
-            if (checkFrameTime(start)) { return }
+                if (checkFrameTime(start)) { println("bounds change: ${it::class.simpleName ?: it}"); return }
+            }
         }
 
         paintTask = null
@@ -228,10 +236,6 @@ class RenderManagerImpl(
     }
 
     private fun performLayout(gizmo: Gizmo) {
-        if (gizmo.parent in pendingLayout) {
-            gizmo.parent?.let { performLayout(it) }
-        }
-
         layingOut = gizmo
 
         gizmo.doLayout_()

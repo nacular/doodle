@@ -3,9 +3,9 @@ package com.nectar.doodle.utils
 /**
  * Created by Nicholas Eddy on 4/11/18.
  */
-expect class TreeSet<E: Comparable<E>>: Set<E> {
-    constructor()
-    constructor(elements: Collection<E>)
+expect class TreeSet<E>: Set<E> {
+    constructor(comparator: Comparator<E>)
+    constructor(comparator: Comparator<E>, elements: Collection<E>)
 
     // From Set
     override val size: Int
@@ -13,11 +13,16 @@ expect class TreeSet<E: Comparable<E>>: Set<E> {
     override fun contains(element: E): Boolean
     override fun containsAll(elements: Collection<E>): Boolean
     override fun iterator(): Iterator<E>
+
+    companion object {
+        operator fun <T: Comparable<T>> invoke(): TreeSet<T>
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSet<T>
+    }
 }
 
-expect class MutableTreeSet<E: Comparable<E>>: MutableSet<E> {
-    constructor()
-    constructor(elements: Collection<E>)
+expect class MutableTreeSet<E>: MutableSet<E> {
+    constructor(comparator: Comparator<E>)
+    constructor(comparator: Comparator<E>, elements: Collection<E>)
 
     // From Set
     override val size: Int
@@ -33,4 +38,9 @@ expect class MutableTreeSet<E: Comparable<E>>: MutableSet<E> {
     override fun removeAll(elements: Collection<E>): Boolean
     override fun retainAll(elements: Collection<E>): Boolean
     override fun clear()
+
+    companion object {
+        operator fun <T: Comparable<T>> invoke(): MutableTreeSet<T>
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T>
+    }
 }

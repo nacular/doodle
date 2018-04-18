@@ -8,8 +8,9 @@ class BstNode<E>(var value: E) {
     var right = null as BstNode<E>?
 }
 
-open class TreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): Set<E> {
-    constructor(): this(emptyList<E>())
+@Suppress("PrivatePropertyName", "FunctionName")
+open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
+    constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
     protected var root = null as BstNode<E>?
 
@@ -34,12 +35,12 @@ open class TreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): Set
     }
 
     protected open fun add(element: E): Boolean {
-        if (root == null) {
+        return if (root == null) {
             root = BstNode(element)
             ++size_
-            return true
+            true
         } else {
-            return add(root!!, element).ifTrue { ++size_ }
+            add(root!!, element).ifTrue { ++size_ }
         }
     }
 
@@ -67,7 +68,7 @@ open class TreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): Set
 
     private fun add(node: BstNode<E>, element: E): Boolean = when {
         node.value == element -> false
-        node.value  > element -> when (node.left){
+        comparator.compare(node.value, element) > 0 -> when (node.left){
             null -> { node.left = BstNode(element); true }
             else -> add(node.left!!, element)
         }
@@ -79,8 +80,8 @@ open class TreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): Set
 
     private fun remove(from: BstNode<E>, parent: BstNode<E>?, element: E): Boolean {
         when {
-            element < from.value -> return from.left?.let  { remove(it, from, element) } ?: false
-            element > from.value -> return from.right?.let { remove(it, from, element) } ?: false
+            comparator.compare(element, from.value) < 0 -> return from.left?.let  { remove(it, from, element) } ?: false
+            comparator.compare(element, from.value) > 0 -> return from.right?.let { remove(it, from, element) } ?: false
             else                 -> {
                 if (from.left != null && from.right != null) {
                     from.right?.let {
@@ -154,5 +155,10 @@ open class TreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): Set
                 node = node.left
             }
         }
+    }
+
+    companion object {
+        operator fun <T: Comparable<T>> invoke(): TreeSet<T> = TreeSet(Comparator { a, b -> a.compareTo(b) })
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSet<T> = TreeSet(Comparator { a, b -> a.compareTo(b) }, elements)
     }
 }

@@ -1,7 +1,7 @@
 package com.nectar.doodle.utils
 
-class MutableTreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): TreeSetJs<E>(elements), MutableSet<E> {
-    constructor(): this(emptyList<E>())
+class MutableTreeSetJs<E> constructor(comparator: Comparator<E>, elements: Collection<E>): TreeSetJs<E>(comparator, elements), MutableSet<E> {
+    constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
     override fun iterator(): MutableIterator<E> = BstIterator()
 
@@ -23,4 +23,9 @@ class MutableTreeSetJs<E: Comparable<E>> constructor(elements: Collection<E>): T
     }
 
     override fun clear() { root = null }
+
+    companion object {
+        operator fun <T: Comparable<T>> invoke(): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) })
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) }, elements)
+    }
 }

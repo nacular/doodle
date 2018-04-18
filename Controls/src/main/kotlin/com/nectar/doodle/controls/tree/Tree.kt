@@ -98,7 +98,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     private val expandedPaths = mutableSetOf<Path<Int>>()
 
-//    private val rowToPath = mutableMapOf<Int, Path<Int>>()
+    private val rowToPath = mutableMapOf<Int, Path<Int>>()
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
     private var firstVisibleRow = 0
@@ -164,14 +164,14 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     operator fun get(path: Path<Int>): T? = model[path]
 
-    operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
+    operator fun get(row: Int): T? = rowToPath[row]?.let { model[it] }
 
     fun isLeaf(path: Path<Int>) = model.isLeaf(path)
 
     fun expanded(path: Path<Int>) = path in expandedPaths
 
     @JvmName("expandRows") fun expand(row : Int     ) = expand(setOf(row))
-    @JvmName("expandRows") fun expand(rows: Set<Int>) = expand(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    @JvmName("expandRows") fun expand(rows: Set<Int>) = expand(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
 
     fun expand(path: Path<Int>) = expand(setOf(path))
 
@@ -238,12 +238,13 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     }
 
     @JvmName("collapseRows") fun collapse(row : Int     ) = collapse(setOf(row))
-    @JvmName("collapseRows") fun collapse(rows: Set<Int>) = collapse(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    @JvmName("collapseRows") fun collapse(rows: Set<Int>) = collapse(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
 
     fun collapse(path: Path<Int>) = collapse(setOf(path))
 
     fun collapse(paths: Set<Path<Int>>) {
         val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && expanded(it) }.apply { sortBy { it.bottom } }
+//        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.reversed())
 
         if (pathList.isNotEmpty()) {
             expandedPaths -= pathList
@@ -261,7 +262,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     // Remove old children
                     (numRows until size).forEach {
                         removeAt(numRows)
-//                        rowToPath.remove(it)?.let { pathToRow.remove(it) }
+                        rowToPath.remove(it)//?.let { pathToRow.remove(it) }
                     }
                 }
             }
@@ -272,11 +273,11 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     fun collapseAll() = collapse(expandedPaths)
 
-    fun selected(row: Int) = pathFromRow(row)?.let { selected(it) } ?: false
+    fun selected(row: Int) = rowToPath[row]?.let { selected(it) } ?: false
 
-    @JvmName("addSelectionRows"   ) fun addSelection   (rows: Set<Int>) = addSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    @JvmName("setSelectionRows"   ) fun setSelection   (rows: Set<Int>) = setSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    @JvmName("removeSelectionRows") fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    @JvmName("addSelectionRows"   ) fun addSelection   (rows: Set<Int>) = addSelection   (rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
+    @JvmName("setSelectionRows"   ) fun setSelection   (rows: Set<Int>) = setSelection   (rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
+    @JvmName("removeSelectionRows") fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
 
     fun selected(path: Path<Int>) = selectionModel?.contains(path) ?: false
 
@@ -294,7 +295,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     fun clearSelection() = selectionModel?.clear()
 
-    fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
+    fun visible(row: Int) = rowToPath[row]?.let { visible(it) } ?: false
 
     tailrec fun visible(path: Path<Int>): Boolean {
         return when {
@@ -345,7 +346,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         if (index >= 0 /*index in firstVisibleRow .. lastVisibleRow*/) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
-//                    rowToPath[index] = path
+                    rowToPath[index] = path
 //                    pathToRow[path ] = index
 
                     val expanded = path in expandedPaths
@@ -384,7 +385,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         if (index >= 0) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
-//                    rowToPath[index] = path
+                    rowToPath[index] = path
 //                    pathToRow[path ] = index
 
                     it(this, value, path, index, selected(path), false, path in expandedPaths).also {
@@ -537,7 +538,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             var y      = insets.top
 
             positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
-                this@Tree.pathFromRow(index)?.let { path ->
+                this@Tree.rowToPath[index]?.let { path ->
+//                this@Tree.pathFromRow(index)?.let { path ->
                     val bounds = positioner(this@Tree, this@Tree[path]!!, path, index, this@Tree.selected(index), child.hasFocus, path in expandedPaths)
 
                     child.bounds = Rectangle(insets.left, y, max(0.0, this@Tree.width - insets.run { left + right }), bounds.height)
