@@ -14,6 +14,8 @@ abstract class ConstraintLayout: Layout() {
     abstract fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout
     abstract fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
     abstract fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+
+    abstract fun unconstrain(vararg gizmos: Gizmo): ConstraintLayout
 }
 
 private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
@@ -43,6 +45,12 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         constraints(a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
             return this
         }
+    }
+
+    override fun unconstrain(vararg gizmos: Gizmo): ConstraintLayout {
+        gizmos.forEach { constraints.remove(it) }
+
+        return this
     }
 
     private fun process(constraint: Constraint): Double? {

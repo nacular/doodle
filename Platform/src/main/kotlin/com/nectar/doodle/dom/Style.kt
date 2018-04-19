@@ -111,11 +111,12 @@ internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("flo
 //    }
 //
 
-internal inline fun Style.translate(by: Point) = translate(by.x, by.y)
+internal inline fun Style.translate(to: Point) = translate(to.x, to.y)
 internal inline fun Style.translate(x: Double, y: Double) {
-    when {
-        x == 0.0 && y == 0.0 -> return
-        else                 -> transform = "translate(${em(x)}, ${em(y)})"
+    // FIXME: Handle case when transform is already set?
+    transform = when {
+        x == 0.0 && y == 0.0 -> ""
+        else                 -> "translate(${em(x)}, ${em(y)})"
     }
 }
 

@@ -189,6 +189,7 @@ abstract class Gizmo protected constructor() {
 
     internal val layout_ get() = layout
     protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
+        // TODO: Have RenderManager manage the layout?
         if (renderManager!= null) doLayout()
     }
 

@@ -41,7 +41,7 @@ class RenderManagerImpl(
     private val dirtyGizmos                 = mutableSetOf <Gizmo>()
     private val displayTree                 = mutableMapOf <Gizmo?, DisplayRectNode>()
     private val neverRendered               = mutableSetOf <Gizmo>()
-    private val pendingLayout               = MutableTreeSet(AncestorComparator) //mutableSetOf <Gizmo>()
+    private val pendingLayout               = MutableTreeSet(AncestorComparator)
     private val pendingRender               = mutableListOf<Gizmo>()
     private val pendingCleanup              = mutableMapOf <Gizmo, MutableSet<Gizmo>>()
     private val addedInvisible              = mutableSetOf <Gizmo>()
@@ -309,7 +309,7 @@ class RenderManagerImpl(
 
         gizmo.boundsChanged              -= boundsChanged_
         gizmo.visibilityChanged          -= visibilityChanged_
-        gizmo.children_.changed         -= childrenChanged_
+        gizmo.children_.changed          -= childrenChanged_
         gizmo.displayRectHandlingChanged -= displayRectHandlingChanged_
 
         unregisterDisplayRectMonitoring(gizmo)

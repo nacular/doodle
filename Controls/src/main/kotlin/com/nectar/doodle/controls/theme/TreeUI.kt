@@ -1,14 +1,15 @@
 package com.nectar.doodle.controls.theme
 
+import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import com.nectar.doodle.controls.tree.Path
 import com.nectar.doodle.controls.tree.Tree
-import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.green
+import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
@@ -16,10 +17,10 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.theme.Renderer
-import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.isEven
 
@@ -29,11 +30,11 @@ import com.nectar.doodle.utils.isEven
 
 interface TreeUI<T>: Renderer<Tree<T>> {
     interface ItemUIGenerator<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Gizmo
+        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: Gizmo? = null): Gizmo
     }
 
     interface ItemPositioner<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Rectangle
+        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle
     }
 
     val positioner : ItemPositioner<T>
@@ -41,95 +42,59 @@ interface TreeUI<T>: Renderer<Tree<T>> {
 }
 
 private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> {
-    override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Rectangle {
+    override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle {
         return Rectangle(0.0, index * height, tree.width, height)
     }
 }
 
-class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
-    override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, selected: Boolean, hasFocus: Boolean, expanded: Boolean): Gizmo {
-        val iconWidth = 20.0
+private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, node: Any?, private var path: Path<Int>, index: Int): Gizmo() {
 
-        val icon = when (!tree.isLeaf(path)) {
-            true -> labelFactory(if (expanded) "-" else "+").apply {
-                fitText             = false
-                horizontalAlignment = Center
-            }
-            false -> null
-        }
+    private var depth     = -1
+    private val iconWidth = 20.0
 
-        val label = labelFactory(node.toString()).apply {
-            fitText             = false
-            horizontalAlignment = Left
-        }
+    private var icon = null as Label?
 
-        return object: Box() {
-            override fun render(canvas: Canvas) {
-                backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-            }
-        }.apply<Box> {
-            styleChanged += { rerender() }
+    private val label = labelFactory("$index" /*node.toString()*/).apply {
+        fitText             = false
+        horizontalAlignment = Left
+    }
 
-            children += label
-            icon?.let { children += it }
+    private var background = lightgray
 
-            val layout = constrain(label) { label ->
-                label.top    = label.parent.top
-                label.left   = label.parent.left + { iconWidth * (1 + (path.depth - if (!tree.rootVisible) 1 else 0)) }
-                label.right  = label.parent.right
-                label.bottom = label.parent.bottom
+    private lateinit var constraintLayout: ConstraintLayout
+
+    init {
+        styleChanged += { rerender() }
+
+        children += label
+
+        mouseChanged += object: MouseListener {
+            private var pressed   = false
+            private var mouseOver = false
+
+            override fun mouseEntered(event: MouseEvent) {
+                mouseOver = true
+                backgroundColor = backgroundColor?.lighter(0.25f)
             }
 
-            icon?.let {
-                children += it
-
-                it.width = iconWidth
-
-                layout.constrain(it, label) { icon, label ->
-                    icon.top    = label.top
-                    icon.right  = label.left
-                    icon.bottom = label.bottom
-                }
+            override fun mouseExited(event: MouseEvent) {
+                mouseOver = false
+                backgroundColor = background
             }
 
-            this.layout = layout
-
-            var background = if (selected) Color.green else Color.lightgray
-
-            background = when {
-                index.isEven -> background.lighter()
-                else         -> background
+            override fun mousePressed(event: MouseEvent) {
+                pressed = true
+                mouseOver = true
             }
 
-            backgroundColor = background
-
-            mouseChanged += object: MouseListener {
-                private var pressed   = false
-                private var mouseOver = false
-
-                override fun mouseEntered(event: MouseEvent) {
-                    mouseOver = true
-                    backgroundColor = backgroundColor?.lighter(0.25f)
-                }
-
-                override fun mouseExited(event: MouseEvent) {
-                    mouseOver = false
-                    backgroundColor = background
-                }
-
-                override fun mousePressed(event: MouseEvent) {
-                    pressed = true
-                    mouseOver = true
-                }
-
-                override fun mouseReleased(event: MouseEvent) {
-                    if (mouseOver && pressed) {
-                        if (!tree.isLeaf(path)) {
-                            when (tree.expanded(path)) {
-                                true -> tree.collapse(path)
-                                else -> tree.expand  (path)
-                            }
+            override fun mouseReleased(event: MouseEvent) {
+                if (mouseOver && pressed) {
+                    if (!tree.isLeaf(path)) {
+                        when (tree.expanded(path)) {
+                            true -> tree.collapse(path)
+                            else -> tree.expand  (path)
                         }
+                    }
 //                        setOf(index).also {
 //                            tree.apply {
 //                                when {
@@ -140,11 +105,90 @@ class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGen
 //                                }
 //                            }
 //                        }
-                    }
-                    pressed = false
                 }
+                pressed = false
             }
         }
+
+        update(tree, node, path, index)
+    }
+
+    fun update(tree: Tree<*>, node: Any?, path: Path<Int>, index: Int) {
+        this.path = path
+
+        val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
+
+        if (newDepth != depth) {
+            constraintLayout = constrain(label) { label ->
+                label.top    = label.parent.top
+                label.left   = label.parent.left + { iconWidth * (1 + newDepth) }
+                label.right  = label.parent.right
+                label.bottom = label.parent.bottom
+            }
+
+            constrainIcon(icon)
+
+            layout = constraintLayout
+
+            depth = newDepth
+        }
+
+        when (!tree.isLeaf(path)) {
+            true -> {
+                val text = if (tree.expanded(path)) "-" else "+"
+
+                icon = icon?.apply {
+                    this.text = text
+                } ?: labelFactory(text).apply {
+                    fitText = false
+                    width   = iconWidth
+
+                    this@TreeRow.children += this
+
+                    constrainIcon(this)
+                }
+            }
+
+            false -> {
+                icon?.let {
+                    this.children -= it
+                    constraintLayout.unconstrain(it)
+                }
+                icon = null
+            }
+        }
+
+        label.text = "$index" /*node.toString()*/
+
+        background = if (tree.selected(path)) green else lightgray
+
+        background = when {
+            index.isEven -> background.lighter()
+            else         -> background
+        }
+
+        backgroundColor = background
+    }
+
+    override fun render(canvas: Canvas) {
+        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+    }
+
+    private fun constrainIcon(icon: Label?) {
+        icon?.let {
+            constraintLayout.constrain(it, label) { icon, label ->
+                icon.top    = label.top
+                icon.right  = label.left
+                icon.bottom = label.bottom
+            }
+        }
+    }
+}
+
+class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
+    override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: Gizmo?): Gizmo = when (current) {
+        is TreeRow -> current.apply { update(tree, node, path, index) }
+        else       -> TreeRow(labelFactory, tree, node, path, index)
     }
 }
 

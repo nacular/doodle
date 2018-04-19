@@ -33,9 +33,9 @@ class TreeTests {
 
         expect(3) { tree.numRows }
 
-        verify { uiGenerator(tree, 1, Path(0), 0, false, false, false) }
-        verify { uiGenerator(tree, 2, Path(1), 1, false, false, false) }
-        verify { uiGenerator(tree, 3, Path(2), 2, false, false, false) }
+        verify { uiGenerator(tree, 1, Path(0), 0) }
+        verify { uiGenerator(tree, 2, Path(1), 1) }
+        verify { uiGenerator(tree, 3, Path(2), 2) }
 
         clearMocks(uiGenerator)
 
@@ -43,10 +43,10 @@ class TreeTests {
 
         expect(4) { tree.numRows }
 
-        verify { uiGenerator(tree, 0, Path( ), 0, false, false, false) }
-        verify { uiGenerator(tree, 1, Path(0), 1, false, false, false) }
-        verify { uiGenerator(tree, 2, Path(1), 2, false, false, false) }
-        verify { uiGenerator(tree, 3, Path(2), 3, false, false, false) }
+        verify { uiGenerator(tree, 0, Path( ), 0) }
+        verify { uiGenerator(tree, 1, Path(0), 1) }
+        verify { uiGenerator(tree, 2, Path(1), 2) }
+        verify { uiGenerator(tree, 3, Path(2), 3) }
     }
 
     @Test @JsName("hasRightChildren")
@@ -67,11 +67,11 @@ class TreeTests {
 
         expect(5) { tree.numRows }
 
-        verify { uiGenerator(tree, "child1",   Path(0),     0, false, false, true ) }
-        verify { uiGenerator(tree, "child1_1", Path(0) + 0, 1, false, false, false) }
-        verify { uiGenerator(tree, "child1_2", Path(0) + 1, 2, false, false, false) }
-        verify { uiGenerator(tree, "child2",   Path(1),     3, false, false, false) }
-        verify { uiGenerator(tree, "child3",   Path(2),     4, false, false, false) }
+        verify { uiGenerator(tree, "child1",   Path(0),     0) }
+        verify { uiGenerator(tree, "child1_1", Path(0) + 0, 1) }
+        verify { uiGenerator(tree, "child1_2", Path(0) + 1, 2) }
+        verify { uiGenerator(tree, "child2",   Path(1),     3) }
+        verify { uiGenerator(tree, "child3",   Path(2),     4) }
     }
 
     @Test @JsName("getWorks")

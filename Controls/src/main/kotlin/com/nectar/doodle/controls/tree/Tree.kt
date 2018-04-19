@@ -44,10 +44,11 @@ private object PathComparator: Comparator<Path<Int>> {
             }
         }
 
-        return b.depth - a.depth
+        return 0
     }
 }
 
+private val DepthComparator = Comparator<Path<Int>> { a, b -> b.depth - a.depth }
 
 class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null, private val fitContent: Boolean = true): Gizmo() {
     var rootVisible = false
@@ -147,7 +148,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         itemPositioner?.let { positioner ->
             while (true) {
                 pathFromRow(index)?.let { path ->
-                    val bounds = positioner(this, this[path]!!, path, index, selected(index), false, path in expandedPaths).let {
+                    val bounds = positioner(this, this[path]!!, path, index).let {
                         it.at(y = it.y + insets.top)
                     }
 
@@ -176,7 +177,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator)
+        val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator))
 
         var empty         = true
         val pathsToUpdate = mutableSetOf<Path<Int>>()
@@ -228,7 +229,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun collapse(path: Path<Int>) = collapse(setOf(path))
 
     fun collapse(paths: Set<Path<Int>>) {
-        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedBy { it.bottom }
+        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator))
         var empty    = true
 
 //        println("collapse pathList: ${pathList.joinToString(", ")}")
@@ -359,7 +360,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                     val expanded = path in expandedPaths
 
-                    it(this, value, path, index, selected(path), false, expanded).also {
+                    it(this, value, path, index).also {
                         when {
                             index > children.lastIndex -> children.add(it)
                             else                       -> children.add(index /*- firstVisibleRow*/, it)
@@ -396,7 +397,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     rowToPath[index] = path
 //                    pathToRow[path ] = index
 
-                    it(this, value, path, index, selected(path), false, path in expandedPaths).also {
+                    it(this, value, path, index, children.getOrNull(index)).also {
                         children[index /*- firstVisibleRow*/] = it
                     }
 
@@ -547,8 +548,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
             positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
                 this@Tree.rowToPath[index]?.let { path ->
-//                this@Tree.pathFromRow(index)?.let { path ->
-                    val bounds = positioner(this@Tree, this@Tree[path]!!, path, index, this@Tree.selected(index), child.hasFocus, path in expandedPaths)
+                    val bounds = positioner(this@Tree, this@Tree[path]!!, path, index)
 
                     child.bounds = Rectangle(insets.left, y, max(0.0, this@Tree.width - insets.run { left + right }), bounds.height)
 
