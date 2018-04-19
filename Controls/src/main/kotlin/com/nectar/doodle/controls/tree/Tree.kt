@@ -194,20 +194,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     update        (this, it)
                     insertChildren(this, it)
 
-                    var parent = it.parent
-                    var child  = it
-
-                    while (parent != null) {
-                        pathsToUpdate += siblingsAfter(child, parent)
-                        child  = parent
-                        parent = parent.parent
-                    }
-
-                    pathsToUpdate += siblingsAfter(child, parent ?: Path())
+                    pathsToUpdate += ancestralSiblingsAfter(it)
                 }
             }
-
-//            println("pathsToUpdate: $pathsToUpdate")
 
             pathsToUpdate.forEach {
                 updateRecursively(this, it)
@@ -220,10 +209,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             (expanded as ExpansionObserversImpl)(pathList.toSet())
         }
     }
-
-    private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
-        (it + 1 until model.numChildren(parent)).map { parent + it }
-    } ?: emptyList()
 
     override fun render(canvas: Canvas) {
         renderer?.render(this, canvas)
@@ -252,12 +237,14 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             pathList.firstOrNull { visible(it) }?.let {
                 expandedPaths -= pathList
                 empty          = false
-                val index      = update(this, it)
                 val numRows    = numRows
 
-                (index until numRows).asSequence().mapNotNull { pathFromRow(it) }.forEach {
+                update(this, it)
+
+                ancestralSiblingsAfter(it).forEach {
                     updateRecursively(this, it)
                 }
+
 
                 // Remove old children
                 (numRows until size).forEach {
@@ -321,6 +308,26 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
             parent = parent.parent
         }
+    }
+
+    private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
+        (it + 1 until model.numChildren(parent)).map { parent + it }
+    } ?: emptyList()
+
+    private fun ancestralSiblingsAfter(path: Path<Int>): Set<Path<Int>> {
+        var parent = path.parent
+        var child  = path
+        val result = mutableSetOf<Path<Int>>()
+
+        while (parent != null) {
+            result += siblingsAfter(child, parent)
+            child  = parent
+            parent = parent.parent
+        }
+
+        result += siblingsAfter(child, parent ?: Path())
+
+        return result
     }
 
     private fun insertAll(children: MutableList<Gizmo>) {
