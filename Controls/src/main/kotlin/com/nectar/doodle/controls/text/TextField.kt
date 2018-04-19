@@ -11,14 +11,14 @@ class TextField: TextInput() {
     val masked get() = mask != null
 
     var displayText = ""
-        get() = if (mask == null) { text } else field
+        get() = if (mask == null) text else field
         private set
 
     val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
 
     var mask: Char? = null
         set(new) {
-            if (field == new) { return }
+            if (field == new) return
 
             val old = field
             field   = new
@@ -30,16 +30,6 @@ class TextField: TextInput() {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-//    var mask: Char? by object: ObservableProperty<TextField, Char?>(null, { this }, maskChanged as PropertyObserversImpl<TextField, Char?>) {
-//        override fun afterChange(property: KProperty<*>, oldValue: Char?, newValue: Char?) {
-//            super.afterChange(property, oldValue, newValue)
-//
-//            mask?.let {
-//                displayText = "".padEnd(text.length, it)
-//            }
-//        }
-//    }
-
     var renderer: Renderer<TextField>? = null
 
     override fun render(canvas: Canvas) {
@@ -47,7 +37,7 @@ class TextField: TextInput() {
     }
 
     override var text
-        get() = super.text
+        get(   ) = super.text
         set(new) {
             super.text = new
 

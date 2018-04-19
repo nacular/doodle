@@ -3,7 +3,7 @@ package com.nectar.doodle.utils
 
 enum class VerticalAlignment {
     Top,
-    Center,
+    Middle,
     Bottom
 }
 

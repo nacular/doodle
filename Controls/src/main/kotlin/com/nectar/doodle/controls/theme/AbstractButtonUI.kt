@@ -16,8 +16,8 @@ import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right
-import com.nectar.doodle.utils.VerticalAlignment
 import com.nectar.doodle.utils.VerticalAlignment.Bottom
+import com.nectar.doodle.utils.VerticalAlignment.Middle
 import com.nectar.doodle.utils.VerticalAlignment.Top
 import kotlin.math.max
 import kotlin.math.min
@@ -141,9 +141,9 @@ abstract class AbstractButtonUI(
         }
 
         val y = when (button.verticalAlignment) {
-            Bottom                   -> bounds.height - insets.bottom
-            VerticalAlignment.Center -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - stringSize.height) / 2))
-            Top                      -> insets.top
+            Bottom -> bounds.height - insets.bottom
+            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - stringSize.height) / 2))
+            Top    -> insets.top
         }
 
         return Point(x, y)
@@ -152,10 +152,10 @@ abstract class AbstractButtonUI(
     protected fun iconPosition(button: Button, icon: Icon<Button>, stringPosition: Point = textPosition(button, icon), bounds: Rectangle = button.bounds): Point {
         val x = insets.left
         val y = when (button.verticalAlignment) {
-            Bottom                   -> bounds.height - insets.bottom
-            VerticalAlignment.Center -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.size.height) / 2))
-            Top                      -> insets.top
-            else                     -> insets.top
+            Bottom -> bounds.height - insets.bottom
+            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.size.height) / 2))
+            Top    -> insets.top
+            else   -> insets.top
         }
 
 //        val minX        = insets.left

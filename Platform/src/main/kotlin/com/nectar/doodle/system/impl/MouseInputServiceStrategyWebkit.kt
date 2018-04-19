@@ -21,12 +21,11 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.system.SystemMouseWheelEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
+import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
-
-private val unitPoint = Point(1.0, 1.0)
 
 internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
@@ -79,28 +78,28 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun mouseUp(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 1))
 
-        event.preventDefault ()
-        event.stopPropagation()
-
-        return isNativeElement(event.target)
+        return isNativeElement(event.target).ifFalse {
+            event.preventDefault ()
+            event.stopPropagation()
+        }
     }
 
     private fun mouseDown(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
-        event.preventDefault ()
-        event.stopPropagation()
-
-        return isNativeElement(event.target)
+        return isNativeElement(event.target).ifFalse {
+            event.preventDefault ()
+            event.stopPropagation()
+        }
     }
 
     private fun doubleClick(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 2))
 
-        event.preventDefault ()
-        event.stopPropagation()
-
-        return isNativeElement(event.target)
+        return isNativeElement(event.target).ifFalse {
+            event.preventDefault ()
+            event.stopPropagation()
+        }
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
@@ -109,10 +108,10 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 
-        event.preventDefault ()
-        event.stopPropagation()
-
-        return isNativeElement(event.target)
+        return isNativeElement(event.target).ifFalse {
+            event.preventDefault ()
+            event.stopPropagation()
+        }
     }
 
     private fun mouseScroll(event: WheelEvent): Boolean {

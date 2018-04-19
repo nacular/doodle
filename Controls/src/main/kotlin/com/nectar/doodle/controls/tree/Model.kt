@@ -24,10 +24,12 @@ class SimpleModel<T>(private val root: TreeNode<T>): Model<T> {
     override fun get(path: Path<Int>) = node(path)?.value
 
     private fun node(path: Path<Int>): TreeNode<T>? {
-        var node = root
+        var node = root as TreeNode<T>?
 
         path.forEach {
-            node = node.children[it]
+            node = node?.children?.getOrNull(it)
+
+            if (node == null) return@forEach
         }
 
         return node

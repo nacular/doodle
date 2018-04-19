@@ -7,11 +7,11 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
-import com.nectar.doodle.utils.HorizontalAlignment
+import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
-import com.nectar.doodle.utils.VerticalAlignment
+import com.nectar.doodle.utils.VerticalAlignment.Middle
 
 /**
  * Created by Nicholas Eddy on 11/10/17.
@@ -42,8 +42,8 @@ abstract class Button protected constructor(
     var renderer: Renderer<Button>? = null
 
     var iconTextSpacing     = 4.0
-    var verticalAlignment   = VerticalAlignment.Center
-    var horizontalAlignment = HorizontalAlignment.Center
+    var verticalAlignment   = Middle
+    var horizontalAlignment = Center
 
 //    var iconAnchor: Anchor?
 //        get() = mIconAnchor

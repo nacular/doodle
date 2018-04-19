@@ -33,10 +33,7 @@ typealias ListModel<T>    = com.nectar.doodle.controls.list.Model<T>
 typealias SpinnerModel<T> = com.nectar.doodle.controls.spinner.Model<T>
 
 @Suppress("UNCHECKED_CAST")
-class BasicTheme(
-        private val labelFactory: LabelFactory,
-        private val textMetrics : TextMetrics
-): Theme {
+class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics): Theme {
 
     private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor)}
 

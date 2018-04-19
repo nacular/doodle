@@ -243,30 +243,31 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun collapse(path: Path<Int>) = collapse(setOf(path))
 
     fun collapse(paths: Set<Path<Int>>) {
-        val pathList = paths.filterTo(mutableListOf()) { it.depth > 0 && expanded(it) }.apply { sortBy { it.bottom } }
-//        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.reversed())
+        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedBy { it.bottom }
+        var empty    = true
 
-        if (pathList.isNotEmpty()) {
-            expandedPaths -= pathList
+//        println("collapse pathList: ${pathList.joinToString(", ")}")
 
-            children.batch {
-                // TODO: Only insert paths with fully expanded ancestors (including those in this given set)
-                pathList.first { visible(it) }.let {
-                    val index   = update(this, it)
-                    val numRows = numRows
+        children.batch {
+            pathList.firstOrNull { visible(it) }?.let {
+                expandedPaths -= pathList
+                empty          = false
+                val index      = update(this, it)
+                val numRows    = numRows
 
-                    (index until numRows).asSequence().mapNotNull { pathFromRow(it) }.forEach {
-                        updateRecursively(this, it)
-                    }
+                (index until numRows).asSequence().mapNotNull { pathFromRow(it) }.forEach {
+                    updateRecursively(this, it)
+                }
 
-                    // Remove old children
-                    (numRows until size).forEach {
-                        removeAt(numRows)
-                        rowToPath.remove(it)//?.let { pathToRow.remove(it) }
-                    }
+                // Remove old children
+                (numRows until size).forEach {
+                    removeAt(numRows)
+                    rowToPath.remove(it)//?.let { pathToRow.remove(it) }
                 }
             }
+        }
 
+        if (!empty) {
             (collapsed as ExpansionObserversImpl)(pathList.toSet())
         }
     }

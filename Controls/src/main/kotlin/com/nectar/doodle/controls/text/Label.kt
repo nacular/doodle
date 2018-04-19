@@ -14,7 +14,7 @@ import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right
 import com.nectar.doodle.utils.VerticalAlignment
 import com.nectar.doodle.utils.VerticalAlignment.Bottom
-import com.nectar.doodle.utils.VerticalAlignment.Center
+import com.nectar.doodle.utils.VerticalAlignment.Middle
 import com.nectar.doodle.utils.VerticalAlignment.Top
 import com.nectar.doodle.utils.observable
 
@@ -22,12 +22,12 @@ import com.nectar.doodle.utils.observable
 interface LabelFactory {
     operator fun invoke(
             styledText         : StyledText          = StyledText(""),
-            verticalAlignment  : VerticalAlignment   = Center,
+            verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Label
 
     operator fun invoke(
             text               : String,
-            verticalAlignment  : VerticalAlignment   = Center,
+            verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center) = this(StyledText(text), verticalAlignment, horizontalAlignment)
 }
 
@@ -41,7 +41,7 @@ class LabelFactoryImpl(private val textMetrics: TextMetrics): LabelFactory {
 class Label internal constructor(
         private val textMetrics        : TextMetrics,
                     styledText         : StyledText          = StyledText(""),
-                    verticalAlignment  : VerticalAlignment   = Center,
+                    verticalAlignment  : VerticalAlignment   = Middle,
                     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Gizmo() {
 
     var fitText = true
@@ -108,7 +108,7 @@ class Label internal constructor(
     override fun render(canvas: Canvas) {
         val y = when (verticalAlignment) {
             Top    -> 0.0
-            Center -> (height - textSize.height) / 2
+            Middle -> (height - textSize.height) / 2
             Bottom ->  height - textSize.height
         }
 

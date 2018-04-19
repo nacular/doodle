@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.dom.BorderStyle.None
-import com.nectar.doodle.dom.BoxSizing
+import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.Display.Inline
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
@@ -34,8 +34,12 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
-import com.nectar.doodle.utils.HorizontalAlignment
-import com.nectar.doodle.utils.VerticalAlignment
+import com.nectar.doodle.utils.HorizontalAlignment.Center
+import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.HorizontalAlignment.Right
+import com.nectar.doodle.utils.VerticalAlignment.Bottom
+import com.nectar.doodle.utils.VerticalAlignment.Middle
+import com.nectar.doodle.utils.VerticalAlignment.Top
 import org.w3c.dom.HTMLElement
 import kotlin.math.max
 import kotlin.math.min
@@ -125,7 +129,7 @@ class NativeButton internal constructor(
     private val glassPanelElement : HTMLElement
     private val nativeEventHandler: NativeEventHandler
 
-    private val buttonElement    = htmlFactory.createButton().apply {
+    private val buttonElement = htmlFactory.createButton().apply {
         style.setFont         (null )
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
@@ -160,14 +164,14 @@ class NativeButton internal constructor(
         }
 
         glassPanelElement = htmlFactory.create<HTMLElement>().apply {
-            style.setTop            (0.0             )
-            style.setLeft           (0.0             )
-            style.setOpacity        (0f              )
-            style.setPosition       (Absolute        )
-            style.setBoxSizing      (BoxSizing.Border)
-            style.setWidthPercent   (100.0           )
-            style.setHeightPercent  (100.0           )
-            style.setBackgroundColor(Color.red       )
+            style.setTop            (0.0      )
+            style.setLeft           (0.0      )
+            style.setOpacity        (0f       )
+            style.setPosition       (Absolute )
+            style.setBoxSizing      (Border   )
+            style.setWidthPercent   (100.0    )
+            style.setHeightPercent  (100.0    )
+            style.setBackgroundColor(Color.red)
 
             buttonElement.add(this)
         }
@@ -207,17 +211,17 @@ class NativeButton internal constructor(
 //        }
 
         val x = when (button.horizontalAlignment) {
-            HorizontalAlignment.Right  -> maxX
-            HorizontalAlignment.Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2)) - border.left
-            HorizontalAlignment.Left   -> minX
-            else                       -> minX
+            Right  -> maxX
+            Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2)) - border.left
+            Left   -> minX
+            else   -> minX
         }
 
         val y = when (button.verticalAlignment) {
-            VerticalAlignment.Bottom  -> maxY
-            VerticalAlignment.Center  -> max(minY, min(maxY, (bounds.height - stringSize.height) / 2)) - border.top
-            VerticalAlignment.Top     -> minY
-            else                      -> minY
+            Bottom -> maxY
+            Middle -> max(minY, min(maxY, (bounds.height - stringSize.height) / 2)) - border.top
+            Top    -> minY
+            else   -> minY
         }
 
         return Point(x, y)
@@ -264,10 +268,10 @@ class NativeButton internal constructor(
 //            }
 
             y = when (button.verticalAlignment) {
-                VerticalAlignment.Bottom -> button.height - insets.bottom
-                VerticalAlignment.Center -> max(insets.top, min(button.height - insets.bottom, (button.height - it.size.height) / 2))
-                VerticalAlignment.Top    -> insets.top
-                else                     -> insets.top
+                Bottom -> button.height - insets.bottom
+                Middle -> max(insets.top, min(button.height - insets.bottom, (button.height - it.size.height) / 2))
+                Top    -> insets.top
+                else   -> insets.top
             }
         }
 
@@ -277,16 +281,12 @@ class NativeButton internal constructor(
     private val icon: Icon<Button>? get() {
         val model = button.model
 
-        return if (!button.enabled) {
-            if (model.selected) button.disabledSelectedIcon else button.disabledIcon
-        } else if (model.pressed) {
-            button.pressedIcon
-        } else if (model.selected) {
-            button.selectedIcon
-        } else if (model.mouseOver) {
-            if (model.selected) button.mouseOverSelectedIcon else button.mouseOverIcon
-        } else {
-            button.icon
+        return when {
+            !button.enabled -> if (model.selected) button.disabledSelectedIcon else button.disabledIcon
+            model.pressed   -> button.pressedIcon
+            model.selected  -> button.selectedIcon
+            model.mouseOver -> if (model.selected) button.mouseOverSelectedIcon else button.mouseOverIcon
+            else            -> button.icon
         }
     }
 
