@@ -453,6 +453,8 @@ abstract class Gizmo protected constructor() {
         }
     }
 
+    protected open fun addedToDisplay() {}
+
     /**
      * This method is invoked by the Render system when the Gizmo is first added
      * to the Display hierarchy.  This happens when the Gizmo itself,
@@ -460,18 +462,18 @@ abstract class Gizmo protected constructor() {
      */
     internal fun addedToDisplay(renderManager: RenderManager) {
         this.renderManager = renderManager
+
+        addedToDisplay()
     }
 
-    protected open fun removedFromDisplay() {
-        renderManager = null
-    }
+    protected open fun removedFromDisplay() {}
 
     /**
      * This method is invoked by the Render system when the Gizmo is no longer
      * included in the Display hierarchy.  This happens when the Gizmo itself,
      * or one of it's ancestors is removed from the Display.
      */
-    internal fun removedFromDisplay_() = removedFromDisplay()
+    internal fun removedFromDisplay_() = removedFromDisplay().also { renderManager = null }
 
     /**
      * Gets the tool-tip text based on the given mouse event. Override this method to provide

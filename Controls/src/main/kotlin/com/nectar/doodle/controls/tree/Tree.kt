@@ -84,9 +84,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     insertAll(this)
                 }
 
-//                children.clear()
-//                insertAll(children)
-
                 layout = InternalLayout(it.positioner)
             }
         }
@@ -153,7 +150,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     }
 
                     when (direction) {
-                        Up   -> if (index <= 0           || y >= bounds.y                ) return index else --index
+                        Up   -> if (index <= 0           || y >  bounds.y                ) return index else --index
                         else -> if (index >= numRows - 1 || y <= bounds.y + bounds.height) return index else ++index
                     }
                 }
@@ -191,6 +188,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                 if (visible(it)) {
                     pathsToUpdate -= it
+
+                    this@Tree.height += heightBelow(it)
 
                     update        (this, it)
                     insertChildren(this, it)
@@ -246,11 +245,13 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     updateRecursively(this, it)
                 }
 
+                // FIXME: This should be handled better
+                this@Tree.height = heightBelow(Path()) + insets.run { top + bottom }
 
                 // Remove old children
                 (numRows until size).forEach {
                     removeAt(numRows)
-                    rowToPath.remove(it)//?.let { pathToRow.remove(it) }
+                    rowToPath.remove(it) //?.let { pathToRow.remove(it) }
                 }
             }
         }
@@ -334,6 +335,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun insertAll(children: MutableList<Gizmo>) {
         val root = Path<Int>()
 
+        // FIXME: Move to better location; handle rootVisible case
+        height = heightBelow(root) + insets.run { top + bottom }
+
         when (rootVisible) {
             true -> insert        (children, root)
             else -> insertChildren(children, root)
@@ -360,11 +364,15 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                     val expanded = path in expandedPaths
 
-                    it(this, value, path, index).also {
-                        when {
-                            index > children.lastIndex -> children.add(it)
-                            else                       -> children.add(index /*- firstVisibleRow*/, it)
+                    if (children.size <= lastVisibleRow - firstVisibleRow) {
+                        it(this, value, path, index).also {
+                            when {
+                                index > children.lastIndex -> children.add(it)
+                                else                       -> children.add(index /*- firstVisibleRow*/, it)
+                            }
                         }
+                    } else {
+                        update(children, path, index)
                     }
 
                     ++result
@@ -391,7 +399,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         var result = index
 
         // Path index not found (could be invisible)
-        if (index >= 0) {
+        if (/*index >= 0 */index in firstVisibleRow .. lastVisibleRow) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
                     rowToPath[index] = path
@@ -485,6 +493,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return numRows
     }
 
+    private fun heightBelow(path: Path<Int>): Double {
+        return rowsBelow(path) * (model[path]?.let { itemPositioner?.invoke(this, it, path, 0)?.height } ?: 0.0)
+    }
+
     private fun expandAllBelowPath(path: Path<Int>, expandedPath: MutableSet<Path<Int>> = mutableSetOf()) {
         if (model.isLeaf(path)) {
             return
@@ -556,9 +568,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                 }
             }
 
-            if (this@Tree.fitContent) {
-                this@Tree.height = y + insets.bottom
-            }
+//            if (this@Tree.fitContent) {
+//                this@Tree.height = y + insets.bottom
+//            }
         }
     }
 }
