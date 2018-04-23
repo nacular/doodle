@@ -8,13 +8,9 @@ import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
 import com.nectar.doodle.controls.tree.Tree.Direction.Down
 import com.nectar.doodle.controls.tree.Tree.Direction.Up
 import com.nectar.doodle.core.Gizmo
-import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.DisplayRectEvent
-import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.SetPool
-import kotlin.math.max
 import kotlin.math.min
 
 
@@ -50,7 +46,7 @@ private object PathComparator: Comparator<Path<Int>> {
 
 private val DepthComparator = Comparator<Path<Int>> { a, b -> b.depth - a.depth }
 
-class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null, private val fitContent: Boolean = true): Gizmo() {
+class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null): Gizmo() {
     var rootVisible = false
         set(new) {
             if (field == new) { return }
@@ -83,8 +79,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     clear()
                     insertAll(this)
                 }
-
-                layout = InternalLayout(it.positioner)
             }
         }
 
@@ -101,21 +95,15 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     private var firstVisibleRow = 0
     private var lastVisibleRow  = 0
-//        set(new) {
-//            if (new == field) return
-//
-//            field = new
-//
-//            pathFromRow(field)?.let {
-//                insert(children, it, field)
-//            }
-//        }
 
     init {
         monitorsDisplayRect = true
     }
 
     override fun handleDisplayRectEvent(event: DisplayRectEvent) {
+        val oldFirst = firstVisibleRow
+        val oldLast  = lastVisibleRow
+
         event.apply {
             firstVisibleRow = new.y.let { when {
                 it > old.y -> findRowAt(it, firstVisibleRow, Down)
@@ -133,6 +121,18 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         println("display rect changed: ${event.new}")
 
         println("first: $firstVisibleRow, last: $lastVisibleRow")
+
+        if (oldFirst > firstVisibleRow) {
+            (firstVisibleRow .. oldFirst).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                insert(children, path, index)
+            }
+        }
+
+        if (oldLast < lastVisibleRow) {
+            (oldLast .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                insert(children, path, index)
+            }
+        }
     }
 
     private enum class Direction {
@@ -230,8 +230,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     fun collapse(paths: Set<Path<Int>>) {
         val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator))
         var empty    = true
-
-//        println("collapse pathList: ${pathList.joinToString(", ")}")
 
         children.batch {
             pathList.firstOrNull { visible(it) }?.let {
@@ -337,11 +335,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
         // FIXME: Move to better location; handle rootVisible case
         height = heightBelow(root) + insets.run { top + bottom }
-
-        when (rootVisible) {
-            true -> insert        (children, root)
-            else -> insertChildren(children, root)
-        }
     }
 
     private fun insertChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
@@ -356,7 +349,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         var result = index
 
         // Path index not found (could be invisible)
-        if (index >= 0 /*index in firstVisibleRow .. lastVisibleRow*/) {
+        if (index >= 0) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
                     rowToPath[index] = path
@@ -368,8 +361,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                         it(this, value, path, index).also {
                             when {
                                 index > children.lastIndex -> children.add(it)
-                                else                       -> children.add(index /*- firstVisibleRow*/, it)
+                                else                       -> children.add(index, it)
                             }
+
+                            layout(it, value, path, index)
                         }
                     } else {
                         update(children, path, index)
@@ -405,8 +400,12 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     rowToPath[index] = path
 //                    pathToRow[path ] = index
 
-                    it(this, value, path, index, children.getOrNull(index)).also {
-                        children[index /*- firstVisibleRow*/] = it
+                    val i = index % children.size
+
+                    it(this, value, path, index, children.getOrNull(i)).also {
+                        children[i] = it
+
+                        layout(it, value, path, index)
                     }
 
                     ++result
@@ -415,6 +414,13 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
 
         return result
+    }
+
+    private fun layout(gizmo: Gizmo, node: T, path: Path<Int>, index: Int) {
+        itemPositioner?.let { position ->
+            gizmo.bounds  = position(this, node, path, index)
+            gizmo.y      += insets.top
+        }
     }
 
     private fun updateRecursively(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
@@ -551,26 +557,5 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
 
         return newPath to newIndex
-    }
-
-    private inner class InternalLayout(private val positioner: ItemPositioner<T>): Layout() {
-        override fun layout(positionable: Positionable) {
-            val insets = positionable.insets
-            var y      = insets.top
-
-            positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
-                this@Tree.rowToPath[index]?.let { path ->
-                    val bounds = positioner(this@Tree, this@Tree[path]!!, path, index)
-
-                    child.bounds = Rectangle(insets.left, y, max(0.0, this@Tree.width - insets.run { left + right }), bounds.height)
-
-                    y += child.height
-                }
-            }
-
-//            if (this@Tree.fitContent) {
-//                this@Tree.height = y + insets.bottom
-//            }
-        }
     }
 }
