@@ -353,6 +353,7 @@ class RenderManagerImplTests {
         val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = gizmo()
 
+        container.layout    = mockk(relaxed = true)
         container.children += child
 
         renderManager(display(container))

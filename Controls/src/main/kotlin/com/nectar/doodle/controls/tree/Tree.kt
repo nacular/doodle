@@ -57,11 +57,12 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
             children.batch {
                 clear()
-                insertAll(this)
+                refreshAll()
             }
         }
 
-    val numRows get() = rowsBelow(Path()) + if(rootVisible) 1 else 0
+    var numRows = 0
+        private set
 
     public override var insets
         get(   ) = super.insets
@@ -77,7 +78,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                 children.batch {
                     clear()
-                    insertAll(this)
+                    refreshAll()
                 }
             }
         }
@@ -93,11 +94,16 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private val rowToPath = mutableMapOf<Int, Path<Int>>()
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
-    private var firstVisibleRow = 0
-    private var lastVisibleRow  = 0
+    private var firstVisibleRow =  0
+    private var lastVisibleRow  = -1
 
     init {
         monitorsDisplayRect = true
+        updateNumRows()
+    }
+
+    override fun render(canvas: Canvas) {
+        renderer?.render(this, canvas)
     }
 
     override fun handleDisplayRectEvent(event: DisplayRectEvent) {
@@ -118,46 +124,21 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             }}
         }
 
-        println("display rect changed: ${event.new}")
+//        println("display rect changed: ${event.new}")
 
-        println("first: $firstVisibleRow, last: $lastVisibleRow")
+//        println("first: $firstVisibleRow, last: $lastVisibleRow")
 
         if (oldFirst > firstVisibleRow) {
-            (firstVisibleRow .. oldFirst).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            (firstVisibleRow until oldFirst).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
 
         if (oldLast < lastVisibleRow) {
-            (oldLast .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            (oldLast + 1 .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
-    }
-
-    private enum class Direction {
-        Up, Down
-    }
-
-    private fun findRowAt(y: Double, nearbyRow: Int, direction: Direction): Int {
-        var index = nearbyRow
-
-        itemPositioner?.let { positioner ->
-            while (true) {
-                pathFromRow(index)?.let { path ->
-                    val bounds = positioner(this, this[path]!!, path, index).let {
-                        it.at(y = it.y + insets.top)
-                    }
-
-                    when (direction) {
-                        Up   -> if (index <= 0           || y >  bounds.y                ) return index else --index
-                        else -> if (index >= numRows - 1 || y <= bounds.y + bounds.height) return index else ++index
-                    }
-                }
-            }
-        }
-
-        return index
     }
 
     operator fun get(path: Path<Int>): T? = model[path]
@@ -186,6 +167,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                 expandedPaths += it
 
+                updateNumRows()
+
                 if (visible(it)) {
                     pathsToUpdate -= it
 
@@ -210,10 +193,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
     }
 
-    override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
-    }
-
     fun expandAll() {
         val pathsToExpand = HashSet<Path<Int>>()
 
@@ -225,8 +204,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     @JvmName("collapseRows") fun collapse(row : Int     ) = collapse(setOf(row))
     @JvmName("collapseRows") fun collapse(rows: Set<Int>) = collapse(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
 
-    fun collapse(path: Path<Int>) = collapse(setOf(path))
-
+    fun collapse(path : Path<Int>     ) = collapse(setOf(path))
     fun collapse(paths: Set<Path<Int>>) {
         val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator))
         var empty    = true
@@ -235,7 +213,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             pathList.firstOrNull { visible(it) }?.let {
                 expandedPaths -= pathList
                 empty          = false
-                val numRows    = numRows
+
+                updateNumRows()
 
                 update(this, it)
 
@@ -261,22 +240,23 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     fun collapseAll() = collapse(expandedPaths)
 
-    fun selected(row: Int) = rowToPath[row]?.let { selected(it) } ?: false
-
-    @JvmName("addSelectionRows"   ) fun addSelection   (rows: Set<Int>) = addSelection   (rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
-    @JvmName("setSelectionRows"   ) fun setSelection   (rows: Set<Int>) = setSelection   (rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
-    @JvmName("removeSelectionRows") fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
-
+    fun selected(row : Int      ) = rowToPath[row]?.let { selected(it) } ?: false
     fun selected(path: Path<Int>) = selectionModel?.contains(path) ?: false
 
+    @JvmName("addSelectionRows")
+    fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
     fun addSelection(paths: Set<Path<Int>>) {
         selectionModel?.addAll(paths)
     }
 
+    @JvmName("setSelectionRows")
+    fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
     fun setSelection(paths: Set<Path<Int>>) {
         selectionModel?.replaceAll(paths)
     }
 
+    @JvmName("removeSelectionRows")
+    fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { rowToPath[it] }.filterNotNull().toSet())
     fun removeSelection(paths: Set<Path<Int>>) {
         selectionModel?.removeAll(paths)
     }
@@ -310,6 +290,35 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
     }
 
+    private enum class Direction {
+        Up, Down
+    }
+
+    private fun updateNumRows() {
+        numRows = rowsBelow(Path()) + if(rootVisible) 1 else 0
+    }
+
+    private fun findRowAt(y: Double, nearbyRow: Int, direction: Direction): Int {
+        return min(numRows - 1, itemPositioner?.rowFor(y) ?: nearbyRow)
+
+//        var index = nearbyRow
+//
+//        itemPositioner?.let { positioner ->
+//            while (true) {
+//                pathFromRow(index)?.let { path ->
+//                    val bounds = positioner(this, this[path]!!, path, index)
+//
+//                    when (direction) {
+//                        Up   -> if (index <= 0           || y >  bounds.y                ) return index else --index
+//                        else -> if (index >= numRows - 1 || y <= bounds.y + bounds.height) return index else ++index
+//                    }
+//                }
+//            }
+//        }
+//
+//        return index
+    }
+
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until model.numChildren(parent)).map { parent + it }
     } ?: emptyList()
@@ -330,7 +339,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return result
     }
 
-    private fun insertAll(children: MutableList<Gizmo>) {
+    private fun refreshAll() {
         val root = Path<Int>()
 
         // FIXME: Move to better location; handle rootVisible case
@@ -394,7 +403,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         var result = index
 
         // Path index not found (could be invisible)
-        if (/*index >= 0 */index in firstVisibleRow .. lastVisibleRow) {
+        if (index in firstVisibleRow .. lastVisibleRow) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
                     rowToPath[index] = path
@@ -417,9 +426,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     }
 
     private fun layout(gizmo: Gizmo, node: T, path: Path<Int>, index: Int) {
-        itemPositioner?.let { position ->
-            gizmo.bounds  = position(this, node, path, index)
-            gizmo.y      += insets.top
+        itemPositioner?.let {
+            gizmo.bounds = it(this, node, path, index)
         }
     }
 
@@ -500,6 +508,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     }
 
     private fun heightBelow(path: Path<Int>): Double {
+        // TODO: move this logic into ItemPositioner
         return rowsBelow(path) * (model[path]?.let { itemPositioner?.invoke(this, it, path, 0)?.height } ?: 0.0)
     }
 

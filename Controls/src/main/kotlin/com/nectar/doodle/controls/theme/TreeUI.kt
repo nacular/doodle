@@ -23,6 +23,7 @@ import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.isEven
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 3/23/18.
@@ -35,6 +36,8 @@ interface TreeUI<T>: Renderer<Tree<T>> {
 
     interface ItemPositioner<T> {
         operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle
+
+        fun rowFor(y: Double): Int
     }
 
     val positioner : ItemPositioner<T>
@@ -43,7 +46,11 @@ interface TreeUI<T>: Renderer<Tree<T>> {
 
 private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> {
     override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle {
-        return Rectangle(0.0, index * height, tree.width, height)
+        return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
+    }
+
+    override fun rowFor(y: Double): Int {
+        return max(0, (y / height).toInt())
     }
 }
 

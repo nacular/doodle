@@ -200,9 +200,6 @@ class RenderManagerImpl(
                 performLayout(it)
 
                 if (checkFrameTime(start)) { println("layout: ${it::class.simpleName ?: it}"); return }
-
-//                if (it in pendingRender) { performRender(it) }
-//                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
         } while (!pendingLayout.isEmpty())
 
@@ -211,7 +208,6 @@ class RenderManagerImpl(
                 performRender(it)
 
                 if (checkFrameTime(start)) { println("render: ${it::class.simpleName ?: it}"); return }
-//                if (it in pendingBoundsChange && it !in neverRendered) { updateGraphicsSurface(it, graphicsDevice[it]) }
             }
         } while (!pendingRender.isEmpty())
 
@@ -454,8 +450,9 @@ class RenderManagerImpl(
             scheduleLayout(gizmo)
         }
 
-        when (parent) {
-            null -> display.layout
+        when {
+            parent         == null                         -> display.layout
+            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(gizmo, graphicsDevice[gizmo])
             else -> scheduleLayout(parent)
         }
 
