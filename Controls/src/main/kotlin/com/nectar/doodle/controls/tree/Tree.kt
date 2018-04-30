@@ -129,13 +129,20 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 //        println("first: $firstVisibleRow, last: $lastVisibleRow")
 
         if (oldFirst > firstVisibleRow) {
-            (firstVisibleRow until oldFirst).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            val end = min(oldFirst, lastVisibleRow)
+
+            (firstVisibleRow until end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
 
         if (oldLast < lastVisibleRow) {
-            (oldLast + 1 .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            val start = when {
+                oldLast > firstVisibleRow -> oldLast + 1
+                else                      -> firstVisibleRow
+            }
+
+            (start .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
@@ -167,8 +174,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                 expandedPaths += it
 
-                updateNumRows()
-
                 if (visible(it)) {
                     pathsToUpdate -= it
 
@@ -184,6 +189,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             pathsToUpdate.forEach {
                 updateRecursively(this, it)
             }
+
+            updateNumRows()
         }
 
         expandedPaths.addAll(paths)
@@ -214,8 +221,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                 expandedPaths -= pathList
                 empty          = false
 
-                updateNumRows()
-
                 update(this, it)
 
                 ancestralSiblingsAfter(it).forEach {
@@ -224,6 +229,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
                 // FIXME: This should be handled better
                 this@Tree.height = heightBelow(Path()) + insets.run { top + bottom }
+
+                updateNumRows()
 
                 // Remove old children
                 (numRows until size).forEach {
