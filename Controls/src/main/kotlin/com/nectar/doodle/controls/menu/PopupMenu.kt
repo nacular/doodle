@@ -14,7 +14,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 class PopupMenu(private val display: Display): Gizmo(), MenuItem {
 
     override val subMenus     = mutableListOf<MenuItem>()
-    override var parentMenu   = null
+    override var parentMenu   = null as MenuItem?
     override var menuSelected = false
         set(new) {
             if (field != new) {
