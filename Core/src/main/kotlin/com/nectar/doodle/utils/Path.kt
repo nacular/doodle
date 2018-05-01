@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.tree
+package com.nectar.doodle.utils
 
 /**
  * Created by Nicholas Eddy on 3/23/18.

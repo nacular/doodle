@@ -10,6 +10,7 @@ import com.nectar.doodle.controls.tree.Tree.Direction.Up
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.DisplayRectEvent
+import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.min
 

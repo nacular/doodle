@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.tree
 import com.nectar.doodle.JsName
 import com.nectar.doodle.controls.theme.TreeUI
 import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
+import com.nectar.doodle.utils.Path
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk

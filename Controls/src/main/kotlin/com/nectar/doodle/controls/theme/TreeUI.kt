@@ -4,7 +4,6 @@ import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
-import com.nectar.doodle.controls.tree.Path
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
@@ -22,6 +21,7 @@ import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
