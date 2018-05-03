@@ -8,7 +8,6 @@ import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.theme.AbstractTreeUI
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo

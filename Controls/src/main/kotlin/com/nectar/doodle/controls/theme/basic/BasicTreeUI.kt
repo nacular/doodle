@@ -1,23 +1,19 @@
-package com.nectar.doodle.controls.theme
+package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
-import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
+import com.nectar.doodle.controls.theme.basic.TreeUI.ItemPositioner
+import com.nectar.doodle.controls.theme.basic.TreeUI.ItemUIGenerator
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.red
-import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.ConstraintLayout
-import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
@@ -46,7 +42,7 @@ interface TreeUI<T>: Renderer<Tree<T>> {
     val uiGenerator: ItemUIGenerator<T>
 }
 
-private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> {
+private class BasicTreeRowPositioner<T>(private val height: Double): ItemPositioner<T> {
     override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle {
         return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
     }
@@ -214,23 +210,22 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
     }
 }
 
-class LabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
+private class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
     override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: Gizmo?): Gizmo = when (current) {
         is TreeRow -> current.apply { update(tree, node, path, index) }
-        else       -> TreeRow(labelFactory, tree, node, path, index)
+        else                                              -> TreeRow(labelFactory, tree, node, path, index)
     }
 }
 
 class AbstractTreeUI<T>(labelFactory: LabelFactory): TreeUI<T> {
-    override val positioner: ItemPositioner<T> = BasicPositioner(20.0)
-
-    override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator(labelFactory)
+    override val positioner : ItemPositioner<T>  = BasicTreeRowPositioner(20.0)
+    override val uiGenerator: ItemUIGenerator<T> = TreeLabelItemUIGenerator(labelFactory)
 
     override fun render(gizmo: Tree<T>, canvas: Canvas) {
-        canvas.rect(gizmo.bounds.atOrigin, Pen(red), ColorBrush(white))
+//        canvas.rect(gizmo.bounds.atOrigin, Pen(red), ColorBrush(white))
     }
 
-    override fun install(gizmo: Tree<T>) {
-        gizmo.insets = Insets(2.0)
-    }
+//    override fun install(gizmo: Tree<T>) {
+//        gizmo.insets = Insets(2.0)
+//    }
 }

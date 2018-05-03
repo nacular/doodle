@@ -7,15 +7,12 @@ import com.nectar.doodle.controls.list.ListRenderer
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color.Companion.gray
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.text.StyledText
@@ -89,14 +86,14 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, pri
     }
 }
 
-class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
+private class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: Gizmo?): Gizmo = when (current) {
         is ListRow<*> -> current.apply { update(list, row, index) }
         else          -> ListRow(textMetrics, list, row, index)
     }
 }
 
-private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> {
+private class BasicListPositioner<T>(private val height: Double): ItemPositioner<T> {
     override fun rowFor(list: List<T, *>, y: Double): Int {
         return max(0, ((y - list.insets.top) / height).toInt())
     }
@@ -107,15 +104,8 @@ private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> 
 }
 
 class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
-    override val positioner: ItemPositioner<T> = BasicPositioner(20.0)
+    override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
+    override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator<T>(textMetrics)
 
-    override val uiGenerator = LabelItemUIGenerator<T>(textMetrics)
-
-    override fun render(gizmo: List<T, *>, canvas: Canvas) {
-        canvas.rect(gizmo.bounds.atOrigin, Pen(gray))
-    }
-
-    override fun install(gizmo: List<T, *>) {
-        gizmo.insets = Insets(2.0)
-    }
+    override fun render(gizmo: List<T, *>, canvas: Canvas) {}
 }
