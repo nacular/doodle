@@ -49,13 +49,6 @@ open class List<T, out M: Model<T>>(
         }
     }
 
-//    var selectionModel = selectionModel
-//        set(new) {
-//            field?.onChanged -= selectionChanged
-//            field = new
-//            field?.onChanged += selectionChanged
-//        }
-
     private var itemUIGenerator: ItemUIGenerator<T>? = null
 
     var renderer: ListRenderer<T>? = null

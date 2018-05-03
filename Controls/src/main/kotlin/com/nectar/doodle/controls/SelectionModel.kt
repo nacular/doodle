@@ -8,10 +8,9 @@ import com.nectar.doodle.utils.SetObserver
  * Created by Nicholas Eddy on 3/19/18.
  */
 interface SelectionModel<T>: Iterable<T> {
-    val size: Int
-
     val first: T?
     val last : T?
+    val size : Int
 
     fun add        (item  : T           ): Boolean
     fun clear      (                    )

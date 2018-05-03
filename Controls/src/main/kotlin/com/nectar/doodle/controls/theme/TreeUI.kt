@@ -19,6 +19,8 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
@@ -37,7 +39,7 @@ interface TreeUI<T>: Renderer<Tree<T>> {
     interface ItemPositioner<T> {
         operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle
 
-        fun rowFor(y: Double): Int
+        fun rowFor(tree: Tree<T>, y: Double): Int
     }
 
     val positioner : ItemPositioner<T>
@@ -49,8 +51,8 @@ private class BasicPositioner<T>(private val height: Double): ItemPositioner<T> 
         return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
     }
 
-    override fun rowFor(y: Double): Int {
-        return max(0, (y / height).toInt())
+    override fun rowFor(tree: Tree<T>, y: Double): Int {
+        return max(0, ((y - tree.insets.top) / height).toInt())
     }
 }
 
@@ -61,7 +63,7 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
 
     private var icon = null as Label?
 
-    private val label = labelFactory("$index" /*node.toString()*/).apply {
+    private val label = labelFactory(node.toString()).apply {
         fitText             = false
         horizontalAlignment = Left
     }
@@ -80,38 +82,31 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
             private var mouseOver = false
 
             override fun mouseEntered(event: MouseEvent) {
-                mouseOver = true
+                mouseOver       = true
                 backgroundColor = backgroundColor?.lighter(0.25f)
             }
 
             override fun mouseExited(event: MouseEvent) {
-                mouseOver = false
+                mouseOver       = false
                 backgroundColor = background
             }
 
             override fun mousePressed(event: MouseEvent) {
                 pressed = true
-                mouseOver = true
             }
 
             override fun mouseReleased(event: MouseEvent) {
                 if (mouseOver && pressed) {
-                    if (!tree.isLeaf(path)) {
-                        when (tree.expanded(path)) {
-                            true -> tree.collapse(path)
-                            else -> tree.expand  (path)
+                    setOf(path).also {
+                        tree.apply {
+                            when {
+                                selected(path)          -> removeSelection(it)
+                                Ctrl in event.modifiers ||
+                                Meta in event.modifiers -> addSelection   (it)
+                                else                    -> setSelection   (it)
+                            }
                         }
                     }
-//                        setOf(index).also {
-//                            tree.apply {
-//                                when {
-//                                    selected(path)          -> removeSelection(it)
-//                                    Ctrl in event.modifiers ||
-//                                    Meta in event.modifiers -> addSelection   (it)
-//                                    else                    -> setSelection   (it)
-//                                }
-//                            }
-//                        }
                 }
                 pressed = false
             }
@@ -136,11 +131,10 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
             constrainIcon(icon)
 
             layout = constraintLayout
-
-            depth = newDepth
+            depth  = newDepth
         }
 
-        when (!tree.isLeaf(path)) {
+        when (!tree.isLeaf(this.path)) {
             true -> {
                 val text = if (tree.expanded(path)) "-" else "+"
 
@@ -151,6 +145,34 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
                     width   = iconWidth
 
                     this@TreeRow.children += this
+
+                    mouseChanged += object: MouseListener {
+                        private var pressed   = false
+                        private var mouseOver = false
+
+                        override fun mouseEntered(event: MouseEvent) {
+                            mouseOver = true
+                        }
+
+                        override fun mouseExited(event: MouseEvent) {
+                            mouseOver = false
+                        }
+
+                        override fun mousePressed(event: MouseEvent) {
+                            pressed   = true
+                            mouseOver = true
+                        }
+
+                        override fun mouseReleased(event: MouseEvent) {
+                            if (mouseOver && pressed) {
+                                when (tree.expanded(this@TreeRow.path)) {
+                                    true -> tree.collapse(this@TreeRow.path)
+                                    else -> tree.expand  (this@TreeRow.path)
+                                }
+                            }
+                            pressed = false
+                        }
+                    }
 
                     constrainIcon(this)
                 }
@@ -165,7 +187,7 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
             }
         }
 
-        label.text = "$index" /*node.toString()*/
+        label.text = node.toString()
 
         background = if (tree.selected(path)) green else lightgray
 

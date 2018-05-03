@@ -5,12 +5,12 @@ import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.theme.TreeUI
 import com.nectar.doodle.controls.theme.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.TreeUI.ItemUIGenerator
-import com.nectar.doodle.controls.tree.Tree.Direction.Down
-import com.nectar.doodle.controls.tree.Tree.Direction.Up
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.DisplayRectEvent
+import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
+import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.min
 
@@ -98,8 +98,21 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private var firstVisibleRow =  0
     private var lastVisibleRow  = -1
 
+    val selectionChanged by lazy { ObservableSet<Tree<T>, T>(this) }
+
+    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
+        children.batch {
+            (added + removed).forEach {
+                update(this, it)
+            }
+        }
+    }
+
     init {
         monitorsDisplayRect = true
+
+        selectionModel?.let { it.changed += selectionChanged_ }
+
         updateNumRows()
     }
 
@@ -113,15 +126,13 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
         event.apply {
             firstVisibleRow = new.y.let { when {
-                it > old.y -> findRowAt(it, firstVisibleRow, Down)
-                it < old.y -> findRowAt(it, firstVisibleRow, Up  )
-                else       -> firstVisibleRow
+                it != old.y -> findRowAt(it, firstVisibleRow)
+                else        -> firstVisibleRow
             }}
 
             lastVisibleRow = (new.y + new.height).let { when {
-                it > old.y + old.height -> findRowAt(it, lastVisibleRow, Down)
-                it < old.y + old.height -> findRowAt(it, lastVisibleRow, Up  )
-                else                    -> lastVisibleRow
+                it != old.y + old.height -> findRowAt(it, lastVisibleRow)
+                else                     -> lastVisibleRow
             }}
         }
 
@@ -214,12 +225,12 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     fun collapse(path : Path<Int>     ) = collapse(setOf(path))
     fun collapse(paths: Set<Path<Int>>) {
-        val pathList = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator))
+        val pathSet = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
         var empty    = true
 
         children.batch {
-            pathList.firstOrNull { visible(it) }?.let {
-                expandedPaths -= pathList
+            pathSet.firstOrNull { visible(it) }?.let {
+                expandedPaths -= pathSet
                 empty          = false
 
                 update(this, it)
@@ -242,7 +253,23 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
 
         if (!empty) {
-            (collapsed as ExpansionObserversImpl)(pathList.toSet())
+
+            // Move selection up to first visible ancestor
+            // TODO: Make this more efficient?  Add batch to SelectionModel?
+            selectionModel?.forEach {
+                if (!visible(it)) {
+                    var parent = it.parent
+
+                    while (parent != null && !visible(parent)) {
+                        parent = parent.parent
+                    }
+
+                    removeSelection(setOf(it))
+                    parent?.let { addSelection(setOf(it)) }
+                }
+            }
+
+            (collapsed as ExpansionObserversImpl)(pathSet)
         }
     }
 
@@ -306,25 +333,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         numRows = rowsBelow(Path()) + if(rootVisible) 1 else 0
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int, direction: Direction): Int {
-        return min(numRows - 1, itemPositioner?.rowFor(y) ?: nearbyRow)
-
-//        var index = nearbyRow
-//
-//        itemPositioner?.let { positioner ->
-//            while (true) {
-//                pathFromRow(index)?.let { path ->
-//                    val bounds = positioner(this, this[path]!!, path, index)
-//
-//                    when (direction) {
-//                        Up   -> if (index <= 0           || y >  bounds.y                ) return index else --index
-//                        else -> if (index >= numRows - 1 || y <= bounds.y + bounds.height) return index else ++index
-//                    }
-//                }
-//            }
-//        }
-//
-//        return index
+    private fun findRowAt(y: Double, nearbyRow: Int): Int {
+        return min(numRows - 1, itemPositioner?.rowFor(this, y) ?: nearbyRow)
     }
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
