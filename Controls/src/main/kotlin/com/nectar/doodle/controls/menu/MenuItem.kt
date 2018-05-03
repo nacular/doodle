@@ -7,8 +7,8 @@ import com.nectar.doodle.utils.PropertyObservers
  */
 interface MenuItem {
     // TODO: Naming is sub-optimal here b/c of collisions w/ Gizmo
-    val parentMenu      : MenuItem?
-    val subMenus        : List<MenuItem>
-    var menuSelected    : Boolean
+    val parentMenu     : MenuItem?
+    val subMenus       : Iterator<MenuItem>
+    var menuSelected   : Boolean
     val selectedChanged: PropertyObservers<MenuItem, Boolean>
 }

@@ -47,6 +47,7 @@ import com.nectar.doodle.system.impl.KeyInputServiceStrategyWebkit
 import com.nectar.doodle.system.impl.MouseInputServiceImpl
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy
 import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
+import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.theme.ThemeManager
 import com.nectar.doodle.theme.ThemeManagerImpl
 import com.nectar.doodle.time.Timer
@@ -119,5 +120,6 @@ val keyboardModule = Module {
 }
 
 val themeModule = Module {
-    bind<ThemeManager>() with singleton { ThemeManagerImpl(instance()) }
+    bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
+    bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
 }

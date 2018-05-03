@@ -36,13 +36,13 @@ class MenuSelectionManagerImpl: MenuSelectionManager {
             }
 
             field?.let {
-                for (i in it.depth downTo diffStart) {
+                for (i in it.depth - 1 downTo diffStart) {
                     it[i].menuSelected = false
                 }
             }
 
             if (new != null) {
-                for (i in diffStart..new.depth) {
+                for (i in diffStart until new.depth) {
                     new[i].menuSelected = true
                 }
             }

@@ -1,8 +1,10 @@
 package com.nectar.doodle.controls.menu
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.PushButton
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
@@ -13,7 +15,7 @@ class Menu(
         private val menuSelectionManager: MenuSelectionManager,
                     popupFactory        : PopupFactory,
                     text                : String = "",
-                    icon                : Icon<Button>? = null): Button(text, icon), MenuItem {
+                    icon                : Icon<Button>? = null): PushButton(text, icon), MenuItem {
 
     private val popup = popupFactory()
 
@@ -24,7 +26,15 @@ class Menu(
         set(new) { selected = new }
 
     init {
+        model.fired += {
+            menuSelectionManager.selectedPath = getPath(popup)
+        }
+
         model.selectedChanged += { _,old,new ->
+            if (new) {
+                menuSelectionManager.selectedPath = getPath(popup)
+            }
+
             (selectedChanged as PropertyObserversImpl<MenuItem, Boolean>)(old, new)
         }
 
@@ -51,11 +61,18 @@ class Menu(
         }
     }
 
-    fun add(aMenu: Menu) {
-        popup.add(aMenu)
+    fun add(menu: Menu) = popup.add(menu)
+}
+
+private fun getPath(menuItem: MenuItem): Path<MenuItem> {
+    var item = menuItem as MenuItem?
+    val list = ArrayList<MenuItem>()
+
+    while (item != null) {
+        list.add(0, item)
+
+        item = item.parentMenu
     }
 
-    override fun click() {
-//        menuSelectionManager.select(Utilities.getPath(popup))
-    }
+    return Path(list)
 }

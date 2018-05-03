@@ -6,7 +6,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
-import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.SetObserver
 import kotlin.math.min
@@ -186,8 +185,8 @@ open class List<T, out M: Model<T>>(
     }
 }
 
-class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
-    private val modelChanged: ListObserver<MutableModel<T>, T> = { _,removed,added,_ ->
+open class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
+    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         itemsRemoved(removed)
         itemsAdded  (added  )
     }
