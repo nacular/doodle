@@ -44,7 +44,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
             is SplitPanel    -> it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) }
             is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory)
             is Button        -> it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) }
-            is List<*, *>    -> (it as List<Any, ListModel<Any>>).renderer = BasicListUI<Any>(labelFactory).apply { install(it) }
+            is List<*, *>    -> (it as List<Any, ListModel<Any>>).renderer = BasicListUI<Any>(textMetrics).apply { install(it) }
             is Tree<*>       -> (it as Tree<Any>).renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) }
         }
     }

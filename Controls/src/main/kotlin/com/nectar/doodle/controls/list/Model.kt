@@ -27,7 +27,7 @@ open class ListModel<T>(private val list: kotlin.collections.List<T>): Model<T> 
 
     override val size = list.size
 
-    override fun get     (index: Int             ) = list.get     (index                              )
+    override fun get     (index: Int             ) = list[index]
     override fun section (range: ClosedRange<Int>) = list.subList (range.start, range.endInclusive + 1)
     override fun contains(value: T               ) = list.contains(value                              )
     override fun iterator(                       ) = list.iterator(                                   )

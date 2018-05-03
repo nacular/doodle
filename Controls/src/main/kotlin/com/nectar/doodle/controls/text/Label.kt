@@ -38,7 +38,7 @@ class LabelFactoryImpl(private val textMetrics: TextMetrics): LabelFactory {
             horizontalAlignment: HorizontalAlignment) = Label(textMetrics, styledText, verticalAlignment, horizontalAlignment)
 }
 
-class Label internal constructor(
+open class Label internal constructor(
         private val textMetrics        : TextMetrics,
                     styledText         : StyledText          = StyledText(""),
                     verticalAlignment  : VerticalAlignment   = Middle,

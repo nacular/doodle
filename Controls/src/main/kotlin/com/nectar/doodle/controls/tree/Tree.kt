@@ -160,6 +160,12 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
     }
 
+    override fun removedFromDisplay() {
+        selectionModel?.let { it.changed -= selectionChanged_ }
+
+        super.removedFromDisplay()
+    }
+
     operator fun get(path: Path<Int>): T? = model[path]
 
     operator fun get(row: Int): T? = rowToPath[row]?.let { model[it] }
@@ -323,10 +329,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
             parent = parent.parent
         }
-    }
-
-    private enum class Direction {
-        Up, Down
     }
 
     private fun updateNumRows() {

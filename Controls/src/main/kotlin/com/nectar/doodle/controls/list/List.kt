@@ -2,25 +2,26 @@ package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.Gizmo
-import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.SetObserver
-import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
  */
 interface ItemUIGenerator<T> {
-    operator fun invoke(list: List<T, *>, row: T, index: Int, selected: Boolean, hasFocus: Boolean): Gizmo
+    operator fun invoke(list: List<T, *>, row: T, index: Int, current: Gizmo? = null): Gizmo
 }
 
 interface ItemPositioner<T> {
-    operator fun invoke(list: List<T, *>, row: T, index: Int, selected: Boolean, hasFocus: Boolean): Rectangle
+    operator fun invoke(list: List<T, *>, row: T, index: Int): Rectangle
+
+    fun rowFor(list: List<T, *>, y: Double): Int
 }
 
 interface ListRenderer<T>: Renderer<List<T, *>> {
@@ -38,31 +39,32 @@ open class List<T, out M: Model<T>>(
     val selectionChanged = observableSet.changed
 
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
-        itemUIGenerator?.let {
-            added.forEach { index ->
-                children[index] = it(this, model[index], index, selected = true, hasFocus = false)
-            }
-
-            removed.forEach { index ->
-                children[index] = it(this, model[index], index, selected = false, hasFocus = false)
+        children.batch {
+            (added + removed).forEach {
+                update(this, it)
             }
         }
     }
 
     private var itemUIGenerator: ItemUIGenerator<T>? = null
+    private var itemPositioner : ItemPositioner<T>?  = null
+
+    private var firstVisibleRow =  0
+    private var lastVisibleRow  = -1
 
     var renderer: ListRenderer<T>? = null
         set(new) {
             if (new == renderer) { return }
 
             field = new?.also {
+                itemPositioner  = it.positioner
                 itemUIGenerator = it.uiGenerator
 
-                children.clear()
+                children.batch {
+                    clear()
 
-                updateVisibleItems()
-
-                layout = InternalLayout(it.positioner)
+                    height = model.size * (model[0]?.let { itemPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+                }
             }
         }
 
@@ -71,18 +73,12 @@ open class List<T, out M: Model<T>>(
         set(new) { super.insets = new }
 
     init {
+        monitorsDisplayRect = true
+
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 
     operator fun get(index: Int) = model[index]
-
-    private fun updateVisibleItems() {
-        itemUIGenerator?.let {
-            model.forEachIndexed { index, row ->
-                children.add(it(this, row, index, false, false))
-            }
-        }
-    }
 
     override fun render(canvas: Canvas) {
         renderer?.render(this, canvas)
@@ -94,11 +90,92 @@ open class List<T, out M: Model<T>>(
         super.removedFromDisplay()
     }
 
+    override fun handleDisplayRectEvent(event: DisplayRectEvent) {
+        val oldFirst = firstVisibleRow
+        val oldLast  = lastVisibleRow
+
+        event.apply {
+            firstVisibleRow = new.y.let { when {
+                it != old.y -> findRowAt(it, firstVisibleRow)
+                else        -> firstVisibleRow
+            }}
+
+            lastVisibleRow = (new.y + new.height).let { when {
+                it != old.y + old.height -> findRowAt(it, lastVisibleRow)
+                else                     -> lastVisibleRow
+            }}
+        }
+
+        if (oldFirst > firstVisibleRow) {
+            val end = min(oldFirst, lastVisibleRow)
+
+            (firstVisibleRow until end).asSequence().forEach {
+                insert(children, it)
+            }
+        }
+
+        if (oldLast < lastVisibleRow) {
+            val start = when {
+                oldLast > firstVisibleRow -> oldLast + 1
+                else                      -> firstVisibleRow
+            }
+
+            (start .. lastVisibleRow).asSequence().forEach {
+                insert(children, it)
+            }
+        }
+    }
+
     fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
     fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
     fun setSelection   (rows: Set<Int>) { selectionModel?.replaceAll(rows) }
     fun removeSelection(rows: Set<Int>) { selectionModel?.removeAll (rows) }
     fun clearSelection (              ) = selectionModel?.clear     (    )
+
+    private fun layout(gizmo: Gizmo, row: T, index: Int) {
+        itemPositioner?.let {
+            gizmo.bounds = it(this, row, index)
+        }
+    }
+
+    private fun insert(children: kotlin.collections.MutableList<Gizmo>, index: Int) {
+        itemUIGenerator?.let {
+            model[index]?.let { row ->
+                if (children.size <= lastVisibleRow - firstVisibleRow) {
+                    it(this, row, index).also {
+                        when {
+                            index > children.lastIndex -> children.add(it)
+                            else                       -> children.add(index, it)
+                        }
+
+                        layout(it, row, index)
+                    }
+                } else {
+                    update(children, index)
+                }
+            }
+        }
+    }
+
+    private fun update(children: kotlin.collections.MutableList<Gizmo>, index: Int) {
+        if (index in firstVisibleRow .. lastVisibleRow) {
+            itemUIGenerator?.let {
+                model[index]?.let { row ->
+                    val i = index % children.size
+
+                    it(this, row, index, children.getOrNull(i)).also {
+                        children[i] = it
+
+                        layout(it, row, index)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun findRowAt(y: Double, nearbyRow: Int): Int {
+        return min(model.size - 1, itemPositioner?.rowFor(this, y) ?: nearbyRow)
+    }
 
     companion object {
         operator fun invoke(progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
@@ -106,25 +183,6 @@ open class List<T, out M: Model<T>>(
 
         operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
                 List(ListModel(values), selectionModel, fitContent)
-    }
-
-    private inner class InternalLayout(private val positioner: ItemPositioner<T>): Layout() {
-        override fun layout(positionable: Positionable) {
-            val insets = positionable.insets
-            var y      = insets.top
-
-            positionable.children.asSequence().filter { it.visible }.forEachIndexed { index, child ->
-                val bounds = positioner(this@List, this@List[index], index, this@List.selected(index), child.hasFocus)
-
-                child.bounds = Rectangle(insets.left, y, max(0.0, this@List.width - insets.run { left + right }), bounds.height)
-
-                y += child.height
-            }
-
-            if (this@List.fitContent) {
-                this@List.height = y + insets.bottom
-            }
-        }
     }
 }
 
