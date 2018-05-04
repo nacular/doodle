@@ -37,6 +37,7 @@ open class List<T, out M: Model<T>>(
 
     val selectionChanged = observableSet.changed
 
+    @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         children.batch {
             (added + removed).forEach {
@@ -178,11 +179,23 @@ open class List<T, out M: Model<T>>(
 
     companion object {
         operator fun invoke(progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
-                List(ListModel(progression.toList()), selectionModel, fitContent)
+                List<Int, Model<Int>>(IntProgressionModel(progression), selectionModel, fitContent)
 
-        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
-                List(ListModel(values), selectionModel, fitContent)
+        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, Model<T>> =
+                List<T, Model<T>>(ListModel(values), selectionModel, fitContent)
     }
+}
+
+private class IntProgressionModel(private val progression: IntProgression): Model<Int> {
+    override val size = progression.run { (last - first) / step }
+
+    override fun get(index: Int) = progression.elementAt(index)
+
+    override fun section(range: ClosedRange<Int>) = progression.asSequence().drop(range.start).take(range.endInclusive - range.start).toList()
+
+    override fun contains(value: Int) = progression.contains(value)
+
+    override fun iterator() = progression.iterator()
 }
 
 open class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
@@ -201,6 +214,8 @@ open class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel
     init {
         model.changed += modelChanged
     }
+
+    fun removeAt(index: Int): T = model.removeAt(index)
 
     override fun removedFromDisplay() {
         model.changed -= modelChanged

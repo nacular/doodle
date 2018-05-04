@@ -143,7 +143,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         if (oldFirst > firstVisibleRow) {
             val end = min(oldFirst, lastVisibleRow)
 
-            (firstVisibleRow until end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            (firstVisibleRow until end).asSequence().mapNotNull { (rowToPath[it] ?: pathFromRow(it))?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
@@ -154,7 +154,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                 else                      -> firstVisibleRow
             }
 
-            (start .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            (start .. lastVisibleRow).asSequence().mapNotNull { (rowToPath[it] ?: pathFromRow(it))?.run { it to this } }.forEach { (index, path) ->
                 insert(children, path, index)
             }
         }
@@ -379,9 +379,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
         // Path index not found (could be invisible)
         if (index >= 0) {
+            rowToPath[index] = path
             itemUIGenerator?.let {
                 model[path]?.let { value ->
-                    rowToPath[index] = path
 //                    pathToRow[path ] = index
 
                     val expanded = path in expandedPaths
@@ -422,11 +422,14 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun update(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
+        if (index >= 0) {
+            rowToPath[index] = path
+        }
+
         // Path index not found (could be invisible)
         if (index in firstVisibleRow .. lastVisibleRow) {
             itemUIGenerator?.let {
                 model[path]?.let { value ->
-                    rowToPath[index] = path
 //                    pathToRow[path ] = index
 
                     val i = index % children.size

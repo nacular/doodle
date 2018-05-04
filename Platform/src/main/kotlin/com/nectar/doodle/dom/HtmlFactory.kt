@@ -15,8 +15,9 @@ import kotlin.browser.document
 interface HtmlFactory {
     val body: HTMLElement
 
-    fun <T: HTMLElement> create     (                               ): T
-    fun <T: HTMLElement> create     (tag   : String                 ): T
+    fun <T: HTMLElement> create(           ): T
+    fun <T: HTMLElement> create(tag: String): T
+
     fun createText (text  : String                 ): Text
     fun createImage(source: String                 ): HTMLImageElement
     fun createOrUse(tag   : String, possible: Node?): HTMLElement
@@ -28,7 +29,7 @@ interface HtmlFactory {
 internal class HtmlFactoryImpl: HtmlFactory {
     override val body get() = document.body!!
 
-    override fun <T: HTMLElement> create() = create("div") as T
+    override fun <T: HTMLElement> create() = create("DIV") as T
 
     @Suppress("UNCHECKED_CAST")
     override fun <T: HTMLElement> create(tag: String) = prototypes.getOrPut(tag) {
