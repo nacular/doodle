@@ -135,7 +135,7 @@ class GizmoTests {
         listOf(
             Gizmo::enabled   to Gizmo::enabledChanged,
             Gizmo::visible   to Gizmo::visibilityChanged,
-            Gizmo::focusable to Gizmo::focusableChanged
+            Gizmo::focusable to Gizmo::focusabilityChanged
         ).forEach {
             validateChanged(it.first, it.second)
         }

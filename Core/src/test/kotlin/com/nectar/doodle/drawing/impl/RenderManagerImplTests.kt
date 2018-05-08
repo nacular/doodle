@@ -428,11 +428,11 @@ class RenderManagerImplTests {
         val gizmo = slot<Gizmo>()
         val to    = slot<Int>  ()
 
-        every { this@apply.children                   } returns displayChildren
-        every { this@apply.iterator()                 } answers { displayChildren.iterator() }
+        every { this@apply.children   } returns displayChildren
+        every { this@apply.iterator() } answers { displayChildren.iterator() }
 
         // FIXME: compiler fails to build w/o hint
-        every { sizeChanged as Pool<PropertyObserver<Display, Size>>                          } returns mockk(relaxed = true)
+        every { sizeChanged as Pool<PropertyObserver<Display, Size>> } returns mockk(relaxed = true)
         every { this@apply.ancestorOf(capture(gizmo)) } answers {
             var result = false
 
@@ -466,18 +466,40 @@ class RenderManagerImplTests {
         }
     }}
 
-    private class ManualAnimationScheduler: AnimationScheduler {
-        private class SimpleTask(override var completed: Boolean = false) : Task {
-            override fun cancel() {
-                completed = true
-            }
-        }
+//    private val instantStrand by lazy { mockk<Strand>(relaxed = true).apply {
+//        val iterable = slot<Iterable<() -> Unit>>()
+//
+//        every { this@apply.invoke(capture(iterable)) } answers {
+//            iterable.captured.forEach {
+//                it()
+//            }
+//
+//            val task = mockk<Task>()
+//
+//            every { task.completed } returns true
+//
+//            task
+//        }
+//
+//        val sequence = slot<Sequence<() -> Unit>>()
+//
+//        every { this@apply.invoke(capture(sequence)) } answers { this@apply(sequence.captured.asIterable()) }
+//    } }
 
+    private class SimpleTask(override var completed: Boolean = false) : Task {
+        override fun cancel() {
+            completed = true
+        }
+    }
+
+    private class ManualAnimationScheduler: AnimationScheduler {
         val tasks = mutableListOf<Pair<SimpleTask, (Measure<Time>) -> Unit>>()
 
-        fun runJobs() = tasks.forEach {
-            it.first.completed = true
-            it.second(0.milliseconds)
+        fun runJobs() {
+            tasks.forEach {
+                it.first.completed = true
+                it.second(0.milliseconds)
+            }
         }
 
         override fun onNextFrame(job: (Measure<Time>) -> Unit): Task {
@@ -489,4 +511,24 @@ class RenderManagerImplTests {
         }
     }
 
+//    private class ManualStrand: Strand {
+//        val jobs = mutableListOf<Pair<SimpleTask, Iterable<() -> Unit>>>()
+//
+//        fun runJobs() {
+//            jobs.forEach {
+//                it.first.completed = true
+//                it.second.forEach { it() }
+//            }
+//        }
+//
+//        override operator fun invoke(jobs: Sequence<() -> Unit>): Task = invoke(jobs.asIterable())
+//
+//        override operator fun invoke(jobs: Iterable<() -> Unit>): Task {
+//            val task = SimpleTask()
+//
+//            this.jobs += task to jobs
+//
+//            return task
+//        }
+//    }
 }

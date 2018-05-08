@@ -7,7 +7,7 @@ import com.nectar.doodle.controls.theme.basic.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.basic.TreeUI.ItemUIGenerator
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.event.DisplayRectEvent
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.SetObserver
@@ -100,6 +100,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     val selectionChanged by lazy { ObservableSet<Tree<T>, T>(this) }
 
+    @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         children.batch {
             (added + removed).forEach {
@@ -120,25 +121,23 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         renderer?.render(this, canvas)
     }
 
-    override fun handleDisplayRectEvent(event: DisplayRectEvent) {
+    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         val oldFirst = firstVisibleRow
         val oldLast  = lastVisibleRow
 
-        event.apply {
-            firstVisibleRow = new.y.let { when {
-                it != old.y -> findRowAt(it, firstVisibleRow)
-                else        -> firstVisibleRow
-            }}
+        firstVisibleRow = new.y.let { when {
+            it != old.y -> findRowAt(it, firstVisibleRow)
+            else        -> firstVisibleRow
+        }}
 
-            lastVisibleRow = (new.y + new.height).let { when {
-                it != old.y + old.height -> findRowAt(it, lastVisibleRow)
-                else                     -> lastVisibleRow
-            }}
-        }
+        lastVisibleRow = (new.y + new.height).let { when {
+            it != old.y + old.height -> findRowAt(it, lastVisibleRow)
+            else                     -> lastVisibleRow
+        }}
 
-//        println("display rect changed: ${event.new}")
+//        println("display rect changed: $new")
 
-//        println("first: $firstVisibleRow, last: $lastVisibleRow")
+//        println("numRows: $numRows, first: $firstVisibleRow, last: $lastVisibleRow")
 
         if (oldFirst > firstVisibleRow) {
             val end = min(oldFirst, lastVisibleRow)
@@ -195,6 +194,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                 if (visible(it)) {
                     pathsToUpdate -= it
 
+                    numRows += rowsBelow(it)
+
                     this@Tree.height += heightBelow(it)
 
                     update        (this, it)
@@ -245,10 +246,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
                     updateRecursively(this, it)
                 }
 
+                updateNumRows()
+
                 // FIXME: This should be handled better
                 this@Tree.height = heightBelow(Path()) + insets.run { top + bottom }
-
-                updateNumRows()
 
                 // Remove old children
                 (numRows until size).forEach {
@@ -369,7 +370,14 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun insertChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
-        (0 until model.numChildren(parent)).forEach { index = insert(children, parent + it, index) }
+        (0 until model.numChildren(parent)).forEach {
+            val old = index
+            index   = insert(children, parent + it, index)
+
+            if (old == index) {
+                return@forEach
+            }
+        }
 
         return index
     }
@@ -414,7 +422,14 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private fun updateChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
-        (0 until model.numChildren(parent)).forEach { index = updateRecursively(children, parent + it, index) }
+        (0 until model.numChildren(parent)).forEach {
+            val old = index
+            index   = updateRecursively(children, parent + it, index)
+
+            if (old == index) {
+                return@forEach
+            }
+        }
 
         return index
     }

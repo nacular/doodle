@@ -177,10 +177,10 @@ class NativeButton internal constructor(
         }
 
         button.apply {
-            textChanged      += this@NativeButton.textChanged
-            focusChanged     += this@NativeButton.focusChanged
-            enabledChanged   += this@NativeButton.enabledChanged
-            focusableChanged += this@NativeButton.focusableChanged
+            textChanged         += this@NativeButton.textChanged
+            focusChanged        += this@NativeButton.focusChanged
+            enabledChanged      += this@NativeButton.enabledChanged
+            focusabilityChanged += this@NativeButton.focusableChanged
         }
 
         setIconText()
@@ -188,10 +188,10 @@ class NativeButton internal constructor(
 
     fun discard() {
         button.apply {
-            textChanged      -= this@NativeButton.textChanged
-            focusChanged     -= this@NativeButton.focusChanged
-            enabledChanged   -= this@NativeButton.enabledChanged
-            focusableChanged -= this@NativeButton.focusableChanged
+            textChanged         -= this@NativeButton.textChanged
+            focusChanged        -= this@NativeButton.focusChanged
+            enabledChanged      -= this@NativeButton.enabledChanged
+            focusabilityChanged -= this@NativeButton.focusableChanged
         }
     }
 

@@ -134,15 +134,15 @@ class FocusManagerImpl(private val display: Display): FocusManager {
     }
 
     private fun startMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged    += focusabilityChanged
-        gizmo.focusableChanged  += focusabilityChanged
-        gizmo.visibilityChanged += focusabilityChanged
+        gizmo.enabledChanged      += focusabilityChanged
+        gizmo.focusabilityChanged += focusabilityChanged
+        gizmo.visibilityChanged   += focusabilityChanged
     }
 
     private fun stopMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged    -= focusabilityChanged
-        gizmo.focusableChanged  -= focusabilityChanged
-        gizmo.visibilityChanged -= focusabilityChanged
+        gizmo.enabledChanged      -= focusabilityChanged
+        gizmo.focusabilityChanged -= focusabilityChanged
+        gizmo.visibilityChanged   -= focusabilityChanged
     }
 
     private val focusabilityChanged: (Gizmo, Boolean, Boolean) -> Unit = { gizmo,_,_ -> moveFocusForward(gizmo) }

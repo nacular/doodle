@@ -6,7 +6,6 @@ import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.RenderManager
-import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.scheduler.AnimationScheduler
@@ -27,6 +26,8 @@ private object AncestorComparator: Comparator<Gizmo> {
         else            ->  0
     }
 }
+
+private val frameDuration = 1000.milliseconds / 60
 
 @Suppress("PrivatePropertyName")
 class RenderManagerImpl(
@@ -181,13 +182,22 @@ class RenderManagerImpl(
     }
 
     private fun prepareRender(gizmo: Gizmo, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !gizmo.bounds.empty) && gizmo in gizmos && display ancestorOf gizmo).ifTrue {
-        dirtyGizmos  += gizmo
+        dirtyGizmos   += gizmo
         pendingRender += gizmo
     }
 
+    // TODO: Can this be used w/o creating copies?
+//    private fun onPaint() {
+//        strand (
+//            pendingLayout.map {{ performLayout(it) }} +
+//            pendingRender.map {{ performRender(it) }} +
+//            pendingBoundsChange.filterNot { it in neverRendered }.map {{ updateGraphicsSurface(it, graphicsDevice[it]) }}
+//        )
+//    }
+
     private fun checkFrameTime(start: Measure<Time>) = (timer.now - start).let {
-        (it >= 16.milliseconds).ifTrue {
-            println("++paint time: $it")
+        (it >= frameDuration).ifTrue {
+//            println("++paint time: $it")
             schedulePaint()
         }
     }
@@ -199,7 +209,7 @@ class RenderManagerImpl(
             pendingLayout.firstOrNull()?.let {
                 performLayout(it)
 
-                if (checkFrameTime(start)) { println("layout: ${it::class.simpleName ?: it}"); return }
+                if (checkFrameTime(start)) { /*println("layout: ${it::class.simpleName ?: it}");*/ return }
             }
         } while (!pendingLayout.isEmpty())
 
@@ -207,7 +217,7 @@ class RenderManagerImpl(
             pendingRender.firstOrNull()?.let {
                 performRender(it)
 
-                if (checkFrameTime(start)) { println("render: ${it::class.simpleName ?: it}"); return }
+                if (checkFrameTime(start)) { /*println("render: ${it::class.simpleName ?: it}");*/ return }
             }
         } while (!pendingRender.isEmpty())
 
@@ -215,7 +225,7 @@ class RenderManagerImpl(
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
 
-                if (checkFrameTime(start)) { println("bounds change: ${it::class.simpleName ?: it}"); return }
+                if (checkFrameTime(start)) { /*println("bounds change: ${it::class.simpleName ?: it}");*/ return }
             }
         }
 
@@ -545,7 +555,7 @@ class RenderManagerImpl(
 
     private fun notifyDisplayRectChange(gizmo: Gizmo, old: Rectangle, new: Rectangle) {
         if (old != new) {
-            gizmo.handleDisplayRectEvent_(DisplayRectEvent(gizmo, old, new))
+            gizmo.handleDisplayRectEvent_(old, new)
         }
     }
 

@@ -78,21 +78,21 @@ class NativeTextField(
         }
 
         textField.apply {
-            textChanged      += textChanged_
-            focusChanged     += focusChanged_
-            enabledChanged   += enabledChanged_
-            focusableChanged += focusableChanged_
-            selectionChanged += selectionChanged_
+            textChanged         += textChanged_
+            focusChanged        += focusChanged_
+            enabledChanged      += enabledChanged_
+            selectionChanged    += selectionChanged_
+            focusabilityChanged += focusableChanged_
         }
     }
 
     fun discard() {
         textField.apply {
-            textChanged      -= textChanged_
-            focusChanged     -= focusChanged_
-            enabledChanged   -= enabledChanged_
-            focusableChanged -= focusableChanged_
-            selectionChanged -= selectionChanged_
+            textChanged         -= textChanged_
+            focusChanged        -= focusChanged_
+            enabledChanged      -= enabledChanged_
+            selectionChanged    -= selectionChanged_
+            focusabilityChanged -= focusableChanged_
         }
     }
 
