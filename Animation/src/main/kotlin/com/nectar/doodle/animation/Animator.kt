@@ -13,18 +13,22 @@ import com.nectar.doodle.units.milliseconds
 interface Listener {
     class ChangeEvent(val property: AnimatableProperty, val old: Measure<Length>, val new: Measure<Length>)
 
-    fun cancelled(animation: Animation) {}
-    fun completed(animation: Animation) {}
+    fun cancelled(animator: Animator) {}
+    fun completed(animator: Animator) {}
 
-    fun changed(animation: Animation, properties: Map<AnimatableProperty, ChangeEvent>) {}
+    fun changed(animator: Animator, properties: Map<AnimatableProperty, ChangeEvent>) {}
+}
+
+interface InitialPropertyTransition {
+    infix fun using(transition: Transition): PropertyTransitions
 }
 
 interface PropertyTransitions {
     infix fun then(transition: Transition): PropertyTransitions
 }
 
-interface Animation {
-    infix fun of(property: AnimatableProperty): PropertyTransitions
+interface Animator {
+    operator fun invoke(property: AnimatableProperty): InitialPropertyTransition
 
     fun schedule(after: Measure<Time> = 0.milliseconds)
     fun cancel  ()

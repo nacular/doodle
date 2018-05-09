@@ -7,6 +7,7 @@ import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
@@ -55,7 +56,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 //}
 
 
-class PopupMenu(private val display: Display): MutableList<MenuItem>(MutableListModel(), SingleItemSelectionModel()), MenuItem {
+class PopupMenu(strand: Strand, private val display: Display): MutableList<MenuItem>(strand, MutableListModel(), SingleItemSelectionModel()), MenuItem {
 
     override val subMenus get() = model.iterator()
     override var parentMenu     = null as MenuItem?

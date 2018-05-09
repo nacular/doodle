@@ -1,12 +1,12 @@
 package com.nectar.doodle.animation.impl
 
 import com.nectar.doodle.animation.AnimatableProperty
-import com.nectar.doodle.animation.Animation
+import com.nectar.doodle.animation.Animator
+import com.nectar.doodle.animation.InitialPropertyTransition
 import com.nectar.doodle.animation.Listener
 import com.nectar.doodle.animation.Moment
 import com.nectar.doodle.animation.PropertyTransitions
 import com.nectar.doodle.animation.transition.Transition
-import com.nectar.doodle.units.pixels_second
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
@@ -14,11 +14,20 @@ import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
+import com.nectar.doodle.units.pixels_second
 
 
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
+
+private class InitialPropertyTransitionImpl(private val property: InternalProperty): InitialPropertyTransition {
+    override infix fun using(transition: Transition): PropertyTransitions {
+        property.add(transition)
+
+        return PropertyTransitionsImpl(property)
+    }
+}
 
 private class PropertyTransitionsImpl(private val property: InternalProperty): PropertyTransitions {
     override infix fun then(transition: Transition): PropertyTransitions {
@@ -27,17 +36,17 @@ private class PropertyTransitionsImpl(private val property: InternalProperty): P
     }
 }
 
-class AnimationImpl(
+class AnimatorImpl(
         private val timer             : Timer,
         private val scheduler         : Scheduler,
-        private val animationScheduler: AnimationScheduler): Animation {
+        private val animationScheduler: AnimationScheduler): Animator {
 
     private var task        = null as Task?
     private var startTime   = 0.milliseconds
     private val transitions = mutableMapOf<AnimatableProperty, InternalProperty>()
     private val listeners   = mutableSetOf<Listener>()
 
-    override infix fun of(property: AnimatableProperty): PropertyTransitions = PropertyTransitionsImpl(transitions.getOrPut(property) { InternalProperty(property) })
+    override operator fun invoke(property: AnimatableProperty): InitialPropertyTransition = InitialPropertyTransitionImpl(transitions.getOrPut(property) { InternalProperty(property) })
 
     override fun schedule(after: Measure<Time>) {
         if (task?.completed == false) {

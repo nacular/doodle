@@ -3,8 +3,8 @@ package com.nectar.doodle.controls.list
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.event.DisplayRectEvent
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.SetObserver
@@ -29,6 +29,7 @@ interface ListRenderer<T>: Renderer<List<T, *>> {
 }
 
 open class List<T, out M: Model<T>>(
+        private        val strand        : Strand,
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true): Gizmo() {
@@ -90,28 +91,26 @@ open class List<T, out M: Model<T>>(
         super.removedFromDisplay()
     }
 
-    override fun handleDisplayRectEvent(event: DisplayRectEvent) {
+    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         val oldFirst = firstVisibleRow
         val oldLast  = lastVisibleRow
 
-        event.apply {
-            firstVisibleRow = new.y.let { when {
-                it != old.y -> findRowAt(it, firstVisibleRow)
-                else        -> firstVisibleRow
-            }}
+        firstVisibleRow = new.y.let { when {
+            it != old.y -> findRowAt(it, firstVisibleRow)
+            else        -> firstVisibleRow
+        }}
 
-            lastVisibleRow = (new.y + new.height).let { when {
-                it != old.y + old.height -> findRowAt(it, lastVisibleRow)
-                else                     -> lastVisibleRow
-            }}
-        }
+        lastVisibleRow = (new.y + new.height).let { when {
+            it != old.y + old.height -> findRowAt(it, lastVisibleRow)
+            else                     -> lastVisibleRow
+        }}
+
+        var jobs = emptySequence<() -> Unit>()
 
         if (oldFirst > firstVisibleRow) {
             val end = min(oldFirst, lastVisibleRow)
 
-            (firstVisibleRow until end).asSequence().forEach {
-                insert(children, it)
-            }
+            jobs += (firstVisibleRow until end).asSequence().map { { insert(children, it) } }
         }
 
         if (oldLast < lastVisibleRow) {
@@ -120,11 +119,45 @@ open class List<T, out M: Model<T>>(
                 else                      -> firstVisibleRow
             }
 
-            (start .. lastVisibleRow).asSequence().forEach {
-                insert(children, it)
-            }
+            jobs += (start .. lastVisibleRow).asSequence().map { { insert(children, it) } }
         }
+
+        strand(jobs)
     }
+
+//    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+//        val oldFirst = firstVisibleRow
+//        val oldLast  = lastVisibleRow
+//
+//        firstVisibleRow = new.y.let { when {
+//            it != old.y -> findRowAt(it, firstVisibleRow)
+//            else        -> firstVisibleRow
+//        }}
+//
+//        lastVisibleRow = (new.y + new.height).let { when {
+//            it != old.y + old.height -> findRowAt(it, lastVisibleRow)
+//            else                     -> lastVisibleRow
+//        }}
+//
+//        if (oldFirst > firstVisibleRow) {
+//            val end = min(oldFirst, lastVisibleRow)
+//
+//            (firstVisibleRow until end).asSequence().forEach {
+//                insert(children, it)
+//            }
+//        }
+//
+//        if (oldLast < lastVisibleRow) {
+//            val start = when {
+//                oldLast > firstVisibleRow -> oldLast + 1
+//                else                      -> firstVisibleRow
+//            }
+//
+//            (start .. lastVisibleRow).asSequence().forEach {
+//                insert(children, it)
+//            }
+//        }
+//    }
 
     fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
     fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
@@ -178,11 +211,11 @@ open class List<T, out M: Model<T>>(
     }
 
     companion object {
-        operator fun invoke(progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
-                List<Int, Model<Int>>(IntProgressionModel(progression), selectionModel, fitContent)
+        operator fun invoke(strand: Strand, progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
+                List<Int, Model<Int>>(strand, IntProgressionModel(progression), selectionModel, fitContent)
 
-        operator fun <T> invoke(values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, Model<T>> =
-                List<T, Model<T>>(ListModel(values), selectionModel, fitContent)
+        operator fun <T> invoke(strand: Strand, values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, Model<T>> =
+                List<T, Model<T>>(strand, ListModel(values), selectionModel, fitContent)
     }
 }
 
@@ -198,7 +231,7 @@ private class IntProgressionModel(private val progression: IntProgression): Mode
     override fun iterator() = progression.iterator()
 }
 
-open class MutableList<T>(model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(model, selectionModel) {
+open class MutableList<T>(strand: Strand, model: MutableModel<T>, selectionModel: SelectionModel<Int>): List<T, MutableModel<T>>(strand, model, selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         itemsRemoved(removed)
         itemsAdded  (added  )

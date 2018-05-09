@@ -23,3 +23,9 @@ interface Scheduler {
 interface AnimationScheduler {
     fun onNextFrame(job: (Measure<Time>) -> Unit): Task
 }
+
+// TODO: Move to a better location
+interface Strand {
+    operator fun invoke(jobs: Sequence<() -> Unit>): Task
+    operator fun invoke(jobs: Iterable<() -> Unit>): Task
+}

@@ -36,8 +36,10 @@ import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
+import com.nectar.doodle.scheduler.impl.StrandImpl
 import com.nectar.doodle.system.KeyInputService
 import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
@@ -64,6 +66,7 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
         bind<SystemStyler>() with instance  ( SystemStylerImpl() )
 
         bind<Timer>             () with singleton { PerformanceTimer      (                           ) }
+        bind<Strand>            () with singleton { StrandImpl            (instance(), instance()     ) }
         bind<Display>           () with singleton { DisplayImpl           (instance(), document.body!!) }
         bind<Scheduler>         () with singleton { SchedulerImpl         (                           ) }
         bind<HtmlFactory>       () with singleton { HtmlFactoryImpl       (                           ) }

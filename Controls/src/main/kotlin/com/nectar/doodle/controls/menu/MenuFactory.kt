@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.menu
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.scheduler.Strand
 
 /**
  * Created by Nicholas Eddy on 4/30/18.
@@ -11,8 +12,8 @@ interface PopupFactory {
     operator fun invoke(): PopupMenu
 }
 
-class PopupFactoryImpl(private val display: Display): PopupFactory {
-    override fun invoke() = PopupMenu(display)
+class PopupFactoryImpl(private val strand: Strand, private val display: Display): PopupFactory {
+    override fun invoke() = PopupMenu(strand, display)
 }
 
 interface MenuFactory {
