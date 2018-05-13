@@ -1,17 +1,16 @@
 package com.nectar.doodle.animation.transition
 
 import com.nectar.doodle.animation.Moment
-import com.nectar.doodle.units.Length
 import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.MeasureRatio
 import com.nectar.doodle.units.Time
-import com.nectar.doodle.units.pixels_second
 import com.nectar.doodle.units.seconds
 
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class SmoothStop(private val endValue: Measure<Length>): Transition {
-    override fun value(initialState: Moment, timeOffset: Measure<Time>): Moment {
+class SmoothStop<T>(private val endValue: Measure<T>): Transition<T> {
+    override fun value(initialState: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
 //        val acceleration = -(initialState.velocity * initialState.velocity) / ((endValue - initialState.position) * 2)
 
 //        if (timeOffset >= duration(initialState, acceleration)) {
@@ -24,11 +23,11 @@ class SmoothStop(private val endValue: Measure<Length>): Transition {
                 initialState.velocity /*+ acceleration * timeOffset*/)
     }
 
-    override fun duration(initialState: Moment) = 0.seconds //duration(initialState, -initialState.velocity.pow(2.0) / ((endValue - initialState.position) * 2))
+    override fun duration(initialState: Moment<T>) = 0.seconds //duration(initialState, -initialState.velocity.pow(2.0) / ((endValue - initialState.position) * 2))
 
-    private fun duration(initialState: Moment, acceleration: Double): Measure<Time> {
+    private fun duration(initialState: Moment<T>, acceleration: Double): Measure<Time> {
         return 0.seconds //-initialState.velocity / acceleration
     }
 
-    override fun endState(initialState: Moment) = Moment(endValue, 0.pixels_second)
+    override fun endState(initialState: Moment<T>) = Moment<T>(endValue, MeasureRatio.zero())
 }

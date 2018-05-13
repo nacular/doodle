@@ -4,8 +4,7 @@ import com.nectar.doodle.core.Gizmo
 
 
 /**
- * This interface defines the way focus moves over the children of
- * a Gizmo.
+ * This interface defines the way focus moves over the children of a Gizmo.
  */
 
 interface FocusTraversalPolicy {
@@ -19,20 +18,20 @@ interface FocusTraversalPolicy {
     /**
      * Returns the next item in a Gizmo based on the given Gizmo.
      *
-     * @param  gizmo The Gizmo
+     * @param  within The Gizmo
      * @param  from  The current Gizmo
      * @return       The next item to gain focus
      */
-    fun next(gizmo: Gizmo, from: Gizmo?): Gizmo
+    fun next(within: Gizmo, from: Gizmo?): Gizmo?
 
     /**
      * Returns the previous item in a Gizmo based on the given Gizmo.
      *
-     * @param  gizmo The Gizmo
+     * @param  within The Gizmo
      * @param  from  The current Gizmo
      * @return       The previous item to gain focus
      */
-    fun previous(gizmo: Gizmo, from: Gizmo?): Gizmo
+    fun previous(within: Gizmo, from: Gizmo?): Gizmo?
 
     /**
      * Returns the last item in a Gizmo that should receive focus.
@@ -40,7 +39,7 @@ interface FocusTraversalPolicy {
      * @param  within The Gizmo
      * @return        The last item to gain focus
      */
-    fun last(within: Gizmo): Gizmo
+    fun last(within: Gizmo): Gizmo?
 
     /**
      * Returns the first item in a Gizmo that should receive focus.
@@ -48,7 +47,7 @@ interface FocusTraversalPolicy {
      * @param  within The Gizmo
      * @return        The first item to gain focus
      */
-    fun first(within: Gizmo): Gizmo
+    fun first(within: Gizmo): Gizmo?
 
     /**
      * Returns the item in a Gizmo that should receive focus by default.
@@ -56,5 +55,5 @@ interface FocusTraversalPolicy {
      * @param  within The Gizmo
      * @return        The item to gain focus by default
      */
-    fun default(within: Gizmo): Gizmo
+    fun default(within: Gizmo): Gizmo?
 }

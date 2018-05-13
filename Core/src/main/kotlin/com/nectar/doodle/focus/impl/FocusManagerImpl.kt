@@ -6,6 +6,7 @@ import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.event.FocusEvent.Type.Gained
 import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
@@ -19,7 +20,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
  * Created by Nicholas Eddy on 3/2/18.
  */
 
-class FocusManagerImpl(private val display: Display): FocusManager {
+class FocusManagerImpl(private val display: Display, private val defaultFocusTraversalPolicy: () -> FocusTraversalPolicy?): FocusManager {
 
     private val ancestors = mutableListOf<Gizmo>()
 
@@ -29,11 +30,19 @@ class FocusManagerImpl(private val display: Display): FocusManager {
     override var focusCycleRoot: Gizmo? = null
         private set
 
+    override val focusChanged: PropertyObservers<FocusManager, Gizmo?> by lazy { PropertyObserversImpl<FocusManager, Gizmo?>(this) }
+
     override fun focusable(gizmo: Gizmo) = gizmo.run { focusable && enabled && visible }
 
     override fun requestFocus(gizmo: Gizmo) = requestFocusInternal(gizmo)
 
     override fun clearFocus() = requestFocusInternal(null)
+
+    override fun moveFocusForward (           ) = moveFocus(null, Forward )
+    override fun moveFocusForward (from: Gizmo) = moveFocus(from, Forward )
+    override fun moveFocusBackward(from: Gizmo) = moveFocus(from, Backward)
+    override fun moveFocusUpward  (from: Gizmo) = moveFocus(from, Upward  )
+    override fun moveFocusDownward(from: Gizmo) = moveFocus(from, Downward)
 
     private fun requestFocusInternal(gizmo: Gizmo?) {
         if (focusOwner != gizmo && (gizmo == null || focusable(gizmo))) {
@@ -56,7 +65,7 @@ class FocusManagerImpl(private val display: Display): FocusManager {
             focusOwner?.let { focusOwner ->
                 focusOwner.handleFocusEvent(FocusEvent(focusOwner, Gained, oldFocusOwner))
 
-                focusCycleRoot = focusOwner.focusCycleRoot
+                focusCycleRoot = focusOwner.focusCycleRoot_
 
                 startMonitorProperties(focusOwner)
 
@@ -69,32 +78,22 @@ class FocusManagerImpl(private val display: Display): FocusManager {
         }
     }
 
-    override fun moveFocusForward (           ) = moveFocus(null, Forward )
-    override fun moveFocusForward (from: Gizmo) = moveFocus(from, Forward )
-    override fun moveFocusBackward(from: Gizmo) = moveFocus(from, Backward)
-    override fun moveFocusUpward  (from: Gizmo) = moveFocus(from, Upward  )
-    override fun moveFocusDownward(from: Gizmo) = moveFocus(from, Downward)
-
-    override val focusChanged: PropertyObservers<FocusManager, Gizmo?> by lazy { PropertyObserversImpl<FocusManager, Gizmo?>(this) }
-
     private fun moveFocus(gizmo: Gizmo?, traversalType: TraversalType) {
-        var focusGizmo: Gizmo? = gizmo ?: focusOwner
+        var focusGizmo = gizmo ?: focusOwner
 
-        val focusCycleRoot = focusGizmo?.focusCycleRoot
-        val policy         = focusCycleRoot?.focusTraversalPolicy
+        val focusCycleRoot = focusGizmo?.focusCycleRoot_
+        val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy()
 
-        if (policy != null) {
+        if (focusCycleRoot != null && policy != null) {
             when (traversalType) {
                 Forward  -> focusGizmo = policy.next    (focusCycleRoot, focusGizmo)
                 Backward -> focusGizmo = policy.previous(focusCycleRoot, focusGizmo)
                 Upward   -> focusCycleRoot.let { requestFocus(it) }
-                Downward ->
+                Downward -> if (focusGizmo?.isFocusCycleRoot_ == true) {
+                    focusGizmo = policy.default(focusGizmo)
 
-                    if (focusGizmo?.isFocusCycleRoot == true) {
-                        focusGizmo = policy.default(focusGizmo)
-
-                        requestFocusInternal(gizmo)
-                    }
+                    requestFocusInternal(gizmo)
+                }
             }
         }
 

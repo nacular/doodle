@@ -144,8 +144,14 @@ open class Measure<T>(internal val magnitude: Double, internal val unit: Unit<T>
         if (this === other) return true
         if (other !is Measure<*>) return false
 
-        if (magnitude != other.magnitude) return false
-        if (unit      != other.unit     ) return false
+        val resultUnit = minOf(unit, (other as Measure<T>).unit)
+
+        val a = this `as` resultUnit
+        val b = other `as` resultUnit
+
+
+        if (a.magnitude != b.magnitude) return false
+//        if (unit      != other.unit     ) return false
 
         return true
     }
@@ -154,6 +160,12 @@ open class Measure<T>(internal val magnitude: Double, internal val unit: Unit<T>
         var result = magnitude.hashCode()
         result = 31 * result + unit.hashCode()
         return result
+    }
+
+    companion object {
+        fun <T> zero(): Measure<T> {
+            return Measure(0.0, Unit(""))
+        }
     }
 }
 
@@ -273,6 +285,12 @@ open class MeasureRatio<N, D>(internal val magnitude: Double, internal val unit:
         var result = magnitude.hashCode()
         result = 31 * result + unit.hashCode()
         return result
+    }
+
+    companion object {
+        fun <N, D> zero(): MeasureRatio<N, D> {
+            return MeasureRatio(0.0, UnitRatio(Unit(""), Unit("")))
+        }
     }
 }
 

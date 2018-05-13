@@ -1,6 +1,5 @@
 package com.nectar.doodle.animation.impl
 
-import com.nectar.doodle.animation.AnimatableProperty
 import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.animation.InitialPropertyTransition
 import com.nectar.doodle.animation.Listener
@@ -12,41 +11,41 @@ import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
+import com.nectar.doodle.units.MeasureRatio
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
-import com.nectar.doodle.units.pixels_second
 
 
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
 
-private class InitialPropertyTransitionImpl(private val property: InternalProperty): InitialPropertyTransition {
-    override infix fun using(transition: Transition): PropertyTransitions {
+private class InitialPropertyTransitionImpl<T>(private val property: InternalProperty<*, T>): InitialPropertyTransition<T> {
+    override infix fun using(transition: Transition<T>): PropertyTransitions<T> {
         property.add(transition)
 
         return PropertyTransitionsImpl(property)
     }
 }
 
-private class PropertyTransitionsImpl(private val property: InternalProperty): PropertyTransitions {
-    override infix fun then(transition: Transition): PropertyTransitions {
+private class PropertyTransitionsImpl<T>(private val property: InternalProperty<*, T>): PropertyTransitions<T> {
+    override infix fun then(transition: Transition<T>): PropertyTransitions<T> {
         property.add(transition)
         return this
     }
 }
 
-class AnimatorImpl(
+class AnimatorImpl<P>(
         private val timer             : Timer,
         private val scheduler         : Scheduler,
-        private val animationScheduler: AnimationScheduler): Animator {
+        private val animationScheduler: AnimationScheduler): Animator<P> {
 
     private var task        = null as Task?
     private var startTime   = 0.milliseconds
-    private val transitions = mutableMapOf<AnimatableProperty, InternalProperty>()
-    private val listeners   = mutableSetOf<Listener>()
+    private val transitions = mutableMapOf<P, InternalProperty<P, Any>>()
+    private val listeners   = mutableSetOf<Listener<P>>()
 
-    override operator fun invoke(property: AnimatableProperty): InitialPropertyTransition = InitialPropertyTransitionImpl(transitions.getOrPut(property) { InternalProperty(property) })
+    override fun <T> invoke(property: P, initialValue: Measure<T>): InitialPropertyTransition<T> = InitialPropertyTransitionImpl(transitions.getOrPut(property) { InternalProperty(property, initialValue) as InternalProperty<P, Any> } as InternalProperty<P, T>)
 
     override fun schedule(after: Measure<Time>) {
         if (task?.completed == false) {
@@ -69,14 +68,14 @@ class AnimatorImpl(
         }
     }
 
-    override fun plusAssign (listener: Listener) = listeners.add   (listener).let { Unit }
-    override fun minusAssign(listener: Listener) = listeners.remove(listener).let { Unit }
+    override fun plusAssign (listener: Listener<P>) = listeners.add   (listener).let { Unit }
+    override fun minusAssign(listener: Listener<P>) = listeners.remove(listener).let { Unit }
 
     private fun onAnimate() {
-        val events           = mutableMapOf<AnimatableProperty, Listener.ChangeEvent>()
+        val events           = mutableMapOf<P, Listener.ChangeEvent<P, Any>>()
         val totalElapsedTime =  timer.now - startTime
 
-        var activeTransition: TransitionNode? = null
+        var activeTransition: TransitionNode<Any>? = null
 
         for (property in transitions.values) {
             var momentValue  = property.value
@@ -121,26 +120,26 @@ private class KeyFrame {
     var time: Measure<Time> = 0.milliseconds
 }
 
-private class InternalProperty(val property: AnimatableProperty) {
+private class InternalProperty<P, T>(val property: P, initialValue: Measure<T>) {
 
-    val transitions      = mutableListOf<TransitionNode>()
-    var activeTransition = null as TransitionNode?
+    val transitions      = mutableListOf<TransitionNode<T>>()
+    var activeTransition = null as TransitionNode<T>?
         private set
 
-    var value = Moment(property.initialValue, 0.pixels_second)
+    var value = Moment(initialValue, MeasureRatio.zero())
 
-    fun add(transition: Transition) {
+    fun add(transition: Transition<T>) {
         val start = if (transitions.isEmpty()) KeyFrame() else transitions.last().endTime
         val end   = KeyFrame()
 
         add(transition, start, end)
     }
 
-    fun add(transition: Transition, start: KeyFrame, end: KeyFrame) {
+    fun add(transition: Transition<T>, start: KeyFrame, end: KeyFrame) {
         transitions += TransitionNode(transition, start, end)
     }
 
-    fun nextTransition(initialValue: Moment, elapsedTime: Measure<Time>): TransitionNode? = transitions.firstOrNull()?.let {
+    fun nextTransition(initialValue: Moment<T>, elapsedTime: Measure<Time>): TransitionNode<T>? = transitions.firstOrNull()?.let {
         when (it.shouldStart(elapsedTime)) {
              true -> {
                 it.calculateEndTime(initialValue)
@@ -155,11 +154,11 @@ private class InternalProperty(val property: AnimatableProperty) {
     }
 }
 
-private class TransitionNode(val transition: Transition, val startTime: KeyFrame, var endTime: KeyFrame) {
+private class TransitionNode<T>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
 
     fun shouldStart(elapsedTime: Measure<Time>) = startTime.time <= elapsedTime
 
-    fun calculateEndTime(initialState: Moment) {
+    fun calculateEndTime(initialState: Moment<T>) {
         endTime.time = startTime.time + transition.duration(initialState)
     }
 }

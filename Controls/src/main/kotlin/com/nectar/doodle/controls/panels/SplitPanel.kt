@@ -115,6 +115,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
         val divider = divider
         val resizer = resizer
 
+        // TODO: Handle Orientation
         val fill: (Constraints, Insets) -> Unit = { gizmo, insets ->
             gizmo.top    = gizmo.parent.top    + { insets.top    }
             gizmo.left   = gizmo.parent.left   + { insets.left   }
@@ -143,7 +144,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
         }
 
         layout?.let {
-            // TODO: Handle Orientation
             if (divider != null && first != null) {
                 it.constrain(divider, first) { divider, first ->
                     divider.top    = first.top

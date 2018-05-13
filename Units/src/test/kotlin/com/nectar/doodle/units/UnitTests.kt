@@ -9,6 +9,7 @@ import kotlin.test.expect
  */
 
 private interface Something
+private interface SomethingElse
 
 class UnitTests {
     @Test
@@ -53,17 +54,42 @@ class UnitTests {
 
 class MeasureTests {
     @Test
+    @JsName("zeroWorks")
+    fun `zero works`() {
+        val unitA = Unit<Something>("a", 10.0)
+        val unitB = Unit<Something>("b",  1.0)
+
+        val zero     = Measure.zero<Something>()
+        val measureA = Measure(10.0, unitA)
+        val measureB = Measure(10.0, unitB)
+        val measureC = Measure( 0.0, unitB)
+        val measureD = Measure( 0.0, unitA)
+
+        expect(true,  "$measureA > $zero"     ) { measureA  > zero     }
+        expect(true,  "$measureB > $zero"     ) { measureB  > zero     }
+        expect(true,  "$measureC == $zero"    ) { measureC == zero     }
+//        expect(false, "$measureC == $measureD") { measureC == measureD }
+    }
+
+    @Test
     @JsName("comparisonsWork")
     fun `comparisons work`() {
         val unitA = Unit<Something>("a", 10.0)
         val unitB = Unit<Something>("b",  1.0)
+        val unitC = Unit<SomethingElse>("c")
 
         val measureA = Measure(10.0, unitA)
         val measureB = Measure(10.0, unitB)
+        val measureC = Measure(10.0, unitC)
+
+        expect(true,  "$measureA == $measureA" ) { measureA == measureA }
+        expect(true,  "$measureB == $measureB" ) { measureB == measureB }
+        expect(true,  "$measureC == $measureC" ) { measureC == measureC }
 
         expect(true,  "$measureA > $measureB" ) { measureA  > measureB }
         expect(false, "$measureA < $measureB" ) { measureA  < measureB }
         expect(false, "$measureA == $measureB") { measureA == measureB }
+//        expect(false, "$measureB == $measureC") { measureB == measureC }
     }
 
     @Test

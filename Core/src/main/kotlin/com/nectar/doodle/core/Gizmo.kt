@@ -243,25 +243,24 @@ abstract class Gizmo protected constructor() {
         return false
     }
 
-    internal open var isFocusCycleRoot get() = isFocusCycleRoot_
-        set(new) { isFocusCycleRoot_ = new }
+    internal open var isFocusCycleRoot_ get() = isFocusCycleRoot
+        set(new) { isFocusCycleRoot = new }
 
-    protected open var isFocusCycleRoot_ = false
+    protected open var isFocusCycleRoot = false
 
-    internal val focusCycleRoot get() = focusCycleRoot_
-    protected val focusCycleRoot_: Gizmo? = null
-        get() {
-            var result = field
+    internal val focusCycleRoot_ get() = focusCycleRoot
+    protected val focusCycleRoot: Gizmo? get() {
+        var result = parent
 
-            while (result != null && !result.isFocusCycleRoot) {
-                result = result.parent
-            }
-
-            return result
+        while (result != null && !result.isFocusCycleRoot) {
+            result = result.parent
         }
 
-    internal val focusTraversalPolicy get() = focusTraversalPolicy_
-    protected open var focusTraversalPolicy_: FocusTraversalPolicy? = null
+        return result
+    }
+
+    internal val focusTraversalPolicy_ get() = focusTraversalPolicy
+    protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
     // [Performance]
     // No check to prevent setting self as parent since Gizmo is the only place where this method is called from and it already

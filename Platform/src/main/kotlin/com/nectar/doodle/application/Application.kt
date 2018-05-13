@@ -5,6 +5,7 @@ import com.github.salomonbrys.kodein.Kodein.Module
 import com.github.salomonbrys.kodein.erased.bind
 import com.github.salomonbrys.kodein.erased.instance
 import com.github.salomonbrys.kodein.erased.instanceOrNull
+import com.github.salomonbrys.kodein.erased.provider
 import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
@@ -30,10 +31,12 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
+import com.nectar.doodle.focus.impl.FocusTraversalPolicyImpl
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
@@ -106,7 +109,9 @@ val mouseModule = Module {
 }
 
 val focusModule = Module(allowSilentOverride = true) {
-    bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
+    bind<FocusTraversalPolicy>() with provider { FocusTraversalPolicyImpl(instance()) }
+
+    bind<FocusManager>() with singleton { FocusManagerImpl(instance(), instance()) }
 }
 
 val keyboardModule = Module {

@@ -7,8 +7,8 @@ import com.nectar.doodle.units.Time
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
-interface Transition {
-    fun duration(initialState: Moment                           ): Measure<Time>
-    fun value   (initialState: Moment, timeOffset: Measure<Time>): Moment
-    fun endState(initialState: Moment                           ): Moment
+interface Transition<T> {
+    fun duration(initialState: Moment<T>                           ): Measure<Time>
+    fun value   (initialState: Moment<T>, timeOffset: Measure<Time>): Moment<T>
+    fun endState(initialState: Moment<T>                           ): Moment<T>
 }

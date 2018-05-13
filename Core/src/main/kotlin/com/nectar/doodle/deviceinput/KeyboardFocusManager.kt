@@ -76,7 +76,7 @@ class KeyboardFocusManager(
         val upwardKeyEvents   = gizmo[Upward  ] ?: defaultTraversalKeys[Upward  ]
         val forwardKeyEvents  = gizmo[Forward ] ?: defaultTraversalKeys[Forward ]
         val backwardKeyEvents = gizmo[Backward] ?: defaultTraversalKeys[Backward]
-        val downwardKeyEvents = if (gizmo.isFocusCycleRoot) gizmo[Downward] else null
+        val downwardKeyEvents = if (gizmo.isFocusCycleRoot_) gizmo[Downward] else null
 
         if (forwardKeyEvents?.contains(keyState) == true) {
             focusManager.moveFocusForward(gizmo)

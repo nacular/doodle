@@ -13,5 +13,5 @@ class AnimatorFactoryImpl(
         private val scheduler         : Scheduler,
         private val animationScheduler: AnimationScheduler): AnimatorFactory {
 
-    override fun invoke() = AnimatorImpl(timer, scheduler, animationScheduler)
+    override fun <P> invoke() = AnimatorImpl<P>(timer, scheduler, animationScheduler)
 }
