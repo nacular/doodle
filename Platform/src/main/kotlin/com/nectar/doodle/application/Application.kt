@@ -1,12 +1,5 @@
 package com.nectar.doodle.application
 
-import com.github.salomonbrys.kodein.Kodein
-import com.github.salomonbrys.kodein.Kodein.Module
-import com.github.salomonbrys.kodein.erased.bind
-import com.github.salomonbrys.kodein.erased.instance
-import com.github.salomonbrys.kodein.erased.instanceOrNull
-import com.github.salomonbrys.kodein.erased.provider
-import com.github.salomonbrys.kodein.erased.singleton
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
@@ -57,6 +50,13 @@ import com.nectar.doodle.theme.ThemeManager
 import com.nectar.doodle.theme.ThemeManagerImpl
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
+import org.kodein.di.Kodein
+import org.kodein.di.Kodein.Module
+import org.kodein.di.erased.bind
+import org.kodein.di.erased.instance
+import org.kodein.di.erased.instanceOrNull
+import org.kodein.di.erased.provider
+import org.kodein.di.erased.singleton
 import kotlin.browser.document
 
 /**
@@ -65,7 +65,7 @@ import kotlin.browser.document
 abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
     abstract fun run(display: Display)
 
-    val injector = Kodein {
+    val injector = Kodein.direct {
         bind<SystemStyler>() with instance  ( SystemStylerImpl() )
 
         bind<Timer>             () with singleton { PerformanceTimer      (                           ) }
@@ -90,7 +90,7 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
         injector.instanceOrNull<MouseInputManager>   ()
         injector.instanceOrNull<KeyboardFocusManager>()
 
-        run(injector.instance())
+        run(injector.instance<Display>())
     }
 }
 

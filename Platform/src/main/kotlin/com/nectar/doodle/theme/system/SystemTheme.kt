@@ -1,10 +1,10 @@
 package com.nectar.doodle.theme.system
 
-import com.github.salomonbrys.kodein.Kodein.Module
-import com.github.salomonbrys.kodein.erased.bind
-import com.github.salomonbrys.kodein.erased.instance
-import com.github.salomonbrys.kodein.erased.instanceOrNull
-import com.github.salomonbrys.kodein.erased.singleton
+import org.kodein.di.Kodein.Module
+import org.kodein.di.erased.bind
+import org.kodein.di.erased.instance
+import org.kodein.di.erased.instanceOrNull
+import org.kodein.di.erased.singleton
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
