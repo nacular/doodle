@@ -124,7 +124,7 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
             in 180 until 240 -> listOf(0.0,   x,   c)
             in 240 until 300 -> listOf(  x, 0.0,   c)
             in 300 until 360 -> listOf(  c, 0.0,   x)
-            else -> emptyList() // FIXME: Handle case
+            else -> throw IllegalStateException("Invalid HSL Color: $this")
         }
 
         return Color(

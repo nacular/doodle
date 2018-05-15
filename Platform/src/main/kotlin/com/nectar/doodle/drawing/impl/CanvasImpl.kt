@@ -139,11 +139,11 @@ internal class CanvasImpl(
         when {
             text.isEmpty() || !brush.visible -> return
             brush is ColorBrush              -> completeOperation(createWrappedTextGlyph(brush,
-                    text,
-                    font,
-                    point,
-                    leftMargin,
-                    rightMargin))
+                                                                  text,
+                                                                  font,
+                                                                  point,
+                                                                  leftMargin,
+                                                                  rightMargin))
             else                             -> return // TODO IMPLEMENT
         }
     }
@@ -190,34 +190,26 @@ internal class CanvasImpl(
         }
     }
 
-    override fun translate(by: Point, block: Canvas.() -> Unit) {
-        when (by) {
-            Origin -> block()
-            else   -> transform(Identity.translate(by), block)
+    override fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
+        Origin -> block()
+        else   -> transform(Identity.translate(by), block)
+    }
+
+    override fun scale(by: Point, block: Canvas.() -> Unit) = when {
+        by.x == 1.0 && by.y == 1.0 -> block()
+        else                       -> transform(Identity.scale(by), block)
+    }
+
+    override fun scale(around: Point, by: Point, block: Canvas.() -> Unit) = when {
+        by.x == 1.0 && by.y == 1.0 -> block()
+        else                       -> {
+            val point = around - (size / 2.0).run { Point(width, height) }
+
+            transform(Identity.translate(point).scale(by).translate(-point), block)
         }
     }
 
-    override fun scale(by: Point, block: Canvas.() -> Unit) {
-        when {
-            by.x == 1.0 && by.y == 1.0 -> block()
-            else                       -> transform(Identity.scale(by), block)
-        }
-    }
-
-    override fun scale(around: Point, by: Point, block: Canvas.() -> Unit) {
-        when {
-            by.x == 1.0 && by.y == 1.0 -> block()
-            else                       -> {
-                val point = around - (size / 2.0).run { Point(width, height) }
-
-                transform(Identity.translate(point).scale(by).translate(-point), block)
-            }
-        }
-    }
-
-    override fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit) {
-        transform(Identity.rotate(by), block)
-    }
+    override fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit) = transform(Identity.rotate(by), block)
 
     override fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
         val point = around - (size / 2.0).run { Point(width, height) }
@@ -225,21 +217,21 @@ internal class CanvasImpl(
         transform(Identity.translate(point).rotate(by).translate(-point), block)
     }
 
-    override fun flipVertically(block: Canvas.() -> Unit) {
-        scale(Point(1.0, -1.0), block = block)
-    }
+    override fun flipVertically(block: Canvas.() -> Unit) = scale(Point(1.0, -1.0), block = block)
 
-    override fun flipVertically(around: Double, block: Canvas.() -> Unit) {
-        transform(Identity.translate(Point(0.0, around)).scale(1.0, -1.0).translate(Point(0.0, -around)), block)
-    }
+    override fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+            translate(Point(0.0, around)).
+            scale(1.0, -1.0).
+            translate(Point(0.0, -around)),
+            block)
 
-    override fun flipHorizontally(block: Canvas.() -> Unit) {
-        scale(Point(-1.0, 1.0), block = block)
-    }
+    override fun flipHorizontally(block: Canvas.() -> Unit) = scale(Point(-1.0, 1.0), block = block)
 
-    override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) {
-        transform(Identity.translate(Point(around, 0.0)).scale(-1.0, 1.0).translate(Point(-around, 0.0)), block)
-    }
+    override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+            translate(Point(around, 0.0)).
+            scale(-1.0, 1.0).
+            translate(Point(-around, 0.0)),
+            block)
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = subFrame(block) {
         it.style.setTransform(transform)
@@ -291,33 +283,31 @@ internal class CanvasImpl(
         configure(clipRect)
 
         renderRegion   = clipRect
-        renderPosition = clipRect.childAt(0)
+        renderPosition = clipRect.firstChild
 
         apply(block)
 
-        renderRegion = renderRegion.parent as HTMLElement
+        renderRegion   = renderRegion.parent as HTMLElement
         renderPosition = clipRect.nextSibling
     }
 
-    fun addData(elements: List<HTMLElement>, at: Point = Origin) {
-        elements.forEach { element ->
+    fun addData(elements: List<HTMLElement>, at: Point = Origin) = elements.forEach { element ->
 
-            if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
-            if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)
+        if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
+        if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)
 
-            if (renderPosition != null) {
-                renderPosition?.let {
-                    val nextSibling = it.nextSibling
+        if (renderPosition != null) {
+            renderPosition?.let {
+                val nextSibling = it.nextSibling
 
-                    if (element !== it) {
-                        renderRegion.replaceChild(element, it)
-                    }
-
-                    renderPosition = nextSibling
+                if (element !== it) {
+                    renderRegion.replaceChild(element, it)
                 }
-            } else {
-                renderRegion.add(element)
+
+                renderPosition = nextSibling
             }
+        } else {
+            renderRegion.add(element)
         }
     }
 
@@ -350,8 +340,7 @@ internal class CanvasImpl(
 
     private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
         it.style.translate(rectangle.position)
-
-        it.style.setSize(rectangle.size)
+        it.style.setSize  (rectangle.size    )
     }
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }
@@ -422,24 +411,21 @@ internal class CanvasImpl(
         return element
     }
 
-    private fun configure(element: HTMLElement, brush: ColorBrush, position: Point): HTMLElement {
-        element.style.translate(position)
-
-        element.style.setColor  (brush.color        )
-        element.style.setOpacity(brush.color.opacity)
-
-        return element
+    private fun configure(element: HTMLElement, brush: ColorBrush, position: Point): HTMLElement = element.also {
+        it.style.apply {
+            translate (position           )
+            setColor  (brush.color        )
+            setOpacity(brush.color.opacity)
+        }
     }
 
-    private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement {
-        val element = pickImageElement((image as ImageImpl).image, renderPosition)
-
-        element.style.translate      (rectangle.position)
-        element.style.setSize        (rectangle.size    )
-        element.style.setOpacity     (opacity           )
-        element.style.setBorderRadius(radius            )
-
-        return element
+    private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement = pickImageElement((image as ImageImpl).image, renderPosition).also {
+        it.style.apply {
+            translate      (rectangle.position)
+            setSize        (rectangle.size    )
+            setOpacity     (opacity           )
+            setBorderRadius(radius            )
+        }
     }
 
     private fun pickImageElement(image: HTMLImageElement, possible: Node?): HTMLImageElement {

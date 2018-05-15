@@ -7,5 +7,5 @@ enum class BoxOrientation {
     Top,
     Bottom,
     Left,
-    RighT
+    Right
 }

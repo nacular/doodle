@@ -43,9 +43,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return items.size == other.items.size && items == other.items
     }
 
-    override fun iterator() = items.iterator()
-
     override fun hashCode() = hashCode
-
+    override fun iterator() = items.iterator()
     override fun toString() = items.toString()
 }

@@ -90,7 +90,7 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
         injector.instanceOrNull<MouseInputManager>   ()
         injector.instanceOrNull<KeyboardFocusManager>()
 
-        run(injector.instance<Display>())
+        run(injector.instance())
     }
 }
 

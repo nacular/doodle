@@ -35,7 +35,6 @@ class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<
     operator fun invoke(old: T, new: T) = delegate.forEach { it(source, old, new) }
 }
 
-// TODO: Change so only deltas are reported
 class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<S, E>>()

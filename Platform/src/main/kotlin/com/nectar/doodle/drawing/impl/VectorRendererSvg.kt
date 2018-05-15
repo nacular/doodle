@@ -405,32 +405,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
     }
 
-//    private fun createClipRect(aRectangle: Rectangle): ClipRegion {
-//        val aClip = SVGElement.create("clipPath")
-//        val aPathElement = SVGElement.create("path")
-//        val aGroup = createElement("g")
-//
-//        val aPath = SVGPath()
-//
-//        aPath.addPath(aRectangle.position,
-//                Point.create(aRectangle.x + aRectangle.width, aRectangle.y),
-//                Point.create(aRectangle.x + aRectangle.width, aRectangle.y + aRectangle.height),
-//                Point.create(aRectangle.x, aRectangle.y + aRectangle.height))
-//
-//        aPath.close()
-//
-//        aPathElement.setPathData(aPath.get())
-//
-//        val aId = "clip" + sClipId++
-//
-//        aClip.add(aPathElement)
-//        aClip.setId(aId)
-//
-//        aGroup.add(aClip)
-//
-//        return ClipRegion(aGroup, aId)
-//    }
-
     private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName && node.shapeRendering == shapeRendering
 
     private fun completeOperation(element: SVGElement) {
@@ -464,8 +438,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private interface FillHandler {
         fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean
     }
-
-//    private class ClipRegion(val element: SVGElement, val clipId: String)
 
     private object SolidFillHandler: FillHandler {
         override fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {

@@ -3,6 +3,7 @@
 package com.nectar.doodle.dom
 
 import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Font.Weight
@@ -45,21 +46,20 @@ internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "
 
 internal fun rgba(color: Color) = color.run { "rgba($red, $green, $blue, $opacity)" }
 
-internal inline fun Style.setColor  (value: Color ) { color  = rgba(value) }
-internal inline fun Style.setCursor (value: Cursor) { cursor = value.toString() }
+internal inline fun Style.setColor  (value: Color       ) { color   = rgba(value)      }
+internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 
 internal fun Style.setFont(value: Font?) {
-    value?.let {
-        setFontSize(it.size)
-        setFontFamily(it.family)
-        if(it.italic) setFontStyle(FontStyle.Italic)
-        setFontWeight(it.weight)
-
-        return
+    when (value) {
+        null -> font = "inherit"
+        else -> value.also {
+            setFontSize(it.size)
+            setFontFamily(it.family)
+            if(it.italic) setFontStyle(FontStyle.Italic)
+            setFontWeight(it.weight)
+        }
     }
-
-    font = "inherit"
 }
 
 internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value     }
@@ -87,13 +87,13 @@ internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgrou
 internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = "${value}px" }
 internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }
-internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor = color?.let { rgba(it) /*"#${it.hexString}"*/ } ?: "" }
-internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle = style.value }
+internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it) /*"#${it.hexString}"*/ } ?: "" }
+internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle  = style.value }
 
-internal inline fun Style.setBorderTop   (value: Double) {borderTop    = value.toString() }
-internal inline fun Style.setBorderLeft  (value: Double) {borderLeft   = value.toString() }
-internal inline fun Style.setBorderRight (value: Double) {borderRight  = value.toString() }
-internal inline fun Style.setBorderBottom(value: Double) {borderBottom = value.toString() }
+internal inline fun Style.setBorderTop   (value: Double) { borderTop    = value.toString() }
+internal inline fun Style.setBorderLeft  (value: Double) { borderLeft   = value.toString() }
+internal inline fun Style.setBorderRight (value: Double) { borderRight  = value.toString() }
+internal inline fun Style.setBorderBottom(value: Double) { borderBottom = value.toString() }
 
 internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value }
 
@@ -120,9 +120,11 @@ internal inline fun Style.translate(x: Double, y: Double) {
     }
 }
 
-internal fun Style.setTransform(transform: AffineTransform?) = when(transform) {
-    null, AffineTransform.Identity -> this.transform = ""
-    else                           -> transform.run { this@setTransform.transform = "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+internal fun Style.setTransform(transform: AffineTransform?) {
+    this.transform = when (transform) {
+        null, Identity -> ""
+        else           -> transform.run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+    }
 }
 
 internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }

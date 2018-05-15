@@ -73,7 +73,6 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    // FIXME: Portability
     override fun wrapped(text: String, font: Font?, width: Double, indent: Double, possible: HTMLElement?) = create(text, font, possible).also {
         applyWrap(it, indent)
     }
