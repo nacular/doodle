@@ -18,13 +18,12 @@ interface ScrollPanelRenderer: Renderer<ScrollPanel> {
     fun scrollTo(point: Point)
 }
 
-class ScrollPanel(content: Gizmo? = null): Gizmo() {
+open class ScrollPanel(content: Gizmo? = null): Gizmo() {
 
     var content = null as Gizmo?
         set(new) {
             if (new == this) {
-                // FIXME: throw error
-                return
+                throw IllegalArgumentException("ScrollPanel cannot be added to its self")
             }
 
             field?.let {
@@ -54,7 +53,7 @@ class ScrollPanel(content: Gizmo? = null): Gizmo() {
 
     init {
         this.content = content
-        layout = ViewLayout()
+        layout       = ViewLayout()
     }
 
     override fun render(canvas: Canvas) {
@@ -63,8 +62,57 @@ class ScrollPanel(content: Gizmo? = null): Gizmo() {
 
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
+    /**
+     * Scrolls the viewport so the top-left is at point, or as close as possible.
+     *
+     * @param point
+     */
     fun scrollTo(point: Point) {
         renderer?.scrollTo(point)
+    }
+
+    /**
+     * Scrolls the viewport by point.x and and point.y in the x and y directions respectively.
+     *
+     * @param delta
+     */
+    fun scrollBy(delta: Point) = scrollTo(scroll + delta)
+
+    /**
+     * Scrolls the viewport so the given point is visible.
+     *
+     * @param point
+     */
+    fun scrollToVisible(point: Point) = moveToVisible(point)
+
+    /**
+     * Scrolls the viewport so the given rectangle is visible.
+     *
+     * @param rect
+     */
+    fun scrollToVisible(rect: Rectangle) = moveToVisible(rect)
+
+    protected fun moveToVisible(point: Point) {
+        var farSide = scroll.x + width
+
+        val x = when {
+            point.x > farSide -> point.x - farSide
+            else              -> point.x - scroll.x
+        }
+
+        farSide = scroll.y + height
+
+        val y = when {
+            point.y > farSide -> point.y - farSide
+            else              -> point.y - scroll.y
+        }
+
+        scrollBy(Point(x, y))
+    }
+
+    protected fun moveToVisible(rect: Rectangle) {
+        moveToVisible(rect.position)
+        moveToVisible(Point(rect.x + rect.width, rect.y + rect.height))
     }
 
     private fun scrollTo(point: Point, force: Boolean = false) {
@@ -79,41 +127,6 @@ class ScrollPanel(content: Gizmo? = null): Gizmo() {
                 it.position = -newScroll
             }
         }
-    }
-
-    fun scrollBy(point: Point) {
-        scrollTo(scroll + point)
-    }
-
-    fun scrollToVisible(point: Point) {
-        moveToVisible(point)
-    }
-
-    fun scrollToVisible(rect: Rectangle) {
-        moveToVisible(rect)
-    }
-
-    protected fun moveToVisible(point: Point) {
-        var target = scroll.x + width
-
-        val x = when {
-            point.x > target -> point.x - target
-            else             -> point.x
-        }
-
-        target = scroll.y + height
-
-        val y = when {
-            point.y > target -> point.y - target
-            else             -> point.y
-        }
-
-        scrollBy(Point(x, y))
-    }
-
-    protected fun moveToVisible(rect: Rectangle) {
-        moveToVisible(rect.position)
-        moveToVisible(Point(rect.x + rect.width, rect.y + rect.height))
     }
 
     private inner class ViewLayout: Layout() {

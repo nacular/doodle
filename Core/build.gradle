@@ -4,6 +4,7 @@ apply plugin: 'org.jetbrains.dokka'
 dependencies {
     implementation project(':units')
     implementation dep.kotlin_stdlib_common
+    implementation dep.kotlin_reflect
 
     testImplementation project(':testing')
     testImplementation dep.kotlin_test_common

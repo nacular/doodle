@@ -7,8 +7,8 @@ allprojects {
 
     buildscript {
         ext.kotlin_version          = '1.2.41'
-        ext.kotlin_frontend_version = '0.0.27'
-        ext.dokka_version           = '0.9.14'
+        ext.kotlin_frontend_version = '0.0.30'
+        ext.dokka_version           = '0.9.16'
 
         repositories {
             maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }

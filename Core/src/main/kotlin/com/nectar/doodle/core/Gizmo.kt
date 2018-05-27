@@ -51,6 +51,7 @@ private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
  * other parts of an application.
  *
  * @author Nicholas Eddy
+ * @constructor
  */
 @Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
@@ -92,7 +93,7 @@ abstract class Gizmo protected constructor() {
         get() = layout?.idealSize(this, field) ?: field
 
     /**
-     * The current visible [[Rectangle]] for this Gizmo within it's coordinate space.  This accounts for clipping by ancestors,
+     * The current visible [Rectangle] for this Gizmo within it's coordinate space.  This accounts for clipping by ancestors,
      * but NOT cousins (siblings, anywhere in the hierarchy)
      */
     val displayRect get() = renderManager?.displayRect(this) ?: Empty

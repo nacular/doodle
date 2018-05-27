@@ -19,13 +19,7 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var renderer: Renderer<Slider>? = null
 
-    private val modelChanged: (ConfinedValueModel<Double>) -> Unit = {
-        changed_()
-    }
-
-    init {
-        model.changed += modelChanged
-    }
+    var snapToTicks = false
 
     var ticks = 0
         set(new) {
@@ -33,10 +27,6 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
             snapSize = if (field > 0) range.size / field else 0.0
         }
-
-    var snapToTicks = false
-
-    private var snapSize = 0.0
 
     var model =  model
         set(new) {
@@ -57,15 +47,24 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
         get(   ) = model.limits
         set(new) { model.limits = new }
 
+    @Suppress("PrivatePropertyName")
+    private val changed_ by lazy { ChangeObserversImpl(this) }
+
+    val changed: ChangeObservers<Slider> = changed_
+
+    private val modelChanged: (ConfinedValueModel<Double>) -> Unit = {
+        changed_()
+    }
+
+    private var snapSize = 0.0
+
+    init {
+        model.changed += modelChanged
+    }
 
     override fun render(canvas: Canvas) {
         renderer?.render(this, canvas)
     }
 
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
-
-    @Suppress("PrivatePropertyName")
-    private val changed_ = ChangeObserversImpl(this)
-
-    val changed: ChangeObservers<Slider> = changed_
 }

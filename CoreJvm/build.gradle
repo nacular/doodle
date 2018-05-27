@@ -4,7 +4,7 @@ dependencies {
     expectedBy project(':core')
 
     implementation project(':unitsjvm')
-    implementation dep.kotlin_stdlib_jre8
+    implementation dep.kotlin_stdlib_jdk8
 
     testImplementation project(':testingjvm')
     testImplementation dep.junit

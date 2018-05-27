@@ -22,3 +22,5 @@ include 'testingjs'
 
 include 'platform'
 include 'testapp'
+include 'getterfixer'
+
