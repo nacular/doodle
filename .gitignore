@@ -3,3 +3,4 @@
 out/
 build/
 node_modules/
+*.iml
