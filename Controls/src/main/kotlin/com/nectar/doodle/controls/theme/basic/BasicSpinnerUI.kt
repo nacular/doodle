@@ -17,6 +17,8 @@ class BasicSpinnerUI(labelFactory  : LabelFactory,
         private val borderColor    : Color,
         private val backgroundColor: Color): CommonSpinnerUI(Insets(1.0), labelFactory) {
     override fun render(gizmo: Spinner<Any, Model<Any>>, canvas: Canvas) {
-        canvas.rect(gizmo.bounds.atOrigin, Pen(borderColor), ColorBrush(backgroundColor))
+        val penWidth = 1.0
+
+        canvas.rect(gizmo.bounds.atOrigin.inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(backgroundColor))
     }
 }

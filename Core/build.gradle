@@ -15,3 +15,7 @@ dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/javadoc"
 }
+
+compileKotlinCommon {
+    kotlinOptions.freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+}

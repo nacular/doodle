@@ -32,10 +32,4 @@ open class ConfigurableTheme(settings: Set<UIPair<*>>): Theme {
 //            uis[gizmo::class]?.invoke()?.install(gizmo)
         }
     }
-
-    override fun uninstall(display: Display, all: Sequence<Gizmo>) {
-        all.forEach { gizmo ->
-            uis[gizmo::class]?.invoke()?.uninstsall(gizmo)
-        }
-    }
 }

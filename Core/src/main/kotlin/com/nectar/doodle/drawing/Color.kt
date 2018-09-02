@@ -6,54 +6,19 @@ import com.nectar.doodle.units.degrees
 import kotlin.math.abs
 import kotlin.math.round
 
-private fun Int.toHex(): String {
 
-    var i              = this
-    var hash           = ""
-    val alphabet       = "0123456789abcdef"
-    val alphabetLength = alphabet.length
-
-    do {
-        hash  = alphabet[i % alphabetLength] + hash
-        i    /= alphabetLength
-    } while (i > 0)
-
-    return hash
-}
-
-private data class RGB(val red: Int, var green: Int, var blue: Int)
-
-private fun toRgb(hex: Int): RGB {
-    val range = 0..0xffffff
-
-    require(hex in range) { "hex value must be in $range" }
-
-    return RGB(
-            hex and 0xff0000 shr 16,
-            hex and 0x00ff00 shr  8,
-            hex and 0x0000ff)
-}
-
-class Color(
-        val red    : Int,
-        val green  : Int,
-        val blue   : Int,
-        val opacity: Float = 1f) {
+class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
-    constructor(hex: Int, opacity: Float = 1f): this(toRgb(hex), opacity)
+    constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
 
     init {
-        val range = 0..0xff
-
-        require(red     in range) { "red must be in $range"      }
-        require(green   in range) { "green must be in $range"    }
-        require(blue    in range) { "blue must be in $range"     }
-        require(opacity in 0..1 ) { "opacity must be in ${0..1}" }
+        require(opacity in 0..1) { "opacity must be in ${0..1}" }
     }
 
-    private val decimal: Int by lazy { /*((opacity * 255).toInt() shl 32) +*/ (red shl 16) + (green shl 8) + blue }
+    // FIXME: This fails if lazy is used (kotlin bug?)
+    private val decimal: UInt = (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() //by lazy { /*((opacity * 255).toInt() shl 32) +*/ (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
 
     val visible = opacity > 0
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
@@ -64,7 +29,7 @@ class Color(
 
     fun with(opacity: Float) = Color(red, green, blue, opacity)
 
-    val inverted by lazy { Color(0xffffff xor decimal) }
+    val inverted by lazy { Color(0xffffffu xor decimal) }
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -128,9 +93,9 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
         }
 
         return Color(
-                round(255 * (rgb[0] + m)).toInt(),
-                round(255 * (rgb[1] + m)).toInt(),
-                round(255 * (rgb[2] + m)).toInt(),
+                round(0xff * (rgb[0] + m)).toUByte(),
+                round(0xff * (rgb[1] + m)).toUByte(),
+                round(0xff * (rgb[2] + m)).toUByte(),
                 opacity)
     }
 
@@ -158,9 +123,9 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
 
     companion object {
         operator fun invoke(rgb: Color): HslColor {
-            val r     = rgb.red   / 255.0
-            val g     = rgb.green / 255.0
-            val b     = rgb.blue  / 255.0
+            val r     = rgb.red.toFloat()   / 255.0
+            val g     = rgb.green.toFloat() / 255.0
+            val b     = rgb.blue.toFloat()  / 255.0
             val max   = maxOf(r, g, b)
             val min   = minOf(r, g, b)
             val delta = max - min
@@ -180,3 +145,34 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
         }
     }
 }
+
+private fun Double.toUByte() = toInt().toUByte()
+private fun UByte.toFloat () = toInt().toFloat()
+
+private fun UInt.toHex(): String {
+
+    var i              = this
+    var hash           = ""
+    val alphabet       = "0123456789abcdef"
+    val alphabetLength = alphabet.length.toUInt()
+
+    do {
+        hash  = alphabet[(i % alphabetLength).toInt()] + hash
+        i    /= alphabetLength
+    } while (i > 0)
+
+    return hash
+}
+
+private fun UInt.toRgb(): RGB {
+    val range = 0u..0xffffffu
+
+    require(this in range) { "hex value must be in $range" }
+
+    return RGB(
+            (this and 0xff0000 shr 16).toUByte(),
+            (this and 0x00ff00 shr  8).toUByte(),
+            (this and 0x0000ff       ).toUByte())
+}
+
+private data class RGB(val red: UByte, var green: UByte, var blue: UByte)

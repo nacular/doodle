@@ -126,7 +126,7 @@ class TreeTests {
     private fun <T> tree(root: TreeNode<T>, ui: TreeUI<T> = ui()) = Tree(SimpleModel(root)).apply { renderer = ui }
 
     private fun <T> validateGetRow(root: TreeNode<T>, expected: List<T>, block: Tree<T>.() -> Unit = {}) {
-        val tree = tree(root).also{ block(it) }
+        val tree = tree(root).also { block(it) }
 
         expected.forEachIndexed { index, value ->
             expect(value) { tree[index] }

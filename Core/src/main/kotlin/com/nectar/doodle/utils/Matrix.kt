@@ -10,7 +10,7 @@ class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
         private set
 
     init {
-        require(numColumns > 0) { "empty Matrixes are invalid" }
+        require(numColumns > 0) { "empty Matrices are invalid" }
 
         for (row in values.indices) {
             require(values[row].size == numColumns) { "all rows must have the same length" }

@@ -6,7 +6,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.Cursor.Companion.Default
 import com.nectar.doodle.system.SystemMouseEvent
 
 internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractButtonUI(textMetrics) {
@@ -20,7 +20,7 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetr
     override fun install(gizmo: Button) {
         super.install(gizmo)
 
-        gizmo.cursor = Cursor.Default
+        gizmo.cursor = Default
 
 //        if (shouldOverwriteProperty(gizmo.getIdealSize())) {
             gizmo.idealSize = nativePeer.idealSize

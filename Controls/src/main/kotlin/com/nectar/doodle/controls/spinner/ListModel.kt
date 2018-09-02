@@ -22,5 +22,11 @@ open class ListModel<T, out L: List<T>>(protected val values: L): AbstractModel<
 class MutableListModel<T>(values: MutableList<T>): ListModel<T, MutableList<T>>(values), MutableModel<T> {
     override var value
         get(   ) = super.value
-        set(new) { values[index] = new }
+        set(new) {
+            if (new == super.value) { return }
+
+            values[index] = new
+
+            changed_()
+        }
 }

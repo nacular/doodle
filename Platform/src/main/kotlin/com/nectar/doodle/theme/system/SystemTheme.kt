@@ -1,10 +1,5 @@
 package com.nectar.doodle.theme.system
 
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.singleton
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
@@ -23,6 +18,11 @@ import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Theme
+import org.kodein.di.Kodein.Module
+import org.kodein.di.erased.bind
+import org.kodein.di.erased.instance
+import org.kodein.di.erased.instanceOrNull
+import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
 
 /**
@@ -36,19 +36,13 @@ class SystemTheme internal constructor(
 
     override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
         when (it) {
-            is Button      -> it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it)
-            is TextField   -> it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it)
-            is ScrollPanel -> it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it)
+            is Button      -> { it.renderer?.uninstall(it); it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it).apply { install(it) } }
+            is TextField   -> { it.renderer?.uninstall(it); it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it             ).apply { install(it) } }
+            is ScrollPanel -> { it.renderer?.uninstall(it); it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it             ).apply { install(it) } }
         }
     }
 
-    override fun uninstall(display: Display, all: Sequence<Gizmo>) = all.forEach {
-        when (it) {
-            is Button      -> it.renderer?.uninstall(it)
-            is TextField   -> it.renderer?.uninstall(it)
-            is ScrollPanel -> it.renderer?.uninstall(it)
-        }
-    }
+    override fun toString() = this::class.simpleName ?: ""
 }
 
 val systemThemeModule = Module {

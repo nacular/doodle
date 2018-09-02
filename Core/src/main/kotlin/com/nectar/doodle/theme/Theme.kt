@@ -24,14 +24,6 @@ interface Theme {
      * @param all the Gizmos (recursively) within the Display
      */
     fun install(display: Display, all: Sequence<Gizmo>)
-
-    /**
-     * Called whenever a Theme is unset as [ThemeManager.selected].  This allows the theme to unwind updates from any of the [Gizmo]s present in the [Display].
-     *
-     * @param display
-     * @param all the Gizmos (recursively) within the Display
-     */
-    fun uninstall(display: Display, all: Sequence<Gizmo>)
 }
 
 /**
@@ -90,11 +82,7 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
 
     override var selected = null as Theme?
         set(new) {
-            field?.uninstall(display, allGizmos)
-
-            field = new
-
-            field?.install(display, allGizmos)
+            field = new?.apply { install(display, allGizmos) }
         }
 
     override fun update(gizmo: Gizmo) {

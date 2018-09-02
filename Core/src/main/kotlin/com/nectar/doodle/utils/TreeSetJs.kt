@@ -106,14 +106,13 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         minValue(it)
     } ?: from.value
 
-    private fun contains(node: BstNode<E>?, element: E): Boolean = node?.let {
-        when {
-            node.value == element         -> true
-            contains(node.left,  element) -> true
-            contains(node.right, element) -> true
-            else                          -> false
-        }
-    } ?: false
+
+    private fun contains(node: BstNode<E>?, element: E): Boolean = when {
+        node?.value == element         -> true
+        contains(node?.left,  element) -> true
+        contains(node?.right, element) -> true
+        else                           -> false
+    }
 
     protected inner class BstIterator: kotlin.collections.MutableIterator<E> {
         val stack by lazy {

@@ -25,6 +25,7 @@ interface AnimationScheduler {
 }
 
 // TODO: Move to a better location
+// FIXME: Better name
 interface Strand {
     operator fun invoke(jobs: Sequence<() -> Unit>): Task
     operator fun invoke(jobs: Iterable<() -> Unit>): Task

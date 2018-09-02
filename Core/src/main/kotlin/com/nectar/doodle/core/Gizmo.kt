@@ -55,10 +55,6 @@ private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
  */
 @Suppress("FunctionName", "PropertyName")
 abstract class Gizmo protected constructor() {
-
-    /** Name to identify this Gizmo */
-    var name = "" // TODO: Remove?
-
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
 
@@ -379,7 +375,6 @@ abstract class Gizmo protected constructor() {
      */
     fun rerenderNow() = renderManager?.renderNow(this) // TODO: Remove?
 
-
     /**
      * Gets the tool-tip text based on the given mouse event. Override this method to provide
      * multiple tool-tip text values for a single Gizmo.
@@ -435,7 +430,8 @@ abstract class Gizmo protected constructor() {
     /**
      * This is an event invoked on a Gizmo in response to a change in the display rectangle.
      *
-     * @param event The event
+     * @param old the old display rectangle
+     * @param new the new display rectangle
      */
     @Suppress("UNUSED_PARAMETER")
     protected open fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {}

@@ -12,3 +12,7 @@ dependencies {
     testImplementation dep.kotlin_test_common
     testImplementation dep.mockk_common
 }
+
+compileKotlinCommon {
+    kotlinOptions.freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+}

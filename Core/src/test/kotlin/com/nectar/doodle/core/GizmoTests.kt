@@ -46,7 +46,6 @@ class GizmoTests {
                 Gizmo::x                   to 0.0,
                 Gizmo::y                   to 0.0,
                 Gizmo::font                to null,
-                Gizmo::name                to "",
                 Gizmo::size                to Size.Empty,
                 Gizmo::width               to 0.0,
                 Gizmo::parent              to null,
@@ -85,7 +84,6 @@ class GizmoTests {
         validateSetter(Gizmo::x,                   -5.0                            )
         validateSetter(Gizmo::y,                   6.0                             )
         validateSetter(Gizmo::font,                null                            )
-        validateSetter(Gizmo::name,                ""                              )
         validateSetter(Gizmo::size,                Size.Empty                      )
         validateSetter(Gizmo::width,               99.0                            )
         validateSetter(Gizmo::height,              45.0                            )

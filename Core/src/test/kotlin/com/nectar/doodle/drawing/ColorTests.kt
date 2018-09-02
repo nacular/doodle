@@ -21,11 +21,6 @@ class ColorTests {
     @Test @JsName("redNotEqualBlue")
     fun `red != blue`() = expect(false) { red == blue }
 
-    @Test @JsName("invalidComponentsFails")
-    fun `invalid components fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Color(300, 300, 300) }
-    }
-
     @Test @JsName("invalidHexFails")
     fun `invalid hex fails`() {
         assertFailsWith(IllegalArgumentException::class) { Color(0xfffffff) }
@@ -59,7 +54,6 @@ class ColorTests {
     fun `hsl to rgb`() = listOf(Color(0xcccccc) to HslColor(0.degrees, 0f, 0.8f)).forEach {
         expect(it.first, "${it.second} -> ${it.first}") { it.second.toRgb() }
     }
-
 
 //    @Test @JsName("lighter")
 //    fun `lighter`() = listOf(red, green, blue, Color(0x454547), white, black).forEach {

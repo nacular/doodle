@@ -1,8 +1,8 @@
 package com.nectar.doodle.geometry
 
 
-class Polygon(first: Point, second: Point, third: Point, vararg points: Point): Shape {
-    val points: List<Point> = mutableListOf(first) + second + third + points
+class Polygon(first: Point, second: Point, third: Point, vararg remaining: Point): Shape {
+    val points: List<Point> = listOf(first, second, third) + remaining
 
     override val area             : Double    get() = TODO("not implemented")
     override val empty            : Boolean   get() = TODO("not implemented")

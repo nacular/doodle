@@ -44,7 +44,7 @@ internal inline fun Style.setWidthPercent (percent: Double? = null) { width  = p
 internal inline fun Style.setHeightPercent(percent: Double? = null) { height = percent?.let { "$it%" } ?: "" }
 internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "$percent%" }
 
-internal fun rgba(color: Color) = color.run { "rgba($red, $green, $blue, $opacity)" }
+internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)" }
 
 internal inline fun Style.setColor  (value: Color       ) { color   = rgba(value)      }
 internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
@@ -78,7 +78,9 @@ internal inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflo
 internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value }
 
 internal inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
-internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) /*"#${it.hexString}"*/  } ?: ""     }
+
+// FIXME: This broke runtime when it was inline
+internal fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) /*"#${it.hexString}"*/  } ?: ""     }
 
 internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value }
 

@@ -71,6 +71,10 @@ class RenderManagerImpl(
             }
         }
 
+        display.children.forEach {
+            childAdded(null, it)
+        }
+
         display.sizeChanged += { display, _, _ ->
 
             display.doLayout()
@@ -78,7 +82,7 @@ class RenderManagerImpl(
             display.forEach { checkDisplayRectChange(it) }
         }
 
-        display.forEach { recordGizmo(it) }
+        display.forEach { record(it) }
     }
 
     override fun render(gizmo: Gizmo) {
@@ -124,11 +128,11 @@ class RenderManagerImpl(
         return clipRect
     }
 
-    private fun recordGizmo(gizmo: Gizmo) {
+    private fun record(gizmo: Gizmo) {
         if (gizmo !in gizmos) {
             gizmo.parent?.let {
                 if (it !in gizmos) {
-                    recordGizmo(it)
+                    record(it)
                     return
                 }
             }
@@ -149,7 +153,9 @@ class RenderManagerImpl(
 
             gizmos += gizmo
 
-            gizmo.children_.forEach { recordGizmo(it) }
+            themeManager?.update(gizmo)
+
+            gizmo.children_.forEach { record(it) }
 
             scheduleLayout(gizmo)
 
@@ -372,17 +378,11 @@ class RenderManagerImpl(
         removeFromCleanupList(parent, child)
 
         if (child.visible) {
-            handleAddedGizmo(child)
+            record(child)
         } else {
             addedInvisible.add(child)
             child.visibilityChanged += visibilityChanged_
         }
-    }
-
-    private fun handleAddedGizmo(gizmo: Gizmo) {
-        recordGizmo(gizmo)
-
-        themeManager?.update(gizmo)
     }
 
     private fun childRemoved(parent: Gizmo?, child: Gizmo) {
@@ -400,7 +400,7 @@ class RenderManagerImpl(
         val parent = gizmo.parent
 
         if (gizmo in addedInvisible) {
-            handleAddedGizmo(gizmo)
+            record(gizmo)
 
             addedInvisible.remove(gizmo)
         }

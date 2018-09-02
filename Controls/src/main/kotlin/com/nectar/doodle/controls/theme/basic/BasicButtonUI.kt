@@ -21,7 +21,8 @@ class BasicButtonUI(
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
-        private val borderColor        : Color): AbstractButtonUI(textMetrics) {
+        private val borderColor        : Color,
+        private val borderWidth        : Double = 1.0): AbstractButtonUI(textMetrics) {
 
     protected var insets = Insets(4.0)
 
@@ -37,7 +38,7 @@ class BasicButtonUI(
             borderColor = borderColor.lighter()
         }
 
-        val penWidth = if (gizmo.enabled && (model.pressed || model.mouseOver)) 2.0 else 1.0
+        val penWidth = if (gizmo.enabled && (model.pressed || model.mouseOver)) 2 * borderWidth else borderWidth
 
         canvas.rect(Rectangle(size = gizmo.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
 

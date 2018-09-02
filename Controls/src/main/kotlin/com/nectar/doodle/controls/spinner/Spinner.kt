@@ -14,7 +14,7 @@ interface Model<T> {
     val value      : T
     val hasNext    : Boolean
     val hasPrevious: Boolean
-    val changed  : ChangeObservers<Model<T>>
+    val changed    : ChangeObservers<Model<T>>
 }
 
 interface MutableModel<T>: Model<T> {
@@ -54,7 +54,7 @@ open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
     }
 
     @Suppress("PrivatePropertyName")
-    private val changed_ = ChangeObserversImpl(this)
+    private val changed_ by lazy { ChangeObserversImpl(this) }
 
     val changed: ChangeObservers<Spinner<T, M>> = changed_
 
@@ -67,8 +67,8 @@ open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
     }
 
     companion object {
-        operator fun invoke(progression: IntProgression) = Spinner(IntModel(progression))
-        operator fun <T> invoke(values: List<T>) = Spinner(ListModel(values))
+        operator fun invoke(progression: IntProgression) = Spinner(IntModel (progression))
+        operator fun <T> invoke(values: List<T>)         = Spinner(ListModel(values     ))
     }
 }
 
@@ -134,6 +134,6 @@ class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(mod
 //    }
 
     companion object {
-        operator fun <T> invoke(values: MutableList<T>) = MutableSpinner(MutableListModel(values))
+        operator fun <T> invoke(values: MutableList<T> = mutableListOf()) = MutableSpinner(MutableListModel(values))
     }
 }

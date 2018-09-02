@@ -37,6 +37,7 @@ abstract class AbstractButtonUI(
         gizmo.mouseChanged   += this
         gizmo.enabledChanged += enabledChanged
 
+        gizmo.rerender()
         // TODO: Handle changes to the model from other places
     }
 
@@ -205,6 +206,6 @@ abstract class AbstractButtonUI(
         }
     }
 
-    protected open fun mouseChanged(button: Button) = button.rerender()
+    protected open fun mouseChanged  (button: Button) = button.rerender()
     protected open fun enabledChanged(button: Button) = button.rerender()
 }

@@ -16,4 +16,4 @@ class NodeBuilder<T>(var value: T, val children: MutableList<NodeBuilder<T>> = m
     }
 }
 
-fun <T> node(value: T, block: NodeBuilder<T>.() -> Unit = {}) = NodeBuilder(value).also{ block(it) }.treeNode()
+fun <T> node(value: T, block: NodeBuilder<T>.() -> Unit = {}) = NodeBuilder(value).also { block(it) }.treeNode()

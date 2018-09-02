@@ -54,7 +54,7 @@ open class MutableListModel<T>(list: kotlin.collections.MutableList<T> = mutable
     private val list by lazy { ObservableList(this, list) }
 
     init {
-        this.list.changed += { s,removed,added,moved ->
+        this.list.changed += { _,removed,added,moved ->
             changed.forEach {
                 it(this, removed, added, moved)
             }

@@ -339,10 +339,10 @@ class NativeButton internal constructor(
 //        }
 //    }
 
-    override fun onClick(): Boolean {
-        button.click()
-        return true
-    }
+//    override fun onClick(): Boolean {
+//        button.click()
+//        return true
+//    }
 
     override fun onFocusGained(): Boolean {
         if (!button.focusable) {

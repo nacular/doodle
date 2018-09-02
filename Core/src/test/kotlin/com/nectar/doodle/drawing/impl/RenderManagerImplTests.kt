@@ -325,6 +325,22 @@ class RenderManagerImplTests {
     @Test @JsName("laysOutParentOnVisibilityChanged")
     fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
 
+    @Test @JsName("installsThemeForDisplayedGizmos")
+    fun `installs theme for displayed gizmos`() {
+        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = gizmo()
+
+        container.children += child
+
+        val display      = display(container)
+        val themeManager = mockk<InternalThemeManager>(relaxed = true)
+
+        renderManager(display, themeManager = themeManager)
+
+        verify(exactly = 1) { themeManager.update(container) }
+        verify(exactly = 1) { themeManager.update(child    ) }
+    }
+
     private fun testDisplayZIndex(block: (Display, Gizmo) -> Unit) {
         val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }
         val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(gizmo()).apply { children += spyk(gizmo()) } }

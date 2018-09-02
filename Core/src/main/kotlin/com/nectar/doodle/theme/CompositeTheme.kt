@@ -6,7 +6,14 @@ import com.nectar.doodle.core.Gizmo
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
-class CompositeTheme(private vararg val themes: Theme): Theme {
-    override fun install  (display: Display, all: Sequence<Gizmo>) = all.forEach { gizmo -> themes.forEach { it.install  (display, sequenceOf(gizmo)) } }
-    override fun uninstall(display: Display, all: Sequence<Gizmo>) = all.forEach { gizmo -> themes.forEach { it.uninstall(display, sequenceOf(gizmo)) } }
+class CompositeTheme(vararg themes: Theme): Theme {
+    private var themes = setOf(*themes)
+
+    override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach { gizmo -> themes.forEach { it.install  (display, sequenceOf(gizmo)) } }
+
+    operator fun plus(other: Theme) = this.apply { themes += other }
+
+    override fun toString() = themes.map { it.toString() }.joinToString(", ")
 }
+
+operator fun Theme.plus(other: Theme) = CompositeTheme(this, other)

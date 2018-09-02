@@ -20,18 +20,16 @@ interface SpinnerUI<T, M: Model<T>>: Renderer<Spinner<T, M>> {
     fun components(spinner: Spinner<T, M>): Config
 }
 
-abstract class CommonSpinnerUI(
-        private val insets         : Insets = None,
-        private val labelFactory   : LabelFactory): SpinnerUI<Any, Model<Any>> {
+abstract class CommonSpinnerUI(private val insets: Insets = None, private val labelFactory: LabelFactory): SpinnerUI<Any, Model<Any>> {
     override fun components(spinner: Spinner<Any, Model<Any>>): Config {
         val center = labelFactory(spinner.value.toString()).apply { fitText = false }
         val up     = PushButton("-").apply { enabled = spinner.hasPrevious }
         val down   = PushButton("+").apply { enabled = spinner.hasNext     }
 
         spinner.changed += {
-            center.text  = spinner.value.toString()
-            up.enabled   = spinner.hasPrevious
-            down.enabled = spinner.hasNext
+            center.text  = it.value.toString() // TODO: Define string converter?
+            up.enabled   = it.hasPrevious
+            down.enabled = it.hasNext
         }
 
         up.fired += {

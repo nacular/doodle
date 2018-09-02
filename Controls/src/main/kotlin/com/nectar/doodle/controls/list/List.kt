@@ -95,15 +95,15 @@ open class List<T, out M: Model<T>>(
         val oldFirst = firstVisibleRow
         val oldLast  = lastVisibleRow
 
-        firstVisibleRow = new.y.let { when {
-            it != old.y -> findRowAt(it, firstVisibleRow)
-            else        -> firstVisibleRow
-        }}
+        firstVisibleRow = when (val y = new.y) {
+            old.y -> firstVisibleRow
+            else  -> findRowAt(y, firstVisibleRow)
+        }
 
-        lastVisibleRow = (new.y + new.height).let { when {
-            it != old.y + old.height -> findRowAt(it, lastVisibleRow)
-            else                     -> lastVisibleRow
-        }}
+        lastVisibleRow = when (val y = new.y + new.height) {
+            old.y + old.height -> lastVisibleRow
+            else               -> findRowAt(y, lastVisibleRow)
+        }
 
         var jobs = emptySequence<() -> Unit>()
 
