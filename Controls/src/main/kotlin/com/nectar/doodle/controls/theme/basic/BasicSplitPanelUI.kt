@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.panels.AbstractSplitPanelUI
+import com.nectar.doodle.controls.theme.AbstractSplitPanelUI
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas

@@ -26,7 +26,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     }
 
     var movable     = true
-    var directions  = mutableSetOf<Direction>(North, East, South, West)
+    var directions  = mutableSetOf(North, East, South, West)
     var hotspotSize = 5.0
 
     private var dragMode             = mutableSetOf<Direction>()

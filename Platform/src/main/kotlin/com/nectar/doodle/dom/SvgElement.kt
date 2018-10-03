@@ -35,7 +35,7 @@ inline fun SVGEllipseElement.setCX  (value : Double      ) = setAttribute  ("cx"
 inline fun SVGEllipseElement.setCY  (value : Double      ) = setAttribute  ("cy",               "$value"       )
 inline fun SVGCircleElement.setCX   (value : Double      ) = setAttribute  ("cx",               "$value"       )
 inline fun SVGCircleElement.setCY   (value : Double      ) = setAttribute  ("cy",               "$value"       )
-inline fun SVGCircleElement.setR    (value : Double      ) = setAttribute  ("r",                "${value}"     )
+inline fun SVGCircleElement.setR    (value : Double      ) = setAttribute  ("r",                "$value"       )
 inline fun SVGElement.setPathData   (value : String      ) = setAttribute  ("d",                  value        )
 inline fun SVGElement.setOpacity    (value : kotlin.Float) = setAttribute  ("opacity",          "$value"       )
 inline fun SVGElement.setStrokeWidth(value : Double      ) = setAttribute  ("stroke-width",     "$value"       )
@@ -53,33 +53,27 @@ var SVGElement.shapeRendering
     set(value) = setAttribute("shape-rendering", value.value)
 
 
-fun convert(color: Color?, block: (String) -> Unit) = when (color) {
+fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     null -> none
     else -> "#${color.hexString}"
-}.let {
-    block(it)
-}
+})
 
 inline fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
 }
 
 inline fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
-    when (fillRule) {
+    setAttribute("fill-rule", when (fillRule) {
         Renderer.FillRule.EvenOdd -> "evenodd"
         Renderer.FillRule.NonZero -> "nonzero"
         else                      -> ""
-    }.let {
-        setAttribute("fill-rule", it)
-    }
+    })
 }
 
-fun SVGElement.setFillPattern(pattern: SVGElement?) = when (pattern) {
+fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fill", when (pattern) {
     null -> none
     else -> "url(#${pattern.id})"
-}.let {
-    setAttribute("fill", it)
-}
+})
 
 inline fun SVGElement.setStroke(color: Color?) = convert(color) {
     setAttribute("stroke", it)
@@ -100,7 +94,7 @@ enum class ShapeRendering(val value: String) {
 }
 
 
-private val none = "none";
+private val none = "none"
 
 //public void setStopColor( Color aColor )
 //{

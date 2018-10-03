@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.panels
 
+import com.nectar.doodle.controls.theme.SplitPanelUI
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point

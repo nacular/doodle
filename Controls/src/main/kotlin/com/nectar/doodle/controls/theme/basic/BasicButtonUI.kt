@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.controls.theme.AbstractButtonUI
+import com.nectar.doodle.controls.theme.AbstractTextButtonUI
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -22,9 +22,9 @@ class BasicButtonUI(
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val borderColor        : Color,
-        private val borderWidth        : Double = 1.0): AbstractButtonUI(textMetrics) {
+        private val borderWidth        : Double = 1.0): AbstractTextButtonUI(textMetrics) {
 
-    protected var insets = Insets(4.0)
+    private var insets = Insets(4.0)
 
     override fun render(gizmo: Button, canvas: Canvas) {
         val model       = gizmo.model

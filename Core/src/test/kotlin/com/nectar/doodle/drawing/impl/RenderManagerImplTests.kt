@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.JsName
@@ -17,6 +19,7 @@ import com.nectar.doodle.time.Timer
 import com.nectar.doodle.units.Measure
 import com.nectar.doodle.units.Time
 import com.nectar.doodle.units.milliseconds
+import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObserver
@@ -70,6 +73,24 @@ class RenderManagerImplTests {
         verify(exactly = 0) { display.doLayout() }
 
         slot.captured(display, display.size, display.size * 2.0)
+
+        verify(exactly = 1) { display.doLayout() }
+    }
+
+    @Test @JsName("laysOutDisplayOnNewChild")
+    fun `lays out display on new child`() {
+
+        val display = display(gizmo())
+
+        val slot = slot<ListObserver<Display, Gizmo>>()
+
+        every { display.children.changed.plusAssign(capture(slot)) } just Runs
+
+        renderManager(display)
+
+        verify(exactly = 0) { display.doLayout() }
+
+        slot.captured(display.children, emptyMap(), mapOf(1 to gizmo()), emptyMap())
 
         verify(exactly = 1) { display.doLayout() }
     }

@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.JsName
@@ -23,19 +25,19 @@ class ColorTests {
 
     @Test @JsName("invalidHexFails")
     fun `invalid hex fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Color(0xfffffff) }
+        assertFailsWith(IllegalArgumentException::class) { Color(0xfffffffu) }
     }
 
     @Test @JsName("invalidOpacityFails")
     fun `invalid opacity fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Color(0xff, 3f) }
+        assertFailsWith(IllegalArgumentException::class) { Color(0xffu, 3f) }
     }
 
     @Test @JsName("transparentInvisible")
-    fun `transparent invisible`() = listOf(Color(0xaaaaaa, 0f), Color(10, 10, 10, 0f), transparent).forEach { expect(false) { it.visible } }
+    fun `transparent invisible`() = listOf(Color(0xaaaaaau, 0f), Color(10u, 10u, 10u, 0f), transparent).forEach { expect(false) { it.visible } }
 
     @Test @JsName("inversion")
-    fun `inversion works`() = listOf(white to black, red to cyan, yellow to blue, green to Color(0xff00ff)).forEach {
+    fun `inversion works`() = listOf(white to black, red to cyan, yellow to blue, green to Color(0xff00ffu)).forEach {
         expect(it.first ) { it.second.inverted }
         expect(it.second) { it.first.inverted  }
     }
@@ -46,12 +48,12 @@ class ColorTests {
     }
 
     @Test @JsName("rgbToHsl")
-    fun `rgb to hsl`() = listOf(Color(0xcccccc) to HslColor(0.degrees, 0f, 0.8f)).forEach {
+    fun `rgb to hsl`() = listOf(Color(0xccccccu) to HslColor(0.degrees, 0f, 0.8f)).forEach {
         expect(it.second, "${it.first} -> ${it.second}") { HslColor(it.first) }
     }
 
     @Test @JsName("hslToRgb")
-    fun `hsl to rgb`() = listOf(Color(0xcccccc) to HslColor(0.degrees, 0f, 0.8f)).forEach {
+    fun `hsl to rgb`() = listOf(Color(0xccccccu) to HslColor(0.degrees, 0f, 0.8f)).forEach {
         expect(it.first, "${it.second} -> ${it.first}") { it.second.toRgb() }
     }
 

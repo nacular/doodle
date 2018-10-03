@@ -52,7 +52,7 @@ open class Label internal constructor(
         }
 
     // FIXME: Need to handle case where font/colors change after text is set
-    var styledText = font?.invoke(foregroundColor?.invoke(styledText) ?: styledText) ?: styledText
+    var styledText = font?.invoke { foregroundColor?.invoke { styledText } ?: styledText } ?: styledText
         set(new) {
             if (new == field) { return }
 
@@ -87,9 +87,11 @@ open class Label internal constructor(
         return Size(width, height).also { textSize = it }
     }
 
-    private var textSize by observable(Size.Empty) { _,_,new ->
-        if (fitText) size = new
-    }
+    private var textSize = Size.Empty
+        set(new) {
+            field             = new
+            if (fitText) size = new
+        }
 
     init {
         boundsChanged += { _,old,new ->
@@ -103,6 +105,12 @@ open class Label internal constructor(
         size            = textSize
         focusable       = false
         foregroundColor = black
+    }
+
+    override fun addedToDisplay() {
+        if (textSize.empty) {
+            measureText()
+        }
     }
 
     override fun render(canvas: Canvas) {

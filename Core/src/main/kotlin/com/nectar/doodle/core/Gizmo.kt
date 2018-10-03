@@ -277,6 +277,11 @@ abstract class Gizmo protected constructor() {
 
     val parentChange: PropertyObservers<Gizmo, Gizmo?> by lazy { PropertyObserversImpl<Gizmo, Gizmo?>(this) }
 
+    /**
+     * Is {code}true{/code} if the Gizmo has been displayed
+     */
+    val displayed get() = renderManager != null
+
     private var renderManager: RenderManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }

@@ -1,4 +1,4 @@
-package com.nectar.doodle.utils;
+package com.nectar.doodle.utils
 
 
 enum class Direction {

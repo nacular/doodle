@@ -1,14 +1,17 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.dom.ElementRuler
+import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.text.StyledText
+import org.w3c.dom.HTMLElement
 import kotlin.math.max
 
 
 private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?)
 private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double                 )
 
-class TextMetricsImpl(private val textFactory: TextFactory, private val elementRuler: ElementRuler): TextMetrics {
+class TextMetricsImpl(private val textFactory: TextFactory, private val elementFactory: HtmlFactory, private val elementRuler: ElementRuler): TextMetrics {
 
     // FIXME: These should be caches with limited storage
     private val widths              = mutableMapOf<Pair<String, Font?>, Double>()
@@ -31,15 +34,21 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementR
     }
 
     override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
-        elementRuler.size(textFactory.wrapped(text, font, width, indent)).also {
-            fontHeights[font] = it.height
-        }.width
+        val box = elementFactory.create<HTMLElement>()
+
+        box.appendChild(textFactory.wrapped(text, font, width, indent))
+        box.style.setWidth(width)
+
+        elementRuler.width(box)
     }
 
     override fun width(text: StyledText, width: Double, indent: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
-        elementRuler.width(textFactory.wrapped(text, width, indent)).also {
-//            fontHeights[font] = it.height
-        }
+        val box = elementFactory.create<HTMLElement>()
+
+        box.appendChild(textFactory.wrapped(text, width, indent))
+        box.style.setWidth(width)
+
+        elementRuler.width(box)
     }
 
     override fun height(text: String, font: Font?) = fontHeights.getOrPut(font) {
@@ -58,7 +67,7 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementR
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?) = height(text, font)
+    override fun height(text: String, width: Double, indent: Double, font: Font?) = elementRuler.height(textFactory.wrapped(text, font, width, indent))
 
-    override fun height(text: StyledText, width: Double, indent: Double) = height(text)
+    override fun height(text: StyledText, width: Double, indent: Double) = elementRuler.height(textFactory.wrapped(text, width, indent))
 }

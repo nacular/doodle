@@ -11,6 +11,7 @@ dependencies {
 
     testImplementation dep.kotlin_test_common
     testImplementation dep.mockk_common
+    testImplementation dep.mockk_common
 }
 
 compileKotlinCommon {

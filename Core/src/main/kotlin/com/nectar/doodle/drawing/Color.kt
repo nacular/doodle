@@ -46,19 +46,19 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 
     companion object {
-        val red         = Color(0xff0000)
-        val pink        = Color(0xffc0cb)
-        val blue        = Color(0x0000ff)
-        val cyan        = Color(0x00ffff)
-        val gray        = Color(0xa9a9a9)
-        val black       = Color(0x000000)
-        val green       = Color(0x00ff00)
-        val white       = Color(0xffffff)
-        val yellow      = Color(0xffff00)
-        val orange      = Color(0xffa500)
-        val magenta     = Color(0xff00ff)
-        val darkgray    = Color(0x808080)
-        val lightgray   = Color(0xd3d3d3)
+        val red         = Color(0xff0000u)
+        val pink        = Color(0xffc0cbu)
+        val blue        = Color(0x0000ffu)
+        val cyan        = Color(0x00ffffu)
+        val gray        = Color(0xa9a9a9u)
+        val black       = Color(0x000000u)
+        val green       = Color(0x00ff00u)
+        val white       = Color(0xffffffu)
+        val yellow      = Color(0xffff00u)
+        val orange      = Color(0xffa500u)
+        val magenta     = Color(0xff00ffu)
+        val darkgray    = Color(0x808080u)
+        val lightgray   = Color(0xd3d3d3u)
         val transparent = black.with(opacity = 0f)
     }
 }
@@ -159,7 +159,7 @@ private fun UInt.toHex(): String {
     do {
         hash  = alphabet[(i % alphabetLength).toInt()] + hash
         i    /= alphabetLength
-    } while (i > 0)
+    } while (i > 0u)
 
     return hash
 }
@@ -170,9 +170,9 @@ private fun UInt.toRgb(): RGB {
     require(this in range) { "hex value must be in $range" }
 
     return RGB(
-            (this and 0xff0000 shr 16).toUByte(),
-            (this and 0x00ff00 shr  8).toUByte(),
-            (this and 0x0000ff       ).toUByte())
+            (this and 0xff0000u shr 16).toUByte(),
+            (this and 0x00ff00u shr  8).toUByte(),
+            (this and 0x0000ffu       ).toUByte())
 }
 
 private data class RGB(val red: UByte, var green: UByte, var blue: UByte)

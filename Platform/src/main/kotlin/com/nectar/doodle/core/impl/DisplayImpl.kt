@@ -24,6 +24,7 @@ import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
+import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
@@ -40,7 +41,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override var insets = None
 
-    override var layout: Layout? = null
+    override var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
+        doLayout()
+    }
 
     override val children by lazy { ObservableList<Display, Gizmo>(this) }
 
@@ -119,16 +122,16 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         layout?.layout(positionableWrapper)
     }
 
-    private inner class PositionableWrapper(): Positionable {
+    private inner class PositionableWrapper: Positionable {
         override var size        get() = this@DisplayImpl.size
             set(value) { this@DisplayImpl.size = value }
         override val width       get() = this@DisplayImpl.width
         override val height      get() = this@DisplayImpl.height
         override val insets      get() = this@DisplayImpl.insets
-        override val parent      = null
+        override val parent            = null as Gizmo?
         override val children    get() = this@DisplayImpl.children
-        override var idealSize   = null as Size?
-        override var minimumSize = Empty
+        override var idealSize         = null as Size?
+        override var minimumSize       = Empty
     }
 
     private val positionableWrapper = PositionableWrapper()

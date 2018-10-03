@@ -88,7 +88,7 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
             when (traversalType) {
                 Forward  -> focusGizmo = policy.next    (focusCycleRoot, focusGizmo)
                 Backward -> focusGizmo = policy.previous(focusCycleRoot, focusGizmo)
-                Upward   -> focusCycleRoot.let { requestFocus(it) }
+                Upward   -> requestFocus(focusCycleRoot)
                 Downward -> if (focusGizmo?.isFocusCycleRoot_ == true) {
                     focusGizmo = policy.default(focusGizmo)
 

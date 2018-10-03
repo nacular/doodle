@@ -39,8 +39,8 @@ class SizeTests {
         expect(it.second.toDouble()) { rect.height }
     }
 
-    @Test @JsName("multiply")
-    fun `multiply`() = listOf(
+    @Test
+    fun multiply() = listOf(
             (10 by 3) to  0.0 to Empty,
             (10 by 3) to  2.0 to (20 by 6),
             (10 by 4) to  0.5 to (5  by 2)
@@ -48,8 +48,8 @@ class SizeTests {
         expect(it.second) { it.first.first * it.first.second }
     }
 
-    @Test @JsName("divide")
-    fun `divide`() = listOf(
+    @Test
+    fun divide() = listOf(
             (10 by 3) to  1.0 to (10 by 3  ),
             (10 by 3) to  2.0 to (5  by 1.5),
             (10 by 4) to  0.5 to (20 by 8  )

@@ -1,4 +1,4 @@
-package com.nectar.doodle.theme;
+package com.nectar.doodle.theme
 
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo

@@ -16,14 +16,16 @@ class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
             require(values[row].size == numColumns) { "all rows must have the same length" }
 
             if (isIdentity) {
-                values[row].forEachIndexed { index, value ->
-                    isIdentity = when {
-                        value != 1.0 && index == row -> false
-                        value != 0.0 && index != row -> false
-                        else                         -> true
-                    }
+                run loop@{
+                    values[row].forEachIndexed { index, value ->
+                        isIdentity = when {
+                            value != 1.0 && index == row -> false
+                            value != 0.0 && index != row -> false
+                            else                         -> true
+                        }
 
-                    if (!isIdentity) { return@forEachIndexed }
+                        if (!isIdentity) { return@loop }
+                    }
                 }
             }
         }

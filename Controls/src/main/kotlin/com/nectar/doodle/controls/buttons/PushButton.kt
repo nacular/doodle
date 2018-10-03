@@ -6,9 +6,9 @@ import com.nectar.doodle.core.Icon
  * Created by Nicholas Eddy on 11/14/17.
  */
 open class PushButton(
-        text : String         = "",
-        icon : Icon<Button>?  = null,
-        model: ButtonModel    = ButtonModelImpl()): Button(text, icon, model) {
+        text : String        = "",
+        icon : Icon<Button>? = null,
+        model: ButtonModel   = ButtonModelImpl()): Button(text, icon, model) {
     override fun click() {
         if (enabled) {
             model.armed   = true

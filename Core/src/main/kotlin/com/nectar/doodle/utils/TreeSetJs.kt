@@ -48,7 +48,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         return root?.let {
             if (it.value == element) {
 
-                val auxRoot = BstNode<E>(it.value)
+                val auxRoot = BstNode(it.value)
 
                 auxRoot.left = root
 

@@ -1,11 +1,12 @@
 ext {
     // Common
-    mockk         = '1.7.17'
+    mockk         = '1.8.8.kotlin13'
 
     // JVM
     junit_version = '4.12'
 
     // JS
+    mockk_js      = '1.7.17'
 
     dep = [
             kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version",
@@ -17,7 +18,7 @@ ext {
 
             // JS
             kotlin_test_js      : ["org.jetbrains.kotlin:kotlin-test-js:$kotlin_version", "org.jetbrains.kotlin:kotlin-test:$kotlin_version"],
-            mockk_js            :  "io.mockk:mockk-js:$mockk",
+            mockk_js            :  "io.mockk:mockk-js:$mockk_js",
 
             // JVM
             junit               : "junit:junit:$junit_version",
@@ -26,6 +27,5 @@ ext {
 
             log4j               : "org.slf4j:slf4j-api:1.7.25",
             logback             : "ch.qos.logback:logback-classic:1.2.3"
-
     ]
 }

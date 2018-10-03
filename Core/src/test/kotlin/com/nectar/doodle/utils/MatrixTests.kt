@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.nectar.doodle.utils
 
 import com.nectar.doodle.JsName
@@ -22,6 +24,10 @@ class MatrixTests {
             m(this[ 1.0,  0.0,  0.0],
               this[ 0.0,  1.0,  0.0],
               this[ 0.0,  0.0,  1.0]) to true,
+
+            m(this[ 2.0,  0.0,  0.0],
+              this[ 0.0,  2.0,  0.0],
+              this[ 0.0,  0.0,  1.0]) to false,
 
             m(this[-1.0,  0.0,  0.0],
               this[ 0.0, -1.0,  0.0],

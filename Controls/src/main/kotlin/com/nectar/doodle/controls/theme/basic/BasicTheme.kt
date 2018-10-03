@@ -21,10 +21,10 @@ import com.nectar.doodle.theme.Theme
  * Created by Nicholas Eddy on 2/12/18.
  */
 
-private val borderColor            = Color(0x888888)
+private val borderColor            = Color(0x888888u)
 private val foregroundColor        = black
-private val backgroundColor        = Color(0xcccccc)
-private val darkBackgroundColor    = Color(0xaaaaaa)
+private val backgroundColor        = Color(0xccccccu)
+private val darkBackgroundColor    = Color(0xaaaaaau)
 private val defaultBackgroundColor = backgroundColor
 
 

@@ -20,8 +20,8 @@ class RectangleTests {
     @Test @JsName("defaultsToOrigin")
     fun `defaults to origin`() = expect(Origin) { Rectangle(width = 1.0, height = 2.0).position }
 
-    @Test @JsName("at")
-    fun `at`() = listOf(
+    @Test
+    fun at() = listOf(
             (10  by  3) to Point( 1.0,  4.5),
             (1   by  1) to Point(-4.0,  4.5),
             (100 by 37) to Point( 1.0, -4.5)
@@ -127,8 +127,8 @@ class RectangleTests {
         }
     }
 
-    @Test @JsName("intersects")
-    fun `intersects`() {
+    @Test
+    fun intersects() {
         listOf(
                 Empty                      to Empty                        to false,
                 10 by 5                    to (  1 by   1)                 to true,
@@ -145,7 +145,7 @@ class RectangleTests {
     }
 
     @Test @JsName("intersect")
-    fun `intersect`() {
+    fun intersect() {
         listOf(
                 Empty                      to Empty                        to Empty,
                 10 by 5                    to (  1 by   1)                 to ( 1     by  1),

@@ -1,5 +1,6 @@
-package com.nectar.doodle.controls.panels
+package com.nectar.doodle.controls.theme
 
+import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener

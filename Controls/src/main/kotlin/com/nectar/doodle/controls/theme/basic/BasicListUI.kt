@@ -105,7 +105,7 @@ private class BasicListPositioner<T>(private val height: Double): ItemPositioner
 
 class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
     override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
-    override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator<T>(textMetrics)
+    override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator(textMetrics)
 
     override fun render(gizmo: List<T, *>, canvas: Canvas) {}
 }

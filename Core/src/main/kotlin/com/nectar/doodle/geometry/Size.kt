@@ -1,7 +1,8 @@
 package com.nectar.doodle.geometry
 
 
-class Size(val width: Double = 0.0, val height: Double = 0.0) {
+class Size(val width: Double = 0.0, val height: Double = width) {
+
     init {
         require(width  >= 0) { "Width cannot be negative"  }
         require(height >= 0) { "Height cannot be negative" }
@@ -31,6 +32,6 @@ class Size(val width: Double = 0.0, val height: Double = 0.0) {
     override fun hashCode() = hashCode_
 
     companion object {
-        val Empty = Size(0.0, 0.0)
+        val Empty = Size(0.0)
     }
 }

@@ -29,7 +29,7 @@ class StyledText private constructor(var data: MutableList<MutablePair<String, S
 
     private var hashCode = data.hashCode()
 
-    override fun iterator() = data.map { it.first.to(it.second) }.iterator()
+    override fun iterator() = data.map { it.first to it.second }.iterator()
 
     operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
@@ -73,28 +73,26 @@ class StyledText private constructor(var data: MutableList<MutablePair<String, S
     data class StyleImpl(override var font: Font? = null, override var foreground: Color? = null, override var background: Color? = null): Style
 }
 
-operator fun Font.invoke (text: String) = StyledText(text = text, font       = this)
-operator fun Color.invoke(text: String) = StyledText(text = text, foreground = this)
-
-operator fun Font.invoke(text: StyledText): StyledText {
-    text.data.forEach { (_, style) ->
+// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
+operator fun Font.invoke(text: String    ) = StyledText(text = text, font = this)
+operator fun Font.invoke(text: () -> StyledText) = text().apply {
+    data.forEach { (_, style) ->
         if (style.font == null) {
-            style.font = this
+            style.font = this@invoke
         }
     }
-
-    return text
 }
 
-operator fun Color.invoke(text: StyledText): StyledText {
-    text.data.forEach { (_, style) ->
+// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
+operator fun Color.invoke(text: String    ) = StyledText(text = text, foreground = this)
+operator fun Color.invoke(text: () -> StyledText) = text().apply {
+    data.forEach { (_, style) ->
         if (style.foreground == null) {
-            style.foreground = this
+            style.foreground = this@invoke
         }
     }
-
-    return text
 }
-
 
 operator fun String.rangeTo(styled: StyledText) = StyledText(this) + styled
+
+// "foo" .. font {  } + color { }

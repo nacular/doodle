@@ -1,5 +1,8 @@
+@file:Suppress("NestedLambdaShadowedImplicitParameter")
+
 package com.nectar.doodle.layout
 
+import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
@@ -9,6 +12,7 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 11/1/17.
  */
+
 abstract class ConstraintLayout: Layout() {
     abstract fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout
     abstract fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout
@@ -18,31 +22,31 @@ abstract class ConstraintLayout: Layout() {
     abstract fun unconstrain(vararg gizmos: Gizmo): ConstraintLayout
 }
 
-private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
+private class ConstraintLayoutImpl(private val display: Display? = null, vararg constraints: ConstraintsImpl): ConstraintLayout() {
     private val constraints by lazy { constraints.fold(mutableMapOf<Gizmo, ConstraintsImpl>()) { s, r -> s[r.target] = r; s } }
     private val processed   by lazy { mutableSetOf<Gizmo>()                                                                   }
     private val processing  by lazy { mutableSetOf<Gizmo>()                                                                   }
 
     override fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout {
-        constraints(a).let { (a) -> block(a)
+        constraints(display, a).let { (a) -> block(a)
             return this
         }
     }
 
     override fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(a, b).let { (a, b) -> block(a, b)
+        constraints(display, a, b).let { (a, b) -> block(a, b)
             return this
         }
     }
 
     override fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(a, b, c).let { (a, b, c) -> block(a, b, c)
+        constraints(display, a, b, c).let { (a, b, c) -> block(a, b, c)
             return this
         }
     }
 
     override fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
+        constraints(display, a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
             return this
         }
     }
@@ -132,7 +136,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         }
     }
 
-    private fun constraints(child: Gizmo, vararg others: Gizmo): List<Constraints> {
+    private fun constraints(display: Display? = null, child: Gizmo, vararg others: Gizmo): List<Constraints> {
         // FIXME: Add support for laying out Display
         child.parent?.let {
             val parent = ParentConstraintsImpl(it)
@@ -148,7 +152,21 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
             if (constraints.size != children.size) { throw Exception("Must all share same parent") }
 
             return constraints
-        } ?: throw Exception("Must all share same parent")
+        } ?: if (child.displayed && display != null) {
+            val parent = displayConstraints ?: DisplayConstraints(display).also { displayConstraints = it }
+
+            val children = arrayOf(child) + others
+
+            val constraints = children.filter { it.displayed } .map {
+                it.parentChange += parentChanged_
+
+                constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
+            }
+
+            if (constraints.size != children.size) { throw Exception("Must all be displayed") }
+
+            return constraints
+        } else throw Exception("Must all share same parent")
     }
 
     private val parentChanged_ = ::parentChanged
@@ -338,6 +356,29 @@ private open class ParentConstraintsImpl(val target: Gizmo): ParentConstraints {
 //    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
+private var displayConstraints: DisplayConstraints? = null
+
+private open class DisplayConstraints(private val display: Display): ParentConstraints {
+    val target = object: Gizmo() {}
+
+    init {
+        display.sizeChanged += { _,_,new ->
+            target.size = new
+        }
+    }
+
+    override val top     = VerticalConstraint  (target) { 0.0                     }
+    override val left    = HorizontalConstraint(target) { 0.0                     }
+    override val centerY = VerticalConstraint  (target) { display.size.height / 2 }
+    override val centerX = HorizontalConstraint(target) { display.size.width  / 2 }
+    override val right   = HorizontalConstraint(target) { display.size.width      }
+    override val bottom  = VerticalConstraint  (target) { display.size.height     }
+    override val width   = MagnitudeConstraint (target) { display.size.width      }
+    override val height  = MagnitudeConstraint (target) { display.size.height     }
+
+//    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
+}
+
 private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstraints): ParentConstraintsImpl(target), Constraints {
     override var top = VerticalConstraint(target) { it.y }
         set(new) { field = VerticalConstraint(new.target, false, new.block) }
@@ -348,7 +389,7 @@ private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstrai
     override var centerY = VerticalConstraint(target) { top() + it.height / 2 }
         set(new) { field = VerticalConstraint(new.target, false, new.block) }
 
-    override var centerX = HorizontalConstraint(target) { left() + it.width  / 2 }
+    override var centerX = HorizontalConstraint(target) { left() + it.width / 2 }
         set(new) { field = HorizontalConstraint(new.target, false, new.block) }
 
     override var right = HorizontalConstraint(target) { left() + it.width }
@@ -366,7 +407,12 @@ private class ConstraintsImpl(target: Gizmo, override val parent: ParentConstrai
 //    override fun toString() = "C $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
-fun constrain(a: Gizmo, block: (Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, block) }
-fun constrain(a: Gizmo, b: Gizmo, block: (Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, block) }
-fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, block) }
+fun constrain(a: Gizmo,                               block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,          block) }
+fun constrain(a: Gizmo, b: Gizmo,                     block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,       block) }
+fun constrain(a: Gizmo, b: Gizmo, c: Gizmo,           block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,    block) }
 fun constrain(a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, block) }
+
+fun constrain(display: Display, a: Gizmo,                               block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,          block) }
+fun constrain(display: Display, a: Gizmo, b: Gizmo,                     block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,       block) }
+fun constrain(display: Display, a: Gizmo, b: Gizmo, c: Gizmo,           block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,    block) }
+fun constrain(display: Display, a: Gizmo, b: Gizmo, c: Gizmo, d: Gizmo, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, block) }

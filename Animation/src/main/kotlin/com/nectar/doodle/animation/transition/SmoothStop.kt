@@ -29,5 +29,5 @@ class SmoothStop<T>(private val endValue: Measure<T>): Transition<T> {
         return 0.seconds //-initialState.velocity / acceleration
     }
 
-    override fun endState(initialState: Moment<T>) = Moment<T>(endValue, MeasureRatio.zero())
+    override fun endState(initialState: Moment<T>) = Moment(endValue, MeasureRatio.zero())
 }
