@@ -24,7 +24,7 @@ class StyledText private constructor(var data: MutableList<MutablePair<String, S
         foreground: Color? = null,
         background: Color? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
-    val text  get() = data.map { it.first }.joinToString()
+    val text  get() = data.joinToString { it.first }
     val count get() = data.size
 
     private var hashCode = data.hashCode()

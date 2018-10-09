@@ -17,5 +17,6 @@ dependencies {
         sourceMap             = true
         sourceMapEmbedSources = "always"
         moduleKind            = 'commonjs'
+        freeCompilerArgs      = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
     }
 }

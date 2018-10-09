@@ -25,7 +25,6 @@ private class PathImpl(override val data: String, private val pathMetrics: PathM
     override fun hashCode() = data.hashCode()
 }
 
-
 class PathFactoryImpl(private val pathMetrics: PathMetrics): PathFactory {
     override operator fun invoke(data: String): Path? = PathImpl(data, pathMetrics)
 }

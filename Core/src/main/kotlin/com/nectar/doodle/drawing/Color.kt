@@ -7,6 +7,11 @@ import kotlin.math.abs
 import kotlin.math.round
 
 
+private fun Double.toIntExactOrNull() = if (this in Int.MIN_VALUE.toDouble()..Int.MAX_VALUE.toDouble()) this.toInt() else null
+
+private operator fun ClosedRange<Int>.contains(value: Double) = value.toIntExactOrNull().let { if (it != null) contains(it) else false }
+
+
 class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)

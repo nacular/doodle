@@ -44,14 +44,14 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     fun scale(by: Point) = scale(by.x, by.y)
 
-    fun scale(x: Double, y: Double) = AffineTransform(
+    fun scale(x: Double = 1.0, y: Double = x) = AffineTransform(
             matrix * Matrix(this[  x, 0.0, 0.0],
                             this[0.0,   y, 0.0],
                             this[0.0, 0.0, 1.0]))
 
     fun translate(by: Point) = translate(by.x, by.y)
 
-    fun translate(x: Double, y: Double) = AffineTransform(
+    fun translate(x: Double = 0.0, y: Double = 0.0) = AffineTransform(
             matrix * Matrix(this[1.0, 0.0,   x],
                             this[0.0, 1.0,   y],
                             this[0.0, 0.0, 1.0]))

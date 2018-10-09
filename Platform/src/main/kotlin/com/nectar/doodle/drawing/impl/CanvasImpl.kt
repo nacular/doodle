@@ -77,16 +77,16 @@ internal class CanvasImpl(
 
     private var shadows = mutableListOf<Shadow>()
 
-    override fun rect(rectangle: Rectangle,           brush: Brush ) = present(null, brush) { getRect(rectangle) }
+    override fun rect(rectangle: Rectangle,           brush: Brush ) = present(brush = brush) { getRect(rectangle) }
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
 
-    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(null, brush) { roundedRect(rectangle, radius) }
+    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(brush = brush) { roundedRect(rectangle, radius) }
     override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, radius, pen, brush)
 
-    override fun circle(circle: Circle,           brush: Brush ) = present(null, brush) { roundedRect(circle.boundingRectangle, circle.radius) }
+    override fun circle(circle: Circle,           brush: Brush ) = present(brush = brush) { roundedRect(circle.boundingRectangle, circle.radius) }
     override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush)
 
-    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(null, brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
+    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(brush = brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
     override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush)
 
     // =============== Complex =============== //
@@ -313,7 +313,7 @@ internal class CanvasImpl(
 
     private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
 
-    private fun present(pen: Pen?, brush: Brush?, block: () -> HTMLElement?) {
+    private fun present(pen: Pen? = null, brush: Brush?, block: () -> HTMLElement?) {
         if (visible(pen, brush)) {
             block()?.let {
                 if (brush is ColorBrush) {
@@ -339,8 +339,26 @@ internal class CanvasImpl(
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
-        it.style.translate(rectangle.position)
-        it.style.setSize  (rectangle.size    )
+        /*
+         * This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
+         */
+
+        var transform = Identity.translate(rectangle.position)
+        var width     = rectangle.width
+        var height    = rectangle.height
+
+        if (rectangle.height < 1) {
+            height    *= 2
+            transform  = transform.scale(y = 0.5)
+        }
+
+        if (rectangle.width < 1) {
+            width     *= 2
+            transform  = transform.scale(x = 0.5)
+        }
+
+        it.style.setSize     (size     )
+        it.style.setTransform(transform)
     }
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }

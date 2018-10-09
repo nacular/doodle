@@ -2,7 +2,6 @@ package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Point
@@ -51,12 +50,11 @@ open class Label internal constructor(
             styledText = StyledText(new, font, foregroundColor)
         }
 
-    // FIXME: Need to handle case where font/colors change after text is set
     var styledText = font?.invoke { foregroundColor?.invoke { styledText } ?: styledText } ?: styledText
         set(new) {
             if (new == field) { return }
 
-            field = new
+            field = font?.invoke { foregroundColor?.invoke { new } ?: new } ?: new
             measureText()
 
             rerender()
@@ -100,12 +98,16 @@ open class Label internal constructor(
             }
         }
 
-        styleChanged += { rerender() }
+        styleChanged += {
+            text = text
 
-        size            = textSize
-        focusable       = false
-        foregroundColor = black
+            rerender()
+        }
+
+        size = textSize
     }
+
+    override var focusable = false
 
     override fun addedToDisplay() {
         if (textSize.empty) {
@@ -136,7 +138,4 @@ open class Label internal constructor(
             canvas.text(styledText, Point(x, y))
         }
     }
-
-    // TODO: REMOVE?
-    override fun toString() = "Label: $text"
 }

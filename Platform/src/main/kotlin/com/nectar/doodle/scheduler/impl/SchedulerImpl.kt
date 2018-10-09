@@ -14,9 +14,10 @@ import kotlin.browser.window
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-private open class SimpleTask(time : Measure<Time>, job: () -> Unit): Task {
+private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
-    private val value = window.setTimeout({ completed = true; job() }, (time  `in` milliseconds).toInt())
+    private val start = timer.now
+    private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time  `in` milliseconds).toInt())
 
     override var completed = false
 
@@ -38,8 +39,10 @@ private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
     }
 }
 
-private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
-    private val value: Int = window.setInterval(job,  (time  `in` milliseconds).toInt())
+private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+
+    private var last = timer.now
+    private val value: Int = window.setInterval({ timer.now.let { job(it - last); last = it } },  (time `in` milliseconds).toInt())
 
     override var completed = false
 
@@ -49,10 +52,10 @@ private class RecurringTask(time : Measure<Time>, job: () -> Unit): Task {
     }
 }
 
-internal class SchedulerImpl: Scheduler {
+internal class SchedulerImpl(private val timer: Timer): Scheduler {
     // TODO: Separate animation scheduler into different interface
-    override fun after (time : Measure<Time>, job: () -> Unit): Task = if (time.isZero) AnimationTask({ job() }) else SimpleTask(time, job)
-    override fun repeat(every: Measure<Time>, job: () -> Unit): Task = RecurringTask(every, job)
+    override fun after (time : Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.isZero) AnimationTask(job) else SimpleTask(timer, time, job)
+    override fun repeat(every: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, every, job)
 }
 
 internal class AnimationSchedulerImpl: AnimationScheduler {

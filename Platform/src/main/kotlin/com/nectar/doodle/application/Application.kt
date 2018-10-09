@@ -71,7 +71,7 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
         bind<Timer>             () with singleton { PerformanceTimer      (                           ) }
         bind<Strand>            () with singleton { StrandImpl            (instance(), instance()     ) }
         bind<Display>           () with singleton { DisplayImpl           (instance(), document.body!!) }
-        bind<Scheduler>         () with singleton { SchedulerImpl         (                           ) }
+        bind<Scheduler>         () with singleton { SchedulerImpl         (instance()                 ) }
         bind<HtmlFactory>       () with singleton { HtmlFactoryImpl       (                           ) }
         bind<TextFactory>       () with singleton { TextFactoryImpl       (instance()                 ) }
         bind<AnimationScheduler>() with singleton { AnimationSchedulerImpl(                           ) } // FIXME: Provide fallback in case not supported

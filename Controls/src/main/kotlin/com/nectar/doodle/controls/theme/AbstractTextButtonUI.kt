@@ -53,7 +53,6 @@ abstract class AbstractTextButtonUI(
             VerticalAlignment.Bottom -> bounds.height - insets.bottom
             VerticalAlignment.Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.size.height) / 2))
             VerticalAlignment.Top    -> insets.top
-            else                     -> insets.top
         }
 
 //        val minX        = insets.left
