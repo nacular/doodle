@@ -11,7 +11,7 @@ import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
 import com.nectar.doodle.dom.SystemStylerImpl
 import com.nectar.doodle.drawing.CanvasFactory
-import com.nectar.doodle.drawing.CanvasFactoryImpl
+import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.drawing.TextFactory

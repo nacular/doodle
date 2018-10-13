@@ -3,7 +3,7 @@
 package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.drawing.FontFactoryImpl
+import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -106,8 +106,7 @@ class LabelTests {
     }
 
     private fun styledText(): StyledText {
-        val fontFactory = FontFactoryImpl()
-        val font        = fontFactory { families += "verdana"; size = 24 }
+        val font = mockk<Font>()
 
         return "foo bar "..font("some simple").." text"
     }

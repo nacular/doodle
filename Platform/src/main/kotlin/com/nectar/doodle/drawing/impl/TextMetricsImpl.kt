@@ -1,8 +1,11 @@
-package com.nectar.doodle.drawing
+package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.TextFactory
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.text.StyledText
 import org.w3c.dom.HTMLElement
 import kotlin.math.max
