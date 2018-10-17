@@ -5,7 +5,7 @@ import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.ImageFactory
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
-import com.nectar.doodle.units.milliseconds
+import com.nectar.measured.units.milliseconds
 import org.w3c.dom.HTMLImageElement
 
 

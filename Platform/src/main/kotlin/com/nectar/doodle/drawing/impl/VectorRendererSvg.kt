@@ -36,11 +36,11 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.units.Angle
-import com.nectar.doodle.units.Measure
-import com.nectar.doodle.units.cos
-import com.nectar.doodle.units.degrees
-import com.nectar.doodle.units.sin
+import com.nectar.measured.units.Angle
+import com.nectar.measured.units.Measure
+import com.nectar.measured.units.cos
+import com.nectar.measured.units.degrees
+import com.nectar.measured.units.sin
 import com.nectar.doodle.utils.isEven
 import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement

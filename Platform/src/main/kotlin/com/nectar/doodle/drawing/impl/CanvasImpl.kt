@@ -50,8 +50,8 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
-import com.nectar.doodle.units.Angle
-import com.nectar.doodle.units.Measure
+import com.nectar.measured.units.Angle
+import com.nectar.measured.units.Measure
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node

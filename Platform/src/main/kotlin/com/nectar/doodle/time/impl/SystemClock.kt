@@ -2,9 +2,9 @@ package com.nectar.doodle.time.impl
 
 import com.nectar.doodle.time.Clock
 import com.nectar.doodle.time.Timer
-import com.nectar.doodle.units.Measure
-import com.nectar.doodle.units.Time
-import com.nectar.doodle.units.milliseconds
+import com.nectar.measured.units.Measure
+import com.nectar.measured.units.Time
+import com.nectar.measured.units.milliseconds
 import kotlin.browser.window
 import kotlin.js.Date
 

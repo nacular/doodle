@@ -8,24 +8,30 @@ ext {
     // JS
     mockk_js      = '1.7.17'
 
+    measured      ='1.0'
+
     dep = [
-            kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version",
-            kotlin_stdlib_jdk8  : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
-            kotlin_stdlib_js    : "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version",
-            kotlin_reflect      : "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version",
-            kotlin_test_common  : ["org.jetbrains.kotlin:kotlin-test-common:$kotlin_version", "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"],
-            mockk_common        :  "io.mockk:mockk-common:$mockk",
+            kotlin_stdlib_common          : "org.jetbrains.kotlin:kotlin-stdlib-common",
+            kotlin_stdlib_jdk8            : "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+            kotlin_stdlib_js              : "org.jetbrains.kotlin:kotlin-stdlib-js",
+            kotlin_reflect                : "org.jetbrains.kotlin:kotlin-reflect",
+            kotlin_test_common            : "org.jetbrains.kotlin:kotlin-test-common",
+            kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common",
+            mockk_common                  :  "io.mockk:mockk-common:$mockk",
 
             // JS
-            kotlin_test_js      : ["org.jetbrains.kotlin:kotlin-test-js:$kotlin_version", "org.jetbrains.kotlin:kotlin-test:$kotlin_version"],
+            kotlin_test_js      : "org.jetbrains.kotlin:kotlin-test-js",
+//            kotlin_test         : "org.jetbrains.kotlin:kotlin-test",
             mockk_js            :  "io.mockk:mockk-js:$mockk_js",
 
             // JVM
             junit               : "junit:junit:$junit_version",
-            kotlin_junit        : ["org.jetbrains.kotlin:kotlin-test:$kotlin_version", "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"],
+//            kotlin_test         : "org.jetbrains.kotlin:kotlin-test",
+            kotlin_test_junit   : "org.jetbrains.kotlin:kotlin-test-junit",
             mockk               :  "io.mockk:mockk:$mockk",
 
             log4j               : "org.slf4j:slf4j-api:1.7.25",
-            logback             : "ch.qos.logback:logback-classic:1.2.3"
+            logback             : "ch.qos.logback:logback-classic:1.2.3",
+            measured            :"com.nectar.measured:measured:$measured"
     ]
 }

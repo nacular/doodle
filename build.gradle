@@ -1,3 +1,23 @@
+buildscript {
+    ext.kotlin_version          = '1.3.0-rc-131'
+    ext.kotlin_frontend_version = '0.0.37'
+    ext.dokka_version           = '0.9.16'
+
+    repositories {
+        maven       { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:$kotlin_frontend_version"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform' version '1.2.71'
+}
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'maven'
@@ -5,27 +25,11 @@ allprojects {
     version = '1.0'
     group   = 'com.nectar.doodle'
 
-    buildscript {
-        ext.kotlin_version          = '1.3.0-rc-57' //'1.2.41'
-        ext.kotlin_frontend_version = '0.0.37'
-        ext.dokka_version           = '0.9.16'
-
-        repositories {
-            maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
-            jcenter()
-            mavenCentral()
-            mavenLocal()
-        }
-        dependencies {
-            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-            classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:$kotlin_frontend_version"
-            classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        }
-    }
     repositories {
-        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+        maven       { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         mavenCentral()
-        jcenter()
+        mavenLocal  ()
+        jcenter     ()
     }
 }
 

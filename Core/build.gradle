@@ -1,21 +1,62 @@
-apply plugin: 'kotlin-platform-common'
+apply from  : '../jacoco.gradle'
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
-dependencies {
-    implementation project(':units')
-    implementation dep.kotlin_stdlib_common
-    implementation dep.kotlin_reflect
+kotlin {
+    targets {
+        fromPreset(presets.js,  'js' )
+        fromPreset(presets.jvm, 'jvm')
+    }
 
-    testImplementation project(':testing')
-    testImplementation dep.kotlin_test_common
-    testImplementation dep.mockk_common
+    // Common Kotlin config
+    apply from: '../kotlin.gradle'
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation dep.kotlin_stdlib_common
+            implementation dep.kotlin_reflect
+            implementation dep.measured
+        }
+
+        commonTest.dependencies {
+            implementation dep.kotlin_test_common
+            implementation dep.kotlin_test_annotations_common
+            implementation dep.mockk_common
+        }
+
+        jvmMain.dependencies {
+            implementation dep.kotlin_stdlib_jdk8
+        }
+
+        jvmTest.dependencies {
+            implementation dep.junit
+            implementation dep.kotlin_test_junit
+
+            implementation dep.log4j
+            implementation dep.logback
+            implementation dep.mockk
+        }
+
+        jsMain.dependencies {
+            implementation dep.kotlin_stdlib_js
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
+        }
+    }
+}
+
+jacocoTestReport {
+    sourceDirectories = files([
+        "../Core/src/commonMain/kotlin",
+        "../Core/src/jvmMain/kotlin"
+    ])
 }
 
 dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/javadoc"
-}
-
-compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+    outputFormat    = 'html'
+    outputDirectory = "$buildDir/dokka"
 }

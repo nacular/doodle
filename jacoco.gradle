@@ -1,12 +1,13 @@
+//apply plugin: 'java'
 apply plugin: 'jacoco'
 
 jacoco {
-    toolVersion = "0.7.9"
+    toolVersion = '0.8.2'
 }
 
-/*task*/ jacocoTestReport/*(type: JacocoReport, dependsOn: "testDebugUnitTest")*/ {
-    group = "Reporting"
-    description = "Generate Jacoco coverage reports for Debug build"
+task jacocoTestReport(type: JacocoReport, dependsOn: 'jvmTest' /*'testDebugUnitTest'*/) {
+    group = 'Reporting'
+    description = 'Generate Jacoco coverage reports for Debug build'
 
     reports {
         xml.enabled  = false
@@ -15,18 +16,20 @@ jacoco {
 
     // what to exclude from coverage report: generated classes, platform classes, etc.
     def excludes = [
-            '**/Manifest*.*',
-            '**/*Test*.*',
+        '**/Manifest*.*',
+        '**/*Test*.*',
     ]
 
     // generated classes
     classDirectories = fileTree(
-            dir: "$buildDir/intermediates/classes/debug",
-            excludes: excludes
+        dir: '$buildDir/intermediates/classes/debug',
+        excludes: excludes
     ) + fileTree(
-            dir: "$buildDir/tmp/kotlin-classes/debug",
-            excludes: excludes
+        dir: '$buildDir/tmp/kotlin-classes/debug',
+        excludes: excludes
     )
 
-    executionData = files("$buildDir/jacoco/test.exec")
+    executionData = files('$buildDir/jacoco/test.exec')
 }
+
+//tasks['jacocoTestReport'].dependsOn('jvmTest')

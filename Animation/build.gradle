@@ -1,13 +1,36 @@
-apply plugin: 'kotlin-platform-common'
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'maven-publish'
 
+kotlin {
+    targets {
+        fromPreset(presets.js,  'js' )
+        fromPreset(presets.jvm, 'jvm')
+    }
 
-dependencies {
-    implementation project(':core')
-    implementation project(':units')
+    // Common Kotlin config
+    apply from: '../kotlin.gradle'
 
-    implementation dep.kotlin_stdlib_common
-    testImplementation dep.kotlin_test_common
+    sourceSets {
+        commonMain.dependencies {
+            implementation project(':core' )
 
-    testImplementation dep.kotlin_test_common
-    testImplementation dep.mockk_common
+            implementation dep.measured
+            implementation dep.kotlin_stdlib_common
+        }
+
+        commonTest.dependencies {
+            implementation dep.kotlin_test_common
+            implementation dep.kotlin_test_annotations_common
+            implementation dep.mockk_common
+        }
+
+        jvmMain.dependencies {
+            implementation dep.kotlin_stdlib_jdk8
+        }
+
+        jsMain.dependencies {
+            implementation dep.kotlin_stdlib_js
+        }
+
+    }
 }

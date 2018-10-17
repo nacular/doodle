@@ -1,19 +1,61 @@
-apply plugin: 'kotlin-platform-common'
+apply from  : '../jacoco.gradle'
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'maven-publish'
+apply plugin: 'org.jetbrains.dokka'
 
+kotlin {
+    targets {
+        fromPreset(presets.js,  'js' )
+        fromPreset(presets.jvm, 'jvm')
+    }
 
-dependencies {
-//    compile 'com.github.salomonbrys.kodein:kodein:4.1.0'
-//    compile 'com.github.salomonbrys.kodein:kodein-js:4.1.0'
+    // Common Kotlin config
+    apply from: '../kotlin.gradle'
 
-    implementation project(":core")
-    implementation project(":units")
-    implementation dep.kotlin_stdlib_common
+    sourceSets {
+        commonMain.dependencies {
+            implementation project(':core' )
+            implementation dep.kotlin_stdlib_common
+            implementation dep.measured
+        }
 
-    testImplementation dep.kotlin_test_common
-    testImplementation dep.mockk_common
-    testImplementation dep.mockk_common
+        commonTest.dependencies {
+            implementation dep.kotlin_test_common
+            implementation dep.kotlin_test_annotations_common
+            implementation dep.mockk_common
+        }
+
+        jvmMain.dependencies {
+            implementation dep.kotlin_stdlib_jdk8
+        }
+
+        jvmTest.dependencies {
+            implementation dep.junit
+            implementation dep.kotlin_test_junit
+
+            implementation dep.log4j
+            implementation dep.logback
+            implementation dep.mockk
+        }
+
+        jsMain.dependencies {
+            implementation dep.kotlin_stdlib_js
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
+        }
+    }
 }
 
-compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+//jacocoTestReport {
+//    sourceDirectories = files([
+//        "../Controls/src/jvmMain/kotlin"
+//    ])
+//}
+
+dokka {
+    outputFormat    = 'html'
+    outputDirectory = "$buildDir/dokka"
 }

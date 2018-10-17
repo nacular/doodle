@@ -10,10 +10,10 @@ import com.nectar.doodle.drawing.impl.State.Pending
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.time.Timer
-import com.nectar.doodle.units.Measure
-import com.nectar.doodle.units.Time
-import com.nectar.doodle.units.milliseconds
-import com.nectar.doodle.units.seconds
+import com.nectar.measured.units.Measure
+import com.nectar.measured.units.Time
+import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.seconds
 import org.w3c.dom.HTMLElement
 
 /**

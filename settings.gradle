@@ -1,25 +1,28 @@
 /*
  * Copyright (c) 2015. Nectar
  */
+enableFeaturePreview('GRADLE_METADATA')
 
 rootProject.name = 'doodle'
 
-include 'animation'
-include 'core'
-include 'units'
-include 'controls'
-include 'testing'
+include 'Animation'
+include 'Controls'
+include 'Core'
+include 'Units'
+include 'Platform'
 
-include 'animationjs'
-include 'corejvm'
-include 'corejs'
-include 'unitsjvm'
-include 'unitsjs'
-include 'controlsjs'
-include 'controlsjvm'
-include 'testingjvm'
-include 'testingjs'
+include 'Testapp'
+include 'Getterfixer'
 
-include 'platform'
-include 'testapp'
-include 'getterfixer'
+//include 'Testing'
+
+project(':Animation'  ).name = 'animation'
+project(':Controls'   ).name = 'controls'
+project(':Core'       ).name = 'core'
+project(':Units'      ).name = 'units'
+project(':Platform'   ).name = 'platform'
+
+project(':Testapp'    ).name = 'testapp'
+project(':Getterfixer').name = 'getterfixer'
+
+//project(':Testing').name = 'testing'
