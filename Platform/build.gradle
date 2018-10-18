@@ -1,19 +1,32 @@
-apply plugin: 'kotlin-platform-js'
+apply plugin: 'maven-publish'
+apply plugin: 'kotlin-multiplatform'
 
-dependencies {
-    api project(':core'    )
-    api project(':controls')
+kotlin {
+    targets {
+        fromPreset(presets.js, 'js')
+    }
 
-    implementation dep.kotlin_stdlib_js
-    implementation 'org.kodein.di:kodein-di-erased-js:5.0.0'
+    [compileKotlinJs, compileTestKotlinJs]*.configure {
+        kotlinOptions {
+            sourceMap             = true
+            sourceMapEmbedSources = 'always'
+            moduleKind            = 'commonjs'
+            freeCompilerArgs      = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+        }
+    }
 
-    testImplementation dep.kotlin_test_js
-}
+    sourceSets {
+        jsMain.dependencies {
+            api project(':core'    )
+            api project(':controls')
 
-[compileKotlin2Js, compileTestKotlin2Js]*.configure {
-    kotlinOptions {
-        sourceMap             = true
-        sourceMapEmbedSources = 'always'
-        moduleKind            = 'commonjs'
+            implementation dep.kotlin_stdlib_js
+            implementation 'org.kodein.di:kodein-di-erased-js:5.0.0'
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
+        }
     }
 }
