@@ -8,21 +8,15 @@ rootProject.name = 'doodle'
 include 'Animation'
 include 'Controls'
 include 'Core'
-include 'Units'
 include 'Platform'
 
-include 'Testapp'
-include 'Getterfixer'
-
-//include 'Testing'
+include 'TestApp'
+include 'GetterFixer'
 
 project(':Animation'  ).name = 'animation'
 project(':Controls'   ).name = 'controls'
 project(':Core'       ).name = 'core'
-project(':Units'      ).name = 'units'
 project(':Platform'   ).name = 'platform'
 
-project(':Testapp'    ).name = 'testapp'
-project(':Getterfixer').name = 'getterfixer'
-
-//project(':Testing').name = 'testing'
+project(':TestApp'    ).name = 'testapp'
+project(':GetterFixer').name = 'getterfixer'

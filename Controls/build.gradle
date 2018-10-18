@@ -14,9 +14,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation project(':core' )
+            api project(':core' )
             implementation dep.kotlin_stdlib_common
-            implementation dep.measured
         }
 
         commonTest.dependencies {
