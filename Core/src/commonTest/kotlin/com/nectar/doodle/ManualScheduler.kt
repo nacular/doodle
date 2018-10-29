@@ -5,6 +5,7 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 
 private class ManualScheduler: Scheduler {
     private class SimpleTask(override var completed: Boolean = false) : Task {
@@ -17,7 +18,7 @@ private class ManualScheduler: Scheduler {
 
     fun runJobs() = tasks.forEach {
         it.first.completed = true
-        it.second(0.milliseconds)
+        it.second(0 * milliseconds)
     }
 
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {

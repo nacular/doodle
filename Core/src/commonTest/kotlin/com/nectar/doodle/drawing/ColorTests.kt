@@ -12,6 +12,7 @@ import com.nectar.doodle.drawing.Color.Companion.transparent
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.Color.Companion.yellow
 import com.nectar.measured.units.degrees
+import com.nectar.measured.units.times
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
@@ -48,12 +49,12 @@ class ColorTests {
     }
 
     @Test @JsName("rgbToHsl")
-    fun `rgb to hsl`() = listOf(Color(0xccccccu) to HslColor(0.degrees, 0f, 0.8f)).forEach {
+    fun `rgb to hsl`() = listOf(Color(0xccccccu) to HslColor(0 * degrees, 0f, 0.8f)).forEach {
         expect(it.second, "${it.first} -> ${it.second}") { HslColor(it.first) }
     }
 
     @Test @JsName("hslToRgb")
-    fun `hsl to rgb`() = listOf(Color(0xccccccu) to HslColor(0.degrees, 0f, 0.8f)).forEach {
+    fun `hsl to rgb`() = listOf(Color(0xccccccu) to HslColor(0 * degrees, 0f, 0.8f)).forEach {
         expect(it.first, "${it.second} -> ${it.first}") { it.second.toRgb() }
     }
 

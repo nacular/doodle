@@ -357,8 +357,8 @@ internal class CanvasImpl(
             transform  = transform.scale(x = 0.5)
         }
 
-        it.style.setSize     (size     )
-        it.style.setTransform(transform)
+        it.style.setSize     (Size(width, height))
+        it.style.setTransform(transform          )
     }
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }

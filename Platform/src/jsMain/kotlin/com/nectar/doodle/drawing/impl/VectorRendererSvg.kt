@@ -36,12 +36,13 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.utils.isEven
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.cos
 import com.nectar.measured.units.degrees
 import com.nectar.measured.units.sin
-import com.nectar.doodle.utils.isEven
+import com.nectar.measured.units.times
 import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
@@ -202,17 +203,17 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private fun drawArc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            radius <= 0 || sweep == 0.degrees -> null
-            sweep < 360.degrees               -> makeArc(center, radius, sweep, rotation)
-            else                              -> makeCircle(Circle(center, radius))
+            radius <= 0 || sweep == 0 * degrees -> null
+            sweep < 360 * degrees               -> makeArc(center, radius, sweep, rotation)
+            else                                -> makeCircle(Circle(center, radius))
         }
     }
 
     private fun drawWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            radius <= 0 || sweep == 0.degrees -> null
-            sweep < 360.degrees               -> makeWedge(center, radius, sweep, rotation)
-            else                              -> makeCircle(Circle(center, radius))
+            radius <= 0 || sweep == 0 * degrees -> null
+            sweep < 360 * degrees               -> makeWedge(center, radius, sweep, rotation)
+            else                                -> makeCircle(Circle(center, radius))
         }
     }
 
@@ -303,7 +304,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         val endX   = center.x + radius * cos(sweep + rotation)
         val endY   = center.y - radius * sin(sweep + rotation)
 
-        val largeArc = if (sweep > 180.degrees) "1" else "0"
+        val largeArc = if (sweep > 180 * degrees) "1" else "0"
 
         return "M$startX,$startY A$radius,$radius ${rotation `in` degrees } $largeArc,0 $endX,$endY"
     }

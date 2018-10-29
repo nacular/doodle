@@ -6,6 +6,7 @@ package com.nectar.doodle.animation.transition
 import com.nectar.doodle.animation.Moment
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
+import com.nectar.measured.units.Unit
 
 
 /**
@@ -15,7 +16,7 @@ import com.nectar.measured.units.Time
  *
  * @author Nicholas Eddy (neddy@zinoti.com)
  */
-class NoChangeTransition<T>(duration: Measure<Time>): FixedDurationTransition<T>(duration) {
+class NoChangeTransition<T: Unit>(duration: Measure<Time>): FixedDurationTransition<T>(duration) {
     override fun value   (initialState: Moment<T>, timeOffset: Measure<Time>) = initialState
     override fun endState(initialState: Moment<T>                           ) = initialState
 }

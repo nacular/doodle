@@ -14,6 +14,7 @@ import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.seconds
+import com.nectar.measured.units.times
 import org.w3c.dom.HTMLElement
 
 /**
@@ -79,8 +80,8 @@ class FontDetectorImpl(
     private fun check(start: Measure<Time>, text: HTMLElement, defaultSize: Size, success: () -> Unit, failure: () -> Unit) {
         when {
             elementRuler.size(text) != defaultSize -> success()
-            timer.now - start >= 1.seconds         -> failure()
-            else                                   -> scheduler.after(100.milliseconds) {
+            timer.now - start >= 1 * seconds       -> failure()
+            else                                   -> scheduler.after(100 * milliseconds) {
                 check(start, text, defaultSize, success, failure)
             }
         }

@@ -3,6 +3,7 @@ package com.nectar.doodle.animation.impl
 import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.animation.InitialPropertyTransition
 import com.nectar.doodle.animation.Listener
+import com.nectar.doodle.animation.Listener.ChangeEvent
 import com.nectar.doodle.animation.Moment
 import com.nectar.doodle.animation.PropertyTransitions
 import com.nectar.doodle.animation.transition.Transition
@@ -11,16 +12,17 @@ import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.MeasureRatio
 import com.nectar.measured.units.Time
+import com.nectar.measured.units.div
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 
 
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
 
-private class InitialPropertyTransitionImpl<T>(private val property: InternalProperty<*, T>): InitialPropertyTransition<T> {
+private class InitialPropertyTransitionImpl<T: com.nectar.measured.units.Unit>(private val property: InternalProperty<*, T>): InitialPropertyTransition<T> {
     override infix fun using(transition: Transition<T>): PropertyTransitions<T> {
         property.add(transition)
 
@@ -28,10 +30,37 @@ private class InitialPropertyTransitionImpl<T>(private val property: InternalPro
     }
 }
 
-private class PropertyTransitionsImpl<T>(private val property: InternalProperty<*, T>): PropertyTransitions<T> {
+private class PropertyTransitionsImpl<T: com.nectar.measured.units.Unit>(private val property: InternalProperty<*, T>): PropertyTransitions<T> {
     override infix fun then(transition: Transition<T>): PropertyTransitions<T> {
         property.add(transition)
         return this
+    }
+}
+
+private class Result<P, T: com.nectar.measured.units.Unit>(val active: Boolean, property: P, old: Measure<T>, new: Measure<T>): ChangeEvent<P, T>(property, old, new)
+
+private class PropertyDriver<P, T: com.nectar.measured.units.Unit>(private val property: InternalProperty<P, T>) {
+    fun drive(totalElapsedTime: Measure<Time>): Result<P, T> {
+        var momentValue      = property.value
+        var activeTransition = property.activeTransition
+
+        // Read new active Transition
+        if (activeTransition == null) {
+            activeTransition = property.nextTransition(momentValue, totalElapsedTime)
+        }
+
+        // Skip over out-dated Transitions, making sure to take their end-state into account
+        while (activeTransition != null && activeTransition.endTime.time < totalElapsedTime) {
+            momentValue      = activeTransition.transition.endState(momentValue)
+            activeTransition = property.nextTransition(momentValue, totalElapsedTime)
+            property.value   = momentValue
+        }
+
+        if (activeTransition != null) {
+            momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
+        }
+
+        return Result(activeTransition != null, property.property, property.value.position, momentValue.position)
     }
 }
 
@@ -40,12 +69,18 @@ class AnimatorImpl<P>(
         private val scheduler         : Scheduler,
         private val animationScheduler: AnimationScheduler): Animator<P> {
 
-    private var task        = null as Task?
-    private var startTime   = 0.milliseconds
-    private val transitions = mutableMapOf<P, InternalProperty<P, Any>>()
-    private val listeners   = mutableSetOf<Listener<P>>()
+    private var task      = null as Task?
+    private val drivers   = mutableMapOf<P, PropertyDriver<P, *>>()
+    private var startTime = 0 * milliseconds
+    private val listeners = mutableSetOf<Listener<P>>()
 
-    override fun <T> invoke(property: P, initialValue: Measure<T>): InitialPropertyTransition<T> = InitialPropertyTransitionImpl(transitions.getOrPut(property) { InternalProperty(property, initialValue) as InternalProperty<P, Any> } as InternalProperty<P, T>)
+    override fun <T: com.nectar.measured.units.Unit> invoke(property: P, initialValue: Measure<T>): InitialPropertyTransition<T> {
+        val internalProperty = InternalProperty(property, initialValue)
+
+        drivers.getOrPut(property) { PropertyDriver(internalProperty) }
+
+        return InitialPropertyTransitionImpl(internalProperty)
+    }
 
     override fun schedule(after: Measure<Time>) {
         if (task?.completed == false) {
@@ -72,33 +107,37 @@ class AnimatorImpl<P>(
     override fun minusAssign(listener: Listener<P>) = listeners.remove(listener).let { Unit }
 
     private fun onAnimate() {
-        val events           = mutableMapOf<P, Listener.ChangeEvent<P, Any>>()
-        val totalElapsedTime =  timer.now - startTime
+        val events           = mutableMapOf<P, ChangeEvent<P, *>>()
+        val totalElapsedTime = timer.now - startTime
 
-        var activeTransition: TransitionNode<Any>? = null
+        var activeTransition = false
 
-        for (property in transitions.values) {
-            var momentValue  = property.value
-            activeTransition = property.activeTransition
-
-            // Read new active Transition
-            if (activeTransition == null) {
-                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
-            }
-
-            // Skip over out-dated Transitions, making sure to take their end-state into account
-            while (activeTransition != null && activeTransition.endTime.time < totalElapsedTime) {
-                momentValue      = activeTransition.transition.endState(momentValue)
-                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
-                property.value   = momentValue
-            }
-
-            if (activeTransition != null) {
-                momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
-            }
-
-            events[property.property] = Listener.ChangeEvent(property.property, property.value.position, momentValue.position)
+        drivers.forEach {
+            events[it.key] = it.value.drive(totalElapsedTime).also { activeTransition = it.active }
         }
+
+//        for (property in transitions.values) {
+//            var momentValue  = property.value
+//            activeTransition = property.activeTransition
+//
+//            // Read new active Transition
+//            if (activeTransition == null) {
+//                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
+//            }
+//
+//            // Skip over out-dated Transitions, making sure to take their end-state into account
+//            while (activeTransition != null && activeTransition.endTime.time < totalElapsedTime) {
+//                momentValue      = activeTransition.transition.endState(momentValue)
+//                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
+//                property.value   = momentValue
+//            }
+//
+//            if (activeTransition != null) {
+//                momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
+//            }
+//
+//            events[property.property] = ChangeEvent(property.property, property.value.position, momentValue.position)
+//        }
 
         if (events.isNotEmpty()) {
             listeners.forEach {
@@ -106,7 +145,7 @@ class AnimatorImpl<P>(
             }
         }
 
-        if (activeTransition != null) {
+        if (activeTransition) {
             task = animationScheduler.onNextFrame {
                 onAnimate()
             }
@@ -117,16 +156,16 @@ class AnimatorImpl<P>(
 }
 
 private class KeyFrame {
-    var time: Measure<Time> = 0.milliseconds
+    var time: Measure<Time> = 0 * milliseconds
 }
 
-private class InternalProperty<P, T>(val property: P, initialValue: Measure<T>) {
+private class InternalProperty<P, T: com.nectar.measured.units.Unit>(val property: P, initialValue: Measure<T>) {
 
     val transitions      = mutableListOf<TransitionNode<T>>()
     var activeTransition = null as TransitionNode<T>?
         private set
 
-    var value = Moment(initialValue, MeasureRatio.zero())
+    var value = Moment(initialValue, 0 * initialValue / (1 * milliseconds))
 
     fun add(transition: Transition<T>) {
         val start = if (transitions.isEmpty()) KeyFrame() else transitions.last().endTime
@@ -154,7 +193,7 @@ private class InternalProperty<P, T>(val property: P, initialValue: Measure<T>) 
     }
 }
 
-private class TransitionNode<T>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
+private class TransitionNode<T: com.nectar.measured.units.Unit>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
 
     fun shouldStart(elapsedTime: Measure<Time>) = startTime.time <= elapsedTime
 

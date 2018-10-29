@@ -64,7 +64,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
                             this[0.0, 0.0, 1.0]))
 
     fun rotate(angle: Measure<Angle>): AffineTransform {
-        val radians = angle.`in`(radians)
+        val radians = angle `in` radians
         val sin     = sin(radians)
         val cos     = cos(radians)
 

@@ -24,9 +24,9 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
 
     override fun isEmpty() = root == null
 
-    override fun contains(element: E) = contains(root, element)
+    override fun contains(element: E) = if (isEmpty()) false else contains(root, element)
 
-    override fun containsAll(elements: Collection<E>) = elements.all { contains(it) }
+    override fun containsAll(elements: Collection<E>) = if (isEmpty()) false else elements.all { contains(it) }
 
     override fun iterator(): Iterator<E> = BstIterator()
 
@@ -45,7 +45,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
     }
 
     protected open fun remove_(element: E): Boolean {
-        return root?.let {
+        return (root?.let {
             if (it.value == element) {
 
                 val auxRoot = BstNode(it.value)
@@ -56,23 +56,22 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
 
                 root = auxRoot.left
 
-                return result
+                result
 
             } else {
-                return remove(it, null, element)
-
+                remove(it, null, element)
             }
 
-        } ?: false
+        } ?: false).ifTrue { --size_ }
     }
 
     private fun add(node: BstNode<E>, element: E): Boolean = when {
         node.value == element -> false
-        comparator.compare(node.value, element) > 0 -> when (node.left){
+        comparator.compare(node.value, element) > 0 -> when (node.left) {
             null -> { node.left = BstNode(element); true }
             else -> add(node.left!!, element)
         }
-        else -> when (node.right){
+        else -> when (node.right) {
             null -> { node.right = BstNode(element); true }
             else -> add(node.right!!, element)
         }
@@ -108,10 +107,11 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
 
 
     private fun contains(node: BstNode<E>?, element: E): Boolean = when {
-        node?.value == element         -> true
-        contains(node?.left,  element) -> true
-        contains(node?.right, element) -> true
-        else                           -> false
+        node == null                  -> false
+        node.value == element         -> true
+        contains(node.left,  element) -> true
+        contains(node.right, element) -> true
+        else                          -> false
     }
 
     protected inner class BstIterator: kotlin.collections.MutableIterator<E> {

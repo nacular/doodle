@@ -6,6 +6,7 @@ import com.nectar.doodle.image.ImageFactory
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 import org.w3c.dom.HTMLImageElement
 
 
@@ -74,6 +75,6 @@ class ImageFactoryImpl(private val htmlFactory: HtmlFactory, private val schedul
     }
 
     private fun scheduleLoadCheck() {
-        task = scheduler.after(10.milliseconds) { processLoading() }
+        task = scheduler.after(10 * milliseconds) { processLoading() }
     }
 }

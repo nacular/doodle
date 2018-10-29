@@ -23,6 +23,7 @@ import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -434,7 +435,7 @@ class RenderManagerImplTests {
     }
 
     private fun timer(): Timer = mockk<Timer>(relaxed = true).apply {
-        every { now } returns 0.milliseconds
+        every { now } returns 0 * milliseconds
     }
 
     private fun graphicsDevice(mapping: Map<Gizmo, GraphicsSurface> = mapOf()): GraphicsDevice<*> {
@@ -493,7 +494,7 @@ class RenderManagerImplTests {
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>(relaxed = true).apply {
         every { this@apply.onNextFrame(captureLambda()) } answers {
-            lambda<(Measure<Time>) -> Unit>().captured(0.milliseconds)
+            lambda<(Measure<Time>) -> Unit>().captured(0 * milliseconds)
 
             val task = mockk<Task>()
 
@@ -535,7 +536,7 @@ class RenderManagerImplTests {
         fun runJobs() {
             tasks.forEach {
                 it.first.completed = true
-                it.second(0.milliseconds)
+                it.second(0 * milliseconds)
             }
         }
 

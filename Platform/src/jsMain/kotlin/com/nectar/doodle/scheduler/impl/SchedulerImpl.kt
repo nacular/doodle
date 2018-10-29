@@ -8,6 +8,7 @@ import com.nectar.doodle.time.Timer
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 import kotlin.browser.window
 
 /**
@@ -29,7 +30,7 @@ private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<T
 
 private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
 
-    private val value = window.requestAnimationFrame { time -> completed = true; job(time.milliseconds) }
+    private val value = window.requestAnimationFrame { time -> completed = true; job(time * milliseconds) }
 
     override var completed = false
 
@@ -54,7 +55,7 @@ private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Ti
 
 internal class SchedulerImpl(private val timer: Timer): Scheduler {
     // TODO: Separate animation scheduler into different interface
-    override fun after (time : Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.isZero) AnimationTask(job) else SimpleTask(timer, time, job)
+    override fun after (time : Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
     override fun repeat(every: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, every, job)
 }
 
@@ -64,7 +65,7 @@ internal class AnimationSchedulerImpl: AnimationScheduler {
 
 
 // TODO: Move to a better location
-private val frameDuration = 1000.milliseconds / 60
+private val frameDuration = 1000 * milliseconds / 60
 
 private open class DistributedAnimationTask(private val scheduler: AnimationScheduler, private val timer: Timer, private val jobs: Iterator<() -> Unit>): Task {
 

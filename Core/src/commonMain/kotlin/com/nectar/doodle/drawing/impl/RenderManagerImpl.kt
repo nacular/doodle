@@ -18,6 +18,7 @@ import com.nectar.doodle.utils.ifTrue
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.times
 
 private object AncestorComparator: Comparator<Gizmo> {
     override fun compare(a: Gizmo, b: Gizmo) = when {
@@ -27,7 +28,7 @@ private object AncestorComparator: Comparator<Gizmo> {
     }
 }
 
-private val frameDuration = 1000.milliseconds / 60
+private val frameDuration = 1000 * milliseconds / 60
 
 @Suppress("PrivatePropertyName")
 class RenderManagerImpl(

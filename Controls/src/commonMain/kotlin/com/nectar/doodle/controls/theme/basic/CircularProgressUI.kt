@@ -9,6 +9,7 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.measured.units.degrees
+import com.nectar.measured.units.times
 import kotlin.math.min
 
 /**
@@ -27,9 +28,9 @@ class CircularProgressUI(private val defaultBackgroundColor: Color, private val 
             else       -> canvas.circle(Circle(center, radius),                                                brush)
         }
 
-        val sweep = 360.degrees * gizmo.progress
+        val sweep = 360 * degrees * gizmo.progress
 
-        canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90.degrees - sweep, brush = ColorBrush(darkBackgroundColor))
+        canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90 * degrees - sweep, brush = ColorBrush(darkBackgroundColor))
 
         // TODO: Make this transparent
         canvas.circle(Circle(center, radius - radius / 4), Pen(darkBackgroundColor, border), ColorBrush(Color.white))

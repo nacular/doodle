@@ -3,6 +3,8 @@ package com.nectar.doodle.drawing
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.degrees
+import com.nectar.measured.units.div
+import com.nectar.measured.units.times
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -84,7 +86,7 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
 
     fun toRgb(): Color {
         val c = (1.0 - abs(2 * lightness - 1)) * saturation
-        val x = c * (1.0 - abs((hue / 60.degrees) % 2 - 1))
+        val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
         val m = lightness - c / 2
 
         val rgb: List<Double> = when (hue `in` degrees) {
@@ -146,7 +148,7 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
             val lightness  = (max + min).toFloat() / 2
             val saturation = if (delta == 0.0) 0f else (delta / (1 - abs(2 * lightness - 1))).toFloat()
 
-            return HslColor(hue.degrees, saturation, lightness, rgb.opacity)
+            return HslColor(hue * degrees, saturation, lightness, rgb.opacity)
         }
     }
 }
