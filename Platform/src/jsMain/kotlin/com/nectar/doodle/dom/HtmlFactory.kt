@@ -13,7 +13,7 @@ import kotlin.browser.document
  */
 
 interface HtmlFactory {
-    val body: HTMLElement
+    val root: HTMLElement
 
     fun <T: HTMLElement> create(           ): T
     fun <T: HTMLElement> create(tag: String): T
@@ -26,9 +26,7 @@ interface HtmlFactory {
     fun createButton(): HTMLButtonElement
 }
 
-internal class HtmlFactoryImpl: HtmlFactory {
-    override val body get() = document.body!!
-
+internal class HtmlFactoryImpl(override val root: HTMLElement): HtmlFactory {
     override fun <T: HTMLElement> create() = create("DIV") as T
 
     @Suppress("UNCHECKED_CAST")

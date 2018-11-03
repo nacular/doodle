@@ -75,7 +75,7 @@ class RealGraphicsSurface private constructor(
         if (parent != null) {
             parent?.rootElement?.add(rootElement)
         } else if (addToDocumentIfNoParent) {
-            htmlFactory.body.add(rootElement)
+            htmlFactory.root.add(rootElement)
         }
     }
 
@@ -117,7 +117,7 @@ class RealGraphicsSurface private constructor(
         if (parent != null) {
             parent!!.remove(this)
         } else {
-            htmlFactory.body.remove(rootElement)
+            htmlFactory.root.remove(rootElement)
         }
     }
 

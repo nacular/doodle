@@ -11,11 +11,11 @@ import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
 import com.nectar.doodle.dom.SystemStylerImpl
 import com.nectar.doodle.drawing.CanvasFactory
-import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextFactoryImpl
+import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
@@ -57,26 +57,30 @@ import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
+import org.w3c.dom.HTMLElement
 import kotlin.browser.document
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
+abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = setOf(mouseModule)) {
     abstract fun run(display: Display)
 
     val injector = Kodein.direct {
-        bind<SystemStyler>() with instance  ( SystemStylerImpl() )
+        bind<SystemStyler>() with instance  (SystemStylerImpl())
 
-        bind<Timer>             () with singleton { PerformanceTimer      (                           ) }
-        bind<Strand>            () with singleton { StrandImpl            (instance(), instance()     ) }
-        bind<Display>           () with singleton { DisplayImpl           (instance(), document.body!!) }
-        bind<Scheduler>         () with singleton { SchedulerImpl         (instance()                 ) }
-        bind<HtmlFactory>       () with singleton { HtmlFactoryImpl       (                           ) }
-        bind<TextFactory>       () with singleton { TextFactoryImpl       (instance()                 ) }
-        bind<AnimationScheduler>() with singleton { AnimationSchedulerImpl(                           ) } // FIXME: Provide fallback in case not supported
-
-        import(renderModule)
+        bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
+        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
+        bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }
+        bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root                                                            ) }
+        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root                                                            ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance()                              ) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
+        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (                                                                ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -92,14 +96,6 @@ abstract class Application(modules: Set<Module> = setOf(mouseModule)) {
 
         run(injector.instance())
     }
-}
-
-private val renderModule = Module {
-    bind<SvgFactory>               () with singleton { SvgFactoryImpl            (                                                                ) }
-    bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance()                                          ) }
-    bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
-    bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
-    bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
 }
 
 val mouseModule = Module {

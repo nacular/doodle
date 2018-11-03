@@ -8,15 +8,13 @@ import kotlin.browser.document
  * Created by Nicholas Eddy on 10/24/17.
  */
 interface SvgFactory {
-    val body: HTMLElement
+    val root: HTMLElement
 
     fun <T: SVGElement> create(tag: String): T
 }
 
-private val prototypes = mutableMapOf<String, SVGElement>()
-
-internal class SvgFactoryImpl: SvgFactory {
-    override val body get() = document.body!!
+internal class SvgFactoryImpl(override val root: HTMLElement): SvgFactory {
+    private val prototypes = mutableMapOf<String, SVGElement>()
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : SVGElement> create(tag: String) = prototypes.getOrPut(tag) {

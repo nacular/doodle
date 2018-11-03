@@ -18,10 +18,10 @@ class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
     override fun size  (element: HTMLElement) = measure(element) { Size(width, height) }
 
     private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
-        htmlFactory.body.insert(element, 0)
+        htmlFactory.root.insert(element, 0)
 
         return element.run(block).also {
-            htmlFactory.body.removeChild(element)
+            htmlFactory.root.removeChild(element)
         }
     }
 }

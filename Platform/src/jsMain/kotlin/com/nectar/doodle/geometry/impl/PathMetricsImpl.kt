@@ -24,11 +24,11 @@ class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
 
         element.setPathData(path.data)
 
-        svgFactory.body.add(svg)
+        svgFactory.root.add(svg)
 
         val rect = element.getBoundingClientRect().run { Rectangle(x, y, width, height) }
 
-        svgFactory.body.removeChild(svg)
+        svgFactory.root.removeChild(svg)
 
         svg.removeChild(element)
 

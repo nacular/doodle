@@ -109,35 +109,11 @@ class AnimatorImpl<P>(
     private fun onAnimate() {
         val events           = mutableMapOf<P, ChangeEvent<P, *>>()
         val totalElapsedTime = timer.now - startTime
-
         var activeTransition = false
 
         drivers.forEach {
-            events[it.key] = it.value.drive(totalElapsedTime).also { activeTransition = it.active }
+            events[it.key] = it.value.drive(totalElapsedTime).also { activeTransition = activeTransition || it.active }
         }
-
-//        for (property in transitions.values) {
-//            var momentValue  = property.value
-//            activeTransition = property.activeTransition
-//
-//            // Read new active Transition
-//            if (activeTransition == null) {
-//                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
-//            }
-//
-//            // Skip over out-dated Transitions, making sure to take their end-state into account
-//            while (activeTransition != null && activeTransition.endTime.time < totalElapsedTime) {
-//                momentValue      = activeTransition.transition.endState(momentValue)
-//                activeTransition = property.nextTransition(momentValue, totalElapsedTime)
-//                property.value   = momentValue
-//            }
-//
-//            if (activeTransition != null) {
-//                momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
-//            }
-//
-//            events[property.property] = ChangeEvent(property.property, property.value.position, momentValue.position)
-//        }
 
         if (events.isNotEmpty()) {
             listeners.forEach {

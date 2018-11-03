@@ -13,5 +13,5 @@ internal class RealGraphicsSurfaceFactory(
     fun surface(element: HTMLElement?) =
             element?.let { RealGraphicsSurface(htmlFactory, canvasFactory, it) } ?: RealGraphicsSurface(htmlFactory, canvasFactory)
 
-    override fun surface(parent: RealGraphicsSurface?, isContainer: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, parent, isContainer)
+    override operator fun invoke(parent: RealGraphicsSurface?, isContainer: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, parent, isContainer)
 }

@@ -9,6 +9,7 @@ import kotlin.browser.document
 interface SystemStyler
 
 internal class SystemStylerImpl: SystemStyler {
+    // FIXME: Make these styles local and applicable to the root not instead of assuming document.body
     init {
         document.styleSheets[0].asDynamic().insertRule("body * { position:absolute;overflow:hidden }", 0)
         document.styleSheets[0].asDynamic().insertRule("body pre { overflow:visible }", 0)

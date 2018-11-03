@@ -10,7 +10,7 @@ import com.nectar.measured.units.times
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class FixedTime2LinearTransition<T: Unit>(duration: Measure<Time>, private val endValue: Measure<T>): FixedDurationTransition<T>(duration) {
+class FixedTimeLinear<T: Unit>(duration: Measure<Time>, private val endValue: Measure<T>): FixedDuration<T>(duration) {
     override fun value(initialState: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
         val initialPosition = initialState.position
 

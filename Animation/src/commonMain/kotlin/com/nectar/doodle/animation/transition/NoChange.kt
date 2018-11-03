@@ -16,7 +16,7 @@ import com.nectar.measured.units.Unit
  *
  * @author Nicholas Eddy (neddy@zinoti.com)
  */
-class NoChangeTransition<T: Unit>(duration: Measure<Time>): FixedDurationTransition<T>(duration) {
+class NoChange<T: Unit>(duration: Measure<Time>): FixedDuration<T>(duration) {
     override fun value   (initialState: Moment<T>, timeOffset: Measure<Time>) = initialState
     override fun endState(initialState: Moment<T>                           ) = initialState
 }

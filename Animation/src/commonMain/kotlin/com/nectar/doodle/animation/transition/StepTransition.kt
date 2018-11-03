@@ -8,7 +8,7 @@ import com.nectar.measured.units.Unit
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class StepTransition<T: Unit>(private val delay: Measure<Time>, remaining: Measure<Time>, private val finalValue: Measure<T>): FixedDurationTransition<T>(delay + remaining) {
+class StepTransition<T: Unit>(private val delay: Measure<Time>, remaining: Measure<Time>, private val finalValue: Measure<T>): FixedDuration<T>(delay + remaining) {
     init {
         require(delay.amount >= 0    ) { "delay must be positive"     }
         require(remaining.amount >= 0) { "remaining must be positive" }

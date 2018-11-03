@@ -39,7 +39,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
         eventHandler = handler
 
         if (inputDevice == null) {
-            inputDevice = htmlFactory.body.also {
+            inputDevice = htmlFactory.root.also {
                 registerCallbacks(it)
             }
         }

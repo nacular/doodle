@@ -16,7 +16,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         if (surface == null) {
             val parent = gizmo.parent
 
-            surface = surfaceFactory.surface(gizmoSurfaceMap[parent], !gizmo.children_.isEmpty())
+            surface = surfaceFactory(gizmoSurfaceMap[parent], !gizmo.children_.isEmpty())
 
             surface.zIndex = parent?.zIndex_(gizmo) ?: 0
 
@@ -27,7 +27,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         return surface
     }
 
-    override fun create() = surfaceFactory.surface().apply { zIndex = 0 }
+    override fun create() = surfaceFactory().apply { zIndex = 0 }
 
 //    override fun create(element: HTMLElement) = surfaceFactory.surface(element)
 
