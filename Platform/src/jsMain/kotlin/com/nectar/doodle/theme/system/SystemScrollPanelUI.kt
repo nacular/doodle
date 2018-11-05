@@ -16,12 +16,11 @@ class SystemScrollPanelUI(nativeScrollPanelFactory: NativeScrollPanelFactory, sc
 
     override var onScroll: ((Point) -> Unit)? = null
 
-    private val nativePeer by lazy { nativeScrollPanelFactory(scrollPanel) {
+    private val nativePeer = nativeScrollPanelFactory(scrollPanel) {
         onScroll?.invoke(it)
-    } }
+    }
 
     override fun render(gizmo: ScrollPanel, canvas: Canvas) {
-        nativePeer
         // no-op
     }
 

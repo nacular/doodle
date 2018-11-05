@@ -46,9 +46,11 @@ open class ScrollPanel(content: Gizmo? = null): Gizmo() {
         set(new) {
             field?.onScroll = null
 
-            field = new?.also { it.onScroll = {
-                scrollTo(it, force = true)
-            } }
+            field = new?.also {
+                it.onScroll = {
+                    scrollTo(it, force = true)
+                }
+            }
         }
 
     init {

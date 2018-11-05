@@ -1,7 +1,6 @@
 buildscript {
     ext.kotlin_version          = '1.3.0-rc-190'
     ext.kotlin_frontend_version = '0.0.37'
-    ext.dokka_version           = '0.9.16'
 
     repositories {
         maven       { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
@@ -10,12 +9,12 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:$kotlin_frontend_version"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
     }
 }
 
 plugins {
     id 'org.jetbrains.kotlin.multiplatform' version '1.2.71'
+    id "org.jetbrains.dokka" version "0.9.17"
 }
 
 allprojects {

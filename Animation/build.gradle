@@ -1,14 +1,29 @@
+apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 
 kotlin {
     targets {
-        fromPreset(presets.js,  'js' )
         fromPreset(presets.jvm, 'jvm')
-    }
+        fromPreset(presets.js,  'js' ) {
+            compilations.all {
+                tasks[compileKotlinTaskName].kotlinOptions {
+                    sourceMap             = true
+                    sourceMapEmbedSources = 'always'
+                    moduleKind            = 'commonjs'
+                }
+            }
+        }
 
-    // Common Kotlin config
-    apply from: '../kotlin.gradle'
+        all {
+            compilations.all {
+                tasks[compileKotlinTaskName].kotlinOptions {
+                    freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+//                    allWarningsAsErrors = true
+                }
+            }
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -31,5 +46,24 @@ kotlin {
             implementation dep.kotlin_stdlib_js
         }
 
+    }
+
+    dokka {
+        impliedPlatforms = ["Common"] // This will force platform tags for all non-common sources e.g. "JVM"
+        kotlinTasks {
+            // dokka fails to retrieve sources from MPP-tasks so they must be set empty to avoid exception
+            // use sourceRoot instead (see below)
+            []
+        }
+        sourceRoot {
+            // assuming there is only a single source dir...
+            path = sourceSets.commonMain.kotlin.srcDirs[0]
+            platforms = ["Common"]
+        }
+        sourceRoot {
+            // assuming there is only a single source dir...
+            path = sourceSets.jvmMain.kotlin.srcDirs[0]
+            platforms = ["JVM"]
+        }
     }
 }

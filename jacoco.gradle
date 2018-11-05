@@ -1,4 +1,3 @@
-//apply plugin: 'java'
 apply plugin: 'jacoco'
 
 jacoco {
@@ -30,6 +29,9 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'jvmTest' /*'testDebugUnitT
     )
 
     executionData = files('$buildDir/jacoco/test.exec')
-}
 
-//tasks['jacocoTestReport'].dependsOn('jvmTest')
+    sourceDirectories = files([
+        "./src/commonMain/kotlin",
+        "./src/jvmMain/kotlin"
+    ])
+}

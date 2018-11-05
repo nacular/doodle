@@ -64,10 +64,10 @@ import kotlin.browser.document
  * Created by Nicholas Eddy on 10/31/17.
  */
 abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = setOf(mouseModule)) {
-    abstract fun run(display: Display)
+    protected abstract fun run(display: Display)
 
-    val injector = Kodein.direct {
-        bind<SystemStyler>() with instance  (SystemStylerImpl())
+    protected val injector = Kodein.direct {
+        bind<SystemStyler>() with instance(SystemStylerImpl())
 
         bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
         bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
@@ -99,9 +99,9 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 }
 
 val mouseModule = Module {
-    bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()             ) }
-    bind<MouseInputManager>        () with singleton { MouseInputManager              (instance(), instance() ) }
-    bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()             ) }
+    bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
+    bind<MouseInputManager>        () with singleton { MouseInputManager              (instance(), instance()) }
+    bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
 }
 
 val focusModule = Module(allowSilentOverride = true) {

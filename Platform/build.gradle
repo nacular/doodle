@@ -1,17 +1,18 @@
+apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'maven-publish'
 apply plugin: 'kotlin-multiplatform'
 
 kotlin {
     targets {
-        fromPreset(presets.js, 'js')
-    }
-
-    [compileKotlinJs, compileTestKotlinJs]*.configure {
-        kotlinOptions {
-            sourceMap             = true
-            sourceMapEmbedSources = 'always'
-            moduleKind            = 'commonjs'
-            freeCompilerArgs      = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+        fromPreset(presets.js, 'js') {
+            compilations.all {
+                tasks[compileKotlinTaskName].kotlinOptions {
+                    sourceMap             = true
+                    sourceMapEmbedSources = 'always'
+                    moduleKind            = 'commonjs'
+                    freeCompilerArgs      = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+                }
+            }
         }
     }
 
@@ -27,6 +28,25 @@ kotlin {
         jsTest.dependencies {
             implementation dep.mockk_js
             implementation dep.kotlin_test_js
+        }
+    }
+
+    dokka {
+        impliedPlatforms = ["Common"] // This will force platform tags for all non-common sources e.g. "JVM"
+        kotlinTasks {
+            // dokka fails to retrieve sources from MPP-tasks so they must be set empty to avoid exception
+            // use sourceRoot instead (see below)
+            []
+        }
+        sourceRoot {
+            // assuming there is only a single source dir...
+            path = sourceSets.commonMain.kotlin.srcDirs[0]
+            platforms = ["Common"]
+        }
+        sourceRoot {
+            // assuming there is only a single source dir...
+            path = sourceSets.jsMain.kotlin.srcDirs[0]
+            platforms = ["JS"]
         }
     }
 }
