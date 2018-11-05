@@ -1,6 +1,6 @@
 package com.nectar.doodle.event
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemMouseEvent.Button
@@ -8,7 +8,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Type
 
 
 class MouseEvent(
-        source        : Gizmo,
+        source        : View,
         val type      : Type,
         val location  : Point,
         val buttons   : Set<Button>,
@@ -16,7 +16,7 @@ class MouseEvent(
         modifiers     : Set<Modifier>): InputEvent(source, modifiers) {
 
     constructor(
-            source    : Gizmo,
+            source    : View,
             type      : Type,
             location  : Point,
             button    : Button,

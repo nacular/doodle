@@ -1,12 +1,12 @@
 package com.nectar.doodle.event
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 
 
 class MouseWheelEvent(
-        source: Gizmo,
+        source: View,
         val location: Point,
         val xRotation: Int,
         val yRotation: Int,

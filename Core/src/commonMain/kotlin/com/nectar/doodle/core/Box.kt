@@ -5,7 +5,7 @@ import com.nectar.doodle.geometry.Point
 /**
  * Created by Nicholas Eddy on 3/2/18.
  */
-open class Box: Gizmo(), Container {
+open class Box: View(), Container {
     init {
         focusable = false
     }
@@ -26,10 +26,10 @@ open class Box: Gizmo(), Container {
 
     override val children = super.children
 
-    override fun setZIndex(of: Gizmo, to: Int) = super.setZIndex(of, to)
-    override fun zIndex(of: Gizmo) = super.zIndex(of)
+    override fun setZIndex(of: View, to: Int) = super.setZIndex(of, to)
+    override fun zIndex(of: View) = super.zIndex(of)
 
-    override fun ancestorOf(gizmo: Gizmo) = super.ancestorOf(gizmo)
+    override fun ancestorOf(view: View) = super.ancestorOf(view)
 
     override fun child(at: Point) = super.child(at)
 }

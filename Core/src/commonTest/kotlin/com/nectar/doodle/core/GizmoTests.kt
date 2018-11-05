@@ -42,74 +42,74 @@ class GizmoTests {
 
     @Test @JsName("defaults")
     fun `defaults valid`() {
-        expect("", "Gizmo::toolTipText") { object: Gizmo() {}.toolTipText }
+        expect("", "Gizmo::toolTipText") { object: View() {}.toolTipText }
 
         mapOf(
-                Gizmo::x                   to 0.0,
-                Gizmo::y                   to 0.0,
-                Gizmo::font                to null,
-                Gizmo::size                to Size.Empty,
-                Gizmo::width               to 0.0,
-                Gizmo::parent              to null,
-                Gizmo::height              to 0.0,
-                Gizmo::bounds              to Empty,
-                Gizmo::cursor              to null,
-                Gizmo::enabled             to true,
-                Gizmo::visible             to true,
-                Gizmo::insets_             to None,
-                Gizmo::layout_             to null,
-                Gizmo::position            to Origin,
-                Gizmo::hasFocus            to false,
-                Gizmo::focusable           to true,
-                Gizmo::idealSize           to null,
-                Gizmo::displayRect         to Empty,
-                Gizmo::minimumSize         to Size.Empty,
-                Gizmo::monitorsMouse       to false,
-                Gizmo::foregroundColor     to null,
-                Gizmo::backgroundColor     to null,
-                Gizmo::monitorsKeyboard    to false,
-                Gizmo::monitorsMouseWheel  to true,
-                Gizmo::monitorsMouseMotion to false,
-                Gizmo::monitorsDisplayRect to false
+                View::x                   to 0.0,
+                View::y                   to 0.0,
+                View::font                to null,
+                View::size                to Size.Empty,
+                View::width               to 0.0,
+                View::parent              to null,
+                View::height              to 0.0,
+                View::bounds              to Empty,
+                View::cursor              to null,
+                View::enabled             to true,
+                View::visible             to true,
+                View::insets_             to None,
+                View::layout_             to null,
+                View::position            to Origin,
+                View::hasFocus            to false,
+                View::focusable           to true,
+                View::idealSize           to null,
+                View::displayRect         to Empty,
+                View::minimumSize         to Size.Empty,
+                View::monitorsMouse       to false,
+                View::foregroundColor     to null,
+                View::backgroundColor     to null,
+                View::monitorsKeyboard    to false,
+                View::monitorsMouseWheel  to true,
+                View::monitorsMouseMotion to false,
+                View::monitorsDisplayRect to false
         ).forEach { validateDefault(it.key, it.value) }
     }
 
     @Test @JsName("settersWork")
     fun `setters work`() {
-        object: Gizmo() {}.also {
+        object: View() {}.also {
             val value = "foo"
             it.toolTipText = value
 
             expect(value, "toolTipText set to $value") { it.toolTipText }
         }
 
-        validateSetter(Gizmo::x,                   -5.0                            )
-        validateSetter(Gizmo::y,                   6.0                             )
-        validateSetter(Gizmo::font,                null                            )
-        validateSetter(Gizmo::size,                Size.Empty                      )
-        validateSetter(Gizmo::width,               99.0                            )
-        validateSetter(Gizmo::height,              45.0                            )
-        validateSetter(Gizmo::bounds,              Rectangle(4.5, -3.0, 2.0, 45.5) )
-        validateSetter(Gizmo::cursor,              Cursor.Crosshair                )
-        validateSetter(Gizmo::enabled,             false                           )
-        validateSetter(Gizmo::visible,             false                           )
-        validateSetter(Gizmo::position,            Origin                          )
-        validateSetter(Gizmo::focusable,           false                           )
-        validateSetter(Gizmo::idealSize,           Size(20.0, 37.6)                )
-        validateSetter(Gizmo::minimumSize,         Size.Empty                      )
-        validateSetter(Gizmo::monitorsMouse,       false                           )
-        validateSetter(Gizmo::foregroundColor,     red                             )
-        validateSetter(Gizmo::backgroundColor,     green                           )
-        validateSetter(Gizmo::monitorsKeyboard,    false                           )
-        validateSetter(Gizmo::monitorsMouseWheel,  true                            )
-        validateSetter(Gizmo::monitorsMouseMotion, false                           )
-        validateSetter(Gizmo::monitorsDisplayRect, false                           )
+        validateSetter(View::x,                   -5.0                            )
+        validateSetter(View::y,                   6.0                             )
+        validateSetter(View::font,                null                            )
+        validateSetter(View::size,                Size.Empty                      )
+        validateSetter(View::width,               99.0                            )
+        validateSetter(View::height,              45.0                            )
+        validateSetter(View::bounds,              Rectangle(4.5, -3.0, 2.0, 45.5) )
+        validateSetter(View::cursor,              Cursor.Crosshair                )
+        validateSetter(View::enabled,             false                           )
+        validateSetter(View::visible,             false                           )
+        validateSetter(View::position,            Origin                          )
+        validateSetter(View::focusable,           false                           )
+        validateSetter(View::idealSize,           Size(20.0, 37.6)                )
+        validateSetter(View::minimumSize,         Size.Empty                      )
+        validateSetter(View::monitorsMouse,       false                           )
+        validateSetter(View::foregroundColor,     red                             )
+        validateSetter(View::backgroundColor,     green                           )
+        validateSetter(View::monitorsKeyboard,    false                           )
+        validateSetter(View::monitorsMouseWheel,  true                            )
+        validateSetter(View::monitorsMouseMotion, false                           )
+        validateSetter(View::monitorsDisplayRect, false                           )
     }
 
     @Test @JsName("rerenderWorks")
     fun `rerender work`() {
         val renderManager = mockk<RenderManager>(relaxed = true)
-        val gizmo         = object: Gizmo() {}
+        val gizmo         = object: View() {}
 
         gizmo.addedToDisplay(renderManager)
 
@@ -121,7 +121,7 @@ class GizmoTests {
     @Test @JsName("rerenderNowWorks")
     fun `rerenderNow work`() {
         val renderManager = mockk<RenderManager>(relaxed = true)
-        val gizmo         = object: Gizmo() {}
+        val gizmo         = object: View() {}
 
         gizmo.addedToDisplay(renderManager)
 
@@ -133,9 +133,9 @@ class GizmoTests {
     @Test @JsName("changeEventsWork")
     fun `change events work`() {
         listOf(
-            Gizmo::enabled   to Gizmo::enabledChanged,
-            Gizmo::visible   to Gizmo::visibilityChanged,
-            Gizmo::focusable to Gizmo::focusabilityChanged
+            View::enabled   to View::enabledChanged,
+            View::visible   to View::visibilityChanged,
+            View::focusable to View::focusabilityChanged
         ).forEach {
             validateChanged(it.first, it.second)
         }
@@ -183,8 +183,8 @@ class GizmoTests {
 
     @Test @JsName("boundsChangedWorks")
     fun `bounds changed works`() {
-        val gizmo    = object: Gizmo() {}
-        val observer = mockk<PropertyObserver<Gizmo, Rectangle>>(relaxed = true)
+        val gizmo    = object: View() {}
+        val observer = mockk<PropertyObserver<View, Rectangle>>(relaxed = true)
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = gizmo.bounds
 
@@ -200,8 +200,8 @@ class GizmoTests {
 
     @Test @JsName("cursorChangedWorks")
     fun `cursor changed works`() {
-        val gizmo    = object: Gizmo() {}
-        val observer = mockk<PropertyObserver<Gizmo, Cursor?>>(relaxed = true)
+        val gizmo    = object: View() {}
+        val observer = mockk<PropertyObserver<View, Cursor?>>(relaxed = true)
         val new      = Cursor.Crosshair
         val old      = gizmo.cursor
 
@@ -214,7 +214,7 @@ class GizmoTests {
 
     @Test @JsName("containsPointWorks")
     fun `contains point`() {
-        val gizmo = object: Gizmo() {}
+        val gizmo = object: View() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
         expect(false, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
@@ -230,7 +230,7 @@ class GizmoTests {
 
     @Test @JsName("toolTipTextWorks")
     fun `tool-top text works`() {
-        val gizmo = object: Gizmo() {}
+        val gizmo = object: View() {}
         val event = mockk<MouseEvent>(relaxed = true)
 
         expect("", "${gizmo.toolTipText} == \"\"") { gizmo.toolTipText(event) }
@@ -242,9 +242,9 @@ class GizmoTests {
 
     @Test @JsName("isAncestorWorks")
     fun `is-ancestor works`() {
-        val root   = object: Gizmo() {}
-        val parent = object: Gizmo() {}
-        val child  = object: Gizmo() {}
+        val root   = object: View() {}
+        val parent = object: View() {}
+        val child  = object: View() {}
 
         expect(false) { root ancestorOf_ root  }
         expect(false) { root ancestorOf_ child }
@@ -352,9 +352,9 @@ class GizmoTests {
         expect(0) { root.zIndex_(child0) }
     }
 
-    private fun validateFocusChanged(event: FocusEvent, block: (Gizmo, PropertyObserver<Gizmo, Boolean>, FocusEvent) -> Unit) {
-        val gizmo    = object: Gizmo() {}
-        val observer = mockk<PropertyObserver<Gizmo, Boolean>>(relaxed = true)
+    private fun validateFocusChanged(event: FocusEvent, block: (View, PropertyObserver<View, Boolean>, FocusEvent) -> Unit) {
+        val gizmo    = object: View() {}
+        val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
 
         gizmo.focusChanged += observer
 
@@ -369,7 +369,7 @@ class GizmoTests {
     }
 
     private fun validateMouseChanged(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
-        val gizmo    = object: Gizmo() {}
+        val gizmo    = object: View() {}
         val listener = mockk<MouseListener>(relaxed = true)
 
         gizmo.mouseChanged += listener
@@ -380,7 +380,7 @@ class GizmoTests {
     }
 
     private fun validateMouseMotionChanged(event: MouseEvent, block: (MouseMotionListener, MouseEvent) -> Unit) {
-        val gizmo    = object: Gizmo() {}
+        val gizmo    = object: View() {}
         val listener = mockk<MouseMotionListener>(relaxed = true)
 
         gizmo.mouseMotionChanged += listener
@@ -390,10 +390,10 @@ class GizmoTests {
         block(listener, event)
     }
 
-    private fun validateChanged(property: KMutableProperty1<Gizmo, Boolean>, changed: KProperty1<Gizmo, PropertyObservers<Gizmo, Boolean>>) {
-        val gizmo    = object: Gizmo() {}
+    private fun validateChanged(property: KMutableProperty1<View, Boolean>, changed: KProperty1<View, PropertyObservers<View, Boolean>>) {
+        val gizmo    = object: View() {}
         val old      = property.get(gizmo)
-        val observer = mockk<PropertyObserver<Gizmo, Boolean>>(relaxed = true)
+        val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
 
         changed.get(gizmo).plusAssign(observer)
 
@@ -402,17 +402,17 @@ class GizmoTests {
         verify(exactly = 1) { observer(gizmo, old, property.get(gizmo)) }
     }
 
-    private fun <T> validateDefault(p: KProperty1<Gizmo, T>, default: T?) {
-        expect(default, "$p defaults to $default") { p.get(object: Gizmo() {}) }
+    private fun <T> validateDefault(p: KProperty1<View, T>, default: T?) {
+        expect(default, "$p defaults to $default") { p.get(object: View() {}) }
     }
 
-    private fun <T> validateSetter(p: KMutableProperty1<Gizmo, T>, value: T) {
-        object: Gizmo() {}.also {
+    private fun <T> validateSetter(p: KMutableProperty1<View, T>, value: T) {
+        object: View() {}.also {
             p.set(it, value)
 
             expect(value, "$p set to $value") { p.get(it) }
         }
     }
 
-    private fun gizmo(): Gizmo = object: Gizmo() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun gizmo(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 }

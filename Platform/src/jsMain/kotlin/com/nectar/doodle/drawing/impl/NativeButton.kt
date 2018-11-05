@@ -1,7 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.BoxSizing.Border
@@ -137,22 +137,22 @@ class NativeButton internal constructor(
         disabled     = !button.enabled
     }
 
-    private val textChanged: (Gizmo, String, String) -> Unit = { _,_,_ ->
+    private val textChanged: (View, String, String) -> Unit = { _,_,_ ->
         button.rerender()
     }
 
-    private val focusChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
             true -> buttonElement.focus()
             else -> buttonElement.blur ()
         }
     }
 
-    private val enabledChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         buttonElement.disabled = !new
     }
 
-    private val focusableChanged: (Gizmo, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         buttonElement.tabIndex = if (new) -1 else 0
     }
 

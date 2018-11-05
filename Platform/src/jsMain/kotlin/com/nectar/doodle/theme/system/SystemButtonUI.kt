@@ -13,35 +13,35 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetr
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 
-    override fun render(gizmo: Button, canvas: Canvas) {
+    override fun render(view: Button, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 
-    override fun install(gizmo: Button) {
-        super.install(gizmo)
+    override fun install(view: Button) {
+        super.install(view)
 
-        gizmo.cursor = Default
+        view.cursor = Default
 
-//        if (shouldOverwriteProperty(gizmo.getIdealSize())) {
-            gizmo.idealSize = nativePeer.idealSize
+//        if (shouldOverwriteProperty(view.getIdealSize())) {
+            view.idealSize = nativePeer.idealSize
 //        }
 
-        gizmo.idealSize?.let {
-            gizmo.size = it
+        view.idealSize?.let {
+            view.size = it
         }
 
-//        if (gizmo.idealSize != null /*&&
+//        if (view.idealSize != null /*&&
 //            ( aButton.getParent() == null || aButton.getParent().getLayout() == null )*/) {
-//            gizmo.size = gizmo.idealSize
+//            view.size = view.idealSize
 //        }
     }
 
-    override fun uninstall(gizmo: Button) {
-        super.uninstall(gizmo)
+    override fun uninstall(view: Button) {
+        super.uninstall(view)
 
         nativePeer.discard()
 
-        gizmo.cursor = null
+        view.cursor = null
     }
 
     override fun mouseReleased(event: MouseEvent) {

@@ -2,7 +2,7 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.JsName
 import com.nectar.doodle.core.Box
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.GraphicsSurface
 import io.mockk.every
 import io.mockk.mockk
@@ -40,7 +40,7 @@ class RealGraphicsDeviceTests {
 
         val device = RealGraphicsDevice(surfaceFactory)
 
-        expect(surface) { device[object: Gizmo() {}] }
+        expect(surface) { device[object: View() {}] }
 
         verify(exactly = 1) { surface.zIndex = 0 }
     }
@@ -50,7 +50,7 @@ class RealGraphicsDeviceTests {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
         val surface        = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
+        val child          = object: View() {}
 
         parent.children_ += child
 
@@ -69,7 +69,7 @@ class RealGraphicsDeviceTests {
         val parentSurface  = mockk<GraphicsSurface>(relaxed = true)
         val childSurface   = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
+        val child          = object: View() {}
 
         parent.children_ += child
 
@@ -92,8 +92,8 @@ class RealGraphicsDeviceTests {
         val childSurface   = mockk<GraphicsSurface>(relaxed = true)
         val nestedSurface  = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
-        val nested         = object: Gizmo() {}
+        val child          = object: View() {}
+        val nested         = object: View() {}
 
         parent.children_ += child
         child.children_  += nested
@@ -120,8 +120,8 @@ class RealGraphicsDeviceTests {
         val childSurface   = mockk<GraphicsSurface>(relaxed = true)
         val nestedSurface  = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
-        val nested         = object: Gizmo() {}
+        val child          = object: View() {}
+        val nested         = object: View() {}
 
         parent.children_ += child
         child.children_  += nested
@@ -153,8 +153,8 @@ class RealGraphicsDeviceTests {
         val childSurface2  = mockk<GraphicsSurface>(relaxed = true)
         val nestedSurface2 = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
-        val nested         = object: Gizmo() {}
+        val child          = object: View() {}
+        val nested         = object: View() {}
 
         parent.children_ += child
         child.children_  += nested
@@ -194,8 +194,8 @@ class RealGraphicsDeviceTests {
         val childSurface2  = mockk<GraphicsSurface>(relaxed = true)
         val nestedSurface2 = mockk<GraphicsSurface>(relaxed = true)
         val parent         = Box()
-        val child          = object: Gizmo() {}
-        val nested         = object: Gizmo() {}
+        val child          = object: View() {}
+        val nested         = object: View() {}
 
         parent.children_ += child
         child.children_  += nested

@@ -1,27 +1,27 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.GraphicsSurface
 
 
 class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
 
-    private val gizmoSurfaceMap = mutableMapOf<Gizmo, GraphicsSurface>()
-    private val surfaceGizmoMap = mutableMapOf<GraphicsSurface, Gizmo>()
+    private val viewSurfaceMap = mutableMapOf<View, GraphicsSurface>()
+    private val surfaceViewMap = mutableMapOf<GraphicsSurface, View>()
 
-    override operator fun get(gizmo: Gizmo): GraphicsSurface {
-        var surface: GraphicsSurface? = gizmoSurfaceMap[gizmo]
+    override operator fun get(view: View): GraphicsSurface {
+        var surface: GraphicsSurface? = viewSurfaceMap[view]
 
         if (surface == null) {
-            val parent = gizmo.parent
+            val parent = view.parent
 
-            surface = surfaceFactory(gizmoSurfaceMap[parent], !gizmo.children_.isEmpty())
+            surface = surfaceFactory(viewSurfaceMap[parent], !view.children_.isEmpty())
 
-            surface.zIndex = parent?.zIndex_(gizmo) ?: 0
+            surface.zIndex = parent?.zIndex_(view) ?: 0
 
-            gizmoSurfaceMap[gizmo  ] = surface
-            surfaceGizmoMap[surface] = gizmo
+            viewSurfaceMap[view  ] = surface
+            surfaceViewMap[surface] = view
         }
 
         return surface
@@ -31,17 +31,17 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
 
 //    override fun create(element: HTMLElement) = surfaceFactory.surface(element)
 
-    override fun release(gizmo: Gizmo) {
-        gizmoSurfaceMap[gizmo]?.let {
+    override fun release(view: View) {
+        viewSurfaceMap[view]?.let {
             it.release()
-            surfaceGizmoMap.remove(it   )
-            gizmoSurfaceMap.remove(gizmo)
+            surfaceViewMap.remove(it   )
+            viewSurfaceMap.remove(view)
         }
 
-        gizmo.children_.forEach { release(it) }
+        view.children_.forEach { release(it) }
     }
 
     override fun release(surface: GraphicsSurface) {
-        surfaceGizmoMap[surface]?.let { release(it) }
+        surfaceViewMap[surface]?.let { release(it) }
     }
 }

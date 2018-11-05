@@ -1,7 +1,7 @@
 package com.nectar.doodle.focus.impl
 
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.event.FocusEvent.Type.Gained
 import com.nectar.doodle.event.FocusEvent.Type.Lost
@@ -22,37 +22,37 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 
 class FocusManagerImpl(private val display: Display, private val defaultFocusTraversalPolicy: () -> FocusTraversalPolicy?): FocusManager {
 
-    private val ancestors = mutableListOf<Gizmo>()
+    private val ancestors = mutableListOf<View>()
 
-    override var focusOwner: Gizmo? = null
+    override var focusOwner: View? = null
         private set
 
-    override var focusCycleRoot: Gizmo? = null
+    override var focusCycleRoot: View? = null
         private set
 
-    override val focusChanged: PropertyObservers<FocusManager, Gizmo?> by lazy { PropertyObserversImpl<FocusManager, Gizmo?>(this) }
+    override val focusChanged: PropertyObservers<FocusManager, View?> by lazy { PropertyObserversImpl<FocusManager, View?>(this) }
 
-    override fun focusable(gizmo: Gizmo) = gizmo.run { focusable && enabled && visible }
+    override fun focusable(view: View) = view.run { focusable && enabled && visible }
 
-    override fun requestFocus(gizmo: Gizmo) = requestFocusInternal(gizmo)
+    override fun requestFocus(view: View) = requestFocusInternal(view)
 
     override fun clearFocus() = requestFocusInternal(null)
 
     override fun moveFocusForward (           ) = moveFocus(null, Forward )
-    override fun moveFocusForward (from: Gizmo) = moveFocus(from, Forward )
-    override fun moveFocusBackward(from: Gizmo) = moveFocus(from, Backward)
-    override fun moveFocusUpward  (from: Gizmo) = moveFocus(from, Upward  )
-    override fun moveFocusDownward(from: Gizmo) = moveFocus(from, Downward)
+    override fun moveFocusForward (from: View) = moveFocus(from, Forward )
+    override fun moveFocusBackward(from: View) = moveFocus(from, Backward)
+    override fun moveFocusUpward  (from: View) = moveFocus(from, Upward  )
+    override fun moveFocusDownward(from: View) = moveFocus(from, Downward)
 
-    private fun requestFocusInternal(gizmo: Gizmo?) {
-        if (focusOwner != gizmo && (gizmo == null || focusable(gizmo))) {
+    private fun requestFocusInternal(view: View?) {
+        if (focusOwner != view && (view == null || focusable(view))) {
             val oldFocusOwner = focusOwner
 
             if (oldFocusOwner != null) {
                 if (oldFocusOwner.shouldYieldFocus()) {
                     clearAncestorListeners()
 
-                    oldFocusOwner.handleFocusEvent(FocusEvent(oldFocusOwner, Lost, gizmo))
+                    oldFocusOwner.handleFocusEvent(FocusEvent(oldFocusOwner, Lost, view))
 
                     stopMonitorProperties(oldFocusOwner)
                 } else {
@@ -60,7 +60,7 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
                 }
             }
 
-            focusOwner = gizmo
+            focusOwner = view
 
             focusOwner?.let { focusOwner ->
                 focusOwner.handleFocusEvent(FocusEvent(focusOwner, Gained, oldFocusOwner))
@@ -74,30 +74,30 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
                 registerAncestorListeners()
             }
 
-            (focusChanged as PropertyObserversImpl<FocusManager, Gizmo?>)(oldFocusOwner, gizmo)
+            (focusChanged as PropertyObserversImpl<FocusManager, View?>)(oldFocusOwner, view)
         }
     }
 
-    private fun moveFocus(gizmo: Gizmo?, traversalType: TraversalType) {
-        var focusGizmo = gizmo ?: focusOwner
+    private fun moveFocus(view: View?, traversalType: TraversalType) {
+        var focusView = view ?: focusOwner
 
-        val focusCycleRoot = focusGizmo?.focusCycleRoot_
+        val focusCycleRoot = focusView?.focusCycleRoot_
         val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy()
 
         if (focusCycleRoot != null && policy != null) {
             when (traversalType) {
-                Forward  -> focusGizmo = policy.next    (focusCycleRoot, focusGizmo)
-                Backward -> focusGizmo = policy.previous(focusCycleRoot, focusGizmo)
+                Forward  -> focusView = policy.next    (focusCycleRoot, focusView)
+                Backward -> focusView = policy.previous(focusCycleRoot, focusView)
                 Upward   -> requestFocus(focusCycleRoot)
-                Downward -> if (focusGizmo?.isFocusCycleRoot_ == true) {
-                    focusGizmo = policy.default(focusGizmo)
+                Downward -> if (focusView?.isFocusCycleRoot_ == true) {
+                    focusView = policy.default(focusView)
 
-                    requestFocusInternal(gizmo)
+                    requestFocusInternal(view)
                 }
             }
         }
 
-        requestFocusInternal(focusGizmo)
+        requestFocusInternal(focusView)
     }
 
     private fun registerAncestorListeners() {
@@ -120,7 +120,7 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
         ancestors.clear()
     }
 
-    private val childrenChanged: (ObservableList<Gizmo, Gizmo>, Map<Int, Gizmo>, Map<Int, Gizmo>, Map<Int, Pair<Int, Gizmo>>) -> Unit = { _,_,added,_ ->
+    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { _,_,added,_ ->
         added.values.forEach {
             if (it === focusOwner || it in ancestors) {
                 val owner = focusOwner
@@ -132,17 +132,17 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
         }
     }
 
-    private fun startMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged      += focusabilityChanged
-        gizmo.focusabilityChanged += focusabilityChanged
-        gizmo.visibilityChanged   += focusabilityChanged
+    private fun startMonitorProperties(view: View) {
+        view.enabledChanged      += focusabilityChanged
+        view.focusabilityChanged += focusabilityChanged
+        view.visibilityChanged   += focusabilityChanged
     }
 
-    private fun stopMonitorProperties(gizmo: Gizmo) {
-        gizmo.enabledChanged      -= focusabilityChanged
-        gizmo.focusabilityChanged -= focusabilityChanged
-        gizmo.visibilityChanged   -= focusabilityChanged
+    private fun stopMonitorProperties(view: View) {
+        view.enabledChanged      -= focusabilityChanged
+        view.focusabilityChanged -= focusabilityChanged
+        view.visibilityChanged   -= focusabilityChanged
     }
 
-    private val focusabilityChanged: (Gizmo, Boolean, Boolean) -> Unit = { gizmo,_,_ -> moveFocusForward(gizmo) }
+    private val focusabilityChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ -> moveFocusForward(view) }
 }

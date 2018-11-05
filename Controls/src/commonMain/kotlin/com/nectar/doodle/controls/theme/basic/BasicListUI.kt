@@ -5,7 +5,7 @@ import com.nectar.doodle.controls.list.ItemUIGenerator
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListRenderer
 import com.nectar.doodle.controls.text.Label
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
@@ -87,7 +87,7 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, pri
 }
 
 private class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
-    override fun invoke(list: List<T, *>, row: T, index: Int, current: Gizmo?): Gizmo = when (current) {
+    override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> current.apply { update(list, row, index) }
         else          -> ListRow(textMetrics, list, row, index)
     }
@@ -107,5 +107,5 @@ class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
     override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
     override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator(textMetrics)
 
-    override fun render(gizmo: List<T, *>, canvas: Canvas) {}
+    override fun render(view: List<T, *>, canvas: Canvas) {}
 }

@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.drawing.Canvas
@@ -18,9 +18,9 @@ interface ScrollPanelRenderer: Renderer<ScrollPanel> {
     fun scrollTo(point: Point)
 }
 
-open class ScrollPanel(content: Gizmo? = null): Gizmo() {
+open class ScrollPanel(content: View? = null): View() {
 
-    var content = null as Gizmo?
+    var content = null as View?
         set(new) {
             if (new == this) {
                 throw IllegalArgumentException("ScrollPanel cannot be added to its self")

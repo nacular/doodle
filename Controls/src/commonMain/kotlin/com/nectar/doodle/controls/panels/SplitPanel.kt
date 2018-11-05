@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.panels
 
 import com.nectar.doodle.controls.theme.SplitPanelUI
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Constraints
@@ -13,7 +13,7 @@ import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.Orientation.Vertical
 
 
-class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizmo() {
+class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
     var renderer: SplitPanelUI? = null
         set(new) {
@@ -47,7 +47,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
             }
         }
 
-    var firstItem: Gizmo? = null
+    var firstItem: View? = null
         set(new) {
             if (new == field) { return }
 
@@ -60,10 +60,10 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
             fireChanged()
         }
 
-    private var divider: Gizmo? = null
-    private var resizer: Gizmo? = null
+    private var divider: View? = null
+    private var resizer: View? = null
 
-    var lastItem: Gizmo? = null
+    var lastItem: View? = null
         set(new) {
             if (new == field) { return }
 
@@ -117,11 +117,11 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): Gizm
         val resizer = resizer
 
         // TODO: Handle Orientation
-        val fill: (Constraints, Insets) -> Unit = { gizmo, insets ->
-            gizmo.top    = gizmo.parent.top    + { insets.top    }
-            gizmo.left   = gizmo.parent.left   + { insets.left   }
-            gizmo.bottom = gizmo.parent.bottom + { insets.bottom }
-            gizmo.right  = gizmo.parent.right  + { insets.right  }
+        val fill: (Constraints, Insets) -> Unit = { view, insets ->
+            view.top    = view.parent.top    + { insets.top    }
+            view.left   = view.parent.left   + { insets.left   }
+            view.bottom = view.parent.bottom + { insets.bottom }
+            view.right  = view.parent.right  + { insets.right  }
         }
 
         val layout = when {

@@ -3,19 +3,19 @@ package com.nectar.doodle.core
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Insets
 
-interface Container: Iterable<Gizmo> {
+interface Container: Iterable<View> {
     var insets: Insets
 
     var layout: Layout?
 
     var isFocusCycleRoot: Boolean
 
-    val children: List<Gizmo>
+    val children: List<View>
 
-    fun setZIndex(of: Gizmo, to: Int)
-    fun zIndex(of: Gizmo): Int
+    fun setZIndex(of: View, to: Int)
+    fun zIndex(of: View): Int
 
-    infix fun ancestorOf(gizmo: Gizmo): Boolean
+    infix fun ancestorOf(view: View): Boolean
 
-    fun child(at: Point): Gizmo?
+    fun child(at: Point): View?
 }

@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.SingleItemSelectionModel
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.list.MutableListModel
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Strand
@@ -15,7 +15,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 /**
  * Created by Nicholas Eddy on 4/30/18.
  */
-//class PopupMenu(private val display: Display): Gizmo(), MenuItem {
+//class PopupMenu(private val display: Display): View(), MenuItem {
 //
 //    override val subMenus     = mutableListOf<MenuItem>()
 //    override var parentMenu   = null as MenuItem?
@@ -45,7 +45,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 //        }
 //    }
 //
-//    fun show(owner: Gizmo, at: Point) {
+//    fun show(owner: View, at: Point) {
 //        visible = true
 //
 //        // FIXME: IMPLEMENT
@@ -85,7 +85,7 @@ class PopupMenu(strand: Strand, private val display: Display): MutableList<MenuI
         }
     }
 
-    fun show(owner: Gizmo, at: Point) {
+    fun show(owner: View, at: Point) {
         visible = true
 
         // FIXME: IMPLEMENT

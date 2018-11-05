@@ -1,6 +1,6 @@
 package com.nectar.doodle.event
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 
@@ -48,9 +48,9 @@ class KeyState private constructor(
 }
 
 
-class KeyEvent(source: Gizmo, val code: Int, val char: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
+class KeyEvent(source: View, val code: Int, val char: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
 
-    constructor(source: Gizmo, keyState: KeyState): this(source, keyState.code, keyState.char, keyState.modifiers, keyState.type)
+    constructor(source: View, keyState: KeyState): this(source, keyState.code, keyState.char, keyState.modifiers, keyState.type)
 
     companion object {
 

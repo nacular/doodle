@@ -1,6 +1,6 @@
 package com.nectar.doodle.utils
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
@@ -14,15 +14,15 @@ import com.nectar.doodle.utils.Direction.South
 import com.nectar.doodle.utils.Direction.West
 import kotlin.math.max
 
-class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
+class Resizer(view: View? = null): MouseListener, MouseMotionListener {
 
-    var gizmo: Gizmo? by observable(gizmo) { _, old, new ->
+    var view: View? by observable(view) { _, old, new ->
         old?.let { it.mouseChanged -= this; it.mouseMotionChanged -= this }
         new?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
     }
 
     init {
-        this.gizmo?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
+        this.view?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
     }
 
     var movable     = true
@@ -30,14 +30,14 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     var hotspotSize = 5.0
 
     private var dragMode             = mutableSetOf<Direction>()
-    private var oldCursor            = gizmo?.cursor
+    private var oldCursor            = view?.cursor
     private var initialSize          = Size.Empty
     private var initialPosition      = Point.Origin
     private var ignorePropertyChange = false
 
 //    fun propertyChanged(aPropertyEvent: PropertyEvent) {
-//        if (!ignorePropertyChange && aPropertyEvent.getProperty() === Gizmo.CURSOR) {
-//            oldCursor = if ((aPropertyEvent.getSource() as Gizmo).isCursorSet()) aPropertyEvent.getNewValue() as Cursor else null
+//        if (!ignorePropertyChange && aPropertyEvent.getProperty() === View.CURSOR) {
+//            oldCursor = if ((aPropertyEvent.getSource() as View).isCursorSet()) aPropertyEvent.getNewValue() as Cursor else null
 //        }
 //    }
 
@@ -50,7 +50,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     override fun mousePressed(event: MouseEvent) {
         dragMode.clear()
 
-        gizmo?.let {
+        view?.let {
             initialPosition = event.location
             initialSize = it.size
 
@@ -72,7 +72,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
 
     override fun mouseExited(event: MouseEvent) {
         if (dragMode.isEmpty()) {
-            gizmo?.cursor = oldCursor
+            view?.cursor = oldCursor
         }
     }
 
@@ -83,7 +83,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
     override fun mouseDragged(mouseEvent: MouseEvent) {
         val delta = mouseEvent.location - initialPosition
 
-        gizmo?.let {
+        view?.let {
             if (dragMode.isEmpty() && movable) {
                 it.position += delta
             } else if (!dragMode.isEmpty()) {
@@ -121,7 +121,7 @@ class Resizer(gizmo: Gizmo? = null): MouseListener, MouseMotionListener {
             return
         }
 
-        gizmo?.let {
+        view?.let {
             val x = mouseEvent.location.x
             val y = mouseEvent.location.y
             val mask = mutableSetOf<Direction>()

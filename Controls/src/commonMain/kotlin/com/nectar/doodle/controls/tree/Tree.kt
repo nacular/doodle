@@ -5,7 +5,7 @@ import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.theme.basic.TreeUI
 import com.nectar.doodle.controls.theme.basic.TreeUI.ItemPositioner
 import com.nectar.doodle.controls.theme.basic.TreeUI.ItemUIGenerator
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.ObservableSet
@@ -47,7 +47,7 @@ private object PathComparator: Comparator<Path<Int>> {
 
 private val DepthComparator = Comparator<Path<Int>> { a, b -> b.depth - a.depth }
 
-class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null): Gizmo() {
+class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null): View() {
     var rootVisible = false
         set(new) {
             if (field == new) { return }
@@ -367,7 +367,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         height = heightBelow(root) + insets.run { top + bottom }
     }
 
-    private fun insertChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
+    private fun insertChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
         (0 until model.numChildren(parent)).forEach {
@@ -382,7 +382,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return index
     }
 
-    private fun insert(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun insert(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
         // Path index not found (could be invisible)
@@ -419,7 +419,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return result
     }
 
-    private fun updateChildren(children: MutableList<Gizmo>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
+    private fun updateChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
         var index = parentIndex + 1
 
         (0 until model.numChildren(parent)).forEach {
@@ -434,7 +434,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return index
     }
 
-    private fun update(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun update(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
         if (index >= 0) {
@@ -463,13 +463,13 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return result
     }
 
-    private fun layout(gizmo: Gizmo, node: T, path: Path<Int>, index: Int) {
+    private fun layout(view: View, node: T, path: Path<Int>, index: Int) {
         itemPositioner?.let {
-            gizmo.bounds = it(this, node, path, index)
+            view.bounds = it(this, node, path, index)
         }
     }
 
-    private fun updateRecursively(children: MutableList<Gizmo>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun updateRecursively(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = update(children, path, index)
 
         if (result >= 0 && expanded(path)) {

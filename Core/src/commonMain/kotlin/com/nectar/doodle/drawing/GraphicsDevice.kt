@@ -1,14 +1,14 @@
 package com.nectar.doodle.drawing
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 
 
 interface GraphicsDevice<T: GraphicsSurface> {
     /**
-     * @param  gizmo
-     * @return the graphics surface for this [Gizmo], creating it if necessary
+     * @param  view
+     * @return the graphics surface for this [View], creating it if necessary
      */
-    operator fun get(gizmo: Gizmo): T
+    operator fun get(view: View): T
 
     /**
      * @return a top-level graphics surface
@@ -23,11 +23,11 @@ interface GraphicsDevice<T: GraphicsSurface> {
 //    fun create(element: HTMLElement): T
 
     /**
-     * Releases the [GraphicsSurface] associated with [Gizmo] and its children if applicable.
+     * Releases the [GraphicsSurface] associated with [View] and its children if applicable.
      *
-     * @param  gizmo
+     * @param  view
      */
-    fun release(gizmo: Gizmo)
+    fun release(view: View)
 
     /**
      * Releases the given [GraphicsSurface] and its children if applicable.

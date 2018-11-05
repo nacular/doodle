@@ -26,42 +26,42 @@ class BasicButtonUI(
 
     private var insets = Insets(4.0)
 
-    override fun render(gizmo: Button, canvas: Canvas) {
-        val model       = gizmo.model
-        var fillColor   = if (model.selected || model.pressed && model.armed) darkBackgroundColor else gizmo.backgroundColor ?: backgroundColor
-        var textColor   = gizmo.foregroundColor ?: foregroundColor
+    override fun render(view: Button, canvas: Canvas) {
+        val model       = view.model
+        var fillColor   = if (model.selected || model.pressed && model.armed) darkBackgroundColor else view.backgroundColor ?: backgroundColor
+        var textColor   = view.foregroundColor ?: foregroundColor
         var borderColor = borderColor
 
-        if (!gizmo.enabled) {
+        if (!view.enabled) {
             textColor   = textColor.lighter  ()
             fillColor   = fillColor.lighter  ()
             borderColor = borderColor.lighter()
         }
 
-        val penWidth = if (gizmo.enabled && (model.pressed || model.mouseOver)) 2 * borderWidth else borderWidth
+        val penWidth = if (view.enabled && (model.pressed || model.mouseOver)) 2 * borderWidth else borderWidth
 
-        canvas.rect(Rectangle(size = gizmo.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
+        canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
 
-        val icon         = icon(gizmo)
-        val text         = gizmo.text
-        val textPosition = textPosition(gizmo, icon)
+        val icon         = icon(view)
+        val text         = view.text
+        val textPosition = textPosition(view, icon)
 
         if (text.isNotBlank()) {
-            canvas.text(text, font(gizmo), textPosition, ColorBrush(textColor))
+            canvas.text(text, font(view), textPosition, ColorBrush(textColor))
         }
 
-        icon?.render(gizmo, canvas, iconPosition(gizmo, icon))
+        icon?.render(view, canvas, iconPosition(view, icon))
     }
 
-    override fun install(gizmo: Button) {
-        super.install(gizmo)
+    override fun install(view: Button) {
+        super.install(view)
 
-        recalculateSize(gizmo)
+        recalculateSize(view)
     }
 
-    private fun recalculateSize(gizmo: Button) {
-        val icon   = if (gizmo.enabled) gizmo.icon else gizmo.disabledIcon
-        var size   = textMetrics.size(gizmo.text, font(gizmo))
+    private fun recalculateSize(button: Button) {
+        val icon   = if (button.enabled) button.icon else button.disabledIcon
+        var size   = textMetrics.size(button.text, font(button))
         var width  = size.width
         var height = size.height
 
@@ -69,7 +69,7 @@ class BasicButtonUI(
             val iconWidth = icon.size.width
 
             if (iconWidth > 0) {
-                width += gizmo.iconTextSpacing
+                width += button.iconTextSpacing
             }
 
             width  += iconWidth
@@ -78,8 +78,8 @@ class BasicButtonUI(
 
         size = Size(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
-        gizmo.idealSize = size
+        button.idealSize = size
 
-//        gizmo.setSize(size)
+//        button.setSize(size)
     }
 }

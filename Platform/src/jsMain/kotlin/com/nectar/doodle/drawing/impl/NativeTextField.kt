@@ -3,7 +3,7 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.text.Selection
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextInput
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setBoxSizing
@@ -148,7 +148,7 @@ class NativeTextField(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun focusChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private fun focusChanged(view: View, old: Boolean, new: Boolean) {
         when (new) {
             true -> inputElement.focus()
             else -> inputElement.blur ()
@@ -156,12 +156,12 @@ class NativeTextField(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun enabledChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private fun enabledChanged(view: View, old: Boolean, new: Boolean) {
         inputElement.disabled = !new
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun focusableChanged(gizmo: Gizmo, old: Boolean, new: Boolean) {
+    private fun focusableChanged(view: View, old: Boolean, new: Boolean) {
         inputElement.tabIndex = if (new) -1 else 0
     }
 

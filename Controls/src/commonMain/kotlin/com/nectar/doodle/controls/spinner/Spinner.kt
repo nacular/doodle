@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.spinner
 
 import com.nectar.doodle.controls.theme.SpinnerUI
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
@@ -21,7 +21,7 @@ interface MutableModel<T>: Model<T> {
     override var value: T
 }
 
-open class Spinner<T, M: Model<T>>(model: M): Gizmo() {
+open class Spinner<T, M: Model<T>>(model: M): View() {
 
     fun next    () = model.next()
     fun previous() = model.previous()
@@ -102,7 +102,7 @@ class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(mod
 //
 //    public interface EditorGenerator extends ItemEditor
 //    {
-//        Gizmo getGizmo( Spinner aSpinner, Object aObject )
+//        View getView( Spinner aSpinner, Object aObject )
 //    }
 //
 //    private static class DefaultEditorGenerator implements EditorGenerator
@@ -114,7 +114,7 @@ class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(mod
 //            mLabel.setTextHorizontalAlignment( Location.RIGHT )
 //        }
 //
-//        @Override public Gizmo getGizmo( Spinner aSpinner, Object aObject )
+//        @Override public View getView( Spinner aSpinner, Object aObject )
 //        {
 //            mLabel.setText( aObject.toString() )
 //

@@ -1,9 +1,9 @@
 package com.nectar.doodle.core.impl
 
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.height
 import com.nectar.doodle.dom.insert
@@ -45,7 +45,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         doLayout()
     }
 
-    override val children by lazy { ObservableList<Display, Gizmo>(this) }
+    override val children by lazy { ObservableList<Display, View>(this) }
 
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
 
@@ -66,9 +66,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         canvasElement.style.setHeightPercent(100.0)
     }
 
-    override fun zIndex(of: Gizmo) = children.size - children.indexOf(of) - 1
+    override fun zIndex(of: View) = children.size - children.indexOf(of) - 1
 
-    override fun setZIndex(of: Gizmo, to: Int)  {
+    override fun setZIndex(of: View, to: Int)  {
         children.move(of, to)
     }
 
@@ -96,9 +96,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    override infix fun ancestorOf(gizmo: Gizmo): Boolean {
+    override infix fun ancestorOf(view: View): Boolean {
         if (children.isNotEmpty()) {
-            var child: Gizmo? = gizmo
+            var child: View? = view
 
             while (child?.parent != null) {
                 child = child.parent
@@ -110,9 +110,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         return false
     }
 
-    override fun child(at: Point): Gizmo? = layout?.child(positionableWrapper, at) ?: children.lastOrNull { it.visible && at in it }
+    override fun child(at: Point): View? = layout?.child(positionableWrapper, at) ?: children.lastOrNull { it.visible && at in it }
 
-    operator fun contains(gizmo: Gizmo) = gizmo in children
+    operator fun contains(view: View) = view in children
 
     override fun iterator() = children.iterator()
 
@@ -126,7 +126,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         override val width       get() = this@DisplayImpl.width
         override val height      get() = this@DisplayImpl.height
         override val insets      get() = this@DisplayImpl.insets
-        override val parent            = null as Gizmo?
+        override val parent            = null as View?
         override val children    get() = this@DisplayImpl.children
         override var idealSize         = null as Size?
         override var minimumSize       = Empty

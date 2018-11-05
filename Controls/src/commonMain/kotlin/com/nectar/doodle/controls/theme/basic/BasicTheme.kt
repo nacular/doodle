@@ -10,7 +10,7 @@ import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.TextMetrics
@@ -36,7 +36,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor)}
 
-    override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
+    override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
             is ProgressBar   -> { it.renderer?.uninstall(it); it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) } }
             is Slider        -> { it.renderer?.uninstall(it); it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) } }

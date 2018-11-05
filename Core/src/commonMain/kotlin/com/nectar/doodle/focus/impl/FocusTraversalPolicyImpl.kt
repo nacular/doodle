@@ -1,6 +1,6 @@
 package com.nectar.doodle.focus.impl
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import kotlin.math.max
@@ -10,16 +10,16 @@ import kotlin.math.max
  */
 class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTraversalPolicy {
 
-    override fun default(within: Gizmo) = first(within)
-    override fun first  (within: Gizmo) = within.children_.firstOrNull { focusManager.focusable(it) }
-    override fun last   (within: Gizmo) = within.children_.lastOrNull  { focusManager.focusable(it) }
+    override fun default(within: View) = first(within)
+    override fun first  (within: View) = within.children_.firstOrNull { focusManager.focusable(it) }
+    override fun last   (within: View) = within.children_.lastOrNull  { focusManager.focusable(it) }
 
-    override fun next    (within: Gizmo, from: Gizmo?) = from?.let { first(it) ?: next    (within, it.parent, it) }
-    override fun previous(within: Gizmo, from: Gizmo?) = from?.let {              previous(within, it.parent, it) }
+    override fun next    (within: View, from: View?) = from?.let { first(it) ?: next    (within, it.parent, it) }
+    override fun previous(within: View, from: View?) = from?.let {              previous(within, it.parent, it) }
 
-    private fun next(cycleRoot: Gizmo, parent: Gizmo?, current: Gizmo): Gizmo? {
+    private fun next(cycleRoot: View, parent: View?, current: View): View? {
         if (parent != null) {
-            var child: Gizmo?
+            var child: View?
             var i           = max(0, parent.children_.indexOfFirst { current === it })
             val numChildren = parent.children_.size
 
@@ -59,10 +59,10 @@ class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTra
         return null
     }
 
-    private fun previous(cycleRoot: Gizmo, parent: Gizmo?, current: Gizmo): Gizmo? {
+    private fun previous(cycleRoot: View, parent: View?, current: View): View? {
         if (parent != null) {
             var i = max(0, parent.children_.indexOfFirst { current === it })
-            var child: Gizmo?
+            var child: View?
             val numChildren = parent.children_.size
 
             if (parent === cycleRoot) {
@@ -75,10 +75,10 @@ class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTra
                     child = parent.children_[k]
 
                     if (isContainer(child)) {
-                        val aLastGizmo = lastGizmoInTree(child)
+                        val lastView = lastViewInTree(child)
 
-                        if (aLastGizmo != null) {
-                            child = aLastGizmo
+                        if (lastView != null) {
+                            child = lastView
                         }
                     }
 
@@ -93,10 +93,10 @@ class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTra
                     child = parent.children_[i]
 
                     if (isContainer(child)) {
-                        val aLastGizmo = lastGizmoInTree(child)
+                        val lastView = lastViewInTree(child)
 
-                        if (aLastGizmo != null) {
-                            child = aLastGizmo
+                        if (lastView != null) {
+                            child = lastView
                         }
                     }
 
@@ -115,10 +115,10 @@ class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTra
         return null
     }
 
-    private fun lastGizmoInTree(within: Gizmo): Gizmo? {
+    private fun lastViewInTree(within: View): View? {
         within.children_.reversed().forEach {
             if (it.children_.isNotEmpty()) {
-                return lastGizmoInTree(it)
+                return lastViewInTree(it)
             }
 
             if (focusManager.focusable(it)) {
@@ -129,5 +129,5 @@ class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTra
         return within
     }
 
-    private fun isContainer(gizmo: Gizmo) = gizmo.children_.isEmpty()
+    private fun isContainer(view: View) = view.children_.isEmpty()
 }

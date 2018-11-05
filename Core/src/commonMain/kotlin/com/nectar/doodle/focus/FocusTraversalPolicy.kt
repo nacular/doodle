@@ -1,10 +1,10 @@
 package com.nectar.doodle.focus
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 
 
 /**
- * This interface defines the way focus moves over the children of a Gizmo.
+ * This interface defines the way focus moves over the children of a [View].
  */
 
 interface FocusTraversalPolicy {
@@ -16,44 +16,44 @@ interface FocusTraversalPolicy {
     }
 
     /**
-     * Returns the next item in a Gizmo based on the given Gizmo.
+     * Returns the next item in a [View] based on the given [View].
      *
-     * @param  within The Gizmo
-     * @param  from  The current Gizmo
+     * @param  within The View
+     * @param  from  The current View
      * @return       The next item to gain focus
      */
-    fun next(within: Gizmo, from: Gizmo?): Gizmo?
+    fun next(within: View, from: View?): View?
 
     /**
-     * Returns the previous item in a Gizmo based on the given Gizmo.
+     * Returns the previous item in a [View] based on the given [View].
      *
-     * @param  within The Gizmo
-     * @param  from  The current Gizmo
+     * @param  within The View
+     * @param  from  The current View
      * @return       The previous item to gain focus
      */
-    fun previous(within: Gizmo, from: Gizmo?): Gizmo?
+    fun previous(within: View, from: View?): View?
 
     /**
-     * Returns the last item in a Gizmo that should receive focus.
+     * Returns the last item in a [View] that should receive focus.
      *
-     * @param  within The Gizmo
+     * @param  within The View
      * @return        The last item to gain focus
      */
-    fun last(within: Gizmo): Gizmo?
+    fun last(within: View): View?
 
     /**
-     * Returns the first item in a Gizmo that should receive focus.
+     * Returns the first item in a [View] that should receive focus.
      *
-     * @param  within The Gizmo
+     * @param  within The View
      * @return        The first item to gain focus
      */
-    fun first(within: Gizmo): Gizmo?
+    fun first(within: View): View?
 
     /**
-     * Returns the item in a Gizmo that should receive focus by default.
+     * Returns the item in a [View] that should receive focus by default.
      *
-     * @param  within The Gizmo
+     * @param  within The View
      * @return        The item to gain focus by default
      */
-    fun default(within: Gizmo): Gizmo?
+    fun default(within: View): View?
 }

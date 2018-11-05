@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.buttons.PushButton
 import com.nectar.doodle.controls.spinner.Model
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.Insets.Companion.None
@@ -14,7 +14,7 @@ import com.nectar.doodle.theme.Renderer
 /**
  * Created by Nicholas Eddy on 3/15/18.
  */
-data class Config(val components: List<Gizmo>, val layout: () -> Layout, val insets: Insets? = null)
+data class Config(val components: List<View>, val layout: () -> Layout, val insets: Insets? = null)
 
 interface SpinnerUI<T, M: Model<T>>: Renderer<Spinner<T, M>> {
     fun components(spinner: Spinner<T, M>): Config

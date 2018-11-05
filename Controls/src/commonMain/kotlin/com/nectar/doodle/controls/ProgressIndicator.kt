@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
@@ -11,7 +11,7 @@ import com.nectar.doodle.utils.size
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-open class ProgressIndicator(model: ConfinedValueModel<Double>): Gizmo() {
+open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
     var renderer: Renderer<ProgressIndicator>? = null

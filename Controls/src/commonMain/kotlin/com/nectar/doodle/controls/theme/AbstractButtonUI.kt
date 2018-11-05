@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -11,23 +11,23 @@ import com.nectar.doodle.theme.Renderer
 
 abstract class AbstractButtonUI: Renderer<Button>, MouseListener, KeyListener {
 
-    private val enabledChanged: (Gizmo, Boolean, Boolean) -> Unit = { gizmo,_,_ ->
-        enabledChanged(gizmo as Button)
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
+        enabledChanged(view as Button)
     }
 
-    override fun install(gizmo: Button) {
-//        gizmo.addKeyListener(this)
-        gizmo.mouseChanged   += this
-        gizmo.enabledChanged += enabledChanged
+    override fun install(view: Button) {
+//        view.addKeyListener(this)
+        view.mouseChanged   += this
+        view.enabledChanged += enabledChanged
 
-        gizmo.rerender()
+        view.rerender()
         // TODO: Handle changes to the model from other places
     }
 
-    override fun uninstall(gizmo: Button) {
-//        gizmo.removeKeyListener(this)
-        gizmo.mouseChanged   -= this
-        gizmo.enabledChanged -= enabledChanged
+    override fun uninstall(view: Button) {
+//        view.removeKeyListener(this)
+        view.mouseChanged   -= this
+        view.enabledChanged -= enabledChanged
     }
 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}

@@ -16,11 +16,11 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 2/12/18.
  */
 class CircularProgressUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressIndicator>() {
-    override fun render(gizmo: ProgressIndicator, canvas: Canvas) {
+    override fun render(view: ProgressIndicator, canvas: Canvas) {
         val border = 1.0
-        val radius = min(gizmo.width, gizmo.height) / 2
-        val center = (gizmo.size / 2.0).run { Point(width, height) }
-        val brush  = ColorBrush(gizmo.backgroundColor ?: defaultBackgroundColor)
+        val radius = min(view.width, view.height) / 2
+        val center = (view.size / 2.0).run { Point(width, height) }
+        val brush  = ColorBrush(view.backgroundColor ?: defaultBackgroundColor)
 
         // Draw background with optional outline
         when {
@@ -28,7 +28,7 @@ class CircularProgressUI(private val defaultBackgroundColor: Color, private val 
             else       -> canvas.circle(Circle(center, radius),                                                brush)
         }
 
-        val sweep = 360 * degrees * gizmo.progress
+        val sweep = 360 * degrees * view.progress
 
         canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90 * degrees - sweep, brush = ColorBrush(darkBackgroundColor))
 

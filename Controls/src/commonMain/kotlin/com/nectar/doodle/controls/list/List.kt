@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.scheduler.Strand
@@ -14,7 +14,7 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 3/19/18.
  */
 interface ItemUIGenerator<T> {
-    operator fun invoke(list: List<T, *>, row: T, index: Int, current: Gizmo? = null): Gizmo
+    operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
 }
 
 interface ItemPositioner<T> {
@@ -32,7 +32,7 @@ open class List<T, out M: Model<T>>(
         private        val strand        : Strand,
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Int>? = null,
-        private        val fitContent    : Boolean              = true): Gizmo() {
+        private        val fitContent    : Boolean              = true): View() {
 
     private val observableSet by lazy { ObservableSet<List<T, *>, T>(this) }
 
@@ -165,13 +165,13 @@ open class List<T, out M: Model<T>>(
     fun removeSelection(rows: Set<Int>) { selectionModel?.removeAll (rows) }
     fun clearSelection (              ) = selectionModel?.clear     (    )
 
-    private fun layout(gizmo: Gizmo, row: T, index: Int) {
+    private fun layout(view: View, row: T, index: Int) {
         itemPositioner?.let {
-            gizmo.bounds = it(this, row, index)
+            view.bounds = it(this, row, index)
         }
     }
 
-    private fun insert(children: kotlin.collections.MutableList<Gizmo>, index: Int) {
+    private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
         itemUIGenerator?.let {
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
@@ -190,7 +190,7 @@ open class List<T, out M: Model<T>>(
         }
     }
 
-    private fun update(children: kotlin.collections.MutableList<Gizmo>, index: Int) {
+    private fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
             itemUIGenerator?.let {
                 model[index]?.let { row ->
@@ -344,7 +344,7 @@ open class MutableList<T>(strand: Strand, model: MutableModel<T>, selectionModel
 
 //    public interface ItemUIGenerator
 //    {
-//        Gizmo getGizmo( List    aList,
+//        View getView( List    aList,
 //                        Object  aObject,
 //                        int     aIndex,
 //                        boolean aIsSelected,
@@ -353,7 +353,7 @@ open class MutableList<T>(strand: Strand, model: MutableModel<T>, selectionModel
 //
 //    public interface ItemEditorGenerator extends ItemEditor
 //    {
-//        Gizmo getGizmo( List    aList,
+//        View getView( List    aList,
 //                        Object  aObject,
 //                        int     aIndex,
 //                        boolean aIsSelected,

@@ -1,6 +1,6 @@
 package com.nectar.doodle.deviceinput
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.focus.FocusManager
@@ -70,7 +70,7 @@ class KeyboardFocusManager(
     operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
     operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
-    private fun handleKeyEvent(gizmo: Gizmo, keyEvent: KeyEvent) {
+    private fun handleKeyEvent(gizmo: View, keyEvent: KeyEvent) {
         val keyState = keyEvent.run { KeyState(code, char, modifiers, type) }
 
         val upwardKeyEvents   = gizmo[Upward  ] ?: defaultTraversalKeys[Upward  ]
@@ -91,7 +91,7 @@ class KeyboardFocusManager(
             focusManager.moveFocusDownward(gizmo)
             keyEvent.consume()
         } else {
-            var g: Gizmo? = gizmo
+            var g: View? = gizmo
 
             while (g != null) {
                 if (g.monitorsKeyboard) {

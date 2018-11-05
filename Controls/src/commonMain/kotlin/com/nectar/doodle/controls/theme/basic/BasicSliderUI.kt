@@ -14,23 +14,23 @@ import com.nectar.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/13/18.
  */
 class BasicSliderUI(slider: Slider, private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderUI(slider) {
-    override fun render(gizmo: Slider, canvas: Canvas) {
+    override fun render(view: Slider, canvas: Canvas) {
         val rect1: Rectangle
         val rect2: Rectangle
 
         val border      = 1.0
-        val grooveInset = gizmo.height / 2
+        val grooveInset = view.height / 2
         val barSize     = barSize
         val offset      = barSize / 2
         val barPosition = barPosition
 
-        when (gizmo.orientation) {
+        when (view.orientation) {
             Horizontal -> {
-                rect1 = Rectangle(offset, grooveInset / 2, gizmo.width - barSize, gizmo.height - grooveInset)
+                rect1 = Rectangle(offset, grooveInset / 2, view.width - barSize, view.height - grooveInset)
                 rect2 = Rectangle(barPosition, 0.0, barSize, barSize)
             }
             Vertical                    -> {
-                rect1 = Rectangle(grooveInset / 2, offset, gizmo.width - grooveInset, gizmo.height - barSize)
+                rect1 = Rectangle(grooveInset / 2, offset, view.width - grooveInset, view.height - barSize)
                 rect2 = Rectangle(0.0, barPosition, barSize, barSize)
             }
         }

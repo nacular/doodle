@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.panels
 
 import com.nectar.doodle.controls.theme.TabbedPanelUI
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.utils.BoxOrientation
 import com.nectar.doodle.utils.BoxOrientation.Top
 import com.nectar.doodle.utils.ObservableList
@@ -12,9 +12,9 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 /**
  * Created by Nicholas Eddy on 4/2/18.
  */
-private class Tab(val gizmo: Gizmo, var display: Gizmo?)
+private class Tab(val view: View, var display: View?)
 
-class TabbedPanel(orientation: BoxOrientation = Top): Gizmo() {
+class TabbedPanel(orientation: BoxOrientation = Top): View() {
 
     val selectionChanged  : PropertyObservers<TabbedPanel, Int>            by lazy { PropertyObserversImpl<TabbedPanel, Int>           (this) }
     val orientationChanged: PropertyObservers<TabbedPanel, BoxOrientation> by lazy { PropertyObserversImpl<TabbedPanel, BoxOrientation>(this) }
@@ -63,16 +63,16 @@ class TabbedPanel(orientation: BoxOrientation = Top): Gizmo() {
         }
     }
 
-    val selectedTab: Gizmo? get() = tabs.getOrNull(selection)?.gizmo
+    val selectedTab: View? get() = tabs.getOrNull(selection)?.view
 
 
-    fun add(tab: Gizmo, display: Gizmo? = null) = insert(tab, display)
+    fun add(tab: View, display: View? = null) = insert(tab, display)
 
-    fun insert(tab: Gizmo, display: Gizmo? = null, index: Int = numTabs) {
+    fun insert(tab: View, display: View? = null, index: Int = numTabs) {
         tabs.add(index, Tab(tab, display))
     }
 
-    fun remove(tab: Gizmo) = remove(tabs.indexOfFirst { it.gizmo == tab })
+    fun remove(tab: View) = remove(tabs.indexOfFirst { it.view == tab })
 
     fun remove(from: Int) {
         tabs.removeAt(from)
@@ -82,16 +82,16 @@ class TabbedPanel(orientation: BoxOrientation = Top): Gizmo() {
         tabs.clear()
     }
 
-    fun tab(at: Int): Gizmo? = tabs.getOrNull(at)?.gizmo
+    fun tab(at: Int): View? = tabs.getOrNull(at)?.view
 
-    fun set(display: Gizmo, at: Int) {
+    fun set(display: View, at: Int) {
         tabs.getOrNull(at)?.let { it.display = display }
 
         // TODO: Inform renderer?
     }
 
-    fun display(at: Int): Gizmo? = tabs.getOrNull(at)?.display
+    fun display(at: Int): View? = tabs.getOrNull(at)?.display
 
-    fun indexOf(tab: Gizmo): Int = tabs.indexOfFirst { it.gizmo == tab }
+    fun indexOf(tab: View): Int = tabs.indexOfFirst { it.view == tab }
 
 }

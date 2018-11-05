@@ -2,7 +2,7 @@ package com.nectar.doodle.deviceinput
 
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
@@ -23,9 +23,9 @@ import com.nectar.doodle.system.SystemMouseWheelEvent
 class MouseInputManager(private val display: Display, private val inputService: MouseInputService): MouseInputService.Listener {
 
     private var mouseDown              = false
-    private var clickedEventAwareGizmo = null as Gizmo?
-    private var coveredEventAwareGizmo = null as Gizmo?
-    private var coveredGizmo           = null as Gizmo?
+    private var clickedEventAwareGizmo = null as View?
+    private var coveredEventAwareGizmo = null as View?
+    private var coveredGizmo           = null as View?
         set(new) {
             if (new == field) {
                 return
@@ -67,7 +67,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
     private val cursorChanged_ = ::cursorChanged
     @Suppress("UNUSED_PARAMETER")
-    private fun cursorChanged(gizmo: Gizmo, old: Cursor?, new: Cursor?) {
+    private fun cursorChanged(gizmo: View, old: Cursor?, new: Cursor?) {
 //        if (old == null) {
 //            gizmo.parent?.let { unregisterCursorListeners(it) }
 //        } else if (new == null) {
@@ -246,12 +246,12 @@ class MouseInputManager(private val display: Display, private val inputService: 
 //        }
     }
 
-    private fun getMouseEventHandler      (gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouse       }
-    private fun getMouseWheelEventHandler (gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouseWheel  }
-    private fun getMouseMotionEventHandler(gizmo: Gizmo?) = findInHierarchy(gizmo) { it.monitorsMouseMotion }
+    private fun getMouseEventHandler      (gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouse       }
+    private fun getMouseWheelEventHandler (gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouseWheel  }
+    private fun getMouseMotionEventHandler(gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouseMotion }
 
-    private fun findInHierarchy(gizmo: Gizmo?, block: (Gizmo) -> Boolean): Gizmo? {
-        var result: Gizmo? = gizmo
+    private fun findInHierarchy(gizmo: View?, block: (View) -> Boolean): View? {
+        var result: View? = gizmo
 
         loop@ while (result != null) {
             result = when {
@@ -263,8 +263,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
         return result
     }
 
-    private fun registerCursorListeners(gizmo: Gizmo) {
-        var value: Gizmo? = gizmo
+    private fun registerCursorListeners(gizmo: View) {
+        var value: View? = gizmo
 
         while (value != null) {
             value.cursorChanged += cursorChanged_
@@ -277,8 +277,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    private fun unregisterCursorListeners(gizmo: Gizmo) {
-        var value: Gizmo? = gizmo
+    private fun unregisterCursorListeners(gizmo: View) {
+        var value: View? = gizmo
 
         while (value != null) {
             value.cursorChanged -= cursorChanged_
@@ -291,12 +291,12 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    private fun getGizmoCursor(gizmo: Gizmo?) = when (display.cursor) {
+    private fun getGizmoCursor(gizmo: View?) = when (display.cursor) {
         null -> gizmo?.cursor
         else -> display.cursor
     }
 
-    private fun gizmo(event: SystemMouseEvent): Gizmo? {
+    private fun gizmo(event: SystemMouseEvent): View? {
         var newPoint = event.location
         var gizmo    = display.child(at = event.location)
 
@@ -317,7 +317,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: Gizmo, type: Type = mouseEvent.type) = MouseEvent(
+    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: View, type: Type = mouseEvent.type) = MouseEvent(
             gizmo,
             type,
             mouseEvent.location - gizmo.toAbsolute(Origin),

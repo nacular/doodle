@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
@@ -34,7 +34,7 @@ class SystemTheme internal constructor(
         private val nativeTextFieldFactory  : NativeTextFieldFactory,
         private val nativeScrollPanelFactory: NativeScrollPanelFactory): Theme {
 
-    override fun install(display: Display, all: Sequence<Gizmo>) = all.forEach {
+    override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
             is Button      -> { it.renderer?.uninstall(it); it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it).apply { install(it) } }
             is TextField   -> { it.renderer?.uninstall(it); it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it             ).apply { install(it) } }

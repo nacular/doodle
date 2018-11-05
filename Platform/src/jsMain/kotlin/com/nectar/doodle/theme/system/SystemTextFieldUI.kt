@@ -10,14 +10,14 @@ class SystemTextFieldUI(nativeTextFieldFactory: NativeTextFieldFactory, textFiel
 
     private val nativePeer by lazy { nativeTextFieldFactory(textField) }
 
-    override fun render(gizmo: TextField, canvas: Canvas) {
-        nativePeer.size = gizmo.size
+    override fun render(view: TextField, canvas: Canvas) {
+        nativePeer.size = view.size
 
         nativePeer.render(canvas)
     }
 
-    override fun uninstall(gizmo: TextField) {
-        super.uninstall(gizmo)
+    override fun uninstall(view: TextField) {
+        super.uninstall(view)
 
         nativePeer.discard()
     }

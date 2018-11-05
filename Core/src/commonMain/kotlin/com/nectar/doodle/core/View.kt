@@ -41,12 +41,12 @@ import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
 import kotlin.reflect.KProperty
 
-private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
+private typealias BooleanObservers = PropertyObservers<View, Boolean>
 
 /**
  * The smallest unit of displayable, interactive content within the framework.
- * Gizmos are the visual entities used to display components for an application.
- * User input events are sent to all Gizmos that are configured to receive them.
+ * [View]s are the visual entities used to display components for an application.
+ * User input events are sent to all [View]s that are configured to receive them.
  * This allows them to response to user interaction or convey such events to
  * other parts of an application.
  *
@@ -54,42 +54,42 @@ private typealias BooleanObservers = PropertyObservers<Gizmo, Boolean>
  * @constructor
  */
 @Suppress("FunctionName", "PropertyName")
-abstract class Gizmo protected constructor() {
+abstract class View protected constructor() {
     /** Notifies changes to [hasFocus] */
-    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether the Gizmo has focus or not */
-    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    /** Whether the [View] has focus or not */
+    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
     /** Notifies changes to [enabled] */
-    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this Gizmo is enabled */
-    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    /** Whether this [View] is enabled */
+    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [visible] */
-    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this Gizmo is visible */
-    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    /** Whether this [View] is visible */
+    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
-    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this Gizmo is focusable */
-    open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    /** Whether this [View] is focusable */
+    open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
-    /** The size that would best display this Gizmo, or null if no preference */
+    /** The size that would best display this [View], or null if no preference */
     var idealSize: Size? = null
         get() = layout?.idealSize(this, field) ?: field
 
-    /** The minimum size preferred by the Gizmo */
+    /** The minimum size preferred by the [View] */
     var minimumSize: Size = Size.Empty
         get() = layout?.idealSize(this, field) ?: field
 
     /**
-     * The current visible [Rectangle] for this Gizmo within it's coordinate space.  This accounts for clipping by ancestors,
+     * The current visible [Rectangle] for this [View] within it's coordinate space.  This accounts for clipping by ancestors,
      * but NOT cousins (siblings, anywhere in the hierarchy)
      */
     val displayRect get() = renderManager?.displayRect(this) ?: Empty
@@ -131,9 +131,9 @@ abstract class Gizmo protected constructor() {
 
     }
 
-    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<Gizmo, Boolean>(this) }
+    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<Gizmo, Boolean>)
+    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
     var cursor: Cursor? = null
         get() = field ?: parent?.cursor
@@ -146,10 +146,10 @@ abstract class Gizmo protected constructor() {
 
             field = new
 
-            (cursorChanged as PropertyObserversImpl<Gizmo, Cursor?>)(old, new)
+            (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
         }
 
-    val cursorChanged: PropertyObservers<Gizmo, Cursor?> by lazy { PropertyObserversImpl<Gizmo, Cursor?>(this) }
+    val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl<View, Cursor?>(this) }
 
     var font: Font? = null
         set(new) { field = new; styleChanged() }
@@ -160,7 +160,7 @@ abstract class Gizmo protected constructor() {
     var backgroundColor: Color? = null
         set(new) { field = new; styleChanged() }
 
-    val styleChanged: Pool<ChangeObserver<Gizmo>> by lazy { ChangeObserversImpl(this) }
+    val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
 
     private fun styleChanged() = (styleChanged as ChangeObserversImpl)()
 
@@ -188,9 +188,9 @@ abstract class Gizmo protected constructor() {
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
-    val boundsChanged: PropertyObservers<Gizmo, Rectangle> by lazy { PropertyObserversImpl<Gizmo, Rectangle>(this) }
+    val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl<View, Rectangle>(this) }
 
-    var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<Gizmo, Rectangle>)
+    var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<View, Rectangle>)
 
     // ================= Container ================= //
     internal val insets_ get() = insets
@@ -204,7 +204,7 @@ abstract class Gizmo protected constructor() {
 
     internal val children_ get() = children
     protected open val children by lazy {
-        ObservableList<Gizmo, Gizmo>(this).also {
+        ObservableList<View, View>(this).also {
             it.changed += { _, removed, added, _ ->
                 removed.values.forEach { it.parent = null }
                 added.values.forEach {
@@ -218,15 +218,15 @@ abstract class Gizmo protected constructor() {
     }
 
     /**
-     * Tells whether this Gizmo is an ancestor of the Gizmo.
+     * Tells whether this [View] is an ancestor of the [View].
      *
-     * @param gizmo The Gizmo
-     * @return true if the Gizmo is a descendant of the Gizmo
+     * @param view The View
+     * @return true if the View is a descendant of the View
      */
-    internal infix fun ancestorOf_(gizmo: Gizmo) = ancestorOf(gizmo)
-    protected open infix fun ancestorOf(gizmo: Gizmo): Boolean {
+    internal infix fun ancestorOf_(view: View) = ancestorOf(view)
+    protected open infix fun ancestorOf(view: View): Boolean {
         if (children.isNotEmpty()) {
-            var parent = gizmo.parent
+            var parent = view.parent
 
             while (parent != null) {
                 if (this === parent) {
@@ -246,7 +246,7 @@ abstract class Gizmo protected constructor() {
     protected open var isFocusCycleRoot = false
 
     internal val focusCycleRoot_ get() = focusCycleRoot
-    protected val focusCycleRoot: Gizmo? get() {
+    protected val focusCycleRoot: View? get() {
         var result = parent
 
         while (result != null && !result.isFocusCycleRoot) {
@@ -260,9 +260,9 @@ abstract class Gizmo protected constructor() {
     protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
     // [Performance]
-    // No check to prevent setting self as parent since Gizmo is the only place where this method is called from and it already
-    // prevents this by preventing a Gizmo from being added to itself.
-    var parent: Gizmo? = null
+    // No check to prevent setting self as parent since View is the only place where this method is called from and it already
+    // prevents this by preventing a View from being added to itself.
+    var parent: View? = null
         private set(new) {
             if (field === new) {
                 return
@@ -275,10 +275,10 @@ abstract class Gizmo protected constructor() {
             (parentChange as PropertyObserversImpl)(field, new)
         }
 
-    val parentChange: PropertyObservers<Gizmo, Gizmo?> by lazy { PropertyObserversImpl<Gizmo, Gizmo?>(this) }
+    val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
 
     /**
-     * Is {code}true{/code} if the Gizmo has been displayed
+     * Is {code}true{/code} if the [View] has been displayed
      */
     val displayed get() = renderManager != null
 
@@ -296,48 +296,48 @@ abstract class Gizmo protected constructor() {
     }
 
     /**
-     * Tells whether this Gizmo contains the given child.
+     * Tells whether this [View] contains the given child.
      *
-     * @param child The Gizmo
-     * @return true if the Gizmo is a child of the Gizmo
+     * @param child The View
+     * @return true if the View is a child of the View
      */
-    protected operator fun contains(child: Gizmo) = child.parent == this
+    protected operator fun contains(child: View) = child.parent == this
 
     /**
-     * Causes Gizmo to layout its children if it has a Layout installed.
+     * Causes [View] to layout its children if it has a Layout installed.
      */
     internal fun doLayout_() = doLayout()
     protected fun doLayout() = layout?.layout(this)
 
     /**
-     * Sets the z-index for the given Gizmo.
+     * Sets the z-index for the given [View].
      *
-     * @param of The Gizmo
+     * @param of The View
      * @param to the new z-index
      *
      * @throws IndexOutOfBoundsException if `index !in 0 until this.children.size`
      */
-    protected open fun setZIndex(of: Gizmo, to: Int) {
+    protected open fun setZIndex(of: View, to: Int) {
         children.move(of, to)
     }
 
     /**
-     * Gets the Gizmo's z-index.
+     * Gets the [View]'s z-index.
      *
-     * @param of The Gizmo
-     * @return The z-index (-1 if the Gizmo is not a child)
+     * @param of The View
+     * @return The z-index (-1 if the View is not a child)
      */
-    internal fun zIndex_(of: Gizmo) = zIndex(of)
-    protected open fun zIndex(of: Gizmo) = children.size - children.indexOf(of) - 1
+    internal fun zIndex_(of: View) = zIndex(of)
+    protected open fun zIndex(of: View) = children.size - children.indexOf(of) - 1
 
     /**
-     * Gets the Gizmo at the given point.
+     * Gets the [View] at the given point.
      *
      * @param at The point
      * @return The child (null if no child contains the given point)
      */
     internal fun child_(at: Point) = child(at)
-    protected open fun child(at: Point): Gizmo? = layout?.child(this, at) ?: children.lastOrNull { it.visible && at in it }
+    protected open fun child(at: Point): View? = layout?.child(this, at) ?: children.lastOrNull { it.visible && at in it }
 
 //    var dropHandler: DropHandler? = null
 //        set(new) {
@@ -358,31 +358,31 @@ abstract class Gizmo protected constructor() {
 //
 
     /**
-     * Gives the Gizmo an opportunity to render itself to the given Canvas.
+     * Gives the [View] an opportunity to render itself to the given Canvas.
      *
      * @param canvas The canvas upon which drawing will be done
      */
     open fun render(canvas: Canvas) {}
 
     /**
-     * A way of prompting a Gizmo to redraw itself. This results
+     * A way of prompting a [View] to redraw itself. This results
      * in a render request to the rendering subsystem that will
-     * result in a call to [Gizmo.render] if needed
+     * result in a call to [View.render] if needed
      * repainting.
      */
     fun rerender() = renderManager?.render(this)
 
     /**
-     * A way of prompting a Gizmo to redraw itself immediately. This results in
+     * A way of prompting a [View] to redraw itself immediately. This results in
      * a render request to the rendering subsystem that will result in a call to
-     * Gizmo.Render with no delay. Only use this method for time-sensitive
+     * [View.render] with no delay. Only use this method for time-sensitive
      * drawing as is the case for animations.
      */
     fun rerenderNow() = renderManager?.renderNow(this) // TODO: Remove?
 
     /**
      * Gets the tool-tip text based on the given mouse event. Override this method to provide
-     * multiple tool-tip text values for a single Gizmo.
+     * multiple tool-tip text values for a single [View].
      *
      * @param for The mouse event to generate a tool-tip for
      * @return The text
@@ -390,10 +390,10 @@ abstract class Gizmo protected constructor() {
     fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
 
     /**
-     * Checks whether a point is within the boundaries of a Gizmo. Returns true if the point is within the Gizmo's bounding rectangle.
+     * Checks whether a point is within the boundaries of a [View]. Returns true if the point is within the [View]'s bounding rectangle.
      *
      * @param point The point to check
-     * @return true if the point falls within the Gizmo
+     * @return true if the point falls within the View
      */
     open operator fun contains(point: Point) = point in bounds
 
@@ -420,20 +420,20 @@ abstract class Gizmo protected constructor() {
         }
     }
 
-    fun toLocal(point: Point, from: Gizmo): Point {
+    fun toLocal(point: Point, from: View): Point {
         val source      = from.toAbsolute(point )
         val destination = this.toAbsolute(Origin)
 
         return source - destination
     }
 
-    fun toAbsolute  (point: Point) = modifyHierarchically(point) { p, gizmo -> p + gizmo.position }
-    fun fromAbsolute(point: Point) = modifyHierarchically(point) { p, gizmo -> p - gizmo.position }
+    fun toAbsolute  (point: Point) = modifyHierarchically(point) { p, view -> p + view.position }
+    fun fromAbsolute(point: Point) = modifyHierarchically(point) { p, view -> p - view.position }
 
     internal fun handleDisplayRectEvent_(old: Rectangle, new: Rectangle) = handleDisplayRectEvent(old, new)
 
     /**
-     * This is an event invoked on a Gizmo in response to a change in the display rectangle.
+     * This is an event invoked on a [View] in response to a change in the display rectangle.
      *
      * @param old the old display rectangle
      * @param new the new display rectangle
@@ -444,7 +444,7 @@ abstract class Gizmo protected constructor() {
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 
     /**
-     * This is an event invoked on a Gizmo in response to a key event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a key event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -459,7 +459,7 @@ abstract class Gizmo protected constructor() {
     internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
 
     /**
-     * This is an event invoked on a Gizmo in response to a mouse event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a mouse event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -476,7 +476,7 @@ abstract class Gizmo protected constructor() {
     internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
 
     /**
-     * This is an event invoked on a Gizmo in response to a mouse-motion event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a mouse-motion event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -491,14 +491,14 @@ abstract class Gizmo protected constructor() {
     internal fun handleMouseWheelEvent_(event: MouseWheelEvent) = handleMouseWheelEvent(event)
 
     /**
-     * This is an event invoked on a Gizmo in response to a mouse wheel event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a mouse wheel event triggered in the subsystem.
      *
      * @param event The event
      */
     protected open fun handleMouseWheelEvent(event: MouseWheelEvent) {}
 
     /**
-     * This is an event invoked on a Gizmo in response to a focus event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a focus event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -513,8 +513,8 @@ abstract class Gizmo protected constructor() {
     protected open fun addedToDisplay() {}
 
     /**
-     * This method is invoked by the Render system when the Gizmo is first added
-     * to the Display hierarchy.  This happens when the Gizmo itself,
+     * This method is invoked by the Render system when the [View] is first added
+     * to the Display hierarchy.  This happens when the [View] itself,
      * or one of it's ancestors is added to the Display.
      */
     internal fun addedToDisplay(renderManager: RenderManager) {
@@ -526,8 +526,8 @@ abstract class Gizmo protected constructor() {
     protected open fun removedFromDisplay() {}
 
     /**
-     * This method is invoked by the Render system when the Gizmo is no longer
-     * included in the Display hierarchy.  This happens when the Gizmo itself,
+     * This method is invoked by the Render system when the [View] is no longer
+     * included in the Display hierarchy.  This happens when the [View] itself,
      * or one of it's ancestors is removed from the Display.
      */
     internal fun removedFromDisplay_() = removedFromDisplay().also { renderManager = null }
@@ -544,18 +544,18 @@ abstract class Gizmo protected constructor() {
         bounds = Rectangle(x, y, width, height)
     }
 
-    private fun modifyHierarchically(point: Point, operation: (Point, Gizmo) -> Point): Point {
-        var gizmo  = this as Gizmo?
+    private fun modifyHierarchically(point: Point, operation: (Point, View) -> Point): Point {
+        var view   = this as View?
         var result = point
 
-        while (gizmo != null) {
-            result = operation(result, gizmo)
-            gizmo  = gizmo.parent
+        while (view != null) {
+            result = operation(result, view)
+            view  = view.parent
         }
 
         return result
     }
 
-//    operator fun plus (listener: MouseWheelListener ): Gizmo = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
-//    operator fun minus(listener: MouseWheelListener ): Gizmo = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
+//    operator fun plus (listener: MouseWheelListener ): View = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
+//    operator fun minus(listener: MouseWheelListener ): View = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
 }

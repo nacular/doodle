@@ -1,13 +1,13 @@
 package com.nectar.doodle.theme
 
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import kotlin.reflect.KClass
 
 
-inline fun <reified T: Gizmo> uiMapping(noinline renderer: (T) -> Renderer<T>) = UIPair(T::class, renderer)
+inline fun <reified T: View> uiMapping(noinline renderer: (T) -> Renderer<T>) = UIPair(T::class, renderer)
 
-class UIPair<T: Gizmo>(val type: KClass<T>, val renderer: (T) -> Renderer<T>)
+class UIPair<T: View>(val type: KClass<T>, val renderer: (T) -> Renderer<T>)
 
 open class ConfigurableTheme(settings: Set<UIPair<*>>): Theme {
 
@@ -19,17 +19,17 @@ open class ConfigurableTheme(settings: Set<UIPair<*>>): Theme {
         }
     }
 
-    override fun install(display: Display, all: Sequence<Gizmo>) {
-        all.forEach { gizmo ->
-            val r = uis[gizmo::class]
+    override fun install(display: Display, all: Sequence<View>) {
+        all.forEach { view ->
+            val r = uis[view::class]
 
-//            gizmo::class.supertypes
+//            view::class.supertypes
 
             if (r != null) {
-                r.invoke().install(gizmo)
+                r.invoke().install(view)
             }
 
-//            uis[gizmo::class]?.invoke()?.install(gizmo)
+//            uis[view::class]?.invoke()?.install(view)
         }
     }
 }

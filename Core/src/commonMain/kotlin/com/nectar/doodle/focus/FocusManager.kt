@@ -1,6 +1,6 @@
 package com.nectar.doodle.focus
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.utils.PropertyObservers
 
@@ -24,18 +24,18 @@ interface FocusListener {
  * Created by Nicholas Eddy on 3/2/18.
  */
 interface FocusManager {
-    val focusOwner    : Gizmo?
-    val focusCycleRoot: Gizmo?
+    val focusOwner    : View?
+    val focusCycleRoot: View?
 
-    fun focusable(gizmo: Gizmo): Boolean
+    fun focusable(view: View): Boolean
 
-    fun requestFocus     (gizmo: Gizmo)
-    fun clearFocus       (            )
-    fun moveFocusForward (            )
-    fun moveFocusForward (from : Gizmo)
-    fun moveFocusBackward(from : Gizmo)
-    fun moveFocusUpward  (from : Gizmo)
-    fun moveFocusDownward(from : Gizmo)
+    fun requestFocus     (view: View)
+    fun clearFocus       (          )
+    fun moveFocusForward (          )
+    fun moveFocusForward (from: View)
+    fun moveFocusBackward(from: View)
+    fun moveFocusUpward  (from: View)
+    fun moveFocusDownward(from: View)
 
-    val focusChanged: PropertyObservers<FocusManager, Gizmo?>
+    val focusChanged: PropertyObservers<FocusManager, View?>
 }

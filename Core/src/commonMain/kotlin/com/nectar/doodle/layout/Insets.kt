@@ -1,12 +1,11 @@
 package com.nectar.doodle.layout
 
-
 /**
- * Represents the region within a Gizmo's boundary that
+ * Represents the region within a [View][com.nectar.doodle.core.View]'s boundary that
  * should be used to bound it's contents.  Each of the 4 sides
  * are specified independently as follows:
  *
- * Gizmo
+ * [View][com.nectar.doodle.core.View]
  * +-------------------+
  * |       t           |
  * |   +---------+     |

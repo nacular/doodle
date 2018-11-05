@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.text
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
@@ -41,7 +41,7 @@ open class Label internal constructor(
         private val textMetrics        : TextMetrics,
                     styledText         : StyledText          = StyledText(""),
                     verticalAlignment  : VerticalAlignment   = Middle,
-                    horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Gizmo() {
+                    horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): View() {
 
     var fitText = true
 

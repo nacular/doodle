@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.buttons
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
@@ -20,7 +20,7 @@ import com.nectar.doodle.utils.VerticalAlignment.Middle
 abstract class Button protected constructor(
             text: String        = "",
         var icon: Icon<Button>? = null,
-            model: ButtonModel  = ButtonModelImpl()): Gizmo() {
+            model: ButtonModel  = ButtonModelImpl()): View() {
 
 
     private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
@@ -35,9 +35,9 @@ abstract class Button protected constructor(
         model.fired -= modelFired
     }
 
-    val textChanged: PropertyObservers<Gizmo, String> by lazy { PropertyObserversImpl<Gizmo, String>(this) }
+    val textChanged: PropertyObservers<View, String> by lazy { PropertyObserversImpl<View, String>(this) }
 
-    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Gizmo, String>)
+    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<View, String>)
 
     var renderer: Renderer<Button>? = null
 

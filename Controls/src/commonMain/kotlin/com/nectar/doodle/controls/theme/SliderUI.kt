@@ -29,10 +29,10 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
         slider.mouseMotionChanged += this
     }
 
-    override fun uninstall(gizmo: Slider) {
-        gizmo.changed          -= changed
-        gizmo.mouseChanged       -= this
-        gizmo.mouseMotionChanged -= this
+    override fun uninstall(view: Slider) {
+        view.changed          -= changed
+        view.mouseChanged       -= this
+        view.mouseMotionChanged -= this
     }
 
     override fun mousePressed(event: MouseEvent) {

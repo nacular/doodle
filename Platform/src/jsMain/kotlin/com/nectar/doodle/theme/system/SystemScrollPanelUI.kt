@@ -20,11 +20,11 @@ class SystemScrollPanelUI(nativeScrollPanelFactory: NativeScrollPanelFactory, sc
         onScroll?.invoke(it)
     }
 
-    override fun render(gizmo: ScrollPanel, canvas: Canvas) {
+    override fun render(view: ScrollPanel, canvas: Canvas) {
         // no-op
     }
 
-    override fun uninstall(gizmo: ScrollPanel) {
+    override fun uninstall(view: ScrollPanel) {
         nativePeer.discard()
     }
 }

@@ -10,15 +10,15 @@ import com.nectar.doodle.utils.PropertyObservers
 
 
 /**
- * The top-level surface for presenting [Gizmo]s.  An item must be added to the Display (either directly, or
+ * The top-level surface for presenting [View]s.  An item must be added to the Display (either directly, or
  * as a descendant of the Display) before it can be rendered or interact with the user.
  */
-interface Display: Iterable<Gizmo> {
+interface Display: Iterable<View> {
 
     override fun iterator() = children.iterator()
 
     /**
-     * The top-level cursor.  This will be the cursor used for Gizmo hierarchies that do not have one set.
+     * The top-level cursor.  This will be the cursor used for [View] hierarchies that do not have one set.
      */
     var cursor: Cursor?
 
@@ -32,7 +32,7 @@ interface Display: Iterable<Gizmo> {
     var insets: Insets
 
     /** The list of top-level items added to the Display */
-    val children: ObservableList<Display, Gizmo>
+    val children: ObservableList<Display, View>
 
     /** Fires when the display cursor changes */
     val cursorChanged: PropertyObservers<Display, Cursor?>
@@ -41,27 +41,27 @@ interface Display: Iterable<Gizmo> {
     val sizeChanged: /*Pool<PropertyObserver<Display, Size>> / */PropertyObservers<Display, Size>
 
     /**
-     * Gets the Gizmo's z-index.
+     * Gets the [View]'s z-index.
      *
-     * @param of The Gizmo
-     * @return The z-index (-1 if the Gizmo is not a child)
+     * @param of The View
+     * @return The z-index (-1 if the View is not a child)
      */
-    fun zIndex(of: Gizmo): Int
+    fun zIndex(of: View): Int
 
     /**
-     * Sets the Gizmo's z-index if it is a child.
+     * Sets the [View]'s z-index if it is a child.
      *
-     * @param of the Gizmo
+     * @param of the View
      * @param to the new z-index
      */
-    fun setZIndex(of: Gizmo, to: Int)
+    fun setZIndex(of: View, to: Int)
 
 //  var focusTraversalPolicy: FocusTraversalPolicy
 
     fun fill (brush: Brush)
-    fun child(at   : Point): Gizmo?
+    fun child(at   : Point): View?
 
-    infix fun ancestorOf(gizmo: Gizmo): Boolean
+    infix fun ancestorOf(view: View): Boolean
 
     fun doLayout()
 }

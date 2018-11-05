@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.text
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableProperty
@@ -18,7 +18,7 @@ class Selection(val position: Int, val anchor: Int) {
 
 typealias Validator = (String) -> String
 
-abstract class TextInput : Gizmo() /*, ContentRequestMonitor*/ {
+abstract class TextInput : View() /*, ContentRequestMonitor*/ {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
@@ -48,11 +48,11 @@ abstract class TextInput : Gizmo() /*, ContentRequestMonitor*/ {
 
     init {
 //        setDataTransporter(object : TextTransporter() {
-//            protected fun getText(aGizmo: Gizmo): String? {
+//            protected fun getText(view: View): String? {
 //                return this@TextInput.text
 //            }
 //
-//            protected fun setText(aGizmo: Gizmo, aText: String) {
+//            protected fun setText(view: View, aText: String) {
 //                this@TextInput.text = aText
 //            }
 //        })

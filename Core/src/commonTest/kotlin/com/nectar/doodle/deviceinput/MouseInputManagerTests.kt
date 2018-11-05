@@ -2,7 +2,7 @@ package com.nectar.doodle.deviceinput
 
 import com.nectar.doodle.JsName
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -437,8 +437,8 @@ class MouseInputManagerTests {
         every { this@apply.cursor } returns cursor
     }
 
-    private fun gizmo(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): Gizmo {
-        return object: Gizmo() {}.apply {
+    private fun gizmo(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View {
+        return object: View() {}.apply {
             this.bounds = bounds
             this.cursor = cursor
         }

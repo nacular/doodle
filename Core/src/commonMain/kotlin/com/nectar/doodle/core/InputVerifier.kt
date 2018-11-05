@@ -1,6 +1,6 @@
 package com.nectar.doodle.core
 
 
-interface InputVerifier<in T: Gizmo> {
-    fun shouldYieldFocus(gizmo: T): Boolean
+interface InputVerifier<in T: View> {
+    fun shouldYieldFocus(view: T): Boolean
 }

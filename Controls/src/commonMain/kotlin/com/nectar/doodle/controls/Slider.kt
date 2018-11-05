@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
@@ -14,7 +14,7 @@ import kotlin.math.round
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Orientation.Horizontal): Gizmo() {
+open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Orientation.Horizontal): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Orientation.Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
     var renderer: Renderer<Slider>? = null

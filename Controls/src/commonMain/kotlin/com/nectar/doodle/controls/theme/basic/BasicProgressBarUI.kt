@@ -13,21 +13,21 @@ import com.nectar.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/12/18.
  */
 class BasicProgressBarUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressBar>() {
-    override fun render(gizmo: ProgressBar, canvas: Canvas) {
+    override fun render(view: ProgressBar, canvas: Canvas) {
 
         val border = 1.0
-        var rect   = Rectangle(size = gizmo.size)
-        val brush  = ColorBrush(gizmo.backgroundColor ?: defaultBackgroundColor)
+        var rect   = Rectangle(size = view.size)
+        val brush  = ColorBrush(view.backgroundColor ?: defaultBackgroundColor)
 
         // Draw background with optional outline
         when {
-            gizmo.height > 2 -> canvas.rect(rect.inset(border / 2), Pen(darkBackgroundColor, border), brush)
-            else             -> canvas.rect(rect,                                                     brush)
+            view.height > 2 -> canvas.rect(rect.inset(border / 2), Pen(darkBackgroundColor, border), brush)
+            else            -> canvas.rect(rect,                                                     brush)
         }
 
-        rect = when (gizmo.orientation) {
-            Vertical -> (gizmo.height * gizmo.progress).let { Rectangle(0.0, gizmo.height - it, gizmo.width, it) }
-            else     -> Rectangle(width = gizmo.width * gizmo.progress, height = gizmo.height)
+        rect = when (view.orientation) {
+            Vertical -> (view.height * view.progress).let { Rectangle(0.0, view.height - it, view.width, it) }
+            else     -> Rectangle(width = view.width * view.progress, height = view.height)
         }
 
         // Draw progress

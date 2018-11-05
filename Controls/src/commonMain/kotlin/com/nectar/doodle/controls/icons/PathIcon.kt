@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.icons
 
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -15,7 +15,7 @@ import com.nectar.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 12/5/17.
  */
-open class PathIcon<in T: Gizmo>(
+open class PathIcon<in T: View>(
         private val path    : Path,
                     size    : Size?    = null,
                     fill    : Color?   = null,
@@ -27,8 +27,8 @@ open class PathIcon<in T: Gizmo>(
     private val pen   = outline?.let { Pen       (it) }
     private val brush = fill?.let    { ColorBrush(it) }
 
-    override fun render(gizmo: T, canvas: Canvas, at: Point) {
-        val brush = this.brush ?: gizmo.foregroundColor?.let { ColorBrush(it) }
+    override fun render(view: T, canvas: Canvas, at: Point) {
+        val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
 
         if (brush != null) {
             canvas.scale(Point(size.width / path.size.width, size.height / path.size.height)) {

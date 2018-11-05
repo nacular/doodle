@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.panels.SplitPanel
-import com.nectar.doodle.core.Gizmo
+import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
@@ -12,14 +12,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 interface SplitPanelUI: Renderer<SplitPanel> {
-    fun divider(panel: SplitPanel): Gizmo?
-    fun resizer(panel: SplitPanel): Gizmo?
+    fun divider(panel: SplitPanel): View?
+    fun resizer(panel: SplitPanel): View?
 }
 
 abstract class AbstractSplitPanelUI(
         private val spacing: Double = 7.0,
-        private val divider: Gizmo,
-        private val resizer: Gizmo? = null): SplitPanelUI, MouseListener, MouseMotionListener {
+        private val divider: View,
+        private val resizer: View? = null): SplitPanelUI, MouseListener, MouseMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var orientation     = Orientation.Vertical
@@ -32,20 +32,20 @@ abstract class AbstractSplitPanelUI(
         resizer?.visible            = false
     }
 
-    override fun divider(panel: SplitPanel): Gizmo? = divider
-    override fun resizer(panel: SplitPanel): Gizmo? = resizer
+    override fun divider(panel: SplitPanel): View? = divider
+    override fun resizer(panel: SplitPanel): View? = resizer
 
-    override fun install(gizmo: SplitPanel) {
-        splitPanel  = gizmo.also { it.panelSpacing = spacing }
-        orientation = gizmo.orientation
+    override fun install(view: SplitPanel) {
+        splitPanel  = view.also { it.panelSpacing = spacing }
+        orientation = view.orientation
 
-        when (gizmo.orientation) {
+        when (view.orientation) {
             Orientation.Vertical   -> divider.cursor = Cursor.ColResize
             Orientation.Horizontal -> divider.cursor = Cursor.RowResize
         }
     }
 
-    override fun uninstall(gizmo: SplitPanel) {
+    override fun uninstall(view: SplitPanel) {
         splitPanel = null
     }
 
