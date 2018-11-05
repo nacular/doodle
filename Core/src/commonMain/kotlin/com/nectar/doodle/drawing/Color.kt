@@ -21,7 +21,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
 
     init {
-        require(opacity in 0..1) { "opacity must be in ${0..1}" }
+        require(opacity in 0f..1f) { "opacity must be in ${0..1}" }
     }
 
     // FIXME: This fails if lazy is used (kotlin bug?)

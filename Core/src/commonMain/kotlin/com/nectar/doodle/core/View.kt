@@ -514,8 +514,10 @@ abstract class View protected constructor() {
 
     /**
      * This method is invoked by the Render system when the [View] is first added
-     * to the Display hierarchy.  This happens when the [View] itself,
-     * or one of it's ancestors is added to the Display.
+     * to the [Display] hierarchy.  This happens when the [View] itself--
+     * or one of it's ancestors--is added to the [Display].
+     *
+     * @param renderManager The RenderManager that will handle all renders for the view
      */
     internal fun addedToDisplay(renderManager: RenderManager) {
         this.renderManager = renderManager
@@ -527,8 +529,8 @@ abstract class View protected constructor() {
 
     /**
      * This method is invoked by the Render system when the [View] is no longer
-     * included in the Display hierarchy.  This happens when the [View] itself,
-     * or one of it's ancestors is removed from the Display.
+     * included in the [Display] hierarchy.  This happens when the [View] itself--
+     * or one of it's ancestors--is removed from the [Display].
      */
     internal fun removedFromDisplay_() = removedFromDisplay().also { renderManager = null }
 

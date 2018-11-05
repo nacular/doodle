@@ -70,28 +70,28 @@ class KeyboardFocusManager(
     operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
     operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
-    private fun handleKeyEvent(gizmo: View, keyEvent: KeyEvent) {
+    private fun handleKeyEvent(view: View, keyEvent: KeyEvent) {
         val keyState = keyEvent.run { KeyState(code, char, modifiers, type) }
 
-        val upwardKeyEvents   = gizmo[Upward  ] ?: defaultTraversalKeys[Upward  ]
-        val forwardKeyEvents  = gizmo[Forward ] ?: defaultTraversalKeys[Forward ]
-        val backwardKeyEvents = gizmo[Backward] ?: defaultTraversalKeys[Backward]
-        val downwardKeyEvents = if (gizmo.isFocusCycleRoot_) gizmo[Downward] else null
+        val upwardKeyEvents   = view[Upward  ] ?: defaultTraversalKeys[Upward  ]
+        val forwardKeyEvents  = view[Forward ] ?: defaultTraversalKeys[Forward ]
+        val backwardKeyEvents = view[Backward] ?: defaultTraversalKeys[Backward]
+        val downwardKeyEvents = if (view.isFocusCycleRoot_) view[Downward] else null
 
         if (forwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusForward(gizmo)
+            focusManager.moveFocusForward(view)
             keyEvent.consume()
         } else if (backwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusBackward(gizmo)
+            focusManager.moveFocusBackward(view)
             keyEvent.consume()
         } else if (upwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusUpward(gizmo)
+            focusManager.moveFocusUpward(view)
             keyEvent.consume()
         } else if (downwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusDownward(gizmo)
+            focusManager.moveFocusDownward(view)
             keyEvent.consume()
         } else {
-            var g: View? = gizmo
+            var g: View? = view
 
             while (g != null) {
                 if (g.monitorsKeyboard) {
@@ -99,7 +99,7 @@ class KeyboardFocusManager(
                     keyEvent.consume()
                     break
                 } else {
-                    g = gizmo.parent
+                    g = view.parent
                 }
             }
         }

@@ -22,10 +22,10 @@ import com.nectar.doodle.system.SystemMouseWheelEvent
 
 class MouseInputManager(private val display: Display, private val inputService: MouseInputService): MouseInputService.Listener {
 
-    private var mouseDown              = false
-    private var clickedEventAwareGizmo = null as View?
-    private var coveredEventAwareGizmo = null as View?
-    private var coveredGizmo           = null as View?
+    private var mouseDown             = false
+    private var clickedEventAwareView = null as View?
+    private var coveredEventAwareView = null as View?
+    private var coveredView           = null as View?
         set(new) {
             if (new == field) {
                 return
@@ -67,27 +67,27 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
     private val cursorChanged_ = ::cursorChanged
     @Suppress("UNUSED_PARAMETER")
-    private fun cursorChanged(gizmo: View, old: Cursor?, new: Cursor?) {
+    private fun cursorChanged(view: View, old: Cursor?, new: Cursor?) {
 //        if (old == null) {
-//            gizmo.parent?.let { unregisterCursorListeners(it) }
+//            view.parent?.let { unregisterCursorListeners(it) }
 //        } else if (new == null) {
-//            gizmo.parent?.let { registerCursorListeners(it) }
+//            view.parent?.let { registerCursorListeners(it) }
 //        }
 
-        cursor = getGizmoCursor(gizmo)
+        cursor = cursor(of = view)
     }
 
     private fun mouseUp(event: SystemMouseEvent) {
         var cursor: Cursor? = null
-        val gizmo = getMouseEventHandler(gizmo(event))
+        val view = getMouseEventHandler(view(from = event))
 
-        if (clickedEventAwareGizmo != null || mouseDown) {
+        if (clickedEventAwareView != null || mouseDown) {
 
-            clickedEventAwareGizmo?.let {
+            clickedEventAwareView?.let {
                 getMouseEventHandler(it)?.let {
                     it.handleMouseEvent_(createMouseEvent(event, it))
 
-                    if (gizmo === it) {
+                    if (view === it) {
                         it.handleMouseEvent_(createMouseEvent(event, it, Click))
                     }
 
@@ -95,27 +95,27 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 }
             }
 
-            if (gizmo !== clickedEventAwareGizmo) {
-                clickedEventAwareGizmo?.let {
+            if (view !== clickedEventAwareView) {
+                clickedEventAwareView?.let {
                     it.handleMouseEvent_(createMouseEvent(event, it, Exit))
                 }
 
-                gizmo?.let {
+                view?.let {
                     it.handleMouseEvent_(createMouseEvent(event, it, Enter))
                     it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
 
-                    cursor = getGizmoCursor(it)
+                    cursor = cursor(of = it)
 
                     event.consume()
                 }
             }
 
-            clickedEventAwareGizmo = null
-        } else if (gizmo != null) {
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo, Enter))
-            gizmo.handleMouseEvent_(createMouseEvent(event, gizmo       ))
+            clickedEventAwareView = null
+        } else if (view != null) {
+            view.handleMouseEvent_(createMouseEvent(event, view, Enter))
+            view.handleMouseEvent_(createMouseEvent(event, view       ))
 
-            cursor = getGizmoCursor(gizmo)
+            cursor = cursor(of = view)
 
             event.consume()
         }
@@ -131,10 +131,10 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun mouseDown(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        getMouseEventHandler(gizmo(event))?.let {
+        getMouseEventHandler(view(from = event))?.let {
             it.handleMouseEvent_(createMouseEvent(event, it))
 
-            clickedEventAwareGizmo = it
+            clickedEventAwareView = it
 
             event.consume()
         }
@@ -145,7 +145,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
     private fun doubleClick(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        getMouseEventHandler(gizmo(event))?.let {
+        getMouseEventHandler(view(from = event))?.let {
             it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
             it.handleMouseEvent_(createMouseEvent(event, it, Click))
 
@@ -154,9 +154,9 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     private fun mouseMove(event: SystemMouseEvent) {
-        coveredGizmo = gizmo(event)
+        coveredView = view(from = event)
 
-        clickedEventAwareGizmo?.let {
+        clickedEventAwareView?.let {
             if (it.monitorsMouseMotion) {
                 it.handleMouseMotionEvent_(createMouseEvent(event, it, Drag))
 
@@ -164,11 +164,11 @@ class MouseInputManager(private val display: Display, private val inputService: 
             }
         }
 
-        val gizmo = getMouseEventHandler(coveredGizmo)
+        val view = getMouseEventHandler(coveredView)
 
-        if (gizmo !== coveredEventAwareGizmo) {
-            coveredEventAwareGizmo?.let {
-                if (!mouseDown || it === clickedEventAwareGizmo) {
+        if (view !== coveredEventAwareView) {
+            coveredEventAwareView?.let {
+                if (!mouseDown || it === clickedEventAwareView) {
                     getMouseEventHandler(it)?.let {
                         it.handleMouseEvent_(createMouseEvent(event, it, Exit))
 
@@ -177,35 +177,35 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 }
             }
 
-            if (gizmo != null) {
-                if (!mouseDown || gizmo === clickedEventAwareGizmo) {
-                    createMouseEvent(event, gizmo, Enter).also {
-                        gizmo.handleMouseEvent_(it)
+            if (view != null) {
+                if (!mouseDown || view === clickedEventAwareView) {
+                    createMouseEvent(event, view, Enter).also {
+                        view.handleMouseEvent_(it)
 
-                        inputService.toolTipText = gizmo.toolTipText(it)
+                        inputService.toolTipText = view.toolTipText(it)
                     }
 
-                    cursor = getGizmoCursor(coveredGizmo)
+                    cursor = cursor(of = coveredView)
 
                     event.consume()
                 }
-            } else if (clickedEventAwareGizmo == null) {
+            } else if (clickedEventAwareView == null) {
                 inputService.toolTipText = ""
 
                 cursor = null
             }
 
-            coveredEventAwareGizmo = gizmo
+            coveredEventAwareView = view
 
         } else if (!mouseDown) {
-            if (coveredEventAwareGizmo != null) {
-                getMouseMotionEventHandler(coveredEventAwareGizmo)?.let {
+            if (coveredEventAwareView != null) {
+                getMouseMotionEventHandler(coveredEventAwareView)?.let {
                     it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
 
                     event.consume()
                 }
             } else {
-                val handler = getMouseMotionEventHandler(coveredGizmo)?.let {
+                val handler = getMouseMotionEventHandler(coveredView)?.let {
                     it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
 
                     event.consume()
@@ -216,42 +216,42 @@ class MouseInputManager(private val display: Display, private val inputService: 
                 }
             }
 
-            cursor = getGizmoCursor(coveredGizmo)
+            cursor = cursor(of = coveredView)
         }
 
-//        sScrollInputImpl.setCoveredGizmo(coveredGizmo)
+//        sScrollInputImpl.setCoveredView(coveredView)
     }
 
     private fun mouseScroll(event: SystemMouseWheelEvent) {
-//        var gizmo = sScrollInputImpl.getCoveredGizmo()
+//        var view = sScrollInputImpl.getCoveredView()
 //
-//        if (gizmo != null) {
-//            gizmo = getMouseWheelEventHandler(gizmo)
+//        if (view != null) {
+//            view = getMouseWheelEventHandler(view)
 //        } else {
-//            gizmo = getMouseWheelEventHandler(gizmo(event.location))
+//            view = getMouseWheelEventHandler(view(event.location))
 //        }
 //
-//        if (gizmo != null) {
-//            val aAbsolutePosition = Coordinates.convertPointToScreen(Point.Origin, gizmo)
+//        if (view != null) {
+//            val aAbsolutePosition = Coordinates.convertPointToScreen(Point.Origin, view)
 //
-//            val aNewMouseWheelEvent = MouseWheelEvent(gizmo,
+//            val aNewMouseWheelEvent = MouseWheelEvent(view,
 //                    event.location - aAbsolutePosition,
 //                    event.xRotation,
 //                    event.yRotation,
 //                    event.modifiers)
 //
-//            gizmo!!.handleMouseWheelEvent(aNewMouseWheelEvent)
+//            view!!.handleMouseWheelEvent(aNewMouseWheelEvent)
 //
 //            event.consume()
 //        }
     }
 
-    private fun getMouseEventHandler      (gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouse       }
-    private fun getMouseWheelEventHandler (gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouseWheel  }
-    private fun getMouseMotionEventHandler(gizmo: View?) = findInHierarchy(gizmo) { it.monitorsMouseMotion }
+    private fun getMouseEventHandler      (view: View?) = findInHierarchy(view) { it.monitorsMouse       }
+    private fun getMouseWheelEventHandler (view: View?) = findInHierarchy(view) { it.monitorsMouseWheel  }
+    private fun getMouseMotionEventHandler(view: View?) = findInHierarchy(view) { it.monitorsMouseMotion }
 
-    private fun findInHierarchy(gizmo: View?, block: (View) -> Boolean): View? {
-        var result: View? = gizmo
+    private fun findInHierarchy(view: View?, block: (View) -> Boolean): View? {
+        var result: View? = view
 
         loop@ while (result != null) {
             result = when {
@@ -263,8 +263,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
         return result
     }
 
-    private fun registerCursorListeners(gizmo: View) {
-        var value: View? = gizmo
+    private fun registerCursorListeners(view: View) {
+        var value: View? = view
 
         while (value != null) {
             value.cursorChanged += cursorChanged_
@@ -277,8 +277,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    private fun unregisterCursorListeners(gizmo: View) {
-        var value: View? = gizmo
+    private fun unregisterCursorListeners(view: View) {
+        var value: View? = view
 
         while (value != null) {
             value.cursorChanged -= cursorChanged_
@@ -291,36 +291,36 @@ class MouseInputManager(private val display: Display, private val inputService: 
         }
     }
 
-    private fun getGizmoCursor(gizmo: View?) = when (display.cursor) {
-        null -> gizmo?.cursor
+    private fun cursor(of: View?) = when (display.cursor) {
+        null -> of?.cursor
         else -> display.cursor
     }
 
-    private fun gizmo(event: SystemMouseEvent): View? {
-        var newPoint = event.location
-        var gizmo    = display.child(at = event.location)
+    private fun view(from: SystemMouseEvent): View? {
+        var newPoint = from.location
+        var view     = display.child(at = from.location)
 
-        while(gizmo != null) {
-            newPoint -= gizmo.position
+        while(view != null) {
+            newPoint -= view.position
 
-            gizmo = gizmo.child_(at = newPoint) ?: break
+            view = view.child_(at = newPoint) ?: break
         }
 
-        return gizmo?.let {
-            if (event.nativeScrollPanel) {
-                while(gizmo != null && gizmo !is ScrollPanel) {
-                    gizmo = gizmo?.parent
+        return view?.let {
+            if (from.nativeScrollPanel) {
+                while(view != null && view !is ScrollPanel) {
+                    view = view?.parent
                 }
             }
 
-            gizmo
+            view
         }
     }
 
-    private fun createMouseEvent(mouseEvent: SystemMouseEvent, gizmo: View, type: Type = mouseEvent.type) = MouseEvent(
-            gizmo,
+    private fun createMouseEvent(mouseEvent: SystemMouseEvent, view: View, type: Type = mouseEvent.type) = MouseEvent(
+            view,
             type,
-            mouseEvent.location - gizmo.toAbsolute(Origin),
+            mouseEvent.location - view.toAbsolute(Origin),
             mouseEvent.buttons,
             mouseEvent.clickCount,
             mouseEvent.modifiers)

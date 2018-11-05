@@ -143,8 +143,8 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { nestedSurface.zIndex  = 0 }
     }
 
-    @Test @JsName("releaseGizmo")
-    fun `release gizmo`() {
+    @Test @JsName("releaseView")
+    fun `release view`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
         val parentSurface1 = mockk<GraphicsSurface>(relaxed = true)
         val childSurface1  = mockk<GraphicsSurface>(relaxed = true)

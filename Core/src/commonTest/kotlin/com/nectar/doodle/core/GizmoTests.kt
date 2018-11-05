@@ -38,11 +38,11 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 2/23/18.
  */
-class GizmoTests {
+class ViewTests {
 
     @Test @JsName("defaults")
     fun `defaults valid`() {
-        expect("", "Gizmo::toolTipText") { object: View() {}.toolTipText }
+        expect("", "View::toolTipText") { object: View() {}.toolTipText }
 
         mapOf(
                 View::x                   to 0.0,
@@ -109,25 +109,25 @@ class GizmoTests {
     @Test @JsName("rerenderWorks")
     fun `rerender work`() {
         val renderManager = mockk<RenderManager>(relaxed = true)
-        val gizmo         = object: View() {}
+        val view         = object: View() {}
 
-        gizmo.addedToDisplay(renderManager)
+        view.addedToDisplay(renderManager)
 
-        gizmo.rerender()
+        view.rerender()
 
-        verify(exactly = 1) { renderManager.render(gizmo) }
+        verify(exactly = 1) { renderManager.render(view) }
     }
 
     @Test @JsName("rerenderNowWorks")
     fun `rerenderNow work`() {
         val renderManager = mockk<RenderManager>(relaxed = true)
-        val gizmo         = object: View() {}
+        val view         = object: View() {}
 
-        gizmo.addedToDisplay(renderManager)
+        view.addedToDisplay(renderManager)
 
-        gizmo.rerenderNow()
+        view.rerenderNow()
 
-        verify(exactly = 1) { renderManager.renderNow(gizmo) }
+        verify(exactly = 1) { renderManager.renderNow(view) }
     }
 
     @Test @JsName("changeEventsWork")
@@ -172,72 +172,72 @@ class GizmoTests {
     }
 
     @Test @JsName("focusGainedWorks")
-    fun `focus gained works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained }) { gizmo, observer, _ ->
-        verify(exactly = 1) { observer(gizmo, false, true) }
+    fun `focus gained works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained }) { view, observer, _ ->
+        verify(exactly = 1) { observer(view, false, true) }
     }
 
     @Test @JsName("focusLostWorks")
-    fun `focus lost works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Lost }) { gizmo, observer, _ ->
-        verify(exactly = 1) { observer(gizmo, true, false) }
+    fun `focus lost works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Lost }) { view, observer, _ ->
+        verify(exactly = 1) { observer(view, true, false) }
     }
 
     @Test @JsName("boundsChangedWorks")
     fun `bounds changed works`() {
-        val gizmo    = object: View() {}
+        val view    = object: View() {}
         val observer = mockk<PropertyObserver<View, Rectangle>>(relaxed = true)
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
-        val old      = gizmo.bounds
+        val old      = view.bounds
 
-        gizmo.boundsChanged += observer
-        gizmo.bounds         = new
+        view.boundsChanged += observer
+        view.bounds         = new
 
-        verify(exactly = 1) { observer(gizmo, old, new) }
+        verify(exactly = 1) { observer(view, old, new) }
 
-        gizmo.x = 67.0
+        view.x = 67.0
 
-        verify(exactly = 1) { observer(gizmo, new, new.at(x = 67.0)) }
+        verify(exactly = 1) { observer(view, new, new.at(x = 67.0)) }
     }
 
     @Test @JsName("cursorChangedWorks")
     fun `cursor changed works`() {
-        val gizmo    = object: View() {}
+        val view    = object: View() {}
         val observer = mockk<PropertyObserver<View, Cursor?>>(relaxed = true)
         val new      = Cursor.Crosshair
-        val old      = gizmo.cursor
+        val old      = view.cursor
 
-        gizmo.cursorChanged += observer
-        gizmo.cursor         = new
-        gizmo.cursor         = new
+        view.cursorChanged += observer
+        view.cursor         = new
+        view.cursor         = new
 
-        verify(exactly = 1) { observer(gizmo, old, new) }
+        verify(exactly = 1) { observer(view, old, new) }
     }
 
     @Test @JsName("containsPointWorks")
     fun `contains point`() {
-        val gizmo = object: View() {}
+        val view = object: View() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
-        expect(false, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
+        expect(false, "$view contains ${bounds.position}") { bounds.position in view }
 
-        gizmo.bounds = bounds
+        view.bounds = bounds
 
-        expect(true, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
+        expect(true, "$view contains ${bounds.position}") { bounds.position in view }
 
-        gizmo.size = Size.Empty
+        view.size = Size.Empty
 
-        expect(false, "$gizmo contains ${bounds.position}") { bounds.position in gizmo }
+        expect(false, "$view contains ${bounds.position}") { bounds.position in view }
     }
 
     @Test @JsName("toolTipTextWorks")
     fun `tool-top text works`() {
-        val gizmo = object: View() {}
+        val view = object: View() {}
         val event = mockk<MouseEvent>(relaxed = true)
 
-        expect("", "${gizmo.toolTipText} == \"\"") { gizmo.toolTipText(event) }
+        expect("", "${view.toolTipText} == \"\"") { view.toolTipText(event) }
 
-        gizmo.toolTipText = "foo"
+        view.toolTipText = "foo"
 
-        expect("foo", "${gizmo.toolTipText} == \"\"") { gizmo.toolTipText(event) }
+        expect("foo", "${view.toolTipText} == \"\"") { view.toolTipText(event) }
     }
 
     @Test @JsName("isAncestorWorks")
@@ -258,9 +258,9 @@ class GizmoTests {
 
     @Test @JsName("toAbsoluteWorks")
     fun `to absolute works`() {
-        val root   = gizmo()
-        val parent = gizmo().apply { x += 10.0; y += 12.0 }
-        val child  = gizmo().apply { x += 10.0; y += 12.0 }
+        val root   = view()
+        val parent = view().apply { x += 10.0; y += 12.0 }
+        val child  = view().apply { x += 10.0; y += 12.0 }
 
         root.children_   += parent
         parent.children_ += child
@@ -273,9 +273,9 @@ class GizmoTests {
 
     @Test @JsName("fromAbsoluteWorks")
     fun `from absolute works`() {
-        val root   = gizmo()
-        val parent = gizmo().apply { x += 10.0; y += 12.0 }
-        val child  = gizmo().apply { x += 10.0; y += 12.0 }
+        val root   = view()
+        val parent = view().apply { x += 10.0; y += 12.0 }
+        val child  = view().apply { x += 10.0; y += 12.0 }
 
         root.children_   += parent
         parent.children_ += child
@@ -290,10 +290,10 @@ class GizmoTests {
 
     @Test @JsName("toLocalWorks")
     fun `to local works`() {
-        val root   = gizmo()
-        val parent = gizmo().apply { x += 10.0; y += 12.0 }
-        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
-        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
+        val root   = view()
+        val parent = view().apply { x += 10.0; y += 12.0 }
+        val child1 = view().apply { x += 10.0; y += 12.0 }
+        val child2 = view().apply { x += 20.0; y += 12.0 }
 
         root.children_   += parent
         parent.children_ += child1
@@ -306,11 +306,11 @@ class GizmoTests {
 
     @Test @JsName("childAtWorks")
     fun `child at works`() {
-        val root   = gizmo()
-        val child0 = gizmo().apply { x += 10.0; y += 12.0 }
-        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
-        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
-        val child3 = gizmo().apply { x += 10.0; y += 23.0; width = 0.0 }
+        val root   = view()
+        val child0 = view().apply { x += 10.0; y += 12.0 }
+        val child1 = view().apply { x += 10.0; y += 12.0 }
+        val child2 = view().apply { x += 20.0; y += 12.0 }
+        val child3 = view().apply { x += 10.0; y += 23.0; width = 0.0 }
 
         root.children_ += child0
         root.children_ += child1
@@ -328,11 +328,11 @@ class GizmoTests {
 
     @Test @JsName("zIndexWorks")
     fun `z-index works`() {
-        val root   = gizmo()
-        val child0 = gizmo().apply { x += 10.0; y += 12.0 }
-        val child1 = gizmo().apply { x += 10.0; y += 12.0 }
-        val child2 = gizmo().apply { x += 20.0; y += 12.0 }
-        val child3 = gizmo().apply { x += 10.0; y += 23.0; width = 0.0 }
+        val root   = view()
+        val child0 = view().apply { x += 10.0; y += 12.0 }
+        val child1 = view().apply { x += 10.0; y += 12.0 }
+        val child2 = view().apply { x += 20.0; y += 12.0 }
+        val child3 = view().apply { x += 10.0; y += 23.0; width = 0.0 }
 
         root.children_ += child0
         root.children_ += child1
@@ -353,53 +353,53 @@ class GizmoTests {
     }
 
     private fun validateFocusChanged(event: FocusEvent, block: (View, PropertyObserver<View, Boolean>, FocusEvent) -> Unit) {
-        val gizmo    = object: View() {}
+        val view     = object: View() {}
         val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
 
-        gizmo.focusChanged += observer
+        view.focusChanged += observer
 
-        // Force the Gizmo to have focus if we are testing losing it
+        // Force the View to have focus if we are testing losing it
         if (event.type == Lost) {
-            gizmo.handleFocusEvent(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained })
+            view.handleFocusEvent(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained })
         }
 
-        gizmo.handleFocusEvent(event)
+        view.handleFocusEvent(event)
 
-        block(gizmo, observer, event)
+        block(view, observer, event)
     }
 
     private fun validateMouseChanged(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
-        val gizmo    = object: View() {}
+        val view     = object: View() {}
         val listener = mockk<MouseListener>(relaxed = true)
 
-        gizmo.mouseChanged += listener
+        view.mouseChanged += listener
 
-        gizmo.handleMouseEvent_(event)
+        view.handleMouseEvent_(event)
 
         block(listener, event)
     }
 
     private fun validateMouseMotionChanged(event: MouseEvent, block: (MouseMotionListener, MouseEvent) -> Unit) {
-        val gizmo    = object: View() {}
+        val view     = object: View() {}
         val listener = mockk<MouseMotionListener>(relaxed = true)
 
-        gizmo.mouseMotionChanged += listener
+        view.mouseMotionChanged += listener
 
-        gizmo.handleMouseMotionEvent_(event)
+        view.handleMouseMotionEvent_(event)
 
         block(listener, event)
     }
 
     private fun validateChanged(property: KMutableProperty1<View, Boolean>, changed: KProperty1<View, PropertyObservers<View, Boolean>>) {
-        val gizmo    = object: View() {}
-        val old      = property.get(gizmo)
+        val view     = object: View() {}
+        val old      = property.get(view)
         val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
 
-        changed.get(gizmo).plusAssign(observer)
+        changed.get(view).plusAssign(observer)
 
-        property.set(gizmo, !property.get(gizmo))
+        property.set(view, !property.get(view))
 
-        verify(exactly = 1) { observer(gizmo, old, property.get(gizmo)) }
+        verify(exactly = 1) { observer(view, old, property.get(view)) }
     }
 
     private fun <T> validateDefault(p: KProperty1<View, T>, default: T?) {
@@ -414,5 +414,5 @@ class GizmoTests {
         }
     }
 
-    private fun gizmo(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 }

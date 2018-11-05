@@ -68,11 +68,11 @@ class MouseInputManagerTests {
         verify(exactly = 1) { inputService.cursor = Move }
     }
 
-    @Test @JsName("cursorOnMouseEnterExitGizmoDisplay")
-    fun `correct cursor on mouse-enter,exit gizmo - display`() {
+    @Test @JsName("cursorOnMouseEnterExitViewDisplay")
+    fun `correct cursor on mouse-enter,exit view - display`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = gizmo(Move)
+        val child        = view(Move)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -92,11 +92,11 @@ class MouseInputManagerTests {
         verify(exactly = 2) { inputService.cursor = Default }
     }
 
-    @Test @JsName("correctCursorOnCoveredGizmoCursorChanged")
-    fun `correct cursor on covered gizmo cursor changed`() {
+    @Test @JsName("correctCursorOnCoveredViewCursorChanged")
+    fun `correct cursor on covered view cursor changed`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = gizmo(Move)
+        val child        = view(Move)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -124,11 +124,11 @@ class MouseInputManagerTests {
         verify(exactly = 2) { inputService.cursor = Crosshair }
     }
 
-    @Test @JsName("displayCursorOverridesCoveredGizmo")
-    fun `display cursor overrides covered gizmo`() {
+    @Test @JsName("displayCursorOverridesCoveredView")
+    fun `display cursor overrides covered view`() {
         val display      = display(Progress)
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = gizmo(Move)
+        val child        = view(Move)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -160,7 +160,7 @@ class MouseInputManagerTests {
     fun `mouse down, no handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -181,7 +181,7 @@ class MouseInputManagerTests {
     fun `mouse down, no hit`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.mouseChanged += mockk(relaxed = true)
 
@@ -204,7 +204,7 @@ class MouseInputManagerTests {
     fun `mouse down, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -227,8 +227,8 @@ class MouseInputManagerTests {
     fun `mouse down, informs parent handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val parent       = spyk(gizmo())
-        val child        = spyk(gizmo())
+        val parent       = spyk(view())
+        val child        = spyk(view())
 
         parent.position = Point(9.0, 9.0)
 
@@ -253,7 +253,7 @@ class MouseInputManagerTests {
     fun `mouse drag, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position            = Point(9.0, 9.0)
         child.mouseChanged       += mockk(relaxed = true)
@@ -281,7 +281,7 @@ class MouseInputManagerTests {
     fun `mouse move, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position            = Point(9.0, 9.0)
         child.mouseMotionChanged += mockk(relaxed = true)
@@ -304,7 +304,7 @@ class MouseInputManagerTests {
     fun `single-click, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -332,7 +332,7 @@ class MouseInputManagerTests {
     fun `down, up outside, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -360,7 +360,7 @@ class MouseInputManagerTests {
     fun `down outside, up inside, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -387,7 +387,7 @@ class MouseInputManagerTests {
     fun `up inside, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -411,7 +411,7 @@ class MouseInputManagerTests {
     fun `double-click, informs handler`() {
         val display      = display()
         val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(gizmo())
+        val child        = spyk(view())
 
         child.position = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
@@ -437,7 +437,7 @@ class MouseInputManagerTests {
         every { this@apply.cursor } returns cursor
     }
 
-    private fun gizmo(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View {
+    private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View {
         return object: View() {}.apply {
             this.bounds = bounds
             this.cursor = cursor
