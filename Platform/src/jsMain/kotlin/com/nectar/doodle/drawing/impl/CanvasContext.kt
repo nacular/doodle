@@ -1,6 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Size
 import org.w3c.dom.Node
 
@@ -10,7 +10,7 @@ import org.w3c.dom.Node
 
 interface CanvasContext {
     var size          : Size
-    var optimization  : Renderer.Optimization
+    var optimization  : Optimization
     val renderRegion  : Node
     var renderPosition: Node?
 }

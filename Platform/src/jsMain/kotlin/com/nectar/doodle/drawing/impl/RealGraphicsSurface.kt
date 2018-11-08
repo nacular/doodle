@@ -24,7 +24,6 @@ import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
-import kotlin.dom.clear
 import kotlin.math.max
 
 
@@ -36,6 +35,7 @@ class RealGraphicsSurface private constructor(
                     canvasElement          : HTMLElement,
                     addToDocumentIfNoParent: Boolean): GraphicsSurface {
 
+    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
 
     override var visible = true
@@ -62,20 +62,24 @@ class RealGraphicsSurface private constructor(
         set(new) {
             if (field == new) { return }
 
-            rootElement.clear()
-
             canvasElement = if (new) {
                 htmlFactory.create<HTMLElement>().apply {
                     style.setWidthPercent (100.0)
                     style.setHeightPercent(100.0)
 
+                    while(rootElement.numChildren > 0) {
+                        rootElement.firstChild?.let { rootElement.remove(it); this.add(it) }
+                    }
+
                     rootElement.insert(this, 0)
 
-                    canvas = canvasFactory(this) // TODO: Import contents from old canvas
+                    canvas = canvasFactory(this)
+                    zIndexStart = 1
                 }
             } else {
                 canvasElement?.let { it.parent?.remove(it) }
                 canvas = canvasFactory(rootElement) // TODO: Import contents from old canvas
+                zIndexStart = 0
                 null
             }
         }
