@@ -7,7 +7,6 @@ import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
-import com.nectar.doodle.system.SystemMouseEvent
 
 internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonUI(textMetrics) {
 
@@ -48,9 +47,9 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetr
         val button = event.source as Button
         val model  = button.model
 
-        if (button.enabled && event.buttons == setOf(SystemMouseEvent.Button.Button1)) {
-            model.armed   = false
+        if (button.enabled && event.buttons.isEmpty()) {
             model.pressed = false
+            model.armed   = false
         }
     }
 

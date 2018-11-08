@@ -1,6 +1,5 @@
 package com.nectar.doodle.drawing.impl
 
-
 import com.nectar.doodle.dom.Display.None
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
@@ -25,19 +24,19 @@ import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
+import kotlin.dom.clear
 import kotlin.math.max
 
 
 class RealGraphicsSurface private constructor(
-        private val htmlFactory  : HtmlFactory,
-                    canvasFactory: CanvasFactory,
-        private var parent       : RealGraphicsSurface?,
-        private val isContainer  : Boolean,
-        private var canvasElement: HTMLElement,
-        addToDocumentIfNoParent  : Boolean): GraphicsSurface {
+        private val htmlFactory            : HtmlFactory,
+        private val canvasFactory          : CanvasFactory,
+        private var parent                 : RealGraphicsSurface?,
+                    isContainer            : Boolean,
+                    canvasElement          : HTMLElement,
+                    addToDocumentIfNoParent: Boolean): GraphicsSurface {
 
-    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
-    constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
 
     override var visible = true
         set(new) {
@@ -53,7 +52,33 @@ class RealGraphicsSurface private constructor(
             parent?.setZIndex(this, new)
         }
 
-    override val canvas: Canvas
+    lateinit var canvas: Canvas
+        private set
+
+    private var numChildren   = 0
+    private var canvasElement = canvasElement as HTMLElement?
+
+    private var isContainer = false
+        set(new) {
+            if (field == new) { return }
+
+            rootElement.clear()
+
+            canvasElement = if (new) {
+                htmlFactory.create<HTMLElement>().apply {
+                    style.setWidthPercent (100.0)
+                    style.setHeightPercent(100.0)
+
+                    rootElement.insert(this, 0)
+
+                    canvas = canvasFactory(this) // TODO: Import contents from old canvas
+                }
+            } else {
+                canvasElement?.let { it.parent?.remove(it) }
+                canvas = canvasFactory(rootElement) // TODO: Import contents from old canvas
+                null
+            }
+        }
 
     private  val children    by lazy { mutableListOf<RealGraphicsSurface>() }
     private  var zIndexSet   = MutableTreeSet<Int>()
@@ -61,18 +86,14 @@ class RealGraphicsSurface private constructor(
     internal val rootElement = canvasElement
 
     init {
-        if (isContainer) {
-            canvasElement = htmlFactory.create()
+        this.isContainer = isContainer
 
-            canvasElement.style.setWidthPercent (100.0)
-            canvasElement.style.setHeightPercent(100.0)
-
-            rootElement.insert(canvasElement, 0)
+        if (!isContainer) {
+            canvas = canvasFactory(rootElement)
         }
 
-        canvas = canvasFactory(canvasElement)
-
         if (parent != null) {
+            parent?.add(this)
             parent?.rootElement?.add(rootElement)
         } else if (addToDocumentIfNoParent) {
             htmlFactory.root.add(rootElement)
@@ -83,17 +104,23 @@ class RealGraphicsSurface private constructor(
         canvas.clear()
         canvas.optimization = Quality
 
-        if (isContainer && canvasElement.numChildren == 0) {
-            canvasElement.parent?.remove(canvasElement)
+        if (isContainer) {
+            canvasElement?.let {
+                if (it.numChildren == 0) { it.parent?.remove(it) }
+            }
         }
 
         block(canvas)
 
         canvas.flush()
 
-        if (isContainer && canvasElement.numChildren > 0) {
-            rootElement.insert(canvasElement, 0)
-            zIndexStart = 1
+        if (isContainer) {
+            canvasElement?.let {
+                if (it.numChildren > 0) {
+                    rootElement.insert(it, 0)
+                    zIndexStart = 1
+                }
+            }
         }
     }
 
@@ -111,13 +138,17 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-//    override fun iterator() = children.iterator()
-
     override fun release() {
         if (parent != null) {
-            parent!!.remove(this)
+            parent?.remove(this)
         } else {
             htmlFactory.root.remove(rootElement)
+        }
+    }
+
+    private fun add(child: RealGraphicsSurface) {
+        if (++numChildren == 1) {
+            isContainer = true
         }
     }
 
@@ -128,6 +159,8 @@ class RealGraphicsSurface private constructor(
             zIndexSet.remove(child.zIndex)
 
             child.parent = null
+
+            --numChildren // TODO: is it worth reverting to not container?
         }
     }
 

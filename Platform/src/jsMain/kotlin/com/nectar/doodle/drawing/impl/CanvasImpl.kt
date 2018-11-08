@@ -31,7 +31,6 @@ import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Canvas.ImageData
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
@@ -114,14 +113,14 @@ internal class CanvasImpl(
 //            return ImageDataImpl(elements)
 //        }
 
-    override fun import(imageData: ImageData, at: Point) {
-        if (imageData is ImageDataImpl) {
-            val elements = imageData.elements
-            val clones   = elements.mapTo(ArrayList(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
-
-            addData(clones, at)
-        }
-    }
+//    override fun import(imageData: ImageData, at: Point) {
+//        if (imageData is ImageDataImpl) {
+//            val elements = imageData.elements
+//            val clones   = elements.mapTo(ArrayList(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
+//
+//            addData(clones, at)
+//        }
+//    }
 
     override fun text(text: StyledText, at: Point) {
         completeOperation(createStyledTextGlyph(text, at))
@@ -460,4 +459,4 @@ internal class CanvasImpl(
     }
 }
 
-class ImageDataImpl(val elements: List<HTMLElement>): ImageData
+//class ImageDataImpl(val elements: List<HTMLElement>): ImageData

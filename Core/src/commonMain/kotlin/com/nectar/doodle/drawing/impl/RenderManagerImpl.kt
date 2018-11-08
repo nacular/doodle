@@ -148,7 +148,7 @@ class RenderManagerImpl(
 
                 view.boundsChanged              += boundsChanged_
                 view.visibilityChanged          += visibilityChanged_
-                view.children_.changed         += childrenChanged_
+                view.children_.changed          += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
             }
 
@@ -462,7 +462,7 @@ class RenderManagerImpl(
         }
 
         when {
-            parent         == null                         -> display.layout
+            parent         == null                         -> display.doLayout()
             parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view])
             else -> scheduleLayout(parent)
         }

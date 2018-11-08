@@ -15,24 +15,17 @@ interface GraphicsDevice<T: GraphicsSurface> {
      */
     fun create(): T
 
-//    /**
-//     * @param  element
-//     * @return a new GraphicsSurface backed by the given Element
-//     */
-//
-//    fun create(element: HTMLElement): T
-
     /**
      * Releases the [GraphicsSurface] associated with [View] and its children if applicable.
      *
-     * @param  view
+     * @param view
      */
     fun release(view: View)
 
     /**
      * Releases the given [GraphicsSurface] and its children if applicable.
      *
-     * @param  surface
+     * @param surface
      */
     fun release(surface: T)
 }

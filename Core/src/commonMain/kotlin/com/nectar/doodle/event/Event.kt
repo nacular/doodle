@@ -6,7 +6,7 @@ abstract class Event<out T> protected constructor(val source: T) {
      *
      * @return true if consumed
      */
-    var consumed: Boolean = false
+    var consumed = false
         private set
 
     /**

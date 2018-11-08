@@ -45,7 +45,6 @@ kotlin {
         jsMain.dependencies {
             implementation dep.kotlin_stdlib_js
         }
-
     }
 
     dokka {

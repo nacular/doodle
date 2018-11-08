@@ -95,14 +95,12 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
 
     override operator fun contains(rectangle: Rectangle) = contains(rectangle.position) && contains(rectangle.position + Point(rectangle.width, rectangle.height))
 
-    override fun intersects(rectangle: Rectangle): Boolean {
-        return !(x          >= rectangle.x + rectangle.width  ||
-                 y          >= rectangle.y + rectangle.height ||
-                 x + width  <= rectangle.x                    ||
-                 y + height <= rectangle.y                    ||
-                empty                                         ||
-                rectangle.empty)
-    }
+    override fun intersects(rectangle: Rectangle) = !(x          >= rectangle.x + rectangle.width  ||
+                                                      y          >= rectangle.y + rectangle.height ||
+                                                      x + width  <= rectangle.x                    ||
+                                                      y + height <= rectangle.y                    ||
+                                                      empty                                        ||
+                                                      rectangle.empty)
 
     override fun toString() = "[$x,$y,$width,$height]"
 

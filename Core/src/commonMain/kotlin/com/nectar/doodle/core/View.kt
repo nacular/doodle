@@ -1,3 +1,5 @@
+@file:Suppress("NestedLambdaShadowedImplicitParameter", "FunctionName", "PropertyName")
+
 package com.nectar.doodle.core
 
 import com.nectar.doodle.drawing.Canvas
@@ -53,7 +55,6 @@ private typealias BooleanObservers = PropertyObservers<View, Boolean>
  * @author Nicholas Eddy
  * @constructor
  */
-@Suppress("FunctionName", "PropertyName")
 abstract class View protected constructor() {
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
@@ -194,15 +195,21 @@ abstract class View protected constructor() {
 
     // ================= Container ================= //
     internal val insets_ get() = insets
-    protected open var insets  = None
+
+    /** Insets used to control how [Layout]s set the View's children away from its edge. */
+    protected open var insets = None
 
     internal val layout_ get() = layout
+
+    /** The [Layout] managing the position of this View's children */
     protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
         // TODO: Have RenderManager manage the layout?
         if (renderManager!= null) doLayout()
     }
 
     internal val children_ get() = children
+
+    /** List of child Views within this one */
     protected open val children by lazy {
         ObservableList<View, View>(this).also {
             it.changed += { _, removed, added, _ ->
@@ -217,13 +224,14 @@ abstract class View protected constructor() {
         }
     }
 
+    internal infix fun ancestorOf_(view: View) = this ancestorOf view
+
     /**
      * Tells whether this [View] is an ancestor of the [View].
      *
      * @param view The View
-     * @return true if the View is a descendant of the View
+     * @return ```true``` if the View is a descendant of the View
      */
-    internal infix fun ancestorOf_(view: View) = ancestorOf(view)
     protected open infix fun ancestorOf(view: View): Boolean {
         if (children.isNotEmpty()) {
             var parent = view.parent
@@ -277,9 +285,7 @@ abstract class View protected constructor() {
 
     val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
 
-    /**
-     * Is {code}true{/code} if the [View] has been displayed
-     */
+    /** Is ```true``` if the [View] has been displayed */
     val displayed get() = renderManager != null
 
     private var renderManager: RenderManager? = null
@@ -315,20 +321,21 @@ abstract class View protected constructor() {
      * @param of The View
      * @param to the new z-index
      *
-     * @throws IndexOutOfBoundsException if `index !in 0 until this.children.size`
+     * @throws IndexOutOfBoundsException if ```index !in 0 until this.children.size```
      */
     protected open fun setZIndex(of: View, to: Int) {
         children.move(of, to)
     }
 
+    internal fun zIndex_(of: View) = zIndex(of)
+
     /**
-     * Gets the [View]'s z-index.
+     * Gets the child's z-index.
      *
      * @param of The View
-     * @return The z-index (-1 if the View is not a child)
+     * @return The z-index (null if the View is not a child)
      */
-    internal fun zIndex_(of: View) = zIndex(of)
-    protected open fun zIndex(of: View) = children.size - children.indexOf(of) - 1
+    protected open fun zIndex(of: View) = (children.size - children.indexOf(of) - 1).takeUnless { it < 0 }
 
     /**
      * Gets the [View] at the given point.
@@ -387,7 +394,7 @@ abstract class View protected constructor() {
      * @param for The mouse event to generate a tool-tip for
      * @return The text
      */
-    fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
+    open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
 
     /**
      * Checks whether a point is within the boundaries of a [View]. Returns true if the point is within the [View]'s bounding rectangle.

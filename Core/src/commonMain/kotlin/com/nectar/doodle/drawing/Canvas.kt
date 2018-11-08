@@ -1,5 +1,7 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.drawing.Color.Companion.black
+import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -14,9 +16,9 @@ import com.nectar.measured.units.Measure
 interface Canvas: Renderer {
 
     var size        : Size
-    var optimization: Renderer.Optimization
+    var optimization: Optimization
 
-    fun import(imageData: ImageData, at: Point)
+//    fun import(imageData: ImageData, at: Point)
 
     fun scale    (by       : Point,                     block: Canvas.() -> Unit)
     fun scale    (around   : Point, by: Point,          block: Canvas.() -> Unit)
@@ -34,7 +36,7 @@ interface Canvas: Renderer {
     fun rect(rectangle: Rectangle,           brush: Brush        )
     fun rect(rectangle: Rectangle, pen: Pen, brush: Brush? = null)
 
-    fun rect(rectangle: Rectangle, radius: Double,           brush: Brush)
+    fun rect(rectangle: Rectangle, radius: Double,           brush: Brush        )
     fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush? = null)
 
     fun circle(circle: Circle,           brush: Brush        )
@@ -67,7 +69,7 @@ interface Canvas: Renderer {
 
     fun clip(rectangle: Rectangle, block: Canvas.() -> Unit)
 
-    fun shadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Color.black, block: Canvas.() -> Unit)
+    fun shadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black, block: Canvas.() -> Unit)
 
-    interface ImageData
+//    interface ImageData
 }

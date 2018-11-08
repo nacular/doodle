@@ -4,31 +4,14 @@ package com.nectar.doodle.geometry
 /**
  * Objects implementing this interface represent shapes.
  */
-
 interface Shape {
-
-    /**
-     * Returns the Shape's bounding rectangle.
-     *
-     * @return The bounding rectangle
-     */
-
+    /** @return The bounding rectangle */
     val boundingRectangle: Rectangle
 
-    /**
-     * Returns the Shape's area
-     *
-     * @return The Shape's area
-     */
-
+    /** @return The Shape's area */
     val area: Double
 
-    /**
-     * Returns whether the Shape has an area equals to 0.
-     *
-     * @return true if the Shape's area is zero
-     */
-
+    /** @return true if the Shape's area is zero */
     val empty: Boolean
 
     /**
@@ -37,7 +20,6 @@ interface Shape {
      * @param  point The point
      * @return true if the point is within the Shape
      */
-
     operator fun contains(point: Point): Boolean
 
     /**
@@ -46,7 +28,6 @@ interface Shape {
      * @param  rectangle The rectangle
      * @return true if the rectangle is within the Shape
      */
-
     operator fun contains(rectangle: Rectangle): Boolean
 
     /**
@@ -55,6 +36,5 @@ interface Shape {
      * @param  rectangle The rectangle
      * @return true if the Shape intersects the rectangle
      */
-
     infix fun intersects(rectangle: Rectangle): Boolean
 }

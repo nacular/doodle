@@ -64,22 +64,3 @@ fun HTMLElement.clearBoundStyles() {
    style.marginRight  = ""
    style.marginBottom = ""
 }
-
-//    public static final class Type extends JavaScriptObject
-//    {
-//        protected Type() {}
-//
-//        public static Type create( String aValue )
-//        {
-//            if( GWT.isScript() ) { return createScript( aValue ); }
-//            else                 { return createHosted( aValue ); }
-//        }
-//
-//        public static Type createScript( String aValue ) /*-{ return aValue; }-*/;
-//        public static Type createHosted( String aValue ) /*-{ this[0] = [aValue]; return this[0]; }-*/;
-//
-//        public static final Type text     = create( "text"     );
-//        public static final Type radio    = create( "radio"    );
-//        public static final Type button   = create( "button"   );
-//        public static final Type checkbox = create( "checkbox" );
-//    }

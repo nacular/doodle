@@ -96,6 +96,21 @@ class RenderManagerImplTests {
         verify(exactly = 1) { display.doLayout() }
     }
 
+    @Test @JsName("laysOutDisplayOnChildBoundsChange")
+    fun `lays out display on child bounds change`() {
+        val child = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        val display = display(child)
+
+        renderManager(display)
+
+        verify(exactly = 0) { display.doLayout() }
+
+        child.width += 10
+
+        verify(exactly = 1) { display.doLayout() }
+    }
+
     @Test @JsName("renderIgnoresUnknownViews")
     fun `render ignores unknown views`() {
         val view = spyk(view())

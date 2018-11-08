@@ -80,14 +80,11 @@ class AffineTransform private constructor(private val matrix: Matrix) {
      * @param points that will be transformed
      * @return a list of points transformed by this object
      */
-    operator fun invoke(vararg points: Point): List<Point> {
-        return points.map {
-            val point = Matrix(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0))
+    operator fun invoke(vararg points: Point) = points.map {
+        val point   = Matrix(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0))
+        val product = matrix * point
 
-            val product = matrix * point
-
-            Point(product[0, 0], product[1, 0])
-        }
+        Point(product[0, 0], product[1, 0])
     }
 
 //    operator fun invoke(rectangle: Rectangle): Rectangle {
@@ -98,7 +95,7 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     override fun toString() = matrix.toString()
 
-    private operator fun get(vararg values: Double): DoubleArray = doubleArrayOf(*values)
+    private operator fun get(vararg values: Double) = doubleArrayOf(*values)
 
     companion object {
         val Identity = AffineTransform()
