@@ -17,5 +17,5 @@ class SystemClock: Clock {
 }
 
 class PerformanceTimer: Timer {
-    override val now get() = window.performance.now() * milliseconds
+    override val now get() = window.performance.now() * milliseconds // TODO: Waht if performance api not available?
 }

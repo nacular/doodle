@@ -63,7 +63,7 @@ import kotlin.browser.document
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = setOf(mouseModule)) {
+abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = emptySet()) {
     protected abstract fun run(display: Display)
 
     protected val injector = Kodein.direct {
@@ -105,9 +105,8 @@ val mouseModule = Module {
 }
 
 val focusModule = Module(allowSilentOverride = true) {
-    bind<FocusTraversalPolicy>() with provider { FocusTraversalPolicyImpl(instance()) }
-
-    bind<FocusManager>() with singleton { FocusManagerImpl(instance(), instance()) }
+    bind<FocusTraversalPolicy>() with provider  { FocusTraversalPolicyImpl(instance()) }
+    bind<FocusManager>        () with singleton { FocusManagerImpl(instance(), instance()) }
 }
 
 val keyboardModule = Module {

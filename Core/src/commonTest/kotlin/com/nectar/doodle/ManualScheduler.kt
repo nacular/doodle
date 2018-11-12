@@ -29,7 +29,15 @@ private class ManualScheduler: Scheduler {
         return task
     }
 
-    override fun repeat(every: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+    override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override suspend fun delay(time: Measure<Time>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

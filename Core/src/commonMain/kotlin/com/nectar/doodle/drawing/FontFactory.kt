@@ -39,7 +39,12 @@ private class FontImpl(
 }
 
 interface FontDetector {
-    operator fun invoke(info: FontInfo.() -> Unit, result: (Font) -> Unit)
-
-    operator fun invoke(font: Font, info: FontInfo.() -> Unit, result: (Font) -> Unit)
+    suspend operator fun invoke(            info: FontInfo.() -> Unit): Font
+    suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit) = invoke {
+        size   = font.size
+        style  = font.style
+        weight = font.weight
+        family = font.family
+        apply(info)
+    }
 }

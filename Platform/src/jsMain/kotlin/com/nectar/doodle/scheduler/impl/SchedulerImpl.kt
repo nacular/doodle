@@ -10,6 +10,8 @@ import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 import kotlin.browser.window
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by Nicholas Eddy on 10/19/17.
@@ -54,9 +56,28 @@ private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Ti
 }
 
 internal class SchedulerImpl(private val timer: Timer): Scheduler {
+    override suspend fun delay(time: Measure<Time>) = suspendCoroutine<Unit> { coroutine ->
+        after(time) { coroutine.resume(Unit) }
+    }
+
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
+        check(predicate) {
+            coroutine.resume(Unit)
+        }
+    }
+
+    private fun check(predicate: (Measure<Time>) -> Boolean, complete: () -> Unit) {
+        now {
+            if (predicate(it)) { complete() }
+            else {
+                check(predicate, complete)
+            }
+        }
+    }
+
     // TODO: Separate animation scheduler into different interface
-    override fun after (time : Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
-    override fun repeat(every: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, every, job)
+    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
+    override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
 }
 
 internal class AnimationSchedulerImpl: AnimationScheduler {

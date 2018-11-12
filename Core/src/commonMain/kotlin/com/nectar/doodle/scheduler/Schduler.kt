@@ -16,9 +16,12 @@ interface Task {
 }
 
 interface Scheduler {
-    fun now   (                      job: (Measure<Time>) -> Unit): Task = after(0 * milliseconds, job)
-    fun after (time : Measure<Time>, job: (Measure<Time>) -> Unit): Task
-    fun repeat(every: Measure<Time>, job: (Measure<Time>) -> Unit): Task
+    fun now  (                     job: (Measure<Time>) -> Unit): Task = after(0 * milliseconds, job)
+    fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task
+    fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task
+
+    suspend fun delay     (time     :  Measure<Time>)
+    suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean)
 }
 
 interface AnimationScheduler {
