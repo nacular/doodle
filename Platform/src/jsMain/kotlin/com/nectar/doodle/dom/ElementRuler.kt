@@ -3,7 +3,6 @@ package com.nectar.doodle.dom
 import com.nectar.doodle.geometry.Size
 import org.w3c.dom.HTMLElement
 
-
 interface ElementRuler {
     fun size(element: HTMLElement): Size
 

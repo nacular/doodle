@@ -1,15 +1,23 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.list.ItemPositioner
-import com.nectar.doodle.controls.list.ItemUIGenerator
+import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
+import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.ListRenderer
+import com.nectar.doodle.controls.list.ListRenderer.ItemPositioner
+import com.nectar.doodle.controls.list.ListRenderer.ItemUIGenerator
+import com.nectar.doodle.controls.list.Model
+import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.Label
+import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
+import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
@@ -17,6 +25,7 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
@@ -86,7 +95,7 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, pri
     }
 }
 
-private class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
+private open class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> current.apply { update(list, row, index) }
         else          -> ListRow(textMetrics, list, row, index)
@@ -103,9 +112,73 @@ private class BasicListPositioner<T>(private val height: Double): ItemPositioner
     }
 }
 
+private class MutableLabelItemUIGenerator<T>(textMetrics: TextMetrics): LabelItemUIGenerator<T>(textMetrics) {
+    override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
+        it.mouseChanged += object: MouseListener {
+            override fun mouseReleased(event: MouseEvent) {
+                if (event.clickCount == 2) {
+                    (list as MutableList).startEditing(index)
+                }
+            }
+        }
+    }
+}
+
 class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
-    override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
+    override val positioner : ItemPositioner<T>  = BasicListPositioner (20.0       )
     override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator(textMetrics)
 
     override fun render(view: List<T, *>, canvas: Canvas) {}
+}
+
+class BasicMutableListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
+    override val positioner : ItemPositioner<T>  = BasicListPositioner (20.0       )
+    override val uiGenerator: ItemUIGenerator<T> = MutableLabelItemUIGenerator(textMetrics)
+
+    override fun render(view: List<T, *>, canvas: Canvas) {}
+}
+
+private class TextEditOperation(private val list: MutableList<String, *>, row: String, private var index: Int): TextField(), EditOperation<String> {
+
+    private val listSelectionChanged_ = ::listSelectionChanged
+
+    init {
+        list.selectionChanged += listSelectionChanged_
+
+        text = row
+
+        horizontalAlignment = Left
+
+        styleChanged += { rerender() }
+
+        focusChanged += { _,_,_ ->
+            if (!hasFocus) {
+                list.cancelEditing()
+            }
+        }
+
+        this.keyChanged += object: KeyListener {
+            override fun keyReleased(event: KeyEvent) {
+                if (event.code == VK_RETURN) {
+                    list.completeEditing()
+                }
+            }
+        }
+    }
+
+    override fun invoke() = this
+    override fun finish() = text
+
+    override fun cancel() {
+        list.selectionChanged -= listSelectionChanged_
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun listSelectionChanged(set: ObservableSet<out List<*, Model<*>>, *>, removed: Set<Int>, added: Set<Int>) {
+        list.cancelEditing()
+    }
+}
+
+class TextListEditor: ListEditor<String> {
+    override fun edit(list: MutableList<String, *>, row: String, index: Int, current: View?): EditOperation<String> = TextEditOperation(list, row, index)
 }

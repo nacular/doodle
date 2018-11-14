@@ -5,6 +5,8 @@ import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.list.List
+import com.nectar.doodle.controls.list.MutableList
+import com.nectar.doodle.controls.list.MutableModel
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
@@ -31,10 +33,10 @@ private val defaultBackgroundColor = backgroundColor
 typealias ListModel<T>    = com.nectar.doodle.controls.list.Model<T>
 typealias SpinnerModel<T> = com.nectar.doodle.controls.spinner.Model<T>
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
 class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics): Theme {
 
-    private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor)}
+    private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
@@ -43,6 +45,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
             is SplitPanel    -> { it.renderer?.uninstall(it); it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
             is Button        -> { it.renderer?.uninstall(it); it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) } }
             is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory).apply { install(it) } }
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicMutableListUI<Any>(textMetrics).apply { install(it) } }
             is List<*, *>    -> (it as List<Any, ListModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicListUI<Any>(textMetrics).apply { install(it) } }
             is Tree<*>       -> (it as Tree<Any>                      ).let { it.renderer?.uninstall(it); it.renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) } }
         }
@@ -51,6 +54,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
     override fun toString() = this::class.simpleName ?: ""
 }
 
-//val basicThemeModule = Kodein.Module {
-//    bind<BasicTheme>() with singleton { BasicTheme() }
+//val basicThemeModule = Module {
+//    bind<BasicTheme>  () with singleton { BasicTheme      (instance(), instance()) }
+//    bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()            ) }
 //}

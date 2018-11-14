@@ -1,10 +1,12 @@
+@file:Suppress("NestedLambdaShadowedImplicitParameter")
+
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JvmName
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.theme.basic.TreeUI
-import com.nectar.doodle.controls.theme.basic.TreeUI.ItemPositioner
-import com.nectar.doodle.controls.theme.basic.TreeUI.ItemUIGenerator
+import com.nectar.doodle.controls.theme.TreeRenderer
+import com.nectar.doodle.controls.theme.TreeRenderer.ItemPositioner
+import com.nectar.doodle.controls.theme.TreeRenderer.ItemUIGenerator
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -19,10 +21,7 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 3/23/18.
  */
 
-private class Property<T>(var value: T)
-
-typealias ExpansionObserver<T> = (source: Tree<T>, paths: Set<Path<Int>>) -> Unit
-
+typealias ExpansionObserver<T>  = (source: Tree<T>, paths: Set<Path<Int>>) -> Unit
 typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 private class ExpansionObserversImpl<T>(
@@ -48,6 +47,7 @@ private object PathComparator: Comparator<Path<Int>> {
 private val DepthComparator = Comparator<Path<Int>> { a, b -> b.depth - a.depth }
 
 class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null): View() {
+
     var rootVisible = false
         set(new) {
             if (field == new) { return }
@@ -69,7 +69,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var renderer: TreeUI<T>? = null
+    var renderer: TreeRenderer<T>? = null
         set(new) {
             if (new == renderer) { return }
 
@@ -87,12 +87,10 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
     val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
 
-    private var itemPositioner : ItemPositioner<T>? = null
-    private var itemUIGenerator: ItemUIGenerator<T>? = null
-
-    private val expandedPaths = mutableSetOf<Path<Int>>()
-
-    private val rowToPath = mutableMapOf<Int, Path<Int>>()
+    private var itemPositioner  = null as ItemPositioner<T>?
+    private var itemUIGenerator = null as ItemUIGenerator<T>?
+    private val expandedPaths   = mutableSetOf<Path<Int>>()
+    private val rowToPath       = mutableMapOf<Int, Path<Int>>()
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
     private var firstVisibleRow =  0

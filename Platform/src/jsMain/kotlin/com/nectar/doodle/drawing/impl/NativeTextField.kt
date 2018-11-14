@@ -20,8 +20,8 @@ interface NativeTextFieldFactory {
 
 class NativeTextFieldFactoryImpl internal constructor(
         private val htmlFactory        : HtmlFactory,
-        private val focusManager       : FocusManager?,
-        private val eventHandlerFactory: NativeEventHandlerFactory): NativeTextFieldFactory {
+        private val eventHandlerFactory: NativeEventHandlerFactory,
+        private val focusManager       : FocusManager?): NativeTextFieldFactory {
     override fun invoke(textField: TextField) = NativeTextField(
             eventHandlerFactory,
             htmlFactory,

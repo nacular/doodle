@@ -6,7 +6,7 @@ import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
 
-class TextField: TextInput() {
+open class TextField: TextInput() {
 
     val masked get() = mask != null
 

@@ -2,8 +2,9 @@ package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.theme.basic.TreeUI.ItemPositioner
-import com.nectar.doodle.controls.theme.basic.TreeUI.ItemUIGenerator
+import com.nectar.doodle.controls.theme.TreeRenderer
+import com.nectar.doodle.controls.theme.TreeRenderer.ItemPositioner
+import com.nectar.doodle.controls.theme.TreeRenderer.ItemUIGenerator
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -17,30 +18,10 @@ import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
-import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
-
-/**
- * Created by Nicholas Eddy on 3/23/18.
- */
-
-interface TreeUI<T>: Renderer<Tree<T>> {
-    interface ItemUIGenerator<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: View? = null): View
-    }
-
-    interface ItemPositioner<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle
-
-        fun rowFor(tree: Tree<T>, y: Double): Int
-    }
-
-    val positioner : ItemPositioner<T>
-    val uiGenerator: ItemUIGenerator<T>
-}
 
 private class BasicTreeRowPositioner<T>(private val height: Double): ItemPositioner<T> {
     override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle {
@@ -213,11 +194,11 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*>, nod
 private class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
     override fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow -> current.apply { update(tree, node, path, index) }
-        else                                              -> TreeRow(labelFactory, tree, node, path, index)
+        else       -> TreeRow(labelFactory, tree, node, path, index)
     }
 }
 
-class AbstractTreeUI<T>(labelFactory: LabelFactory): TreeUI<T> {
+class AbstractTreeUI<T>(labelFactory: LabelFactory): TreeRenderer<T> {
     override val positioner : ItemPositioner<T>  = BasicTreeRowPositioner(20.0)
     override val uiGenerator: ItemUIGenerator<T> = TreeLabelItemUIGenerator(labelFactory)
 

@@ -104,7 +104,7 @@ val mouseModule = Module {
     bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
 }
 
-val focusModule = Module(allowSilentOverride = true) {
+val focusModule = Module {
     bind<FocusTraversalPolicy>() with provider  { FocusTraversalPolicyImpl(instance()) }
     bind<FocusManager>        () with singleton { FocusManagerImpl(instance(), instance()) }
 }

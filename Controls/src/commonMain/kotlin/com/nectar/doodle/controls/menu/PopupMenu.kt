@@ -56,7 +56,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 //}
 
 
-class PopupMenu(strand: Strand, private val display: Display): MutableList<MenuItem>(strand, MutableListModel(), SingleItemSelectionModel()), MenuItem {
+class PopupMenu(strand: Strand, private val display: Display): MutableList<MenuItem, MutableListModel<MenuItem>>(strand, MutableListModel(), SingleItemSelectionModel()), MenuItem {
 
     override val subMenus get() = model.iterator()
     override var parentMenu     = null as MenuItem?

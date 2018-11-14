@@ -179,7 +179,9 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
     }
 }
 
-class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
+class AdaptingObservableSet<T, S, E>(source: S, delegate: ObservableSet<T, E>): ObservableSet<S, E>(source, delegate)
+
+open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<S, E>>()
     val changed: Pool<SetObserver<S, E>> = changed_
 
