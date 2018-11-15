@@ -99,23 +99,18 @@ class NativeTextField(
     fun render(canvas: Canvas) {
         if (canvas is CanvasImpl) {
             canvas.addData(listOf(inputElement))
+
+            if (textField.hasFocus) {
+                inputElement.focus()
+            }
+
+            updateSelection(textField.selection)
         }
     }
 
-    override fun onKeyUp(): Boolean {
-        syncTextField()
-        return true
-    }
-
-    override fun onKeyDown(): Boolean {
-        syncTextField()
-        return true
-    }
-
-    override fun onKeyPress(): Boolean {
-        syncTextField()
-        return true
-    }
+    override fun onKeyUp   () = true.also { syncTextField() }
+    override fun onKeyDown () = true.also { syncTextField() }
+    override fun onKeyPress() = true.also { syncTextField() }
 
     override fun onFocusGained(): Boolean {
         if (!ignoreSync) {
@@ -135,9 +130,13 @@ class NativeTextField(
 
     @Suppress("UNUSED_PARAMETER")
     private fun selectionChanged(textInput: TextInput, old: Selection, new: Selection) {
+        updateSelection(new)
+    }
+
+    private fun updateSelection(selection: Selection) {
         ignoreSync = true
 
-        select(new.start .. new.end)
+        select(selection.start .. selection.end)
 
         ignoreSync = false
     }

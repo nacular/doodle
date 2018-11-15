@@ -16,6 +16,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.theme.Renderer
 import com.nectar.doodle.theme.Theme
 
@@ -34,7 +35,7 @@ typealias ListModel<T>    = com.nectar.doodle.controls.list.Model<T>
 typealias SpinnerModel<T> = com.nectar.doodle.controls.spinner.Model<T>
 
 @Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
-class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics): Theme {
+class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics, private val focusManager: FocusManager?): Theme {
 
     private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
 
@@ -45,7 +46,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
             is SplitPanel    -> { it.renderer?.uninstall(it); it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
             is Button        -> { it.renderer?.uninstall(it); it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) } }
             is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory).apply { install(it) } }
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicMutableListUI<Any>(textMetrics).apply { install(it) } }
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicMutableListUI<Any>(focusManager, textMetrics).apply { install(it) } }
             is List<*, *>    -> (it as List<Any, ListModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicListUI<Any>(textMetrics).apply { install(it) } }
             is Tree<*>       -> (it as Tree<Any>                      ).let { it.renderer?.uninstall(it); it.renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) } }
         }

@@ -56,7 +56,5 @@ class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
         return super.add(item)
     }
 
-    override fun addAll(items: Collection<T>): Boolean {
-        return if (items.isEmpty()) false else add(items.last())
-    }
+    override fun addAll(items: Collection<T>) = if (items.isEmpty()) false else add(items.last())
 }

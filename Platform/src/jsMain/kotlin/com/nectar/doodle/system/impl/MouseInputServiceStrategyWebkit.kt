@@ -93,6 +93,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         }
     }
 
+    // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
     private fun doubleClick(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Up, 2))
 

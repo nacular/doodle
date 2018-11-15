@@ -38,7 +38,7 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
 
     override fun clearFocus() = requestFocusInternal(null)
 
-    override fun moveFocusForward (           ) = moveFocus(null, Forward )
+    override fun moveFocusForward (          ) = moveFocus(null, Forward )
     override fun moveFocusForward (from: View) = moveFocus(from, Forward )
     override fun moveFocusBackward(from: View) = moveFocus(from, Backward)
     override fun moveFocusUpward  (from: View) = moveFocus(from, Upward  )
@@ -120,18 +120,6 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
         ancestors.clear()
     }
 
-    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { _,_,added,_ ->
-        added.values.forEach {
-            if (it === focusOwner || it in ancestors) {
-                val owner = focusOwner
-
-                if (owner != null) moveFocusForward(owner) else moveFocusForward()
-
-                return@forEach
-            }
-        }
-    }
-
     private fun startMonitorProperties(view: View) {
         view.enabledChanged      += focusabilityChanged
         view.focusabilityChanged += focusabilityChanged
@@ -142,6 +130,18 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
         view.enabledChanged      -= focusabilityChanged
         view.focusabilityChanged -= focusabilityChanged
         view.visibilityChanged   -= focusabilityChanged
+    }
+
+    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { _,_,added,_ ->
+        added.values.forEach {
+            if (it === focusOwner || it in ancestors) {
+                val owner = focusOwner
+
+                if (owner != null) moveFocusForward(owner) else moveFocusForward()
+
+                return@forEach
+            }
+        }
     }
 
     private val focusabilityChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ -> moveFocusForward(view) }

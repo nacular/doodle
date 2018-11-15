@@ -1,8 +1,8 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.Display.Inline
@@ -330,6 +330,10 @@ class NativeButton internal constructor(
             updateTextPosition()
 
             canvas.addData(listOf(buttonElement))
+
+            if (button.hasFocus) {
+                buttonElement.focus()
+            }
         }
     }
 

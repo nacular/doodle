@@ -16,10 +16,13 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
+import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
@@ -33,7 +36,7 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, private var index: Int): Label(textMetrics, StyledText(row.toString())) {
+private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, var index: Int): Label(textMetrics, StyledText(row.toString())) {
 
     private var background = lightgray
 
@@ -66,10 +69,8 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, pri
                     setOf(index).also {
                         list.apply {
                             when {
-                                selected(index)         -> removeSelection(it)
-                                Ctrl in event.modifiers ||
-                                Meta in event.modifiers -> addSelection   (it)
-                                else                    -> setSelection   (it)
+                                Ctrl in event.modifiers || Meta in event.modifiers -> if (selected(index)) removeSelection(it) else addSelection(it)
+                                else                                               -> setSelection   (it)
                             }
                         }
                     }
@@ -112,12 +113,18 @@ private class BasicListPositioner<T>(private val height: Double): ItemPositioner
     }
 }
 
-private class MutableLabelItemUIGenerator<T>(textMetrics: TextMetrics): LabelItemUIGenerator<T>(textMetrics) {
+private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemUIGenerator<T>(textMetrics) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
-        it.mouseChanged += object: MouseListener {
-            override fun mouseReleased(event: MouseEvent) {
-                if (event.clickCount == 2) {
-                    (list as MutableList).startEditing(index)
+        if (current !is ListRow<*>) {
+            val result = it as ListRow<*>
+
+            it.mouseChanged += object: MouseListener {
+                override fun mouseReleased(event: MouseEvent) {
+                    if (event.clickCount == 2) {
+                        (list as MutableList).startEditing(result.index)
+                    } else {
+                        focusManager?.requestFocus(list)
+                    }
                 }
             }
         }
@@ -131,14 +138,33 @@ class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
     override fun render(view: List<T, *>, canvas: Canvas) {}
 }
 
-class BasicMutableListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
-    override val positioner : ItemPositioner<T>  = BasicListPositioner (20.0       )
-    override val uiGenerator: ItemUIGenerator<T> = MutableLabelItemUIGenerator(textMetrics)
+class BasicMutableListUI<T>(focusManager: FocusManager?, textMetrics: TextMetrics): ListRenderer<T>, KeyListener {
+    override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
+    override val uiGenerator: ItemUIGenerator<T> = MutableLabelItemUIGenerator(focusManager, textMetrics)
 
     override fun render(view: List<T, *>, canvas: Canvas) {}
+
+    override fun install(view: List<T, *>) {
+        view.keyChanged += this
+    }
+
+    override fun uninstall(view: List<T, *>) {
+        view.keyChanged -= this
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+        when (event.code) {
+            VK_DELETE, VK_BACKSPACE -> (event.source as MutableList<*,*>).let { list ->
+                list.selection.forEach { list.removeAt(it) }
+            }
+        }
+    }
 }
 
-private class TextEditOperation(private val list: MutableList<String, *>, row: String, private var index: Int): TextField(), EditOperation<String> {
+@Suppress("PrivatePropertyName", "unused")
+private class TextEditOperation(private val focusManager: FocusManager?,
+                                private val list        : MutableList<String, *>, row: String,
+                                private var index       : Int): TextField(), EditOperation<String> {
 
     private val listSelectionChanged_ = ::listSelectionChanged
 
@@ -166,6 +192,11 @@ private class TextEditOperation(private val list: MutableList<String, *>, row: S
         }
     }
 
+    override fun addedToDisplay() {
+        focusManager?.requestFocus(this)
+        selectAll()
+    }
+
     override fun invoke() = this
     override fun finish() = text
 
@@ -179,6 +210,6 @@ private class TextEditOperation(private val list: MutableList<String, *>, row: S
     }
 }
 
-class TextListEditor: ListEditor<String> {
-    override fun edit(list: MutableList<String, *>, row: String, index: Int, current: View?): EditOperation<String> = TextEditOperation(list, row, index)
+class TextListEditor(private val focusManager: FocusManager?): ListEditor<String> {
+    override fun edit(list: MutableList<String, *>, row: String, index: Int, current: View?): EditOperation<String> = TextEditOperation(focusManager, list, row, index)
 }
