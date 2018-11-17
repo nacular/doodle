@@ -86,6 +86,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
     val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    val selectionChanged                 by lazy { ObservableSet<Tree<T>, T>(this) }
 
     private var itemPositioner  = null as ItemPositioner<T>?
     private var itemUIGenerator = null as ItemUIGenerator<T>?
@@ -95,8 +96,6 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     private var firstVisibleRow =  0
     private var lastVisibleRow  = -1
-
-    val selectionChanged by lazy { ObservableSet<Tree<T>, T>(this) }
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->

@@ -1,5 +1,6 @@
 package com.nectar.doodle.dom
 
+import org.w3c.dom.css.CSSStyleSheet
 import org.w3c.dom.css.get
 import kotlin.browser.document
 
@@ -11,12 +12,21 @@ interface SystemStyler
 internal class SystemStylerImpl: SystemStyler {
     // FIXME: Make these styles local and applicable to the root not instead of assuming document.body
     init {
-        document.styleSheets[0].asDynamic().insertRule("body * { position:absolute;overflow:hidden }", 0)
-        document.styleSheets[0].asDynamic().insertRule("body pre { overflow:visible }", 0)
-        document.styleSheets[0].asDynamic().insertRule("body div { display:inline }", 0)
+        if (document.styleSheets.length == 0) {
+            document.head?.appendChild(document.createElement("style"))
+        }
 
-        document.styleSheets[0].asDynamic().insertRule("pre { margin:0 }", 0)
-        document.styleSheets[0].asDynamic().insertRule("svg { display:inline-block;width:100%;height:100% }", 0)
-        document.styleSheets[0].asDynamic().insertRule("svg * { position:absolute }", 0)
+        (document.styleSheets[0] as? CSSStyleSheet)?.apply {
+            insertRule("html { border:0 }", 0)
+            insertRule("html,body{ height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", 0)
+
+            insertRule("body * { position:absolute;overflow:hidden }", 0)
+            insertRule("body pre { overflow:visible }", 0)
+            insertRule("body div { display:inline }", 0)
+
+            insertRule("pre { margin:0 }", 0)
+            insertRule("svg { display:inline-block;width:100%;height:100% }", 0)
+            insertRule("svg * { position:absolute }", 0)
+        }
     }
 }
