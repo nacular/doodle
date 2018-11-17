@@ -260,7 +260,9 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
         if (trueRemoved.size > trueAdded.size) {
             if (children.size == lastVisibleRow - 1) {
                 children.batch {
-                    (0..trueRemoved.size - trueAdded.size).forEach { children.removeAt(0) }
+                    for (it in 0..trueRemoved.size - trueAdded.size) {
+                        children.removeAt(0)
+                    }
                 }
             }
 
@@ -270,6 +272,9 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             // FIXME: Make this more efficient
             (firstVisibleRow..lastVisibleRow).forEach { update(children, it) }
+        } else {
+            // These are the edited rows
+            added.keys.filter { it in removed }.forEach { update(children, it) }
         }
     }
 
@@ -327,11 +332,11 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
     fun completeEditing() {
         editOperation?.let { operation ->
             editingRow?.let { index ->
-                val result = operation.finish()
+                val result = operation.finish() ?: return
 
                 cleanupEditing()
 
-                if (result != null && result == model.set(index, result)) {
+                if (result == model.set(index, result)) {
                     // This is the case that the "new" value is the same as what was there
                     // so need to explicitly update since the model won't fire a change
                     update(children, index)
