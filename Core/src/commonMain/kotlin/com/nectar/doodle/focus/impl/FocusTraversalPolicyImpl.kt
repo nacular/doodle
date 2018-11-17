@@ -9,7 +9,6 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 5/11/18.
  */
 class FocusTraversalPolicyImpl(private val focusManager: FocusManager): FocusTraversalPolicy {
-
     override fun default(within: View) = first(within)
     override fun first  (within: View) = within.children_.firstOrNull { focusManager.focusable(it) }
     override fun last   (within: View) = within.children_.lastOrNull  { focusManager.focusable(it) }

@@ -94,6 +94,8 @@ open class List<T, out M: Model<T>>(
 
     operator fun get(index: Int) = model[index]
 
+    override var isFocusCycleRoot = true
+
     override fun render(canvas: Canvas) {
         renderer?.render(this, canvas)
     }
@@ -236,7 +238,7 @@ open class List<T, out M: Model<T>>(
 
 interface EditOperation<T> {
     operator fun invoke(): View
-    fun finish(): T
+    fun finish(): T?
     fun cancel()
 }
 
@@ -246,25 +248,26 @@ interface ListEditor<T> {
 
 open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, M>(strand, model, selectionModel, fitContent) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
-        val trueRemoved = removed.filterKeys { it !in added   }
-        val trueAdded   = added.filterKeys   { it !in removed }
+        var trueRemoved = removed.filterKeys { it !in added   }
+        var trueAdded   = added.filterKeys   { it !in removed }
 
         itemsRemoved(trueRemoved)
         itemsAdded  (trueAdded  )
 
-        val oldSize = children.size
+        trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
+        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
-        children.batch {
-            trueRemoved.forEach { removeAt(it.key) }
-
-            (added + moved).map { it.key }.forEach {
-                update(this, it)
+        if (trueRemoved.size > trueAdded.size) {
+            if (children.size == lastVisibleRow - 1) {
+                children.batch {
+                    (0..trueRemoved.size - trueAdded.size).forEach { children.removeAt(0) }
+                }
             }
+
+            updateVisibleHeight()
         }
 
-        if (oldSize > children.size) {
-            updateVisibleHeight()
-
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             // FIXME: Make this more efficient
             (firstVisibleRow..lastVisibleRow).forEach { update(children, it) }
         }
@@ -328,7 +331,7 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
 
                 cleanupEditing()
 
-                if (result == model.set(index, result)) {
+                if (result != null && result == model.set(index, result)) {
                     // This is the case that the "new" value is the same as what was there
                     // so need to explicitly update since the model won't fire a change
                     update(children, index)
@@ -350,7 +353,7 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
     }
 
     private fun itemsAdded(values: Map<Int, T>) {
-        if (selectionModel != null) {
+        if (selectionModel != null && values.isNotEmpty()) {
             val updatedSelection = mutableSetOf<Int>()
 
             for (selectionItem in selectionModel) {
@@ -370,7 +373,7 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
     }
 
     private fun itemsRemoved(values: Map<Int, T>) {
-        if (selectionModel != null) {
+        if (selectionModel != null && values.isNotEmpty()) {
 
             val updatedSelection = mutableSetOf<Int>()
 
@@ -383,18 +386,21 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
                     }
                 }
 
-                if (delta > 0) {
+                if (delta != 0) {
                     updatedSelection.add(selectionItem + delta)
-                } else {
-                    updatedSelection.add(selectionItem)
                 }
             }
+
+            removeSelection(values.keys)
 
             setSelection(updatedSelection)
         }
     }
 
     companion object {
+        operator fun invoke(strand: Strand, progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
+                MutableList(strand, progression.toMutableList(), selectionModel, fitContent)
+
         operator fun <T> invoke(strand: Strand, values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): MutableList<T, MutableListModel<T>> =
                 MutableList(strand, MutableListModel(values.toMutableList()), selectionModel, fitContent)
     }

@@ -24,12 +24,10 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
 import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
-import com.nectar.doodle.focus.impl.FocusTraversalPolicyImpl
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
@@ -55,7 +53,6 @@ import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
 import kotlin.browser.document
@@ -105,8 +102,7 @@ val mouseModule = Module {
 }
 
 val focusModule = Module(allowSilentOverride = true) {
-    bind<FocusTraversalPolicy>() with provider  { FocusTraversalPolicyImpl(instance()) }
-    bind<FocusManager>        () with singleton { FocusManagerImpl(instance(), instance()) }
+    bind<FocusManager>() with singleton { FocusManagerImpl() }
 }
 
 val keyboardModule = Module {

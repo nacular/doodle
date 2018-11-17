@@ -1,6 +1,5 @@
 package com.nectar.doodle.focus.impl
 
-import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.event.FocusEvent.Type.Gained
@@ -15,12 +14,15 @@ import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 3/2/18.
  */
 
-class FocusManagerImpl(private val display: Display, private val defaultFocusTraversalPolicy: () -> FocusTraversalPolicy?): FocusManager {
+class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null): FocusManager {
+
+    private val defaultFocusTraversalPolicy = defaultFocusTraversalPolicy ?: FocusTraversalPolicyImpl(this)
 
     private val ancestors = mutableListOf<View>()
 
@@ -79,10 +81,9 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
     }
 
     private fun moveFocus(view: View?, traversalType: TraversalType) {
-        var focusView = view ?: focusOwner
-
+        var focusView      = view ?: focusOwner
         val focusCycleRoot = focusView?.focusCycleRoot_
-        val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy()
+        val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy
 
         if (focusCycleRoot != null && policy != null) {
             when (traversalType) {
@@ -103,7 +104,7 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
     private fun registerAncestorListeners() {
         var parent = focusOwner?.parent
 
-        while (parent != null && parent !in display) {
+        while (parent != null) {
             parent.children_.changed += childrenChanged
 
             ancestors += parent
@@ -132,12 +133,28 @@ class FocusManagerImpl(private val display: Display, private val defaultFocusTra
         view.visibilityChanged   -= focusabilityChanged
     }
 
-    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { _,_,added,_ ->
+    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { list,removed,added,_ ->
         added.values.forEach {
             if (it === focusOwner || it in ancestors) {
                 val owner = focusOwner
 
                 if (owner != null) moveFocusForward(owner) else moveFocusForward()
+
+                return@forEach
+            }
+        }
+
+        removed.forEach { (index, value) ->
+            if (value === focusOwner || value in ancestors) {
+                val owner = focusOwner
+
+                if (owner != null) {
+                    val sibling = max(0, index - 1)
+
+                    if (sibling < list.source.children_.size) {
+                        moveFocusForward(list.source.children_[sibling])
+                    }
+                }
 
                 return@forEach
             }

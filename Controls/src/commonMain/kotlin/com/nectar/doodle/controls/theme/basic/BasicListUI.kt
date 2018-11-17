@@ -155,23 +155,31 @@ class BasicMutableListUI<T>(focusManager: FocusManager?, textMetrics: TextMetric
     override fun keyPressed(event: KeyEvent) {
         when (event.code) {
             VK_DELETE, VK_BACKSPACE -> (event.source as MutableList<*,*>).let { list ->
-                list.selection.forEach { list.removeAt(it) }
+                list.selection.sortedByDescending { it }.forEach { list.removeAt(it) }
             }
         }
     }
 }
 
+interface Encoder<A, B> {
+    fun encode(a: A): B?
+    fun decode(b: B): A?
+}
+
 @Suppress("PrivatePropertyName", "unused")
-private class TextEditOperation(private val focusManager: FocusManager?,
-                                private val list        : MutableList<String, *>, row: String,
-                                private var index       : Int): TextField(), EditOperation<String> {
+open class TextEditOperation<T>(
+        private val focusManager: FocusManager?,
+        private val encoder     : Encoder<T, String>,
+        private val list        : MutableList<T, *>,
+                    row         : T,
+        private var index       : Int): TextField(), EditOperation<T> {
 
     private val listSelectionChanged_ = ::listSelectionChanged
 
     init {
         list.selectionChanged += listSelectionChanged_
 
-        text = row
+        text = encoder.encode(row) ?: ""
 
         horizontalAlignment = Left
 
@@ -198,7 +206,7 @@ private class TextEditOperation(private val focusManager: FocusManager?,
     }
 
     override fun invoke() = this
-    override fun finish() = text
+    override fun finish() = encoder.decode(text)
 
     override fun cancel() {
         list.selectionChanged -= listSelectionChanged_
@@ -210,6 +218,6 @@ private class TextEditOperation(private val focusManager: FocusManager?,
     }
 }
 
-class TextListEditor(private val focusManager: FocusManager?): ListEditor<String> {
-    override fun edit(list: MutableList<String, *>, row: String, index: Int, current: View?): EditOperation<String> = TextEditOperation(focusManager, list, row, index)
+class ListTextEditor<T>(private val focusManager: FocusManager?, private val encoder: Encoder<T, String>): ListEditor<T> {
+    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, index)
 }
