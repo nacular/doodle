@@ -20,7 +20,7 @@ internal class SystemStylerImpl: SystemStyler {
             insertRule("html { border:0 }", 0)
             insertRule("html,body{ height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", 0)
 
-            insertRule("body * { position:absolute;overflow:hidden }", 0)
+            insertRule("body * { position:absolute;overflow:hidden;font-family:monospace;font-size:inherit }", 0)
             insertRule("body pre { overflow:visible }", 0)
             insertRule("body div { display:inline }", 0)
 

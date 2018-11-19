@@ -254,6 +254,10 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
         itemsRemoved(trueRemoved)
         itemsAdded  (trueAdded  )
 
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+            updateVisibleHeight()
+        }
+
         trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
         trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
@@ -265,8 +269,6 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
                     }
                 }
             }
-
-            updateVisibleHeight()
         }
 
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
