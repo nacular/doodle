@@ -26,4 +26,7 @@ interface NativeEventHandler {
 
     fun registerScrollListener  ()
     fun unregisterScrollListener()
+
+    fun registerChangeListener  ()
+    fun unregisterChangeListener()
 }

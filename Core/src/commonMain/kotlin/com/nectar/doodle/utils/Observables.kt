@@ -24,7 +24,7 @@ typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
 
 open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
     override fun plusAssign (item: T) { delegate += item }
-    override fun minusAssign(item: T) { delegate += item }
+    override fun minusAssign(item: T) { delegate -= item }
 }
 
 class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {

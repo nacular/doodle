@@ -30,7 +30,7 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
     }
 
     override fun uninstall(view: Slider) {
-        view.changed          -= changed
+        view.changed            -= changed
         view.mouseChanged       -= this
         view.mouseMotionChanged -= this
     }

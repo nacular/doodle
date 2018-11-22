@@ -41,14 +41,14 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is ProgressBar   -> { it.renderer?.uninstall(it); it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) } }
-            is Slider        -> { it.renderer?.uninstall(it); it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
-            is SplitPanel    -> { it.renderer?.uninstall(it); it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
-            is Button        -> { it.renderer?.uninstall(it); it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) } }
-            is Spinner<*, *> -> (it as Spinner<Any, SpinnerModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory).apply { install(it) } }
+            is ProgressBar       -> { it.renderer?.uninstall(it); it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) } }
+            is Slider            -> { it.renderer?.uninstall(it); it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
+            is SplitPanel        -> { it.renderer?.uninstall(it); it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
+            is Button            -> { it.renderer?.uninstall(it); it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) } }
+            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory).apply { install(it) } }
             is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicMutableListUI<Any>(focusManager, textMetrics).apply { install(it) } }
-            is List<*, *>    -> (it as List<Any, ListModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicListUI<Any>(textMetrics).apply { install(it) } }
-            is Tree<*>       -> (it as Tree<Any>                      ).let { it.renderer?.uninstall(it); it.renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) } }
+            is List<*, *>        -> (it as List<Any, ListModel<Any>>      ).let { it.renderer?.uninstall(it); it.renderer = BasicListUI<Any>(textMetrics).apply { install(it) } }
+            is Tree<*>           -> (it as Tree<Any>                      ).let { it.renderer?.uninstall(it); it.renderer = AbstractTreeUI<Any>(labelFactory).apply { install(it) } }
         }
     }
 
