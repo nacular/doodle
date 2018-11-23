@@ -22,17 +22,6 @@ class SystemSliderUI(nativeSliderFactory: NativeSliderFactory, slider: Slider): 
         view.cursor = Default
 
         view.rerender()
-
-        view.idealSize = nativePeer.idealSize
-
-        view.idealSize?.let {
-            view.size = it
-        }
-
-//        if (view.idealSize != null /*&&
-//            ( aSlider.getParent() == null || aSlider.getParent().getLayout() == null )*/) {
-//            view.size = view.idealSize
-//        }
     }
 
     override fun uninstall(view: Slider) {

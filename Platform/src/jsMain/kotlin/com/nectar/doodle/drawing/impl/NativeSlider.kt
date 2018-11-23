@@ -4,11 +4,13 @@ import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Size
+import org.w3c.dom.HTMLElement
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
@@ -23,16 +25,35 @@ class NativeSliderFactoryImpl internal constructor(
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
         private val focusManager             : FocusManager?): NativeSliderFactory {
 
+    private val sizeDifference: Size by lazy {
+        val slider = htmlFactory.createInput().apply {
+            style.position = "initial"
+            type           = "range"
+        }
+
+        val holder = htmlFactory.create<HTMLElement>().apply {
+            style.position  = "initial"
+            style.overflowX = "initial"
+            style.overflowY = "initial"
+            style.display   = "inline-block"
+
+            add(slider)
+        }
+
+        elementRuler.size(holder).let {
+            Size(it.width - defaultSize.width, it.height - defaultSize.height)
+        }
+    }
+
     private val defaultSize: Size by lazy {
         val slider = htmlFactory.createInput().apply {
-            style.margin = "0px"
-            type         = "range"
+            type = "range"
         }
 
         elementRuler.size(slider)
     }
 
-    override fun invoke(slider: Slider) = NativeSlider(htmlFactory, nativeEventHandlerFactory, focusManager, defaultSize, slider)
+    override fun invoke(slider: Slider) = NativeSlider(htmlFactory, nativeEventHandlerFactory, focusManager, defaultSize, sizeDifference, slider)
 }
 
 class NativeSlider internal constructor(
@@ -40,10 +61,8 @@ class NativeSlider internal constructor(
                     handlerFactory: NativeEventHandlerFactory,
         private val focusManager  : FocusManager?,
         private val defaultSize   : Size,
+        private val marginSize    : Size,
         private val slider        : Slider): NativeEventListener {
-
-    var idealSize: Size? = null
-        private set
 
 //    private val glassPanelElement : HTMLElement
     private val nativeEventHandler: NativeEventHandler
@@ -51,7 +70,6 @@ class NativeSlider internal constructor(
     private val sliderElement = htmlFactory.createInput().apply {
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
-        style.margin = "0px"
         type         = "range"
         value        = slider.value.toString()
 //        style.cursor = "inherit"
