@@ -10,15 +10,15 @@ import com.nectar.doodle.utils.Path
  * Created by Nicholas Eddy on 3/23/18.
  */
 
-interface TreeRenderer<T>: Renderer<Tree<T>> {
+interface TreeRenderer<T>: Renderer<Tree<T, *>> {
     interface ItemUIGenerator<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int, current: View? = null): View
+        operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View? = null): View
     }
 
     interface ItemPositioner<T> {
-        operator fun invoke(tree: Tree<T>, node: T, path: Path<Int>, index: Int): Rectangle
+        operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
 
-        fun rowFor(tree: Tree<T>, y: Double): Int
+        fun rowFor(tree: Tree<T, *>, y: Double): Int
     }
 
     val positioner : ItemPositioner<T>

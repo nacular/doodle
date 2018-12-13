@@ -16,4 +16,18 @@ class NodeBuilder<T>(var value: T, val children: MutableList<NodeBuilder<T>> = m
     }
 }
 
+class MutableNodeBuilder<T>(var value: T, val children: MutableList<MutableNodeBuilder<T>> = mutableListOf()) {
+    fun mutableTreeNode(): MutableTreeNode<T> = MutableTreeNode(value, children.map { it.mutableTreeNode() })
+
+    fun mutableNode(value: T, block: MutableNodeBuilder<T>.() -> Unit = {}): MutableNodeBuilder<T> {
+        val node = MutableNodeBuilder(value).also { block(it) }
+
+        children.add(node)
+
+        return node
+    }
+}
+
 fun <T> node(value: T, block: NodeBuilder<T>.() -> Unit = {}) = NodeBuilder(value).also { block(it) }.treeNode()
+
+fun <T> mutableNode(value: T, block: MutableNodeBuilder<T>.() -> Unit = {}) = MutableNodeBuilder(value).also { block(it) }.mutableTreeNode()

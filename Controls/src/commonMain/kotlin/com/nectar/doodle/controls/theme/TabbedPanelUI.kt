@@ -10,16 +10,16 @@ import com.nectar.doodle.theme.Renderer
  */
 
 interface TabbedPanelUI: Renderer<TabbedPanel> {
-    interface ItemUIGenerator {
+    interface TabRenderer {
         operator fun invoke(panel: TabbedPanel, tab: View, display: View?, index: Int, title: String?, selected: Boolean): View
     }
 
     interface ItemPositioner {
-        val tabContainerSize: Double
+        val viewPortArea: Rectangle
 
         operator fun invoke(panel: TabbedPanel, tab: View, display: View?, index: Int, title: String?, selected: Boolean): Rectangle
     }
 
     val positioner : ItemPositioner
-    val uiGenerator: ItemUIGenerator
+    val tabRenderer: TabRenderer
 }

@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.controls.theme.basic.list
 
 import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
@@ -27,6 +27,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.text.StyledText
+import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.isEven
@@ -161,11 +162,6 @@ class BasicMutableListUI<T>(focusManager: FocusManager?, textMetrics: TextMetric
     }
 }
 
-interface Encoder<A, B> {
-    fun encode(a: A): B?
-    fun decode(b: B): A?
-}
-
 @Suppress("PrivatePropertyName", "unused")
 open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
@@ -206,7 +202,7 @@ open class TextEditOperation<T>(
     }
 
     override fun invoke() = this
-    override fun finish() = encoder.decode(text)
+    override fun complete() = encoder.decode(text)
 
     override fun cancel() {
         list.selectionChanged -= listSelectionChanged_

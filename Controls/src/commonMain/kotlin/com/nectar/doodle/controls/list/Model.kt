@@ -23,7 +23,7 @@ typealias ModelObserver<T> = (source: MutableModel<T>, removed: Map<Int, T>, add
 
 interface MutableModel<T>: Model<T> {
 
-    operator fun set(index: Int, value: T): T
+    operator fun set(index: Int, value: T): T?
 
     fun add        (value  : T                         )
     fun add        (index  : Int, values: T            )

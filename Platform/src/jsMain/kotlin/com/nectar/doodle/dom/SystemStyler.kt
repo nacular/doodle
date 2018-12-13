@@ -17,6 +17,8 @@ internal class SystemStylerImpl: SystemStyler {
         }
 
         (document.styleSheets[0] as? CSSStyleSheet)?.apply {
+            insertRule("body{-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}", 0)
+
             insertRule("html { border:0 }", 0)
             insertRule("html,body{ height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", 0)
 

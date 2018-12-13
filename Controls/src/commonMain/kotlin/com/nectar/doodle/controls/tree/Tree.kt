@@ -10,8 +10,10 @@ import com.nectar.doodle.controls.theme.TreeRenderer.ItemUIGenerator
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.utils.AdaptingObservableSet
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
+import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.min
@@ -21,11 +23,11 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 3/23/18.
  */
 
-typealias ExpansionObserver<T>  = (source: Tree<T>, paths: Set<Path<Int>>) -> Unit
+typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) -> Unit
 typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 private class ExpansionObserversImpl<T>(
-        private val source: Tree<T>,
+        private val source: Tree<T, *>,
         mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
     operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
 }
@@ -46,7 +48,7 @@ private object PathComparator: Comparator<Path<Int>> {
 
 private val DepthComparator = Comparator<Path<Int>> { a, b -> b.depth - a.depth }
 
-class Tree<T>(private val model: Model<T>, private val selectionModel: SelectionModel<Path<Int>>? = null): View() {
+open class Tree<T, out M: Model<T>>(protected open val model: M, protected val selectionModel: SelectionModel<Path<Int>>? = null): View() {
 
     var rootVisible = false
         set(new) {
@@ -84,9 +86,9 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
             }
         }
 
-    val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
-    val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
-    val selectionChanged                 by lazy { ObservableSet<Tree<T>, T>(this) }
+    val expanded        : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
+    val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
+    val selectionChanged: Pool<SetObserver<Tree<T, *>, Path<Int>>> by lazy { SetPool<SetObserver<Tree<T, *>, Path<Int>>>() }
 
     private var itemPositioner  = null as ItemPositioner<T>?
     private var itemUIGenerator = null as ItemUIGenerator<T>?
@@ -94,11 +96,17 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     private val rowToPath       = mutableMapOf<Int, Path<Int>>()
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
-    private var firstVisibleRow =  0
-    private var lastVisibleRow  = -1
+    protected var firstVisibleRow =  0
+    protected var lastVisibleRow  = -1
 
     @Suppress("PrivatePropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
+        val adaptingSet: ObservableSet<Tree<T, *>, Path<Int>> = AdaptingObservableSet(this, set)
+
+        (selectionChanged as SetPool).forEach {
+            it(adaptingSet, removed, added)
+        }
+
         children.batch {
             (added + removed).forEach {
                 update(this, it)
@@ -302,6 +310,8 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     fun clearSelection() = selectionModel?.clear()
 
+    val selection get() = selectionModel?.toSet() ?: emptySet()
+
     fun visible(row: Int) = rowToPath[row]?.let { visible(it) } ?: false
 
     tailrec fun visible(path: Path<Int>): Boolean {
@@ -357,7 +367,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return result
     }
 
-    private fun refreshAll() {
+    protected fun refreshAll() {
         val root = Path<Int>()
 
         // FIXME: Move to better location; handle rootVisible case
@@ -431,7 +441,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return index
     }
 
-    private fun update(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    protected fun update(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
         var result = index
 
         if (index >= 0) {
@@ -460,7 +470,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         return result
     }
 
-    private fun layout(view: View, node: T, path: Path<Int>, index: Int) {
+    protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
         itemPositioner?.let {
             view.bounds = it(this, node, path, index)
         }
@@ -478,7 +488,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
 
     private fun rowExpanded(index: Int) = pathFromRow(index)?.let { expanded(it) } ?: false
 
-    private fun pathFromRow(index: Int): Path<Int>? {
+    protected fun pathFromRow(index: Int): Path<Int>? {
         if (model.isEmpty()) {
             return null
         }
@@ -493,7 +503,7 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
     }
 
     // TODO: Have this return an Int?
-    private fun rowFromPath(path: Path<Int>): Int /*= pathToRow.getOrPut(path)*/ {
+    protected fun rowFromPath(path: Path<Int>): Int /*= pathToRow.getOrPut(path)*/ {
         var row = if (rootVisible) 0 else -1
         var pathIndex = 0
         var currentPath = Path<Int>()
@@ -601,5 +611,166 @@ class Tree<T>(private val model: Model<T>, private val selectionModel: Selection
         }
 
         return newPath to newIndex
+    }
+}
+
+interface EditOperation<T> {
+    operator fun invoke(): View
+    fun complete(): T?
+    fun cancel()
+}
+
+interface TreeEditor<T> {
+    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, current: View? = null): EditOperation<T>
+}
+
+class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
+    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
+        var trueRemoved = removed.filterKeys { it !in added   }
+        var trueAdded   = added.filterKeys   { it !in removed }
+
+        itemsRemoved(trueRemoved)
+        itemsAdded  (trueAdded  )
+
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+            refreshAll()
+        }
+
+        trueAdded   = trueAdded.filterKeys   { rowFromPath(it) <= lastVisibleRow }
+        trueRemoved = trueRemoved.filterKeys { rowFromPath(it) <= lastVisibleRow }
+
+        if (trueRemoved.size > trueAdded.size) {
+            if (children.size == lastVisibleRow - 1) {
+                children.batch {
+                    for (it in 0..trueRemoved.size - trueAdded.size) {
+                        children.removeAt(0)
+                    }
+                }
+            }
+        }
+
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+            // FIXME: Make this more efficient
+            (firstVisibleRow..lastVisibleRow).forEach { update(children, pathFromRow(it)!!) }
+        } else {
+            // These are the edited rows
+            added.keys.filter { it in removed }.forEach { update(children, it) }
+        }
+    }
+
+    init {
+        model.changed += modelChanged
+    }
+
+    val editing get() = editingPath != null
+
+    var editor = null as TreeEditor<T>?
+
+    private var editingPath   = null as Path<Int>?
+    private var editOperation = null as EditOperation<T>?
+
+//    fun add      (value : T                               ) = model.add      (value       )
+    fun add      (path  : Path<Int>, values: T            ) = model.add      (path, values)
+//    fun remove   (value : T                               ) = model.remove   (value       )
+    fun removeAt (path  : Path<Int>                       ) = model.removeAt (path        )
+//    fun addAll   (values: Collection<T>                   ) = model.addAll   (values      )
+    fun addAll   (path  : Path<Int>, values: Collection<T>) = model.addAll   (path, values)
+//    fun removeAll(values: Collection<T>                   ) = model.removeAll(values      )
+//    fun retainAll(values: Collection<T>                   ) = model.retainAll(values      )
+
+    fun clear() = model.clear()
+
+    override fun removedFromDisplay() {
+        model.changed -= modelChanged
+
+        super.removedFromDisplay()
+    }
+
+    fun startEditing(path: Path<Int>) {
+        editor?.let {
+            model[path]?.let { item ->
+                val i = rowFromPath(path) % children.size
+
+                editingPath   = path
+                editOperation = it.edit(this, item, path, children.getOrNull(i)).also {
+                    children[i] = it()
+
+                    layout(children[i], item, path, i)
+                }
+            }
+        }
+    }
+
+    fun completeEditing() {
+        editOperation?.let { operation ->
+            editingPath?.let { path ->
+                val result = operation.complete() ?: return
+
+                cleanupEditing()
+
+                if (result == model.set(path, result)) {
+                    // This is the case that the "new" value is the same as what was there
+                    // so need to explicitly update since the model won't fire a change
+                    update(children, path)
+                }
+            }
+        }
+    }
+
+    fun cancelEditing() {
+        cleanupEditing()?.let { update(children, it) }
+    }
+
+    private fun cleanupEditing(): Path<Int>? {
+        editOperation?.cancel()
+        val result    = editingPath
+        editOperation = null
+        editingPath   = null
+        return result
+    }
+
+    private fun itemsAdded(values: Map<Path<Int>, T>) {
+//        if (selectionModel != null && values.isNotEmpty()) {
+//            val updatedSelection = mutableSetOf<Path<Int>>()
+//
+//            for (selectionItem in selectionModel) {
+//                var delta = 0
+//
+//                for (path in values.keys) {
+//                    if (selectionItem >= path) {
+//                        ++delta
+//                    }
+//                }
+//
+//                updatedSelection.add(selectionItem + delta)
+//            }
+//
+//            setSelection(updatedSelection)
+//        }
+    }
+
+    private fun itemsRemoved(values: Map<Path<Int>, T>) {
+//        if (selectionModel != null && values.isNotEmpty()) {
+//
+//            val updatedSelection = mutableSetOf<Path<Int>>()
+//
+//            for (selectionItem in selectionModel) {
+//                var delta = 0
+//
+//                for (path in values.keys) {
+//                    if (selectionItem > path) {
+//                        delta--
+//                    }
+//                }
+//
+//                if (delta != 0) {
+//                    updatedSelection.add(selectionItem + delta)
+//                }
+//            }
+//
+//            removeSelection(values.keys)
+//
+//            setSelection(updatedSelection)
+//        }
     }
 }

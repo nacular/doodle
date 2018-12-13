@@ -13,6 +13,8 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     val y      get() = position.y
     val width  get() = size.width
     val height get() = size.height
+    val bottom get() = y + height
+    val right  get() = x + width
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { 31 * position.hashCode() + size.hashCode() }

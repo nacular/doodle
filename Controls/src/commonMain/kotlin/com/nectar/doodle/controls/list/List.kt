@@ -37,7 +37,8 @@ open class List<T, out M: Model<T>>(
         private        val strand        : Strand,
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Int>? = null,
-        private        val fitContent    : Boolean              = true): View() {
+        private        val fitContent    : Boolean              = true,
+        private        val cacheLength   : Int                  = 10): View() {
 
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
 
@@ -106,73 +107,52 @@ open class List<T, out M: Model<T>>(
         super.removedFromDisplay()
     }
 
+    private val halfCacheLength = cacheLength / 2
+    private var minVisibleY     = 0.0
+    private var maxVisibleY     = 0.0
+
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        val oldFirst = firstVisibleRow
-        val oldLast  = lastVisibleRow
-
-        firstVisibleRow = when (val y = new.y) {
-            old.y -> firstVisibleRow
-            else  -> findRowAt(y, firstVisibleRow)
-        }
-
-        lastVisibleRow = when (val y = new.y + new.height) {
-            old.y + old.height -> lastVisibleRow
-            else               -> findRowAt(y, lastVisibleRow)
-        }
-
-        var jobs = emptySequence<() -> Unit>()
-
-        if (oldFirst > firstVisibleRow) {
-            val end = min(oldFirst, lastVisibleRow)
-
-            jobs += (firstVisibleRow until end).asSequence().map { { insert(children, it) } }
-        }
-
-        if (oldLast < lastVisibleRow) {
-            val start = when {
-                oldLast > firstVisibleRow -> oldLast + 1
-                else                      -> firstVisibleRow
+        itemPositioner?.let { positioner ->
+            if (maxVisibleY > new.bottom && minVisibleY < new.y) {
+                return
             }
 
-            jobs += (start .. lastVisibleRow).asSequence().map { { insert(children, it) } }
+            val oldFirst = firstVisibleRow
+            val oldLast = lastVisibleRow
+
+            firstVisibleRow = when (val y = new.y) {
+                old.y -> firstVisibleRow
+                else  -> findRowAt(y, firstVisibleRow) - cacheLength
+            }
+
+            lastVisibleRow = when (val y = new.bottom) {
+                old.bottom -> lastVisibleRow
+                else       -> findRowAt(y, lastVisibleRow) + cacheLength
+            }
+
+            model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
+            model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
+
+            var jobs = emptySequence<() -> Unit>()
+
+            if (oldFirst > firstVisibleRow) {
+                val end = min(oldFirst, lastVisibleRow)
+
+                jobs += (firstVisibleRow until end).asSequence().map { { insert(children, it) } }
+            }
+
+            if (oldLast < lastVisibleRow) {
+                val start = when {
+                    oldLast > firstVisibleRow -> oldLast + 1
+                    else                      -> firstVisibleRow
+                }
+
+                jobs += (start..lastVisibleRow).asSequence().map { { insert(children, it) } }
+            }
+
+            strand(jobs)
         }
-
-        strand(jobs)
     }
-
-//    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-//        val oldFirst = firstVisibleRow
-//        val oldLast  = lastVisibleRow
-//
-//        firstVisibleRow = new.y.let { when {
-//            it != old.y -> findRowAt(it, firstVisibleRow)
-//            else        -> firstVisibleRow
-//        }}
-//
-//        lastVisibleRow = (new.y + new.height).let { when {
-//            it != old.y + old.height -> findRowAt(it, lastVisibleRow)
-//            else                     -> lastVisibleRow
-//        }}
-//
-//        if (oldFirst > firstVisibleRow) {
-//            val end = min(oldFirst, lastVisibleRow)
-//
-//            (firstVisibleRow until end).asSequence().forEach {
-//                insert(children, it)
-//            }
-//        }
-//
-//        if (oldLast < lastVisibleRow) {
-//            val start = when {
-//                oldLast > firstVisibleRow -> oldLast + 1
-//                else                      -> firstVisibleRow
-//            }
-//
-//            (start .. lastVisibleRow).asSequence().forEach {
-//                insert(children, it)
-//            }
-//        }
-//    }
 
     fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
     fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
@@ -189,16 +169,16 @@ open class List<T, out M: Model<T>>(
     }
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
-        itemUIGenerator?.let {
+        itemUIGenerator?.let { uiGenerator ->
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
-                    it(this, row, index).also {
+                    uiGenerator(this, row, index).also { ui ->
                         when {
-                            index > children.lastIndex -> children.add(it)
-                            else                       -> children.add(index, it)
+                            index > children.lastIndex -> children.add(ui)
+                            else                       -> children.add(index, ui)
                         }
 
-                        layout(it, row, index)
+                        layout(ui, row, index)
                     }
                 } else {
                     update(children, index)
@@ -209,14 +189,14 @@ open class List<T, out M: Model<T>>(
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
-            itemUIGenerator?.let {
+            itemUIGenerator?.let { uiGenerator ->
                 model[index]?.let { row ->
                     val i = index % children.size
 
-                    it(this, row, index, children.getOrNull(i)).also {
-                        children[i] = it
+                    uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
+                        children[i] = ui
 
-                        layout(it, row, index)
+                        layout(ui, row, index)
                     }
                 }
             }
@@ -238,7 +218,7 @@ open class List<T, out M: Model<T>>(
 
 interface EditOperation<T> {
     operator fun invoke(): View
-    fun finish(): T?
+    fun complete(): T?
     fun cancel()
 }
 
@@ -246,8 +226,13 @@ interface ListEditor<T> {
     fun edit(list: MutableList<T, *>, row: T, index: Int, current: View? = null): EditOperation<T>
 }
 
-open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, M>(strand, model, selectionModel, fitContent) {
-    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
+open class MutableList<T, M: MutableModel<T>>(
+        strand        : Strand,
+        model         : M,
+        selectionModel: SelectionModel<Int>? = null,
+        fitContent    : Boolean              = true,
+        cacheLength   : Int                  = 10): List<T, M>(strand, model, selectionModel, fitContent, cacheLength) {
+    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }
 
@@ -280,20 +265,13 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
         }
     }
 
-    override var model = model
-        set(new) {
-            field.changed -= modelChanged
-            field          = new
-            field.changed += modelChanged
-        }
-
     init {
         model.changed += modelChanged
     }
 
     val editing get() = editingRow != null
 
-    var listEditor = null as ListEditor<T>?
+    var editor = null as ListEditor<T>?
 
     private var editingRow    = null as Int?
     private var editOperation = null as EditOperation<T>?
@@ -309,7 +287,6 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
 
     fun clear() = model.clear()
 
-
     override fun removedFromDisplay() {
         model.changed -= modelChanged
 
@@ -317,7 +294,7 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
     }
 
     fun startEditing(index: Int) {
-        listEditor?.let {
+        editor?.let {
             model[index]?.let { row ->
                 val i = index % children.size
 
@@ -334,7 +311,7 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
     fun completeEditing() {
         editOperation?.let { operation ->
             editingRow?.let { index ->
-                val result = operation.finish() ?: return
+                val result = operation.complete() ?: return
 
                 cleanupEditing()
 
@@ -387,8 +364,8 @@ open class MutableList<T, M: MutableModel<T>>(strand: Strand, model: M, selectio
             for (selectionItem in selectionModel) {
                 var delta = 0
 
-                for (aIndex in values.keys) {
-                    if (selectionItem > aIndex) {
+                for (index in values.keys) {
+                    if (selectionItem > index) {
                         delta--
                     }
                 }
