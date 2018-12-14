@@ -4,8 +4,8 @@ import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.theme.TreeRenderer
-import com.nectar.doodle.controls.theme.TreeRenderer.ItemPositioner
-import com.nectar.doodle.controls.theme.TreeRenderer.ItemUIGenerator
+import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
+import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
 import com.nectar.doodle.controls.tree.EditOperation
 import com.nectar.doodle.controls.tree.Model
 import com.nectar.doodle.controls.tree.MutableTree
@@ -16,7 +16,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
@@ -34,13 +33,13 @@ import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
-private class BasicTreeRowPositioner<T>(private val height: Double): ItemPositioner<T> {
+private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
         return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
     }
 
-    override fun rowFor(tree: Tree<T, *>, y: Double): Int {
-        return max(0, ((y - tree.insets.top) / height).toInt())
+    override fun row(of: Tree<T, *>, atY: Double): Int {
+        return max(0, ((atY - of.insets.top) / height).toInt())
     }
 }
 
@@ -202,7 +201,7 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*, *>, 
     }
 }
 
-private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory): ItemUIGenerator<T> {
+private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow -> current.apply { update(tree, node, path, index) }
         else       -> TreeRow(labelFactory, tree, node, path, index)
@@ -210,8 +209,8 @@ private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFa
 }
 
 class BasicTreeUI<T>(labelFactory: LabelFactory): TreeRenderer<T> {
-    override val positioner : ItemPositioner<T>  = BasicTreeRowPositioner(20.0)
-    override val uiGenerator: ItemUIGenerator<T> = TreeLabelItemUIGenerator(labelFactory)
+    override val positioner : RowPositioner<T>  = BasicTreeRowPositioner(20.0)
+    override val generator: RowGenerator<T> = TreeLabelItemUIGenerator(labelFactory)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
 //        canvas.rect(view.bounds.atOrigin, Pen(red), ColorBrush(white))
@@ -242,8 +241,8 @@ private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusMana
 
 
 class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFactory): TreeRenderer<T>, KeyListener {
-    override val positioner : TreeRenderer.ItemPositioner<T>  = BasicTreeRowPositioner(20.0)
-    override val uiGenerator: TreeRenderer.ItemUIGenerator<T> = MutableLabelItemUIGenerator(focusManager, labelFactory)
+    override val positioner : TreeRenderer.RowPositioner<T>  = BasicTreeRowPositioner(20.0)
+    override val generator: TreeRenderer.RowGenerator<T> = MutableLabelItemUIGenerator(focusManager, labelFactory)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {}
 

@@ -13,6 +13,7 @@ import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -59,6 +60,9 @@ open class List<T, out M: Model<T>>(
 
     private var itemPositioner : ItemPositioner<T>?  = null
     private var itemUIGenerator: ItemUIGenerator<T>? = null
+    private val halfCacheLength = cacheLength / 2
+    private var minVisibleY     = 0.0
+    private var maxVisibleY     = 0.0
 
     protected var firstVisibleRow =  0
     protected var lastVisibleRow  = -1
@@ -107,10 +111,6 @@ open class List<T, out M: Model<T>>(
         super.removedFromDisplay()
     }
 
-    private val halfCacheLength = cacheLength / 2
-    private var minVisibleY     = 0.0
-    private var maxVisibleY     = 0.0
-
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         itemPositioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
@@ -122,12 +122,12 @@ open class List<T, out M: Model<T>>(
 
             firstVisibleRow = when (val y = new.y) {
                 old.y -> firstVisibleRow
-                else  -> findRowAt(y, firstVisibleRow) - cacheLength
+                else  -> max(0, findRowAt(y, firstVisibleRow) - cacheLength)
             }
 
             lastVisibleRow = when (val y = new.bottom) {
                 old.bottom -> lastVisibleRow
-                else       -> findRowAt(y, lastVisibleRow) + cacheLength
+                else       -> min(model.size - 1, findRowAt(y, lastVisibleRow) + cacheLength)
             }
 
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
@@ -208,11 +208,21 @@ open class List<T, out M: Model<T>>(
     }
 
     companion object {
-        operator fun invoke(strand: Strand, progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
-                List<Int, Model<Int>>(strand, IntProgressionModel(progression), selectionModel, fitContent)
+        operator fun invoke(
+                strand        : Strand,
+                progression   : IntProgression,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                cacheLength   : Int                  = 10) =
+                List<Int, Model<Int>>(strand, IntProgressionModel(progression), selectionModel, fitContent, cacheLength)
 
-        operator fun <T> invoke(strand: Strand, values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): List<T, Model<T>> =
-                List<T, Model<T>>(strand, ListModel(values), selectionModel, fitContent)
+        operator fun <T> invoke(
+                strand        : Strand,
+                values        : kotlin.collections.List<T>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                cacheLength   : Int                  = 10): List<T, Model<T>> =
+                List<T, Model<T>>(strand, ListModel(values), selectionModel, fitContent, cacheLength)
     }
 }
 
@@ -382,11 +392,21 @@ open class MutableList<T, M: MutableModel<T>>(
     }
 
     companion object {
-        operator fun invoke(strand: Strand, progression: IntProgression, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true) =
-                MutableList(strand, progression.toMutableList(), selectionModel, fitContent)
+        operator fun invoke(
+                strand        : Strand,
+                progression   : IntProgression,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                cacheLength   : Int                  = 10) =
+                MutableList(strand, progression.toMutableList(), selectionModel, fitContent, cacheLength)
 
-        operator fun <T> invoke(strand: Strand, values: kotlin.collections.List<T>, selectionModel: SelectionModel<Int>? = null, fitContent: Boolean = true): MutableList<T, MutableListModel<T>> =
-                MutableList(strand, MutableListModel(values.toMutableList()), selectionModel, fitContent)
+        operator fun <T> invoke(
+                strand        : Strand,
+                values        : kotlin.collections.List<T>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                cacheLength   : Int                  = 10): MutableList<T, MutableListModel<T>> =
+                MutableList(strand, MutableListModel(values.toMutableList()), selectionModel, fitContent, cacheLength)
     }
 }
 

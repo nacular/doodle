@@ -36,7 +36,9 @@ interface MutableModel<T>: Model<T> {
     val changed: Pool<ModelObserver<T>>
 }
 
-open class TreeNode<T>(open val value: T, open val children: List<TreeNode<T>> = emptyList())
+open class TreeNode<T>(open val value: T, open val children: List<TreeNode<T>> = emptyList()) {
+    operator fun get(index: Int) = children[index]
+}
 
 class MutableTreeNode<T>(override var value: T, override var children: List<MutableTreeNode<T>> = emptyList()): TreeNode<T>(value, children)
 

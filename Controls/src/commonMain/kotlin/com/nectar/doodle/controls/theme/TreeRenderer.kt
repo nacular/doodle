@@ -9,18 +9,17 @@ import com.nectar.doodle.utils.Path
 /**
  * Created by Nicholas Eddy on 3/23/18.
  */
-
 interface TreeRenderer<T>: Renderer<Tree<T, *>> {
-    interface ItemUIGenerator<T> {
+    interface RowGenerator<T> {
         operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View? = null): View
     }
 
-    interface ItemPositioner<T> {
+    interface RowPositioner<T> {
         operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
 
-        fun rowFor(tree: Tree<T, *>, y: Double): Int
+        fun row(of: Tree<T, *>, atY: Double): Int
     }
 
-    val positioner : ItemPositioner<T>
-    val uiGenerator: ItemUIGenerator<T>
+    val generator : RowGenerator<T>
+    val positioner: RowPositioner<T>
 }
