@@ -26,10 +26,10 @@ typealias ModelObserver<T> = (source: MutableModel<T>, removed: Map<Path<Int>, T
 interface MutableModel<T>: Model<T> {
     operator fun set(path: Path<Int>, value: T): T?
 
-    fun add        (path   : Path<Int>, values: T            )
-    fun removeAt   (path   : Path<Int>                       ): T?
-    fun addAll     (path   : Path<Int>, values: Collection<T>)
-    fun removeAllAt(indexes: Collection<Path<Int>>           )
+    fun add        (path : Path<Int>, values: T            )
+    fun removeAt   (path : Path<Int>                       ): T?
+    fun addAll     (path : Path<Int>, values: Collection<T>)
+    fun removeAllAt(paths: Collection<Path<Int>>           )
 
     fun clear()
 
@@ -74,27 +74,29 @@ open class SimpleModel<T, N: TreeNode<T>>(protected val root: N): Model<T> {
 
 class MutableTreeModel<T>(root: MutableTreeNode<T>): SimpleModel<T, MutableTreeNode<T>>(root), MutableModel<T> {
     override operator fun set(path: Path<Int>, value: T): T? {
-        var node = null as MutableTreeNode<T>?
+        var node = root as MutableTreeNode?
 
         path.forEach {
-            node = root.children[it]
+            node = node?.children?.getOrNull(it)
         }
 
         val previous = node?.value
 
-        node?.let { it.value = value }
+        if (previous != value) {
+            node?.value = value
 
-        changed.forEach {
-            it(this, previous?.let { mapOf(path to it) } ?: emptyMap(), mapOf(path to value), emptyMap())
+            changed.forEach {
+                it(this, previous?.let { mapOf(path to it) } ?: emptyMap(), mapOf(path to value), emptyMap())
+            }
         }
 
         return previous
     }
 
-    override fun add        (path   : Path<Int>, values: T            ) {}
-    override fun removeAt   (path   : Path<Int>                       ): T? { return null }
-    override fun addAll     (path   : Path<Int>, values: Collection<T>) {}
-    override fun removeAllAt(indexes: Collection<Path<Int>>           ) {}
+    override fun add        (path : Path<Int>, values: T            ) {}
+    override fun removeAt   (path : Path<Int>                       ): T? { return null }
+    override fun addAll     (path : Path<Int>, values: Collection<T>) {}
+    override fun removeAllAt(paths: Collection<Path<Int>>           ) {}
 
     override fun clear() {}
 
