@@ -280,17 +280,15 @@ class RenderManagerImpl(
             }
 
             if (view.visible && !view.bounds.empty) {
-                if (!view.children_.isEmpty()) {
-                    val viewList = pendingCleanup[view]
+                val viewList = pendingCleanup[view]
 
-                    viewList?.forEach {
-                        releaseResources(it)
+                viewList?.forEach {
+                    releaseResources(it)
 
-                        graphicsDevice.release(it)
-                    }
-
-                    pendingCleanup -= view
+                    graphicsDevice.release(it)
                 }
+
+                pendingCleanup -= view
 
                 if (view in dirtyViews) {
                     dirtyViews -= view

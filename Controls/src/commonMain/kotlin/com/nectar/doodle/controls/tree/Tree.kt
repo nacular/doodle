@@ -57,7 +57,9 @@ open class Tree<T, out M: Model<T>>(
         set(new) {
             if (new == renderer) { return }
 
-            field = new?.also {
+            field = new
+
+            field?.let {
                 itemPositioner  = it.positioner
                 itemUIGenerator = it.generator
 
@@ -234,9 +236,9 @@ open class Tree<T, out M: Model<T>>(
         var empty    = true
 
         children.batch {
+            expandedPaths -= pathSet
             pathSet.firstOrNull { visible(it) }?.let {
-                expandedPaths -= pathSet
-                empty          = false
+                empty = false
 
                 update(this, it)
 
@@ -273,9 +275,9 @@ open class Tree<T, out M: Model<T>>(
                     parent?.let { addSelection(setOf(it)) }
                 }
             }
-
-            (collapsed as ExpansionObserversImpl)(pathSet)
         }
+
+        (collapsed as ExpansionObserversImpl)(pathSet)
     }
 
     fun collapseAll() = collapse(expandedPaths)
@@ -359,6 +361,14 @@ open class Tree<T, out M: Model<T>>(
 
         // FIXME: Move to better location; handle rootVisible case
         height = heightBelow(root) + insets.run { top + bottom }
+
+        // FIXME: This reset logic could be handled better
+        minVisibleY     = 0.0
+        maxVisibleY     = 0.0
+        firstVisibleRow = 0
+        lastVisibleRow  = -1
+
+        handleDisplayRectEvent(Rectangle.Empty, bounds.atOrigin)
 
         update(children, root)
 

@@ -9,7 +9,7 @@ import com.nectar.doodle.core.View
 class CompositeTheme(vararg themes: Theme): Theme {
     private var themes = setOf(*themes)
 
-    override fun install(display: Display, all: Sequence<View>) = all.forEach { view -> themes.forEach { it.install  (display, sequenceOf(view)) } }
+    override fun install(display: Display, all: Sequence<View>) = all.forEach { view -> themes.forEach { it.install(display, sequenceOf(view)) } }
 
     operator fun plus(other: Theme) = this.apply { themes += other }
 

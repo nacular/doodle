@@ -62,7 +62,9 @@ class RealGraphicsSurface private constructor(
         set(new) {
             if (field == new) { return }
 
-            canvasElement = if (new) {
+            field = new
+
+            canvasElement = if (field) {
                 htmlFactory.create<HTMLElement>().apply {
                     style.setWidthPercent (100.0)
                     style.setHeightPercent(100.0)
@@ -84,7 +86,6 @@ class RealGraphicsSurface private constructor(
             }
         }
 
-    private  val children    by lazy { mutableListOf<RealGraphicsSurface>() }
     private  var zIndexSet   = MutableTreeSet<Int>()
     private  var zIndexStart = 0
     internal val rootElement = canvasElement
@@ -158,7 +159,6 @@ class RealGraphicsSurface private constructor(
 
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
-            children.remove(child)
             rootElement.remove(child.rootElement)
             zIndexSet.remove(child.zIndex)
 

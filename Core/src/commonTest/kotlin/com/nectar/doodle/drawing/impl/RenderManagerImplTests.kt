@@ -150,13 +150,18 @@ class RenderManagerImplTests {
     fun `removes top-level views`() {
         val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
-        val display = display(container)
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
 
-        val renderManager = renderManager(display)
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
 
         verifyChildAddedProperly(renderManager, container)
 
         display.children.remove(container)
+
+        scheduler.runJobs()
 
         verifyChildRemovedProperly(container)
     }
@@ -171,14 +176,19 @@ class RenderManagerImplTests {
     fun `removes nested views`() {
         val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
-        val display = display(container)
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
 
-        val renderManager = renderManager(display)
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
 
         verifyChildAddedProperly(renderManager, container)
 
         val firstChild = container.children.first()
         container.children -= firstChild
+
+        scheduler.runJobs()
 
         verifyChildRemovedProperly(firstChild)
     }

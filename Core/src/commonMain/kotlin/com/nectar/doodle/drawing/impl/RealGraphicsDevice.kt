@@ -16,7 +16,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         if (surface == null) {
             val parent = view.parent
 
-            surface = surfaceFactory(viewSurfaceMap[parent], view.children_.isNotEmpty())
+            surface = surfaceFactory(parent?.let { this[it] }, view.children_.isNotEmpty())
 
             surface.zIndex = parent?.zIndex_(view) ?: 0
 

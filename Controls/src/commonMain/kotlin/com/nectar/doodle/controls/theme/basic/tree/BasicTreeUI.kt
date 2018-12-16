@@ -209,16 +209,10 @@ private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFa
 }
 
 class BasicTreeUI<T>(labelFactory: LabelFactory): TreeRenderer<T> {
-    override val positioner : RowPositioner<T>  = BasicTreeRowPositioner(20.0)
-    override val generator: RowGenerator<T> = TreeLabelItemUIGenerator(labelFactory)
+    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory)
+    override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
-    override fun render(view: Tree<T, *>, canvas: Canvas) {
-//        canvas.rect(view.bounds.atOrigin, Pen(red), ColorBrush(white))
-    }
-
-//    override fun install(view: Tree<T>) {
-//        view.insets = Insets(2.0)
-//    }
+    override fun render(view: Tree<T, *>, canvas: Canvas) {}
 }
 
 private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, labelFactory: LabelFactory): TreeLabelItemUIGenerator<T>(labelFactory) {
@@ -241,8 +235,8 @@ private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusMana
 
 
 class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFactory): TreeRenderer<T>, KeyListener {
-    override val positioner : TreeRenderer.RowPositioner<T>  = BasicTreeRowPositioner(20.0)
-    override val generator: TreeRenderer.RowGenerator<T> = MutableLabelItemUIGenerator(focusManager, labelFactory)
+    override val generator : TreeRenderer.RowGenerator<T>  = MutableLabelItemUIGenerator(focusManager, labelFactory)
+    override val positioner: TreeRenderer.RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {}
 
