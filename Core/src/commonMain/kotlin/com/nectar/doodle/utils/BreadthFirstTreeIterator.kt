@@ -16,19 +16,17 @@ interface Node<T> {
  */
 class BreadthFirstTreeIterator<out T>(root: Node<T>): Iterator<T> {
 
-    private var history = sequenceOf(root)
+    private val queue = mutableListOf(root)
 
-    override fun hasNext() = !history.none()
+    override fun hasNext() = queue.isNotEmpty()
 
     override fun next(): T {
         if (!hasNext()) {
             throw NoSuchElementException("The tree has no more elements")
         }
 
-        val node = history.first()
-
-        history = history.drop(1) + node.children
-
-        return node.value
+        return queue.removeAt(0).also {
+            queue.addAll(it.children)
+        }.value
     }
 }
