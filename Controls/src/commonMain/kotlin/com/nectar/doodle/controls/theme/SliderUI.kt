@@ -14,7 +14,7 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-abstract class SliderUI protected constructor(private val slider: Slider): Renderer<Slider>, MouseListener, MouseMotionListener {
+abstract class SliderUI: Renderer<Slider>, MouseListener, MouseMotionListener {
 
     private   var lastStart         = -1.0
     protected var lastMousePosition = -1.0
@@ -23,10 +23,10 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
 
     private val changed: (Slider) -> Unit = { it.rerender() }
 
-    init {
-        slider.changed            += changed
-        slider.mouseChanged       += this
-        slider.mouseMotionChanged += this
+    override fun install(view: Slider) {
+        view.changed            += changed
+        view.mouseChanged       += this
+        view.mouseMotionChanged += this
     }
 
     override fun uninstall(view: Slider) {
@@ -36,15 +36,19 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
     }
 
     override fun mousePressed(event: MouseEvent) {
-        val scaleFactor_ = if (scaleFactor != 0f) 1 / scaleFactor else 0f
+        val slider      = event.source as Slider
+        val scaleFactor = scaleFactor(slider).let { if ( it!= 0f) 1 / it else 0f }
 
         val offset = when (slider.orientation) {
             Horizontal -> event.location.x
             Vertical   -> event.location.y
         }
 
+        val barSize     = barSize(slider)
+        val barPosition = barPosition(slider)
+
         if (offset < barPosition || offset > barPosition + barSize) {
-            slider.value += round(scaleFactor_ * (offset - (barPosition + barSize / 2)))
+            slider.value += round(scaleFactor * (offset - (barPosition + barSize / 2)))
         }
 
         lastMousePosition = offset
@@ -57,23 +61,25 @@ abstract class SliderUI protected constructor(private val slider: Slider): Rende
     }
 
     override fun mouseDragged(mouseEvent: MouseEvent) {
+        val slider = mouseEvent.source as Slider
+
         val delta = when (slider.orientation) {
             Horizontal -> mouseEvent.location.x - lastMousePosition
             Vertical   -> mouseEvent.location.y - lastMousePosition
         }
 
-        val deltaValue = delta / scaleFactor
+        val deltaValue = delta / scaleFactor(slider)
 
         slider.value = lastStart + deltaValue
     }
 
-    private val scaleFactor: Float get() {
-        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize
+    private fun scaleFactor(slider: Slider): Float {
+        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
 
         return if (!slider.range.isEmpty()) (size / slider.range.size).toFloat() else 0f
     }
 
-    protected val barPosition get() = round((slider.value - slider.range.start) * scaleFactor)
+    protected fun barPosition(slider: Slider) = round((slider.value - slider.range.start) * scaleFactor(slider))
 
-    protected val barSize get() = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun barSize(slider: Slider) = if (slider.orientation === Horizontal) slider.height else slider.width
 }

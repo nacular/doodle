@@ -13,16 +13,16 @@ import com.nectar.doodle.utils.Orientation.Vertical
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
-class BasicSliderUI(slider: Slider, private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderUI(slider) {
+class BasicSliderUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderUI() {
     override fun render(view: Slider, canvas: Canvas) {
         val rect1: Rectangle
         val rect2: Rectangle
 
         val border      = 1.0
         val grooveInset = view.height / 2
-        val barSize     = barSize
+        val barSize     = barSize(view)
         val offset      = barSize / 2
-        val barPosition = barPosition
+        val barPosition = barPosition(view)
 
         when (view.orientation) {
             Horizontal -> {

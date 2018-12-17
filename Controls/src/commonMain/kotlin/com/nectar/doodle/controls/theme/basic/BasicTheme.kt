@@ -44,23 +44,31 @@ typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableModel<T>
 @Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
 class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics, private val focusManager: FocusManager?): Theme {
 
-    private val progressBarUI by lazy { BasicProgressBarUI(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
-
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
+            is Button            -> { it.renderer?.uninstall(it); it.renderer = buttonUI.apply     { install(it) } }
+            is Slider            -> { it.renderer?.uninstall(it); it.renderer = sliderUI.apply     { install(it) } }
+            is SplitPanel        -> { it.renderer?.uninstall(it); it.renderer = splitPanelUI.apply { install(it) } }
             is ProgressBar       -> { it.renderer?.uninstall(it); it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) } }
-            is Slider            -> { it.renderer?.uninstall(it); it.renderer = BasicSliderUI(it, defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
-            is SplitPanel        -> { it.renderer?.uninstall(it); it.renderer = BasicSplitPanelUI(darkBackgroundColor = darkBackgroundColor).apply { install(it) } }
-            is Button            -> { it.renderer?.uninstall(it); it.renderer = BasicButtonUI(textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor).apply { install(it) } }
-            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).let { it.renderer?.uninstall(it); it.renderer = BasicSpinnerUI(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory).apply { install(it) } }
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).let { it.renderer?.uninstall(it); it.renderer = BasicMutableListUI<Any>(focusManager, textMetrics).apply { install(it) } }
-            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).let { it.renderer?.uninstall(it); it.renderer = BasicListUI<Any>(textMetrics).apply { install(it) } }
-            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = BasicMutableTreeUI<Any>(focusManager, labelFactory).apply { install(it) } }
-            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).let { it.renderer?.uninstall(it); it.renderer = BasicTreeUI<Any>(labelFactory).apply { install(it) } }
+            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).let { it.renderer?.uninstall(it); it.renderer = listUI.apply        { install(it) } }
+            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).let { it.renderer?.uninstall(it); it.renderer = treeUI.apply        { install(it) } }
+            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).let { it.renderer?.uninstall(it); it.renderer = spinnerUI.apply     { install(it) } }
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).let { it.renderer?.uninstall(it); it.renderer = mutableListUI.apply { install(it) } }
+            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = mutableTreeUI.apply { install(it) } }
         }
     }
 
     override fun toString() = this::class.simpleName ?: ""
+
+    private val listUI        by lazy { BasicListUI<Any>       (textMetrics               ) }
+    private val treeUI        by lazy { BasicTreeUI<Any>       (labelFactory              ) }
+    private val buttonUI      by lazy { BasicButtonUI          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
+    private val sliderUI      by lazy { BasicSliderUI          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
+    private val spinnerUI     by lazy { BasicSpinnerUI         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }
+    private val splitPanelUI  by lazy { BasicSplitPanelUI      (darkBackgroundColor    = darkBackgroundColor                                              ) }
+    private val mutableListUI by lazy { BasicMutableListUI<Any>(focusManager, textMetrics ) }
+    private val progressBarUI by lazy { BasicProgressBarUI     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
+    private val mutableTreeUI by lazy { BasicMutableTreeUI<Any>(focusManager, labelFactory) }
 }
 
 //val basicThemeModule = Module {
