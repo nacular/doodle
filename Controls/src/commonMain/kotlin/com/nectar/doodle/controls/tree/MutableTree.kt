@@ -69,7 +69,13 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     var editor = null as TreeEditor<T>?
 
-    private var editingPath   = null as Path<Int>?
+    private var editingPath = null as Path<Int>?
+        set(new) {
+            field       = new
+            editingRect = field?.let { path -> this[path]?.let { node -> itemPositioner?.rowBounds(this, node, path, rowFromPath(path)) } }
+        }
+
+    private var editingRect   = null as Rectangle?
     private var editOperation = null as EditOperation<T>?
 
     fun add     (path: Path<Int>, values: T            ) = model.add     (path, values)
@@ -81,6 +87,16 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
         model.changed -= modelChanged
 
         super.removedFromDisplay()
+    }
+
+    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+        super.handleDisplayRectEvent(old, new)
+
+        editingRect?.let {
+            if (!it.intersects(new)) {
+                cancelEditing()
+            }
+        }
     }
 
     fun startEditing(path: Path<Int>) {
