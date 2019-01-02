@@ -25,7 +25,7 @@ class MutableTreeSetJs<E> constructor(comparator: Comparator<E>, elements: Colle
     override fun clear() { root = null }
 
     companion object {
-        operator fun <T: Comparable<T>> invoke(): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) })
+        operator fun <T: Comparable<T>> invoke(                       ): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) })
         operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) }, elements)
     }
 }

@@ -15,7 +15,8 @@ interface TreeRenderer<T>: Renderer<Tree<T, *>> {
     }
 
     interface RowPositioner<T> {
-        operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
+        fun rowBounds    (tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
+        fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
 
         fun row(of: Tree<T, *>, atY: Double): Int
     }

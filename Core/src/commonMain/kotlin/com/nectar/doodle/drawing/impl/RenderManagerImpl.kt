@@ -22,9 +22,9 @@ import com.nectar.measured.units.times
 
 private object AncestorComparator: Comparator<View> {
     override fun compare(a: View, b: View) = when {
-        a ancestorOf_ b -> -1
+        a == b          ->  0
         b ancestorOf_ a ->  1
-        else            ->  0
+        else            -> -1
     }
 }
 
@@ -189,7 +189,7 @@ class RenderManagerImpl(
     }
 
     private fun prepareRender(view: View, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !view.bounds.empty) && view in views && display ancestorOf view).ifTrue {
-        dirtyViews   += view
+        dirtyViews    += view
         pendingRender += view
     }
 
@@ -312,8 +312,8 @@ class RenderManagerImpl(
             releaseResources(it)
         }
 
-        views              -= view
-        dirtyViews         -= view
+        views               -= view
+        dirtyViews          -= view
         pendingLayout       -= view
         pendingRender       -= view
         pendingBoundsChange -= view
@@ -459,13 +459,11 @@ class RenderManagerImpl(
             scheduleLayout(view)
         }
 
-        when {
-            parent         == null                         -> display.doLayout()
-            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view])
+        when (parent) {
+            null -> display.doLayout()
+//            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
             else -> scheduleLayout(parent)
         }
-
-        schedulePaint()
 
         if (reRender) {
             render(view, true)

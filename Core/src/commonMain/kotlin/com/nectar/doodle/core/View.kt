@@ -278,14 +278,17 @@ abstract class View protected constructor() {
 
             field?.children?.remove(this)
 
-            field = new
+            val old = field
+            field   = new
 
-            (parentChange as PropertyObserversImpl)(field, new)
+            (parentChange as PropertyObserversImpl)(old, new)
         }
 
     val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
 
-    /** Is ```true``` if the [View] has been displayed */
+    val displayChange: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Is ```true``` if the [View] is currently within the [Display] */
     val displayed get() = renderManager != null
 
     private var renderManager: RenderManager? = null
@@ -528,8 +531,9 @@ abstract class View protected constructor() {
      */
     internal fun addedToDisplay(renderManager: RenderManager) {
         this.renderManager = renderManager
-
         addedToDisplay()
+
+        (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
     }
 
     protected open fun removedFromDisplay() {}
@@ -539,7 +543,12 @@ abstract class View protected constructor() {
      * included in the [Display] hierarchy.  This happens when the [View] itself--
      * or one of it's ancestors--is removed from the [Display].
      */
-    internal fun removedFromDisplay_() = removedFromDisplay().also { renderManager = null }
+    internal fun removedFromDisplay_() {
+        renderManager = null
+        removedFromDisplay()
+
+        (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }
+    }
 
     /**
      * Sets the bounding rectangle.

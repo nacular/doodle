@@ -2,6 +2,7 @@ package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.Path
 
 /**
@@ -9,17 +10,17 @@ import com.nectar.doodle.utils.Path
  */
 
 interface EditOperation<T> {
-    operator fun invoke(): View
+    operator fun invoke(): View?
     fun complete(): T?
     fun cancel()
 }
 
 interface TreeEditor<T> {
-    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, current: View? = null): EditOperation<T>
+    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View? = null): EditOperation<T>
 }
 
 class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
-    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
+    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }
 
@@ -54,6 +55,14 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     init {
         model.changed += modelChanged
+
+        collapsed += { _,_ ->
+            editingPath?.let {
+                if (!visible(it)) {
+                    cancelEditing()
+                }
+            }
+        }
     }
 
     val editing get() = editingPath != null
@@ -63,10 +72,10 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
     private var editingPath   = null as Path<Int>?
     private var editOperation = null as EditOperation<T>?
 
-    fun add      (path  : Path<Int>, values: T            ) = model.add     (path, values)
-    fun removeAt (path  : Path<Int>) = model.removeAt(path        )
-    fun addAll   (path  : Path<Int>, values: Collection<T>) = model.addAll  (path, values)
-    fun clear    (                                        ) = model.clear   (            )
+    fun add     (path: Path<Int>, values: T            ) = model.add     (path, values)
+    fun removeAt(path: Path<Int>                       ) = model.removeAt(path        )
+    fun addAll  (path: Path<Int>, values: Collection<T>) = model.addAll  (path, values)
+    fun clear   (                                      ) = model.clear   (            )
 
     override fun removedFromDisplay() {
         model.changed -= modelChanged
@@ -75,13 +84,17 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
     }
 
     fun startEditing(path: Path<Int>) {
+        if (!visible(path)) {
+            return
+        }
+
         editor?.let {
             model[path]?.let { item ->
                 val i = rowFromPath(path) % children.size
 
                 editingPath   = path
-                editOperation = it.edit(this, item, path, children.getOrNull(i)).also {
-                    children[i] = it()
+                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children.getOrNull(i)).also {
+                    it()?.let { children[i] = it }
 
                     layout(children[i], item, path, i)
                 }

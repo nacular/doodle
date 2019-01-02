@@ -62,7 +62,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
                 remove(it, null, element)
             }
 
-        } ?: false).ifTrue { --size_ }
+        } ?: false).ifTrue { --size_; if (size < 0) { throw Exception("BROKEN!!!!") } }
     }
 
     private fun add(node: BstNode<E>, element: E): Boolean = when {
@@ -81,24 +81,25 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         when {
             comparator.compare(element, from.value) < 0 -> return from.left?.let  { remove(it, from, element) } ?: false
             comparator.compare(element, from.value) > 0 -> return from.right?.let { remove(it, from, element) } ?: false
-            else                 -> {
+            else                                        -> {
                 if (from.left != null && from.right != null) {
                     from.right?.let {
                         from.value = minValue(it)
 
-                        remove(it, from, from.value)
+                        return remove(it, from, from.value)
                     }
-
                 } else if (parent?.left == from) {
                     parent.left = from.left ?: from.right
+                    return true
 
                 } else if (parent?.right == from) {
                     parent.right = from.left ?: from.right
-
+                    return true
                 }
-                return true
             }
         }
+
+        return false
     }
 
     private fun minValue(from: BstNode<E>): E = from.left?.let {

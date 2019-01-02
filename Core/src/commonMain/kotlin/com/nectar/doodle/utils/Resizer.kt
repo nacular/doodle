@@ -4,9 +4,9 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.Direction.East
 import com.nectar.doodle.utils.Direction.North
@@ -31,8 +31,8 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
 
     private var dragMode             = mutableSetOf<Direction>()
     private var oldCursor            = view?.cursor
-    private var initialSize          = Size.Empty
-    private var initialPosition      = Point.Origin
+    private var initialSize          = Empty
+    private var initialPosition      = Origin
     private var ignorePropertyChange = false
 
 //    fun propertyChanged(aPropertyEvent: PropertyEvent) {
@@ -52,7 +52,7 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
 
         view?.let {
             initialPosition = event.location
-            initialSize = it.size
+            initialSize     = it.size
 
             when {
                 initialPosition.y <= hotspotSize             -> dragMode.plusAssign(North)

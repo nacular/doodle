@@ -130,12 +130,49 @@ class ViewTests {
         verify(exactly = 1) { renderManager.renderNow(view) }
     }
 
+    @Test @JsName("parentChangeWorks")
+    fun `parent change works`() {
+        val view   = object: View() {}
+        val parent = Box()
+
+        val observer = mockk<PropertyObserver<View, View?>>(relaxed = true)
+
+        view.parentChange += observer
+
+        parent.children += view
+
+        verify(exactly = 1) { observer(view, null, parent) }
+
+        parent.children -= view
+
+        verify(exactly = 1) { observer(view, parent, null) }
+    }
+
+    @Test @JsName("displayChangeWorks")
+    fun `display change works`() {
+        val view = object: View() {}
+
+        val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
+
+        view.displayChange += observer
+
+        view.addedToDisplay(mockk())
+
+        verify(exactly = 1) { observer(view, false, true) }
+
+        view.removedFromDisplay_()
+
+        verify(exactly = 1) { observer(view, true, false) }
+    }
+
     @Test @JsName("changeEventsWork")
     fun `change events work`() {
         listOf(
-            View::enabled   to View::enabledChanged,
-            View::visible   to View::visibilityChanged,
-            View::focusable to View::focusabilityChanged
+            View::enabled             to View::enabledChanged,
+            View::visible             to View::visibilityChanged,
+            View::focusable           to View::focusabilityChanged,
+            View::focusable           to View::focusabilityChanged,
+            View::monitorsDisplayRect to View::displayRectHandlingChanged
         ).forEach {
             validateChanged(it.first, it.second)
         }

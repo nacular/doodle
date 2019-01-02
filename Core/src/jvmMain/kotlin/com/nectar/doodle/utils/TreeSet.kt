@@ -10,8 +10,8 @@ actual open class TreeSet<E> actual constructor(comparator: Comparator<E>, eleme
     protected val treeSet = java.util.TreeSet(comparator).also { it.addAll(elements) }
 
     actual override val size get   (                       ) = treeSet.size
-    actual override fun isEmpty    (                       ) = treeSet.isEmpty()
-    actual override fun contains   (element: E             ) = treeSet.contains(element)
+    actual override fun isEmpty    (                       ) = treeSet.isEmpty    (        )
+    actual override fun contains   (element: E             ) = treeSet.contains   (element )
     actual override fun containsAll(elements: Collection<E>) = treeSet.containsAll(elements)
 
     actual override fun iterator(): Iterator<E> = treeSet.iterator()

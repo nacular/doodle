@@ -11,6 +11,7 @@ import com.nectar.doodle.controls.tree.Model
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor
+import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
@@ -21,6 +22,7 @@ import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.constrain
@@ -30,12 +32,21 @@ import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
+import com.nectar.doodle.utils.RelativePositionMonitor
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
-    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
+    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
         return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
+    }
+
+    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
+        // FIXME: Centralize
+        val depth  = (path.depth - if (!tree.rootVisible) 1 else 0)
+        val indent = 20.0 * (1 + depth)
+
+        return Rectangle(tree.insets.left + indent, tree.insets.top + index * height, tree.width - tree.insets.run { left + right } - indent, height)
     }
 
     override fun row(of: Tree<T, *>, atY: Double): Int {
@@ -259,15 +270,24 @@ class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFact
 
 @Suppress("PrivatePropertyName", "unused")
 open class TextEditOperation<T>(
-        private val focusManager: FocusManager?,
-        private val encoder     : Encoder<T, String>,
-        private val tree        : MutableTree<T, *>,
-                    node        : T,
-        private var path        : Path<Int>): TextField(), EditOperation<T> {
+        private val focusManager : FocusManager?,
+        private val encoder      : Encoder<T, String>,
+        private val display      : Display,
+                    positionMonitor: RelativePositionMonitor,
+        private val tree         : MutableTree<T, *>,
+                    node         : T,
+        private val path         : Path<Int>,
+                    contentBounds: Rectangle): TextField(), EditOperation<T> {
 
     private val treeSelectionChanged_ = ::treeSelectionChanged
 
     init {
+        bounds = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
+
+        positionMonitor[tree] += { _,old,new ->
+            bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
+        }
+
         tree.selectionChanged += treeSelectionChanged_
 
         text = encoder.encode(node) ?: ""
@@ -296,11 +316,17 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke  () = this
-    override fun complete() = encoder.decode(text)
+    override fun invoke(): View? {
+        display.children += this
+        return null
+    }
+
+    override fun complete() = encoder.decode(text).also { display.children -= this }
 
     override fun cancel() {
         tree.selectionChanged -= treeSelectionChanged_
+
+        display.children -= this
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -309,6 +335,10 @@ open class TextEditOperation<T>(
     }
 }
 
-class TreeTextEditor<T>(private val focusManager: FocusManager?, private val encoder: Encoder<T, String>): TreeEditor<T> {
-    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, tree, node, path)
+class TreeTextEditor<T>(
+        private val focusManager   : FocusManager?,
+        private val encoder        : Encoder<T, String>,
+        private val display        : Display,
+        private val positionMonitor: RelativePositionMonitor): TreeEditor<T> {
+    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds)
 }

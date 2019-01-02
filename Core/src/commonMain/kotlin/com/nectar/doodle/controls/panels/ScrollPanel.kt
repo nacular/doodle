@@ -1,13 +1,15 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
 import kotlin.math.min
 
@@ -31,13 +33,18 @@ open class ScrollPanel(content: View? = null): View() {
             }
 
             if (field != new) {
-                field = new
+                val old = field
+                field   = new
 
                 field?.let {
                     children += it
                 }
+
+                (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
             }
         }
+
+    val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
     var scroll = Origin
         private set

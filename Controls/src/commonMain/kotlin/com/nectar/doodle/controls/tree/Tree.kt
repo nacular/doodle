@@ -76,13 +76,13 @@ open class Tree<T, out M: Model<T>>(
 
     val selection get() = selectionModel?.toSet() ?: emptySet()
 
-    private var itemPositioner  = null as RowPositioner<T>?
-    private var itemUIGenerator = null as RowGenerator<T>?
-    private val expandedPaths   = mutableSetOf<Path<Int>>()
-    private val rowToPath       = mutableMapOf<Int, Path<Int>>()
-    private val halfCacheLength = cacheLength / 2
-    private var minVisibleY     = 0.0
-    private var maxVisibleY     = 0.0
+    protected var itemPositioner  = null as RowPositioner<T>?
+    private   var itemUIGenerator = null as RowGenerator<T>?
+    private   val expandedPaths   = mutableSetOf<Path<Int>>()
+    private   val rowToPath       = mutableMapOf<Int, Path<Int>>()
+    private   val halfCacheLength = cacheLength / 2
+    private   var minVisibleY     = 0.0
+    private   var maxVisibleY     = 0.0
 
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
@@ -135,25 +135,37 @@ open class Tree<T, out M: Model<T>>(
                 else       -> min(numRows, findRowAt(y, lastVisibleRow) + cacheLength)
             }
 
-            pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner(this, it, path, firstVisibleRow + halfCacheLength).y      } }
-            pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
+            pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow + halfCacheLength).y      } }
+            pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
 
-            if (oldFirst > firstVisibleRow) {
-                val end = min(oldFirst, lastVisibleRow)
-
-                (firstVisibleRow until end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
-                    insert(children, path, index)
-                }
-            }
-
-            if (oldLast < lastVisibleRow) {
-                val start = when {
-                    oldLast > firstVisibleRow -> oldLast + 1
-                    else                      -> firstVisibleRow
+            children.batch {
+                // FIXME: This is a bit of a hack to avoid inserting items into the child list at an index they won't be at as the list grows
+                // this is b/c items are mapped to their % of the list size, so the list growing will lead to different mappings
+                if (this.size <= lastVisibleRow - firstVisibleRow) {
+                    (0..lastVisibleRow - firstVisibleRow - children.size).forEach {
+                        add(object : View() {}.apply { visible = false })
+                    }
                 }
 
-                (start .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
-                    insert(children, path, index)
+                if (oldFirst > firstVisibleRow) {
+                    val end = min(oldFirst, lastVisibleRow)
+
+                    (firstVisibleRow until end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                        insert(this, path, index)
+                    }
+                }
+
+                if (oldLast < lastVisibleRow) {
+                    val start = when {
+                        oldLast > firstVisibleRow -> oldLast + 1
+                        else                      -> firstVisibleRow
+                    }
+
+                    (start .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                        if (insert(this, path, index) > lastVisibleRow) {
+                            return@forEach
+                        }
+                    }
                 }
             }
         }
@@ -232,8 +244,8 @@ open class Tree<T, out M: Model<T>>(
 
     fun collapse(path : Path<Int>     ) = collapse(setOf(path))
     fun collapse(paths: Set<Path<Int>>) {
+        var empty   = true
         val pathSet = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
-        var empty    = true
 
         children.batch {
             expandedPaths -= pathSet
@@ -260,7 +272,6 @@ open class Tree<T, out M: Model<T>>(
         }
 
         if (!empty) {
-
             // Move selection up to first visible ancestor
             // TODO: Make this more efficient?  Add batch to SelectionModel?
             selectionModel?.forEach {
@@ -357,20 +368,21 @@ open class Tree<T, out M: Model<T>>(
     }
 
     protected fun refreshAll() {
-        val root = Path<Int>()
+        val root      = Path<Int>()
+        val oldHeight = height
 
         // FIXME: Move to better location; handle rootVisible case
         height = heightBelow(root) + insets.run { top + bottom }
 
-        // FIXME: This reset logic could be handled better
-        minVisibleY     = 0.0
-        maxVisibleY     = 0.0
-        firstVisibleRow = 0
-        lastVisibleRow  = -1
+        if (oldHeight == height) {
+            // FIXME: This reset logic could be handled better
+            minVisibleY     =  0.0
+            maxVisibleY     =  0.0
+            firstVisibleRow =  0
+            lastVisibleRow  = -1
 
-        handleDisplayRectEvent(Rectangle.Empty, bounds.atOrigin)
-
-        update(children, root)
+            handleDisplayRectEvent(Rectangle.Empty, Rectangle(width, height))
+        }
 
         updateNumRows()
     }
@@ -473,7 +485,7 @@ open class Tree<T, out M: Model<T>>(
 
     protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
         itemPositioner?.let {
-            view.bounds = it(this, node, path, index)
+            view.bounds = it.rowBounds(this, node, path, index)
         }
     }
 
@@ -554,7 +566,7 @@ open class Tree<T, out M: Model<T>>(
     }
 
     // TODO: move this logic into ItemPositioner
-    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { itemPositioner?.invoke(this, it, path, 0)?.height } ?: 0.0)
+    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { itemPositioner?.rowBounds(this, it, path, 0)?.height } ?: 0.0)
 
     private fun expandAllBelowPath(path: Path<Int>, expandedPath: MutableSet<Path<Int>> = mutableSetOf()) {
         if (model.isLeaf(path)) {
