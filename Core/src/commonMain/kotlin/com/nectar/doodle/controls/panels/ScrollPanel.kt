@@ -77,6 +77,8 @@ open class ScrollPanel(content: View? = null): View() {
      * @param point
      */
     fun scrollTo(point: Point) {
+        scrollTo(point, false)
+
         renderer?.scrollTo(point)
     }
 
@@ -105,15 +107,17 @@ open class ScrollPanel(content: View? = null): View() {
         var farSide = scroll.x + width
 
         val x = when {
-            point.x > farSide -> point.x - farSide
-            else              -> point.x - scroll.x
+            point.x > farSide  -> point.x - farSide
+            point.x < scroll.x -> point.x - scroll.x
+            else               -> 0.0
         }
 
         farSide = scroll.y + height
 
         val y = when {
-            point.y > farSide -> point.y - farSide
-            else              -> point.y - scroll.y
+            point.y > farSide  ->  point.y - farSide
+            point.y < scroll.y -> point.y - scroll.y
+            else               -> 0.0
         }
 
         scrollBy(Point(x, y))
@@ -121,7 +125,7 @@ open class ScrollPanel(content: View? = null): View() {
 
     protected fun moveToVisible(rect: Rectangle) {
         moveToVisible(rect.position)
-        moveToVisible(Point(rect.x + rect.width, rect.y + rect.height))
+        moveToVisible(Point(rect.right, rect.bottom))
     }
 
     private fun scrollTo(point: Point, force: Boolean = false) {

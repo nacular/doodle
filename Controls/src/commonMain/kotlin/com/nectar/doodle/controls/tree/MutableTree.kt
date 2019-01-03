@@ -93,7 +93,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
         super.handleDisplayRectEvent(old, new)
 
         editingRect?.let {
-            if (!it.intersects(new)) {
+            if (it !in new) {
                 cancelEditing()
             }
         }

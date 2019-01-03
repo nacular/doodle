@@ -18,6 +18,8 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
+import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -260,9 +262,10 @@ class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFact
     }
 
     override fun keyPressed(event: KeyEvent) {
-        when (event.code) {
-            KeyEvent.VK_DELETE, KeyEvent.VK_BACKSPACE -> (event.source as MutableTree<*, *>).let { tree ->
-                tree.selection./*sortedByDescending { it }.*/forEach { tree.removeAt(it) }
+        (event.source as MutableTree<*, *>).let { tree ->
+            when (event.code) {
+                VK_DELETE, VK_BACKSPACE -> tree.selection./*sortedByDescending { it }.*/forEach { tree.removeAt(it) }
+//                VK_UP                   -> tree.selection.firstOrNull()?.let { tree.setSelection() }
             }
         }
     }
@@ -270,18 +273,21 @@ class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFact
 
 @Suppress("PrivatePropertyName", "unused")
 open class TextEditOperation<T>(
-        private val focusManager : FocusManager?,
-        private val encoder      : Encoder<T, String>,
-        private val display      : Display,
+        private val focusManager   : FocusManager?,
+        private val encoder        : Encoder<T, String>,
+        private val display        : Display,
                     positionMonitor: RelativePositionMonitor,
-        private val tree         : MutableTree<T, *>,
-                    node         : T,
-        private val path         : Path<Int>,
-                    contentBounds: Rectangle): TextField(), EditOperation<T> {
+        private val tree           : MutableTree<T, *>,
+                    node           : T,
+        private val path           : Path<Int>,
+                    contentBounds  : Rectangle,
+                    current        : View?): TextField(), EditOperation<T> {
 
     private val treeSelectionChanged_ = ::treeSelectionChanged
 
     init {
+        backgroundColor = current?.backgroundColor
+
         bounds = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
 
         positionMonitor[tree] += { _,old,new ->
@@ -340,5 +346,14 @@ class TreeTextEditor<T>(
         private val encoder        : Encoder<T, String>,
         private val display        : Display,
         private val positionMonitor: RelativePositionMonitor): TreeEditor<T> {
-    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds)
+    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
+
+    companion object {
+        operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {
+            return TreeTextEditor(focusManager, object: Encoder<String, String> {
+                override fun decode(b: String) = b
+                override fun encode(a: String) = a
+            }, display, positionMonitor)
+        }
+    }
 }

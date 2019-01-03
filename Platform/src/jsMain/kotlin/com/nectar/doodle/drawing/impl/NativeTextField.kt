@@ -6,6 +6,8 @@ import com.nectar.doodle.controls.text.TextInput
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.setBackgroundColor
+import com.nectar.doodle.dom.setBorderWidth
 import com.nectar.doodle.dom.setBoxSizing
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
@@ -58,6 +60,7 @@ class NativeTextField(
 
     private val textChanged_      = ::textChanged
     private val focusChanged_     = ::focusChanged
+    private val styleChanged_     = ::styleChanged
     private val enabledChanged_   = ::enabledChanged
     private val focusableChanged_ = ::focusableChanged
     private val selectionChanged_ = ::selectionChanged
@@ -66,9 +69,11 @@ class NativeTextField(
         text = textField.text
 
         inputElement.apply {
-            style.setWidthPercent (100.0 )
-            style.setHeightPercent(100.0 )
-            style.setBoxSizing    (Border)
+            style.setBoxSizing      (Border                   )
+            //style.setBorderWidth    (0.0                      )
+            style.setWidthPercent   (100.0                    )
+            style.setHeightPercent  (100.0                    )
+            style.setBackgroundColor(textField.backgroundColor)
         }
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
@@ -80,6 +85,7 @@ class NativeTextField(
         textField.apply {
             textChanged         += textChanged_
             focusChanged        += focusChanged_
+            styleChanged        += styleChanged_
             enabledChanged      += enabledChanged_
             selectionChanged    += selectionChanged_
             focusabilityChanged += focusableChanged_
@@ -90,6 +96,7 @@ class NativeTextField(
         textField.apply {
             textChanged         -= textChanged_
             focusChanged        -= focusChanged_
+            styleChanged        -= styleChanged_
             enabledChanged      -= enabledChanged_
             selectionChanged    -= selectionChanged_
             focusabilityChanged -= focusableChanged_
@@ -157,6 +164,11 @@ class NativeTextField(
     @Suppress("UNUSED_PARAMETER")
     private fun enabledChanged(view: View, old: Boolean, new: Boolean) {
         inputElement.disabled = !new
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun styleChanged(view: View) {
+        inputElement.style.setBackgroundColor(textField.backgroundColor)
     }
 
     @Suppress("UNUSED_PARAMETER")

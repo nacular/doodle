@@ -4,6 +4,7 @@ package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JvmName
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.theme.TreeRenderer
 import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
 import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
@@ -91,6 +92,12 @@ open class Tree<T, out M: Model<T>>(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
+        (parent as? ScrollPanel)?.let { parent ->
+            itemPositioner?.rowBounds(this, this[added.first()]!!, added.first(), rowFromPath(added.first()))?.let {
+                parent.scrollToVisible(it)
+            }
+        }
+
         val adaptingSet: ObservableSet<Tree<T, *>, Path<Int>> = AdaptingObservableSet(this, set)
 
         (selectionChanged as SetPool).forEach {
