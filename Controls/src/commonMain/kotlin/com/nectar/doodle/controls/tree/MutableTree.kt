@@ -31,8 +31,8 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
             refreshAll()
         }
 
-        trueAdded   = trueAdded.filterKeys   { rowFromPath(it) <= lastVisibleRow }
-        trueRemoved = trueRemoved.filterKeys { rowFromPath(it) <= lastVisibleRow }
+        trueAdded   = trueAdded.filterKeys   { rowFromPath(it)?.let { it <= lastVisibleRow } ?: false }
+        trueRemoved = trueRemoved.filterKeys { rowFromPath(it)?.let { it <= lastVisibleRow } ?: false }
 
         if (trueRemoved.size > trueAdded.size) {
             if (children.size == lastVisibleRow - 1) {
@@ -72,7 +72,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
     private var editingPath = null as Path<Int>?
         set(new) {
             field       = new
-            editingRect = field?.let { path -> this[path]?.let { node -> itemPositioner?.rowBounds(this, node, path, rowFromPath(path)) } }
+            editingRect = field?.let { path -> this[path]?.let { node -> itemPositioner?.rowBounds(this, node, path, rowFromPath(path)!!) } }
         }
 
     private var editingRect   = null as Rectangle?
@@ -106,7 +106,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
         editor?.let {
             model[path]?.let { item ->
-                val i = rowFromPath(path) % children.size
+                val i = rowFromPath(path)!! % children.size
 
                 editingPath   = path
                 editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children.getOrNull(i)).also {

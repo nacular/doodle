@@ -60,7 +60,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
             dispatchKeyEvent(event, Down)
         }
 
-        val aResult = dispatchKeyEvent(event, Up)
+        val result = dispatchKeyEvent(event, Up)
 
         if (event.keyCode == VK_TAB) {
             return suppressEvent(event)
@@ -70,7 +70,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
             return true
         }
 
-        return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else aResult
+        return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else result
     }
 
     private fun keyDown(event: KeyboardEvent): Boolean {
@@ -78,7 +78,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
             lastKeyDown = event
         }
 
-        val aReturnValue = dispatchKeyEvent(event, Down)
+        val returnValue = dispatchKeyEvent(event, Down)
 
         if (event.keyCode == VK_TAB) {
             return suppressEvent(event)
@@ -88,7 +88,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
             return true
         }
 
-        return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else aReturnValue
+        return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else returnValue
     }
 
     private fun keyPress(event: KeyboardEvent): Boolean {
@@ -113,7 +113,7 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
                     createModifiers(event),
                     type)
 
-            return it.invoke(keyEvent)
+            return it(keyEvent)
         }
 
         return true

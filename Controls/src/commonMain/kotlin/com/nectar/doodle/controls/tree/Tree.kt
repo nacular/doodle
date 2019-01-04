@@ -93,8 +93,10 @@ open class Tree<T, out M: Model<T>>(
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (parent as? ScrollPanel)?.let { parent ->
-            itemPositioner?.rowBounds(this, this[added.first()]!!, added.first(), rowFromPath(added.first()))?.let {
-                parent.scrollToVisible(it)
+            added.firstOrNull()?.let { added ->
+                itemPositioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
+                    parent.scrollToVisible(it)
+                }
             }
         }
 
@@ -169,9 +171,11 @@ open class Tree<T, out M: Model<T>>(
                     }
 
                     (start .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
-                        if (insert(this, path, index) > lastVisibleRow) {
-                            return@forEach
-                        }
+                        insert(this, path, index)?.let {
+                            if (it > lastVisibleRow) {
+                                return@forEach
+                            }
+                        } ?: return@forEach
                     }
                 }
             }
@@ -394,8 +398,8 @@ open class Tree<T, out M: Model<T>>(
         updateNumRows()
     }
 
-    private fun insertChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
-        var index = parentIndex + 1
+    private fun insertChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int? = rowFromPath(parent)): Int? {
+        var index: Int? = (parentIndex ?: -1) + 1
 
         (0 until model.numChildren(parent)).forEach {
             val old = index
@@ -409,36 +413,38 @@ open class Tree<T, out M: Model<T>>(
         return index
     }
 
-    private fun insert(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
-        var result = index
+    private fun insert(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
+        if (index == null) {
+            return null
+        }
 
         // Path index not found (could be invisible)
-        if (index >= 0) {
-            rowToPath[index] = path
-            itemUIGenerator?.let {
-                model[path]?.let { value ->
+        var result: Int? = index
+
+        rowToPath[index] = path
+        itemUIGenerator?.let {
+            model[path]?.let { value ->
 //                    pathToRow[path ] = index
 
-                    val expanded = expanded(path)
+                val expanded = expanded(path)
 
-                    if (children.size <= lastVisibleRow - firstVisibleRow) {
-                        it(this, value, path, index).also {
-                            when {
-                                index > children.lastIndex -> children.add(it)
-                                else                       -> children.add(index, it)
-                            }
-
-                            layout(it, value, path, index)
+                if (children.size <= lastVisibleRow - firstVisibleRow) {
+                    it(this, value, path, index).also {
+                        when {
+                            index > children.lastIndex -> children.add(it)
+                            else                       -> children.add(index, it)
                         }
-                    } else {
-                        update(children, path, index)
-                    }
 
-                    ++result
-
-                    if (path.depth == 0 || expanded) {
-                        result = insertChildren(children, path, index)
+                        layout(it, value, path, index)
                     }
+                } else {
+                    update(children, path, index)
+                }
+
+                result = result!! + 1
+
+                if (path.depth == 0 || expanded) {
+                    result = insertChildren(children, path, index)
                 }
             }
         }
@@ -446,8 +452,8 @@ open class Tree<T, out M: Model<T>>(
         return result
     }
 
-    private fun updateChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int = rowFromPath(parent)): Int {
-        var index = parentIndex + 1
+    private fun updateChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int? = rowFromPath(parent)): Int? {
+        var index: Int? = (parentIndex ?: -1) + 1
 
         (0 until model.numChildren(parent)).forEach {
             val old = index
@@ -461,28 +467,31 @@ open class Tree<T, out M: Model<T>>(
         return index
     }
 
-    protected fun update(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
-        var result = index
+    protected fun update(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
+        var result = null as Int?
 
-        if (index >= 0) {
-            rowToPath[index] = path
-        }
+        if (index != null) {
+            result = index
+            if (index >= 0) {
+                rowToPath[index] = path
+            }
 
-        // Path index not found (could be invisible)
-        if (index in firstVisibleRow .. lastVisibleRow) {
-            itemUIGenerator?.let {
-                model[path]?.let { value ->
-//                    pathToRow[path ] = index
+            // Path index not found (could be invisible)
+            if (index in firstVisibleRow..lastVisibleRow) {
+                itemUIGenerator?.let {
+                    model[path]?.let { value ->
+                        //                    pathToRow[path ] = index
 
-                    val i = index % children.size
+                        val i = index % children.size
 
-                    it(this, value, path, index, children.getOrNull(i)).also {
-                        children[i] = it
+                        it(this, value, path, index, children.getOrNull(i)).also {
+                            children[i] = it
 
-                        layout(it, value, path, index)
+                            layout(it, value, path, index)
+                        }
+
+                        ++result
                     }
-
-                    ++result
                 }
             }
         }
@@ -496,10 +505,10 @@ open class Tree<T, out M: Model<T>>(
         }
     }
 
-    private fun updateRecursively(children: MutableList<View>, path: Path<Int>, index: Int = rowFromPath(path)): Int {
+    private fun updateRecursively(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
         var result = update(children, path, index)
 
-        if (result >= 0 && expanded(path)) {
+        if (result != null && expanded(path)) {
             result = updateChildren(children, path, index)
         }
 
@@ -508,7 +517,7 @@ open class Tree<T, out M: Model<T>>(
 
     private fun rowExpanded(index: Int) = pathFromRow(index)?.let { expanded(it) } ?: false
 
-    protected fun pathFromRow(index: Int): Path<Int>? {
+    fun pathFromRow(index: Int): Path<Int>? {
         if (model.isEmpty()) {
             return null
         }
@@ -522,8 +531,7 @@ open class Tree<T, out M: Model<T>>(
 //        return addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first
     }
 
-    // TODO: Have this return an Int?
-    protected fun rowFromPath(path: Path<Int>): Int /*= pathToRow.getOrPut(path)*/ {
+    fun rowFromPath(path: Path<Int>): Int? /*= pathToRow.getOrPut(path)*/ {
         var row         = if (rootVisible) 0 else -1
         var pathIndex   = 0
         var currentPath = Path<Int>()

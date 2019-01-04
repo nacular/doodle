@@ -61,7 +61,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
     override fun toString() = this::class.simpleName ?: ""
 
     private val listUI        by lazy { BasicListUI<Any>       (textMetrics               ) }
-    private val treeUI        by lazy { BasicTreeUI<Any>       (labelFactory              ) }
+    private val treeUI        by lazy { BasicTreeUI<Any>       (labelFactory, focusManager) }
     private val buttonUI      by lazy { BasicButtonUI          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
     private val sliderUI      by lazy { BasicSliderUI          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val spinnerUI     by lazy { BasicSpinnerUI         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }

@@ -27,7 +27,6 @@ interface Postprocessor {
     operator fun invoke(keyEvent: KeyEvent)
 }
 
-
 class KeyboardFocusManager(
                     keyInputService     : KeyInputService,
         private val focusManager        : FocusManager,
@@ -54,11 +53,7 @@ class KeyboardFocusManager(
                 postprocessKeyEvent(keyEvent)
             }
 
-            if (keyEvent.consumed) {
-                keyEvent.consume()
-            }
-
-            return keyEvent.consumed
+            return !keyEvent.consumed
         }
 
         return false
@@ -99,7 +94,7 @@ class KeyboardFocusManager(
                     keyEvent.consume()
                     break
                 } else {
-                    g = view.parent
+                    g = g.parent
                 }
             }
         }

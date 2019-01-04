@@ -20,6 +20,12 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
+import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
+import com.nectar.doodle.event.KeyEvent.Companion.VK_ESCAPE
+import com.nectar.doodle.event.KeyEvent.Companion.VK_LEFT
+import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
+import com.nectar.doodle.event.KeyEvent.Companion.VK_RIGHT
+import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -56,7 +62,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     }
 }
 
-private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*, *>, node: Any?, var path: Path<Int>, index: Int): View() {
+private class TreeRow(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<*, *>, node: Any?, var path: Path<Int>, index: Int): View() {
 
     private var depth     = -1
     private val iconWidth = 20.0
@@ -100,13 +106,14 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*, *>, 
                     setOf(path).also {
                         tree.apply {
                             when {
-                                selected(path)          -> removeSelection(it)
                                 Ctrl in event.modifiers ||
-                                Meta in event.modifiers -> addSelection   (it)
-                                else                    -> setSelection   (it)
+                                Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
+                                else                    -> setSelection(it)
                             }
                         }
                     }
+
+                    focusManager?.requestFocus(tree)
                 }
                 pressed = false
             }
@@ -214,21 +221,41 @@ private class TreeRow(private val labelFactory: LabelFactory, tree: Tree<*, *>, 
     }
 }
 
-private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory): RowGenerator<T> {
+private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow -> current.apply { update(tree, node, path, index) }
-        else       -> TreeRow(labelFactory, tree, node, path, index)
+        else       -> TreeRow(labelFactory, focusManager, tree, node, path, index)
     }
 }
 
-class BasicTreeUI<T>(labelFactory: LabelFactory): TreeRenderer<T> {
-    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory)
+class BasicTreeUI<T>(labelFactory: LabelFactory, focusManager: FocusManager?): TreeRenderer<T>, KeyListener {
+    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory, focusManager)
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {}
+
+    override fun install(view: Tree<T, *>) {
+        view.keyChanged += this
+    }
+
+    override fun uninstall(view: Tree<T, *>) {
+        view.keyChanged -= this
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+        (event.source as Tree<*, *>).let { tree ->
+            when (event.code) {
+                // TODO: Centralize
+                VK_UP    -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it > 0               ) tree.setSelection(setOf(it - 1)) } }?.let { Unit } ?: Unit
+                VK_DOWN  -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it < tree.numRows - 1) tree.setSelection(setOf(it + 1)) } }?.let { Unit } ?: Unit
+                VK_RIGHT -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                VK_LEFT  -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+            }
+        }
+    }
 }
 
-private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, labelFactory: LabelFactory): TreeLabelItemUIGenerator<T>(labelFactory) {
+private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, labelFactory: LabelFactory): TreeLabelItemUIGenerator<T>(labelFactory, focusManager) {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
         if (current !is TreeRow) {
             val result = it as TreeRow
@@ -237,8 +264,6 @@ private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusMana
                 override fun mouseReleased(event: MouseEvent) {
                     if (event.clickCount == 2) {
                         (tree as MutableTree).startEditing(result.path)
-                    } else {
-                        focusManager?.requestFocus(tree)
                     }
                 }
             }
@@ -265,7 +290,10 @@ class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFact
         (event.source as MutableTree<*, *>).let { tree ->
             when (event.code) {
                 VK_DELETE, VK_BACKSPACE -> tree.selection./*sortedByDescending { it }.*/forEach { tree.removeAt(it) }
-//                VK_UP                   -> tree.selection.firstOrNull()?.let { tree.setSelection() }
+                VK_UP                   -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it > 0               ) tree.setSelection(setOf(it - 1)) } }?.let { Unit } ?: Unit
+                VK_DOWN                 -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it < tree.numRows - 1) tree.setSelection(setOf(it + 1)) } }?.let { Unit } ?: Unit
+                VK_RIGHT                -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                VK_LEFT                 -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
             }
         }
     }
@@ -310,8 +338,9 @@ open class TextEditOperation<T>(
 
         this.keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
-                if (event.code == KeyEvent.VK_RETURN) {
-                    tree.completeEditing()
+                when (event.code) {
+                    VK_RETURN -> { tree.completeEditing(); focusManager?.requestFocus(tree) }
+                    VK_ESCAPE -> { tree.cancelEditing  (); focusManager?.requestFocus(tree) }
                 }
             }
         }
