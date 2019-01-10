@@ -28,12 +28,12 @@ import kotlin.math.max
 
 
 class RealGraphicsSurface private constructor(
-        private val htmlFactory            : HtmlFactory,
-        private val canvasFactory          : CanvasFactory,
-        private var parent                 : RealGraphicsSurface?,
-                    isContainer            : Boolean,
-                    canvasElement          : HTMLElement,
-                    addToDocumentIfNoParent: Boolean): GraphicsSurface {
+        private val htmlFactory        : HtmlFactory,
+        private val canvasFactory      : CanvasFactory,
+        private var parent             : RealGraphicsSurface?,
+                    isContainer        : Boolean,
+                    canvasElement      : HTMLElement,
+                    addToRootIfNoParent: Boolean): GraphicsSurface {
 
     constructor(htmlFactory: HtmlFactory,canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
@@ -70,7 +70,7 @@ class RealGraphicsSurface private constructor(
                     style.setHeightPercent(100.0)
 
                     while(rootElement.numChildren > 0) {
-                        rootElement.firstChild?.let { rootElement.remove(it); this.add(it) }
+                        rootElement.firstChild?.let { rootElement.remove(it); add(it) }
                     }
 
                     rootElement.insert(this, 0)
@@ -100,7 +100,7 @@ class RealGraphicsSurface private constructor(
         if (parent != null) {
             parent?.add(this)
             parent?.rootElement?.add(rootElement)
-        } else if (addToDocumentIfNoParent) {
+        } else if (addToRootIfNoParent) {
             htmlFactory.root.add(rootElement)
         }
     }

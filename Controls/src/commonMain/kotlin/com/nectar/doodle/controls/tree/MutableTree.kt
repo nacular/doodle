@@ -16,7 +16,7 @@ interface EditOperation<T> {
 }
 
 interface TreeEditor<T> {
-    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View? = null): EditOperation<T>
+    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
 class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
@@ -56,11 +56,15 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
     init {
         model.changed += modelChanged
 
+        expanded += { _,_ ->
+            editingRect?.let {
+                cancelEditing()
+            }
+        }
+
         collapsed += { _,_ ->
             editingPath?.let {
-                if (!visible(it)) {
-                    cancelEditing()
-                }
+               cancelEditing()
             }
         }
     }
@@ -71,7 +75,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     private var editingPath = null as Path<Int>?
         set(new) {
-            field       = new
+            field = new
             editingRect = field?.let { path -> this[path]?.let { node -> itemPositioner?.rowBounds(this, node, path, rowFromPath(path)!!) } }
         }
 
@@ -109,7 +113,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
                 val i = rowFromPath(path)!! % children.size
 
                 editingPath   = path
-                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children.getOrNull(i)).also {
+                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children[i]).also {
                     it()?.let { children[i] = it }
 
                     layout(children[i], item, path, i)

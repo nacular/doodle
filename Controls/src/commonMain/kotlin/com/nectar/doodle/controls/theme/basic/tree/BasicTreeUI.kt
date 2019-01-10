@@ -62,26 +62,38 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     }
 }
 
-private class TreeRow(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<*, *>, node: Any?, var path: Path<Int>, index: Int): View() {
+interface ContentGenerator<T> {
+    operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View? = null): View
+}
 
+private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
+    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View?): View {
+        return when (previous) {
+            is Label -> { previous.text = node.toString(); previous }
+            else     -> labelFactory(node.toString()).apply {
+                fitText             = false
+                horizontalAlignment = Left
+            }
+        }
+    }
+}
+
+private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
     private var depth     = -1
     private val iconWidth = 20.0
 
     private var icon = null as Label?
 
-    private val label = labelFactory(node.toString()).apply {
-        fitText             = false
-        horizontalAlignment = Left
-    }
+    private var content: View = contentFactory(tree, node, path, index)
 
     private var background = lightgray
 
     private lateinit var constraintLayout: ConstraintLayout
 
     init {
-        styleChanged += { rerender() }
+        children += content
 
-        children += label
+        styleChanged += { rerender() }
 
         mouseChanged += object: MouseListener {
             private var pressed   = false
@@ -107,7 +119,7 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
                         tree.apply {
                             when {
                                 Ctrl in event.modifiers ||
-                                Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
+                                        Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
                                 else                    -> setSelection(it)
                             }
                         }
@@ -122,13 +134,21 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
         update(tree, node, path, index)
     }
 
-    fun update(tree: Tree<*, *>, node: Any?, path: Path<Int>, index: Int) {
+    fun update(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int) {
         this.path = path
+
+        content = contentFactory(tree, node, path, index, content).also {
+            if (it != content) {
+                children -= content
+                children += it
+                depth     = -1 // force layout
+            }
+        }
 
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
         if (newDepth != depth) {
-            constraintLayout = constrain(label) { label ->
+            constraintLayout = constrain(content) { label ->
                 label.top    = label.parent.top
                 label.left   = label.parent.left + { iconWidth * (1 + newDepth) }
                 label.right  = label.parent.right
@@ -151,7 +171,7 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
                     fitText = false
                     width   = iconWidth
 
-                    this@TreeRow.children += this
+                    this@BasicTreeRow.children += this
 
                     mouseChanged += object: MouseListener {
                         private var pressed   = false
@@ -172,9 +192,9 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
 
                         override fun mouseReleased(event: MouseEvent) {
                             if (mouseOver && pressed) {
-                                when (tree.expanded(this@TreeRow.path)) {
-                                    true -> tree.collapse(this@TreeRow.path)
-                                    else -> tree.expand  (this@TreeRow.path)
+                                when (tree.expanded(this@BasicTreeRow.path)) {
+                                    true -> tree.collapse(this@BasicTreeRow.path)
+                                    else -> tree.expand  (this@BasicTreeRow.path)
                                 }
                             }
                             pressed = false
@@ -194,8 +214,6 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
             }
         }
 
-        label.text = node.toString()
-
         background = if (tree.selected(path)) green else lightgray
 
         background = when {
@@ -212,7 +230,7 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
 
     private fun constrainIcon(icon: Label?) {
         icon?.let {
-            constraintLayout.constrain(it, label) { icon, label ->
+            constraintLayout.constrain(it, content) { icon, label ->
                 icon.top    = label.top
                 icon.right  = label.left
                 icon.bottom = label.bottom
@@ -221,15 +239,17 @@ private class TreeRow(private val labelFactory: LabelFactory, private val focusM
     }
 }
 
-private open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?): RowGenerator<T> {
+open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
-        is TreeRow -> current.apply { update(tree, node, path, index) }
-        else       -> TreeRow(labelFactory, focusManager, tree, node, path, index)
+        is BasicTreeRow<*> -> (current as BasicTreeRow<T>).apply { update(tree, node, path, index) }
+        else               -> BasicTreeRow(contentGenerator, labelFactory, focusManager, tree, node, path, index)
     }
 }
 
-class BasicTreeUI<T>(labelFactory: LabelFactory, focusManager: FocusManager?): TreeRenderer<T>, KeyListener {
-    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory, focusManager)
+class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, KeyListener {
+    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(TreeLabelItemUIGenerator(labelFactory, focusManager))
+
+//    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory, focusManager)
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {}
@@ -257,8 +277,8 @@ class BasicTreeUI<T>(labelFactory: LabelFactory, focusManager: FocusManager?): T
 
 private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, labelFactory: LabelFactory): TreeLabelItemUIGenerator<T>(labelFactory, focusManager) {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
-        if (current !is TreeRow) {
-            val result = it as TreeRow
+        if (current !is BasicTreeRow<*>) {
+            val result = it as BasicTreeRow<*>
 
             it.mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
@@ -304,23 +324,25 @@ open class TextEditOperation<T>(
         private val focusManager   : FocusManager?,
         private val encoder        : Encoder<T, String>,
         private val display        : Display,
-                    positionMonitor: RelativePositionMonitor,
+        private val positionMonitor: RelativePositionMonitor,
         private val tree           : MutableTree<T, *>,
                     node           : T,
         private val path           : Path<Int>,
                     contentBounds  : Rectangle,
-                    current        : View?): TextField(), EditOperation<T> {
+        private val current        : View): TextField(), EditOperation<T> {
 
     private val treeSelectionChanged_ = ::treeSelectionChanged
 
+    private val positionChanged = { _:View, old: Rectangle, new: Rectangle ->
+        bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
+    }
+
     init {
-        backgroundColor = current?.backgroundColor
+        backgroundColor = current.backgroundColor
 
         bounds = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
 
-        positionMonitor[tree] += { _,old,new ->
-            bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
-        }
+        positionMonitor[current] += positionChanged
 
         tree.selectionChanged += treeSelectionChanged_
 
@@ -356,12 +378,16 @@ open class TextEditOperation<T>(
         return null
     }
 
-    override fun complete() = encoder.decode(text).also { display.children -= this }
+    override fun complete() = encoder.decode(text).also {
+        display.children -= this
+        positionMonitor[current] -= positionChanged
+    }
 
     override fun cancel() {
         tree.selectionChanged -= treeSelectionChanged_
 
         display.children -= this
+        positionMonitor[current] -= positionChanged
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -375,7 +401,7 @@ class TreeTextEditor<T>(
         private val encoder        : Encoder<T, String>,
         private val display        : Display,
         private val positionMonitor: RelativePositionMonitor): TreeEditor<T> {
-    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
+    override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
 
     companion object {
         operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {

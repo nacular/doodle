@@ -3,9 +3,9 @@
 package com.nectar.doodle.layout
 
 import com.nectar.doodle.core.Display
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
 import kotlin.math.max
 
@@ -407,12 +407,12 @@ private class ConstraintsImpl(target: View, override val parent: ParentConstrain
 //    override fun toString() = "C $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
-fun constrain(a: View,                               block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,          block) }
-fun constrain(a: View, b: View,                     block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,       block) }
-fun constrain(a: View, b: View, c: View,           block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,    block) }
+fun constrain(a: View,                            block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,          block) }
+fun constrain(a: View, b: View,                   block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,       block) }
+fun constrain(a: View, b: View, c: View,          block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,    block) }
 fun constrain(a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, block) }
 
-fun constrain(display: Display, a: View,                               block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,          block) }
-fun constrain(display: Display, a: View, b: View,                     block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,       block) }
-fun constrain(display: Display, a: View, b: View, c: View,           block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,    block) }
+fun constrain(display: Display, a: View,                            block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,          block) }
+fun constrain(display: Display, a: View, b: View,                   block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,       block) }
+fun constrain(display: Display, a: View, b: View, c: View,          block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,    block) }
 fun constrain(display: Display, a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, block) }
