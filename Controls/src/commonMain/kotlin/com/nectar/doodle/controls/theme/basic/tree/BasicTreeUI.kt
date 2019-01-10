@@ -7,7 +7,6 @@ import com.nectar.doodle.controls.theme.TreeRenderer
 import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
 import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
 import com.nectar.doodle.controls.tree.EditOperation
-import com.nectar.doodle.controls.tree.Model
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor
@@ -38,7 +37,6 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
-import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.RelativePositionMonitor
 import com.nectar.doodle.utils.isEven
@@ -331,8 +329,6 @@ open class TextEditOperation<T>(
                     contentBounds  : Rectangle,
         private val current        : View): TextField(), EditOperation<T> {
 
-    private val treeSelectionChanged_ = ::treeSelectionChanged
-
     private val positionChanged = { _:View, old: Rectangle, new: Rectangle ->
         bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
     }
@@ -343,8 +339,6 @@ open class TextEditOperation<T>(
         bounds = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
 
         positionMonitor[current] += positionChanged
-
-        tree.selectionChanged += treeSelectionChanged_
 
         text = encoder.encode(node) ?: ""
 
@@ -384,15 +378,8 @@ open class TextEditOperation<T>(
     }
 
     override fun cancel() {
-        tree.selectionChanged -= treeSelectionChanged_
-
         display.children -= this
         positionMonitor[current] -= positionChanged
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun treeSelectionChanged(set: ObservableSet<out Tree<*, Model<*>>, *>, removed: Set<Path<Int>>, added: Set<Path<Int>>) {
-        tree.cancelEditing()
     }
 }
 

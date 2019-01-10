@@ -55,6 +55,11 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     init {
         model.changed += modelChanged
+        selectionChanged += { _,_,_ ->
+            editingRect?.let {
+                cancelEditing()
+            }
+        }
 
         expanded += { _,_ ->
             editingRect?.let {
