@@ -31,12 +31,13 @@ import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.Renderer.FillRule
+import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
@@ -51,6 +52,8 @@ import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
+import com.nectar.measured.units.degrees
+import com.nectar.measured.units.times
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
@@ -58,8 +61,6 @@ import kotlin.dom.clear
 import kotlin.math.max
 
 
-
-private class Shadow(val horizontal: Double = 0.0, val vertical: Double = 0.0, val blurRadius: Double = 0.0, val color: Color = Color.black)
 
 internal class CanvasImpl(
         private val renderParent: HTMLElement,
@@ -74,18 +75,20 @@ internal class CanvasImpl(
 
     private val vectorRenderer by lazy { rendererFactory(this) }
 
-    private var shadows = mutableListOf<Shadow>()
+    override val shadows = mutableListOf<Shadow>()
 
-    override fun rect(rectangle: Rectangle,           brush: Brush ) = present(brush = brush) { getRect(rectangle) }
+    private fun isSimple(brush: Brush) = brush.let { it is ColorBrush /*|| it is LinearGradientBrush*/ }
+
+    override fun rect(rectangle: Rectangle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { getRect(rectangle) } else vectorRenderer.rect(rectangle, brush)
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
 
-    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(brush = brush) { roundedRect(rectangle, radius) }
+    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, brush)
     override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, radius, pen, brush)
 
-    override fun circle(circle: Circle,           brush: Brush ) = present(brush = brush) { roundedRect(circle.boundingRectangle, circle.radius) }
+    override fun circle(circle: Circle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, brush)
     override fun circle(circle: Circle, pen: Pen, brush: Brush?) = vectorRenderer.circle(circle, pen, brush)
 
-    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(brush = brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) }
+    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, brush)
     override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = vectorRenderer.ellipse(ellipse, pen, brush)
 
     // =============== Complex =============== //
@@ -260,14 +263,16 @@ internal class CanvasImpl(
         it.style.setBounds(rectangle)
     }
 
-    override fun shadow(horizontal: Double, vertical: Double, blurRadius: Double, color: Color, block: Canvas.() -> Unit) {
-        val shadow = Shadow(horizontal, vertical, blurRadius, color)
+    override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
+        shadows += shadow
 
-        shadows.add(shadow)
+        vectorRenderer.add(shadow)
 
         apply(block)
 
-        shadows.remove(shadow)
+        vectorRenderer.remove(shadow)
+
+        shadows -= shadow
     }
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
@@ -315,8 +320,9 @@ internal class CanvasImpl(
     private fun present(pen: Pen? = null, brush: Brush?, block: () -> HTMLElement?) {
         if (visible(pen, brush)) {
             block()?.let {
-                if (brush is ColorBrush) {
-                    it.style.setBackgroundColor(brush.color)
+                when (brush) {
+                    is ColorBrush          -> it.style.setBackgroundColor(brush.color)
+                    is LinearGradientBrush -> it.style.background = "linear-gradient(${90 * degrees - brush.rotation `in` degrees}deg, ${brush.colors.joinToString(",") { "${it.color.run {"rgba($red,$green,$blue,$opacity)"}} ${it.offset * 100}%" }})"
                 }
                 if (pen != null) {
                     it.style.setBorderWidth(pen.thickness)

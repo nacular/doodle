@@ -13,6 +13,8 @@ import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 
 
+class Shadow(val horizontal: Double = 0.0, val vertical: Double = 0.0, val blurRadius: Double = 0.0, val color: Color = black)
+
 interface Canvas: Renderer {
 
     var size        : Size
@@ -69,7 +71,8 @@ interface Canvas: Renderer {
 
     fun clip(rectangle: Rectangle, block: Canvas.() -> Unit)
 
-    fun shadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black, block: Canvas.() -> Unit)
+    fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
+    fun shadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black, block: Canvas.() -> Unit) = shadow(Shadow(horizontal, vertical, blurRadius, color), block)
 
 //    interface ImageData
 }

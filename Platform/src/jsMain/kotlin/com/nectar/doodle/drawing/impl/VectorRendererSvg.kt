@@ -12,25 +12,35 @@ import com.nectar.doodle.dom.removeTransform
 import com.nectar.doodle.dom.setCX
 import com.nectar.doodle.dom.setCY
 import com.nectar.doodle.dom.setFill
+import com.nectar.doodle.dom.setFillPattern
 import com.nectar.doodle.dom.setFillRule
 import com.nectar.doodle.dom.setHeight
+import com.nectar.doodle.dom.setId
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPathData
 import com.nectar.doodle.dom.setR
 import com.nectar.doodle.dom.setRX
 import com.nectar.doodle.dom.setRY
+import com.nectar.doodle.dom.setStopColor
+import com.nectar.doodle.dom.setStopOffset
 import com.nectar.doodle.dom.setStroke
 import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setX
+import com.nectar.doodle.dom.setX1Percent
+import com.nectar.doodle.dom.setX2Percent
 import com.nectar.doodle.dom.setY
+import com.nectar.doodle.dom.setY1Percent
+import com.nectar.doodle.dom.setY2Percent
 import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.ColorBrush
+import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization
+import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -51,39 +61,48 @@ import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGRectElement
 import kotlin.dom.clear
 import kotlin.math.max
+import kotlin.reflect.KClass
 
 class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
-    private fun getSvgElement(): SVGElement {
-        // Clear the remaining elements from existing SVG element
-        // or they will be missed on the final flush
+    private val svgElement: SVGElement
+        get() {
+            // Clear the remaining elements from existing SVG element
+            // or they will be missed on the final flush
 
-        var renderPosition = context.renderPosition
+            var renderPosition = context.renderPosition
 
-        while (renderPosition != null && isCompatibleSvgElement(renderPosition.previousSibling)) {
-            renderPosition = renderPosition.previousSibling
-        }
-
-        if (renderPosition is SVGElement && renderPosition.nodeName == svgTag) {
-            if (renderPosition.shapeRendering === shapeRendering) {
-                return renderPosition
+            while (renderPosition != null && isCompatibleSvgElement(renderPosition.previousSibling)) {
+                renderPosition = renderPosition.previousSibling
             }
-        } else {
-            val lastChild = region.lastChild
 
-            if (lastChild is SVGElement && lastChild.nodeName == svgTag && lastChild.shapeRendering === shapeRendering) {
-                return lastChild
+            if (renderPosition is SVGElement && renderPosition.nodeName == svgTag) {
+                if (renderPosition.shapeRendering === shapeRendering) {
+                    return renderPosition
+                }
+            } else {
+                var lastChild = region.lastChild
+                var potential = null as SVGElement?
+
+//                if (lastChild is SVGElement && lastChild.nodeName == svgTag && lastChild.shapeRendering === shapeRendering) {
+//                    return lastChild
+//                }
+
+                while(lastChild is SVGElement && lastChild.nodeName == svgTag && lastChild.shapeRendering === shapeRendering) {
+                    potential = lastChild
+                    lastChild = lastChild.lastChild
+                }
+
+                if (potential != null) return potential
             }
+
+            flush()
+
+            val svg = svgFactory<SVGElement>(svgTag)
+
+            svg.shapeRendering = shapeRendering
+
+            return svg
         }
-
-        flush()
-
-        val svg: SVGElement = svgFactory.create(svgTag)
-
-        svg.shapeRendering = shapeRendering
-
-        return svg
-    }
-
 
     private val region get() = context.renderRegion
 
@@ -93,6 +112,14 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private var renderPosition: Node? = null
+
+    private val fillHandlers = mapOf<KClass<out Brush>, FillHandler>(
+        ColorBrush::class to SolidFillHandler,
+//        TextureFillHandler,
+        LinearGradientBrush::class to LinearFillHandler(svgFactory)
+    )
+
+    fun nextId() = "${id++}"
 
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, point1, point2)
 
@@ -232,14 +259,14 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeRect(rectangle: Rectangle): SVGRectElement {
-        val element: SVGRectElement = createElement("rect")
+        val element = createElement<SVGRectElement>("rect")
 
         element.setX    (rectangle.x      )
         element.setY    (rectangle.y      )
         element.setWidth(rectangle.width  )
         element.setHeight(rectangle.height)
 
-        element.setFill(null)
+        element.setFill  (null)
         element.setStroke(null)
 
         return element
@@ -319,18 +346,22 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun makeClosedPath(vararg points: Point): SVGPathElement {
-        val path = SVGPath()
+//        val path = SVGPath()
 
-        path.addPath(*points)
-        path.close()
+        return createElement<SVGPathElement>("polygon").apply {
+            setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
+        }
 
-        return makePath(path)
+//        path.addPath(*points)
+//        path.close()
+//
+//        return makePath(path)
     }
 
     private fun makePath(path: Path): SVGPathElement = makePath(path.data)
 
-    private fun makePath(pathData: String): SVGPathElement = createElement<SVGPathElement>("path").also {
-        it.setPathData(pathData)
+    private fun makePath(pathData: String): SVGPathElement = createElement<SVGPathElement>("path").apply {
+        setPathData(pathData)
     }
 
     private fun outlineElement(element: SVGElement, pen: Pen, clearFill: Boolean = true) {
@@ -357,7 +388,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun fillElement(element: SVGElement, brush: Brush, clearOutline: Boolean = true) {
-        fillHandlers.first { it.fill(this, element, brush) }
+        fillHandlers[brush::class]?.fill(this, element, brush)
 
         if (clearOutline) {
             element.setStroke(null)
@@ -398,7 +429,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
 
         return when {
-            element == null || element.nodeName != tag -> svgFactory.create(tag)
+            element == null || element.nodeName != tag -> svgFactory(tag)
             element is SVGElement                      -> { element.clear(); element.removeTransform(); @Suppress("UNCHECKED_CAST")
             element as T
             }
@@ -408,8 +439,80 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName && node.shapeRendering == shapeRendering
 
+    override fun add(shadow: Shadow) {
+//        val svg = createElement<SVGElement>("svg").apply {
+//            setAttribute("width",  "${context.size.width }")
+//            setAttribute("height", "${context.size.height}")
+//        }
+//
+//        val filter = createElement<SVGElement>("filter").apply {
+//            setId(nextId())
+//            clear()
+//
+//            add(createElement<SVGElement>("feDropShadow").apply {
+//                setAttribute("dx",            "${shadow.horizontal}"   )
+//                setAttribute("dy",            "${shadow.vertical  }"   )
+//                setAttribute("stdDeviation",  "${shadow.blurRadius}"   )
+//                setAttribute("flood-color",   shadow.color.hexString   )
+//                setAttribute("flood-opacity", "${shadow.color.opacity}")
+//            })
+//        }
+//
+//        // Work-around to ensure root is in DOM, otherwise filters will not be retained
+//        if (svgElement.parent == null) {
+//            region.add(svgElement)
+//        }
+//
+//        svgElement.add(filter)
+//        svg.setAttribute("filter", "url(#${filter.id})")
+//
+////        svg.style.filter = "drop-shadow(${shadow.horizontal} ${shadow.vertical} ${shadow.blurRadius}px ${shadow.color.hexString})"
+//
+//        completeOperation(svg)
+//
+//        renderPosition = svg
+//
+//        completeOperation(makeRect(Rectangle(size = context.size)))
+    }
+
+    override fun remove(shadow: Shadow) {}
+
+
     private fun completeOperation(element: SVGElement) {
-        val svg = getSvgElement()
+        val svg = svgElement
+
+        /*
+        <filter id="shadow" x="0" y="0" width="200%" height="200%">
+            <feDropShadow dx="40" dy="40" stdDeviation="35" flood-color="#ff0000" flood-opacity="1" />
+        </filter>
+         */
+
+//        var element = e
+
+//        context.shadows.forEachIndexed { index, shadow ->
+//            // Need to use groups to add multiple filters
+//            if (index > 0) {
+//                val old = element
+//                element = createElement("g")
+//                element.add(old)
+//            }
+//
+//            val filter = createElement<SVGElement>("filter").apply {
+//                setId(nextId())
+//                clear()
+//
+//                add(createElement<SVGElement>("feDropShadow").apply {
+//                    setAttribute("dx",            "${shadow.horizontal}"   )
+//                    setAttribute("dy",            "${shadow.vertical  }"   )
+//                    setAttribute("stdDeviation",  "${shadow.blurRadius}"   )
+//                    setAttribute("flood-color",   shadow.color.hexString   )
+//                    setAttribute("flood-opacity", "${shadow.color.opacity}")
+//                })
+//            }
+//
+//            svg.add(filter)
+//            element.setAttribute("filter", "url(#${filter.id})")
+//        }
 
         if (context.renderPosition == null) {
             if (svg.parent == null) {
@@ -437,11 +540,11 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private class SVGPath: Path("M", "L", "Z")
 
     private interface FillHandler {
-        fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean
+        fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean
     }
 
     private object SolidFillHandler: FillHandler {
-        override fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
             if (brush is ColorBrush) {
                 val color   = brush.color
                 val opacity = color.opacity
@@ -503,77 +606,69 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //        }
 //    }
 //
-//    private class LinearFillHandler : FillHandler {
-//        override fun fill(aRenderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
-//            if (brush !is LinearGradientBrush) {
-//                return false
-//            }
-//
-//            val aPIOver4 = Math.PI / 4
-//
-//            val aColor1 = (brush as LinearGradientBrush).getColor1()
-//            val aColor2 = (brush as LinearGradientBrush).getColor2()
-//            val aGradient = aRenderer.createElement("linearGradient")
-//            val aStop1 = SVGElement.create("stop")
-//            val aStop2 = SVGElement.create("stop")
-//            var rotation = (brush as LinearGradientBrush).getRotation()
-//
-//            aGradient.setId(SVGElement.getNextId())
-//
-//            aStop1.setStopColor(aColor1)
-//            aStop2.setStopColor(aColor2)
-//            aStop1.setStopOffset(0)
-//            aStop2.setStopOffset(1)
-//
-//            aGradient.removeAll()
-//            aGradient.add(aStop1)
-//            aGradient.add(aStop2)
-//
-//            rotation %= 2 * Math.PI
-//
-//            if (rotation < 0) {
-//                rotation = Math.PI - rotation
-//            }
-//
-//            if (rotation > aPIOver4 && rotation < 3 * aPIOver4 || rotation > 5 * aPIOver4 && rotation < 7 * aPIOver4) {
-//                configureGradient2(aGradient, Math.cos(rotation), rotation, 5 * aPIOver4)
-//            } else {
-//                configureGradient1(aGradient, Math.sin(rotation), rotation, 3 * aPIOver4)
-//            }
-//
-//            aRenderer.completeOperation(aGradient)
-//
-//            element.setFillPattern(aGradient)
-//
-//            return true
-//        }
-//
-//        private fun configureGradient1(aGradient: SVGElement, aDelta: Double, rotation: Double, rotationThreshold: Double) {
-//            aGradient.setY1Percent(50 * (1 - aDelta))
-//            aGradient.setY2Percent(50 * (1 + aDelta))
-//
-//            aGradient.setX1Percent(if (rotation > rotationThreshold) 100 else 0)
-//            aGradient.setX2Percent(if (rotation > rotationThreshold) 0 else 100)
-//        }
-//
-//        private fun configureGradient2(aGradient: SVGElement, aDelta: Double, rotation: Double, rotationThreshold: Double) {
-//            aGradient.setX1Percent(50 * (1 - aDelta))
-//            aGradient.setX2Percent(50 * (1 + aDelta))
-//
-//            aGradient.setY1Percent(if (rotation > rotationThreshold) 100 else 0)
-//            aGradient.setY2Percent(if (rotation > rotationThreshold) 0 else 100)
-//        }
-//    }
+    private class LinearFillHandler(private val svgFactory: SvgFactory): FillHandler {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
+            if (brush !is LinearGradientBrush) {
+                return false
+            }
+
+            // FIXME: Re-use elements when possible
+            val gradient = svgFactory<SVGElement>("linearGradient").apply {
+                setId(renderer.nextId())
+                clear(                 )
+            }
+
+            brush.colors.forEach {
+                gradient.add(svgFactory<SVGElement>("stop").apply {
+                    setStopColor (it.color )
+                    setStopOffset(it.offset)
+                })
+            }
+
+            var rotation = brush.rotation
+
+            rotation = ((rotation `in` degrees) % 360) * degrees
+
+            if (rotation < 0 * degrees) {
+                rotation = 180 * degrees - rotation
+            }
+
+            val fortyFive = 45 * degrees
+
+            if (rotation > fortyFive && rotation < 3 * fortyFive || rotation > 5 * fortyFive && rotation < 7 * fortyFive) {
+                configureGradient2(gradient, cos(rotation), rotation, 5 * fortyFive)
+            } else {
+                configureGradient1(gradient, sin(rotation), rotation, 3 * fortyFive)
+            }
+
+            renderer.completeOperation(gradient)
+
+            element.setFillPattern(gradient)
+
+            return true
+        }
+
+        private fun configureGradient1(gradient: SVGElement, delta: Double, rotation: Measure<Angle>, rotationThreshold: Measure<Angle>) {
+            gradient.setY1Percent(50 * (1 - delta))
+            gradient.setY2Percent(50 * (1 + delta))
+
+            gradient.setX1Percent(if (rotation > rotationThreshold) 100.0 else   0.0)
+            gradient.setX2Percent(if (rotation > rotationThreshold)   0.0 else 100.0)
+        }
+
+        private fun configureGradient2(gradient: SVGElement, delta: Double, rotation: Measure<Angle>, rotationThreshold: Measure<Angle>) {
+            gradient.setX1Percent(50 * (1 - delta))
+            gradient.setX2Percent(50 * (1 + delta))
+
+            gradient.setY2Percent(if (rotation > rotationThreshold) 100.0 else   0.0)
+            gradient.setY1Percent(if (rotation > rotationThreshold)   0.0 else 100.0)
+        }
+    }
 
     companion object {
-
-        private val fillHandlers = listOf<FillHandler>(
-                SolidFillHandler //,
-//                TextureFillHandler,
-//                LinearFillHandler
-        )
-
+        private var id     = 0
         private val svgTag = "svg"
+
 //        private var sClipId = 0.0
     }
 }

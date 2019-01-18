@@ -18,7 +18,7 @@ class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
     override fun height(path: Path) = size(path).height
 
     override fun size(path: Path): Size {
-        val element = svgFactory.create<SVGPathElement>("path")
+        val element = svgFactory<SVGPathElement>("path")
 
         svg.add(element)
 
@@ -35,5 +35,5 @@ class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
         return rect.size
     }
 
-    private val svg = svgFactory.create<SVGElement>("svg")
+    private val svg = svgFactory<SVGElement>("svg")
 }

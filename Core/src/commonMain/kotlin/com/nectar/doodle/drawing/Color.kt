@@ -153,6 +153,79 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
     }
 }
 
+class HsvColor(val hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
+
+//    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+
+    fun toRgb(): Color {
+        val c = (value * saturation).toDouble()
+        val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
+        val m = value - c
+
+        val rgb: List<Double> = when (hue `in` degrees) {
+            in   0 until  60 -> listOf(  c,   x, 0.0)
+            in  60 until 120 -> listOf(  x,   c, 0.0)
+            in 120 until 180 -> listOf(0.0,   c,   x)
+            in 180 until 240 -> listOf(0.0,   x,   c)
+            in 240 until 300 -> listOf(  x, 0.0,   c)
+            in 300 until 360 -> listOf(  c, 0.0,   x)
+            else -> throw IllegalStateException("Invalid HSV Color: $this")
+        }
+
+        return Color(
+                round(0xff * (rgb[0] + m)).toUByte(),
+                round(0xff * (rgb[1] + m)).toUByte(),
+                round(0xff * (rgb[2] + m)).toUByte(),
+                opacity)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other    ) return true
+        if (other !is HsvColor) return false
+
+        if (hue        != other.hue       ) return false
+        if (saturation != other.saturation) return false
+        if (value      != other.value     ) return false
+        if (opacity    != other.opacity   ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = hue.hashCode()
+        result = 31 * result + saturation.hashCode()
+        result = 31 * result + value.hashCode     ()
+        result = 31 * result + opacity.hashCode   ()
+        return result
+    }
+
+    override fun toString() = "$hue, $saturation, $value"
+
+    companion object {
+        operator fun invoke(rgb: Color): HsvColor {
+            val r     = rgb.red.toFloat  () / 255.0
+            val g     = rgb.green.toFloat() / 255.0
+            val b     = rgb.blue.toFloat () / 255.0
+            val max   = maxOf(r, g, b)
+            val min   = minOf(r, g, b)
+            val delta = max - min
+
+            val hue = 60 * when {
+                delta == 0.0 -> 0.0
+                r     == max -> (((g - b) / delta) % 6)
+                g     == max -> (( b - r) / delta  + 2)
+                b     == max -> (( r - g) / delta  + 4)
+                else         -> 0.0
+            }
+
+            val saturation = if (max == 0.0) 0f else (delta / max).toFloat()
+
+            // Get modulus instead of remainder https://stackoverflow.com/questions/5385024/mod-in-java-produces-negative-numbers
+            return HsvColor((((hue % 360) + 360) % 360) * degrees, saturation, max.toFloat(), rgb.opacity)
+        }
+    }
+}
+
 private fun Double.toUByte() = toInt().toUByte()
 private fun UByte.toFloat () = toInt().toFloat()
 

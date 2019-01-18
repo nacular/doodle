@@ -1,8 +1,11 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.drawing.Brush
+import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Rectangle
@@ -26,6 +29,9 @@ interface VectorRenderer: Renderer {
     fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
 
     fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit)
+
+    fun add   (shadow: Shadow)
+    fun remove(shadow: Shadow)
 }
 
 typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

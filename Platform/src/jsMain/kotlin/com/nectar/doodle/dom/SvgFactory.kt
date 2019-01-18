@@ -10,14 +10,14 @@ import kotlin.browser.document
 interface SvgFactory {
     val root: HTMLElement
 
-    fun <T: SVGElement> create(tag: String): T
+    operator fun <T: SVGElement> invoke(tag: String): T
 }
 
 internal class SvgFactoryImpl(override val root: HTMLElement): SvgFactory {
     private val prototypes = mutableMapOf<String, SVGElement>()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : SVGElement> create(tag: String) = prototypes.getOrPut(tag) {
+    override operator fun <T : SVGElement> invoke(tag: String) = prototypes.getOrPut(tag) {
         document.createElementNS( "http://www.w3.org/2000/svg", tag) as T
     }.cloneNode(false) as T
 }

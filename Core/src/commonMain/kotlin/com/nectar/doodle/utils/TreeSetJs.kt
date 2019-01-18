@@ -116,11 +116,12 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
     }
 
     protected inner class BstIterator: kotlin.collections.MutableIterator<E> {
-        val stack by lazy {
+        private val stack by lazy {
             mutableListOf<BstNode<E>>().also {
                 populateStack(root, it)
             }
         }
+
         override fun remove() {
             if (hasNext()) {
                 val node = pop()

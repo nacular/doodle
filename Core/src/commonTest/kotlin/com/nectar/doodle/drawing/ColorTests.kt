@@ -58,6 +58,16 @@ class ColorTests {
         expect(it.first, "${it.second} -> ${it.first}") { it.second.toRgb() }
     }
 
+    @Test @JsName("rgbToHsv")
+    fun `rgb to hsv`() = listOf(Color(0xff0020u) to HsvColor(352 * degrees, 1f, 1f)).forEach {
+        expect(it.second, "${it.first} -> ${it.second}") { HsvColor(it.first) }
+    }
+
+    @Test @JsName("hsvToRgb")
+    fun `hsv to rgb`() = listOf(Color(0xff0020u) to HsvColor(352 * degrees, 1f, 1f)).forEach {
+        expect(it.first, "${it.second} -> ${it.first}") { it.second.toRgb() }
+    }
+
 //    @Test @JsName("lighter")
 //    fun `lighter`() = listOf(red, green, blue, Color(0x454547), white, black).forEach {
 //        it.lighter().also { lighter ->

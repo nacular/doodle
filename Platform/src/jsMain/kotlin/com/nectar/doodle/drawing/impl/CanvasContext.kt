@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.drawing.Renderer.Optimization
+import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Size
 import org.w3c.dom.Node
 
@@ -13,4 +14,5 @@ interface CanvasContext {
     var optimization  : Optimization
     val renderRegion  : Node
     var renderPosition: Node?
+    val shadows       : List<Shadow>
 }

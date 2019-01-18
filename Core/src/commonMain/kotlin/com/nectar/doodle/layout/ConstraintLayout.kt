@@ -22,6 +22,7 @@ abstract class ConstraintLayout: Layout() {
     abstract fun unconstrain(vararg views: View): ConstraintLayout
 }
 
+
 private class ConstraintLayoutImpl(private val display: Display? = null, vararg constraints: ConstraintsImpl): ConstraintLayout() {
     private val constraints by lazy { constraints.fold(mutableMapOf<View, ConstraintsImpl>()) { s, r -> s[r.target] = r; s } }
     private val processed   by lazy { mutableSetOf<View>()                                                                   }
@@ -79,47 +80,48 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
         processing += child
 
         var top    = process(constraints.top    )
+        var height = process(constraints.height )
         val middle = process(constraints.centerY)
         val bottom = process(constraints.bottom )
 
-        // FIXME: Handle width and height
-//        val height = process(constraints.height )
-//        val width  = process(constraints.width)
-
-        var rawHeight = child.height
-
-        when {
-            top    != null && middle != null && bottom != null -> {} // TODO: HANDLE
-            top    != null && middle != null                   -> { rawHeight = (middle - top) * 2 }
-            top    != null && bottom != null                   -> { rawHeight = (bottom - top)     }
-            top    != null                                     -> {}
-            middle != null && bottom != null                   -> { top    =  bottom - (bottom - middle) * 2 }
-            middle != null                                     -> { top    =  middle - rawHeight / 2}
-            bottom != null                                     -> { top    =  bottom - rawHeight }
-            else                                               -> { top    =  child.y }
+        top = top ?: when {
+            middle != null && height != null -> middle - height / 2
+            middle != null && bottom != null -> bottom - (bottom - middle) * 2
+            height != null && bottom != null -> bottom - height
+            middle != null                   -> middle - child.height / 2
+            bottom != null                   -> bottom - child.height
+            else                             -> child.y
         }
 
+        height = height ?: when {
+            middle != null -> (middle - top) * 2
+            bottom != null -> bottom - top
+            else           -> child.height
+        }
+
+        // TODO: Fully handle width/height
+
         var left   = process(constraints.left   )
+        var width  = process(constraints.width  )
         val center = process(constraints.centerX)
         val right  = process(constraints.right  )
 
-        var rawWidth = child.width
-
-        when {
-            left   != null && center != null && right != null -> {} // TODO: HANDLE
-            left   != null && center != null                  -> { rawWidth = (center - left) * 2 }
-            left   != null && right  != null                  -> { rawWidth = (right  - left)     }
-            left   != null                                    -> {}
-            center != null && right  != null                  -> { left  =  right  - (right - center) * 2 }
-            center != null                                    -> { left  =  center - rawWidth / 2}
-            right  != null                                    -> { left  =  right  - rawWidth }
-            else                                              -> { left  =  child.x  }
+        left = left ?: when {
+            center != null && width != null -> center - width / 2
+            center != null && right != null -> right  - (right - center) * 2
+            width  != null && right != null -> right  - width
+            center != null                  -> center - child.width / 2
+            right  != null                  -> right  - child.width
+            else                            -> child.x
         }
 
-        rawWidth  = max(0.0, rawWidth )
-        rawHeight = max(0.0, rawHeight)
+        width = width ?: when {
+            center != null -> (center - left) * 2
+            right  != null -> right - left
+            else           -> child.width
+        }
 
-        child.bounds = Rectangle(left, top, rawWidth, rawHeight)
+        child.bounds = Rectangle(left, top, max(0.0, width), max(0.0, height))
 
         processing -= child
         processed  += child
