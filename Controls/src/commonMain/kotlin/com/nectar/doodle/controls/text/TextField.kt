@@ -10,7 +10,7 @@ open class TextField: TextInput() {
 
     val masked get() = mask != null
 
-    var displayText = ""
+    private var displayText = ""
         get() = if (mask == null) text else field
         private set
 

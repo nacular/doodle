@@ -15,7 +15,7 @@ import org.w3c.dom.svg.SVGRectElement
 import kotlin.math.max
 import kotlin.math.min
 
-inline val SVGElement.parent get() = parentNode as SVGElement?
+inline val SVGElement.parent get() = parentNode
 
 
 inline fun SVGRectElement.setX      (value: Double) = setAttribute( "x",     "$value")

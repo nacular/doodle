@@ -78,7 +78,6 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     private fun mouseUp(event: SystemMouseEvent) {
-        var cursor: Cursor? = null
         val view = getMouseEventHandler(view(from = event))
 
         if (clickedEventAwareView != null || mouseDown) {
@@ -119,8 +118,6 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
             event.consume()
         }
-
-        this.cursor = cursor
 
         mouseDown = false
 
@@ -164,7 +161,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
             }
         }
 
-        val view = getMouseEventHandler(coveredView)
+        val view = getMouseMotionEventHandler(coveredView) ?: getMouseEventHandler(coveredView)
 
         if (view !== coveredEventAwareView) {
             coveredEventAwareView?.let {

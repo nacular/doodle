@@ -70,7 +70,9 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 }
 
-class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
+class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
+
+    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
     fun darker(percent: Float = 0.5f): HslColor {
         require(percent in 0f .. 1f)
@@ -153,9 +155,9 @@ class HslColor(val hue: Measure<Angle>, val saturation: Float, val lightness: Fl
     }
 }
 
-class HsvColor(val hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
+class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
 
-//    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
     fun toRgb(): Color {
         val c = (value * saturation).toDouble()
@@ -221,7 +223,7 @@ class HsvColor(val hue: Measure<Angle>, val saturation: Float, val value: Float,
             val saturation = if (max == 0.0) 0f else (delta / max).toFloat()
 
             // Get modulus instead of remainder https://stackoverflow.com/questions/5385024/mod-in-java-produces-negative-numbers
-            return HsvColor((((hue % 360) + 360) % 360) * degrees, saturation, max.toFloat(), rgb.opacity)
+            return HsvColor(hue * degrees, saturation, max.toFloat(), rgb.opacity)
         }
     }
 }

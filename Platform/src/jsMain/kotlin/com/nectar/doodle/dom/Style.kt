@@ -46,7 +46,7 @@ internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "
 
 internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)" }
 
-internal inline fun Style.setColor  (value: Color       ) { color   = rgba(value)      }
+internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) /*"#${it.hexString}"*/  } ?: "" }
 internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 

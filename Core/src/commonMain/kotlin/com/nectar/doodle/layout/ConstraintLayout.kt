@@ -14,10 +14,11 @@ import kotlin.math.max
  */
 
 abstract class ConstraintLayout: Layout() {
-    abstract fun constrain(a: View, block: (Constraints) -> Unit): ConstraintLayout
-    abstract fun constrain(a: View, b: View, block: (Constraints, Constraints) -> Unit): ConstraintLayout
-    abstract fun constrain(a: View, b: View, c: View, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
-    abstract fun constrain(a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+    abstract fun constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout
+    abstract fun constrain(a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout
+    abstract fun constrain(a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout
+    abstract fun constrain(a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout
+    abstract fun constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
 
     abstract fun unconstrain(vararg views: View): ConstraintLayout
 }
@@ -48,6 +49,12 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
 
     override fun constrain(a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
         constraints(display, a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
+            return this
+        }
+    }
+
+    override fun constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
+        constraints(display, a, b, c, d, e).let { (a, b, c, d, e) -> block(a, b, c, d, e)
             return this
         }
     }
@@ -133,13 +140,12 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
         processing.clear()
 
         // FIXME: This check is pretty inefficient; but it.key.parent == positionable won't work
-        constraints.filter { it.key in positionable.children }.forEach { (child, constraints) ->
+        constraints.filter { it.key in positionable.children && it.key !in processed }.forEach { (child, constraints) ->
             layoutChild(child, constraints)
         }
     }
 
     private fun constraints(display: Display? = null, child: View, vararg others: View): List<Constraints> {
-        // FIXME: Add support for laying out Display
         child.parent?.let {
             val parent = ParentConstraintsImpl(it)
 
@@ -181,139 +187,155 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
     }
 }
 
-open class Constraint(internal val target: View, internal val default: Boolean = true, internal var block: (View) -> Double) {
-    internal val dependencies by lazy { mutableSetOf(target) }
+open class Constraint(internal val target: View, dependencies: Set<View> = emptySet(), internal val default: Boolean = true, internal var block: (View) -> Double) {
+    internal val dependencies by lazy { mutableSetOf(target) + dependencies }
 
     internal operator fun invoke() = block(target)
 }
 
-class VerticalConstraint(target: View, default: Boolean = true, block: (View) -> Double): Constraint(target, default, block) {
+class VerticalConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
     operator fun plus(value: Number) = plus { value }
 
-    operator fun plus(value: () -> Number) = VerticalConstraint(target) {
+    operator fun plus(value: () -> Number) = VerticalConstraint(target, dependencies) {
         block(it) + value().toDouble()
     }
 
-    operator fun plus(value: MagnitudeConstraint) = VerticalConstraint(target) {
+    operator fun plus(value: MagnitudeConstraint) = VerticalConstraint(target, dependencies + value.dependencies) {
         block(it) + value()
     }
 
-    operator fun plus(value: VerticalConstraint) = MagnitudeConstraint(target) {
+    operator fun plus(value: VerticalConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies) {
         block(it) + value()
     }
 
     operator fun minus(value: Number) = minus { value }
 
-    operator fun minus(value: () -> Number) = VerticalConstraint(target) {
+    operator fun minus(value: () -> Number) = VerticalConstraint(target, dependencies) {
         block(it) - value().toDouble()
     }
 
-    operator fun minus(value: VerticalConstraint) = MagnitudeConstraint(target) {
+    operator fun minus(value: VerticalConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies) {
         block(it) - value()
     }
 
-    operator fun minus(value: MagnitudeConstraint) = VerticalConstraint(target) {
+    operator fun minus(value: MagnitudeConstraint) = VerticalConstraint(target, dependencies + value.dependencies) {
         block(it) - value()
     }
 
     operator fun times(value: Number) = times { value }
 
-    operator fun times(value: () -> Number) = VerticalConstraint(target) {
+    operator fun times(value: () -> Number) = VerticalConstraint(target, dependencies) {
         block(it) * value().toDouble()
     }
 
     operator fun div(value: Number) = div { value }
 
-    operator fun div(value: () -> Number) = VerticalConstraint(target) {
+    operator fun div(value: () -> Number) = VerticalConstraint(target, dependencies) {
         block(it) / value().toDouble()
     }
 
-    operator fun times(value: MagnitudeConstraint) = VerticalConstraint(target) {
+    operator fun times(value: MagnitudeConstraint) = VerticalConstraint(target, dependencies + value.dependencies) {
         block(it) * value()
     }
 
-    operator fun div(value: MagnitudeConstraint) = VerticalConstraint(target) {
+    operator fun div(value: MagnitudeConstraint) = VerticalConstraint(target, dependencies + value.dependencies) {
         block(it) / value()
     }
 
 //    override fun toString() = "V ($default) <- $dependencies"
 }
 
-class HorizontalConstraint(target: View, default: Boolean = true, block: (View) -> Double): Constraint(target, default, block) {
+class HorizontalConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
     operator fun plus(value: Number) = plus { value }
 
-    operator fun plus(value: () -> Number) = HorizontalConstraint(target) {
+    operator fun plus(value: () -> Number) = HorizontalConstraint(target, dependencies) {
         block(it) + value().toDouble()
     }
 
-    operator fun plus(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+    operator fun plus(value: MagnitudeConstraint) = HorizontalConstraint(target, dependencies + value.dependencies) {
         block(it) + value()
     }
 
-    operator fun plus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
+    operator fun plus(value: HorizontalConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies) {
         block(it) + value()
     }
 
     operator fun minus(value: Number) = minus { value }
 
-    operator fun minus(value: () -> Number) = HorizontalConstraint(target) {
+    operator fun minus(value: () -> Number) = HorizontalConstraint(target, dependencies) {
         block(it) - value().toDouble()
     }
 
-    operator fun minus(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+    operator fun minus(value: MagnitudeConstraint) = HorizontalConstraint(target, dependencies + value.dependencies) {
         block(it) - value()
     }
 
-    operator fun minus(value: HorizontalConstraint) = MagnitudeConstraint(target) {
+    operator fun minus(value: HorizontalConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies) {
         block(it) - value()
     }
 
     operator fun times(value: Number) = times { value }
 
-    operator fun times(value: () -> Number) = HorizontalConstraint(target) {
+    operator fun times(value: () -> Number) = HorizontalConstraint(target, dependencies) {
         block(it) * value().toDouble()
     }
 
     operator fun div(value: Number) = div { value }
 
-    operator fun div(value: () -> Number) = HorizontalConstraint(target) {
+    operator fun div(value: () -> Number) = HorizontalConstraint(target, dependencies) {
         block(it) / value().toDouble()
     }
 
-    operator fun times(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+    operator fun times(value: MagnitudeConstraint) = HorizontalConstraint(target, dependencies + value.dependencies) {
         block(it) * value()
     }
 
-    operator fun div(value: MagnitudeConstraint) = HorizontalConstraint(target) {
+    operator fun div(value: MagnitudeConstraint) = HorizontalConstraint(target, dependencies + value.dependencies) {
         block(it) / value()
     }
 
 //    override fun toString() = "H ($default) <- $dependencies"
 }
 
-class MagnitudeConstraint(target: View, default: Boolean = true, block: (View) -> Double): Constraint(target, default, block) {
+class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
     operator fun plus(value: Number) = plus { value }
 
-    operator fun plus(value: () -> Number) = MagnitudeConstraint(target) {
+    operator fun plus(value: () -> Number) = MagnitudeConstraint(target, dependencies) {
         block(it) + value().toDouble()
+    }
+
+    operator fun plus(value: MagnitudeConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies){
+        block(it) + value()
     }
 
     operator fun minus(value: Number) = minus { value }
 
-    operator fun minus(value: () -> Number) = MagnitudeConstraint(target) {
+    operator fun minus(value: () -> Number) = MagnitudeConstraint(target, dependencies) {
         block(it) - value().toDouble()
+    }
+
+    operator fun minus(value: MagnitudeConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies){
+        block(it) - value()
     }
 
     operator fun times(value: Number) = times { value }
 
-    operator fun times(value: () -> Number) = MagnitudeConstraint(target) {
+    operator fun times(value: () -> Number) = MagnitudeConstraint(target, dependencies) {
         block(it) * value().toDouble()
+    }
+
+    operator fun times(value: MagnitudeConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies){
+        block(it) * value()
     }
 
     operator fun div(value: Number) = div { value }
 
-    operator fun div(value: () -> Number) = MagnitudeConstraint(target) {
+    operator fun div(value: () -> Number) = MagnitudeConstraint(target, dependencies) {
         block(it) / value().toDouble()
+    }
+
+    operator fun div(value: MagnitudeConstraint) = MagnitudeConstraint(target, dependencies + value.dependencies){
+        block(it) / value()
     }
 
 //    override fun toString() = "H ($default) <- $dependencies"
@@ -378,43 +400,45 @@ private open class DisplayConstraints(private val display: Display): ParentConst
     override val width   = MagnitudeConstraint (target) { display.size.width      }
     override val height  = MagnitudeConstraint (target) { display.size.height     }
 
-//    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
+//    override fun toString() = "D $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
 private class ConstraintsImpl(target: View, override val parent: ParentConstraints): ParentConstraintsImpl(target), Constraints {
     override var top = VerticalConstraint(target) { it.y }
-        set(new) { field = VerticalConstraint(new.target, false, new.block) }
+        set(new) { field = VerticalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var left = HorizontalConstraint(target) { it.x }
-        set(new) { field = HorizontalConstraint(new.target, false, new.block) }
+        set(new) { field = HorizontalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var centerY = VerticalConstraint(target) { top() + it.height / 2 }
-        set(new) { field = VerticalConstraint(new.target, false, new.block) }
+        set(new) { field = VerticalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var centerX = HorizontalConstraint(target) { left() + it.width / 2 }
-        set(new) { field = HorizontalConstraint(new.target, false, new.block) }
+        set(new) { field = HorizontalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var right = HorizontalConstraint(target) { left() + it.width }
-        set(new) { field = HorizontalConstraint(new.target, false, new.block) }
+        set(new) { field = HorizontalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var bottom = VerticalConstraint(target) { top() + it.height }
-        set(new) { field = VerticalConstraint(new.target, false, new.block) }
+        set(new) { field = VerticalConstraint(new.target, new.dependencies, false, new.block) }
 
     override var width = MagnitudeConstraint(target) { it.width }
-        set(new) { field = MagnitudeConstraint(new.target, false, new.block) }
+        set(new) { field = MagnitudeConstraint(new.target, new.dependencies, false, new.block) }
 
     override var height = MagnitudeConstraint(target) { it.height }
-        set(new) { field = MagnitudeConstraint(new.target, false, new.block) }
+        set(new) { field = MagnitudeConstraint(new.target, new.dependencies, false, new.block) }
 
 //    override fun toString() = "C $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
-fun constrain(a: View,                            block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,          block) }
-fun constrain(a: View, b: View,                   block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,       block) }
-fun constrain(a: View, b: View, c: View,          block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,    block) }
-fun constrain(a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, block) }
+fun constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,             block) }
+fun constrain(a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,          block) }
+fun constrain(a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,       block) }
+fun constrain(a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,    block) }
+fun constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, e, block) }
 
-fun constrain(display: Display, a: View,                            block: (Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,          block) }
-fun constrain(display: Display, a: View, b: View,                   block: (Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,       block) }
-fun constrain(display: Display, a: View, b: View, c: View,          block: (Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,    block) }
-fun constrain(display: Display, a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, block) }
+fun constrain(display: Display, a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,             block) }
+fun constrain(display: Display, a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,          block) }
+fun constrain(display: Display, a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,       block) }
+fun constrain(display: Display, a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d,    block) }
+fun constrain(display: Display, a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, e, block) }

@@ -86,7 +86,7 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
         view?.let {
             if (dragMode.isEmpty() && movable) {
                 it.position += delta
-            } else if (!dragMode.isEmpty()) {
+            } else if (dragMode.isNotEmpty()) {
                 val bounds = it.bounds
 
                 var x      = bounds.x

@@ -7,13 +7,15 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setBackgroundColor
-import com.nectar.doodle.dom.setBorderWidth
 import com.nectar.doodle.dom.setBoxSizing
+import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.utils.HorizontalAlignment.Center
+import com.nectar.doodle.utils.HorizontalAlignment.Right
 
 
 interface NativeTextFieldFactory {
@@ -73,7 +75,13 @@ class NativeTextField(
             //style.setBorderWidth    (0.0                      )
             style.setWidthPercent   (100.0                    )
             style.setHeightPercent  (100.0                    )
+            style.setColor          (textField.foregroundColor)
             style.setBackgroundColor(textField.backgroundColor)
+            style.textAlign = when (textField.horizontalAlignment) {
+                Center -> "center"
+                Right  -> "right"
+                else   -> ""
+            }
         }
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
@@ -168,7 +176,13 @@ class NativeTextField(
 
     @Suppress("UNUSED_PARAMETER")
     private fun styleChanged(view: View) {
+        inputElement.style.setColor          (textField.foregroundColor)
         inputElement.style.setBackgroundColor(textField.backgroundColor)
+        inputElement.style.textAlign = when (textField.horizontalAlignment) {
+            Center -> "center"
+            Right  -> "right"
+            else   -> ""
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
