@@ -160,16 +160,15 @@ private class HueStrip(hue: Measure<Angle>): View() {
 
 class Handle: View() {
     override fun render(canvas: Canvas) {
-        val width  = this.width  - 4
-        val height = this.height - 4
+        val inset = 2.0
 
         canvas.shadow(blurRadius = 2.0) {
             poly(Polygon(
-                    Point(2.0, height / 2),
-                    Point(width / 2, 2.0),
-                    Point(width, 2.0),
-                    Point(width, height),
-                    Point(width / 2, height)
+                    Point(inset,         height / 2    ),
+                    Point(width / 2,     inset         ),
+                    Point(width - inset, inset         ),
+                    Point(width - inset, height - inset),
+                    Point(width / 2,     height - inset)
             ), Pen(black), ColorBrush(white))
         }
     }
@@ -205,6 +204,8 @@ class ColorPicker: View() {
             val color       = HsvColor(colorRect.color)
             colorRect.color = HsvColor(hue, color.saturation, color.value, color.opacity).toRgb()
             handle.y        = y + height * (1 - (hue / (360 * degrees))) - handle.height / 2
+
+            println("${handle.height / 2}, ${height * (1 - (hue / (360 * degrees))) - handle.height / 2}")
         }
     }
     private val handle: Handle = Handle     ().apply { y = hueStrip.y + hueStrip.height * (1 - (hueStrip.hue / (360 * degrees))) - height / 2 }

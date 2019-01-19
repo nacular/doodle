@@ -99,13 +99,15 @@ class MouseInputManager(private val display: Display, private val inputService: 
                     it.handleMouseEvent_(createMouseEvent(event, it, Exit))
                 }
 
-                view?.let {
-                    it.handleMouseEvent_(createMouseEvent(event, it, Enter))
-                    it.handleMouseEvent_(createMouseEvent(event, it, Up   ))
+                if (view != null) {
+                    view.handleMouseEvent_(createMouseEvent(event, view, Enter))
+                    view.handleMouseEvent_(createMouseEvent(event, view, Up   ))
 
-                    cursor = cursor(of = it)
+                    cursor = cursor(of = view)
 
                     event.consume()
+                } else {
+                    cursor = display.cursor
                 }
             }
 
@@ -117,6 +119,8 @@ class MouseInputManager(private val display: Display, private val inputService: 
             cursor = cursor(of = view)
 
             event.consume()
+        } else {
+            cursor = display.cursor
         }
 
         mouseDown = false
