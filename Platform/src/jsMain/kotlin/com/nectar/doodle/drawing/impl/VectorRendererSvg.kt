@@ -16,7 +16,6 @@ import com.nectar.doodle.dom.setFillPattern
 import com.nectar.doodle.dom.setFillRule
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setId
-import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPathData
 import com.nectar.doodle.dom.setR
 import com.nectar.doodle.dom.setRX
@@ -278,7 +277,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         element.setRX(radius)
         element.setRY(radius)
 
-        element.setFill(null)
+        element.setFill  (null)
         element.setStroke(null)
 
         return element
@@ -369,15 +368,11 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
             return
         }
 
-        val color   = pen.color
-        val opacity = color.opacity
-
         if (clearFill) {
             element.setFill(null)
         }
 
-        element.setStroke(color)
-        element.setOpacity(opacity)
+        element.setStroke(pen.color)
         element.setStrokeWidth(pen.thickness)
 
         pen.dashStyle?.let {
@@ -546,11 +541,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private object SolidFillHandler: FillHandler {
         override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
             if (brush is ColorBrush) {
-                val color   = brush.color
-                val opacity = color.opacity
-
-                element.setFill   (color )
-                element.setOpacity(opacity)
+                element.setFill(brush.color)
 
                 return true
             }

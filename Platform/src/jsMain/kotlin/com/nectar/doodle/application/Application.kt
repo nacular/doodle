@@ -20,6 +20,8 @@ import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
+import com.nectar.doodle.drawing.impl.VectorBackgroundFactory
+import com.nectar.doodle.drawing.impl.VectorBackgroundFactoryImpl
 import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
@@ -73,10 +75,11 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root                                                            ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root                                                            ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance()                              ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
         bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (                                                                ) } // FIXME: Provide fallback in case not supported
+        bind<VectorBackgroundFactory>  () with singleton { VectorBackgroundFactoryImpl(instance(), instance(), instance()                             ) }
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
 
         modules.forEach {

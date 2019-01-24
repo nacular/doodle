@@ -18,10 +18,10 @@ import kotlin.math.min
 inline val SVGElement.parent get() = parentNode
 
 
-inline fun SVGRectElement.setX      (value: Double) = setAttribute( "x",     "$value")
-inline fun SVGRectElement.setY      (value: Double) = setAttribute( "y",     "$value")
-inline fun SVGRectElement.setRX     (value: Double) = setAttribute( "rx",    "$value")
-inline fun SVGRectElement.setRY     (value: Double) = setAttribute( "ry",    "$value")
+inline fun SVGRectElement.setX      (value: Double) = setAttribute("x",      "$value")
+inline fun SVGRectElement.setY      (value: Double) = setAttribute("y",      "$value")
+inline fun SVGRectElement.setRX     (value: Double) = setAttribute("rx",     "$value")
+inline fun SVGRectElement.setRY     (value: Double) = setAttribute("ry",     "$value")
 inline fun SVGRectElement.setWidth  (value: Double) = setAttribute("width",  "$value")
 inline fun SVGRectElement.setHeight (value: Double) = setAttribute("height", "$value")
 
@@ -44,14 +44,13 @@ inline fun SVGCircleElement.setCX   (value : Double      ) = setAttribute  ("cx"
 inline fun SVGCircleElement.setCY   (value : Double      ) = setAttribute  ("cy",               "$value"       )
 inline fun SVGCircleElement.setR    (value : Double      ) = setAttribute  ("r",                "$value"       )
 inline fun SVGElement.setPathData   (value : String      ) = setAttribute  ("d",                  value        )
-inline fun SVGElement.setOpacity    (value : kotlin.Float) = setAttribute  ("opacity",          "$value"       )
 inline fun SVGElement.setStrokeWidth(value : Double      ) = setAttribute  ("stroke-width",     "$value"       )
 inline fun SVGElement.setStrokeDash (value : String      ) = setAttribute  ("stroke-dasharray",   value        )
 //inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
 //inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
 
 fun SVGElement.setStopColor(color: Color) {
-    setStopColor("#" + color.hexString)
+    setStopColor("#${color.hexString}")
 
     if (color.opacity != 1f) {
         setStopOpacity(color.opacity)
@@ -87,6 +86,7 @@ fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
 
 inline fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
+    color?.let { setAttribute("fill-opacity", "${it.opacity}") }
 }
 
 inline fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
@@ -104,6 +104,7 @@ fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fill", when 
 
 inline fun SVGElement.setStroke(color: Color?) = convert(color) {
     setAttribute("stroke", it)
+    color?.let { setAttribute("stroke-opacity", "${it.opacity}") }
 }
 
 fun SVGElement.setTransform(transform: AffineTransform?) = when(transform) {

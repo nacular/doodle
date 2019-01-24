@@ -18,6 +18,6 @@ internal class SvgFactoryImpl(override val root: HTMLElement): SvgFactory {
 
     @Suppress("UNCHECKED_CAST")
     override operator fun <T : SVGElement> invoke(tag: String) = prototypes.getOrPut(tag) {
-        document.createElementNS( "http://www.w3.org/2000/svg", tag) as T
+        document.createElementNS("http://www.w3.org/2000/svg", tag) as T
     }.cloneNode(false) as T
 }

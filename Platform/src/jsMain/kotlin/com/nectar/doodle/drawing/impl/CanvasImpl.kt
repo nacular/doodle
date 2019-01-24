@@ -1,6 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.dom.BorderStyle
+import com.nectar.doodle.dom.BorderStyle.Solid
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
@@ -33,6 +33,7 @@ import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.ImageBrush
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
@@ -63,9 +64,10 @@ import kotlin.math.max
 
 
 internal class CanvasImpl(
-        private val renderParent: HTMLElement,
-        private val htmlFactory : HtmlFactory,
-        private val textFactory : TextFactory,
+        private val renderParent           : HTMLElement,
+        private val htmlFactory            : HtmlFactory,
+        private val textFactory            : TextFactory,
+        private val vectorBackgroundFactory: VectorBackgroundFactory,
         rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
 
     override var size           = Size.Empty
@@ -77,7 +79,10 @@ internal class CanvasImpl(
 
     override val shadows = mutableListOf<Shadow>()
 
-    private fun isSimple(brush: Brush) = brush.let { it is ColorBrush /*|| it is LinearGradientBrush*/ }
+    private fun isSimple(brush: Brush) = when (brush) {
+        is ColorBrush, is ImageBrush -> true
+        else                         -> false
+    }
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { getRect(rectangle) } else vectorRenderer.rect(rectangle, brush)
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = vectorRenderer.rect(rectangle, pen, brush)
@@ -322,13 +327,16 @@ internal class CanvasImpl(
             block()?.let {
                 when (brush) {
                     is ColorBrush          -> it.style.setBackgroundColor(brush.color)
+                    is ImageBrush          -> it.style.background = vectorBackgroundFactory(brush)
                     is LinearGradientBrush -> it.style.background = "linear-gradient(${90 * degrees - brush.rotation `in` degrees}deg, ${brush.colors.joinToString(",") { "${it.color.run {"rgba($red,$green,$blue,$opacity)"}} ${it.offset * 100}%" }})"
                 }
                 if (pen != null) {
                     it.style.setBorderWidth(pen.thickness)
-                    it.style.setBorderStyle(BorderStyle.Solid)
-                    it.style.setBorderColor(pen.color)
+                    it.style.setBorderStyle(Solid        )
+                    it.style.setBorderColor(pen.color    )
                 }
+
+//                "data:image/svg+xml;utf8,<svg shape-rendering='auto'><polygon points='-5,-5 5,-5 5,5 -5,5' fill='#FFFFFF' opacity='1' stroke='#ffffff' stroke-width='1'></polygon><polygon points='-5,5 5,5 5,15 -5,15' fill='#000002' opacity='1' stroke='#000000' stroke-width='1'></polygon></svg>"
 
                 completeOperation(it)
             }

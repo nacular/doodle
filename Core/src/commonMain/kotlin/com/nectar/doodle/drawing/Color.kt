@@ -181,6 +181,8 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
                 opacity)
     }
 
+    fun with(opacity: Float) = HsvColor(hue, saturation, value, opacity)
+
     override fun equals(other: Any?): Boolean {
         if (this === other    ) return true
         if (other !is HsvColor) return false
