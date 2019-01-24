@@ -3,6 +3,7 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.lightgray
@@ -10,7 +11,6 @@ import com.nectar.doodle.drawing.Color.Companion.transparent
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.HsvColor
-import com.nectar.doodle.drawing.ImageBrush
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
@@ -21,6 +21,7 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.layout.max
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.PropertyObservers
@@ -167,7 +168,7 @@ private class HueStrip(hue: Measure<Angle>): View() {
 }
 
 private class OpacityStrip(color: Color): View() {
-    private val checkerBrush = ImageBrush(Size(30.0, 15.0)) {
+    private val checkerBrush = CanvasBrush(Size(30.0, 15.0)) {
         val w = 15.0
         val h = w / 2
 
@@ -179,7 +180,7 @@ private class OpacityStrip(color: Color): View() {
 
     private var brush = LinearGradientBrush(transparent, color.with(1f))
 
-    private val handle: Handle = Handle().apply { x = (this@OpacityStrip.width - width) * opacity; width = 8.0 + 4.0 }
+    private val handle: Handle = Handle().apply { x = min(this@OpacityStrip.width - width, max(0.0, this@OpacityStrip.width * opacity - width / 2)); width = 8.0 + 4.0 }//(this@OpacityStrip.width - width) * opacity; width = 8.0 + 4.0 }
 
     var color = color
         set(new) {
@@ -269,7 +270,7 @@ private class ColorSquare: View() {
 
     override fun render(canvas: Canvas) {
         val brushSize    = Size(width * 2/3, height * 2/3)
-        val checkerBrush = ImageBrush(brushSize) {
+        val checkerBrush = CanvasBrush(brushSize) {
             val w = brushSize.width  / 2
             val h = brushSize.height / 2
 

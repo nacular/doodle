@@ -14,7 +14,7 @@ import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.width
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.TextureBrush
+import com.nectar.doodle.drawing.ImageBrush
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -80,17 +80,17 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     override fun fill(brush: Brush) {
         when (brush) {
-            is ColorBrush   -> {
+            is ColorBrush -> {
                 canvasElement.parentNode?.removeChild(canvasElement)
 
                 rootElement.style.setBackgroundColor(brush.color)
             }
-            is TextureBrush -> {
+            is ImageBrush -> {
                 canvasElement.parentNode?.removeChild(canvasElement)
 
                 rootElement.style.setBackgroundImage(brush.image)
             }
-            else            -> {
+            else          -> {
                 rootElement.insert(canvasElement, 0)
             }
         }

@@ -34,6 +34,7 @@ import com.nectar.doodle.dom.setY1Percent
 import com.nectar.doodle.dom.setY2Percent
 import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
+import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
@@ -60,9 +61,8 @@ import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGRectElement
 import kotlin.dom.clear
 import kotlin.math.max
-import kotlin.reflect.KClass
 
-class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
+class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory, private val vectorBackgroundFactory: VectorBackgroundFactory): VectorRenderer {
     private val svgElement: SVGElement
         get() {
             // Clear the remaining elements from existing SVG element
@@ -111,12 +111,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private var renderPosition: Node? = null
-
-    private val fillHandlers = mapOf<KClass<out Brush>, FillHandler>(
-        ColorBrush::class to SolidFillHandler,
-//        TextureFillHandler,
-        LinearGradientBrush::class to LinearFillHandler(svgFactory)
-    )
 
     fun nextId() = "${id++}"
 
@@ -383,7 +377,12 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     }
 
     private fun fillElement(element: SVGElement, brush: Brush, clearOutline: Boolean = true) {
-        fillHandlers[brush::class]?.fill(this, element, brush)
+        when (brush) {
+            is ColorBrush          -> SolidFillHandler.fill(this, element, brush)
+//          is TextureFillHandler  ->
+            is CanvasBrush         -> CanvasFillHandler().fill(this, element, brush)
+            is LinearGradientBrush -> LinearFillHandler().fill(this, element, brush)
+        }
 
         if (clearOutline) {
             element.setStroke(null)
@@ -534,19 +533,19 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private class SVGPath: Path("M", "L", "Z")
 
-    private interface FillHandler {
-        fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean
+    private interface FillHandler<B: Brush> {
+        fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: B)
     }
 
-    private object SolidFillHandler: FillHandler {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
-            if (brush is ColorBrush) {
-                element.setFill(brush.color)
+    private object SolidFillHandler: FillHandler<ColorBrush> {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: ColorBrush) {
+            element.setFill(brush.color)
+        }
+    }
 
-                return true
-            }
-
-            return false
+    private inner class CanvasFillHandler: FillHandler<CanvasBrush> {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: CanvasBrush) {
+            element.style.background = vectorBackgroundFactory(brush)
         }
     }
 
@@ -597,12 +596,8 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 //        }
 //    }
 //
-    private class LinearFillHandler(private val svgFactory: SvgFactory): FillHandler {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: Brush): Boolean {
-            if (brush !is LinearGradientBrush) {
-                return false
-            }
-
+    private inner class LinearFillHandler: FillHandler<LinearGradientBrush> {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: LinearGradientBrush) {
             // FIXME: Re-use elements when possible
             val gradient = svgFactory<SVGElement>("linearGradient").apply {
                 setId(renderer.nextId())
@@ -635,8 +630,6 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
             renderer.completeOperation(gradient)
 
             element.setFillPattern(gradient)
-
-            return true
         }
 
         private fun configureGradient1(gradient: SVGElement, delta: Double, rotation: Measure<Angle>, rotationThreshold: Measure<Angle>) {

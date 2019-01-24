@@ -4,7 +4,7 @@ import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.numChildren
-import com.nectar.doodle.drawing.ImageBrush
+import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.TextFactory
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.svg.SVGElement
@@ -14,16 +14,16 @@ import org.w3c.dom.svg.SVGElement
  */
 
 interface VectorBackgroundFactory {
-    operator fun invoke(brush: ImageBrush): String
+    operator fun invoke(brush: CanvasBrush): String
 }
 
 class VectorBackgroundFactoryImpl(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val svgFactory : SvgFactory): VectorBackgroundFactory {
-    override fun invoke(brush: ImageBrush): String {
+    override fun invoke(brush: CanvasBrush): String {
         val region = htmlFactory.create<HTMLElement>()
 
         // FIXME: Need to ensure this canvas only uses svg
         val canvas = CanvasImpl(region, htmlFactory, textFactory, this) {
-            VectorRendererSvg(it, svgFactory)
+            VectorRendererSvg(it, svgFactory, this)
         }
 
         canvas.apply(brush.fill)

@@ -12,6 +12,6 @@ internal class CanvasFactoryImpl(private val htmlFactory            : HtmlFactor
                                  private val vectorBackgroundFactory: VectorBackgroundFactory,
                                  private val svgFactory             : SvgFactory): CanvasFactory {
     override operator fun invoke(region: HTMLElement) = CanvasImpl(region, htmlFactory, textFactory, vectorBackgroundFactory) {
-        VectorRendererSvg(it, svgFactory)
+        VectorRendererSvg(it, svgFactory, vectorBackgroundFactory)
     }
 }

@@ -31,9 +31,9 @@ import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
-import com.nectar.doodle.drawing.ImageBrush
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
@@ -80,8 +80,8 @@ internal class CanvasImpl(
     override val shadows = mutableListOf<Shadow>()
 
     private fun isSimple(brush: Brush) = when (brush) {
-        is ColorBrush, is ImageBrush -> true
-        else                         -> false
+        is ColorBrush, is CanvasBrush -> true
+        else                          -> false
     }
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { getRect(rectangle) } else vectorRenderer.rect(rectangle, brush)
@@ -327,7 +327,7 @@ internal class CanvasImpl(
             block()?.let {
                 when (brush) {
                     is ColorBrush          -> it.style.setBackgroundColor(brush.color)
-                    is ImageBrush          -> it.style.background = vectorBackgroundFactory(brush)
+                    is CanvasBrush         -> it.style.background = vectorBackgroundFactory(brush)
                     is LinearGradientBrush -> it.style.background = "linear-gradient(${90 * degrees - brush.rotation `in` degrees}deg, ${brush.colors.joinToString(",") { "${it.color.run {"rgba($red,$green,$blue,$opacity)"}} ${it.offset * 100}%" }})"
                 }
                 if (pen != null) {
