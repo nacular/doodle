@@ -34,7 +34,9 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.InnerShadow
 import com.nectar.doodle.drawing.LinearGradientBrush
+import com.nectar.doodle.drawing.OuterShadow
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.Renderer.FillRule
@@ -382,7 +384,10 @@ internal class CanvasImpl(
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {
             // FIXME: Need to move this to Style and avoid raw px
-            val shadow = "${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
+            val shadow = "${when(it) {
+                is InnerShadow -> "inset "
+                is OuterShadow -> ""
+            }}${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
 
             when (element.nodeName.toLowerCase()) {
                 "pre" -> element.style.textShadow += shadow

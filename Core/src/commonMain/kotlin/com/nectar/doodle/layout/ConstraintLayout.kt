@@ -8,6 +8,7 @@ import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 11/1/17.
@@ -442,3 +443,23 @@ fun constrain(display: Display, a: View, b: View,                            blo
 fun constrain(display: Display, a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,       block) }
 fun constrain(display: Display, a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d,    block) }
 fun constrain(display: Display, a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, e, block) }
+
+fun max(a: Double, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
+inline fun max(a: HorizontalConstraint, b: Double) = max(b, a)
+
+fun max(a: HorizontalConstraint, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { max(a.invoke(), b.invoke()) }
+
+fun min(a: Double, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { min(a, b.invoke()) }
+inline fun min(a: HorizontalConstraint, b: Double) = min(b, a)
+
+fun min(a: HorizontalConstraint, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { min(a.invoke(), b.invoke()) }
+
+fun max(a: Double, b: VerticalConstraint) = VerticalConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
+inline fun max(a: VerticalConstraint, b: Double) = max(b, a)
+
+fun max(a: VerticalConstraint, b: VerticalConstraint) = VerticalConstraint(b.target, b.dependencies, false) { max(a.invoke(), b.invoke()) }
+
+fun min(a: Double, b: VerticalConstraint) = VerticalConstraint(b.target, b.dependencies, false) { min(a, b.invoke()) }
+inline fun min(a: VerticalConstraint, b: Double) = min(b, a)
+
+fun min(a: VerticalConstraint, b: VerticalConstraint) = VerticalConstraint(b.target, b.dependencies, false) { min(a.invoke(), b.invoke()) }

@@ -183,14 +183,16 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private fun present(pen: Pen?, brush: Brush?, block: () -> SVGElement?) {
         if (visible(pen, brush)) {
             block()?.let {
+                // make sure element is in dom first since some brushes add new elements to the dom
+                // this means we get better re-use of nodes since the order in the dom is the element creation order
+                completeOperation(it)
+
                 if (brush != null) {
                     fillElement(it, brush, pen == null || !pen.visible)
                 }
                 if (pen != null) {
                     outlineElement(it, pen, brush == null || !brush.visible)
                 }
-
-                completeOperation(it)
             }
         }
     }
@@ -605,6 +607,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
             }
 
             brush.colors.forEach {
+                // FIXME: Re-use elements when possible
                 gradient.add(svgFactory<SVGElement>("stop").apply {
                     setStopColor (it.color )
                     setStopOffset(it.offset)

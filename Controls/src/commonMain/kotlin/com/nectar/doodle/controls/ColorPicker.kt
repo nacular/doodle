@@ -22,6 +22,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.layout.max
+import com.nectar.doodle.layout.min
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.PropertyObservers
@@ -113,7 +114,7 @@ private class ColorRect(color: HsvColor): View() {
 private class HueStrip(hue: Measure<Angle>): View() {
     private val brush = LinearGradientBrush(listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> LinearGradientBrush.Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) })
 
-    private val handle: Handle = Handle().apply { x = (this@HueStrip.width - width) * (hue / (360 * degrees)); width = 8.0 + 4.0 }
+    private val handle: Handle = Handle().apply { width = 12.0 }
 
     var hue = hue
         set(new) {
@@ -133,9 +134,9 @@ private class HueStrip(hue: Measure<Angle>): View() {
         children += handle
 
         layout = constrain(handle) {
-            it.left    = it.parent.left + (it.parent.width - handle.width) * { (this.hue / (360 * degrees)) }
+            it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { (this.hue / (360 * degrees)) } - handle.width / 2))
             it.centerY = it.parent.centerY
-            it.height  = it.parent.height //- 2 * 2.0
+            it.height  = it.parent.height
         }
 
         mouseChanged += object: MouseListener {
@@ -169,7 +170,7 @@ private class HueStrip(hue: Measure<Angle>): View() {
 
 private class OpacityStrip(color: Color): View() {
     private val checkerBrush = CanvasBrush(Size(30.0, 15.0)) {
-        val w = 15.0
+        val w = 16.0
         val h = w / 2
 
         rect(Rectangle(0.0, 0.0, w, h), Pen(white    ), ColorBrush(white    ))
@@ -180,7 +181,7 @@ private class OpacityStrip(color: Color): View() {
 
     private var brush = LinearGradientBrush(transparent, color.with(1f))
 
-    private val handle: Handle = Handle().apply { x = min(this@OpacityStrip.width - width, max(0.0, this@OpacityStrip.width * opacity - width / 2)); width = 8.0 + 4.0 }//(this@OpacityStrip.width - width) * opacity; width = 8.0 + 4.0 }
+    private val handle: Handle = Handle().apply { width = 12.0 }
 
     var color = color
         set(new) {
@@ -209,9 +210,9 @@ private class OpacityStrip(color: Color): View() {
         children += handle
 
         layout = constrain(handle) {
-            it.left    = it.parent.left + (it.parent.width - handle.width) * { this.opacity }
+            it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { this.opacity } - handle.width / 2))
             it.centerY = it.parent.centerY
-            it.height  = it.parent.height //- 2 * 2.0
+            it.height  = it.parent.height
         }
 
         mouseChanged += object: MouseListener {
@@ -239,7 +240,9 @@ private class OpacityStrip(color: Color): View() {
     private var mousePressed = false
 
     override fun render(canvas: Canvas) {
-        canvas.rect(bounds.atOrigin, min(width, height) / 5, checkerBrush)
+        canvas.innerShadow {
+            canvas.rect(bounds.atOrigin, min(width, height) / 5, checkerBrush)
+        }
 
         canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
     }
@@ -249,7 +252,7 @@ class Handle: View() {
     override fun render(canvas: Canvas) {
         val inset = 2.0
 
-        canvas.shadow(blurRadius = inset) {
+        canvas.outerShadow(blurRadius = inset) {
             canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(white))
         }
     }
@@ -263,24 +266,24 @@ private fun getContrastColor(color: Color): Color {
 
 private class ColorSquare: View() {
     init {
-        styleChanged += {
-            rerender()
-        }
+        styleChanged += { rerender() }
     }
 
     override fun render(canvas: Canvas) {
-        val brushSize    = Size(width * 2/3, height * 2/3)
-        val checkerBrush = CanvasBrush(brushSize) {
-            val w = brushSize.width  / 2
-            val h = brushSize.height / 2
+        if (backgroundColor?.opacity ?: 0f < 1f) {
+            val brushSize = Size(width * 2 / 3, height * 2 / 3)
+            val checkerBrush = CanvasBrush(brushSize) {
+                val w = brushSize.width / 2
+                val h = brushSize.height / 2
 
-            rect(Rectangle(0.0, 0.0, w, h), Pen(white    ), ColorBrush(white    ))
-            rect(Rectangle(0.0,   h, w, h), Pen(lightgray), ColorBrush(lightgray))
-            rect(Rectangle(w,   0.0, w, h), Pen(lightgray), ColorBrush(lightgray))
-            rect(Rectangle(w,     h, w, h), Pen(white    ), ColorBrush(white    ))
+                rect(Rectangle(0.0, 0.0, w, h), Pen(white    ), ColorBrush(white    ))
+                rect(Rectangle(0.0, h,   w, h), Pen(lightgray), ColorBrush(lightgray))
+                rect(Rectangle(w,   0.0, w, h), Pen(lightgray), ColorBrush(lightgray))
+                rect(Rectangle(w,   h,   w, h), Pen(white    ), ColorBrush(white    ))
+            }
+
+            canvas.rect(bounds.atOrigin, 3.0, checkerBrush)
         }
-
-        canvas.rect(bounds.atOrigin, 3.0, checkerBrush)
 
         backgroundColor?.let {
             canvas.rect(bounds.atOrigin, 3.0, /*Pen(lightgray),*/ ColorBrush(it))
