@@ -50,6 +50,7 @@ import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
@@ -65,14 +66,14 @@ import kotlin.math.max
 
 
 
-internal class CanvasImpl(
+internal open class CanvasImpl(
         private val renderParent           : HTMLElement,
         private val htmlFactory            : HtmlFactory,
         private val textFactory            : TextFactory,
         private val vectorBackgroundFactory: VectorBackgroundFactory,
         rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
 
-    override var size           = Size.Empty
+    override var size           = Empty
     override var renderRegion   = renderParent
     override var optimization   = Renderer.Optimization.Quality
     override var renderPosition = null as Node?
@@ -81,7 +82,7 @@ internal class CanvasImpl(
 
     override val shadows = mutableListOf<Shadow>()
 
-    private fun isSimple(brush: Brush) = when (brush) {
+    protected open fun isSimple(brush: Brush) = when (brush) {
         is ColorBrush, is CanvasBrush -> true
         else                          -> false
     }

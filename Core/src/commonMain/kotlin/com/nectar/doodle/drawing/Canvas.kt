@@ -13,8 +13,6 @@ import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 
 
-//class InnerShadow(val horizontal: Double = 0.0, val vertical: Double = 0.0, val blurRadius: Double = 0.0, val color: Color = black)
-
 sealed class Shadow(val horizontal: Double, val vertical: Double, val blurRadius: Double, val color: Color)
 class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
 class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
@@ -76,8 +74,8 @@ interface Canvas: Renderer {
     fun clip(rectangle: Rectangle, block: Canvas.() -> Unit)
 
     fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
-    fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
-    fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
+    fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
+    fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
 
 //    interface ImageData
 }

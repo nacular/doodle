@@ -67,6 +67,11 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         val darkgray    = Color(0x808080u)
         val lightgray   = Color(0xd3d3d3u)
         val transparent = black.with(opacity = 0f)
+
+        fun blackOrWhiteContrast(color: Color): Color {
+            val y = (299u * color.red + 587u * color.green + 114u * color.blue) / 1000u
+            return if (y >= 128u) black else white
+        }
     }
 }
 
