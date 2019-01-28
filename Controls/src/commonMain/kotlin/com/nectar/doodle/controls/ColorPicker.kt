@@ -45,18 +45,6 @@ class ColorPicker(color: Color): View() {
         }
 
     private class ColorRect(color: HsvColor): View() {
-        private val angle = 90 * degrees
-
-        private var selection = 1f to 0f
-            set(new) {
-                field = min(1f, max(0f, new.first)) to min(1f, max(0f, new.second))
-
-                val value      = 1f - field.second
-                val saturation =      field.first
-
-                color = HsvColor(color.hue, saturation, value, color.opacity)
-            }
-
         var color = color
             set(new) {
                 if (field == new) { return }
@@ -69,6 +57,18 @@ class ColorPicker(color: Color): View() {
                 rerender()
 
                 (changed as PropertyObserversImpl).forEach { it(this, old, new) }
+            }
+
+        private val angle = 90 * degrees
+
+        private var selection = 1f to 0f
+            set(new) {
+                field = min(1f, max(0f, new.first)) to min(1f, max(0f, new.second))
+
+                val value      = 1f - field.second
+                val saturation =      field.first
+
+                color = HsvColor(color.hue, saturation, value, color.opacity)
             }
 
         private var mousePressed = false
@@ -217,8 +217,8 @@ class ColorPicker(color: Color): View() {
 
             mouseChanged += object: MouseListener {
                 override fun mousePressed(event: MouseEvent) {
-                    mousePressed              = true
-                    this@OpacityStrip.opacity = (event.location.x / width).toFloat()
+                    mousePressed = true
+                    opacity      = (event.location.x / width).toFloat()
                 }
 
                 override fun mouseReleased(event: MouseEvent) {
@@ -229,7 +229,7 @@ class ColorPicker(color: Color): View() {
             mouseMotionChanged += object: MouseMotionListener {
                 override fun mouseDragged(mouseEvent: MouseEvent) {
                     if (mousePressed) {
-                        this@OpacityStrip.opacity = min(1f, max(0f, (mouseEvent.location.x / width).toFloat()))
+                        opacity = min(1f, max(0f, (mouseEvent.location.x / width).toFloat()))
                     }
                 }
             }
@@ -291,9 +291,10 @@ class ColorPicker(color: Color): View() {
 
     private val colorRect: ColorRect = ColorRect(HsvColor(color)).apply {
         changed += { _,_,color ->
-            val rgb = color.toRgb()
-            opacityStrip.color          = rgb
-            colorSquare.backgroundColor = rgb
+            color.toRgb().let {
+                opacityStrip.color          = it
+                colorSquare.backgroundColor = it
+            }
         }
     }
 

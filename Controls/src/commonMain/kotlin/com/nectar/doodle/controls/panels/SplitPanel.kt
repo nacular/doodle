@@ -95,7 +95,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         set(new) { if (new != super.insets) { super.insets = new; doLayout() } }
 
     init {
-        require(ratio in 0.0 .. 1.0) { "ratio must be in 0 .. 1" }
+        require(ratio in 0.0f .. 1.0f) { "ratio must be in 0 .. 1" }
     }
 
     override fun render(canvas: Canvas) {

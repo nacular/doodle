@@ -17,6 +17,12 @@ import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
 import com.nectar.doodle.system.SystemMouseEvent.Type
+import com.nectar.doodle.system.SystemMouseEvent.Type.Click
+import com.nectar.doodle.system.SystemMouseEvent.Type.Down
+import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
+import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
+import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
+import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import io.mockk.Ordering.ORDERED
 import io.mockk.every
 import io.mockk.mockk
@@ -169,8 +175,8 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(exactly = 2) { inputService.toolTipText = "" }
 
@@ -192,8 +198,8 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Type.Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
 
         verify(exactly = 2) { inputService.toolTipText = "" }
 
@@ -216,11 +222,11 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
-        child.handleMouseEvent_(MouseEvent(child, Type.Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        child.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
     }
 
     @Test @JsName("mouseDownInformsParentHandler")
@@ -242,11 +248,11 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
-        parent.handleMouseEvent_(MouseEvent(child, Type.Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        parent.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
     }
 
     @Test @JsName("mouseDragInformsHandler")
@@ -266,14 +272,14 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_      (MouseEvent(child, Type.Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
-            child.handleMouseMotionEvent_(MouseEvent(child, Type.Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_      (MouseEvent(child, Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
+            child.handleMouseMotionEvent_(MouseEvent(child, Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
 
@@ -287,15 +293,18 @@ class MouseInputManagerTests {
         child.mouseMotionChanged += mockk(relaxed = true)
 
         every { display.child(any()            ) } returns null
+        every { display.child(Point(10.0, 10.0)) } returns child
         every { display.child(Point(20.0, 20.0)) } returns child
 
         display.children += child
 
         val manager = MouseInputManager(display, inputService)
 
+        manager.changed(SystemMouseEvent(Type.Move, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
+            child.handleMouseEvent_      (MouseEvent(child, Enter,     Point( 1.0,  1.0), Button1, 1, emptySet()))
             child.handleMouseMotionEvent_(MouseEvent(child, Type.Move, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
@@ -316,15 +325,15 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Type.Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Type.Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Click, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Click, Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -344,15 +353,15 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Type.Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Type.Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
         }
     }
 
@@ -372,14 +381,14 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Type.Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Type.Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -399,11 +408,11 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemMouseEvent(Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Type.Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -423,13 +432,13 @@ class MouseInputManagerTests {
 
         val manager = MouseInputManager(display, inputService)
 
-        manager.changed(SystemMouseEvent(Type.Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemMouseEvent(Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(exactly = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Type.Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Type.Click, Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
 
