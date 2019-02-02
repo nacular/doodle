@@ -24,12 +24,12 @@ interface Canvas: Renderer {
 
 //    fun import(imageData: ImageData, at: Point)
 
-    fun scale    (by       : Point,                     block: Canvas.() -> Unit)
-    fun scale    (around   : Point, by: Point,          block: Canvas.() -> Unit)
-    fun rotate   (by       : Measure<Angle>,            block: Canvas.() -> Unit)
-    fun rotate   (around   : Point, by: Measure<Angle>, block: Canvas.() -> Unit)
-    fun translate(by       : Point,                     block: Canvas.() -> Unit)
-    fun transform(transform: AffineTransform,           block: Canvas.() -> Unit)
+    fun scale    (x        : Double,         y: Double,            block: Canvas.() -> Unit)
+    fun scale    (around   : Point,          x: Double, y: Double, block: Canvas.() -> Unit)
+    fun rotate   (by       : Measure<Angle>,                       block: Canvas.() -> Unit)
+    fun rotate   (around   : Point,          by: Measure<Angle>,   block: Canvas.() -> Unit)
+    fun translate(by       : Point,                                block: Canvas.() -> Unit)
+    fun transform(transform: AffineTransform,                      block: Canvas.() -> Unit)
 
     fun flipVertically(                block: Canvas.() -> Unit)
     fun flipVertically(around: Double, block: Canvas.() -> Unit)

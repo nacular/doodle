@@ -1,9 +1,6 @@
 package com.nectar.doodle.focus.impl
 
 import com.nectar.doodle.core.View
-import com.nectar.doodle.event.FocusEvent
-import com.nectar.doodle.event.FocusEvent.Type.Gained
-import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
@@ -54,7 +51,7 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
                 if (oldFocusOwner.shouldYieldFocus()) {
                     clearAncestorListeners()
 
-                    oldFocusOwner.handleFocusEvent(FocusEvent(oldFocusOwner, Lost, view))
+                    oldFocusOwner.focusLost(view)
 
                     stopMonitorProperties(oldFocusOwner)
                 } else {
@@ -65,7 +62,7 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
             focusOwner = view
 
             focusOwner?.let { focusOwner ->
-                focusOwner.handleFocusEvent(FocusEvent(focusOwner, Gained, oldFocusOwner))
+                focusOwner.focusGained(oldFocusOwner)
 
                 focusCycleRoot = focusOwner.focusCycleRoot_
 
@@ -85,13 +82,13 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
         val focusCycleRoot = focusView?.focusCycleRoot_
         val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy
 
-        if (focusCycleRoot != null && policy != null) {
-            when (traversalType) {
-                Forward  -> focusView = policy.next    (focusCycleRoot, focusView)
-                Backward -> focusView = policy.previous(focusCycleRoot, focusView)
-                Upward   -> requestFocus(focusCycleRoot)
-                Downward -> if (focusView?.isFocusCycleRoot_ == true) {
-                    focusView = policy.default(focusView)
+        when (traversalType) {
+            Forward  -> focusCycleRoot?.let { focusView = policy.next    (focusCycleRoot, focusView) }
+            Backward -> focusCycleRoot?.let { focusView = policy.previous(focusCycleRoot, focusView) }
+            Upward   -> focusCycleRoot?.let { requestFocus(focusCycleRoot) }
+            Downward -> focusView?.let {
+                if (it.isFocusCycleRoot_ == true) {
+                    focusView = policy.default(it)
 
                     requestFocusInternal(view)
                 }
@@ -123,8 +120,8 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
 
     private fun startMonitorProperties(view: View) {
         view.enabledChanged      += focusabilityChanged
-        view.focusabilityChanged += focusabilityChanged
         view.visibilityChanged   += focusabilityChanged
+        view.focusabilityChanged += focusabilityChanged
     }
 
     private fun stopMonitorProperties(view: View) {

@@ -15,5 +15,5 @@ abstract class ProgressIndicatorUI<in T: ProgressIndicator>: Renderer<T> {
         view.changed -= changed
     }
 
-    private val changed: (indicator: ProgressIndicator) -> Unit = { it.rerender() }
+    private val changed: (ProgressIndicator, Double, Double) -> Unit = { it,_,_-> it.rerender() }
 }

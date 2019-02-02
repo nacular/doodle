@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.icons
 
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -31,7 +31,7 @@ open class PathIcon<in T: View>(
         val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
 
         if (brush != null) {
-            canvas.scale(Point(size.width / path.size.width, size.height / path.size.height)) {
+            canvas.scale(size.width / path.size.width, size.height / path.size.height) {
                 translate(at) {
                     when (pen) {
                         null -> path(path,      brush, fillRule)

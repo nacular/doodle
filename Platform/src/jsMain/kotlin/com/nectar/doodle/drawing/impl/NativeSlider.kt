@@ -75,7 +75,7 @@ class NativeSlider internal constructor(
 //        style.cursor = "inherit"
     }
 
-    private val changed: (Slider) -> Unit = {
+    private val changed: (Slider, Double, Double) -> Unit = { it,_,_ ->
         sliderElement.value = it.value.toString()
     }
 

@@ -40,6 +40,8 @@ class RealGraphicsSurface private constructor(
 
     override var visible = true
         set(new) {
+            field = new
+
             if (new) {
                 rootElement.style.setDisplay()
             } else {

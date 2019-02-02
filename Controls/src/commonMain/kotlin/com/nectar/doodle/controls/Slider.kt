@@ -4,9 +4,9 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
-import com.nectar.doodle.utils.ChangeObservers
-import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.Orientation
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.round
@@ -30,10 +30,10 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var model =  model
         set(new) {
-            field.changed -= modelChanged
+            field.valueChanged -= modelChanged
 
             field = new.also {
-                it.changed += modelChanged
+                it.valueChanged += modelChanged
             }
         }
 
@@ -48,18 +48,18 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
         set(new) { model.limits = new }
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { ChangeObserversImpl(this) }
+    private val changed_ by lazy { PropertyObserversImpl<Slider, Double>(this) }
 
-    val changed: ChangeObservers<Slider> = changed_
+    val changed: PropertyObservers<Slider, Double> = changed_
 
-    private val modelChanged: (ConfinedValueModel<Double>) -> Unit = {
-        changed_()
+    private val modelChanged: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
+        changed_(old, new)
     }
 
     private var snapSize = 0.0
 
     init {
-        model.changed += modelChanged
+        model.valueChanged += modelChanged
     }
 
     override fun render(canvas: Canvas) {

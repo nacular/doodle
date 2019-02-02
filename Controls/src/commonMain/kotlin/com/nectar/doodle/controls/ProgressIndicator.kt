@@ -4,8 +4,8 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
-import com.nectar.doodle.utils.ChangeObservers
-import com.nectar.doodle.utils.ChangeObserversImpl
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.size
 
 /**
@@ -16,20 +16,20 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
 
     var renderer: Renderer<ProgressIndicator>? = null
 
-    private val changedHandler: (ConfinedValueModel<Double>) -> Unit = {
-        changed_()
+    private val changedHandler: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
+        changed_(old, new)
     }
 
     init {
-        model.changed += changedHandler
+        model.valueChanged += changedHandler
     }
 
     var model =  model
         set(new) {
-            field.changed -= changedHandler
+            field.valueChanged -= changedHandler
 
             field = new.also {
-                it.changed += changedHandler
+                it.valueChanged += changedHandler
             }
         }
 
@@ -56,7 +56,7 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { ChangeObserversImpl(this) }
+    private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }
 
-    val changed: ChangeObservers<ProgressIndicator> = changed_
+    val changed: PropertyObservers<ProgressIndicator, Double> = changed_
 }

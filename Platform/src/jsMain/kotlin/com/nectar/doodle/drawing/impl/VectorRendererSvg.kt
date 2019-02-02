@@ -44,7 +44,7 @@ import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.geometry.Polygon
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.isEven
 import com.nectar.measured.units.Angle
@@ -124,8 +124,8 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = drawRect(rectangle, null, brush)
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = drawRect(rectangle, pen,  brush)
 
-    override fun poly(polygon: Polygon,           brush: Brush ) = drawPoly(polygon, null, brush)
-    override fun poly(polygon: Polygon, pen: Pen, brush: Brush?) = drawPoly(polygon, pen,  brush)
+    override fun poly(polygon: ConvexPolygon,           brush: Brush ) = drawPoly(polygon, null, brush)
+    override fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush?) = drawPoly(polygon, pen,  brush)
 
     override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = drawRect(rectangle, radius, null, brush)
     override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = drawRect(rectangle, radius, pen,  brush)
@@ -216,7 +216,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
 
-    private fun drawPoly(polygon: Polygon, pen: Pen?, brush: Brush?) = present(pen, brush) {
+    private fun drawPoly(polygon: ConvexPolygon, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
             polygon.points.size > 1 -> makeClosedPath(*polygon.points.toTypedArray())
             else                    -> null

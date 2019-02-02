@@ -21,7 +21,7 @@ abstract class SliderUI: Renderer<Slider>, MouseListener, MouseMotionListener {
         private set
 
 
-    private val changed: (Slider) -> Unit = { it.rerender() }
+    private val changed: (Slider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
 
     override fun install(view: Slider) {
         view.changed            += changed

@@ -6,6 +6,9 @@ package com.nectar.doodle.utils
 val Int.isEven  get() = this % 2  == 0
 val Long.isEven get() = this % 2L == 0L
 
+inline val Int.isOdd   get() = !isEven
+inline val Long.isOdd  get() = !isEven
+
 fun Boolean.ifTrue(block: () -> Unit): Boolean {
     if (this) {
         block()

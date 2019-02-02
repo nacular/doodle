@@ -47,7 +47,7 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
-import com.nectar.doodle.geometry.Polygon
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -108,8 +108,8 @@ internal open class CanvasImpl(
     override fun path(path: Path,           brush: Brush,  fillRule: FillRule?)  = vectorRenderer.path(path,      brush, fillRule)
     override fun path(path: Path, pen: Pen, brush: Brush?, fillRule: FillRule?)  = vectorRenderer.path(path, pen, brush, fillRule)
 
-    override fun poly(polygon: Polygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
-    override fun poly(polygon: Polygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
+    override fun poly(polygon: ConvexPolygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
+    override fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
 
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush ) = vectorRenderer.arc(center, radius, sweep, rotation,      brush)
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) = vectorRenderer.arc(center, radius, sweep, rotation, pen, brush)
@@ -205,17 +205,17 @@ internal open class CanvasImpl(
         else   -> transform(Identity.translate(by), block)
     }
 
-    override fun scale(by: Point, block: Canvas.() -> Unit) = when {
-        by.x == 1.0 && by.y == 1.0 -> block()
-        else                       -> transform(Identity.scale(by), block)
+    override fun scale(x: Double, y: Double, block: Canvas.() -> Unit) = when {
+        x == 1.0 && y == 1.0 -> block()
+        else                 -> transform(Identity.scale(x, y), block)
     }
 
-    override fun scale(around: Point, by: Point, block: Canvas.() -> Unit) = when {
-        by.x == 1.0 && by.y == 1.0 -> block()
-        else                       -> {
+    override fun scale(around: Point, x: Double, y: Double, block: Canvas.() -> Unit) = when {
+        x == 1.0 && y == 1.0 -> block()
+        else                 -> {
             val point = around - (size / 2.0).run { Point(width, height) }
 
-            transform(Identity.translate(point).scale(by).translate(-point), block)
+            transform(Identity.translate(point).scale(x, y).translate(-point), block)
         }
     }
 
@@ -227,7 +227,7 @@ internal open class CanvasImpl(
         transform(Identity.translate(point).rotate(by).translate(-point), block)
     }
 
-    override fun flipVertically(block: Canvas.() -> Unit) = scale(Point(1.0, -1.0), block = block)
+    override fun flipVertically(block: Canvas.() -> Unit) = scale(1.0, -1.0, block = block)
 
     override fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
             translate(Point(0.0, around)).
@@ -235,7 +235,7 @@ internal open class CanvasImpl(
             translate(Point(0.0, -around)),
             block)
 
-    override fun flipHorizontally(block: Canvas.() -> Unit) = scale(Point(-1.0, 1.0), block = block)
+    override fun flipHorizontally(block: Canvas.() -> Unit) = scale(-1.0, 1.0, block = block)
 
     override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
             translate(Point(around, 0.0)).

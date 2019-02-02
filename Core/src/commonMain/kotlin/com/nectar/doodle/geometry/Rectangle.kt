@@ -5,8 +5,9 @@ import com.nectar.doodle.layout.Insets
 import kotlin.math.max
 
 
-class Rectangle constructor(val position: Point = Origin, val size: Size = Size.Empty): Shape {
+class Rectangle constructor(val position: Point = Origin, val size: Size = Size.Empty): ConvexPolygon() {
 
+    constructor(width: Double, height: Double): this(Origin, Size(width, height))
     constructor(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): this(Point(x, y), Size(width, height))
 
     val x      get() = position.x
@@ -15,6 +16,10 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     val height get() = size.height
     val bottom get() = y + height
     val right  get() = x + width
+
+    override val points by lazy {
+        listOf(Point(x, y), Point(x+width, y), Point(x+width, y+height), Point(x, y+height))
+    }
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { 31 * position.hashCode() + size.hashCode() }
@@ -68,7 +73,7 @@ class Rectangle constructor(val position: Point = Origin, val size: Size = Size.
     /**
      * @return a Rectangle with the same width/height but positioned at 0,0
      */
-    val atOrigin: Rectangle = at(0.0, 0.0)
+    val atOrigin: Rectangle get() = at(0.0, 0.0)
 
     /**
      * @return a Rectangle with the same width/height but positioned at the given x,y

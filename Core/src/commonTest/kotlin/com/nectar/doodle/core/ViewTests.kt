@@ -6,9 +6,6 @@ import com.nectar.doodle.JsName
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.RenderManager
-import com.nectar.doodle.event.FocusEvent
-import com.nectar.doodle.event.FocusEvent.Type.Gained
-import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
@@ -209,12 +206,12 @@ class ViewTests {
     }
 
     @Test @JsName("focusGainedWorks")
-    fun `focus gained works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained }) { view, observer, _ ->
+    fun `focus gained works`() = validateFocusChanged(true) { view, observer ->
         verify(exactly = 1) { observer(view, false, true) }
     }
 
     @Test @JsName("focusLostWorks")
-    fun `focus lost works`() = validateFocusChanged(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Lost }) { view, observer, _ ->
+    fun `focus lost works`() = validateFocusChanged(false) { view, observer ->
         verify(exactly = 1) { observer(view, true, false) }
     }
 
@@ -389,20 +386,24 @@ class ViewTests {
         expect(0) { root.zIndex_(child0) }
     }
 
-    private fun validateFocusChanged(event: FocusEvent, block: (View, PropertyObserver<View, Boolean>, FocusEvent) -> Unit) {
+    private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
         val view     = object: View() {}
         val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
 
         view.focusChanged += observer
 
         // Force the View to have focus if we are testing losing it
-        if (event.type == Lost) {
-            view.handleFocusEvent(mockk<FocusEvent>(relaxed = true).apply { every { type } returns Gained })
+        if (!gained) {
+            view.focusGained(null)
         }
 
-        view.handleFocusEvent(event)
+        if (gained) {
+            view.focusGained(null)
+        } else {
+            view.focusLost(null)
+        }
 
-        block(view, observer, event)
+        block(view, observer)
     }
 
     private fun validateMouseChanged(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {

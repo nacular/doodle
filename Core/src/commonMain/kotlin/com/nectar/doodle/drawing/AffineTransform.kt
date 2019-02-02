@@ -1,14 +1,20 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.utils.Matrix
+import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.utils.SquareMatrix
+import com.nectar.doodle.utils.matrixOf
+import com.nectar.doodle.utils.squareMatrixOf
+import com.nectar.doodle.utils.times
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.radians
 import kotlin.math.cos
 import kotlin.math.sin
 
-class AffineTransform private constructor(private val matrix: Matrix) {
+@Suppress("ReplaceSingleLineLet")
+class AffineTransform private constructor(private val matrix: SquareMatrix<Double>) {
 
     /**
      * Creates a transform with the given properties
@@ -27,10 +33,11 @@ class AffineTransform private constructor(private val matrix: Matrix) {
             scaleY    : Double = 1.0,
             shearY    : Double = 0.0,
             translateY: Double = 0.0):
-            this(Matrix(
-                doubleArrayOf(scaleX, shearX, translateX),
-                doubleArrayOf(shearY, scaleY, translateY),
-                doubleArrayOf(   0.0,    0.0,        1.0)))
+            this(listOf(
+                listOf(scaleX, shearX, translateX),
+                listOf(shearY, scaleY, translateY),
+                listOf(   0.0,    0.0,        1.0)
+            ).let { squareMatrixOf(3) { col, row -> it[row][col] } })
 
     val isIdentity       = matrix.isIdentity
     val translateX get() = matrix[0, 2]
@@ -42,26 +49,22 @@ class AffineTransform private constructor(private val matrix: Matrix) {
 
     operator fun times(other: AffineTransform) = AffineTransform(matrix * other.matrix)
 
-    fun scale(by: Point) = scale(by.x, by.y)
-
     fun scale(x: Double = 1.0, y: Double = x) = AffineTransform(
-            matrix * Matrix(this[  x, 0.0, 0.0],
+            matrix * listOf(this[  x, 0.0, 0.0],
                             this[0.0,   y, 0.0],
-                            this[0.0, 0.0, 1.0]))
+                            this[0.0, 0.0, 1.0]).let { squareMatrixOf(3) { col, row -> it[row][col] } })
 
     fun translate(by: Point) = translate(by.x, by.y)
 
     fun translate(x: Double = 0.0, y: Double = 0.0) = AffineTransform(
-            matrix * Matrix(this[1.0, 0.0,   x],
+            matrix * listOf(this[1.0, 0.0,   x],
                             this[0.0, 1.0,   y],
-                            this[0.0, 0.0, 1.0]))
-
-    fun skew(by: Point) = skew(by.x, by.y)
+                            this[0.0, 0.0, 1.0]).let { squareMatrixOf(3) { col, row -> it[row][col] } })
 
     fun skew(x: Double, y: Double) = AffineTransform(
-            matrix * Matrix(this[1.0,   x, 0.0],
+            matrix * listOf(this[1.0,   x, 0.0],
                             this[  y, 1.0, 0.0],
-                            this[0.0, 0.0, 1.0]))
+                            this[0.0, 0.0, 1.0]).let { squareMatrixOf(3) { col, row -> it[row][col] } })
 
     fun rotate(angle: Measure<Angle>): AffineTransform {
         val radians = angle `in` radians
@@ -69,10 +72,19 @@ class AffineTransform private constructor(private val matrix: Matrix) {
         val cos     = cos(radians)
 
         return AffineTransform(
-                matrix * Matrix(this[cos, -sin, 0.0],
+                matrix * listOf(this[cos, -sin, 0.0],
                                 this[sin,  cos, 0.0],
-                                this[0.0,  0.0, 1.0]))
+                                this[0.0,  0.0, 1.0]).let { squareMatrixOf(3) { col, row -> it[row][col] } })
     }
+
+    fun flipVertically  () = scale(1.0, -1.0)
+    fun flipHorizontally() = scale(-1.0, 1.0)
+
+    val inverse: AffineTransform? by lazy {
+        matrix.inverse?.let { AffineTransform(it) }
+    }
+
+    operator fun invoke(point: Point) = this(listOf(point)).first()
 
     /**
      * Transforms the given set of points.
@@ -80,22 +92,21 @@ class AffineTransform private constructor(private val matrix: Matrix) {
      * @param points that will be transformed
      * @return a list of points transformed by this object
      */
-    operator fun invoke(vararg points: Point) = points.map {
-        val point   = Matrix(doubleArrayOf(it.x), doubleArrayOf(it.y), doubleArrayOf(1.0))
+    operator fun invoke(points: List<Point>) = points.map {
+        val point   = listOf(listOf(it.x), listOf(it.y), listOf(1.0)).let { matrixOf(3, 1) { col, row -> it[row][col] } }
         val product = matrix * point
 
         Point(product[0, 0], product[1, 0])
     }
 
-//    operator fun invoke(rectangle: Rectangle): Rectangle {
-//        val points = rectangle.run { invoke(position, position + Point(width, height)) }
-//
-//        return Rectangle(points[0], (points[1] - points[0]).run { Size(x, y) })
-//    }
+    operator fun invoke(rectangle: Rectangle): ConvexPolygon = when {
+        isIdentity -> rectangle
+        else       -> this(rectangle.points).let { ConvexPolygon(it[0], it[1], it[2], it[3]) }
+    }
 
     override fun toString() = matrix.toString()
 
-    private operator fun get(vararg values: Double) = doubleArrayOf(*values)
+    private operator fun get(vararg values: Double) = values.toList()
 
     companion object {
         val Identity = AffineTransform()

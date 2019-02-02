@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls
 
-import com.nectar.doodle.utils.ChangeObservers
-import com.nectar.doodle.utils.ChangeObserversImpl
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.intersect
 
 /**
@@ -15,7 +15,8 @@ interface ConfinedRangeModel<T: Comparable<T>> {
     val atLowerLimit get() = range.start        == limits.start
     val atUpperLimit get() = range.endInclusive == limits.endInclusive
 
-    val changed: ChangeObservers<ConfinedRangeModel<T>>
+    val rangeChanged : PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
+    val limitsChanged: PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
 }
 
 interface ConfinedValueModel<T: Comparable<T>> {
@@ -25,9 +26,11 @@ interface ConfinedValueModel<T: Comparable<T>> {
     val atLowerLimit get() = value == limits.start
     val atUpperLimit get() = value == limits.endInclusive
 
-    val changed: ChangeObservers<ConfinedValueModel<T>>
+    val valueChanged : PropertyObservers<ConfinedValueModel<T>, T>
+    val limitsChanged: PropertyObservers<ConfinedValueModel<T>, ClosedRange<T>>
 }
 
+@Suppress("PrivatePropertyName")
 class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: ClosedRange<T> = limit): ConfinedRangeModel<T> {
     override var range = range
         set(new) {
@@ -35,7 +38,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
             field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
 
             if (old != field) {
-                changed_()
+                rangeChanged_(old, field)
             }
         }
 
@@ -51,24 +54,32 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
 
                         // onChanged will be fired
                     } else {
-                        changed_()
+                        limitsChanged_(old, new)
                     }
                 }
             }
         }
 
-    @Suppress("PrivatePropertyName")
-    private val changed_ = ChangeObserversImpl(this)
-    override val changed: ChangeObservers<ConfinedRangeModel<T>> = changed_
+    private val rangeChanged_  = PropertyObserversImpl<ConfinedRangeModel<T>, ClosedRange<T>>(this)
+    private val limitsChanged_ = PropertyObserversImpl<ConfinedRangeModel<T>, ClosedRange<T>>(this)
+
+    override val rangeChanged : PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>> = rangeChanged_
+    override val limitsChanged: PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>> = limitsChanged_
 }
 
+@Suppress("PrivatePropertyName")
 class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, value: T = limit.start): ConfinedValueModel<T> {
 
-    @Suppress("PrivatePropertyName")
-    private val changed_ = ChangeObserversImpl(this)
-    override val changed: ChangeObservers<ConfinedValueModel<T>> = changed_
+    private val valueChanged_  = PropertyObserversImpl<ConfinedValueModel<T>, T>             (this)
+    private val limitsChanged_ = PropertyObserversImpl<ConfinedValueModel<T>, ClosedRange<T>>(this)
 
-    private val delegate = BasicConfinedRangeModel(limit, value .. value).also { it.changed += { changed_() } }
+    override val valueChanged : PropertyObservers<ConfinedValueModel<T>, T>              = valueChanged_
+    override val limitsChanged: PropertyObservers<ConfinedValueModel<T>, ClosedRange<T>> = limitsChanged_
+
+    private val delegate = BasicConfinedRangeModel(limit, value .. value).also {
+        it.rangeChanged  += { _,old,new -> valueChanged_ (old.start, new.start) }
+        it.limitsChanged += { _,old,new -> limitsChanged_(old,       new      ) }
+    }
 
     override var value: T
         get(   ) = delegate.range.start

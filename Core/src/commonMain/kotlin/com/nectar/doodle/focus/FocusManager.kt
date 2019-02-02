@@ -1,24 +1,7 @@
 package com.nectar.doodle.focus
 
 import com.nectar.doodle.core.View
-import com.nectar.doodle.event.FocusEvent
 import com.nectar.doodle.utils.PropertyObservers
-
-interface FocusListener {
-    /**
-     * Informs listener that the source has gained focus.
-     *
-     * @param event The event
-     */
-    fun focusGained(event: FocusEvent)
-
-    /**
-     * Informs listener that the source has lost focus.
-     *
-     * @param event The event
-     */
-    fun focusLost(event: FocusEvent)
-}
 
 /**
  * Created by Nicholas Eddy on 3/2/18.
@@ -26,6 +9,7 @@ interface FocusListener {
 interface FocusManager {
     val focusOwner    : View?
     val focusCycleRoot: View?
+    val focusChanged  : PropertyObservers<FocusManager, View?>
 
     fun focusable(view: View): Boolean
 
@@ -36,6 +20,8 @@ interface FocusManager {
     fun moveFocusBackward(from: View)
     fun moveFocusUpward  (from: View)
     fun moveFocusDownward(from: View)
+}
 
-    val focusChanged: PropertyObservers<FocusManager, View?>
+interface FocusCycleRoot {
+    val children: List<View>
 }

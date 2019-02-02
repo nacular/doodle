@@ -1,27 +1,30 @@
+@file:Suppress("NestedLambdaShadowedImplicitParameter", "ReplaceSingleLineLet")
+
 package com.nectar.doodle.utils
 
 
-class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
+interface Matrix<out T: Number> {
+    val numRows   : Int
+    val numColumns: Int
 
-    val values     = arrayOf(firstRow) + rest
-    val numRows    = values.size
-    val numColumns = if (numRows > 0) values[0].size else 0
+    operator fun get(row: Int, col: Int): T
+}
+
+class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): MatrixImpl<T>(values) {
     var isIdentity = true
         private set
 
     init {
-        require(numColumns > 0) { "empty Matrices are invalid" }
+        require(numRows == numColumns) { "row and column count must be equal" }
 
         for (row in values.indices) {
-            require(values[row].size == numColumns) { "all rows must have the same length" }
-
             if (isIdentity) {
                 run loop@{
                     values[row].forEachIndexed { index, value ->
                         isIdentity = when {
-                            value != 1.0 && index == row -> false
-                            value != 0.0 && index != row -> false
-                            else                         -> true
+                            value.toDouble() != 1.0 && index == row -> false
+                            value.toDouble() != 0.0 && index != row -> false
+                            else                       -> true
                         }
 
                         if (!isIdentity) { return@loop }
@@ -31,31 +34,140 @@ class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
         }
     }
 
-    operator fun get(row: Int, column: Int): Double = values[row][column]
+    val inverse: SquareMatrix<Double>? by lazy {
+        when (determinant) {
+            0.0  -> null
+            else -> {
+                val cofactors = values.mapIndexed { r, values ->
+                    values.mapIndexed { c, _ ->
+                        determinant(r, c) * when {
+                            (r + c).isOdd -> -1
+                            else          ->  1
+                        }
+                    }
+                }.let { squareMatrixOf(numRows) { col, row -> it[row][col] } }
 
-    operator fun times(other: Matrix): Matrix {
-        require (other.numRows == numColumns) { "matrix column and row counts do not match" }
+                val transposed = cofactors.transpose()
 
-        if (other.isIdentity) {
-            return this
-        }
-
-        if (isIdentity) {
-            return other
-        }
-
-        val values = Array(numRows) { DoubleArray(other.numColumns) }
-
-        for (c2 in 0 until other.numColumns) {
-            for (r1 in 0 until numRows) {
-                val sum = (0 until other.numRows).sumByDouble { this.values[r1][it] * other.values[it][c2] }
-
-                values[r1][c2] = sum
+                (transposed * (1.0 / determinant))
             }
         }
-
-        return Matrix(values[0], *values.sliceArray(1 until values.size))
     }
+
+    val determinant: Double by lazy {
+        when (numRows) {
+            2 -> {
+                this[0,0].toDouble() * this[1,1].toDouble() - this[0,1].toDouble() * this[1,0].toDouble()
+            }
+            else -> {
+                var sign   = 1
+                var result = 0.0
+
+                for (col in 0 until numColumns) {
+                    result += sign * this[0, col].toDouble() * determinant(0, col)
+                    sign *= -1
+                }
+
+                result
+            }
+        }
+    }
+
+    private fun determinant(row: Int, col: Int): Double {
+        val subData = values.filterIndexed { r, _ -> r != row }.map { it.filterIndexed { c, _ -> c != col } }
+
+        return SquareMatrix(subData).determinant
+    }
+}
+
+fun <T: Number> squareMatrixOf(size: Int, init: (Int, Int) -> T) = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
+
+fun <T: Number> matrixOf(rows: Int, cols: Int, init: (Int, Int) -> T): Matrix<T> = when {
+    rows != cols -> MatrixImpl(List(rows) { row -> List(cols) { col -> init(col, row) } })
+    else         -> squareMatrixOf(rows, init)
+}
+
+fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
+    val values = MutableList(numRows){ MutableList<T?>(numColumns) { null } }
+
+    for (row in 0 until numRows) {
+        for (col in 0 until numColumns) {
+            values[row][col] = this[col, row]
+        }
+    }
+
+    return SquareMatrix(values.map { it.mapNotNull { it } })
+}
+
+operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
+
+operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): SquareMatrix<Double> {
+    if (other.isIdentity) {
+        return this
+    }
+
+    if (this.isIdentity) {
+        return other
+    }
+
+    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+
+    for (c2 in 0 until other.numColumns) {
+        for (r1 in 0 until numRows) {
+            val sum = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+
+            values[r1][c2] = sum
+        }
+    }
+
+    return SquareMatrix(values)
+}
+
+operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Double> {
+    if (other.isIdentity) {
+        return this
+    }
+
+    return this * (other as Matrix<Double>)
+}
+
+operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
+    require (other.numRows == numColumns) { "matrix column and row counts do not match" }
+
+    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+
+    for (c2 in 0 until other.numColumns) {
+        for (r1 in 0 until numRows) {
+            val sum = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+
+            values[r1][c2] = sum
+        }
+    }
+
+    return MatrixImpl(values)
+}
+
+fun <T: Number, R: Number> SquareMatrix<T>.map(transform: (T) -> R): SquareMatrix<R> = values.map { it.map { transform(it) } }.let { SquareMatrix(it) }
+
+fun <T: Number, R: Number> SquareMatrix<T>.mapIndexed(transform: (col: Int, row: Int, T) -> R): SquareMatrix<R> {
+    return values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) } }.let { SquareMatrix(it) }
+}
+
+
+open class MatrixImpl<T: Number> internal constructor(internal val values: List<List<T>>): Matrix<T> {
+
+    override val numRows    = values.size
+    override val numColumns = if (numRows > 0) values[0].size else 0
+
+    init {
+        require(numColumns > 0) { "empty Matrices are invalid" }
+
+        for (row in values.indices) {
+            require(values[row].size == numColumns) { "all rows must have the same length" }
+        }
+    }
+
+    override operator fun get(row: Int, col: Int): T = values[row][col]
 
     override fun toString(): String {
         val result = StringBuilder()
@@ -75,9 +187,20 @@ class Matrix(firstRow: DoubleArray, vararg rest: DoubleArray) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Matrix) return false
+        if (other !is Matrix<*>) return false
 
-        return values.contentDeepEquals(other.values)
+        if (numRows    != other.numRows   ) return false
+        if (numColumns != other.numColumns) return false
+
+        for (row in 0 until numRows) {
+            for (col in 0 until numColumns) {
+                if (this[row, col] != other[row, col]) {
+                    return false
+                }
+            }
+        }
+
+        return true
     }
 
     override fun hashCode() = values.hashCode()

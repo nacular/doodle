@@ -160,9 +160,9 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
 
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup    = { this@KeyInputServiceStrategyWebkit.keyUp   (it as KeyboardEvent) }
-        onkeydown  = { this@KeyInputServiceStrategyWebkit.keyDown (it as KeyboardEvent) }
-        onkeypress = { this@KeyInputServiceStrategyWebkit.keyPress(it as KeyboardEvent) }
+        onkeyup    = { this@KeyInputServiceStrategyWebkit.keyUp   (it) }
+        onkeydown  = { this@KeyInputServiceStrategyWebkit.keyDown (it) }
+        onkeypress = { this@KeyInputServiceStrategyWebkit.keyPress(it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

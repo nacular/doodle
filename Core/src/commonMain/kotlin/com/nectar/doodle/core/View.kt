@@ -6,9 +6,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.RenderManager
-import com.nectar.doodle.event.FocusEvent
-import com.nectar.doodle.event.FocusEvent.Type.Gained
-import com.nectar.doodle.event.FocusEvent.Type.Lost
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState
@@ -508,16 +505,21 @@ abstract class View protected constructor() {
     protected open fun handleMouseWheelEvent(event: MouseWheelEvent) {}
 
     /**
-     * This is an event invoked on a [View] in response to a focus event triggered in the subsystem.
+     * This is invoked on a [View] in response to a focus event triggered in the subsystem.
      *
-     * @param event The event
+     * @param previous The previous [View]--if any--that had focus
      */
+    internal fun focusGained(@Suppress("UNUSED_PARAMETER") previous: View?) {
+        hasFocus = true
+    }
 
-    internal fun handleFocusEvent(event: FocusEvent) {
-        hasFocus = when(event.type) {
-            Gained -> true
-            Lost   -> false
-        }
+    /**
+     * This is invoked on a [View] in response to a focus event triggered in the subsystem.
+     *
+     * @param new The new [View]--if any--that will have focus
+     */
+    internal fun focusLost(@Suppress("UNUSED_PARAMETER") new: View?) {
+        hasFocus = false
     }
 
     protected open fun addedToDisplay() {}
