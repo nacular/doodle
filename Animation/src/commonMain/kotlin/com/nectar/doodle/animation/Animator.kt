@@ -31,6 +31,8 @@ interface PropertyTransitions<T: Unit> {
 interface Animator<P> {
     operator fun <T: Unit> invoke(property: P, initialValue: Measure<T>): InitialPropertyTransition<T>
 
+    val running: Boolean
+
     fun schedule(after: Measure<Time> = 0 * milliseconds)
     fun cancel  ()
 

@@ -43,11 +43,11 @@ import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
-import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -473,6 +473,7 @@ internal open class CanvasImpl(
         } else {
             result.clearBoundStyles ()
             result.clearVisualStyles()
+            result.src = image.src
         }
 
         return result as HTMLImageElement

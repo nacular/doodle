@@ -1,3 +1,22 @@
+pluginManagement {
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "kotlin2js") {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            } else if (requested.id.id == "kotlin-multiplatform") {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            } else if (requested.id.id == "org.jetbrains.kotlin.frontend") {
+                useModule("org.jetbrains.kotlin:kotlin-frontend-plugin:${requested.version}")
+            }
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://plugins.gradle.org/m2/' }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    }
+}
 /*
  * Copyright (c) 2015. Nectar
  */
@@ -11,6 +30,7 @@ include 'Core'
 include 'Platform'
 
 include 'TestApp'
+include 'ImageSite'
 include 'GetterFixer'
 
 project(':Animation'  ).name = 'animation'
@@ -19,4 +39,5 @@ project(':Core'       ).name = 'core'
 project(':Platform'   ).name = 'platform'
 
 project(':TestApp'    ).name = 'testapp'
+project(':ImageSite'  ).name = 'imagesite'
 project(':GetterFixer').name = 'getterfixer'

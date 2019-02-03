@@ -95,8 +95,10 @@ class AnimatorImpl<P>(
         }
     }
 
+    override val running get() = task?.completed == false
+
     override fun cancel() {
-        if (task?.completed == false) {
+        if (running) {
             task?.cancel()
 
             listeners.forEach { it.cancelled(this) }
