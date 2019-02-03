@@ -41,13 +41,9 @@ private class Result<P, T: com.nectar.measured.units.Unit>(val active: Boolean, 
 
 private class PropertyDriver<P, T: com.nectar.measured.units.Unit>(private val property: InternalProperty<P, T>) {
     fun drive(totalElapsedTime: Measure<Time>): Result<P, T> {
+        val oldPosition      = property.value.position
         var momentValue      = property.value
-        var activeTransition = property.activeTransition
-
-        // Read new active Transition
-        if (activeTransition == null) {
-            activeTransition = property.nextTransition(momentValue, totalElapsedTime)
-        }
+        var activeTransition = property.activeTransition ?: property.nextTransition(momentValue, totalElapsedTime)
 
         // Skip over out-dated Transitions, making sure to take their end-state into account
         while (activeTransition != null && activeTransition.endTime.time < totalElapsedTime) {
@@ -60,7 +56,7 @@ private class PropertyDriver<P, T: com.nectar.measured.units.Unit>(private val p
             momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
         }
 
-        return Result(activeTransition != null, property.property, property.value.position, momentValue.position)
+        return Result(activeTransition != null, property.property, oldPosition, momentValue.position)
     }
 }
 
@@ -113,8 +109,12 @@ class AnimatorImpl<P>(
         val totalElapsedTime = timer.now - startTime
         var activeTransition = false
 
-        drivers.forEach {
-            events[it.key] = it.value.drive(totalElapsedTime).also { activeTransition = activeTransition || it.active }
+        drivers.forEach { (property, driver) ->
+            val result = driver.drive(totalElapsedTime).also { activeTransition = activeTransition || it.active }
+
+            if (result.new != result.old) {
+                events[property] = result
+            }
         }
 
         if (events.isNotEmpty()) {

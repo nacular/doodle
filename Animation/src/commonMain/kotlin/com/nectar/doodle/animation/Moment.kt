@@ -9,7 +9,7 @@ import com.nectar.measured.units.UnitRatio
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
-class Moment<T: Unit>(val position: Measure<T>, val velocity: Measure<UnitRatio<T, Time>>)
+class Moment<T: Unit>(val position: Measure<T>, val velocity: Measure<Velocity<T>>)
 
 typealias Velocity<T>     = UnitRatio<T, Time>
 typealias Acceleration<T> = UnitRatio<T, Square<Time>>
