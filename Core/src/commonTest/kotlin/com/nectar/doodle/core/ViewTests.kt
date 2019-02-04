@@ -360,8 +360,8 @@ class ViewTests {
         expect(child0) { root.child_(Point(11.0, 13.0)) }
     }
 
-    @Test @JsName("zIndexWorks")
-    fun `z-index works`() {
+    @Test @JsName("zIndexReadWorks")
+    fun `z-index read works`() {
         val root   = view()
         val child0 = view().apply { x += 10.0; y += 12.0 }
         val child1 = view().apply { x += 10.0; y += 12.0 }
@@ -384,6 +384,38 @@ class ViewTests {
         expect(2) { root.zIndex_(child2) }
         expect(1) { root.zIndex_(child3) }
         expect(0) { root.zIndex_(child0) }
+    }
+
+    private class CustomView: View() {
+        public override fun setZIndex(of: View, to: Int) {
+            super.setZIndex(of, to)
+        }
+    }
+
+    @Test @JsName("zIndexWriteWorks")
+    fun `z-index write works`() {
+        val root = CustomView()
+        val child0 = view()
+        val child1 = view()
+        val child2 = view()
+        val child3 = view()
+
+        root.children_ += child0
+        root.children_ += child1
+        root.children_ += child2
+        root.children_ += child3
+
+        expect(3) { root.zIndex_(child0) }
+        expect(2) { root.zIndex_(child1) }
+        expect(1) { root.zIndex_(child2) }
+        expect(0) { root.zIndex_(child3) }
+
+        root.setZIndex(child1, 0)
+
+        expect(3) { root.zIndex_(child0) }
+        expect(2) { root.zIndex_(child2) }
+        expect(1) { root.zIndex_(child3) }
+        expect(0) { root.zIndex_(child1) }
     }
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {

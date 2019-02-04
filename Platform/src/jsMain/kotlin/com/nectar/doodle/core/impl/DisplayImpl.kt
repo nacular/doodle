@@ -69,7 +69,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
     override fun zIndex(of: View) = children.size - children.indexOf(of) - 1
 
     override fun setZIndex(of: View, to: Int)  {
-        children.move(of, to)
+        children.move(of, children.size - to - 1)
     }
 
 //    var focusTraversalPolicy: FocusTraversalPolicy

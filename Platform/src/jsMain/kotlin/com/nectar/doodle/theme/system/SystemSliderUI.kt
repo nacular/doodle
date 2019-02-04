@@ -10,7 +10,7 @@ import com.nectar.doodle.theme.Renderer
  * Created by Nicholas Eddy on 11/20/18.
  */
 class SystemSliderUI(nativeSliderFactory: NativeSliderFactory, slider: Slider): Renderer<Slider> {
-    private val nativePeer by lazy{ nativeSliderFactory(slider) }
+    private val nativePeer by lazy { nativeSliderFactory(slider) }
 
     override fun render(view: Slider, canvas: Canvas) {
         nativePeer.render(canvas)

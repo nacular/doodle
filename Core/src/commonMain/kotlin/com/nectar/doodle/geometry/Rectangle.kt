@@ -5,10 +5,16 @@ import com.nectar.doodle.layout.Insets
 import kotlin.math.max
 
 
-class Rectangle constructor(val position: Point = Origin, val size: Size = Size.Empty): ConvexPolygon() {
+class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): ConvexPolygon() {
 
     constructor(width: Double, height: Double): this(Origin, Size(width, height))
     constructor(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): this(Point(x, y), Size(width, height))
+
+    constructor(width: Int, height: Int): this(Origin, Size(width, height))
+    constructor(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): this(Point(x, y), Size(width, height))
+
+    constructor(width: Float, height: Float): this(Origin, Size(width, height))
+    constructor(x: Float = 0f, y: Float = 0f, width: Float = 0f, height: Float = 0f): this(Point(x, y), Size(width, height))
 
     val x      get() = position.x
     val y      get() = position.y

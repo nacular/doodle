@@ -65,7 +65,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
     private val buttonUI      by lazy { BasicButtonUI          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
     private val sliderUI      by lazy { BasicSliderUI          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val spinnerUI     by lazy { BasicSpinnerUI         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }
-    private val splitPanelUI  by lazy { BasicSplitPanelUI      (darkBackgroundColor    = darkBackgroundColor                                              ) }
+    private val splitPanelUI  by lazy { BasicSplitPanelUI      () }
     private val mutableListUI by lazy { BasicMutableListUI<Any>(focusManager, textMetrics ) }
     private val progressBarUI by lazy { BasicProgressBarUI     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val mutableTreeUI by lazy { BasicMutableTreeUI<Any>(focusManager, labelFactory) }

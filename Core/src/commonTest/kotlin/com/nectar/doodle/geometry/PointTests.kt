@@ -11,7 +11,7 @@ import kotlin.test.expect
  */
 class PointTests {
     @Test @JsName("defaultIsOrigin")
-    fun `default == origin`() = expect(Origin) { Point() }
+    fun `default == origin`() = expect(Origin) { Point(0, 0) }
 
     @Test @JsName("xYWork")
     fun `x y work`() = listOf(10 to 3, 0 to 56, 5 to 5).forEach {

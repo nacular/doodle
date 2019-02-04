@@ -3,6 +3,9 @@ package com.nectar.doodle.geometry
 
 class Size(val width: Double = 0.0, val height: Double = width) {
 
+    constructor(width: Int   = 0, height : Int   = width) : this(width.toDouble(), height.toDouble())
+    constructor(width: Float = 0f, height: Float = width) : this(width.toDouble(), height.toDouble())
+
     init {
         require(width  >= 0) { "Width cannot be negative"  }
         require(height >= 0) { "Height cannot be negative" }

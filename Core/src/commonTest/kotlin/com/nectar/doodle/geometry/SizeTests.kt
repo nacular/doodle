@@ -12,7 +12,7 @@ import kotlin.test.expect
  */
 class SizeTests {
     @Test @JsName("defaultIsEmpty")
-    fun `default == empty`() = expect(Empty) { Size() }
+    fun `default == empty`() = expect(Empty) { Size(0, 0) }
 
     @Test @JsName("negativeSideFails")
     fun `negative side fails`() {

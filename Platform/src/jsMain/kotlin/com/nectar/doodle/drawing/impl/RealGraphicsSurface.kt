@@ -77,12 +77,12 @@ class RealGraphicsSurface private constructor(
 
                     rootElement.insert(this, 0)
 
-                    canvas = canvasFactory(this)
+                    canvas      = canvasFactory(this)
                     zIndexStart = 1
                 }
             } else {
                 canvasElement?.let { it.parent?.remove(it) }
-                canvas = canvasFactory(rootElement) // TODO: Import contents from old canvas
+                canvas      = canvasFactory(rootElement) // TODO: Import contents from old canvas
                 zIndexStart = 0
                 null
             }
@@ -113,7 +113,10 @@ class RealGraphicsSurface private constructor(
 
         if (isContainer) {
             canvasElement?.let {
-                if (it.numChildren == 0) { it.parent?.remove(it) }
+                if (it.numChildren == 0) {
+                    it.parent?.remove(it)
+                    zIndexStart = 0
+                }
             }
         }
 
@@ -153,7 +156,7 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    private fun add(child: RealGraphicsSurface) {
+    private fun add(@Suppress("UNUSED_PARAMETER") child: RealGraphicsSurface) {
         if (++numChildren == 1) {
             isContainer = true
         }
@@ -175,6 +178,6 @@ class RealGraphicsSurface private constructor(
 
         zIndexSet.add(index)
 
-        rootElement.insert(child.rootElement, max(zIndexStart, zIndexSet.indexOf(index)))
+        rootElement.insert(child.rootElement, max(zIndexStart, numChildren - zIndexSet.indexOf(index) - 1))
     }
 }

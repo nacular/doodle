@@ -1,6 +1,6 @@
-apply plugin: 'org.jetbrains.dokka'
-apply plugin: 'maven-publish'
 apply plugin: 'kotlin-multiplatform'
+apply plugin: 'maven-publish'
+apply plugin: 'org.jetbrains.dokka'
 
 kotlin {
     targets {

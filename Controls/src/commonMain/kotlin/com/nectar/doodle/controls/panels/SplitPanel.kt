@@ -19,29 +19,21 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         set(new) {
 
             divider?.let { children -= it }
-            resizer?.let { children -= it }
 
-            field = new?.also {
-                divider = it.divider(this)
-                resizer = it.resizer(this)
+            field = new?.also { renderer ->
+                divider = renderer.divider(this)
 
                 divider?.let {
-                    it.width = panelSpacing
+                    if (renderer.dividerVisible) {
+                        panelSpacing = it.width
+                    }
 
                     children += it
 
                     setZIndex(it, 0)
                 }
 
-                resizer?.let {
-                    it.width = panelSpacing
-
-                    children += it
-
-                    setZIndex(it, 0)
-                }
-
-                if (divider != null || resizer != null) {
+                if (divider != null) {
                     updateLayout()
                 }
             }
@@ -61,7 +53,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         }
 
     private var divider: View? = null
-    private var resizer: View? = null
 
     var lastItem: View? = null
         set(new) {
@@ -82,13 +73,12 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     var ratio = ratio
         set(new) { if (new != field) { field = new; doLayout(); changed_() } }
 
+    private var panelSpacing = 0.0
+
     @Suppress("PrivatePropertyName")
     private val changed_ = ChangeObserversImpl(this)
 
     val changed: ChangeObservers<SplitPanel> = changed_
-
-    var panelSpacing = 0.0
-        set(new) { if (new != field) { field = new; doLayout() } }
 
     public override var insets
         get(   ) = super.insets
@@ -114,7 +104,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         val first   = firstItem
         val last    = lastItem
         val divider = divider
-        val resizer = resizer
 
         // TODO: Handle Orientation
         val fill: (Constraints, Insets) -> Unit = { view, insets ->
@@ -147,16 +136,9 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         layout?.let {
             if (divider != null && first != null) {
                 it.constrain(divider, first) { divider, first ->
-                    divider.top    = first.top
-                    divider.left   = first.right
-                    divider.bottom = first.bottom
-                }
-            }
-
-            if (resizer != null && first != null) {
-                it.constrain(resizer, first) { resizer, first ->
-                    resizer.top    = first.top
-                    resizer.bottom = first.bottom
+                    divider.top     = first.top
+                    divider.bottom  = first.bottom
+                    divider.centerX = divider.parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio } //first.right
                 }
             }
         }

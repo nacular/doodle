@@ -38,7 +38,8 @@ abstract class TextInput : View() /*, ContentRequestMonitor*/ {
 
     var validator: Validator = { it }
         set(new) {
-            text = text /* re-validate text */
+            field = new
+            text  = text /* re-validate text */
         }
 
     val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(this) }

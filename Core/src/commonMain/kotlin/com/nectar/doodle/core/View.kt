@@ -324,7 +324,7 @@ abstract class View protected constructor() {
      * @throws IndexOutOfBoundsException if ```index !in 0 until this.children.size```
      */
     protected open fun setZIndex(of: View, to: Int) {
-        children.move(of, to)
+        children.move(of, children.size - to - 1)
     }
 
     internal fun zIndex_(of: View) = zIndex(of)

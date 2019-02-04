@@ -31,6 +31,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
     override var toolTipText: String = ""
         set(new) {
+            field              = new
             inputDevice?.title = new
         }
 
@@ -153,27 +154,27 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().apply {
         event.altKey.ifTrue   { add(Alt  ) }
         event.ctrlKey.ifTrue  { add(Ctrl ) }
-        event.shiftKey.ifTrue { add(Shift) }
         event.metaKey.ifTrue  { add(Meta ) }
+        event.shiftKey.ifTrue { add(Shift) }
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onmouseup   = { this@MouseInputServiceStrategyWebkit.mouseUp    (it as MouseEvent) }
-        onmousedown = { this@MouseInputServiceStrategyWebkit.mouseDown  (it as MouseEvent) }
-        onmousemove = { this@MouseInputServiceStrategyWebkit.mouseMove  (it as MouseEvent) }
-        ondblclick  = { this@MouseInputServiceStrategyWebkit.doubleClick(it as MouseEvent) }
-        onwheel     = { this@MouseInputServiceStrategyWebkit.mouseScroll(it as WheelEvent) }
-        onmouseout  = { this@MouseInputServiceStrategyWebkit.mouseExit  (it as MouseEvent) }
-        onmouseover = { this@MouseInputServiceStrategyWebkit.mouseEnter (it as MouseEvent) }
+        onwheel     = { this@MouseInputServiceStrategyWebkit.mouseScroll(it) }
+        onmouseup   = { this@MouseInputServiceStrategyWebkit.mouseUp    (it) }
+        onmouseout  = { this@MouseInputServiceStrategyWebkit.mouseExit  (it) }
+        ondblclick  = { this@MouseInputServiceStrategyWebkit.doubleClick(it) }
+        onmousedown = { this@MouseInputServiceStrategyWebkit.mouseDown  (it) }
+        onmousemove = { this@MouseInputServiceStrategyWebkit.mouseMove  (it) }
+        onmouseover = { this@MouseInputServiceStrategyWebkit.mouseEnter (it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {
+        onwheel     = null
         onmouseup   = null
+        onmouseout  = null
+        ondblclick  = null
         onmousedown = null
         onmousemove = null
-        ondblclick  = null
-        onwheel     = null
-        onmouseout  = null
         onmouseover = null
     }
 }

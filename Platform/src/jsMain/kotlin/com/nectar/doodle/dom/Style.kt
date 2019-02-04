@@ -17,7 +17,7 @@ import kotlin.math.max
 
 private typealias Style = CSSStyleDeclaration
 
-private inline fun em(value: Number) =  "${value.toDouble()}px" //"${value.toDouble() / 16}em" // TODO: Fixme
+private inline fun em(value: Number) =  "${value.toDouble()}px" //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value) }
 
@@ -46,7 +46,7 @@ internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "
 
 internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)" }
 
-internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) /*"#${it.hexString}"*/  } ?: "" }
+internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) } ?: "" }
 internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
 
@@ -79,8 +79,7 @@ internal inline fun Style.setVisibility(value: Visibility) { visibility = value.
 
 internal inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
 
-// FIXME: This broke runtime when it was inline
-internal fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) /*"#${it.hexString}"*/  } ?: ""     }
+internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) } ?: ""     }
 
 internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value }
 
@@ -89,7 +88,7 @@ internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgrou
 internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = "${value}px" }
 internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }
-internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it) /*"#${it.hexString}"*/ } ?: "" }
+internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it)} ?: "" }
 internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle  = style.value }
 
 internal inline fun Style.setBorderTop   (value: Double) { borderTop    = value.toString() }
@@ -102,16 +101,6 @@ internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign
 internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value }
 
 internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("float", float?.value ?: "") }
-
-//    fun setOpacity( float aOpacity )
-//    {
-//        // FIXME: This is here b/c GWT SuperDevMode refuses to call this class' static
-//        // initializer.s
-//        if( sStyleImpl == null ) { sStyleImpl = GWT.create( StyleImpl.class ) }
-//
-//        sStyleImpl.setOpacity( this, aOpacity )
-//    }
-//
 
 internal inline fun Style.translate(to: Point) = translate(to.x, to.y)
 internal inline fun Style.translate(x: Double, y: Double) {
