@@ -11,6 +11,8 @@ import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Rectangle.Companion.Empty
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.utils.AdaptingObservableSet
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
@@ -392,7 +394,7 @@ open class Tree<T, out M: Model<T>>(
             firstVisibleRow =  0
             lastVisibleRow  = -1
 
-            handleDisplayRectEvent(Rectangle.Empty, Rectangle(width, height))
+            handleDisplayRectEvent(Empty, Rectangle(width, height))
         }
 
         updateNumRows()
@@ -501,7 +503,10 @@ open class Tree<T, out M: Model<T>>(
 
     protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
         itemPositioner?.let {
-            view.bounds = it.rowBounds(this, node, path, index)
+            view.bounds = it.rowBounds(this, node, path, index, view)
+
+            width       = max(width, view.width)
+            minimumSize = Size(width, height)
         }
     }
 

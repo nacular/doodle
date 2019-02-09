@@ -52,8 +52,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
             fireChanged()
         }
 
-    private var divider: View? = null
-
     var lastItem: View? = null
         set(new) {
             if (new == field) { return }
@@ -73,6 +71,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     var ratio = ratio
         set(new) { if (new != field) { field = new; doLayout(); changed_() } }
 
+    private var divider      = null as View?
     private var panelSpacing = 0.0
 
     @Suppress("PrivatePropertyName")

@@ -58,13 +58,13 @@ class NativeSlider internal constructor(
         private val marginSize    : Size,
         private val slider        : Slider): NativeEventListener {
 
+    private val oldSliderHeight = slider.height
+
     private val nativeEventHandler: NativeEventHandler
 
     private val sliderElement = htmlFactory.createInput().apply {
-//        style.setWidth (slider.width  - marginSize.width  / 2)
-//        style.setHeight(slider.height - marginSize.height / 2)
-        type         = "range"
-        value        = slider.value.toString()
+        type  = "range"
+        value = slider.value.toString()
 //        style.cursor = "inherit"
     }
 
@@ -120,6 +120,8 @@ class NativeSlider internal constructor(
             boundsChanged       -= this@NativeSlider.boundsChanged
             enabledChanged      -= this@NativeSlider.enabledChanged
             focusabilityChanged -= this@NativeSlider.focusableChanged
+
+            height = oldSliderHeight
         }
     }
 

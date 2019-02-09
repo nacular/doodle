@@ -9,6 +9,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.text.invoke
 import com.nectar.doodle.utils.HorizontalAlignment
+import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right
 import com.nectar.doodle.utils.VerticalAlignment
@@ -22,12 +23,12 @@ interface LabelFactory {
     operator fun invoke(
             styledText         : StyledText          = StyledText(""),
             verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): Label
+            horizontalAlignment: HorizontalAlignment = Center): Label
 
     operator fun invoke(
             text               : String,
             verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center) = this(StyledText(text), verticalAlignment, horizontalAlignment)
+            horizontalAlignment: HorizontalAlignment = Center) = this(StyledText(text), verticalAlignment, horizontalAlignment)
 }
 
 class LabelFactoryImpl(private val textMetrics: TextMetrics): LabelFactory {
@@ -41,7 +42,7 @@ open class Label internal constructor(
         private val textMetrics        : TextMetrics,
                     styledText         : StyledText          = StyledText(""),
                     verticalAlignment  : VerticalAlignment   = Middle,
-                    horizontalAlignment: HorizontalAlignment = HorizontalAlignment.Center): View() {
+                    horizontalAlignment: HorizontalAlignment = Center): View() {
 
     var fitText = true
 
@@ -124,7 +125,7 @@ open class Label internal constructor(
 
         val x = when (horizontalAlignment) {
             Left                       -> 0.0
-            HorizontalAlignment.Center -> (width - textSize.width) / 2
+            Center -> (width - textSize.width) / 2
             Right                      ->  width - textSize.width
         }
 

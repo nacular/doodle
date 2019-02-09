@@ -13,6 +13,8 @@ import com.nectar.doodle.controls.tree.TreeEditor
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.CanvasBrush
+import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
@@ -31,6 +33,7 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
@@ -43,16 +46,24 @@ import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
-    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
-        return Rectangle(tree.insets.left, tree.insets.top + index * height, tree.width - tree.insets.run { left + right }, height)
+    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = contentBounds(tree, node, path, index, current).let {
+        Rectangle(tree.insets.left, it.y, it.width + it.x, it.height)
     }
 
-    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
+    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): Rectangle {
         // FIXME: Centralize
-        val depth  = (path.depth - if (!tree.rootVisible) 1 else 0)
-        val indent = 20.0 * (1 + depth)
+        val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
+        val indent   = 20.0 * (1 + depth)
+        val maxWidth = tree.width - tree.insets.run { left + right } - indent
 
-        return Rectangle(tree.insets.left + indent, tree.insets.top + index * height, tree.width - tree.insets.run { left + right } - indent, height)
+        return Rectangle(
+                tree.insets.left + indent,
+                tree.insets.top + index * height,
+                when (current) {
+                    is BasicTreeRow<*> -> max(maxWidth, current.idealSize!!.width)
+                    else               -> maxWidth
+                },
+                height)
     }
 
     override fun row(of: Tree<T, *>, atY: Double): Int {
@@ -65,34 +76,27 @@ interface ContentGenerator<T> {
 }
 
 private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
-    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View?): View {
-        return when (previous) {
-            is Label -> { previous.text = node.toString(); previous }
-            else     -> labelFactory(node.toString()).apply {
-                fitText             = false
-                horizontalAlignment = Left
-            }
+    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View?) = when (previous) {
+        is Label -> { previous.text = node.toString(); previous }
+        else     -> labelFactory(node.toString()).apply {
+            fitText             = true
+            horizontalAlignment = Left
         }
     }
 }
 
 private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
-    private var depth     = -1
-    private val iconWidth = 20.0
-
-    private var icon = null as Label?
-
-    private var content: View = contentFactory(tree, node, path, index)
-
-    private var background = lightgray
+    private var icon       = null as Label?
+    private var depth      = -1
+    private var content    = contentFactory(tree, node, path, index)
+    private val iconWidth  = 20.0
+    private var background = null as Color?
 
     private lateinit var constraintLayout: ConstraintLayout
 
     init {
-        children += content
-
+        children     += content
         styleChanged += { rerender() }
-
         mouseChanged += object: MouseListener {
             private var pressed   = false
             private var mouseOver = false
@@ -116,9 +120,8 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
                     setOf(path).also {
                         tree.apply {
                             when {
-                                Ctrl in event.modifiers ||
-                                        Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
-                                else                    -> setSelection(it)
+                                Ctrl in event.modifiers || Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
+                                else                                               -> setSelection(it)
                             }
                         }
                     }
@@ -146,11 +149,9 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
         if (newDepth != depth) {
-            constraintLayout = constrain(content) { label ->
-                label.top    = label.parent.top
-                label.left   = label.parent.left + { iconWidth * (1 + newDepth) }
-                label.right  = label.parent.right
-                label.bottom = label.parent.bottom
+            constraintLayout = constrain(content) {
+                it.left    = it.parent.left + { iconWidth * (1 + newDepth) }
+                it.centerY = it.parent.centerY
             }
 
             constrainIcon(icon)
@@ -160,7 +161,7 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
         }
 
         when (!tree.isLeaf(this.path)) {
-            true -> {
+            true  -> {
                 val text = if (tree.expanded(path)) "-" else "+"
 
                 icon = icon?.apply {
@@ -168,6 +169,7 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
                 } ?: labelFactory(text).apply {
                     fitText = false
                     width   = iconWidth
+                    height  = width
 
                     this@BasicTreeRow.children += this
 
@@ -212,14 +214,16 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
             }
         }
 
-        background = if (tree.selected(path)) green else lightgray
+        background = if (tree.selected(path)) {
+            when {
+                index.isEven -> green.lighter()
+                else         -> green
+            }
+        } else null
 
-        background = when {
-            index.isEven -> background.lighter()
-            else         -> background
-        }
 
         backgroundColor = background
+        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
     }
 
     override fun render(canvas: Canvas) {
@@ -229,9 +233,8 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
     private fun constrainIcon(icon: Label?) {
         icon?.let {
             constraintLayout.constrain(it, content) { icon, label ->
-                icon.top    = label.top
-                icon.right  = label.left
-                icon.bottom = label.bottom
+                icon.right   = label.left
+                icon.centerY = label.centerY
             }
         }
     }
@@ -250,7 +253,12 @@ class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, 
 //    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory, focusManager)
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
-    override fun render(view: Tree<T, *>, canvas: Canvas) {}
+    override fun render(view: Tree<T, *>, canvas: Canvas) {
+        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(20, 40)) {
+            rect(Rectangle(       20, 20), ColorBrush(lightgray.lighter()))
+            rect(Rectangle(0, 20, 20, 20), ColorBrush(lightgray          ))
+        })
+    }
 
     override fun install(view: Tree<T, *>) {
         view.keyChanged += this
@@ -294,7 +302,12 @@ class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFact
     override val generator : TreeRenderer.RowGenerator<T>  = MutableLabelItemUIGenerator(focusManager, labelFactory)
     override val positioner: TreeRenderer.RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
-    override fun render(view: Tree<T, *>, canvas: Canvas) {}
+    override fun render(view: Tree<T, *>, canvas: Canvas) {
+        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(20, 40)) {
+            rect(Rectangle(       20, 20), ColorBrush(lightgray.lighter()))
+            rect(Rectangle(0, 20, 20, 20), ColorBrush(lightgray          ))
+        })
+    }
 
     override fun install(view: Tree<T, *>) {
         view.keyChanged += this

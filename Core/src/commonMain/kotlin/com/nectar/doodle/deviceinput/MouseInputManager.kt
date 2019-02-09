@@ -165,7 +165,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
             }
         }
 
-        val view = getMouseMotionEventHandler(coveredView) ?: getMouseEventHandler(coveredView)
+        val view = getMouseEventHandler(coveredView)
 
         if (view !== coveredEventAwareView) {
             coveredEventAwareView?.let {
@@ -198,23 +198,17 @@ class MouseInputManager(private val display: Display, private val inputService: 
 
             coveredEventAwareView = view
 
-        } else if (!mouseDown) {
-            if (coveredEventAwareView != null) {
-                getMouseMotionEventHandler(coveredEventAwareView)?.let {
-                    it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
+        }
 
-                    event.consume()
-                }
-            } else {
-                val handler = getMouseMotionEventHandler(coveredView)?.let {
-                    it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
+        if (!mouseDown) {
+            val handler = getMouseMotionEventHandler(coveredView)?.let {
+                it.handleMouseMotionEvent_(createMouseEvent(event, it, Move))
 
-                    event.consume()
-                }
+                event.consume()
+            }
 
-                if (handler == null) {
-                    inputService.toolTipText = ""
-                }
+            if (handler == null) {
+                inputService.toolTipText = ""
             }
 
             cursor = cursor(of = coveredView)

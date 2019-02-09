@@ -117,7 +117,7 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
     }
 
     private fun updateCursor(mouseEvent: MouseEvent) {
-        if (!dragMode.isEmpty()) {
+        if (dragMode.isNotEmpty()) {
             return
         }
 

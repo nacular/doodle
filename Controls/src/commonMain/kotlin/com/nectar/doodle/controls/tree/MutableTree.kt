@@ -81,7 +81,13 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
     private var editingPath = null as Path<Int>?
         set(new) {
             field = new
-            editingRect = field?.let { path -> this[path]?.let { node -> itemPositioner?.rowBounds(this, node, path, rowFromPath(path)!!) } }
+            editingRect = field?.let { path ->
+                this[path]?.let { node ->
+                    val row = rowFromPath(path)!!
+
+                    itemPositioner?.rowBounds(this, node, path, row)
+                }
+            }
         }
 
     private var editingRect   = null as Rectangle?
