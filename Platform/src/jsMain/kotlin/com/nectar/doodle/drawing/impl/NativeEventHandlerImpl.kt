@@ -45,14 +45,17 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
         element.onkeypress = null
     }
 
-    override fun registerClickListener  () { element.onclick = { onClick() } }
-    override fun unregisterClickListener() { element.onclick = null          }
+    override fun registerClickListener   () { element.onclick  = { onClick() } }
+    override fun unregisterClickListener () { element.onclick  = null          }
 
     override fun registerScrollListener  () { element.onscroll = { onScroll() } }
     override fun unregisterScrollListener() { element.onscroll = null           }
 
-    override fun registerChangeListener  () { element.onchange = { onChage() } }
+    override fun registerChangeListener  () { element.onchange = { onChange() } }
     override fun unregisterChangeListener() { element.onchange = null          }
+
+    override fun registerInputListener   () { element.oninput  = { onInput() } }
+    override fun unregisterInputListener () { element.oninput  = null          }
 
     private fun muteEvent(event: Event, onlySelf: Boolean = false): Boolean {
         if (onlySelf && event.target != element) {
@@ -71,5 +74,6 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
     private fun onKeyPress() = true.also { listener.onKeyPress   () }
     private fun onClick   () = true.also { listener.onClick      () }
     private fun onScroll  () = true.also { listener.onScroll     () }
-    private fun onChage   () = true.also { listener.onChange     () }
+    private fun onChange  () = true.also { listener.onChange     () }
+    private fun onInput   () = true.also { listener.onInput      () }
 }

@@ -29,4 +29,7 @@ interface NativeEventHandler {
 
     fun registerChangeListener  ()
     fun unregisterChangeListener()
+
+    fun registerInputListener  ()
+    fun unregisterInputListener()
 }

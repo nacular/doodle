@@ -61,7 +61,7 @@ val systemThemeModule = Module {
     bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
     bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
     bind<NativeSliderFactory>      () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }
-    bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instanceOrNull()                                                ) }
+    bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
     bind<SystemTheme>              () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance()                              ) }
     bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
 

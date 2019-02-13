@@ -85,6 +85,8 @@ internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat
 
 internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
 
+internal inline fun Style.setOutlineWidth(value: Double           ) { outlineWidth  = "${value}px" }
+
 internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = "${value}px" }
 internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }

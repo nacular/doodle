@@ -47,6 +47,10 @@ private class ToggleButtonModel: ButtonModelImpl() {
 open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButton(text, icon, ToggleButtonModel()) {
     constructor(icon: Icon<Button>): this("", icon)
 
+    val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
+
+    private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }//= ::selectedChangedFun
+
     init {
         super.model.apply {
             selectedChanged += selectedChanged_
@@ -65,9 +69,4 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButt
                 selectedChanged += selectedChanged_
             }
         }
-
-    val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
-
-    private val selectedChanged_ = ::selectedChangedFun
-    private fun selectedChangedFun(@Suppress("UNUSED_PARAMETER") model: ButtonModel, old: Boolean, new: Boolean) = (selectedChanged as PropertyObserversImpl)(old, new)
 }
