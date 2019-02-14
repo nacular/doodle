@@ -124,7 +124,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
                 val i = rowFromPath(path)!! % children.size
 
                 editingPath   = path
-                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children[i]).also {
+                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i, children.getOrNull(i)) ?: Rectangle.Empty, children[i]).also {
                     it()?.let { children[i] = it }
 
                     layout(children[i], item, path, i)

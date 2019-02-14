@@ -9,6 +9,17 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 
 open class TextField: TextInput() {
 
+    enum class TextFit { Width, Height }
+
+    var fitText = null as Set<TextFit>?
+        set(new) {
+            field = new
+
+            fitText()
+        }
+
+    var borderVisible = true
+
     val masked get() = mask != null
 
     val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
@@ -28,6 +39,11 @@ open class TextField: TextInput() {
         }
 
     var renderer: TextFieldRenderer? = null
+        set(new) {
+            field = new
+
+            fitText()
+        }
 
 
     init {
@@ -68,8 +84,15 @@ open class TextField: TextInput() {
         }
 
     private fun fitText() {
-        if (fitText && renderer != null) {
-            renderer?.let { size = it.fitTextSize(this) }
+        fitText?.let { fitText ->
+            if (renderer != null) {
+                renderer?.let {
+                    val size = it.fitTextSize(this)
+
+                    if (TextFit.Width  in fitText) width  = size.width
+                    if (TextFit.Height in fitText) height = size.height
+                }
+            }
         }
     }
 }

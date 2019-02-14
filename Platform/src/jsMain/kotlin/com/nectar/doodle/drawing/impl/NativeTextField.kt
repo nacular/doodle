@@ -182,6 +182,12 @@ class NativeTextField(
         if (canvas is CanvasImpl) {
             canvas.addData(listOf(inputElement))
         }
+
+        if (textField.hasFocus) {
+            inputElement.focus()
+        }
+
+        select(textField.selection.run { start .. end })
     }
 
     fun fitTextSize() = textMetrics.size(textField.displayText).run {

@@ -47,7 +47,11 @@ import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
     override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = contentBounds(tree, node, path, index, current).let {
-        Rectangle(tree.insets.left, it.y, it.width + it.x, it.height)
+        val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
+        val indent   = 20.0 * (1 + depth)
+        val maxWidth = tree.width - tree.insets.run { left + right } - indent
+
+        Rectangle(tree.insets.left, it.y, max(maxWidth, it.width) + it.x, it.height)
     }
 
     override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): Rectangle {
@@ -60,7 +64,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
                 tree.insets.left + indent,
                 tree.insets.top + index * height,
                 when (current) {
-                    is BasicTreeRow<*> -> max(maxWidth, current.idealSize!!.width)
+                    is BasicTreeRow<*> -> current.idealSize!!.width - if (tree.isLeaf(path)) 0 else 20
                     else               -> maxWidth
                 },
                 height)
@@ -347,14 +351,11 @@ open class TextEditOperation<T>(
     }
 
     init {
-        backgroundColor = current.backgroundColor
-
-        bounds = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
-
-        positionMonitor[current] += positionChanged
-
-        text = encoder.encode(node) ?: ""
-
+        text                = encoder.encode(node) ?: ""
+        fitText             = setOf(TextFit.Width)
+        bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
+        borderVisible       = false
+        backgroundColor     = current.backgroundColor
         horizontalAlignment = Left
 
         styleChanged += { rerender() }
@@ -364,6 +365,8 @@ open class TextEditOperation<T>(
                 tree.cancelEditing()
             }
         }
+
+        positionMonitor[current] += positionChanged
 
         this.keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
@@ -380,14 +383,10 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke(): View? {
-        display.children += this
-        return null
-    }
+    override fun invoke(): View? = null.also { display.children += this }
 
     override fun complete() = encoder.decode(text).also {
-        display.children -= this
-        positionMonitor[current] -= positionChanged
+        cancel()
     }
 
     override fun cancel() {

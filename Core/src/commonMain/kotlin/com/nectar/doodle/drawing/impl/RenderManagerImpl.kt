@@ -141,7 +141,7 @@ class RenderManagerImpl(
             if (display ancestorOf view) {
                 view.addedToDisplay(this)
 
-                dirtyViews         += view
+                dirtyViews          += view
                 neverRendered       += view
                 pendingRender       += view
                 pendingBoundsChange += view
