@@ -89,10 +89,10 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
     }
 }
 
-private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
+private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
     private var icon       = null as Label?
     private var depth      = -1
-    private var content    = contentFactory(tree, node, path, index)
+    private var content    = contentGenerator(tree, node, path, index)
     private val iconWidth  = 20.0
     private var background = null as Color?
 
@@ -142,7 +142,7 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
     fun update(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int) {
         this.path = path
 
-        content = contentFactory(tree, node, path, index, content).also {
+        content = contentGenerator(tree, node, path, index, content).also {
             if (it != content) {
                 children -= content
                 children += it
@@ -244,17 +244,32 @@ private class BasicTreeRow<T>(private val contentFactory: ContentGenerator<T>, p
     }
 }
 
-open class TreeLabelItemUIGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): RowGenerator<T> {
+open class BasicTreeRowGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is BasicTreeRow<*> -> (current as BasicTreeRow<T>).apply { update(tree, node, path, index) }
         else               -> BasicTreeRow(contentGenerator, labelFactory, focusManager, tree, node, path, index)
     }
 }
 
-class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, KeyListener {
-    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(TreeLabelItemUIGenerator(labelFactory, focusManager))
+class BasicMutableTreeRowGenerator<T>(labelFactory: LabelFactory, focusManager: FocusManager?, contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): BasicTreeRowGenerator<T>(labelFactory, focusManager, contentGenerator) {
+    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
+        if (current !is BasicTreeRow<*>) {
+            val result = it as BasicTreeRow<*>
 
-//    override val generator : RowGenerator<T>  = TreeLabelItemUIGenerator(labelFactory, focusManager)
+            it.mouseChanged += object: MouseListener {
+                override fun mouseReleased(event: MouseEvent) {
+                    if (event.clickCount == 2) {
+                        (tree as MutableTree).startEditing(result.path)
+                    }
+                }
+            }
+        }
+    }
+}
+
+open class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, KeyListener {
+    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicTreeRowGenerator(labelFactory, focusManager))
+
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
@@ -285,25 +300,9 @@ class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, 
     }
 }
 
-private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, labelFactory: LabelFactory): TreeLabelItemUIGenerator<T>(labelFactory, focusManager) {
-    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
-        if (current !is BasicTreeRow<*>) {
-            val result = it as BasicTreeRow<*>
+class BasicMutableTreeUI<T>(generator: RowGenerator<T>): BasicTreeUI<T>(generator) {
+    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicMutableTreeRowGenerator(labelFactory, focusManager))
 
-            it.mouseChanged += object: MouseListener {
-                override fun mouseReleased(event: MouseEvent) {
-                    if (event.clickCount == 2) {
-                        (tree as MutableTree).startEditing(result.path)
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-class BasicMutableTreeUI<T>(focusManager: FocusManager?, labelFactory: LabelFactory): TreeRenderer<T>, KeyListener {
-    override val generator : TreeRenderer.RowGenerator<T>  = MutableLabelItemUIGenerator(focusManager, labelFactory)
     override val positioner: TreeRenderer.RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {

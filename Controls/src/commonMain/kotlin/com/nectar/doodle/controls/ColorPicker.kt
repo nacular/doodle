@@ -44,6 +44,10 @@ class ColorPicker(color: Color): View() {
             colorRect.color = HsvColor(new)
         }
 
+    private val changed_ by lazy { PropertyObserversImpl<ColorPicker, Color>(this) }
+
+    val changed: PropertyObservers<ColorPicker, Color> = changed_
+
     private class ColorRect(color: HsvColor): View() {
         var color = color
             set(new) {
@@ -53,6 +57,7 @@ class ColorPicker(color: Color): View() {
                 field   = new
 
                 baseColor = HsvColor(color.hue, 1f, 1f).toRgb()
+                selection = color.saturation to 1f - color.value
 
                 rerender()
 
@@ -63,6 +68,8 @@ class ColorPicker(color: Color): View() {
 
         private var selection = 1f to 0f
             set(new) {
+                if (field == new) return
+
                 field = min(1f, max(0f, new.first)) to min(1f, max(0f, new.second))
 
                 val value      = 1f - field.second
@@ -290,10 +297,12 @@ class ColorPicker(color: Color): View() {
     private val inset = 4.0
 
     private val colorRect: ColorRect = ColorRect(HsvColor(color)).apply {
-        changed += { _,_,color ->
-            color.toRgb().let {
+        changed += { _,old,new ->
+            new.toRgb().let {
                 opacityStrip.color          = it
                 colorSquare.backgroundColor = it
+
+                changed_(old.toRgb(), it)
             }
         }
     }

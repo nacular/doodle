@@ -11,8 +11,9 @@ import com.nectar.doodle.utils.Path
 
 interface EditOperation<T> {
     operator fun invoke(): View?
+
     fun complete(): T?
-    fun cancel()
+    fun cancel  ()
 }
 
 interface TreeEditor<T> {
@@ -78,6 +79,10 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     var editor = null as TreeEditor<T>?
 
+    operator fun set(path: Path<Int>, value: T) { model[path] = value }
+
+    operator fun set(row: Int, value: T) { pathFromRow(row)?.let { model[it] = value } }
+
     private var editingPath = null as Path<Int>?
         set(new) {
             field = new
@@ -118,6 +123,8 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
         if (!visible(path)) {
             return
         }
+
+        cancelEditing()
 
         editor?.let {
             model[path]?.let { item ->

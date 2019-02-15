@@ -24,7 +24,7 @@ class TreeTests {
 
     @Test @JsName("hasRightNumberOfRows")
     fun `has right number of rows`() {
-        val root = node(0) { node(1); node(2); node(3) }
+        val root = rootNode(0) { node(1); node(2); node(3) }
 
         var tree = tree(root)
 
@@ -46,7 +46,7 @@ class TreeTests {
 
     @Test @JsName("hasRightChildren")
     fun `has right children`() {
-        val root = node("root") {
+        val root = rootNode("root") {
             node("child1") {
                 node("child1_1")
                 node("child1_2") }
@@ -85,14 +85,14 @@ class TreeTests {
 
     @Test @JsName("getWorks")
     fun `get path`() {
-        validateGetPath(node(11) { node(105); node(-24) { node(33) }; node(0) }, mapOf(
+        validateGetPath(rootNode(11) { node(105); node(-24) { node(33) }; node(0) }, mapOf(
                 Path<Int>( )     to  11,
                 Path     (0)     to 105,
                 Path     (1)     to -24,
                 Path     (1) + 0 to  33,
                 Path     (2)     to   0))
 
-        validateGetPath(node(11) { node(105); node(-24) { node(33) }; node(0) }, mapOf(
+        validateGetPath(rootNode(11) { node(105); node(-24) { node(33) }; node(0) }, mapOf(
                 Path<Int>( )     to  11,
                 Path     (0)     to 105,
                 Path     (1)     to -24,
@@ -102,11 +102,11 @@ class TreeTests {
 
     @Test @JsName("getRow")
     fun `get row`() {
-        validateGetRow(node(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(105, -24, 0    ))
-        validateGetRow(node(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(105, -24, 33, 0)) {
+        validateGetRow(rootNode(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(105, -24, 0    ))
+        validateGetRow(rootNode(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(105, -24, 33, 0)) {
             expandAll()
         }
-        validateGetRow(node(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(11, 105, -24, 33, 0)) {
+        validateGetRow(rootNode(11) { node(105); node(-24) { node(33) }; node(0) }, listOf(11, 105, -24, 33, 0)) {
             rootVisible = true
             expandAll()
         }
@@ -114,7 +114,7 @@ class TreeTests {
 
     @Test @JsName("expandAll")
     fun `expand all`() {
-        val tree = tree(node("root") {
+        val tree = tree(rootNode("root") {
             node("child1") {
                 node("child1_1")
                 node("child1_2") {
@@ -138,7 +138,7 @@ class TreeTests {
 
     @Test @JsName("collapseAll")
     fun `collapse all`() {
-        val tree = tree(node("root") {
+        val tree = tree(rootNode("root") {
             node("child1") {
                 node("child1_1")
                 node("child1_2") {
@@ -163,7 +163,7 @@ class TreeTests {
 
     @Test @JsName("expandNonVisible")
     fun `expand non-visible`() {
-        val tree = tree(node("root") {
+        val tree = tree(rootNode("root") {
             node("child1") {
                 node("child1_1")
                 node("child1_2") {
@@ -222,12 +222,12 @@ class TreeTests {
     }
 }
 
-//private fun addChildren(node: NodeBuilder<String>, config: kotlin.collections.List<Int>) {
+//private fun addChildren(rootNode: NodeBuilder<String>, config: kotlin.collections.List<Int>) {
 //    if (config.isNotEmpty()) {
 //        (0 until config[0]).forEach { i ->
-//            val child = NodeBuilder("${node.value}[$i]") //getRandomText( 20, 100 ) );
+//            val child = NodeBuilder("${rootNode.value}[$i]") //getRandomText( 20, 100 ) );
 //
-//            node.children += child
+//            rootNode.children += child
 //
 //            addChildren(child, config.drop(1))
 //        }
