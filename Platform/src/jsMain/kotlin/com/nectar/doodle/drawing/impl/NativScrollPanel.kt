@@ -34,9 +34,7 @@ class NativeScrollPanel internal constructor(
         rootElement.apply {
             style.setOverflow(Scroll)
 
-            panel.apply {
-                scroll(scroll.x, scroll.y)
-            }
+            scrollTo(panel.scroll)
         }
 
         eventHandler = handlerFactory(rootElement, this).apply {
@@ -57,6 +55,6 @@ class NativeScrollPanel internal constructor(
     }
 
     fun scrollTo(point: Point) {
-        rootElement.scrollTo(point.x, point.y)
+        rootElement.scrollTo(point)
     }
 }

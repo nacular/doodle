@@ -1,5 +1,6 @@
 package com.nectar.doodle.dom
 
+import com.nectar.doodle.geometry.Point
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.get
@@ -63,4 +64,9 @@ fun HTMLElement.clearBoundStyles() {
    style.marginLeft   = ""
    style.marginRight  = ""
    style.marginBottom = ""
+}
+
+fun HTMLElement.scrollTo(point: Point) {
+    scrollTop  = point.y
+    scrollLeft = point.x
 }
