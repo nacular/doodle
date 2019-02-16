@@ -72,6 +72,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 }
 
 //val basicThemeModule = Module {
-//    bind<BasicTheme>  () with singleton { BasicTheme      (instance(), instance()) }
-//    bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()            ) }
+//    bind<BasicTheme>  () with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
+//    bind<TextMetrics> () with singleton { TextMetricsImpl(instance(), instance(), instance()) }
+//    bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
 //}

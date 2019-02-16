@@ -63,9 +63,7 @@ import kotlin.browser.document
  * Created by Nicholas Eddy on 10/31/17.
  */
 abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = emptySet()) {
-    protected abstract fun run(display: Display)
-
-    protected val injector = Kodein.direct {
+    protected var injector = Kodein.direct {
         bind<SystemStyler>() with instance(SystemStylerImpl())
 
         bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
@@ -86,6 +84,7 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
             import(it, allowOverride = true)
         }
     }
+        private set
 
     init {
         injector.instance<SystemStyler> ()
@@ -94,8 +93,25 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
         injector.instanceOrNull<MouseInputManager>   ()
         injector.instanceOrNull<KeyboardFocusManager>()
 
-        run(injector.instance())
+        injector.instance<Scheduler>().now {
+            run(injector.instance())
+        }
     }
+
+    fun shutdown() {
+        injector.instance<Display>().children.clear()
+
+        injector.instanceOrNull<MouseInputManager>   ()?.shutdown()
+        injector.instanceOrNull<KeyboardFocusManager>()?.shutdown()
+
+        onShutdown()
+
+        injector = Kodein.direct {}
+    }
+
+    protected abstract fun run(display: Display)
+
+    protected abstract fun onShutdown()
 }
 
 val mouseModule = Module {

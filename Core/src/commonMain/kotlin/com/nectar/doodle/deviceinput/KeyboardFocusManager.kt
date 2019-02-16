@@ -28,7 +28,7 @@ interface Postprocessor {
 }
 
 class KeyboardFocusManager(
-                    keyInputService     : KeyInputService,
+        private val keyInputService     : KeyInputService,
         private val focusManager        : FocusManager,
         private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyInputService.Listener {
 
@@ -37,6 +37,10 @@ class KeyboardFocusManager(
 
     init {
         keyInputService += this
+    }
+
+    fun shutdown() {
+        keyInputService -= this
     }
 
     override operator fun invoke(keyState: KeyState): Boolean {

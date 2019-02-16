@@ -42,12 +42,31 @@ class MouseInputManager(private val display: Display, private val inputService: 
             inputService.cursor = cursor ?: display.cursor ?: Default
         }
 
+    private val displayCursorChanged = { _: Display, _: Cursor?, new: Cursor? -> cursor = new }
+
+    private val viewCursorChanged = { view: View, old: Cursor?, new: Cursor? ->
+//        if (old == null) {
+//            view.parent?.let { unregisterCursorListeners(it) }
+//        } else if (new == null) {
+//            view.parent?.let { registerCursorListeners(it) }
+//        }
+
+        cursor = cursor(of = view)
+    }
+
+
     init {
         inputService += this
 
-        display.cursorChanged += { _,_,new -> cursor = new }
+        display.cursorChanged += displayCursorChanged
 
         cursor = display.cursor
+    }
+
+    fun shutdown() {
+        inputService -= this
+
+        display.cursorChanged -= displayCursorChanged
     }
 
     override fun changed(event: SystemMouseEvent) {
@@ -64,18 +83,6 @@ class MouseInputManager(private val display: Display, private val inputService: 
     }
 
     override fun changed(event: SystemMouseWheelEvent) = mouseScroll(event)
-
-    private val cursorChanged_ = ::cursorChanged
-    @Suppress("UNUSED_PARAMETER")
-    private fun cursorChanged(view: View, old: Cursor?, new: Cursor?) {
-//        if (old == null) {
-//            view.parent?.let { unregisterCursorListeners(it) }
-//        } else if (new == null) {
-//            view.parent?.let { registerCursorListeners(it) }
-//        }
-
-        cursor = cursor(of = view)
-    }
 
     private fun mouseUp(event: SystemMouseEvent) {
         val view = getMouseEventHandler(view(from = event))
@@ -262,7 +269,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         var value: View? = view
 
         while (value != null) {
-            value.cursorChanged += cursorChanged_
+            value.cursorChanged += viewCursorChanged
 
             if (value.cursor != null) {
                 break
@@ -276,7 +283,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         var value: View? = view
 
         while (value != null) {
-            value.cursorChanged -= cursorChanged_
+            value.cursorChanged -= viewCursorChanged
 
 //            if (value.cursor != null) {
 //                break

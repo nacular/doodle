@@ -64,6 +64,7 @@ class NativeSlider internal constructor(
 
     private val sliderElement = htmlFactory.createInput().apply {
         type  = "range"
+        step  = "any"
         value = slider.value.toString()
 //        style.cursor = "inherit"
     }

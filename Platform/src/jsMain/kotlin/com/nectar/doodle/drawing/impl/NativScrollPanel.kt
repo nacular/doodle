@@ -3,6 +3,7 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.dom.Overflow.Hidden
 import com.nectar.doodle.dom.Overflow.Scroll
+import com.nectar.doodle.dom.scrollTo
 import com.nectar.doodle.dom.setOverflow
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.geometry.Point
