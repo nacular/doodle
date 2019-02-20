@@ -3,13 +3,13 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
+import com.nectar.doodle.dom.Absolute
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.BoxSizing.Border
-import com.nectar.doodle.dom.Display.Inline
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.Position.Absolute
-import com.nectar.doodle.dom.Position.Static
+import com.nectar.doodle.dom.Inline
+import com.nectar.doodle.dom.Static
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
@@ -76,7 +76,7 @@ class NativeButtonFactoryImpl internal constructor(
 
         val s = elementRuler.size(button)
 
-        button.style.setBorderStyle(None)
+        button.style.setBorderStyle(None())
 
         val size = elementRuler.size(button)
 
@@ -92,8 +92,8 @@ class NativeButtonFactoryImpl internal constructor(
             it.textContent = "foo"
         }
 
-        block.style.setDisplay (Inline)
-        block.style.setPosition(Static)
+        block.style.setDisplay (Inline())
+        block.style.setPosition(Static())
 
         block.add(htmlFactory.createText("foo"))
 
@@ -164,14 +164,14 @@ class NativeButton internal constructor(
         }
 
         glassPanelElement = htmlFactory.create<HTMLElement>().apply {
-            style.setTop            (0.0      )
-            style.setLeft           (0.0      )
-            style.setOpacity        (0f       )
-            style.setPosition       (Absolute )
-            style.setBoxSizing      (Border   )
-            style.setWidthPercent   (100.0    )
-            style.setHeightPercent  (100.0    )
-            style.setBackgroundColor(Color.red)
+            style.setTop            (0.0       )
+            style.setLeft           (0.0       )
+            style.setOpacity        (0f        )
+            style.setPosition       (Absolute())
+            style.setBoxSizing      (Border  ())
+            style.setWidthPercent   (100.0     )
+            style.setHeightPercent  (100.0     )
+            style.setBackgroundColor(Color.red )
 
             buttonElement.add(this)
         }

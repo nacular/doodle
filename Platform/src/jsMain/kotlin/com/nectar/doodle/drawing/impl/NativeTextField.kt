@@ -129,7 +129,7 @@ class NativeTextField(
         text = textField.text
 
         inputElement.apply {
-            style.setBoxSizing      (Border                   )
+            style.setBoxSizing      (Border()                 )
             if (!textField.borderVisible) {
                 style.setBorderWidth (0.0                     )
                 style.setOutlineWidth(0.0                     )

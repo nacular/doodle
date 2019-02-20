@@ -1,6 +1,6 @@
 package com.nectar.doodle.theme.system
 
-import com.nectar.doodle.application.themeModule
+import com.nectar.doodle.application.Modules.Companion.themeModule
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.panels.ScrollPanel
@@ -51,19 +51,21 @@ class SystemTheme internal constructor(
     }
 
     override fun toString() = this::class.simpleName ?: ""
-}
 
-val systemThemeModule = Module {
-    // TODO: Can this be handled better?
-    bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
+    companion object {
+        val systemThemeModule = Module {
+            // TODO: Can this be handled better?
+            bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
-    bind<ElementRuler>             () with singleton { ElementRulerImpl            (instance()                                                                              ) }
-    bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
-    bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
-    bind<NativeSliderFactory>      () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }
-    bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
-    bind<SystemTheme>              () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance()                              ) }
-    bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+            bind<ElementRuler>             () with singleton { ElementRulerImpl            (instance()                                                                              ) }
+            bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
+            bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeSliderFactory>      () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }
+            bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
+            bind<SystemTheme>              () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance()                              ) }
+            bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
 
-    import(themeModule, allowOverride = true)
+            import(themeModule, allowOverride = true)
+        }
+    }
 }

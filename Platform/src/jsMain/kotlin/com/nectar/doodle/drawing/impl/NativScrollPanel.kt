@@ -33,7 +33,7 @@ class NativeScrollPanel internal constructor(
 
     init {
         rootElement.apply {
-            style.setOverflow(Scroll)
+            style.setOverflow(Scroll())
 
             scrollTo(panel.scroll)
         }
@@ -45,7 +45,7 @@ class NativeScrollPanel internal constructor(
 
     fun discard() {
         rootElement.also {
-            it.style.setOverflow(Hidden)
+            it.style.setOverflow(Hidden())
 
             eventHandler.unregisterScrollListener()
         }

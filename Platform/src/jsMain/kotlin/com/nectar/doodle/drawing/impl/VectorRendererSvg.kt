@@ -42,9 +42,9 @@ import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.isEven
 import com.nectar.measured.units.Angle

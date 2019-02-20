@@ -20,8 +20,11 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.system.SystemMouseWheelEvent
 
 
-class MouseInputManager(private val display: Display, private val inputService: MouseInputService): MouseInputService.Listener {
+interface MouseInputManager {
+    fun shutdown()
+}
 
+class MouseInputManagerImpl(private val display: Display, private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
     private var mouseDown             = false
     private var clickedEventAwareView = null as View?
     private var coveredEventAwareView = null as View?
@@ -63,7 +66,7 @@ class MouseInputManager(private val display: Display, private val inputService: 
         cursor = display.cursor
     }
 
-    fun shutdown() {
+    override fun shutdown() {
         inputService -= this
 
         display.cursorChanged -= displayCursorChanged

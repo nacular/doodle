@@ -27,10 +27,14 @@ interface Postprocessor {
     operator fun invoke(keyEvent: KeyEvent)
 }
 
-class KeyboardFocusManager(
+interface KeyboardFocusManager {
+    fun shutdown()
+}
+
+class KeyboardFocusManagerImpl(
         private val keyInputService     : KeyInputService,
         private val focusManager        : FocusManager,
-        private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyInputService.Listener {
+        private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyboardFocusManager, KeyInputService.Listener {
 
     private var preprocessors  = mutableListOf<Preprocessor >()
     private var postprocessors = mutableListOf<Postprocessor>()
@@ -39,7 +43,7 @@ class KeyboardFocusManager(
         keyInputService += this
     }
 
-    fun shutdown() {
+    override fun shutdown() {
         keyInputService -= this
     }
 

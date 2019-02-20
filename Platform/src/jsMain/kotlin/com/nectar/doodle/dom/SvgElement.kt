@@ -121,4 +121,4 @@ enum class ShapeRendering(val value: String) {
     Auto      ("auto"      )
 }
 
-private val none = "none"
+private const val none = "none"

@@ -335,7 +335,7 @@ internal open class CanvasImpl(
                 }
                 if (pen != null) {
                     it.style.setBorderWidth(pen.thickness)
-                    it.style.setBorderStyle(Solid        )
+                    it.style.setBorderStyle(Solid()      )
                     it.style.setBorderColor(pen.color    )
                 }
 

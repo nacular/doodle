@@ -56,7 +56,7 @@ internal fun Style.setFont(value: Font?) {
         else -> value.also {
             setFontSize(it.size)
             setFontFamily(it.family)
-            if(it.italic) setFontStyle(FontStyle.Italic)
+            if(it.italic) setFontStyle(FontStyle.Italic())
             setFontWeight(it.weight)
         }
     }
@@ -91,7 +91,7 @@ internal inline fun Style.setBorderWidth (value: Double           ) { borderWidt
 internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }
 internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it)} ?: "" }
-internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle  = style.value }
+internal inline fun Style.setBorderStyle (style: BorderStyle) { borderStyle  = style.value }
 
 internal inline fun Style.setBorderTop   (value: Double) { borderTop    = value.toString() }
 internal inline fun Style.setBorderLeft  (value: Double) { borderLeft   = value.toString() }
@@ -104,8 +104,8 @@ internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verti
 
 internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("float", float?.value ?: "") }
 
-internal inline fun Style.translate(to: Point) = translate(to.x, to.y)
-internal inline fun Style.translate(x: Double, y: Double) {
+internal fun Style.translate(to: Point) = translate(to.x, to.y)
+internal fun Style.translate(x: Double, y: Double) {
     // FIXME: Handle case when transform is already set?
     transform = when {
         x == 0.0 && y == 0.0 -> ""
@@ -122,15 +122,61 @@ internal fun Style.setTransform(transform: AffineTransform?) {
 
 internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }
 
+internal sealed class Display(val value: String)
+internal class None       : com.nectar.doodle.dom.Display("none"        )
+internal class Block      : com.nectar.doodle.dom.Display("block"       )
+internal class Inline     : com.nectar.doodle.dom.Display("inline"      )
+internal class InlineBlock: com.nectar.doodle.dom.Display("inline-block")
 
-internal enum class Float        (val value: String) { Left     ("left"       ), Right   ("right"     )                                                   }
-internal enum class Repeat       (val value: String) { RepeatAll("repeat"     ), RepeatX ("repeat_x"  ), RepeatY("repeat_y"), NoRepeat   ("no_repeat"   ) }
-internal enum class Display      (val value: String) { None     ("none"       ), Block   ("block"     ), Inline ("inline"  ), InlineBlock("inline-block") }
-internal enum class Position     (val value: String) { Absolute ("absolute"   ), Relative("relative"  ), Static ("static"  )                              }
-internal enum class Overflow     (val value: String) { Hidden   ("hidden"     ), Scroll  ("scroll"    )                                                   }
-internal enum class FontStyle    (val value: String) { Normal   ("normal"     ), Italic  ("italic"    ), Oblique("oblique" )                              }
-internal enum class Visibility   (val value: String) { Hidden   ("hidden"     ), Visible ("visible"   )                                                   }
-internal enum class BorderStyle  (val value: String) { None     ("none"       ), Dotted  ("dotted"    ), Dashed  ("dashed"  ), Solid     ("solid"       ) }
-internal enum class TextAlignment(val value: String) { Right    ("right"      ), Center  ("center"    )                                                   }
-internal enum class VerticalAlign(val value: String) { Middle   ("middle"     )                                                                           }
-internal enum class BoxSizing    (val value: String) { Content  ("content-box"), Border  ("border-box")                                                   }
+internal sealed class Position(val value: String)
+internal class Absolute: Position("absolute")
+internal class Relative: Position("relative")
+internal class Static  : Position("static"  )
+
+internal sealed class Float(val value: String)
+internal class Left : Float("left" )
+internal class Right: Float("right")
+
+internal sealed class Repeat(val value: String) {
+    internal class RepeatAll: Repeat("repeat"   )
+    internal class RepeatX  : Repeat("repeat_x" )
+    internal class RepeatY  : Repeat("repeat_y" )
+    internal class NoRepeat : Repeat("no_repeat")
+}
+
+internal sealed class Overflow(val value: String) {
+    internal class Hidden: Overflow("hidden")
+    internal class Scroll: Overflow("scroll")
+}
+
+internal sealed class FontStyle(val value: String) {
+    internal class Normal : FontStyle("normal" )
+    internal class Italic : FontStyle("italic" )
+    internal class Oblique: FontStyle("oblique")
+}
+
+internal sealed class Visibility(val value: String) {
+    internal class Hidden : Visibility("hidden" )
+    internal class Visible: Visibility("visible")
+}
+
+internal sealed class BorderStyle(val value: String) {
+    internal class None  : BorderStyle("none"  )
+    internal class Dotted: BorderStyle("dotted")
+    internal class Dashed: BorderStyle("dashed")
+    internal class Solid : BorderStyle("solid" )
+}
+
+internal sealed class TextAlignment(val value: String) {
+    internal class Right : TextAlignment("right" )
+    internal class Center: TextAlignment("center")
+}
+
+internal sealed class VerticalAlign(val value: String) {
+    internal class Middle : VerticalAlign("middle")
+}
+
+internal sealed class BoxSizing(val value: String) {
+    internal class Content: BoxSizing("content-box")
+    internal class Border : BoxSizing("border-box" )
+}

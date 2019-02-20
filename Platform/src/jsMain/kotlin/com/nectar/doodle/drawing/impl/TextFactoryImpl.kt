@@ -1,9 +1,9 @@
-package com.nectar.doodle.drawing
+package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.dom.Display
 import com.nectar.doodle.dom.FontStyle
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.Position
+import com.nectar.doodle.dom.Inline
+import com.nectar.doodle.dom.Relative
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.numChildren
@@ -17,6 +17,8 @@ import com.nectar.doodle.dom.setFontWeight
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setTextIndent
 import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
 import org.w3c.dom.HTMLElement
@@ -41,7 +43,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             }
 
             if (it.italic) {
-                element.style.setFontStyle(FontStyle.Italic)
+                element.style.setFontStyle(FontStyle.Italic())
             }
         }
 
@@ -63,8 +65,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         text.forEach { (text, style) ->
             element.add(create(text, style.font).also { element ->
-                element.style.setDisplay (Display.Inline   )
-                element.style.setPosition(Position.Relative)
+                element.style.setDisplay (Inline  ())
+                element.style.setPosition(Relative())
 
                 applyStyle(element, style)
             })

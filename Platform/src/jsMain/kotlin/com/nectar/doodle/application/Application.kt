@@ -3,7 +3,9 @@ package com.nectar.doodle.application
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
+import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
 import com.nectar.doodle.deviceinput.MouseInputManager
+import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.HtmlFactoryImpl
 import com.nectar.doodle.dom.SvgFactory
@@ -14,7 +16,7 @@ import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.drawing.TextFactory
-import com.nectar.doodle.drawing.TextFactoryImpl
+import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
@@ -114,30 +116,34 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
     protected abstract fun onShutdown()
 }
 
-val mouseModule = Module {
-    bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
-    bind<MouseInputManager>        () with singleton { MouseInputManager              (instance(), instance()) }
-    bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
-}
+class Modules {
+    companion object {
+        val mouseModule = Module {
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
+        }
 
-val focusModule = Module(allowSilentOverride = true) {
-    bind<FocusManager>() with singleton { FocusManagerImpl() }
-}
+        val focusModule = Module(allowSilentOverride = true) {
+            bind<FocusManager>() with singleton { FocusManagerImpl() }
+        }
 
-val keyboardModule = Module {
-    import(focusModule)
+        val keyboardModule = Module {
+            import(focusModule)
 
-    val keys = mutableMapOf<TraversalType, Set<KeyState>>()
+            val keys = mutableMapOf<TraversalType, Set<KeyState>>()
 
-    keys[Forward ] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down))
-    keys[Backward] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
+            keys[Forward ] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down))
+            keys[Backward] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
 
-    bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                   ) }
-    bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManager         (instance(), instance(), keys ) }
-    bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                   ) }
-}
+            bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                   ) }
+            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl     (instance(), instance(), keys ) }
+            bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                   ) }
+        }
 
-val themeModule = Module {
-    bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
-    bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
+        val themeModule = Module {
+            bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
+            bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
+        }
+    }
 }

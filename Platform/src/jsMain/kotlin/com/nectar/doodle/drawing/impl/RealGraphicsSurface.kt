@@ -1,7 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.dom.Display.None
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.None
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.hasAutoOverflow
 import com.nectar.doodle.dom.insert
@@ -11,8 +11,10 @@ import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setSize
+import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.translate
+import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsSurface
@@ -45,7 +47,7 @@ class RealGraphicsSurface private constructor(
             if (new) {
                 rootElement.style.setDisplay()
             } else {
-                rootElement.style.setDisplay(None)
+                rootElement.style.setDisplay(None())
             }
         }
 

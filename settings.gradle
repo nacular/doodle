@@ -27,6 +27,7 @@ include 'Controls'
 include 'Core'
 include 'Platform'
 
+include 'HelloWorld'
 include 'TestApp'
 include 'ImageSite'
 include 'GetterFixer'
@@ -36,6 +37,10 @@ project(':Controls'   ).name = 'controls'
 project(':Core'       ).name = 'core'
 project(':Platform'   ).name = 'platform'
 
+project(':HelloWorld' ).name = 'helloworld'
 project(':TestApp'    ).name = 'testapp'
 project(':ImageSite'  ).name = 'imagesite'
 project(':GetterFixer').name = 'getterfixer'
+
+include 'JsDce'
+project(':JsDce').name = 'jsdce'
