@@ -33,6 +33,8 @@ internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetr
 //            ( aButton.getParent() == null || aButton.getParent().getLayout() == null )*/) {
 //            view.size = view.idealSize
 //        }
+
+        view.rerender()
     }
 
     override fun uninstall(view: Button) {

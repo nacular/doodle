@@ -11,6 +11,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.utils.size
 import org.w3c.dom.HTMLElement
 
 /**
@@ -70,7 +71,7 @@ class NativeSlider internal constructor(
     }
 
     private val changed: (Slider, Double, Double) -> Unit = { it,_,_ ->
-        sliderElement.value = "${it.value * 100}"
+        sliderElement.value = "${it.value / slider.model.limits.size * 100}"
     }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
@@ -95,9 +96,9 @@ class NativeSlider internal constructor(
 
     init {
         nativeEventHandler = handlerFactory(sliderElement, this).apply {
-            registerFocusListener ()
-            registerClickListener ()
-            registerChangeListener()
+            registerFocusListener()
+            registerClickListener()
+            registerInputListener()
         }
 
         slider.apply {
@@ -155,9 +156,9 @@ class NativeSlider internal constructor(
         return true
     }
 
-    override fun onChange(): Boolean {
+    override fun onInput(): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
-            slider.value = it / 100
+            slider.value = slider.model.limits.start + (it / 100 * slider.model.limits.size)
         }
 
         return true

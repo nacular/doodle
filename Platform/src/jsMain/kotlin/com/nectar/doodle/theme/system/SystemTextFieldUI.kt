@@ -17,6 +17,10 @@ class SystemTextFieldUI(nativeTextFieldFactory: NativeTextFieldFactory, textFiel
         nativePeer.render(canvas)
     }
 
+    override fun install(view: TextField) {
+        view.rerender()
+    }
+
     override fun uninstall(view: TextField) {
         super.uninstall(view)
 
