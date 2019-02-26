@@ -45,7 +45,13 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         doLayout()
     }
 
-    override val children by lazy { ObservableList<Display, View>(this) }
+    override val children by lazy { ObservableList<Display, View>(this).apply {
+        changed += { _,_,added,_ ->
+            added.forEach { item ->
+                filterIndexed { index, view -> index != item.key && view == item.value }.forEach { remove(it) }
+            }
+        }
+    } }
 
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
 
@@ -78,6 +84,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 //            ROOT_CONTAINER.setFocusTraversalPolicy(aPolicy)
 //        }
 
+    // FIXME: Make this work w/ actual rendering
     override fun fill(brush: Brush) {
         when (brush) {
             is ColorBrush -> {

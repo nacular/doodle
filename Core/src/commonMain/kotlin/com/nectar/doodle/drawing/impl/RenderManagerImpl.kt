@@ -171,6 +171,10 @@ class RenderManagerImpl(
             }
 
             if (view in display) {
+                // Avoid duplicate membership.  This done here instead of in render for perf reasons
+                dirtyViews    -= view
+                pendingRender -= view
+
                 render(view, true)
             }
         }
