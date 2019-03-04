@@ -2,6 +2,8 @@
 
 package com.nectar.doodle.core
 
+import com.nectar.doodle.datatransport.dragdrop.DragHandler
+import com.nectar.doodle.datatransport.dragdrop.DropHandler
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
@@ -100,9 +102,7 @@ abstract class View protected constructor() {
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-            return super.getValue(thisRef, property) && mouseChanged.isNotEmpty()
-        }
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && (dragHandler != null || mouseChanged.isNotEmpty())
     }
 
     val keyChanged by lazy { SetPool<KeyListener>() }
@@ -110,9 +110,7 @@ abstract class View protected constructor() {
     var monitorsKeyboard by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-            return super.getValue(thisRef, property) && keyChanged.isNotEmpty()
-        }
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && keyChanged.isNotEmpty()
     }
 
     val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
@@ -120,13 +118,10 @@ abstract class View protected constructor() {
     var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
-            return super.getValue(thisRef, property) && mouseMotionChanged.isNotEmpty()
-        }
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && (dragHandler != null || mouseMotionChanged.isNotEmpty())
     }
 
     var monitorsMouseWheel by observable(true ) { _,_,_ ->
-
     }
 
     val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
@@ -291,6 +286,10 @@ abstract class View protected constructor() {
     private var renderManager: RenderManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
+
+    var dragHandler = null as DragHandler?
+
+    var dropHandler = null as DropHandler?
 
     fun shouldYieldFocus() = true
 

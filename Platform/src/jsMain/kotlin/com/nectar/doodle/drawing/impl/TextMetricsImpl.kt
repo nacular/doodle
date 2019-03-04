@@ -26,7 +26,9 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementF
 
     override fun width(text: String, font: Font?) = widths.getOrPut(text to font) {
         elementRuler.size(textFactory.create(text, font)).also {
-            fontHeights[font] = it.height
+            if (text.isNotEmpty()) {
+                fontHeights[font] = it.height
+            }
         }.width
     }
 

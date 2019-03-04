@@ -3,6 +3,7 @@ package com.nectar.doodle.deviceinput
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
+import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
@@ -18,14 +19,21 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.system.SystemMouseWheelEvent
+import kotlin.math.abs
 
 
 interface MouseInputManager {
     fun shutdown()
 }
 
-class MouseInputManagerImpl(private val display: Display, private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
+class MouseInputManagerImpl(
+        private val display     : Display,
+        private val inputService: MouseInputService,
+        private val dragManager : DragManager? = null): MouseInputManager, MouseInputService.Listener {
+
     private var mouseDown             = false
+    private var mouseDownLocation     = Origin
+    private val dragThreshold         = 5.0
     private var clickedEventAwareView = null as View?
     private var coveredEventAwareView = null as View?
     private var coveredView           = null as View?
@@ -106,10 +114,16 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
 
             if (view !== clickedEventAwareView) {
                 clickedEventAwareView?.let {
-                    it.handleMouseEvent_(createMouseEvent(event, it, Exit))
+                    // Avoid case where mouse-move hasn't been seen (possible if drag-drop happened)
+                    if (coveredEventAwareView == it) {
+                        coveredEventAwareView = null
+
+                        it.handleMouseEvent_(createMouseEvent(event, it, Exit))
+                    }
                 }
 
                 if (view != null) {
+                    coveredEventAwareView = view
                     view.handleMouseEvent_(createMouseEvent(event, view, Enter))
                     view.handleMouseEvent_(createMouseEvent(event, view, Up   ))
 
@@ -119,6 +133,8 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
                 } else {
                     cursor = display.cursor
                 }
+            } else {
+                cursor = cursor(of = view)
             }
 
             clickedEventAwareView = null
@@ -143,9 +159,10 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
         inputService.toolTipText = ""
 
         getMouseEventHandler(view(from = event))?.let {
-            it.handleMouseEvent_(createMouseEvent(event, it))
+            it.handleMouseEvent_(createMouseEvent(event, it).also { mouseDownLocation = it.location })
 
             clickedEventAwareView = it
+            coveredEventAwareView = it
 
             event.consume()
         }
@@ -167,9 +184,29 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
     private fun mouseMove(event: SystemMouseEvent) {
         coveredView = view(from = event)
 
-        clickedEventAwareView?.let {
-            if (it.monitorsMouseMotion) {
-                it.handleMouseMotionEvent_(createMouseEvent(event, it, Drag))
+        clickedEventAwareView?.let { view ->
+            if (view.monitorsMouseMotion) {
+                val dragEvent = createMouseEvent(event, view, Drag)
+
+                val dragOperation = view.dragHandler?.let {
+                    when {
+                        (dragEvent.location - mouseDownLocation).run { abs(x) >= dragThreshold || abs(y) >= dragThreshold } -> it.dragRecognized(dragEvent)
+                        else -> null
+                    }
+                }
+
+                when {
+                    dragOperation != null && dragManager != null -> dragOperation.apply {
+                        dragManager.startDrag(view, dragEvent, bundle, visual, visualOffset) {
+                            when (it.succeeded) {
+                                true -> dragOperation.completed(it.action)
+                                else -> dragOperation.canceled (         )
+                            }
+
+                        }
+                    }
+                    else -> view.handleMouseMotionEvent_(dragEvent)
+                }
 
                 event.consume()
             }
@@ -182,7 +219,6 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
                 if (!mouseDown || it === clickedEventAwareView) {
                     getMouseEventHandler(it)?.let {
                         it.handleMouseEvent_(createMouseEvent(event, it, Exit))
-
                         event.consume()
                     }
                 }
@@ -207,7 +243,6 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
             }
 
             coveredEventAwareView = view
-
         }
 
         if (!mouseDown) {

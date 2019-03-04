@@ -39,3 +39,9 @@ interface Animator<P> {
     operator fun plusAssign (listener: Listener<P>)
     operator fun minusAssign(listener: Listener<P>)
 }
+
+/*
+    val widthAnimation = animation from circle.width * pixels using
+                FixedSpeedLinear(100 * (pixels / seconds), circle.width * 2 * pixels) then
+                Cubic           (2 * seconds, circle.width * pixels, 0 * (pixels / seconds))
+ */

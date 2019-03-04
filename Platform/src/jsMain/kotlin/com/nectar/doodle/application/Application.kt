@@ -16,12 +16,12 @@ import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.drawing.TextFactory
-import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
+import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.VectorBackgroundFactory
 import com.nectar.doodle.drawing.impl.VectorBackgroundFactoryImpl
 import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
@@ -119,9 +119,9 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 class Modules {
     companion object {
         val mouseModule = Module {
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                              ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instanceOrNull()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()                              ) }
         }
 
         val focusModule = Module(allowSilentOverride = true) {
