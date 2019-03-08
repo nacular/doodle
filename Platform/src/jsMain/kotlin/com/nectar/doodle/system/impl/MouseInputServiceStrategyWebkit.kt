@@ -88,10 +88,11 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     private fun mouseDown(event: MouseEvent): Boolean {
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
-        return isNativeElement(event.target).ifFalse {
-            event.preventDefault ()
-            event.stopPropagation()
-        }
+        return true
+//        return isNativeElement(event.target).ifFalse {
+//            event.preventDefault ()
+//            event.stopPropagation()
+//        }
     }
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
@@ -110,10 +111,11 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 
-        return isNativeElement(event.target).ifFalse {
-            event.preventDefault ()
-            event.stopPropagation()
-        }
+        return true
+//        return isNativeElement(event.target).ifFalse {
+//            event.preventDefault ()
+//            event.stopPropagation()
+//        }
     }
 
     private fun mouseScroll(event: WheelEvent): Boolean {
@@ -144,7 +146,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
 
         return SystemMouseEvent(
                 aType,
-                Point(mouseLocation.x, mouseLocation.y),
+                mouseLocation,
                 buttons,
                 clickCount,
                 createModifiers(event),

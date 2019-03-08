@@ -11,10 +11,10 @@ import com.nectar.doodle.geometry.Point.Companion.Origin
 interface DragOperation {
     enum class Action { Copy, Move, Link, None }
 
-    val bundle      : DataBundle
-    val action      : Action
-    val visual      : Renderable? get() = null
-    val visualOffset: Point get() = Origin
+    val bundle        : DataBundle
+    val visual        : Renderable? get() = null
+    val visualOffset  : Point get() = Origin
+    val allowedActions: Set<Action>
 
     fun completed(action: Action)
     fun canceled (              ) {}

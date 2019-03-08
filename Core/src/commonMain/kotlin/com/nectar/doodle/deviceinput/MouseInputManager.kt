@@ -5,6 +5,7 @@ import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.Cursor.Companion.Default
@@ -19,13 +20,13 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import com.nectar.doodle.system.SystemMouseWheelEvent
-import kotlin.math.abs
 
 
 interface MouseInputManager {
     fun shutdown()
 }
 
+@Suppress("NestedLambdaShadowedImplicitParameter")
 class MouseInputManagerImpl(
         private val display     : Display,
         private val inputService: MouseInputService,
@@ -44,7 +45,7 @@ class MouseInputManagerImpl(
 
             field?.let { unregisterCursorListeners(it) }
             field = new
-            field?.let { registerCursorListeners(it) }
+            field?.let { registerCursorListeners  (it) }
         }
 
     private var cursor = null as Cursor?
@@ -55,13 +56,7 @@ class MouseInputManagerImpl(
 
     private val displayCursorChanged = { _: Display, _: Cursor?, new: Cursor? -> cursor = new }
 
-    private val viewCursorChanged = { view: View, old: Cursor?, new: Cursor? ->
-//        if (old == null) {
-//            view.parent?.let { unregisterCursorListeners(it) }
-//        } else if (new == null) {
-//            view.parent?.let { registerCursorListeners(it) }
-//        }
-
+    private val viewCursorChanged = { view: View, _: Cursor?, _: Cursor? ->
         cursor = cursor(of = view)
     }
 
@@ -159,10 +154,14 @@ class MouseInputManagerImpl(
         inputService.toolTipText = ""
 
         getMouseEventHandler(view(from = event))?.let {
-            it.handleMouseEvent_(createMouseEvent(event, it).also { mouseDownLocation = it.location })
+            val mouseEvent = createMouseEvent(event, it).also { mouseDownLocation = it.location }
+
+            it.handleMouseEvent_(mouseEvent)
 
             clickedEventAwareView = it
             coveredEventAwareView = it
+
+            dragManager?.mouseDown(it, mouseEvent) { view(it) }
 
             event.consume()
         }
@@ -188,25 +187,31 @@ class MouseInputManagerImpl(
             if (view.monitorsMouseMotion) {
                 val dragEvent = createMouseEvent(event, view, Drag)
 
-                val dragOperation = view.dragHandler?.let {
-                    when {
-                        (dragEvent.location - mouseDownLocation).run { abs(x) >= dragThreshold || abs(y) >= dragThreshold } -> it.dragRecognized(dragEvent)
-                        else -> null
-                    }
-                }
+                dragManager?.mouseDrag(view, dragEvent) { view(it) }
 
-                when {
-                    dragOperation != null && dragManager != null -> dragOperation.apply {
-                        dragManager.startDrag(view, dragEvent, bundle, visual, visualOffset) {
-                            when (it.succeeded) {
-                                true -> dragOperation.completed(it.action)
-                                else -> dragOperation.canceled (         )
-                            }
+                view.handleMouseMotionEvent_(dragEvent)
 
-                        }
-                    }
-                    else -> view.handleMouseMotionEvent_(dragEvent)
-                }
+//                val dragEvent = createMouseEvent(event, view, Drag)
+//
+//                val dragOperation = view.dragHandler?.let {
+//                    when {
+//                        (dragEvent.location - mouseDownLocation).run { abs(x) >= dragThreshold || abs(y) >= dragThreshold } -> it.dragRecognized(dragEvent)
+//                        else -> null
+//                    }
+//                }
+//
+//                when {
+//                    dragOperation != null && dragManager != null -> dragOperation.apply {
+//                        dragManager.startDrag(view, dragEvent, bundle, visual, visualOffset) {
+//                            when (it.succeeded) {
+//                                true -> dragOperation.completed(it.action)
+//                                else -> dragOperation.canceled (         )
+//                            }
+//
+//                        }
+//                    }
+//                    else -> view.handleMouseMotionEvent_(dragEvent)
+//                }
 
                 event.consume()
             }
@@ -323,11 +328,7 @@ class MouseInputManagerImpl(
         while (value != null) {
             value.cursorChanged -= viewCursorChanged
 
-//            if (value.cursor != null) {
-//                break
-//            } else {
-                value = value.parent
-//            }
+            value = value.parent
         }
     }
 
@@ -337,14 +338,7 @@ class MouseInputManagerImpl(
     }
 
     private fun view(from: SystemMouseEvent): View? {
-        var newPoint = from.location
-        var view     = display.child(at = from.location)
-
-        while(view != null) {
-            newPoint -= view.position
-
-            view = view.child_(at = newPoint) ?: break
-        }
+        var view = view(from.location)
 
         return view?.let {
             if (from.nativeScrollPanel) {
@@ -355,6 +349,19 @@ class MouseInputManagerImpl(
 
             view
         }
+    }
+
+    private fun view(from: Point): View? {
+        var newPoint = from
+        var view     = display.child(at = from)
+
+        while(view != null) {
+            newPoint -= view.position
+
+            view = view.child_(at = newPoint) ?: break
+        }
+
+        return view
     }
 
     private fun createMouseEvent(mouseEvent: SystemMouseEvent, view: View, type: Type = mouseEvent.type) = MouseEvent(
