@@ -9,37 +9,29 @@ import com.nectar.doodle.datatransport.dragdrop.DropEvent
 import com.nectar.doodle.datatransport.dragdrop.DropHandler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.drawing.GraphicsDevice
-import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.Renderable
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.scheduler.Scheduler
+import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
-import kotlin.browser.document
 import kotlin.math.abs
 
 
-class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevice: GraphicsDevice<*>, htmlFactory: HtmlFactory): DragManager {
-
-
+@Suppress("NestedLambdaShadowedImplicitParameter")
+class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>, htmlFactory: HtmlFactory): DragManager {
     private var visual             = null as Renderable?
     private var mouseDown          = null as MouseEvent?
     private var rootElement        = htmlFactory.root
     private var visualOffset       = Origin
     private var currentDropHandler = null as Pair<View, DropHandler>?
 
-    private val isIE = graphicsDevice.create().let {
-        val dynamic = (it as RealGraphicsSurface).rootElement.asDynamic()
+    private val isIE = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
 
-        it.release()
-
-        dynamic["dragDrop"] != undefined
-    }
-
-    private lateinit var visualCanvas: GraphicsSurface
+    private lateinit var visualCanvas: RealGraphicsSurface
     private lateinit var targetFinder: (Point) -> View?
 
     private fun createVisual(visual: Renderable?) {
@@ -51,36 +43,36 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
     override fun mouseDrag(view: View, event: MouseEvent, targetFinder: (Point) -> View?) {
         this.targetFinder = targetFinder
 
-        if (isIE) {
-            mouseDown?.let {
-                if ((event.location - it.location).run { abs(x) >= 5.0 || abs(y) >= 5.0 }) {
-                    view.dragHandler?.dragRecognized(event)?.let { dragOperation ->
-                        createVisual(dragOperation.visual)
+        mouseDown?.let {
+            if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
+                view.dragHandler?.dragRecognized(event)?.let { dragOperation ->
+                    createVisual(dragOperation.visual)
 
-                        visualCanvas.position = dragOperation.visualOffset
+                    visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
 
-                        scheduler.now { visualCanvas.release() }
+                    scheduler.now { visualCanvas.release() } // FIXME: This doesn't happen fast enough
 
-                        (visualCanvas as RealGraphicsSurface).rootElement.apply {
-                            ondragstart = {
-                                it.dataTransfer?.apply {
-                                    effectAllowed = "copy"
+                    visualCanvas.rootElement.apply {
+                        ondragstart = {
+                            it.dataTransfer?.apply {
+                                effectAllowed = "all"
 
-                                    dragOperation.bundle.invoke(String::class)?.let {
-                                        setData("text", it)
-                                    }
+                                dragOperation.bundle.invoke(String::class)?.let {
+                                    setData("text", it)
                                 }
                             }
                         }
-
-                        if(document.asDynamic()["selection"] != undefined) {
-                            document.asDynamic().selection.empty()
-                        }
-
-                        (visualCanvas as RealGraphicsSurface).rootElement.asDynamic().dragDrop()
-
-                        mouseDown = null
                     }
+
+                    registerListeners(dragOperation, rootElement)
+
+//                        if(document.asDynamic()["selection"] != undefined) {
+//                            document.asDynamic().selection.empty()
+//                        }
+
+                    visualCanvas.rootElement.asDynamic().dragDrop()
+
+                    mouseDown = null
                 }
             }
         }
@@ -97,6 +89,20 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         view.dragHandler?.dragRecognized(event)?.let { dragOperation ->
 
             rootElement.draggable = true
+
+            rootElement.ondragstart = {
+                createVisual(dragOperation.visual)
+
+                visualCanvas.rootElement.style.top = "-100px"
+
+                it.dataTransfer?.effectAllowed = "all" // FIXME: limit based on operation
+
+                it.dataTransfer?.setDragImage(visualCanvas.rootElement, visualOffset.x.toInt(), visualOffset.y.toInt())
+
+                dragOperation.bundle.invoke(String::class)?.let { text ->
+                    it.dataTransfer?.setData("text/plain", text)
+                }
+            }
 
             registerListeners(dragOperation, rootElement)
 
@@ -117,20 +123,15 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         else   -> Action.None
     }
 
-    private fun registerListeners(dragOperation: DragOperation, element: HTMLElement) {
-        element.ondragstart = {
-            createVisual(dragOperation.visual)
-
-            (visualCanvas as RealGraphicsSurface).rootElement.style.top = "-100px"
-
-            it.dataTransfer?.effectAllowed = "all" // FIXME
-
-            it.dataTransfer?.setDragImage((visualCanvas as RealGraphicsSurface).rootElement, 0, 0)
-
-            dragOperation.bundle.invoke(String::class)?.let { text ->
-                it.dataTransfer?.setData("text/plain", text)
-            }
+    private fun action(dataTransfer: DataTransfer?) = action(dataTransfer?.run {
+        when {
+            effectAllowed != "all" -> effectAllowed
+            dropEffect == "none"   -> "move"
+            else                   -> dropEffect
         }
+    })
+
+    private fun registerListeners(dragOperation: DragOperation, element: HTMLElement) {
         element.ondragenter = {
             if (it.target !is HTMLInputElement) {
                 it.preventDefault ()
@@ -140,20 +141,13 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         element.ondragover = {
             if (it.target !is HTMLInputElement) {
 
-                try {
-                    visualCanvas.release()
-                } catch (ignored: Throwable) {
+                if (!isIE) {
+                    try {
+                        visualCanvas.release()
+                    } catch (ignored: Throwable) {}
                 }
 
-                val action = action(it.dataTransfer?.run {
-                    when {
-                        effectAllowed != "all" -> effectAllowed
-                        dropEffect == "none"   -> "move"
-                        else                   -> dropEffect
-                    }
-                })
-
-                if (!dragMove(dragOperation.bundle, action, mouseLocation(it))) {
+                if (!dragMove(dragOperation.bundle, action(it.dataTransfer), mouseLocation(it))) {
                     it.dataTransfer?.dropEffect = "none"
                 } else {
                     it.preventDefault ()
@@ -162,15 +156,6 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             }
         }
         element.ondrop = {
-            currentDropHandler?.let { (view, handler) ->
-                if (handler.drop(DropEvent(view, mouseLocation(it), dragOperation.bundle, action(it.dataTransfer?.dropEffect))) && it.target !is HTMLInputElement) {
-                    it.preventDefault ()
-                    it.stopPropagation()
-                }
-            }
-
-            currentDropHandler = null
-
             if (it.target !is HTMLInputElement) {
                 it.preventDefault ()
                 it.stopPropagation()
@@ -181,6 +166,22 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             element.ondragover  = null
             element.ondragenter = null
             element.ondragstart = null
+
+            val action = action(it.dataTransfer?.dropEffect)
+
+            currentDropHandler?.let { (view, handler) ->
+                if (handler.drop(DropEvent(view, mouseLocation(it), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
+                    dragOperation.completed(action)
+                } else {
+                    dragOperation.canceled()
+                }
+            } ?: when (action) {
+                // Covers the case that no drop handler found or drop happens outside the window
+                Action.None -> dragOperation.canceled (      )
+                else        -> dragOperation.completed(action)
+            }
+
+            currentDropHandler = null
 
             null
         }
@@ -258,288 +259,8 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
         return if (handler != null && current != null) current to handler else null
     }
-}
 
-//class DragManagerImpl(
-//        private val display          : Display,
-//        private val graphicsDevice   : GraphicsDevice<*>,
-//        private val keyInputService  : KeyInputService,
-//        private val mouseInputService: MouseInputService,
-//        private val scheduler        : Scheduler): DragManager, KeyInputService.Preprocessor, MouseInputService.Preprocessor {
-//
-//    private val isIE = graphicsDevice.create().let {
-//        val dynamic = (it as RealGraphicsSurface).rootElement.asDynamic()
-//
-//        it.release()
-//
-//        dynamic["dragDrop"] != undefined
-//    }
-//
-//    private fun createVisual() {
-//        visualCanvas = graphicsDevice.create()
-//
-//        renderDragVisual(object : Renderable {
-//            override val size = Size(100.0)
-//
-//            override fun render(canvas: Canvas) {
-//                canvas.rect(Rectangle(size = size), ColorBrush(Color.red))
-//            }
-//        }, Origin)
-//
-//        visualCanvas.size = Size(100.0)
-//
-////            visualCanvas.position = Origin
-//    }
-//
-//    override fun test() {
-//        if (isIE) {
-//            createVisual()
-//
-//            scheduler.now { visualCanvas.release() }
-//
-//            (visualCanvas as RealGraphicsSurface).rootElement.asDynamic().dragDrop()
-//        } else {
-//            document.body!!.draggable = true
-//            document.body!!.ondragstart = {
-//                createVisual()
-//
-//                (visualCanvas as RealGraphicsSurface).rootElement.style.top = "-100px"
-//
-//                it.dataTransfer?.setDragImage((visualCanvas as RealGraphicsSurface).rootElement, 0, 0)
-//                it.dataTransfer?.setData("text/plain", "foo")
-//            }
-//            document.body!!.ondragover = {
-//                try {
-//                    visualCanvas.release()
-//                } catch (ignored: Throwable) {}
-//            }
-//        }
-//    }
-//
-//    private var visual             = null as Renderable?
-//    private var bundle             = null as DataBundle?
-//    private var action             = null as DragOperation.Action?
-//    private var dragging           = false
-//    private var observer           = null as ((DropCompleteEvent) -> Unit)?
-//    private var visualOffset       = Origin
-//    private var currentDropHandler = null as Pair<View, DropHandler>?
-//
-//    private lateinit var visualCanvas: GraphicsSurface
-//
-//    override fun startDrag(view        : View,
-//                           event       : MouseEvent,
-//                           bundle      : DataBundle,
-//                           visual      : Renderable?,
-//                           visualOffset: Point,
-//                           observer    : (DropCompleteEvent) -> Unit) {
-//        return
-//
-//        dragging          = true
-//        this.bundle       = bundle
-//        this.action       = getUserAction(event)
-//        this.visual       = visual
-//        this.observer     = observer
-//        this.visualOffset = visualOffset
-//        visualCanvas      = graphicsDevice.create()
-//
-//        renderDragVisual(visual, visualOffset)
-//
-//        keyInputService   += this
-//        mouseInputService += this
-//
-//        preprocess(SystemMouseEvent(Move, mouseInputService.mouseLocation, event.buttons, event.clickCount, event.modifiers))
-//    }
-//
-//    override fun invoke(keyState: KeyState): Boolean {
-//        if (keyState.code == VK_ESCAPE) {
-//            stopDrag(false)
-//        } else {
-//            var dropAllowed = false
-//            val mouseLocation = mouseInputService.mouseLocation
-//            val coveredView = display.child(mouseLocation)
-//            val dropHandler = getDropEventHandler(coveredView)
-//
-//            action = getUserAction(keyState)
-//
-//            if (dropHandler === currentDropHandler) {
-//                currentDropHandler?.let { (view, handler) ->
-//                    val dropEvent = DropEvent(view, mouseLocation, bundle!!, action!!)
-//
-//                    dropAllowed = handler.dropActionChanged(dropEvent)
-//
-//                    if (action === Action.None) {
-//                        handler.dropExit(dropEvent)
-//
-//                        currentDropHandler = null
-//                    }
-//                }
-//            } else if (dropHandler != null) {
-//                val dropEvent = DropEvent(dropHandler.first, mouseLocation, bundle!!, action!!)
-//
-//                dropAllowed = dropHandler.second.dropEnter(dropEvent)
-//
-//                if (action !== Action.None) {
-//                    currentDropHandler = dropHandler
-//                } else {
-//                    currentDropHandler = null
-//                }
-//            }
-//
-//            mouseInputService.cursor = cursor(dropAllowed)
-//        }
-//
-//        return true
-//    }
-//
-//    override fun preprocess(event: SystemMouseEvent) {
-//        if (dragging) {
-//            when (event.type) {
-//                Up    -> { mouseUp   (event); return }
-//                Move  ->   mouseMove (event)
-//                Exit  ->   mouseExit (     )
-//                Enter ->   mouseEnter(     )
-//                else  -> {                           }
-//            }
-//
-//            event.consume()
-//        }
-//    }
-//
-//    override fun preprocess(event: SystemMouseWheelEvent) {
-//        if (dragging) {
-//            event.consume()
-//        }
-//    }
-//
-//    private fun mouseEnter() {
-////        visualCanvas = graphicsDevice.create().apply {
-////            render {
-////                visual?.render(it)
-////            }
-////        }
-//    }
-//
-//    private fun mouseExit() {
-////        visualCanvas.release()
-//    }
-//
-//    private fun mouseUp(event: SystemMouseEvent) {
-//        val succeeded = currentDropHandler?.let { (view, handler) ->
-//            handler.drop(DropEvent(view, event.location, bundle!!, action!!))
-//        } ?: false
-//
-//        stopDrag(succeeded)
-//    }
-//
-//    private fun stopDrag(succeeded: Boolean) {
-//        observer?.invoke(DropCompleteEvent(succeeded, action ?: Action.None))
-//
-//        currentDropHandler = null
-//
-//        cleanupVisuals()
-//
-//        keyInputService   -= this
-//        mouseInputService -= this
-//    }
-//
-//    private fun mouseMove(event: SystemMouseEvent) {
-//        var dropEvent: DropEvent
-//        var dropAllowed = false
-//        val coveredView = display.child(event.location)
-//        val dropHandler = getDropEventHandler(coveredView)
-//
-//        if (dropHandler !== currentDropHandler) {
-//            currentDropHandler?.let { (view, handler) ->
-//                dropEvent = DropEvent(view, event.location, bundle!!, action!!)
-//
-//                handler.dropExit(dropEvent)
-//            }
-//
-//            if (dropHandler != null) {
-//                dropEvent = DropEvent(dropHandler.first, event.location, bundle!!, action!!)
-//
-//                dropAllowed = dropHandler.second.dropEnter(dropEvent)
-//
-//                if (action !== Action.None) {
-//                    currentDropHandler = dropHandler
-//                } else {
-//                    currentDropHandler = null
-//                }
-//            } else {
-//                currentDropHandler = null
-//            }
-//        } else {
-//            currentDropHandler?.let { (view, handler) ->
-//                dropEvent   = DropEvent(view, event.location, bundle!!, action!!)
-//                dropAllowed = handler.dropOver(dropEvent)
-//
-//                if (action === Action.None) {
-//                    handler.dropExit(dropEvent)
-//
-//                    currentDropHandler = null
-//                }
-//            }
-//        }
-//
-//        mouseInputService.cursor = cursor(dropAllowed)
-//
-//        if (visual != null) {
-//            visualCanvas.position = event.location + visualOffset
-//        }
-//    }
-//
-//    private fun cursor(dropAllowed: Boolean) = when {
-//        dropAllowed -> {
-//            when (action) {
-//                Action.Link -> Cursor.Alias
-//                Action.Copy -> Cursor.Copy
-//                Action.Move -> Cursor.Grabbing
-//                else        -> Cursor.NoDrop
-//            }
-//        }
-//        else -> Cursor.NoDrop
-//    }
-//
-//    private fun renderDragVisual(visual: Renderable?, offset: Point) {
-//        if (visual != null) {
-//            visualCanvas.bounds = Rectangle(mouseInputService.mouseLocation + offset, visual.size)
-//
-//            visualCanvas.render {
-//                visual.render(it)
-//            }
-//        }
-//    }
-//
-//    private fun getUserAction(keyState: KeyState) = when {
-//        Shift in keyState.modifiers && Ctrl in keyState.modifiers -> Action.Link
-//        Ctrl  in keyState.modifiers                               -> Action.Copy
-//        else                                                      -> Action.Move
-//    }
-//
-//    private fun getUserAction(event: MouseEvent) = when {
-//        Shift in event.modifiers && Ctrl in event.modifiers -> Action.Link
-//        Ctrl  in event.modifiers                            -> Action.Copy
-//        else                                                -> Action.Move
-//    }
-//
-//    private fun cleanupVisuals() {
-//        visualCanvas.release()
-//    }
-//
-//    private fun getDropEventHandler(view: View?): Pair<View, DropHandler>? {
-//        var current = view
-//        var handler = null as DropHandler?
-//
-//        while (current != null) {
-//            handler = current.dropHandler
-//
-//            if (handler == null || !handler.active) {
-//                current = current.parent
-//            } else {
-//                break
-//            }
-//        }
-//
-//        return if (handler != null && current != null) current to handler else null
-//    }
-//}
+    companion object {
+        private const val DRAG_THRESHOLD = 5.0
+    }
+}

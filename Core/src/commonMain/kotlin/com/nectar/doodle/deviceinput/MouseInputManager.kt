@@ -33,8 +33,7 @@ class MouseInputManagerImpl(
         private val dragManager : DragManager? = null): MouseInputManager, MouseInputService.Listener {
 
     private var mouseDown             = false
-    private var mouseDownLocation     = Origin
-    private val dragThreshold         = 5.0
+    private var clickedView           = null as View?
     private var clickedEventAwareView = null as View?
     private var coveredEventAwareView = null as View?
     private var coveredView           = null as View?
@@ -153,17 +152,19 @@ class MouseInputManagerImpl(
     private fun mouseDown(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        getMouseEventHandler(view(from = event))?.let {
-            val mouseEvent = createMouseEvent(event, it).also { mouseDownLocation = it.location }
-
-            it.handleMouseEvent_(mouseEvent)
-
-            clickedEventAwareView = it
-            coveredEventAwareView = it
+        view(from = event)?.let {
+            val mouseEvent = createMouseEvent(event, it).apply { clickedView = it }
 
             dragManager?.mouseDown(it, mouseEvent) { view(it) }
 
-            event.consume()
+            getMouseEventHandler(it)?.let {
+                it.handleMouseEvent_(mouseEvent)
+
+                clickedEventAwareView = it
+                coveredEventAwareView = it
+
+                event.consume()
+            }
         }
 
         mouseDown = true
@@ -183,35 +184,13 @@ class MouseInputManagerImpl(
     private fun mouseMove(event: SystemMouseEvent) {
         coveredView = view(from = event)
 
+        clickedView?.let {
+            dragManager?.mouseDrag(it, createMouseEvent(event, it, Drag)) { view(it) }
+        }
+
         clickedEventAwareView?.let { view ->
             if (view.monitorsMouseMotion) {
-                val dragEvent = createMouseEvent(event, view, Drag)
-
-                dragManager?.mouseDrag(view, dragEvent) { view(it) }
-
-                view.handleMouseMotionEvent_(dragEvent)
-
-//                val dragEvent = createMouseEvent(event, view, Drag)
-//
-//                val dragOperation = view.dragHandler?.let {
-//                    when {
-//                        (dragEvent.location - mouseDownLocation).run { abs(x) >= dragThreshold || abs(y) >= dragThreshold } -> it.dragRecognized(dragEvent)
-//                        else -> null
-//                    }
-//                }
-//
-//                when {
-//                    dragOperation != null && dragManager != null -> dragOperation.apply {
-//                        dragManager.startDrag(view, dragEvent, bundle, visual, visualOffset) {
-//                            when (it.succeeded) {
-//                                true -> dragOperation.completed(it.action)
-//                                else -> dragOperation.canceled (         )
-//                            }
-//
-//                        }
-//                    }
-//                    else -> view.handleMouseMotionEvent_(dragEvent)
-//                }
+                view.handleMouseMotionEvent_(createMouseEvent(event, view, Drag))
 
                 event.consume()
             }
