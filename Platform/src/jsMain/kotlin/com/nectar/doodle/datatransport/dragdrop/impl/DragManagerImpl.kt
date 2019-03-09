@@ -2,18 +2,20 @@ package com.nectar.doodle.datatransport.dragdrop.impl
 
 import com.nectar.doodle.core.View
 import com.nectar.doodle.datatransport.DataBundle
+import com.nectar.doodle.datatransport.PlainText
+import com.nectar.doodle.datatransport.UriList
 import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action
 import com.nectar.doodle.datatransport.dragdrop.DropEvent
 import com.nectar.doodle.datatransport.dragdrop.DropHandler
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.Renderable
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.scheduler.Scheduler
 import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
@@ -23,22 +25,14 @@ import kotlin.math.abs
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>, htmlFactory: HtmlFactory): DragManager {
-    private var visual             = null as Renderable?
+    private val isIE               = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var mouseDown          = null as MouseEvent?
     private var rootElement        = htmlFactory.root
-    private var visualOffset       = Origin
     private var currentDropHandler = null as Pair<View, DropHandler>?
-
-    private val isIE = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
+    private var allowedActions     = "all"
 
     private lateinit var visualCanvas: RealGraphicsSurface
     private lateinit var targetFinder: (Point) -> View?
-
-    private fun createVisual(visual: Renderable?) {
-        visualCanvas = graphicsDevice.create()
-
-        renderDragVisual(visual)
-    }
 
     override fun mouseDrag(view: View, event: MouseEvent, targetFinder: (Point) -> View?) {
         this.targetFinder = targetFinder
@@ -55,10 +49,12 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                     visualCanvas.rootElement.apply {
                         ondragstart = {
                             it.dataTransfer?.apply {
-                                effectAllowed = "all"
+                                effectAllowed = allowedActions(dragOperation.allowedActions)
 
-                                dragOperation.bundle.invoke(String::class)?.let {
-                                    setData("text", it)
+                                setOf(PlainText, UriList).forEach { mimeType ->
+                                    dragOperation.bundle(mimeType)?.let { text ->
+                                        it.dataTransfer?.setData("$it", text)
+                                    }
                                 }
                             }
                         }
@@ -66,6 +62,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
                     registerListeners(dragOperation, rootElement)
 
+                    // FIXME: Need to find way to avoid dragging selected inputs even when they aren't being dragged
 //                        if(document.asDynamic()["selection"] != undefined) {
 //                            document.asDynamic().selection.empty()
 //                        }
@@ -78,10 +75,10 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         }
     }
 
-    override fun mouseDown(view: View, event: MouseEvent, targetFinder: (Point) -> View?): Boolean {
+    override fun mouseDown(view: View, event: MouseEvent, targetFinder: (Point) -> View?) {
         if (isIE) {
             mouseDown = event
-            return false
+            return
         }
 
         this.targetFinder = targetFinder
@@ -93,23 +90,37 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             rootElement.ondragstart = {
                 createVisual(dragOperation.visual)
 
-                visualCanvas.rootElement.style.top = "-100px"
+                dragOperation.visual?.let { visualCanvas.rootElement.style.setTop(-it.size.height) }
 
-                it.dataTransfer?.effectAllowed = "all" // FIXME: limit based on operation
+                it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
 
-                it.dataTransfer?.setDragImage(visualCanvas.rootElement, visualOffset.x.toInt(), visualOffset.y.toInt())
+                it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
 
-                dragOperation.bundle.invoke(String::class)?.let { text ->
-                    it.dataTransfer?.setData("text/plain", text)
+                setOf(PlainText, UriList).forEach { mimeType ->
+                    dragOperation.bundle(mimeType)?.let { text ->
+                        it.dataTransfer?.setData("$mimeType", text)
+                    }
                 }
             }
 
             registerListeners(dragOperation, rootElement)
-
-            return true
         }
+    }
 
-        return false
+    private fun allowedActions(actions: Set<Action>): String {
+        val builder = StringBuilder()
+
+        if (Action.Copy in actions) builder.append("copy")
+        if (Action.Link in actions) builder.append("Link")
+        if (Action.Move in actions) builder.append("Move")
+
+        return when (val string = builder.toString()) {
+            "copyLinkMove" -> "all"
+            ""             -> "none"
+            else           -> string.decapitalize()
+        }.also {
+            allowedActions = it
+        }
     }
 
     private fun mouseLocation(event: org.w3c.dom.events.MouseEvent) = Point(
@@ -120,14 +131,14 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         "copy" -> Action.Copy
         "move" -> Action.Move
         "link" -> Action.Link
-        else   -> Action.None
+        else   -> null
     }
 
     private fun action(dataTransfer: DataTransfer?) = action(dataTransfer?.run {
         when {
-            effectAllowed != "all" -> effectAllowed
-            dropEffect == "none"   -> "move"
-            else                   -> dropEffect
+            effectAllowed != allowedActions -> effectAllowed
+            dropEffect    == "none"         -> "move"
+            else                            -> dropEffect
         }
     })
 
@@ -169,16 +180,16 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
             val action = action(it.dataTransfer?.dropEffect)
 
-            currentDropHandler?.let { (view, handler) ->
-                if (handler.drop(DropEvent(view, mouseLocation(it), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
-                    dragOperation.completed(action)
-                } else {
-                    dragOperation.canceled()
-                }
-            } ?: when (action) {
-                // Covers the case that no drop handler found or drop happens outside the window
-                Action.None -> dragOperation.canceled (      )
-                else        -> dragOperation.completed(action)
+            if (action == null) {
+                dragOperation.canceled ()
+            } else {
+                currentDropHandler?.let { (view, handler) ->
+                    if (handler.drop(DropEvent(view, mouseLocation(it), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
+                        dragOperation.completed(action)
+                    } else {
+                        dragOperation.canceled()
+                    }
+                } ?: dragOperation.completed(action)
             }
 
             currentDropHandler = null
@@ -187,7 +198,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         }
     }
 
-    private fun dragMove(bundle: DataBundle, desired: Action, location: Point): Boolean {
+    private fun dragMove(bundle: DataBundle, desired: Action?, location: Point): Boolean {
         var dropEvent: DropEvent
         var dropAllowed = false
         val coveredView = targetFinder(location)
@@ -205,7 +216,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
                 dropAllowed = dropHandler.second.dropEnter(dropEvent)
 
-                if (desired !== Action.None) {
+                if (desired != null) {
                     currentDropHandler = dropHandler
                 } else {
                     currentDropHandler = null
@@ -218,7 +229,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                 dropEvent   = DropEvent(view, location, bundle, desired)
                 dropAllowed = handler.dropOver(dropEvent)
 
-                if (desired === Action.None) {
+                if (desired == null) {
                     handler.dropExit(dropEvent)
 
                     currentDropHandler = null
@@ -226,11 +237,17 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             }
         }
 
-        if (visual != null) {
-            visualCanvas.position = location + visualOffset
-        }
+//        if (visual != null) {
+//            visualCanvas.position = location + visualOffset
+//        }
 
         return dropAllowed
+    }
+
+    private fun createVisual(visual: Renderable?) {
+        visualCanvas = graphicsDevice.create()
+
+        renderDragVisual(visual)
     }
 
     private fun renderDragVisual(visual: Renderable?) {

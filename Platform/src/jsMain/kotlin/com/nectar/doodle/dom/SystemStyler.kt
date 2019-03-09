@@ -17,6 +17,7 @@ internal class SystemStylerImpl: SystemStyler {
         }
 
         (document.styleSheets[0] as? CSSStyleSheet)?.apply {
+            // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
             insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", 0)
 
             insertRule("html { border:0 }", 0)

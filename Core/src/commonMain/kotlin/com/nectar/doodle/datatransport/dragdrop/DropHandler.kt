@@ -9,7 +9,7 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 
 interface DragOperation {
-    enum class Action { Copy, Move, Link, None }
+    enum class Action { Copy, Move, Link }
 
     val bundle        : DataBundle
     val visual        : Renderable? get() = null
@@ -20,7 +20,7 @@ interface DragOperation {
     fun canceled (              ) {}
 }
 
-class DropEvent(val view: View, val location: Point, val bundle: DataBundle, val action: Action)
+class DropEvent(val view: View, val location: Point, val bundle: DataBundle, val action: Action?)
 
 data class DropCompleteEvent(val succeeded: Boolean, val action: Action)
 
