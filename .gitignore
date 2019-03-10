@@ -5,4 +5,4 @@ build/
 node_modules/
 *.iml
 .DS_Store
-*/web/main.bundle.js*
+*/web/main.bundle.js
