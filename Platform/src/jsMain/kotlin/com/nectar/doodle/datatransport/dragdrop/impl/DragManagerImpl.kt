@@ -16,6 +16,7 @@ import com.nectar.doodle.drawing.Renderable
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.scheduler.Scheduler
 import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
@@ -25,11 +26,14 @@ import kotlin.math.abs
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>, htmlFactory: HtmlFactory): DragManager {
-    private val isIE               = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
-    private var mouseDown          = null as MouseEvent?
-    private var rootElement        = htmlFactory.root
-    private var currentDropHandler = null as Pair<View, DropHandler>?
-    private var allowedActions     = "all"
+    private val isIE                 = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
+    private var mouseDown            = null as MouseEvent?
+    private var rootElement          = htmlFactory.root
+    private var dropAllowed          = false
+    private var currentAction        = null as Action?
+    private var allowedActions       = "all"
+    private var currentDropHandler   = null as Pair<View, DropHandler>?
+    private var currentMouseLocation = Origin
 
     private lateinit var visualCanvas: RealGraphicsSurface
     private lateinit var targetFinder: (Point) -> View?
@@ -149,8 +153,8 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                 it.stopPropagation()
             }
         }
-        element.ondragover = {
-            if (it.target !is HTMLInputElement) {
+        element.ondragover = { event ->
+            if (event.target !is HTMLInputElement) {
 
                 if (!isIE) {
                     try {
@@ -158,11 +162,33 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                     } catch (ignored: Throwable) {}
                 }
 
-                if (!dragMove(dragOperation.bundle, action(it.dataTransfer), mouseLocation(it))) {
-                    it.dataTransfer?.dropEffect = "none"
+                if (currentDropHandler == null) {
+                    dropAllowed = false
+                }
+
+                val mouseLocation = mouseLocation(event)
+
+                if (currentMouseLocation != mouseLocation) {
+                    currentMouseLocation = mouseLocation
+
+                    dropAllowed = dragMove(dragOperation.bundle, action(event.dataTransfer), mouseLocation)
+                }
+
+                action(event.dataTransfer).let { action ->
+                    if (currentAction != action) {
+                        currentAction = action
+
+                        currentDropHandler?.let {
+                            dropAllowed  = it.second.dropActionChanged(DropEvent(it.first, mouseLocation, dragOperation.bundle, action))
+                        }
+                    }
+                }
+
+                if (dropAllowed) {
+                    event.preventDefault ()
+                    event.stopPropagation()
                 } else {
-                    it.preventDefault ()
-                    it.stopPropagation()
+                    event.dataTransfer?.dropEffect = "none"
                 }
             }
         }
@@ -199,35 +225,28 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
     }
 
     private fun dragMove(bundle: DataBundle, desired: Action?, location: Point): Boolean {
-        var dropEvent: DropEvent
         var dropAllowed = false
-        val coveredView = targetFinder(location)
-        val dropHandler = getDropEventHandler(coveredView)
+        val dropHandler = getDropEventHandler(targetFinder(location))
 
         if (dropHandler !== currentDropHandler) {
             currentDropHandler?.let { (view, handler) ->
-                dropEvent = DropEvent(view, location, bundle, desired)
-
-                handler.dropExit(dropEvent)
+                handler.dropExit(DropEvent(view, location, bundle, desired))
             }
 
             if (dropHandler != null) {
-                dropEvent = DropEvent(dropHandler.first, location, bundle, desired)
+                dropAllowed = dropHandler.second.dropEnter(DropEvent(dropHandler.first, location, bundle, desired))
 
-                dropAllowed = dropHandler.second.dropEnter(dropEvent)
-
-                if (desired != null) {
-                    currentDropHandler = dropHandler
-                } else {
-                    currentDropHandler = null
+                when (desired) {
+                    null -> currentDropHandler = null
+                    else -> currentDropHandler = dropHandler
                 }
             } else {
                 currentDropHandler = null
             }
         } else {
             currentDropHandler?.let { (view, handler) ->
-                dropEvent   = DropEvent(view, location, bundle, desired)
-                dropAllowed = handler.dropOver(dropEvent)
+                val dropEvent = DropEvent(view, location, bundle, desired)
+                dropAllowed   = handler.dropOver(dropEvent)
 
                 if (desired == null) {
                     handler.dropExit(dropEvent)
@@ -237,20 +256,12 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             }
         }
 
-//        if (visual != null) {
-//            visualCanvas.position = location + visualOffset
-//        }
-
         return dropAllowed
     }
 
     private fun createVisual(visual: Renderable?) {
         visualCanvas = graphicsDevice.create()
 
-        renderDragVisual(visual)
-    }
-
-    private fun renderDragVisual(visual: Renderable?) {
         if (visual != null) {
             visualCanvas.size = visual.size
 
