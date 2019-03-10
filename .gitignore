@@ -4,3 +4,4 @@ out/
 build/
 *.iml
 **/web/main.bundle.js*
+package-lock.json
