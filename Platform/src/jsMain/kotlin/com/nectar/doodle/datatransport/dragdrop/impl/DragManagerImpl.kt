@@ -22,6 +22,7 @@ import com.nectar.doodle.system.SystemMouseEvent
 import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.events.MouseEvent as DomMouseEvent
 import kotlin.math.abs
 
 
@@ -136,7 +137,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         }
     }
 
-    private fun mouseLocation(event: org.w3c.dom.events.MouseEvent) = Point(
+    private fun mouseLocation(event: DomMouseEvent) = Point(
             x = event.clientX - rootElement.offsetLeft + rootElement.scrollLeft,
             y = event.clientY - rootElement.offsetTop  + rootElement.scrollLeft)
 
