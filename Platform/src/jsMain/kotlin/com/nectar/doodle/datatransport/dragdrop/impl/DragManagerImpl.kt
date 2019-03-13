@@ -8,7 +8,7 @@ import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action
 import com.nectar.doodle.datatransport.dragdrop.DropEvent
-import com.nectar.doodle.datatransport.dragdrop.DropHandler
+import com.nectar.doodle.datatransport.dragdrop.DropReceiver
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.drawing.GraphicsDevice
@@ -18,6 +18,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.doodle.system.SystemMouseEvent
 import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
@@ -32,7 +33,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
     private var dropAllowed          = false
     private var currentAction        = null as Action?
     private var allowedActions       = "all"
-    private var currentDropHandler   = null as Pair<View, DropHandler>?
+    private var currentDropHandler   = null as Pair<View, DropReceiver>?
     private var currentMouseLocation = Origin
 
     private lateinit var visualCanvas: RealGraphicsSurface
@@ -43,7 +44,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
         mouseDown?.let {
             if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
-                view.dragHandler?.dragRecognized(event)?.let { dragOperation ->
+                view.dragRecognizer?.dragRecognized(event)?.let { dragOperation ->
                     createVisual(dragOperation.visual)
 
                     visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
@@ -87,7 +88,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
 
         this.targetFinder = targetFinder
 
-        view.dragHandler?.dragRecognized(event)?.let { dragOperation ->
+        view.dragRecognizer?.dragRecognized(event)?.let { dragOperation ->
 
             rootElement.draggable = true
 
@@ -105,10 +106,18 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                         it.dataTransfer?.setData("$mimeType", text)
                     }
                 }
+
+                dragOperation.started()
             }
 
             registerListeners(dragOperation, rootElement)
         }
+    }
+
+    override fun mouseUp(event: SystemMouseEvent) {
+        mouseDown               = null
+        rootElement.draggable   = false
+        rootElement.ondragstart = null
     }
 
     private fun allowedActions(actions: Set<Action>): String {
@@ -166,23 +175,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
                     dropAllowed = false
                 }
 
-                val mouseLocation = mouseLocation(event)
-
-                if (currentMouseLocation != mouseLocation) {
-                    currentMouseLocation = mouseLocation
-
-                    dropAllowed = dragMove(dragOperation.bundle, action(event.dataTransfer), mouseLocation)
-                }
-
-                action(event.dataTransfer).let { action ->
-                    if (currentAction != action) {
-                        currentAction = action
-
-                        currentDropHandler?.let {
-                            dropAllowed  = it.second.dropActionChanged(DropEvent(it.first, mouseLocation, dragOperation.bundle, action))
-                        }
-                    }
-                }
+                dropAllowed = dragUpdate(dragOperation.bundle, action(event.dataTransfer), mouseLocation(event))
 
                 if (dropAllowed) {
                     event.preventDefault ()
@@ -224,11 +217,11 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         }
     }
 
-    private fun dragMove(bundle: DataBundle, desired: Action?, location: Point): Boolean {
-        var dropAllowed = false
+    private fun dragUpdate(bundle: DataBundle, desired: Action?, location: Point): Boolean {
+        var dropAllowed = this.dropAllowed
         val dropHandler = getDropEventHandler(targetFinder(location))
 
-        if (dropHandler !== currentDropHandler) {
+        if (dropHandler != currentDropHandler) {
             currentDropHandler?.let { (view, handler) ->
                 handler.dropExit(DropEvent(view, location, bundle, desired))
             }
@@ -246,12 +239,23 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         } else {
             currentDropHandler?.let { (view, handler) ->
                 val dropEvent = DropEvent(view, location, bundle, desired)
-                dropAllowed   = handler.dropOver(dropEvent)
 
                 if (desired == null) {
                     handler.dropExit(dropEvent)
 
                     currentDropHandler = null
+                } else {
+                    if (currentMouseLocation != location) {
+                        currentMouseLocation = location
+
+                        dropAllowed = handler.dropOver(dropEvent)
+                    }
+
+                    if (currentAction != desired) {
+                        currentAction = desired
+
+                        dropAllowed = handler.dropActionChanged(DropEvent(view, location, bundle, desired))
+                    }
                 }
             }
         }
@@ -271,12 +275,12 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         }
     }
 
-    private fun getDropEventHandler(view: View?): Pair<View, DropHandler>? {
+    private fun getDropEventHandler(view: View?): Pair<View, DropReceiver>? {
         var current = view
-        var handler = null as DropHandler?
+        var handler = null as DropReceiver?
 
         while (current != null) {
-            handler = current.dropHandler
+            handler = current.dropReceiver
 
             if (handler == null || !handler.active) {
                 current = current.parent

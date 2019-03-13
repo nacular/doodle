@@ -2,8 +2,9 @@
 
 package com.nectar.doodle.core
 
-import com.nectar.doodle.datatransport.dragdrop.DragHandler
-import com.nectar.doodle.datatransport.dragdrop.DropHandler
+import com.nectar.doodle.datatransport.dragdrop.DragOperation
+import com.nectar.doodle.datatransport.dragdrop.DragRecognizer
+import com.nectar.doodle.datatransport.dragdrop.DropReceiver
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
@@ -102,7 +103,7 @@ abstract class View protected constructor() {
     var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && (dragHandler != null || mouseChanged.isNotEmpty())
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseChanged.isNotEmpty()
     }
 
     val keyChanged by lazy { SetPool<KeyListener>() }
@@ -118,7 +119,7 @@ abstract class View protected constructor() {
     var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
     }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && (dragHandler != null || mouseMotionChanged.isNotEmpty())
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseMotionChanged.isNotEmpty()
     }
 
     var monitorsMouseWheel by observable(true ) { _,_,_ ->
@@ -283,13 +284,15 @@ abstract class View protected constructor() {
     /** Is ```true``` if the [View] is currently within the [Display] */
     val displayed get() = renderManager != null
 
+    /** Recognizer used to determine whether a [MouseEvent] should result in a [DragOperation] */
+    var dragRecognizer = null as DragRecognizer?
+
+    /** Receiver that determines what drop operations are supported by the View */
+    var dropReceiver = null as DropReceiver?
+
     private var renderManager: RenderManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
-
-    var dragHandler = null as DragHandler?
-
-    var dropHandler = null as DropHandler?
 
     fun shouldYieldFocus() = true
 
@@ -345,23 +348,7 @@ abstract class View protected constructor() {
     internal fun child_(at: Point) = child(at)
     protected open fun child(at: Point): View? = layout?.child(this, at) ?: children.lastOrNull { it.visible && at in it }
 
-//    var dropHandler: DropHandler? = null
-//        set(new) {
-//            if (field === new) {
-//                return
-//            }
-//
-//            field?.target = null
-//
-//            field = new?.also {
-//                it.target = this
-//            }
-//        }
-//
 //    var inputVerifier: InputVerifier<*>? = null
-//
-//    var dataTransporter: DataTransporter? = null
-//
 
     /**
      * Gives the [View] an opportunity to render itself to the given Canvas.

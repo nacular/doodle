@@ -90,6 +90,8 @@ class MouseInputManagerImpl(
     override fun changed(event: SystemMouseWheelEvent) = mouseScroll(event)
 
     private fun mouseUp(event: SystemMouseEvent) {
+        dragManager?.mouseUp(event)
+
         val view = getMouseEventHandler(view(from = event))
 
         if (clickedEventAwareView != null || mouseDown) {
