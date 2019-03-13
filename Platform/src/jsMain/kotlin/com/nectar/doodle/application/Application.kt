@@ -2,12 +2,14 @@ package com.nectar.doodle.application
 
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
-import com.nectar.doodle.datatransport.dragdrop.DragManager
+import com.nectar.doodle.datatransport.dragdrop.impl.DragManager
 import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
 import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
 import com.nectar.doodle.deviceinput.MouseInputManager
 import com.nectar.doodle.deviceinput.MouseInputManagerImpl
+import com.nectar.doodle.deviceinput.ViewFinder
+import com.nectar.doodle.deviceinput.ViewFinderImpl
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.HtmlFactoryImpl
 import com.nectar.doodle.dom.SvgFactory
@@ -96,6 +98,7 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 
         injector.instanceOrNull<MouseInputManager>   ()
         injector.instanceOrNull<KeyboardFocusManager>()
+        injector.instanceOrNull<DragManager>         ()
 
         injector.instance<Scheduler>().now {
             run(injector.instance())
@@ -121,9 +124,10 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 class Modules {
     companion object {
         val mouseModule = Module(allowSilentOverride = true) {
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                              ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instanceOrNull()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()                              ) }
+            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()                        ) }
         }
 
         val focusModule = Module(allowSilentOverride = true) {
@@ -151,7 +155,7 @@ class Modules {
         val dragDropModule = Module(allowSilentOverride = true) {
             import(mouseModule)
 
-            bind<DragManager> () with singleton { DragManagerImpl (instance(), instance(), instance()) }
+            bind<DragManager> () with singleton { DragManagerImpl (instance(), instance(), instance(), instance(), instance()) }
         }
     }
 }

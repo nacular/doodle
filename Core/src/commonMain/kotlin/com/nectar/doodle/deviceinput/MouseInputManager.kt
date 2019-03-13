@@ -3,9 +3,7 @@ package com.nectar.doodle.deviceinput
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
-import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.Cursor.Companion.Default
@@ -29,8 +27,8 @@ interface MouseInputManager {
 @Suppress("NestedLambdaShadowedImplicitParameter")
 class MouseInputManagerImpl(
         private val display     : Display,
-        private val inputService: MouseInputService,
-        private val dragManager : DragManager? = null): MouseInputManager, MouseInputService.Listener {
+        private val viewFinder  : ViewFinder,
+        private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
 
     private var mouseDown             = false
     private var clickedView           = null as View?
@@ -90,8 +88,6 @@ class MouseInputManagerImpl(
     override fun changed(event: SystemMouseWheelEvent) = mouseScroll(event)
 
     private fun mouseUp(event: SystemMouseEvent) {
-        dragManager?.mouseUp(event)
-
         val view = getMouseEventHandler(view(from = event))
 
         if (clickedEventAwareView != null || mouseDown) {
@@ -157,8 +153,6 @@ class MouseInputManagerImpl(
         view(from = event)?.let {
             val mouseEvent = createMouseEvent(event, it).apply { clickedView = it }
 
-            dragManager?.mouseDown(it, mouseEvent) { view(it) }
-
             getMouseEventHandler(it)?.let {
                 it.handleMouseEvent_(mouseEvent)
 
@@ -185,10 +179,6 @@ class MouseInputManagerImpl(
 
     private fun mouseMove(event: SystemMouseEvent) {
         coveredView = view(from = event)
-
-        clickedView?.let {
-            dragManager?.mouseDrag(it, createMouseEvent(event, it, Drag)) { view(it) }
-        }
 
         clickedEventAwareView?.let { view ->
             if (view.monitorsMouseMotion) {
@@ -319,7 +309,7 @@ class MouseInputManagerImpl(
     }
 
     private fun view(from: SystemMouseEvent): View? {
-        var view = view(from.location)
+        var view = viewFinder.find(from.location)
 
         return view?.let {
             if (from.nativeScrollPanel) {
@@ -332,24 +322,11 @@ class MouseInputManagerImpl(
         }
     }
 
-    private fun view(from: Point): View? {
-        var newPoint = from
-        var view     = display.child(at = from)
-
-        while(view != null) {
-            newPoint -= view.position
-
-            view = view.child_(at = newPoint) ?: break
-        }
-
-        return view
-    }
-
-    private fun createMouseEvent(mouseEvent: SystemMouseEvent, view: View, type: Type = mouseEvent.type) = MouseEvent(
+    private fun createMouseEvent(event: SystemMouseEvent, view: View, type: Type = event.type) = MouseEvent(
             view,
             type,
-            mouseEvent.location - view.toAbsolute(Origin),
-            mouseEvent.buttons,
-            mouseEvent.clickCount,
-            mouseEvent.modifiers)
+            event.location - view.toAbsolute(Origin),
+            event.buttons,
+            event.clickCount,
+            event.modifiers)
 }
