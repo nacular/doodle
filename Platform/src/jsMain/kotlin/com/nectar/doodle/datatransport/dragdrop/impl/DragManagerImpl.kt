@@ -22,8 +22,8 @@ import com.nectar.doodle.system.SystemMouseEvent
 import org.w3c.dom.DataTransfer
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.MouseEvent as DomMouseEvent
 import kotlin.math.abs
+import org.w3c.dom.events.MouseEvent as DomMouseEvent
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
@@ -82,6 +82,10 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
     }
 
     override fun mouseDown(view: View, event: MouseEvent, targetFinder: (Point) -> View?) {
+        if (!view.enabled || !view.visible) {
+            return
+        }
+
         if (isIE) {
             mouseDown = event
             return
@@ -241,18 +245,18 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
             currentDropHandler?.let { (view, handler) ->
                 val dropEvent = DropEvent(view, location, bundle, desired)
 
-                if (desired == null) {
-                    handler.dropExit(dropEvent)
+                when {
+                    desired == null -> {
+                        handler.dropExit(dropEvent)
 
-                    currentDropHandler = null
-                } else {
-                    if (currentMouseLocation != location) {
+                        currentDropHandler = null
+                    }
+                    currentMouseLocation != location -> {
                         currentMouseLocation = location
 
                         dropAllowed = handler.dropOver(dropEvent)
                     }
-
-                    if (currentAction != desired) {
+                    currentAction != desired -> {
                         currentAction = desired
 
                         dropAllowed = handler.dropActionChanged(DropEvent(view, location, bundle, desired))
@@ -280,7 +284,7 @@ class DragManagerImpl(private val scheduler: Scheduler, private val graphicsDevi
         var current = view
         var handler = null as DropReceiver?
 
-        while (current != null) {
+        while (current != null && current.enabled && current.visible) {
             handler = current.dropReceiver
 
             if (handler == null || !handler.active) {

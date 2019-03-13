@@ -53,7 +53,7 @@ class SystemTheme internal constructor(
     override fun toString() = this::class.simpleName ?: ""
 
     companion object {
-        val systemThemeModule = Module {
+        val systemThemeModule = Module(allowSilentOverride = true) {
             // TODO: Can this be handled better?
             bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 

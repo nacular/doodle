@@ -86,12 +86,6 @@ inline operator fun <reified T: Any> DataBundle.invoke(): T? = this.invoke(Refer
 class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
     override fun <T> invoke  (type: MimeType<T>) = if (type in this) item as T else null
     override fun <T> contains(type: MimeType<T>) = this.type == type
-
-    companion object {
-        operator fun <T: Any> invoke(item: T): SingleItemBundle<T> {
-            return SingleItemBundle(ReferenceType(item::class), item)
-        }
-    }
 }
 
 /**
@@ -105,5 +99,8 @@ class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
 
     override operator fun plus(other: DataBundle) = CompositeBundle(bundles + other)
 }
+
 fun textBundle(text: String) = SingleItemBundle(PlainText, text)
 fun uriBundle (uri : String) = SingleItemBundle(UriList,    uri)
+
+inline fun <reified T: Any> refBundle(item: T) = SingleItemBundle(ReferenceType(T::class), item)

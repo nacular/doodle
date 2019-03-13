@@ -2,6 +2,8 @@ package com.nectar.doodle.application
 
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
+import com.nectar.doodle.datatransport.dragdrop.DragManager
+import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
 import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
 import com.nectar.doodle.deviceinput.MouseInputManager
@@ -68,19 +70,19 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
     protected var injector = Kodein.direct {
         bind<SystemStyler>() with instance(SystemStylerImpl())
 
-        bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
-        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
-        bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }
-        bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
-        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root                                                            ) }
-        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root                                                            ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
-        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (                                                                ) } // FIXME: Provide fallback in case not supported
-        bind<VectorBackgroundFactory>  () with singleton { VectorBackgroundFactoryImpl(instance(), instance(), instance()                             ) }
-        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
+        bind<Timer>                    () with singleton { PerformanceTimer           (                                                                ) }
+        bind<Strand>                   () with singleton { StrandImpl                 (instance(), instance()                                          ) }
+        bind<Display>                  () with singleton { DisplayImpl                (instance(), root                                                ) }
+        bind<Scheduler>                () with singleton { SchedulerImpl              (instance()                                                      ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl             (root                                                            ) }
+        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl            (root                                                            ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl            (instance()                                                      ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl          (instance(), instance(), instance(), instance()                  ) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl          (instance(), instance(), instance(), instanceOrNull(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice         (instance()                                                      ) }
+        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl     (                                                                ) } // FIXME: Provide fallback in case not supported
+        bind<VectorBackgroundFactory>  () with singleton { VectorBackgroundFactoryImpl(instance(), instance(), instance()                              ) }
+        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory (instance(), instance()                                          ) }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -118,7 +120,7 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 
 class Modules {
     companion object {
-        val mouseModule = Module {
+        val mouseModule = Module(allowSilentOverride = true) {
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                              ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instanceOrNull()) }
             bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()                              ) }
@@ -128,7 +130,7 @@ class Modules {
             bind<FocusManager>() with singleton { FocusManagerImpl() }
         }
 
-        val keyboardModule = Module {
+        val keyboardModule = Module(allowSilentOverride = true) {
             import(focusModule)
 
             val keys = mutableMapOf<TraversalType, Set<KeyState>>()
@@ -141,9 +143,15 @@ class Modules {
             bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                   ) }
         }
 
-        val themeModule = Module {
+        val themeModule = Module(allowSilentOverride = true) {
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
             bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
+        }
+
+        val dragDropModule = Module(allowSilentOverride = true) {
+            import(mouseModule)
+
+            bind<DragManager> () with singleton { DragManagerImpl (instance(), instance(), instance()) }
         }
     }
 }

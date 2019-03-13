@@ -71,7 +71,7 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
     private val mutableTreeUI by lazy { BasicMutableTreeUI<Any>(labelFactory, focusManager) }
 }
 
-//val basicThemeModule = Module {
+//val basicThemeModule = Module(allowSilentOverride = true) {
 //    bind<BasicTheme>  () with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
 //    bind<TextMetrics> () with singleton { TextMetricsImpl(instance(), instance(), instance()) }
 //    bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
