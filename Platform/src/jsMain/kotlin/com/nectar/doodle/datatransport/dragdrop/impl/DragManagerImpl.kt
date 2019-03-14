@@ -2,6 +2,7 @@ package com.nectar.doodle.datatransport.dragdrop.impl
 
 import com.nectar.doodle.core.View
 import com.nectar.doodle.datatransport.DataBundle
+import com.nectar.doodle.datatransport.MimeType
 import com.nectar.doodle.datatransport.PlainText
 import com.nectar.doodle.datatransport.UriList
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
@@ -46,8 +47,20 @@ internal class DragManagerImpl(
     private var allowedActions       = "all"
     private var currentDropHandler   = null as Pair<View, DropReceiver>?
     private var currentMouseLocation = Origin
+    private var dataBundle           = null as DataBundle?
 
     private lateinit var visualCanvas: RealGraphicsSurface
+
+    private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let {
+        object: DataBundle {
+            override fun <T> invoke(type: MimeType<T>) = when (type) {
+                in this -> it.getData(type.toString()) as? T
+                else    -> null
+            }
+
+            override fun <T> contains(type: MimeType<T>) = type.toString() in it.types
+        }
+    }
 
     init {
         mouseInputService += object: Preprocessor {
@@ -57,6 +70,47 @@ internal class DragManagerImpl(
                     Down -> mouseDown(event)
                     else -> mouseDrag(event)
                 }
+            }
+        }
+
+        rootElement.ondragover = { event ->
+            if (event.target !is HTMLInputElement) {
+                (dataBundle ?: createBundle(event.dataTransfer))?.let {
+                    if (!isIE) {
+                        try {
+                            visualCanvas.release()
+                        } catch (ignored: Throwable) {}
+                    }
+
+                    if (currentDropHandler == null) {
+                        dropAllowed = false
+                    }
+
+                    dropAllowed = dragUpdate(it, action(event.dataTransfer), mouseLocation(event))
+
+                    if (dropAllowed) {
+                        event.preventDefault ()
+                        event.stopPropagation()
+                    } else {
+                        event.dataTransfer?.dropEffect = "none"
+                    }
+                }
+            }
+        }
+
+        rootElement.ondrop = { event ->
+            if (event.target !is HTMLInputElement) {
+                // This is the case of a drop that originated from outside the browser
+                if (dataBundle == null) {
+                    createBundle(event.dataTransfer)?.let {
+                        currentDropHandler?.let { (view, handler) ->
+                            handler.drop(DropEvent(view, mouseLocation(event), it, action(event.dataTransfer?.dropEffect)))
+                        }
+                    }
+                }
+
+                event.preventDefault ()
+                event.stopPropagation()
             }
         }
     }
@@ -76,6 +130,8 @@ internal class DragManagerImpl(
 
                 if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
                     view.dragRecognizer?.dragRecognized(mouseEvent(event, view))?.let { dragOperation ->
+                        dataBundle = dragOperation.bundle
+
                         createVisual(dragOperation.visual)
 
                         visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
@@ -127,6 +183,7 @@ internal class DragManagerImpl(
 
             view.dragRecognizer?.dragRecognized(mouseEvent)?.let { dragOperation ->
 
+                dataBundle            = dragOperation.bundle
                 rootElement.draggable = true
 
                 rootElement.ondragstart = {
@@ -154,6 +211,7 @@ internal class DragManagerImpl(
 
     private fun mouseUp() {
         mouseDown               = null
+        dataBundle              = null
         rootElement.draggable   = false
         rootElement.ondragstart = null
     }
@@ -178,18 +236,19 @@ internal class DragManagerImpl(
             x = event.clientX - rootElement.offsetLeft + rootElement.scrollLeft,
             y = event.clientY - rootElement.offsetTop  + rootElement.scrollLeft)
 
-    private fun action(name: String?) = when (name) {
-        "copy" -> Action.Copy
-        "move" -> Action.Move
-        "link" -> Action.Link
-        else   -> null
+    private fun action(name: String?) = when {
+        name == null            -> null
+        name.startsWith("copy") -> Action.Copy
+        name.startsWith("move") -> Action.Move
+        name.startsWith("link") -> Action.Link
+        else                    -> null
     }
 
     private fun action(dataTransfer: DataTransfer?) = action(dataTransfer?.run {
         when {
-            effectAllowed != allowedActions -> effectAllowed
-            dropEffect    == "none"         -> "move"
-            else                            -> dropEffect
+            effectAllowed != allowedActions && effectAllowed != "uninitialized" -> effectAllowed
+            dropEffect    == "none"                                             -> "move"
+            else                                                                -> dropEffect
         }
     })
 
@@ -200,38 +259,8 @@ internal class DragManagerImpl(
                 it.stopPropagation()
             }
         }
-        element.ondragover = { event ->
-            if (event.target !is HTMLInputElement) {
-
-                if (!isIE) {
-                    try {
-                        visualCanvas.release()
-                    } catch (ignored: Throwable) {}
-                }
-
-                if (currentDropHandler == null) {
-                    dropAllowed = false
-                }
-
-                dropAllowed = dragUpdate(dragOperation.bundle, action(event.dataTransfer), mouseLocation(event))
-
-                if (dropAllowed) {
-                    event.preventDefault ()
-                    event.stopPropagation()
-                } else {
-                    event.dataTransfer?.dropEffect = "none"
-                }
-            }
-        }
-        element.ondrop = {
-            if (it.target !is HTMLInputElement) {
-                it.preventDefault ()
-                it.stopPropagation()
-            }
-        }
         element.ondragend = {
             element.draggable   = false
-            element.ondragover  = null
             element.ondragenter = null
             element.ondragstart = null
 

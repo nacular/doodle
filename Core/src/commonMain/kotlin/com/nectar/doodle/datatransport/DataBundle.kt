@@ -80,6 +80,9 @@ interface DataBundle {
 
 inline operator fun <reified T: Any> DataBundle.invoke(): T? = this.invoke(ReferenceType(T::class))
 
+inline fun <reified T: Any> DataBundle.contains(): Boolean = this.contains(ReferenceType(T::class))
+
+
 /**
  * Simple bundle holding a single item.
  */
