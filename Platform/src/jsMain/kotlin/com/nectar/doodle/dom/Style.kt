@@ -21,8 +21,8 @@ private inline fun em(value: Number) =  "${value.toDouble()}px" //"${value.toDou
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value) }
 
-internal inline fun Style.setTop   (value: Double) { top    = em(value) }
-internal inline fun Style.setLeft  (value: Double) { left   = em(value) }
+internal inline fun Style.setTop   (value: Double) { top    = em(value          ) }
+internal inline fun Style.setLeft  (value: Double) { left   = em(value          ) }
 internal inline fun Style.setWidth (value: Double) { width  = em(max(0.0, value)) }
 internal inline fun Style.setHeight(value: Double) { height = em(max(0.0, value)) }
 

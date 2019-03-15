@@ -20,8 +20,10 @@ internal class SystemStylerImpl: SystemStyler {
             // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
             insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", 0)
 
-            insertRule("html { border:0 }", 0)
+            insertRule("html { border:0;box-sizing:border-box }", 0)
             insertRule("html,body{ height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", 0)
+
+            insertRule("* { box-sizing:inherit }", 0)
 
             insertRule("body * { position:absolute;overflow:hidden;font-family:monospace;font-size:inherit }", 0)
             insertRule("body pre { overflow:visible }", 0)

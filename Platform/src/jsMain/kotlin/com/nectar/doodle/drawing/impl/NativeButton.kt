@@ -5,7 +5,6 @@ import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.Absolute
 import com.nectar.doodle.dom.BorderStyle.None
-import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Inline
@@ -15,7 +14,6 @@ import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderStyle
-import com.nectar.doodle.dom.setBoxSizing
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setHeight
@@ -168,7 +166,6 @@ class NativeButton internal constructor(
             style.setLeft           (0.0       )
             style.setOpacity        (0f        )
             style.setPosition       (Absolute())
-            style.setBoxSizing      (Border  ())
             style.setWidthPercent   (100.0     )
             style.setHeightPercent  (100.0     )
             style.setBackgroundColor(Color.red )

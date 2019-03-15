@@ -4,15 +4,17 @@ import com.nectar.doodle.controls.text.Selection
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextInput
 import com.nectar.doodle.core.View
-import com.nectar.doodle.dom.BoxSizing.Border
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderWidth
-import com.nectar.doodle.dom.setBoxSizing
 import com.nectar.doodle.dom.setColor
+import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOutlineWidth
+import com.nectar.doodle.dom.setTop
+import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
@@ -45,6 +47,7 @@ class NativeTextFieldFactoryImpl internal constructor(
         elementRuler.size(htmlFactory.createInput().apply {
             style.setBorderWidth (0.0)
             style.setOutlineWidth(0.0)
+            style.padding = "0px"
         })
     }
 
@@ -129,15 +132,20 @@ class NativeTextField(
         text = textField.text
 
         inputElement.apply {
-            style.setBoxSizing      (Border()                 )
             if (!textField.borderVisible) {
-                style.setBorderWidth (0.0                     )
-                style.setOutlineWidth(0.0                     )
+                style.setBorderWidth  (0.0  )
+                style.setOutlineWidth (0.0  )
+                style.setWidthPercent (100.0)
+                style.setHeightPercent(100.0)
+
+            } else {
+                style.setTop (borderSize.height / 2)
+                style.setLeft(borderSize.width  / 2)
             }
-            style.setWidthPercent   (100.0                    )
-            style.setHeightPercent  (100.0                    )
+
             style.setColor          (textField.foregroundColor)
             style.setBackgroundColor(textField.backgroundColor)
+
             style.textAlign = when (textField.horizontalAlignment) {
                 Center -> "center"
                 Right  -> "right"
@@ -180,6 +188,11 @@ class NativeTextField(
 
     fun render(canvas: Canvas) {
         if (canvas is CanvasImpl) {
+            if (textField.borderVisible) {
+                inputElement.style.setWidth (textField.width  - borderSize.width )
+                inputElement.style.setHeight(textField.height - borderSize.height)
+            }
+
             canvas.addData(listOf(inputElement))
         }
 
@@ -191,7 +204,7 @@ class NativeTextField(
     }
 
     fun fitTextSize() = textMetrics.size(textField.displayText).run {
-        Size(max(8.0, width) + 1.6 + if (textField.borderVisible) borderSize.width else 0.0, height + if (textField.borderVisible) borderSize.height else 0.0)
+        Size(max(8.0, width) + 1.6 + if (textField.borderVisible) borderSize.width * 2 else 0.0, height + if (textField.borderVisible) borderSize.height * 2 else 0.0)
     }
 
     override fun onKeyUp() = true.also { syncTextField() }
