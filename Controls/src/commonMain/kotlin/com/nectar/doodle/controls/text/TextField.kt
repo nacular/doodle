@@ -7,6 +7,11 @@ import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
 
+
+interface TextFieldRenderer: Renderer<TextField> {
+    fun fitTextSize(textField: TextField): Size
+}
+
 open class TextField: TextInput() {
 
     enum class TextFit { Width, Height }
