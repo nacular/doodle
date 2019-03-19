@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.buttons
 
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
@@ -40,6 +40,12 @@ abstract class Button protected constructor(
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<View, String>)
 
     var renderer: Renderer<Button>? = null
+        set(new) {
+            if (field == new) { return }
+
+            field?.uninstall(this)
+            field = new?.apply { install(this@Button) }
+        }
 
     var iconTextSpacing     = 4.0
     var verticalAlignment   = Middle

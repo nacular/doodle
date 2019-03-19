@@ -18,11 +18,8 @@ class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: 
 class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
 
 interface Canvas: Renderer {
-
     var size        : Size
     var optimization: Optimization
-
-//    fun import(imageData: ImageData, at: Point)
 
     fun scale    (x        : Double,         y: Double,            block: Canvas.() -> Unit)
     fun scale    (around   : Point,          x: Double, y: Double, block: Canvas.() -> Unit)
@@ -76,6 +73,4 @@ interface Canvas: Renderer {
     fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
     fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
     fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
-
-//    interface ImageData
 }

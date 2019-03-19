@@ -1,7 +1,11 @@
 package com.nectar.doodle.controls.panels
 
 import com.nectar.doodle.controls.theme.TabbedPanelUI
+import com.nectar.doodle.core.Container
+import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.utils.BoxOrientation
 import com.nectar.doodle.utils.BoxOrientation.Top
 import com.nectar.doodle.utils.ObservableList
@@ -27,8 +31,10 @@ class TabbedPanel(orientation: BoxOrientation = Top): View() {
         set(new) {
             if (new == field) return
 
-            field = new?.also {
-                itemUIGenerator = it.tabRenderer
+            children.batch {
+                clear()
+
+                field?.uninstall(this@TabbedPanel, wrapper)
 
                 children.clear()
 

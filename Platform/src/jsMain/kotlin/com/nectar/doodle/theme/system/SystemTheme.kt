@@ -43,10 +43,10 @@ class SystemTheme internal constructor(
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button      -> { it.renderer?.uninstall(it); it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it).apply { install(it) } }
-            is Slider      -> { it.renderer?.uninstall(it); it.renderer = SystemSliderUI     (nativeSliderFactory,      it             ).apply { install(it) } }
-            is TextField   -> { it.renderer?.uninstall(it); it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it             ).apply { install(it) } }
-            is ScrollPanel -> { it.renderer?.uninstall(it); it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it             ).apply { install(it) } }
+            is Button      -> it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it)
+            is Slider      -> it.renderer = SystemSliderUI     (nativeSliderFactory,      it             )
+            is TextField   -> it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it             )
+            is ScrollPanel -> it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it             )
         }
     }
 

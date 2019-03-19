@@ -322,6 +322,9 @@ class RenderManagerImplTests {
     @Test @JsName("doesNotRenderInvisibleViews")
     fun `does not render invisible views`() = doesNotRender(spyk(view()).apply { visible = false })
 
+    @Test @JsName("doesNotRenderInvisibleChildren")
+    fun `does not render invisible children`() = doesNotRenderChild(spyk(view()).apply { visible = false })
+
     @Test @JsName("doesNotRenderZeroBoundsViews")
     fun `does not render zero bounds views`() = doesNotRender(spyk(view()).apply { bounds = Rectangle.Empty })
 
@@ -371,6 +374,32 @@ class RenderManagerImplTests {
 
     @Test @JsName("laysOutParentOnVisibilityChanged")
     fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
+
+    @Test @JsName("reflectsVisibilityChange")
+    fun `reflects visibility change`() {
+        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+
+        container.children += child
+
+        val parentSurface  = mockk<GraphicsSurface>  (relaxed = true)
+        val childSurface   = mockk<GraphicsSurface>  (relaxed = true)
+        val graphicsDevice = mockk<GraphicsDevice<*>>(relaxed = true).apply {
+            every { get(container) } returns parentSurface
+            every { get(child    ) } returns childSurface
+        }
+
+        renderManager(display(container), graphicsDevice = graphicsDevice)
+
+        child.visible = false
+
+        verify(exactly = 1) { childSurface.visible = false }
+        verify(exactly = 0) { childSurface.visible = true  }
+
+        child.visible = true
+
+        verify(exactly = 1) { childSurface.visible = true }
+    }
 
     @Test @JsName("installsThemeForDisplayedViews")
     fun `installs theme for displayed views`() {
@@ -444,6 +473,16 @@ class RenderManagerImplTests {
 
     private fun doesNotRender(view: View) {
         renderManager(display(view))
+
+        verify(exactly = 0) { view.render(any()) }
+    }
+
+    private fun doesNotRenderChild(view: View) {
+        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+
+        container.children += view
+
+        renderManager(display(container))
 
         verify(exactly = 0) { view.render(any()) }
     }

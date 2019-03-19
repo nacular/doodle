@@ -18,6 +18,12 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Orientation.Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
     var renderer: Renderer<Slider>? = null
+        set(new) {
+            if (field == new) { return }
+
+            field?.uninstall(this)
+            field = new?.apply { install(this@Slider) }
+        }
 
     var snapToTicks = false
 

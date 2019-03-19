@@ -30,7 +30,7 @@ private object AncestorComparator: Comparator<View> {
 
 private val frameDuration = 1000 * milliseconds / 60
 
-@Suppress("PrivatePropertyName")
+@Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
         private val timer         : Timer,
         private val display       : Display,
@@ -44,7 +44,7 @@ class RenderManagerImpl(
     private val displayTree                 = mutableMapOf <View?, DisplayRectNode>()
     private val neverRendered               = mutableSetOf <View>()
     private val pendingLayout               = MutableTreeSet(AncestorComparator)
-    private val pendingRender               = mutableListOf<View>()
+    private val pendingRender               = LinkedHashSet<View>()
     private val pendingCleanup              = mutableMapOf <View, MutableSet<View>>()
     private val addedInvisible              = mutableSetOf <View>()
     private val visibilityChanged           = mutableSetOf <View>()
@@ -103,7 +103,9 @@ class RenderManagerImpl(
             if (parent != null && (parent in neverRendered || parent in dirtyViews)) {
                 renderNow(parent)
             } else {
-                performRender(view)
+                performRender(view).ifTrue {
+                    pendingRender -= view
+                }
             }
         }
     }
@@ -146,6 +148,10 @@ class RenderManagerImpl(
                 pendingRender       += view
                 pendingBoundsChange += view
 
+                if (!recursivelyVisible(view)) { //.visible) {
+                    addedInvisible += view
+                }
+
                 view.boundsChanged              += boundsChanged_
                 view.visibilityChanged          += visibilityChanged_
                 view.children_.changed          += childrenChanged_
@@ -171,10 +177,6 @@ class RenderManagerImpl(
             }
 
             if (view in display) {
-                // Avoid duplicate membership.  This done here instead of in render for perf reasons
-                dirtyViews    -= view
-                pendingRender -= view
-
                 render(view, true)
             }
         }
@@ -220,29 +222,29 @@ class RenderManagerImpl(
             pendingLayout.firstOrNull()?.let {
                 performLayout(it)
 
-                if (checkFrameTime(start)) { /*println("layout: ${it::class.simpleName ?: it}");*/ return }
+                if (checkFrameTime(start)) { return }
             }
         } while (!pendingLayout.isEmpty())
 
-        do {
-            pendingRender.firstOrNull()?.let {
-                performRender(it)
+        pendingRender.iterator().let {
+            while(it.hasNext()) {
+                if (performRender(it.next())) {
+                    it.remove()
+                }
 
-                if (checkFrameTime(start)) { /*println("render: ${it::class.simpleName ?: it}");*/ return }
+                if (checkFrameTime(start)) { return }
             }
-        } while (!pendingRender.isEmpty())
+        }
 
         pendingBoundsChange.forEach {
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
 
-                if (checkFrameTime(start)) { /*println("bounds change: ${it::class.simpleName ?: it}");*/ return }
+                if (checkFrameTime(start)) { return }
             }
         }
 
         paintTask = null
-
-//        println("paint time: ${timer.now() - start}")
     }
 
     private fun scheduleLayout(view: View) {
@@ -262,13 +264,27 @@ class RenderManagerImpl(
         pendingLayout -= view
     }
 
-    private fun performRender(view: View) {
-        pendingRender -= view
-        neverRendered -= view
+    private fun recursivelyVisible(view: View): Boolean {
+        var current = view as View?
 
+        while (current != null) {
+            if (!current.visible) {
+                return false
+            }
+
+            current = current.parent
+        }
+
+        return true
+    }
+
+    private fun performRender(view: View): Boolean {
+        var rendered          = false
         val visibilityChanged = view in visibilityChanged
 
-        val graphicsSurface = if ((view.visible || visibilityChanged) && display ancestorOf view) graphicsDevice[view] else null
+        val recursivelyVisible = recursivelyVisible(view)
+
+        val graphicsSurface = if ((recursivelyVisible || visibilityChanged) && display ancestorOf view) graphicsDevice[view] else null
 
         graphicsSurface?.let {
             if (view in pendingBoundsChange) {
@@ -283,7 +299,7 @@ class RenderManagerImpl(
                 this.visibilityChanged -= view
             }
 
-            if (view.visible && !view.bounds.empty) {
+            if (recursivelyVisible && !view.bounds.empty) {
                 val viewList = pendingCleanup[view]
 
                 viewList?.forEach {
@@ -295,14 +311,20 @@ class RenderManagerImpl(
                 pendingCleanup -= view
 
                 if (view in dirtyViews) {
-                    dirtyViews -= view
+                    dirtyViews    -= view
+                    neverRendered -= view
+//                    pendingRender -= view
 
                     graphicsSurface.render { canvas ->
                         view.render(canvas)
                     }
+
+                    rendered = true
                 }
             }
         }
+
+        return rendered
     }
 
     private fun updateGraphicsSurface(view: View, surface: GraphicsSurface) {
@@ -383,7 +405,7 @@ class RenderManagerImpl(
         if (child.visible) {
             record(child)
         } else {
-            addedInvisible.add(child)
+            addedInvisible          += child
             child.visibilityChanged += visibilityChanged_
         }
     }
@@ -405,19 +427,20 @@ class RenderManagerImpl(
         if (view in addedInvisible) {
             record(view)
 
-            addedInvisible.remove(view)
+            addedInvisible -= view
         }
 
-        if (parent != null && view !in display) {
+        if (!(parent == null || view in display)) {
             scheduleLayout(parent)
 
             // Views that change bounds while invisible are never scheduled
-            // for bounds synch, so catch them here
+            // for bounds sync, so catch them here
             if (new) {
                 pendingBoundsChange += view
             }
 
             visibilityChanged += view
+            pendingRender     += view
 
             render(parent)
         } else if (view in display) {

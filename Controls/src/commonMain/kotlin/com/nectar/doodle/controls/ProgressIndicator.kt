@@ -15,6 +15,12 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
     var renderer: Renderer<ProgressIndicator>? = null
+        set(new) {
+            if (field == new) { return }
+
+            field?.uninstall(this)
+            field = new?.apply { install(this@ProgressIndicator) }
+        }
 
     private val changedHandler: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
         changed_(old, new)

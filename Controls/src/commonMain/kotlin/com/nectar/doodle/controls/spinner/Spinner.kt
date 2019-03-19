@@ -41,11 +41,15 @@ open class Spinner<T, M: Model<T>>(model: M): View() {
         set(new) {
             children.clear()
 
+            field?.uninstall(this)
+
             field = new?.also {
                 it.components(this).also {
                     children.addAll(it.components)
                     layout = it.layout()
                 }
+
+                it.install(this)
             }
         }
 

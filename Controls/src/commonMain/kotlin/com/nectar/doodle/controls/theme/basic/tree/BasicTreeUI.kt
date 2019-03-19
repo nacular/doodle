@@ -367,7 +367,7 @@ open class TextEditOperation<T>(
 
         positionMonitor[current] += positionChanged
 
-        this.keyChanged += object: KeyListener {
+        keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
                 when (event.code) {
                     VK_RETURN -> { tree.completeEditing(); focusManager?.requestFocus(tree) }

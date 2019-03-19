@@ -71,6 +71,8 @@ open class List<T, out M: Model<T>>(
         set(new) {
             if (new == renderer) { return }
 
+            field?.uninstall(this)
+
             field = new?.also {
                 itemPositioner  = it.positioner
                 itemUIGenerator = it.uiGenerator
@@ -80,6 +82,8 @@ open class List<T, out M: Model<T>>(
 
                     updateVisibleHeight()
                 }
+
+                it.install(this)
             }
         }
 

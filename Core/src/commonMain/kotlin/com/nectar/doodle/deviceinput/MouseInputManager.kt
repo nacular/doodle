@@ -25,15 +25,13 @@ interface MouseInputManager {
 }
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
-class MouseInputManagerImpl(
-        private val display     : Display,
-        private val viewFinder  : ViewFinder,
-        private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
+class MouseInputManagerImpl(private val display: Display, private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
 
     private var mouseDown             = false
     private var clickedView           = null as View?
     private var clickedEventAwareView = null as View?
     private var coveredEventAwareView = null as View?
+    private val viewFinder            = ViewFinderImpl(display)
     private var coveredView           = null as View?
         set(new) {
             if (new == field) {

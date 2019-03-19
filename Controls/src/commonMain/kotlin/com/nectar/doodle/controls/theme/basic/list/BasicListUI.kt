@@ -170,13 +170,14 @@ open class TextEditOperation<T>(
                     row         : T,
         private var index       : Int): TextField(), EditOperation<T> {
 
-    private val listSelectionChanged_ = ::listSelectionChanged
+    private val listSelectionChanged = { _:ObservableSet<out List<*, Model<*>>, *>,_: Set<Int>,_:  Set<Int> ->
+        list.cancelEditing()
+    }
 
     init {
-        list.selectionChanged += listSelectionChanged_
-
-        text = encoder.encode(row) ?: ""
-
+        text                = encoder.encode(row) ?: ""
+        fitText             = setOf(TextFit.Width)
+        borderVisible       = false
         horizontalAlignment = Left
 
         styleChanged += { rerender() }
@@ -187,13 +188,15 @@ open class TextEditOperation<T>(
             }
         }
 
-        this.keyChanged += object: KeyListener {
+        keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
                 if (event.code == VK_RETURN) {
                     list.completeEditing()
                 }
             }
         }
+
+        list.selectionChanged += listSelectionChanged
     }
 
     override fun addedToDisplay() {
@@ -205,7 +208,7 @@ open class TextEditOperation<T>(
     override fun complete() = encoder.decode(text)
 
     override fun cancel() {
-        list.selectionChanged -= listSelectionChanged_
+        list.selectionChanged -= listSelectionChanged
     }
 
     @Suppress("UNUSED_PARAMETER")

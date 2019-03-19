@@ -60,9 +60,9 @@ open class Tree<T, out M: Model<T>>(
         set(new) {
             if (new == renderer) { return }
 
-            field = new
+            field?.uninstall(this)
 
-            field?.let {
+            field = new?.also {
                 itemPositioner  = it.positioner
                 itemUIGenerator = it.generator
 
@@ -70,6 +70,8 @@ open class Tree<T, out M: Model<T>>(
                     clear     ()
                     refreshAll()
                 }
+
+                it.install(this)
             }
         }
 

@@ -124,10 +124,10 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
 class Modules {
     companion object {
         val mouseModule = Module(allowSilentOverride = true) {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()                        ) }
+            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
         }
 
         val focusModule = Module(allowSilentOverride = true) {

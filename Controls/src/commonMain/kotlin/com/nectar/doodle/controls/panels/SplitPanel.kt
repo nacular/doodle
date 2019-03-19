@@ -20,6 +20,8 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
 
             divider?.let { children -= it }
 
+            field?.uninstall(this)
+
             field = new?.also { renderer ->
                 divider = renderer.divider(this)
 
@@ -36,6 +38,8 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                 if (divider != null) {
                     updateLayout()
                 }
+
+                renderer.install(this)
             }
         }
 

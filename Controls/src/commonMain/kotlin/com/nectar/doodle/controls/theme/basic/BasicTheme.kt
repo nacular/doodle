@@ -46,15 +46,15 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button            -> { it.renderer?.uninstall(it); it.renderer = buttonUI.apply     { install(it) } }
-            is Slider            -> { it.renderer?.uninstall(it); it.renderer = sliderUI.apply     { install(it) } }
-            is SplitPanel        -> { it.renderer?.uninstall(it); it.renderer = splitPanelUI.apply { install(it) } }
-            is ProgressBar       -> { it.renderer?.uninstall(it); it.renderer = (progressBarUI as Renderer<ProgressIndicator>).apply { install(it) } }
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).let { it.renderer?.uninstall(it); it.renderer = mutableListUI.apply { install(it) } }
-            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).let { it.renderer?.uninstall(it); it.renderer = mutableTreeUI.apply { install(it) } }
-            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).let { it.renderer?.uninstall(it); it.renderer = listUI.apply        { install(it) } }
-            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).let { it.renderer?.uninstall(it); it.renderer = treeUI.apply        { install(it) } }
-            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).let { it.renderer?.uninstall(it); it.renderer = spinnerUI.apply     { install(it) } }
+            is Button            -> it.renderer = buttonUI
+            is Slider            -> it.renderer = sliderUI
+            is SplitPanel        -> it.renderer = splitPanelUI
+            is ProgressBar       -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>)
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).renderer = mutableListUI
+            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).renderer = mutableTreeUI
+            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).renderer = listUI
+            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).renderer = treeUI
+            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).renderer = spinnerUI
         }
     }
 
