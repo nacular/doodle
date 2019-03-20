@@ -267,7 +267,7 @@ internal open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) = subFrame(block) {
+    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) = subFrame({ translate(-rectangle.position, block) }) {
         it.style.setBounds(rectangle)
     }
 
@@ -289,8 +289,12 @@ internal open class CanvasImpl(
         val clipRect = getRectElement()
 
         if (clipRect.parentNode == null) {
-            renderRegion.add(clipRect)
+            renderPosition?.let {
+                it.parent?.replaceChild(clipRect, it)
+            } ?: renderRegion.add(clipRect)
         }
+
+        clipRect.style.setSize(size)
 
         configure(clipRect)
 
