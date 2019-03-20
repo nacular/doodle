@@ -9,6 +9,7 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.FillRule.EvenOdd
 import com.nectar.doodle.geometry.Path
+import com.nectar.doodle.geometry.PathMetrics
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 
@@ -16,13 +17,15 @@ import com.nectar.doodle.geometry.Size
  * Created by Nicholas Eddy on 12/5/17.
  */
 open class PathIcon<in T: View>(
-        private val path    : Path,
-                    size    : Size?    = null,
-                    fill    : Color?   = null,
-                    outline : Color?   = null,
-        private val fillRule: FillRule = EvenOdd): Icon<T> {
+        private val path       : Path,
+                    size       : Size?    = null,
+                    fill       : Color?   = null,
+                    outline    : Color?   = null,
+        private val fillRule   : FillRule = EvenOdd,
+                    pathMetrics: PathMetrics): Icon<T> {
 
-    override val size = size ?: path.size
+    private val pathSize = pathMetrics.size(path)
+    override val size = size ?: pathSize
 
     private val pen   = outline?.let { Pen       (it) }
     private val brush = fill?.let    { ColorBrush(it) }
@@ -31,7 +34,7 @@ open class PathIcon<in T: View>(
         val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
 
         if (brush != null) {
-            canvas.scale(size.width / path.size.width, size.height / path.size.height) {
+            canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
                 translate(at) {
                     when (pen) {
                         null -> path(path,      brush, fillRule)
