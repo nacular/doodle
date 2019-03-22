@@ -30,14 +30,16 @@ import kotlin.math.sqrt
  * Created by Nicholas Eddy on 3/14/19.
  */
 
-class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
-                            private val tabHeight  : Double = 40.0,
-                            private val namer      : (T) -> String,
-                            private val displayer  : (T) -> View): TabbedPanelUI<T> {
+class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
+                            private val tabHeight      : Double = 40.0,
+                            private val tabRadius      : Double = 10.0,
+                            private val backgroundColor: Color  = Color(0xdee1e6u),
+                            private val namer          : (T) -> String,
+                            private val displayer      : (T) -> View): TabbedPanelUI<T> {
 
     override fun install(panel: TabbedPanel<T>, container: Container) {
         container.apply {
-            children.add(TabContainer(textMetrics, panel))
+            children.add(TabContainer(textMetrics, panel, namer, tabHeight, tabRadius))
 
             panel.forEach { children.add(displayer(it).apply {
                 visible = it == panel.selectedItem
@@ -78,7 +80,7 @@ class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
             dirty += listOf(it, it - 1)
         }
 
-        (container.children[0] as BasicTabbedPanelUI<*>.TabContainer).apply {
+        (container.children[0] as TabContainer<*>).apply {
 //            oldIndex?.let{ children[it] as BasicTabbedPanelUI<*>.Tab }?.let { setZIndex(it, it.index) }
 
 //            setZIndex(newIndex.let { children[it] as BasicTabbedPanelUI<*>.Tab }, 0)
@@ -90,10 +92,14 @@ class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
     }
 
     override fun render(panel: TabbedPanel<T>, canvas: Canvas) {
-        canvas.rect(panel.bounds.atOrigin, ColorBrush(Color(0xdee1e6u)))
+        canvas.rect(panel.bounds.atOrigin, ColorBrush(backgroundColor))
     }
 
-    private inner class Tab(private val textMetrics: TextMetrics, private val panel: TabbedPanel<T>, val index: Int, private val item: T): View() {
+    private class Tab<T>(private val textMetrics: TextMetrics,
+                         private val panel      : TabbedPanel<T>,
+                                 val index      : Int,
+                         private val name       : String,
+                         private val radius     : Double): View() {
         private var mouseOver = false
             set(new) {
                 field = new
@@ -101,12 +107,9 @@ class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
             }
 
         private var path      : Path
-        private val radius    = 10.0
         private var mouseDown = false
 
         init {
-            size = Size(100.0, tabHeight)
-
             mouseChanged += object: MouseListener {
                 override fun mousePressed (event: MouseEvent) { mouseDown = true  }
                 override fun mouseEntered (event: MouseEvent) { mouseOver = true  }
@@ -135,7 +138,7 @@ class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
             }
 
             canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
-                val name       = namer(item)
+                val name       = name
                 val nameHeight = textMetrics.height(name)
 
                 text(name, at = Point(2 * radius, (height - nameHeight) / 2), brush = ColorBrush(black))
@@ -167,14 +170,14 @@ class BasicTabbedPanelUI<T>(private val textMetrics: TextMetrics,
 
     }
 
-    private inner class TabContainer(textMetrics: TextMetrics, panel: TabbedPanel<T>): Box() {
+    private class TabContainer<T>(textMetrics: TextMetrics, panel: TabbedPanel<T>, namer: (T) -> String, tabHeight: Double, tabRadius: Double): Box() {
         init {
             children.addAll(panel.mapIndexed { index, item ->
-                Tab(textMetrics, panel, index, item)
+                Tab(textMetrics, panel, index, namer(item), tabRadius).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
             })
 
             insets = Insets(top = 10.0)
-            layout = HorizontalFlowLayout(horizontalSpacing = -20.0)
+            layout = HorizontalFlowLayout(horizontalSpacing = -2 * tabRadius) // FIXME: Use custom layout
         }
     }
 }

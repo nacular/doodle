@@ -7,22 +7,25 @@ import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size.Companion.Empty
-import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.Cursor.Companion.EResize
+import com.nectar.doodle.system.Cursor.Companion.Move
+import com.nectar.doodle.system.Cursor.Companion.NResize
+import com.nectar.doodle.system.Cursor.Companion.NeResize
+import com.nectar.doodle.system.Cursor.Companion.NwResize
+import com.nectar.doodle.system.Cursor.Companion.SResize
+import com.nectar.doodle.system.Cursor.Companion.SeResize
+import com.nectar.doodle.system.Cursor.Companion.SwResize
+import com.nectar.doodle.system.Cursor.Companion.WResize
 import com.nectar.doodle.utils.Direction.East
 import com.nectar.doodle.utils.Direction.North
 import com.nectar.doodle.utils.Direction.South
 import com.nectar.doodle.utils.Direction.West
 import kotlin.math.max
 
-class Resizer(view: View? = null): MouseListener, MouseMotionListener {
-
-    var view: View? by observable(view) { _, old, new ->
-        old?.let { it.mouseChanged -= this; it.mouseMotionChanged -= this }
-        new?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
-    }
+class Resizer(private val view: View): MouseListener, MouseMotionListener {
 
     init {
-        this.view?.let { it.mouseChanged += this; it.mouseMotionChanged += this }
+        view.let { it.mouseChanged += this; it.mouseMotionChanged += this }
     }
 
     var movable     = true
@@ -30,16 +33,10 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
     var hotspotSize = 5.0
 
     private var dragMode             = mutableSetOf<Direction>()
-    private var oldCursor            = view?.cursor
+    private var oldCursor            = view.cursor
     private var initialSize          = Empty
     private var initialPosition      = Origin
     private var ignorePropertyChange = false
-
-//    fun propertyChanged(aPropertyEvent: PropertyEvent) {
-//        if (!ignorePropertyChange && aPropertyEvent.getProperty() === View.CURSOR) {
-//            oldCursor = if ((aPropertyEvent.getSource() as View).isCursorSet()) aPropertyEvent.getNewValue() as Cursor else null
-//        }
-//    }
 
     override fun mouseReleased(event: MouseEvent) {
         dragMode.clear()
@@ -50,7 +47,7 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
     override fun mousePressed(event: MouseEvent) {
         dragMode.clear()
 
-        view?.let {
+        view.let {
             initialPosition = event.location
             initialSize     = it.size
 
@@ -72,7 +69,7 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
 
     override fun mouseExited(event: MouseEvent) {
         if (dragMode.isEmpty()) {
-            view?.cursor = oldCursor
+            view.cursor = oldCursor
         }
     }
 
@@ -83,36 +80,34 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
     override fun mouseDragged(mouseEvent: MouseEvent) {
         val delta = mouseEvent.location - initialPosition
 
-        view?.let {
-            if (dragMode.isEmpty() && movable) {
-                it.position += delta
-            } else if (dragMode.isNotEmpty()) {
-                val bounds = it.bounds
+        if (dragMode.isEmpty() && movable) {
+            view.position += delta
+        } else if (dragMode.isNotEmpty()) {
+            val bounds = view.bounds
 
-                var x      = bounds.x
-                var y      = bounds.y
-                var width  = bounds.width
-                var height = bounds.height
+            var x      = bounds.x
+            var y      = bounds.y
+            var width  = bounds.width
+            var height = bounds.height
 
-                val minWidth  = it.minimumSize.width
-                val minHeight = it.minimumSize.height
+            val minWidth  = view.minimumSize.width
+            val minHeight = view.minimumSize.height
 
-                if (West in dragMode && West in directions) {
-                    width  = max(minWidth, it.width - delta.x)
-                    x     += bounds.width - width
-                } else if (East in dragMode && East in directions) {
-                    width = max(minWidth, initialSize.width + delta.x)
-                }
-
-                if (North in dragMode && North in directions) {
-                    height  = max(minHeight, it.height - delta.y)
-                    y      += bounds.height - height
-                } else if (South in dragMode && South in directions) {
-                    height = max(minHeight, initialSize.height + delta.y)
-                }
-
-                it.bounds = Rectangle(x, y, width, height)
+            if (West in dragMode && West in directions) {
+                width  = max(minWidth, view.width - delta.x)
+                x     += bounds.width - width
+            } else if (East in dragMode && East in directions) {
+                width = max(minWidth, initialSize.width + delta.x)
             }
+
+            if (North in dragMode && North in directions) {
+                height  = max(minHeight, view.height - delta.y)
+                y      += bounds.height - height
+            } else if (South in dragMode && South in directions) {
+                height = max(minHeight, initialSize.height + delta.y)
+            }
+
+            view.bounds = Rectangle(x, y, width, height)
         }
     }
 
@@ -121,56 +116,54 @@ class Resizer(view: View? = null): MouseListener, MouseMotionListener {
             return
         }
 
-        view?.let {
-            val x = mouseEvent.location.x
-            val y = mouseEvent.location.y
-            val mask = mutableSetOf<Direction>()
-            var innerX = false
-            var innerY = false
+        val x      = mouseEvent.location.x
+        val y      = mouseEvent.location.y
+        val mask   = mutableSetOf<Direction>()
+        var innerX = false
+        var innerY = false
 
-            if (x <= hotspotSize) {
-                if (West in directions) {
-                    mask += West
-                }
-            } else if (x >= it.width - hotspotSize) {
-                if (East in directions) {
-                    mask += East
-                }
-            } else {
-                innerX = true
+        if (x <= hotspotSize) {
+            if (West in directions) {
+                mask += West
             }
-            if (y <= hotspotSize) {
-                if (North in directions) {
-                    mask += North
-                }
-            } else if (y >= it.height - hotspotSize) {
-                if (directions.contains(South)) {
-                    mask += South
-                }
-            } else {
-                innerY = true
+        } else if (x >= view.width - hotspotSize) {
+            if (East in directions) {
+                mask += East
             }
-
-            ignorePropertyChange = true
-
-            it.cursor = when {
-                North in mask    -> when {
-                    East in mask -> Cursor.NeResize
-                    West in mask -> Cursor.NwResize
-                    else         -> Cursor.NResize
-                }
-                South in mask           -> when {
-                    East in mask -> Cursor.SeResize
-                    West in mask -> Cursor.SwResize
-                    else         -> Cursor.SResize
-                }
-                East in mask                -> Cursor.EResize
-                West in mask                -> Cursor.WResize
-                movable && innerX && innerY -> Cursor.Move
-                else                        -> oldCursor
-            }
-
-            ignorePropertyChange = false
+        } else {
+            innerX = true
         }
+        if (y <= hotspotSize) {
+            if (North in directions) {
+                mask += North
+            }
+        } else if (y >= view.height - hotspotSize) {
+            if (directions.contains(South)) {
+                mask += South
+            }
+        } else {
+            innerY = true
+        }
+
+        ignorePropertyChange = true
+
+        view.cursor = when {
+            North in mask    -> when {
+                East in mask -> NeResize
+                West in mask -> NwResize
+                else         -> NResize
+            }
+            South in mask    -> when {
+                East in mask -> SeResize
+                West in mask -> SwResize
+                else         -> SResize
+            }
+            East in mask                -> EResize
+            West in mask                -> WResize
+            movable && innerX && innerY -> Move
+            else                        -> oldCursor
+        }
+
+        ignorePropertyChange = false
     }
 }

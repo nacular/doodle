@@ -28,7 +28,6 @@ interface MouseInputManager {
 class MouseInputManagerImpl(private val display: Display, private val inputService: MouseInputService): MouseInputManager, MouseInputService.Listener {
 
     private var mouseDown             = false
-    private var clickedView           = null as View?
     private var clickedEventAwareView = null as View?
     private var coveredEventAwareView = null as View?
     private val viewFinder            = ViewFinderImpl(display)
@@ -140,25 +139,18 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
         }
 
         mouseDown = false
-
-        // Work-around to re-synch state in case events were not delivered (due to consumption at the MouseInputService layer).
-//        mouseMove(event)
     }
 
     private fun mouseDown(event: SystemMouseEvent) {
         inputService.toolTipText = ""
 
-        view(from = event)?.let {
-            val mouseEvent = createMouseEvent(event, it).apply { clickedView = it }
+        view(from = event)?.let { getMouseEventHandler(it) }?.let {
+            it.handleMouseEvent_(createMouseEvent(event, it))
 
-            getMouseEventHandler(it)?.let {
-                it.handleMouseEvent_(mouseEvent)
+            clickedEventAwareView = it
+            coveredEventAwareView = it
 
-                clickedEventAwareView = it
-                coveredEventAwareView = it
-
-                event.consume()
-            }
+            event.consume()
         }
 
         mouseDown = true
@@ -178,12 +170,10 @@ class MouseInputManagerImpl(private val display: Display, private val inputServi
     private fun mouseMove(event: SystemMouseEvent) {
         coveredView = view(from = event)
 
-        clickedEventAwareView?.let { view ->
-            if (view.monitorsMouseMotion) {
-                view.handleMouseMotionEvent_(createMouseEvent(event, view, Drag))
+        clickedEventAwareView?.takeIf { it.monitorsMouseMotion }?.let {
+            it.handleMouseMotionEvent_(createMouseEvent(event, it, Drag))
 
-                event.consume()
-            }
+            event.consume()
         }
 
         val view = getMouseEventHandler(coveredView)
