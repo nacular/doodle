@@ -10,12 +10,15 @@ interface Container: Iterable<View> {
 
     var isFocusCycleRoot: Boolean
 
-    val children: List<View>
+    val children: MutableList<View>
 
     fun setZIndex(of: View, to: Int)
+
     fun zIndex(of: View): Int?
 
     infix fun ancestorOf(view: View): Boolean
 
     fun child(at: Point): View?
+
+    override fun iterator() = children.iterator()
 }

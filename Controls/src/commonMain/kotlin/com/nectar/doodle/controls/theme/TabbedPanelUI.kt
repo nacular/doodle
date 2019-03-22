@@ -1,25 +1,35 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.panels.TabbedPanel
+import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.View
-import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Renderer
 
 /**
  * Created by Nicholas Eddy on 4/2/18.
  */
 
-interface TabbedPanelUI: Renderer<TabbedPanel> {
-    interface TabRenderer {
-        operator fun invoke(panel: TabbedPanel, tab: View, display: View?, index: Int, title: String?, selected: Boolean): View
-    }
+interface TabbedPanelUI<T> {
+    /**
+     * Invoked to render the given [View].
+     *
+     * @param view  the View being rendered
+     * @param canvas the Canvas given to the View during a system call to [View.render]
+     */
+    fun render(panel: TabbedPanel<T>, canvas: Canvas)
 
-    interface ItemPositioner {
-        val viewPortArea: Rectangle
+    /**
+     * Returns true if the [View] contains point.  This can be used to handle cases when the [Renderer] wants to control hit detection.
+     *
+     * @param view
+     * @param point
+     */
+    fun contains(panel: TabbedPanel<T>, point: Point): Boolean = point in panel.bounds
 
-        operator fun invoke(panel: TabbedPanel, tab: View, display: View?, index: Int, title: String?, selected: Boolean): Rectangle
-    }
+    fun install  (panel: TabbedPanel<T>, container: Container)
+    fun uninstall(panel: TabbedPanel<T>, container: Container)
 
-    val positioner : ItemPositioner
-    val tabRenderer: TabRenderer
+    fun selectionChanged(panel: TabbedPanel<T>, container: Container, new: T, newIndex: Int, old: T?, oldIndex: Int?)
 }

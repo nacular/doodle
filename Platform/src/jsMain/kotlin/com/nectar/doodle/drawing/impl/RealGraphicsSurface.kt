@@ -44,16 +44,15 @@ class RealGraphicsSurface private constructor(
         set(new) {
             field = new
 
-            if (new) {
-                rootElement.style.setDisplay()
-            } else {
-                rootElement.style.setDisplay(None())
-            }
+            rootElement.style.setDisplay(if (new) null else None())
         }
 
     override var zIndex = 0
         set(new) {
-            parent?.setZIndex(this, new)
+            if (field != new) {
+                field = new
+                parent?.setZIndex(this, new)
+            }
         }
 
     lateinit var canvas: Canvas
