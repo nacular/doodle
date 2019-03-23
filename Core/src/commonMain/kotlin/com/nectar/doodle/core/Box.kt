@@ -26,9 +26,6 @@ open class Box: View(), Container {
 
     override val children = super.children
 
-    override fun setZIndex(of: View, to: Int) = super.setZIndex(of, to)
-    override fun zIndex(of: View) = super.zIndex(of)
-
     override fun ancestorOf(view: View) = super.ancestorOf(view)
 
     override fun child(at: Point) = super.child(at)

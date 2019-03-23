@@ -27,8 +27,8 @@ class RealGraphicsDeviceTests {
         expect(surface1) { device.create() }
         expect(surface2) { device.create() }
 
-        verify(exactly = 1) { surface1.zIndex = 0 }
-        verify(exactly = 1) { surface2.zIndex = 0 }
+        verify(exactly = 1) { surface1.index = 0 }
+        verify(exactly = 1) { surface2.index = 0 }
     }
 
     @Test @JsName("getNoParentNoChildrenWorks")
@@ -42,7 +42,7 @@ class RealGraphicsDeviceTests {
 
         expect(surface) { device[object: View() {}] }
 
-        verify(exactly = 1) { surface.zIndex = 0 }
+        verify(exactly = 1) { surface.index = 0 }
     }
 
     @Test @JsName("getNoParentWithChildrenWorks")
@@ -60,7 +60,7 @@ class RealGraphicsDeviceTests {
 
         expect(surface) { device[parent] }
 
-        verify(exactly = 1) { surface.zIndex = 0 }
+        verify(exactly = 1) { surface.index = 0 }
     }
 
     @Test @JsName("getWithParentNoChildrenWorks")
@@ -81,8 +81,8 @@ class RealGraphicsDeviceTests {
         expect(parentSurface) { device[parent] }
         expect(childSurface ) { device[child ] }
 
-        verify(exactly = 1) { parentSurface.zIndex = 0 }
-        verify(exactly = 1) { childSurface.zIndex  = 0 }
+        verify(exactly = 1) { parentSurface.index = 0 }
+        verify(exactly = 1) { childSurface.index  = 0 }
     }
 
     @Test @JsName("getWithParentWithChildrenWorks")
@@ -108,9 +108,9 @@ class RealGraphicsDeviceTests {
         expect(childSurface ) { device[child   ] }
         expect(nestedSurface ) { device[nested ] }
 
-        verify(exactly = 1) { parentSurface.zIndex  = 0 }
-        verify(exactly = 1) { childSurface.zIndex   = 0 }
-        verify(exactly = 1) { nestedSurface.zIndex  = 0 }
+        verify(exactly = 1) { parentSurface.index  = 0 }
+        verify(exactly = 1) { childSurface.index   = 0 }
+        verify(exactly = 1) { nestedSurface.index  = 0 }
     }
 
     @Test @JsName("resultsCached")
@@ -138,9 +138,9 @@ class RealGraphicsDeviceTests {
             expect(nestedSurface) { device[nested] }
         }
 
-        verify(exactly = 1) { parentSurface.zIndex  = 0 }
-        verify(exactly = 1) { childSurface.zIndex   = 0 }
-        verify(exactly = 1) { nestedSurface.zIndex  = 0 }
+        verify(exactly = 1) { parentSurface.index  = 0 }
+        verify(exactly = 1) { childSurface.index   = 0 }
+        verify(exactly = 1) { nestedSurface.index  = 0 }
     }
 
     @Test @JsName("releaseView")

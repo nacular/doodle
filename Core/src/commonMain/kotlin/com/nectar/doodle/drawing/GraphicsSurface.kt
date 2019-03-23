@@ -5,13 +5,14 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 
 interface GraphicsSurface {
-    var position   : Point
-    var size       : Size
-    var bounds     : Rectangle
+    var position : Point
+    var size     : Size
+    var bounds   : Rectangle
         get(   ) = Rectangle(position, size)
         set(new) { position = new.position; size = new.size }
-    var zIndex     : Int
-    var visible    : Boolean
+    var index    : Int
+    var zOrder   : Int
+    var visible  : Boolean
 
     fun render(block: (Canvas) -> Unit)
 

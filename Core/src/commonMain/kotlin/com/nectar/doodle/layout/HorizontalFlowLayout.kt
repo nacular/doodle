@@ -21,7 +21,6 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
     override fun layout(positionable: Positionable) {
         var y            = positionable.insets.top
         var height       = 0.0
-        var spacing      = 0.0
         val itemList     = mutableListOf<View>()
         var lineWidth    = 0.0
         val maxLineWidth = positionable.width - positionable.insets.left - positionable.insets.right
@@ -30,11 +29,7 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
             if (child.visible) {
                 child.idealSize?.let { child.size = it }
 
-                if (itemList.size > 1) {
-                    spacing += horizontalSpacing
-                }
-
-                val temp = lineWidth + child.width + spacing
+                val temp = lineWidth + child.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
 
                 if (temp > maxLineWidth) {
                     when (justification) {
@@ -46,7 +41,6 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
                     itemList.clear()
 
                     lineWidth = 0.0
-                    spacing   = 0.0
 
                     if (height > 0) {
                         y += height + verticalSpacing
@@ -55,7 +49,7 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
                     height = child.height
                 }
 
-                lineWidth += child.width + if (itemList.size > 0) horizontalSpacing else 0.0
+                lineWidth = temp
 
                 itemList.add(child)
 

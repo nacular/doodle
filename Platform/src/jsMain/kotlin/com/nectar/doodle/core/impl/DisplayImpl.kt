@@ -24,12 +24,17 @@ import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
+import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
+    private class ZOrderObserversImpl(mutableSet: MutableSet<(child: View, old: Int, new: Int) -> Unit> = mutableSetOf()): SetPool<(child: View, old: Int, new: Int) -> Unit>(mutableSet) {
+        operator fun invoke(child: View, old: Int, new: Int) = delegate.forEach { it(child, old, new) }
+    }
+
     private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         size = Size(rootElement.width, rootElement.height)
     }
@@ -72,12 +77,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         canvasElement.style.setHeightPercent(100.0)
     }
 
-    override fun zIndex(of: View) = children.size - children.indexOf(of) - 1
-
-    override fun setZIndex(of: View, to: Int)  {
-        children.move(of, children.size - to - 1)
-    }
-
 //    var focusTraversalPolicy: FocusTraversalPolicy
 //        get() = ROOT_CONTAINER.getFocusTraversalPolicy()
 //        set(aPolicy) {
@@ -117,7 +116,19 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         return false
     }
 
-    override fun child(at: Point): View? = layout?.child(positionableWrapper, at) ?: children.lastOrNull { it.visible && at in it }
+    override fun child(at: Point): View? = layout?.child(positionableWrapper, at) ?: {
+        var result    = null as View?
+        var topZOrder = 0
+
+        children.reversed().forEach {
+            if (it.visible && at in it && (result == null || it.zOrder < topZOrder)) {
+                result = it
+                topZOrder = it.zOrder
+            }
+        }
+
+        result
+    }()
 
     operator fun contains(view: View) = view in children
 

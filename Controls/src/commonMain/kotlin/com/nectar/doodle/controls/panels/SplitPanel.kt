@@ -32,7 +32,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
 
                     children += it
 
-                    setZIndex(it, 0)
+                    it.zOrder = -1
                 }
 
                 if (divider != null) {

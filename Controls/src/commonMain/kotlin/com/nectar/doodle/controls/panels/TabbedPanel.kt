@@ -32,12 +32,6 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
             set(new) { this@TabbedPanel.isFocusCycleRoot = new }
         override val children get() = this@TabbedPanel.children
 
-        override fun setZIndex(of: View, to: Int) {
-            this@TabbedPanel.setZIndex(of, to)
-        }
-
-        override fun zIndex(of: View) = this@TabbedPanel.zIndex(of)
-
         override fun ancestorOf(view: View) = this@TabbedPanel.ancestorOf(view)
 
         override fun child(at: Point) = this@TabbedPanel.child(at)

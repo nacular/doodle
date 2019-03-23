@@ -34,12 +34,13 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
                             private val tabHeight      : Double = 40.0,
                             private val tabRadius      : Double = 10.0,
                             private val backgroundColor: Color  = Color(0xdee1e6u),
+                            private val selectedColor  : Color  = white,
                             private val namer          : (T) -> String,
                             private val displayer      : (T) -> View): TabbedPanelUI<T> {
 
     override fun install(panel: TabbedPanel<T>, container: Container) {
         container.apply {
-            children.add(TabContainer(textMetrics, panel, namer, tabHeight, tabRadius))
+            children.add(TabContainer(textMetrics, panel, namer, tabHeight, tabRadius, backgroundColor, selectedColor))
 
             panel.forEach { children.add(displayer(it).apply {
                 visible = it == panel.selectedItem
@@ -81,9 +82,9 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
         }
 
         (container.children[0] as TabContainer<*>).apply {
-//            oldIndex?.let{ children[it] as BasicTabbedPanelUI<*>.Tab }?.let { setZIndex(it, it.index) }
+            oldIndex?.let{ children[it] as Tab<*> }?.let { it.zOrder = 0 }
 
-//            setZIndex(newIndex.let { children[it] as BasicTabbedPanelUI<*>.Tab }, 0)
+            newIndex.let { children[it] as Tab<*> }.zOrder = -1
 
             dirty.forEach {
                 children.getOrNull(it)?.rerender()
@@ -95,11 +96,13 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
         canvas.rect(panel.bounds.atOrigin, ColorBrush(backgroundColor))
     }
 
-    private class Tab<T>(private val textMetrics: TextMetrics,
-                         private val panel      : TabbedPanel<T>,
-                                 val index      : Int,
-                         private val name       : String,
-                         private val radius     : Double): View() {
+    private class Tab<T>(private val textMetrics  : TextMetrics,
+                         private val panel        : TabbedPanel<T>,
+                                 val index        : Int,
+                         private val name         : String,
+                         private val radius       : Double,
+                         private val panelColor   : Color,
+                         private val selectedColor: Color): View() {
         private var mouseOver = false
             set(new) {
                 field = new
@@ -126,8 +129,8 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
 
         override fun render(canvas: Canvas) {
             val backgroundColor = when {
-                panel.selection == index -> white
-                mouseOver                -> Color(0xdee1e6u).lighter()
+                panel.selection == index -> selectedColor
+                mouseOver                -> panelColor.lighter()
                 else                     -> null
             }
 
@@ -152,8 +155,8 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
                     in Rectangle(width - 2 * radius, 0.0, radius, radius)     -> sqrt((Point(width - 2 * radius,          radius) - localPoint).run { x * x + y * y }) <= radius
                     else                                                      -> true
                 }
-                in Rectangle(           0.0, height - radius, radius, radius) -> sqrt((Point(           0.0,     height - radius) - localPoint).run { x * x + y * y }) >  radius
-                in Rectangle(width - radius, height - radius, radius, radius) -> sqrt((Point(width - radius,     height - radius) - localPoint).run { x * x + y * y }) >  radius
+                in Rectangle(           0.0, height - radius, radius, radius) -> sqrt((Point(  0.0, height - radius) - localPoint).run { x * x + y * y }) >  radius
+                in Rectangle(width - radius, height - radius, radius, radius) -> sqrt((Point(width, height - radius) - localPoint).run { x * x + y * y }) >  radius
                 else                                                          -> false
             }
         }
@@ -170,10 +173,16 @@ class BasicTabbedPanelUI<T>(private val textMetrics    : TextMetrics,
 
     }
 
-    private class TabContainer<T>(textMetrics: TextMetrics, panel: TabbedPanel<T>, namer: (T) -> String, tabHeight: Double, tabRadius: Double): Box() {
+    private class TabContainer<T>(textMetrics  : TextMetrics,
+                                  panel        : TabbedPanel<T>,
+                                  namer        : (T) -> String,
+                                  tabHeight    : Double,
+                                  tabRadius    : Double,
+                                  panelColor   : Color,
+                                  selectedColor: Color): Box() {
         init {
             children.addAll(panel.mapIndexed { index, item ->
-                Tab(textMetrics, panel, index, namer(item), tabRadius).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+                Tab(textMetrics, panel, index, namer(item), tabRadius, panelColor, selectedColor).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
             })
 
             insets = Insets(top = 10.0)

@@ -167,10 +167,54 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("noopRemoveAddTopLevelViews")
-    fun `no-op remove, add top-level views`() = testDisplayZIndex { display, view -> display.children.move(view, 0) }
+    fun `no-op remove, add top-level views`() {
+        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val display    = display(container1, container2)
+        val surface1   = mockk<GraphicsSurface>(relaxed = true)
+        val surface2   = mockk<GraphicsSurface>(relaxed = true)
 
-    @Test @JsName("noopZIdexChangeTopLevelViews")
-    fun `no-op z-index change top-level views`() = testDisplayZIndex { display, view -> display.setZIndex(view, 0) }
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
+
+        listOf(container1, container2).forEach {
+            verifyChildAddedProperly(renderManager, it)
+        }
+
+        display.children.move(container2, 0)
+
+        verify(exactly = 1) { surface2.index = 0 }
+
+        listOf(container1, container2).forEach {
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
+            verify(exactly = 1) { it.render             (any()) }
+            verify(exactly = 1) { it.doLayout_          (     ) }
+        }
+    }
+
+    @Test @JsName("zOrderChangeTopLevelViews")
+    fun `z-order change top-level views`() {
+        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val display    = display(container1, container2)
+        val surface1   = mockk<GraphicsSurface>(relaxed = true)
+        val surface2   = mockk<GraphicsSurface>(relaxed = true)
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
+
+        listOf(container1, container2).forEach {
+            verifyChildAddedProperly(renderManager, it)
+        }
+
+        container2.zOrder = 3
+
+        verify(exactly = 1) { surface2.zOrder = 3 }
+
+        listOf(container1, container2).forEach {
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
+            verify(exactly = 1) { it.render             (any()) }
+            verify(exactly = 1) { it.doLayout_          (     ) }
+        }
+    }
 
     @Test @JsName("removesNestedViews")
     fun `removes nested views`() {
@@ -417,30 +461,6 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(child    ) }
     }
 
-    private fun testDisplayZIndex(block: (Display, View) -> Unit) {
-        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val display    = display(container1, container2)
-        val surface1   = mockk<GraphicsSurface>(relaxed = true)
-        val surface2   = mockk<GraphicsSurface>(relaxed = true)
-
-        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
-
-        listOf(container1, container2).forEach {
-            verifyChildAddedProperly(renderManager, it)
-        }
-
-        block(display, container2)
-
-        verify(exactly = 1) { surface2.zIndex = 0 }
-
-        listOf(container1, container2).forEach {
-            verify(exactly = 0) { it.removedFromDisplay_(     ) }
-            verify(exactly = 1) { it.render             (any()) }
-            verify(exactly = 1) { it.doLayout_          (     ) }
-        }
-    }
-
     private fun verifyLayout(block: (View) -> Unit) {
         val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
@@ -528,7 +548,6 @@ class RenderManagerImplTests {
         displayChildren.addAll(children)
 
         val view = slot<View>()
-        val to    = slot<Int>  ()
 
         every { this@apply.children   } returns displayChildren
         every { this@apply.iterator() } answers { displayChildren.iterator() }
@@ -553,7 +572,6 @@ class RenderManagerImplTests {
 
             result
         }
-        every { this@apply.setZIndex(capture(view), capture(to)) } answers { displayChildren.move(view.captured, to.captured) }
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>(relaxed = true).apply {

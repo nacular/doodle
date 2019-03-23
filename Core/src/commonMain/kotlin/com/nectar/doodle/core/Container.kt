@@ -12,10 +12,6 @@ interface Container: Iterable<View> {
 
     val children: MutableList<View>
 
-    fun setZIndex(of: View, to: Int)
-
-    fun zIndex(of: View): Int?
-
     infix fun ancestorOf(view: View): Boolean
 
     fun child(at: Point): View?

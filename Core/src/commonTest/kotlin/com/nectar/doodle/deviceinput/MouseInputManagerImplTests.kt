@@ -33,6 +33,7 @@ import kotlin.test.Test
 /**
  * Created by Nicholas Eddy on 2/27/18.
  */
+@Suppress("FunctionName")
 class MouseInputManagerImplTests {
     @Test @JsName("correctDefaultCursorOnInit")
     fun `correct default cursor on init`() {
@@ -290,6 +291,7 @@ class MouseInputManagerImplTests {
         val child        = spyk(view())
 
         child.position            = Point(9.0, 9.0)
+        child.mouseChanged       += mockk(relaxed = true)
         child.mouseMotionChanged += mockk(relaxed = true)
 
         every { display.child(any()            ) } returns null
@@ -315,7 +317,7 @@ class MouseInputManagerImplTests {
         val inputService = mockk<MouseInputService>(relaxed = true)
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.position      = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
 
         every { display.child(any()            ) } returns null
@@ -343,7 +345,7 @@ class MouseInputManagerImplTests {
         val inputService = mockk<MouseInputService>(relaxed = true)
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.position      = Point(9.0, 9.0)
         child.mouseChanged += mockk(relaxed = true)
 
         every { display.child(any()            ) } returns null

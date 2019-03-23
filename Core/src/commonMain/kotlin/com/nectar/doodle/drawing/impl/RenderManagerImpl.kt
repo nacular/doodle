@@ -50,8 +50,9 @@ class RenderManagerImpl(
     private val visibilityChanged           = mutableSetOf <View>()
     private val pendingBoundsChange         = mutableSetOf <View>()
     private var paintTask                   = null as Task?
-    private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
     private val boundsChanged_              = ::boundsChanged
+    private val zOrderChanged_              = ::zOrderChanged
+    private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
     private val visibilityChanged_          = ::visibilityChangedFunc
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
@@ -64,7 +65,7 @@ class RenderManagerImpl(
             moved.forEach {
                 val surface = graphicsDevice[it.value.second]
 
-                surface.zIndex = it.key
+                surface.index = it.key
             }
 
             if (removed.isNotEmpty() || added.isNotEmpty()) {
@@ -153,6 +154,7 @@ class RenderManagerImpl(
                 }
 
                 view.boundsChanged              += boundsChanged_
+                view.zOrderChanged              += zOrderChanged_
                 view.visibilityChanged          += visibilityChanged_
                 view.children_.changed          += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
@@ -209,10 +211,7 @@ class RenderManagerImpl(
 //    }
 
     private fun checkFrameTime(start: Measure<Time>) = (timer.now - start).let {
-        (it >= frameDuration).ifTrue {
-//            println("++paint time: $it")
-            schedulePaint()
-        }
+        (it >= frameDuration).ifTrue { schedulePaint() }
     }
 
     private fun onPaint() {
@@ -345,6 +344,7 @@ class RenderManagerImpl(
         pendingBoundsChange -= view
 
         view.boundsChanged              -= boundsChanged_
+        view.zOrderChanged              -= zOrderChanged_
         view.visibilityChanged          -= visibilityChanged_
         view.children_.changed          -= childrenChanged_
         view.displayRectHandlingChanged -= displayRectHandlingChanged_
@@ -378,7 +378,7 @@ class RenderManagerImpl(
             moved.forEach {
                 val surface = graphicsDevice[it.value.second]
 
-                surface.zIndex = it.key
+                surface.index = it.key
             }
         }
 
@@ -457,6 +457,11 @@ class RenderManagerImpl(
         if (view in displayTree) {
             checkDisplayRectChange(view)
         }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun zOrderChanged(view: View, old: Int, new: Int) {
+        graphicsDevice[view].zOrder = new
     }
 
     @Suppress("UNUSED_PARAMETER")

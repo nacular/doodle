@@ -14,7 +14,6 @@ import com.nectar.doodle.utils.PropertyObservers
  * as a descendant of the Display) before it can be rendered or interact with the user.
  */
 interface Display: Iterable<View> {
-
     override fun iterator() = children.iterator()
 
     /**
@@ -38,23 +37,7 @@ interface Display: Iterable<View> {
     val cursorChanged: PropertyObservers<Display, Cursor?>
 
     /** Fires when the display re-sizes */
-    val sizeChanged: /*Pool<PropertyObserver<Display, Size>> / */PropertyObservers<Display, Size>
-
-    /**
-     * Gets the [View]'s z-index.
-     *
-     * @param of The View
-     * @return The z-index (-1 if the View is not a child)
-     */
-    fun zIndex(of: View): Int
-
-    /**
-     * Sets the [View]'s z-index if it is a child.
-     *
-     * @param of the View
-     * @param to the new z-index
-     */
-    fun setZIndex(of: View, to: Int)
+    val sizeChanged: PropertyObservers<Display, Size>
 
 //  var focusTraversalPolicy: FocusTraversalPolicy
 

@@ -45,6 +45,10 @@ import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
 
+private typealias ZOrderObservers = PropertyObservers<View, Int>
+
+typealias ZOrderObserver = (source: View, old: Int, new: Int) -> Unit
+
 /**
  * The smallest unit of displayable, interactive content within the framework.
  * [View]s are the visual entities used to display components for an application.
@@ -77,6 +81,12 @@ abstract class View protected constructor() {
 
     /** Notifies changes to [focusable] */
     val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Notifies changes to [zOrder] */
+    internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl<View, Int>(this) }
+
+    /** The rendering order of this [View] */
+    var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Whether this [View] is focusable */
     open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
@@ -206,10 +216,14 @@ abstract class View protected constructor() {
     protected open val children by lazy {
         ObservableList<View, View>(this).also {
             it.changed += { _, removed, added, _ ->
-                removed.values.forEach { it.parent = null }
+                removed.values.forEach {
+                    it.parent   = null
+                    it.zOrder   = 0
+                    it.position = Origin
+                }
                 added.values.forEach {
-                    require(it !== this         ) { "cannot add to self"                 }
-                    require(!it.ancestorOf(this)) { "cannot add ancestor to descendant"  }
+                    require(it !== this         ) { "cannot add to self"                }
+                    require(!it.ancestorOf(this)) { "cannot add ancestor to descendant" }
 
                     it.parent = this
                 }
@@ -318,35 +332,25 @@ abstract class View protected constructor() {
     protected fun doLayout() = layout?.layout(this)
 
     /**
-     * Sets the z-index for the given [View].
-     *
-     * @param of The View
-     * @param to the new z-index
-     *
-     * @throws IndexOutOfBoundsException if ```index !in 0 until this.children.size```
-     */
-    protected open fun setZIndex(of: View, to: Int) {
-        children.move(of, children.size - to - 1)
-    }
-
-    internal fun zIndex_(of: View) = zIndex(of)
-
-    /**
-     * Gets the child's z-index.
-     *
-     * @param of The View
-     * @return The z-index (null if the View is not a child)
-     */
-    protected open fun zIndex(of: View) = (children.size - children.indexOf(of) - 1).takeUnless { it < 0 }
-
-    /**
      * Gets the [View] at the given point.
      *
      * @param at The point
      * @return The child (null if no child contains the given point)
      */
     internal fun child_(at: Point) = child(at)
-    protected open fun child(at: Point): View? = layout?.child(this, at) ?: children.lastOrNull { it.visible && at in it }
+    protected open fun child(at: Point): View? = layout?.child(this, at) ?: {
+        var result    = null as View?
+        var topZOrder = 0
+
+        children.reversed().forEach {
+            if (it.visible && at in it && (result == null || it.zOrder < topZOrder)) {
+                result = it
+                topZOrder = it.zOrder
+            }
+        }
+
+        result
+    }()
 
 //    var inputVerifier: InputVerifier<*>? = null
 

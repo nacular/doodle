@@ -16,6 +16,7 @@ import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.Cursor.Companion.Crosshair
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
 import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
@@ -51,6 +52,7 @@ class ViewTests {
                 View::height              to 0.0,
                 View::bounds              to Empty,
                 View::cursor              to null,
+                View::zOrder              to 0,
                 View::enabled             to true,
                 View::visible             to true,
                 View::insets_             to None,
@@ -85,9 +87,10 @@ class ViewTests {
         validateSetter(View::font,                null                            )
         validateSetter(View::size,                Size.Empty                      )
         validateSetter(View::width,               99.0                            )
+        validateSetter(View::zOrder,              56                              )
         validateSetter(View::height,              45.0                            )
         validateSetter(View::bounds,              Rectangle(4.5, -3.0, 2.0, 45.5) )
-        validateSetter(View::cursor,              Cursor.Crosshair                )
+        validateSetter(View::cursor,              Crosshair                )
         validateSetter(View::enabled,             false                           )
         validateSetter(View::visible,             false                           )
         validateSetter(View::position,            Origin                          )
@@ -236,12 +239,26 @@ class ViewTests {
     fun `cursor changed works`() {
         val view    = object: View() {}
         val observer = mockk<PropertyObserver<View, Cursor?>>(relaxed = true)
-        val new      = Cursor.Crosshair
+        val new      = Crosshair
         val old      = view.cursor
 
         view.cursorChanged += observer
         view.cursor         = new
         view.cursor         = new
+
+        verify(exactly = 1) { observer(view, old, new) }
+    }
+
+    @Test @JsName("zOrderChangeWorks")
+    fun `z-order change works`() {
+        val view    = object: View() {}
+        val observer = mockk<PropertyObserver<View, Int>>(relaxed = true)
+        val new      = 35
+        val old      = view.zOrder
+
+        view.zOrderChanged += observer
+        view.zOrder         = new
+        view.zOrder         = new
 
         verify(exactly = 1) { observer(view, old, new) }
     }
@@ -358,64 +375,6 @@ class ViewTests {
         child1.visible = false
 
         expect(child0) { root.child_(Point(11.0, 13.0)) }
-    }
-
-    @Test @JsName("zIndexReadWorks")
-    fun `z-index read works`() {
-        val root   = view()
-        val child0 = view().apply { x += 10.0; y += 12.0 }
-        val child1 = view().apply { x += 10.0; y += 12.0 }
-        val child2 = view().apply { x += 20.0; y += 12.0 }
-        val child3 = view().apply { x += 10.0; y += 23.0; width = 0.0 }
-
-        root.children_ += child0
-        root.children_ += child1
-        root.children_ += child2
-        root.children_ += child3
-
-        expect(3) { root.zIndex_(child0) }
-        expect(2) { root.zIndex_(child1) }
-        expect(1) { root.zIndex_(child2) }
-        expect(0) { root.zIndex_(child3) }
-
-        root.children_.move(child0, 3)
-
-        expect(3) { root.zIndex_(child1) }
-        expect(2) { root.zIndex_(child2) }
-        expect(1) { root.zIndex_(child3) }
-        expect(0) { root.zIndex_(child0) }
-    }
-
-    private class CustomView: View() {
-        public override fun setZIndex(of: View, to: Int) {
-            super.setZIndex(of, to)
-        }
-    }
-
-    @Test @JsName("zIndexWriteWorks")
-    fun `z-index write works`() {
-        val root = CustomView()
-        val child0 = view()
-        val child1 = view()
-        val child2 = view()
-        val child3 = view()
-
-        root.children_ += child0
-        root.children_ += child1
-        root.children_ += child2
-        root.children_ += child3
-
-        expect(3) { root.zIndex_(child0) }
-        expect(2) { root.zIndex_(child1) }
-        expect(1) { root.zIndex_(child2) }
-        expect(0) { root.zIndex_(child3) }
-
-        root.setZIndex(child1, 0)
-
-        expect(3) { root.zIndex_(child0) }
-        expect(2) { root.zIndex_(child2) }
-        expect(1) { root.zIndex_(child3) }
-        expect(0) { root.zIndex_(child1) }
     }
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {

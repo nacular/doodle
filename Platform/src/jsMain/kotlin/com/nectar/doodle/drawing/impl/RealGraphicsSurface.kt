@@ -47,12 +47,18 @@ class RealGraphicsSurface private constructor(
             rootElement.style.setDisplay(if (new) null else None())
         }
 
-    override var zIndex = 0
+    override var index = 0
         set(new) {
             if (field != new) {
                 field = new
-                parent?.setZIndex(this, new)
+                parent?.setIndex(this, new)
             }
+        }
+
+    override var zOrder = 0
+        set(new) {
+            field = new
+            rootElement.style.zIndex = "${-1 * new}"
         }
 
     lateinit var canvas: Canvas
@@ -78,19 +84,19 @@ class RealGraphicsSurface private constructor(
 
                     rootElement.insert(this, 0)
 
-                    canvas      = canvasFactory(this)
-                    zIndexStart = 1
+                    canvas     = canvasFactory(this)
+                    indexStart = 1
                 }
             } else {
                 canvasElement?.let { it.parent?.remove(it) }
-                canvas      = canvasFactory(rootElement) // TODO: Import contents from old canvas
-                zIndexStart = 0
+                canvas     = canvasFactory(rootElement) // TODO: Import contents from old canvas
+                indexStart = 0
                 null
             }
         }
 
-    private  var zIndexSet   = MutableTreeSet<Int>()
-    private  var zIndexStart = 0
+    private  var indexSet    = MutableTreeSet<Int>()
+    private  var indexStart  = 0
     internal val rootElement = canvasElement
 
     init {
@@ -116,7 +122,7 @@ class RealGraphicsSurface private constructor(
             canvasElement?.let {
                 if (it.numChildren == 0) {
                     it.parent?.remove(it)
-                    zIndexStart = 0
+                    indexStart = 0
                 }
             }
         }
@@ -129,7 +135,7 @@ class RealGraphicsSurface private constructor(
             canvasElement?.let {
                 if (it.numChildren > 0) {
                     rootElement.insert(it, 0)
-                    zIndexStart = 1
+                    indexStart = 1
                 }
             }
         }
@@ -166,7 +172,7 @@ class RealGraphicsSurface private constructor(
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
             rootElement.remove(child.rootElement)
-            zIndexSet.remove(child.zIndex)
+            indexSet.remove(child.index)
 
             child.parent = null
 
@@ -177,8 +183,8 @@ class RealGraphicsSurface private constructor(
     private fun setZIndex(child: RealGraphicsSurface, index: Int) {
         if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
 
-        zIndexSet.add(index)
+        indexSet.add(index)
 
-        rootElement.insert(child.rootElement, max(zIndexStart, numChildren - zIndexSet.indexOf(index) - 1))
+        rootElement.insert(child.rootElement, max(indexStart, numChildren - indexSet.indexOf(index) - 1))
     }
 }

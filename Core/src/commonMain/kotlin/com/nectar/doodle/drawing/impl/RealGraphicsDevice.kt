@@ -18,7 +18,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
 
             surface = surfaceFactory(parent?.let { this[it] }, view.children_.isNotEmpty())
 
-            surface.zIndex = parent?.zIndex_(view) ?: 0
+            surface.zOrder = view.zOrder
 
             viewSurfaceMap[view  ] = surface
             surfaceViewMap[surface] = view
@@ -27,7 +27,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         return surface
     }
 
-    override fun create() = surfaceFactory().apply { zIndex = 0 }
+    override fun create() = surfaceFactory().apply { index = 0 }
 
     override fun release(view: View) {
         viewSurfaceMap[view]?.let {
