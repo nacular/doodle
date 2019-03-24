@@ -2,15 +2,21 @@ package com.nectar.doodle.animation.impl
 
 import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.animation.InitialPropertyTransition
+import com.nectar.doodle.animation.InterpolationStart
 import com.nectar.doodle.animation.Listener
 import com.nectar.doodle.animation.Listener.ChangeEvent
+import com.nectar.doodle.animation.MeasureInterpolationStart
 import com.nectar.doodle.animation.Moment
+import com.nectar.doodle.animation.NoneUnit
 import com.nectar.doodle.animation.PropertyTransitions
+import com.nectar.doodle.animation.TransitionBuilder
+import com.nectar.doodle.animation.noneUnits
 import com.nectar.doodle.animation.transition.Transition
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
+import com.nectar.doodle.utils.Cancelable
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.div
@@ -60,10 +66,72 @@ private class PropertyDriver<P, T: com.nectar.measured.units.Unit>(private val p
     }
 }
 
+private class TransitionBuilderImpl<T: Number>(
+        private val timer             : Timer,
+        private val animationScheduler: AnimationScheduler,
+        start     : T,
+        end       : T,
+        transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T> {
+
+    private class CancelableWrapper(var cancelable: Cancelable): Cancelable {
+        override fun cancel() { cancelable.cancel() }
+    }
+
+    private val property       = InternalProperty("", start * noneUnits).apply { add(transition(start, end)) }
+    private val propertyDriver = PropertyDriver(property)
+    private var startTime      = 0 * milliseconds
+    private lateinit var block: (T) -> Unit
+    private lateinit var task: CancelableWrapper
+
+
+    override fun then(transition: Transition<NoneUnit>) = this.also { property.add(transition) }
+
+    override fun invoke(block: (T) -> Unit): Cancelable {
+        startTime = timer.now
+
+        this.block = block
+
+        task = CancelableWrapper(animationScheduler.onNextFrame {
+            onAnimate()
+        })
+
+        return task
+    }
+
+    private fun onAnimate() {
+        val totalElapsedTime = timer.now - startTime
+        var activeTransition = false
+
+        val result = propertyDriver.drive(totalElapsedTime).also { activeTransition = activeTransition || it.active }
+
+        if (result.new != result.old) {
+            block((result.new `in` noneUnits) as T)
+        }
+
+        if (activeTransition) {
+            task.cancelable = animationScheduler.onNextFrame {
+                onAnimate()
+            }
+        }
+    }
+}
+
+private class InterpolationStartImpl<T: Number>(private val timer: Timer, private val animationScheduler: AnimationScheduler, private val start: T, private val end: T): InterpolationStart<T> {
+    override fun using(transition: (start: T, end: T) -> Transition<NoneUnit>) = TransitionBuilderImpl(timer, animationScheduler, start, end, transition)
+}
+
 class AnimatorImpl<P>(
         private val timer             : Timer,
         private val scheduler         : Scheduler,
-        private val animationScheduler: AnimationScheduler): Animator<P> {
+        private val animationScheduler: AnimationScheduler): Animator<P>
+{
+    override fun <T: Number> invoke(pair: Pair<T, T>): InterpolationStart<T> {
+        return InterpolationStartImpl(timer, animationScheduler, pair.first, pair.second)
+    }
+
+    override fun <T: com.nectar.measured.units.Unit> invoke(pair: Pair<Measure<T>, Measure<T>>): MeasureInterpolationStart<T> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     private var task      = null as Task?
     private val drivers   = mutableMapOf<P, PropertyDriver<P, *>>()

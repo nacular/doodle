@@ -16,11 +16,11 @@ class Cubic<T: Unit>(private val duration: Measure<Time>, private val endValue: 
 
     private val deltaTime = duration * 0.1
 
-    override fun value(initialState: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
+    override fun value(initial: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
 
         val t      = timeOffset / duration
-        val p0     = initialState.position
-        val p1     = p0 + deltaTime * initialState.velocity
+        val p0     = initial.position
+        val p1     = p0 + deltaTime * initial.velocity
         val p2     = endValue - deltaTime * endVelocity
         val p3     = endValue
         val points = listOf(p0, p1, p2, p3)
@@ -36,9 +36,9 @@ class Cubic<T: Unit>(private val duration: Measure<Time>, private val endValue: 
         return Moment(result, endVelocity) // FIXME: Calculate instantaneous velocity
     }
 
-    override fun duration(initialState: Moment<T>) = duration
+    override fun duration(initial: Moment<T>) = duration
 
-    override fun endState(initialState: Moment<T>) = Moment(endValue, endVelocity)
+    override fun endState(initial: Moment<T>) = Moment(endValue, endVelocity)
 
     // TODO: Is there a faster way?
     private infix fun Int.choose(value: Int): Int {

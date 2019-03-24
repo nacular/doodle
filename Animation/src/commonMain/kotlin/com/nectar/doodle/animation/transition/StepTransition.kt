@@ -14,6 +14,6 @@ class StepTransition<T: Unit>(private val delay: Measure<Time>, remaining: Measu
         require(remaining.amount >= 0) { "remaining must be positive" }
     }
 
-    override fun value   (initialState: Moment<T>, timeOffset: Measure<Time>) = Moment(if (timeOffset < delay) initialState.position else finalValue, initialState.velocity)
-    override fun endState(initialState: Moment<T>                           ) = Moment(finalValue, initialState.velocity)
+    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = Moment(if (timeOffset < delay) initial.position else finalValue, initial.velocity)
+    override fun endState(initial: Moment<T>                           ) = Moment(finalValue, initial.velocity)
 }

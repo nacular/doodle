@@ -1,5 +1,6 @@
 package com.nectar.doodle.scheduler
 
+import com.nectar.doodle.utils.Cancelable
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
@@ -9,10 +10,8 @@ import com.nectar.measured.units.times
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-interface Task {
+interface Task: Cancelable {
     val completed: Boolean
-
-    fun cancel()
 }
 
 interface Scheduler {

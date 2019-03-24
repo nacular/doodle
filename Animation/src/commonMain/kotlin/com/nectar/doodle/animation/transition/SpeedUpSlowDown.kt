@@ -19,13 +19,13 @@ class SpeedUpSlowDown<T: Unit>(duration            : Measure<Time>,
         require(accelerationFraction in 0f..1f) { "accelerationFraction must be in range [0, 1]" }
     }
 
-    override fun value(initialState: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
-        val duration = duration(initialState)
+    override fun value(initial: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
+        val duration = duration(initial)
 
-        if( timeOffset >= duration ) { return endState(initialState) }
+        if( timeOffset >= duration ) { return endState(initial) }
 
         val time1         = duration * accelerationFraction
-        val position1     = initialState.position
+        val position1     = initial.position
         val acceleration1 = 2 * (endValue - position1) * accelerationFraction / (time1 * time1)
 
         if( timeOffset < time1 ) {
@@ -41,5 +41,5 @@ class SpeedUpSlowDown<T: Unit>(duration            : Measure<Time>,
         return Moment(position + velocity * timeOffset2 + acceleration2 * timeOffset2 * timeOffset2 / 2, outputVelocity )
     }
 
-    override fun endState(initialState: Moment<T>) = Moment(endValue, 0 * endValue / (1 * milliseconds))
+    override fun endState(initial: Moment<T>) = Moment(endValue, 0 * endValue / (1 * milliseconds))
 }

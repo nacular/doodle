@@ -15,5 +15,5 @@ abstract class FixedDuration<T: Unit>(private val duration: Measure<Time>): Tran
         require(duration >= 0 * milliseconds) { "duration must be >= ${0 * milliseconds}" }
     }
 
-    override fun duration(initialState: Moment<T>) = duration
+    override fun duration(initial: Moment<T>) = duration
 }

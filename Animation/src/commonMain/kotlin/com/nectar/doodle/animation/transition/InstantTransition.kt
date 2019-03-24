@@ -15,6 +15,6 @@ import com.nectar.measured.units.times
  * A transition that instantly jumps to the final value.
  */
 class InstantTransition<T: Unit>(private val finalValue: Measure<T>): FixedDuration<T>(0 * milliseconds) {
-    override fun value   (initialState: Moment<T>, timeOffset: Measure<Time>) = endState(initialState)
-    override fun endState(initialState: Moment<T>                           ) = Moment(finalValue, initialState.velocity)
+    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = endState(initial)
+    override fun endState(initial: Moment<T>                           ) = Moment(finalValue, initial.velocity)
 }

@@ -1,9 +1,14 @@
 package com.nectar.doodle.animation
 
+import com.nectar.doodle.animation.transition.FixedSpeedLinear
+import com.nectar.doodle.animation.transition.FixedTimeLinear
 import com.nectar.doodle.animation.transition.Transition
+import com.nectar.doodle.utils.Cancelable
+import com.nectar.measured.units.InverseUnit
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.Unit
+import com.nectar.measured.units.UnitRatio
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 
@@ -28,8 +33,44 @@ interface PropertyTransitions<T: Unit> {
     infix fun then(transition: Transition<T>): PropertyTransitions<T>
 }
 
+class NoneUnit: Unit("none")
+
+val noneUnits = NoneUnit()
+
+fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnit<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear((1 * noneUnits).times(speed),  end * noneUnits) }
+
+fun <T: Unit> fixedSpeedLinear(speed: Measure<UnitRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
+
+fun <T: Number> fixedTimeLinear(time: Measure<Time>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedTimeLinear(time, end * noneUnits) }
+
+fun <T: Unit> fixedTimeLinearM(time: Measure<Time>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedTimeLinear(time, end) }
+
+interface TransitionBuilder<T: Number> {
+    infix fun then(transition: Transition<NoneUnit>): TransitionBuilder<T>
+
+    operator fun invoke(block: (T) -> kotlin.Unit): Cancelable
+}
+
+interface InterpolationStart<T: Number> {
+    infix fun using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>
+}
+
+interface MeasureTransitionBuilder<T: Unit> {
+    infix fun then(transition: Transition<T>): MeasureTransitionBuilder<T>
+
+    operator fun invoke(block: (Measure<T>) -> kotlin.Unit)
+}
+
+interface MeasureInterpolationStart<T: Unit> {
+    infix fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+}
+
 interface Animator<P> {
     operator fun <T: Unit> invoke(property: P, initialValue: Measure<T>): InitialPropertyTransition<T>
+
+    operator fun <T: Unit> invoke(pair: Pair<Measure<T>, Measure<T>>): MeasureInterpolationStart<T>
+
+    operator fun <T: Number> invoke(pair: Pair<T, T>): InterpolationStart<T>
 
     val running: Boolean
 
