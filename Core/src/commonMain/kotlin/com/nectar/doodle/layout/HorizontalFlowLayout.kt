@@ -14,8 +14,8 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 3/17/19.
  */
 class HorizontalFlowLayout(private val justification    : HorizontalAlignment = Left,
-                           private val verticalSpacing  : Double = 1.0,
-                           private val horizontalSpacing: Double = 1.0): Layout() {
+                           private val verticalSpacing  : Double              = 1.0,
+                           private val horizontalSpacing: Double              = 1.0): Layout() {
 
 
     override fun layout(positionable: Positionable) {
@@ -25,54 +25,47 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
         var lineWidth    = 0.0
         val maxLineWidth = positionable.width - positionable.insets.left - positionable.insets.right
 
-        positionable.children.forEach { child ->
-            if (child.visible) {
-                child.idealSize?.let { child.size = it }
+        positionable.children.filter { it.visible }.forEach { child ->
+            child.idealSize?.let { child.size = it }
 
-                val temp = lineWidth + child.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
+            val temp = lineWidth + child.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
 
-                if (temp > maxLineWidth) {
-                    when (justification) {
-                        Right  -> layoutLine(itemList,  positionable.width - lineWidth - positionable.insets.right, y)
-                        Center -> layoutLine(itemList, (positionable.width - lineWidth) / 2, y)
-                        Left   -> layoutLine(itemList, positionable.insets.left, y)
-                    }
+            if (temp > maxLineWidth) {
+                layoutLine(itemList, positionable, lineWidth, y)
 
-                    itemList.clear()
+                itemList.clear()
 
-                    lineWidth = 0.0
+                lineWidth = 0.0
 
-                    if (height > 0) {
-                        y += height + verticalSpacing
-                    }
-
-                    height = child.height
+                if (height > 0) {
+                    y += height + verticalSpacing
                 }
 
-                lineWidth = temp
-
-                itemList.add(child)
-
-                height = max(height, child.height)
+                height = child.height
             }
+
+            itemList.add(child)
+
+            lineWidth = temp
+            height    = max(height, child.height)
         }
 
         if (itemList.isNotEmpty()) {
-            when (justification) {
-                Right  -> layoutLine(itemList,  positionable.width - lineWidth - positionable.insets.right, y)
-                Center -> layoutLine(itemList, (positionable.width - lineWidth) / 2, y)
-                Left   -> layoutLine(itemList, positionable.insets.left, y)
-            }
+            layoutLine(itemList, positionable, lineWidth, y)
         }
     }
 
-    private fun layoutLine(itemList: List<View>, x: Double, y: Double) {
-        var startX = x
+    private fun layoutLine(itemList: List<View>, positionable: Positionable, lineWidth: Double, y: Double) {
+        var startX = when (justification) {
+            Right  ->  positionable.width - lineWidth - positionable.insets.right
+            Center -> (positionable.width - lineWidth) / 2
+            Left   ->  positionable.insets.left
+        }
 
-        for (view in itemList) {
-            view.position = Point(startX, y)
+        itemList.forEach {
+            it.position = Point(startX, y)
 
-            startX += view.width + horizontalSpacing
+            startX += it.width + horizontalSpacing
         }
     }
 }

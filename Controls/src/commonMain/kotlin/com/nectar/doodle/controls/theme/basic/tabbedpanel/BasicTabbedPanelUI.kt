@@ -22,8 +22,9 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.path
-import com.nectar.doodle.layout.HorizontalFlowLayout
 import com.nectar.doodle.layout.Insets
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -49,6 +50,14 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
 
     private var path: Path
 
+    private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
+        backgroundColor = when {
+            old == index -> if (mouseOver) panelColor.lighter() else null
+            new == index -> selectedColor
+            else         -> null
+        }
+    }
+
     init {
         mouseChanged += object: MouseListener {
             override fun mousePressed (event: MouseEvent) { mouseDown = true  }
@@ -61,20 +70,19 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
 
         styleChanged += { rerender() }
 
-        // TODO: Cleanup
-        panel.selectionChanged += { _, old, new ->
-            backgroundColor = when {
-                old == index -> if (mouseOver) panelColor.lighter() else null
-                new == index -> selectedColor
-                else         -> null
-            }
-        }
+        panel.selectionChanged += selectionChanged
 
         if (selected) {
             backgroundColor = selectedColor
         }
 
         path = updatePath()
+    }
+
+    override fun removedFromDisplay() {
+        super.removedFromDisplay()
+
+        panel.selectionChanged -= selectionChanged
     }
 
     override fun render(canvas: Canvas) {
@@ -132,6 +140,22 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
     override val spacing = -2 * tabRadius
 
     override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(item), tabRadius, tabColor, selectedColor).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+}
+
+private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout() {
+    override fun layout(positionable: Positionable) {
+        val maxLineWidth = max(0.0, positionable.width - positionable.insets.left - positionable.insets.right - (positionable.children.size - 1) * spacing)
+
+        var x     = positionable.insets.left
+        val width = max(minWidth, min(defaultWidth, maxLineWidth / positionable.children.size))
+
+        positionable.children.filter { it.visible }.forEach { child ->
+            child.width    = width
+            child.position = Point(x, positionable.insets.top)
+
+            x += width + spacing
+        }
+    }
 }
 
 open class BasicTabbedPanelUI<T>(private val tabProducer    : TabProducer<T>,
@@ -202,8 +226,8 @@ open class BasicTabbedPanelUI<T>(private val tabProducer    : TabProducer<T>,
                 tabProducer(panel, item, index)
             })
 
-            insets = Insets(top = 10.0)
-            layout = HorizontalFlowLayout(horizontalSpacing = tabProducer.spacing) // FIXME: Use custom layout
+            insets = Insets(top = 10.0) // TODO: Make this configurable
+            layout = TabLayout(spacing = tabProducer.spacing)
         }
     }
 }
