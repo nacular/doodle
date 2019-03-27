@@ -1,6 +1,7 @@
 package com.nectar.doodle.system
 
 import com.nectar.doodle.event.Event
+import com.nectar.doodle.geometry.Point
 
 abstract class SystemInputEvent protected constructor(val modifiers: Set<Modifier>): Event<Any?>(null) {
 
@@ -10,4 +11,9 @@ abstract class SystemInputEvent protected constructor(val modifiers: Set<Modifie
     enum class Modifier {
         Alt, Ctrl, Shift, Meta
     }
+}
+
+abstract class SystemPointerEvent protected constructor(val location         : Point,
+                                                        val nativeScrollPanel: Boolean = false,
+                                                            modifiers        : Set<Modifier>): SystemInputEvent(modifiers) {
 }

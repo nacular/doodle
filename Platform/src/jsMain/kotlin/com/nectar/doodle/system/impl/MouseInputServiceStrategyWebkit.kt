@@ -19,7 +19,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
-import com.nectar.doodle.system.SystemMouseWheelEvent
+import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
@@ -122,15 +122,16 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         val deltaX = 0 - event.deltaX / 28
         val deltaY = 0 - event.deltaY / 28
 
-        val wheelEvent = SystemMouseWheelEvent(
+        val scrollEvent = SystemMouseScrollEvent(
                 mouseLocation,
-                deltaX.toInt(),
-                deltaY.toInt(),
-                createModifiers(event))
+                deltaX,
+                deltaY,
+                createModifiers(event),
+                nativeScrollPanel(event.target))
 
-        eventHandler?.handle(wheelEvent)
+        eventHandler?.handle(scrollEvent)
 
-        return !wheelEvent.consumed.also {
+        return !scrollEvent.consumed.also {
 //            event.preventDefault ()
 //            event.stopPropagation()
         }
@@ -140,9 +141,9 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         val buttons    = mutableSetOf<SystemMouseEvent.Button>()
         val buttonsInt = event.buttons.toInt()
 
-        if (buttonsInt and 1 == 1) buttons.add(Button1)
-        if (buttonsInt and 2 == 2) buttons.add(Button2)
-        if (buttonsInt and 4 == 4) buttons.add(Button3)
+        if (buttonsInt and 1 == 1) buttons += Button1
+        if (buttonsInt and 2 == 2) buttons += Button2
+        if (buttonsInt and 4 == 4) buttons += Button3
 
         return SystemMouseEvent(
                 aType,
@@ -153,21 +154,21 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
                 nativeScrollPanel(event.target))
     }
 
-    private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().apply {
-        event.altKey.ifTrue   { add(Alt  ) }
-        event.ctrlKey.ifTrue  { add(Ctrl ) }
-        event.metaKey.ifTrue  { add(Meta ) }
-        event.shiftKey.ifTrue { add(Shift) }
+    private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().also {
+        event.altKey.ifTrue   { it += Alt   }
+        event.ctrlKey.ifTrue  { it += Ctrl  }
+        event.metaKey.ifTrue  { it += Meta  }
+        event.shiftKey.ifTrue { it += Shift }
     }
 
-    private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onwheel     = { this@MouseInputServiceStrategyWebkit.mouseScroll(it) }
-        onmouseup   = { this@MouseInputServiceStrategyWebkit.mouseUp    (it) }
-        onmouseout  = { this@MouseInputServiceStrategyWebkit.mouseExit  (it) }
-        ondblclick  = { this@MouseInputServiceStrategyWebkit.doubleClick(it) }
-        onmousedown = { this@MouseInputServiceStrategyWebkit.mouseDown  (it) }
-        onmousemove = { this@MouseInputServiceStrategyWebkit.mouseMove  (it) }
-        onmouseover = { this@MouseInputServiceStrategyWebkit.mouseEnter (it) }
+    private fun registerCallbacks(element: HTMLElement) = element.also { e ->
+        e.onwheel     = { mouseScroll(it) }
+        e.onmouseup   = { mouseUp    (it) }
+        e.onmouseout  = { mouseExit  (it) }
+        e.ondblclick  = { doubleClick(it) }
+        e.onmousedown = { mouseDown  (it) }
+        e.onmousemove = { mouseMove  (it) }
+        e.onmouseover = { mouseEnter (it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

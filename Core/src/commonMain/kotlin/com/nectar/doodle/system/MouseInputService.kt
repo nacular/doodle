@@ -18,11 +18,11 @@ interface MouseInputService {
 
     interface Listener {
         fun changed(event: SystemMouseEvent)
-        fun changed(event: SystemMouseWheelEvent)
+        fun changed(event: SystemMouseScrollEvent)
     }
 
     interface Preprocessor {
         fun preprocess(event: SystemMouseEvent     ) {}
-        fun preprocess(event: SystemMouseWheelEvent) {}
+        fun preprocess(event: SystemMouseScrollEvent) {}
     }
 }

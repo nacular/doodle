@@ -15,7 +15,8 @@ import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.event.MouseWheelEvent
+import com.nectar.doodle.event.MouseScrollEvent
+import com.nectar.doodle.event.MouseScrollListener
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.geometry.Point
@@ -132,7 +133,12 @@ abstract class View protected constructor() {
         override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseMotionChanged.isNotEmpty()
     }
 
-    var monitorsMouseWheel by observable(true ) { _,_,_ ->
+    val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
+
+    var monitorsMouseScroll by object: OverridableProperty<Boolean>(true, { _,_,_ ->
+
+    }) {
+        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseScrollChanged.isNotEmpty()
     }
 
     val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
@@ -485,14 +491,14 @@ abstract class View protected constructor() {
         }
     }
 
-    internal fun handleMouseWheelEvent_(event: MouseWheelEvent) = handleMouseWheelEvent(event)
+    internal fun handleMouseScrollEvent_(event: MouseScrollEvent) = handleMouseScrollEvent(event)
 
     /**
-     * This is an event invoked on a [View] in response to a mouse wheel event triggered in the subsystem.
+     * This is an event invoked on a [View] in response to a mouse scroll event triggered in the subsystem.
      *
      * @param event The event
      */
-    protected open fun handleMouseWheelEvent(event: MouseWheelEvent) {}
+    protected open fun handleMouseScrollEvent(event: MouseScrollEvent) {}
 
     /**
      * This is invoked on a [View] in response to a focus event triggered in the subsystem.

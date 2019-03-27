@@ -67,7 +67,7 @@ class ViewTests {
                 View::foregroundColor     to null,
                 View::backgroundColor     to null,
                 View::monitorsKeyboard    to false,
-                View::monitorsMouseWheel  to true,
+                View::monitorsMouseScroll  to true,
                 View::monitorsMouseMotion to false,
                 View::monitorsDisplayRect to false
         ).forEach { validateDefault(it.key, it.value) }
@@ -101,7 +101,7 @@ class ViewTests {
         validateSetter(View::foregroundColor,     red                             )
         validateSetter(View::backgroundColor,     green                           )
         validateSetter(View::monitorsKeyboard,    false                           )
-        validateSetter(View::monitorsMouseWheel,  true                            )
+        validateSetter(View::monitorsMouseScroll,  true                            )
         validateSetter(View::monitorsMouseMotion, false                           )
         validateSetter(View::monitorsDisplayRect, false                           )
     }

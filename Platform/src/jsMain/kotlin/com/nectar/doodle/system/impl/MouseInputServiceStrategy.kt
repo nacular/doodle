@@ -3,7 +3,7 @@ package com.nectar.doodle.system.impl
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseWheelEvent
+import com.nectar.doodle.system.SystemMouseScrollEvent
 
 
 interface MouseInputServiceStrategy {
@@ -16,6 +16,6 @@ interface MouseInputServiceStrategy {
 
     interface EventHandler {
         fun handle(event: SystemMouseEvent)
-        fun handle(event: SystemMouseWheelEvent)
+        fun handle(event: SystemMouseScrollEvent)
     }
 }

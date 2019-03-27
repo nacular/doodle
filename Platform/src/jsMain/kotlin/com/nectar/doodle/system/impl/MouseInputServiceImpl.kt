@@ -6,7 +6,7 @@ import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.MouseInputService.Listener
 import com.nectar.doodle.system.MouseInputService.Preprocessor
 import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseWheelEvent
+import com.nectar.doodle.system.SystemMouseScrollEvent
 
 
 internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStrategy): MouseInputService {
@@ -39,7 +39,7 @@ internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStra
                     notifyMouseEvent(event)
                 }
 
-                override fun handle(event: SystemMouseWheelEvent) {
+                override fun handle(event: SystemMouseScrollEvent) {
                     notifyMouseWheelEvent(event)
                 }
             })
@@ -61,7 +61,7 @@ internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStra
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
     }
 
-    private fun notifyMouseWheelEvent(event: SystemMouseWheelEvent) {
+    private fun notifyMouseWheelEvent(event: SystemMouseScrollEvent) {
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
     }
