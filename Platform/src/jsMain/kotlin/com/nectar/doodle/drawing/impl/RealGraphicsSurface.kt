@@ -13,8 +13,7 @@ import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
-import com.nectar.doodle.dom.translate
-import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsSurface
@@ -141,10 +140,38 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    override var position: Point by observable(Origin) { _,_,new ->
-        rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
-            rootElement.style.translate(new)
-        } }
+    override var transform = Identity
+        set (new) {
+            field = new
+
+            refreshAugmentedTransform()
+        }
+
+    private var augmentedTransform = Identity
+        set (new) {
+            field = new
+            rootElement.style.setTransform(field.translate(position))
+        }
+
+    private fun refreshAugmentedTransform() {
+        val point          = - Point(canvas.size.width / 2, canvas.size.height / 2)
+        augmentedTransform = (Identity.translate(point) * transform).translate(-point)
+    }
+
+    override var position: Point by observable(Origin) { _,old,new ->
+        if (new != old) {
+
+//        rootElement.parent?.let {
+//            when {
+//                (it as HTMLElement).hasAutoOverflow -> {} //rootElement.style.apply { setTop(new.y); setLeft(new.x) }
+//                else                                -> rootElement.style.translate(new)
+//            }
+//        }
+
+            rootElement.parent?.takeUnless { (it as? HTMLElement)?.hasAutoOverflow ?: true }.let {
+                rootElement.style.setTransform(augmentedTransform.translate(new))
+            }
+        }
     }
 
     override var size: Size by observable(Empty) { _,_,new ->
@@ -152,6 +179,8 @@ class RealGraphicsSurface private constructor(
             rootElement.style.setSize(new)
 
             canvas.size = new
+
+            refreshAugmentedTransform() // Need to incorporate new size in transform calculation
         }
     }
 

@@ -5,6 +5,8 @@ package com.nectar.doodle.core
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragRecognizer
 import com.nectar.doodle.datatransport.dragdrop.DropReceiver
+import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
@@ -200,7 +202,29 @@ abstract class View protected constructor() {
 
     val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl<View, Rectangle>(this) }
 
-    var bounds by ObservableProperty(Empty, { this }, boundsChanged as PropertyObserversImpl<View, Rectangle>)
+    var bounds: Rectangle by object: ObservableProperty<View, Rectangle>(Empty, { this }, boundsChanged as PropertyObserversImpl) {
+        override fun afterChange(property: KProperty<*>, oldValue: Rectangle, newValue: Rectangle) {
+            boundingBox = transform(newValue).boundingRectangle
+
+            super.afterChange(property, oldValue, newValue)
+        }
+    }
+
+    // TODO: Add layoutBounds to allow for cases where Layouts should have a smaller/larger region to work with than the paint region
+    // this would allow for cases like shadows not being included in size for laying out
+
+    val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
+
+    var transform: AffineTransform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
+        override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
+            boundingBox = newValue(bounds).boundingRectangle
+
+            super.afterChange(property, oldValue, newValue)
+        }
+    }
+
+    var boundingBox = bounds
+        private set
 
     // ================= Container ================= //
     internal val insets_ get() = insets
@@ -350,7 +374,7 @@ abstract class View protected constructor() {
 
         children.reversed().forEach {
             if (it.visible && at in it && (result == null || it.zOrder < topZOrder)) {
-                result = it
+                result    = it
                 topZOrder = it.zOrder
             }
         }
@@ -398,7 +422,7 @@ abstract class View protected constructor() {
      * @param point The point to check
      * @return true if the point falls within the View
      */
-    open operator fun contains(point: Point) = point in bounds
+    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false //point in bounds
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.

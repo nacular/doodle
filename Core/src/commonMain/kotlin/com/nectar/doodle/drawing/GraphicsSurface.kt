@@ -13,6 +13,7 @@ interface GraphicsSurface {
     var index    : Int
     var zOrder   : Int
     var visible  : Boolean
+    var transform: AffineTransform
 
     fun render(block: (Canvas) -> Unit)
 

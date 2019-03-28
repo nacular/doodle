@@ -77,11 +77,14 @@ class AffineTransform private constructor(private val matrix: SquareMatrix<Doubl
                                 this[0.0,  0.0, 1.0]).let { squareMatrixOf(3) { col, row -> it[row][col] } })
     }
 
-    fun flipVertically  () = scale(1.0, -1.0)
-    fun flipHorizontally() = scale(-1.0, 1.0)
+    fun flipVertically  () = scale (1.0, -1.0)
+    fun flipHorizontally() = scale(-1.0,  1.0)
 
     val inverse: AffineTransform? by lazy {
-        matrix.inverse?.let { AffineTransform(it) }
+        when {
+            isIdentity -> this
+            else       -> matrix.inverse?.let { AffineTransform(it) }
+        }
     }
 
     operator fun invoke(point: Point) = this(listOf(point)).first()
@@ -106,7 +109,17 @@ class AffineTransform private constructor(private val matrix: SquareMatrix<Doubl
 
     override fun toString() = matrix.toString()
 
+    override fun hashCode(): Int = matrix.hashCode()
+
     private operator fun get(vararg values: Double) = values.toList()
+    override fun equals(other: Any?): Boolean {
+        if (this === other           ) return true
+        if (other !is AffineTransform) return false
+
+        if (matrix != other.matrix) return false
+
+        return true
+    }
 
     companion object {
         val Identity = AffineTransform()

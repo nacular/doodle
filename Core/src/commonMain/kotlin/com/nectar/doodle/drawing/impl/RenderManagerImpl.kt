@@ -3,6 +3,7 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.RenderManager
@@ -53,6 +54,7 @@ class RenderManagerImpl(
     private val boundsChanged_              = ::boundsChanged
     private val zOrderChanged_              = ::zOrderChanged
     private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
+    private val transformChanged_           = ::transformChanged
     private val visibilityChanged_          = ::visibilityChangedFunc
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
@@ -155,6 +157,7 @@ class RenderManagerImpl(
 
                 view.boundsChanged              += boundsChanged_
                 view.zOrderChanged              += zOrderChanged_
+                view.transformChanged           += transformChanged_
                 view.visibilityChanged          += visibilityChanged_
                 view.children_.changed          += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
@@ -345,6 +348,7 @@ class RenderManagerImpl(
 
         view.boundsChanged              -= boundsChanged_
         view.zOrderChanged              -= zOrderChanged_
+        view.transformChanged           -= transformChanged_
         view.visibilityChanged          -= visibilityChanged_
         view.children_.changed          -= childrenChanged_
         view.displayRectHandlingChanged -= displayRectHandlingChanged_
@@ -508,29 +512,10 @@ class RenderManagerImpl(
         }
     }
 
-//    private inner class InternalPropertyListener : PropertyListener {
-//            } else if (aProperty === View.IDEAL_SIZE || aProperty === View.MINIMUM_SIZE) {
-//                val aParent = (aPropertyEvent.getSource() as View).parent
-//
-//                if (aParent.layout != null) {
-//                    val aNeedsLayout = if (aProperty === View.IDEAL_SIZE)
-//                        aParent.layout!!.usesChildIdealSize()
-//                    else
-//                        aParent.layout!!.usesChildMinimumSize()
-//
-//                    if (aNeedsLayout) {
-//                        if (display.contains(aParent)) {
-//                            aParent.doLayout()
-//                        } else {
-//                            scheduleLayout(aParent)
-//
-//                            schedulePaint()
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    @Suppress("UNUSED_PARAMETER")
+    private fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
+        graphicsDevice[view].transform = new
+    }
 
     private fun registerDisplayRectMonitoring(view: View) {
         if (!displayTree.containsKey(view)) {
@@ -598,6 +583,7 @@ class RenderManagerImpl(
             else -> parent.clipRect.let { Rectangle(it.x - view.x, it.y - view.y, it.width, it.height) }
         }
 
+        // TODO: Change to convex-polygon?
         node.clipRect = parentBounds.let { viewRect intersect it }
     }
 

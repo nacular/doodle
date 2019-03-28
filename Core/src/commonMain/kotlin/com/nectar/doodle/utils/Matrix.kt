@@ -35,9 +35,10 @@ class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): Matri
     }
 
     val inverse: SquareMatrix<Double>? by lazy {
-        when (determinant) {
-            0.0  -> null
-            else -> {
+        when {
+            isIdentity         -> this.map { it.toDouble() } // TODO: This shouldn't require any copy
+            determinant == 0.0 -> null
+            else               -> {
                 val cofactors = values.mapIndexed { r, values ->
                     values.mapIndexed { c, _ ->
                         determinant(r, c) * when {
@@ -56,9 +57,7 @@ class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): Matri
 
     val determinant: Double by lazy {
         when (numRows) {
-            2 -> {
-                this[0,0].toDouble() * this[1,1].toDouble() - this[0,1].toDouble() * this[1,0].toDouble()
-            }
+            2    -> this[0,0].toDouble() * this[1,1].toDouble() - this[0,1].toDouble() * this[1,0].toDouble()
             else -> {
                 var sign   = 1
                 var result = 0.0
