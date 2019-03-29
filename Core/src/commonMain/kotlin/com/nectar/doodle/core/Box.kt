@@ -26,7 +26,9 @@ open class Box: View(), Container {
 
     override val children = super.children
 
-    override fun ancestorOf(view: View) = super.ancestorOf(view)
+    public override fun ancestorOf(view: View) = super.ancestorOf(view)
 
-    override fun child(at: Point) = super.child(at)
+    public override fun child(at: Point) = super.child(at)
+
+    public override fun doLayout() { super.doLayout() }
 }

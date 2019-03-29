@@ -35,19 +35,20 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
 
                 itemList.clear()
 
-                lineWidth = 0.0
+                lineWidth = child.width
 
                 if (height > 0) {
                     y += height + verticalSpacing
                 }
 
                 height = child.height
+            } else {
+                lineWidth = temp
             }
 
             itemList.add(child)
 
-            lineWidth = temp
-            height    = max(height, child.height)
+            height = max(height, child.height)
         }
 
         if (itemList.isNotEmpty()) {

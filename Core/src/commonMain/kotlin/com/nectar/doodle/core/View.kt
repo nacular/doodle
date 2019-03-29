@@ -359,7 +359,7 @@ abstract class View protected constructor() {
      * Causes [View] to layout its children if it has a Layout installed.
      */
     internal fun doLayout_() = doLayout()
-    protected fun doLayout() = layout?.layout(this)
+    protected open fun doLayout() = layout?.layout(this)
 
     /**
      * Gets the [View] at the given point.
