@@ -11,6 +11,7 @@ import com.nectar.measured.units.Unit
 import com.nectar.measured.units.UnitRatio
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
+import kotlin.jvm.JvmName
 
 /**
  * Created by Nicholas Eddy on 3/29/18.
@@ -37,8 +38,10 @@ class NoneUnit: Unit("none")
 
 val noneUnits = NoneUnit()
 
+@JvmName("fixedSpeedLinearNumber")
 fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnit<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear((1 * noneUnits).times(speed),  end * noneUnits) }
 
+@JvmName("fixedSpeedLinearUnit")
 fun <T: Unit> fixedSpeedLinear(speed: Measure<UnitRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
 
 fun <T: Number> fixedTimeLinear(time: Measure<Time>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedTimeLinear(time, end * noneUnits) }

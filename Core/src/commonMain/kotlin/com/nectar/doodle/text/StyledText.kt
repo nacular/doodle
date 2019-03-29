@@ -12,11 +12,11 @@ interface Style {
     val background: Color?
 }
 
-private data class MutablePair<A, B>(var first: A, var second: B) {
+data class MutablePair<A, B>(var first: A, var second: B) {
     override fun toString() = "($first, $second)"
 }
 
-class StyledText private constructor(var data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
+class StyledText private constructor(val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
 
     constructor(
         text      : String,
