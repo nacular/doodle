@@ -162,7 +162,7 @@ open class Tree<T, out M: Model<T>>(
                 // FIXME: This is a bit of a hack to avoid inserting items into the child list at an index they won't be at as the list grows
                 // this is b/c items are mapped to their % of the list size, so the list growing will lead to different mappings
                 if (this.size <= lastVisibleRow - firstVisibleRow) {
-                    (0..lastVisibleRow - firstVisibleRow - children.size).forEach {
+                    repeat(lastVisibleRow - firstVisibleRow - children.size) {
                         add(object : View() {}.apply { visible = false })
                     }
                 }

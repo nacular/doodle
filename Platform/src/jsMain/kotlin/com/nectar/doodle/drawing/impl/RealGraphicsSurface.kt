@@ -168,9 +168,9 @@ class RealGraphicsSurface private constructor(
 //            }
 //        }
 
-            rootElement.parent?.takeUnless { (it as? HTMLElement)?.hasAutoOverflow ?: true }.let {
+            rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
                 rootElement.style.setTransform(augmentedTransform.translate(new))
-            }
+            } }
         }
     }
 
