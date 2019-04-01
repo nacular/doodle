@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.JsName
@@ -42,7 +44,7 @@ class RealGraphicsDeviceTests {
 
         expect(surface) { device[object: View() {}] }
 
-        verify(exactly = 1) { surface.index = 0 }
+        verify(exactly = 1) { surface.zOrder = 0 }
     }
 
     @Test @JsName("getNoParentWithChildrenWorks")
@@ -60,7 +62,7 @@ class RealGraphicsDeviceTests {
 
         expect(surface) { device[parent] }
 
-        verify(exactly = 1) { surface.index = 0 }
+        verify(exactly = 1) { surface.zOrder = 0 }
     }
 
     @Test @JsName("getWithParentNoChildrenWorks")
@@ -81,8 +83,8 @@ class RealGraphicsDeviceTests {
         expect(parentSurface) { device[parent] }
         expect(childSurface ) { device[child ] }
 
-        verify(exactly = 1) { parentSurface.index = 0 }
-        verify(exactly = 1) { childSurface.index  = 0 }
+        verify(exactly = 1) { parentSurface.zOrder = 0 }
+        verify(exactly = 1) { childSurface.zOrder  = 0 }
     }
 
     @Test @JsName("getWithParentWithChildrenWorks")
@@ -108,9 +110,9 @@ class RealGraphicsDeviceTests {
         expect(childSurface ) { device[child   ] }
         expect(nestedSurface ) { device[nested ] }
 
-        verify(exactly = 1) { parentSurface.index  = 0 }
-        verify(exactly = 1) { childSurface.index   = 0 }
-        verify(exactly = 1) { nestedSurface.index  = 0 }
+        verify(exactly = 1) { parentSurface.zOrder = 0 }
+        verify(exactly = 1) { childSurface.zOrder  = 0 }
+        verify(exactly = 1) { nestedSurface.zOrder = 0 }
     }
 
     @Test @JsName("resultsCached")
@@ -132,15 +134,15 @@ class RealGraphicsDeviceTests {
 
         val device = RealGraphicsDevice(surfaceFactory)
 
-        (0..2).forEach {
+        repeat((0..2).count()) {
             expect(parentSurface) { device[parent] }
             expect(childSurface) { device[child] }
             expect(nestedSurface) { device[nested] }
         }
 
-        verify(exactly = 1) { parentSurface.index  = 0 }
-        verify(exactly = 1) { childSurface.index   = 0 }
-        verify(exactly = 1) { nestedSurface.index  = 0 }
+        verify(exactly = 1) { parentSurface.zOrder = 0 }
+        verify(exactly = 1) { childSurface.zOrder  = 0 }
+        verify(exactly = 1) { nestedSurface.zOrder = 0 }
     }
 
     @Test @JsName("releaseView")
@@ -168,7 +170,7 @@ class RealGraphicsDeviceTests {
 
         val device = RealGraphicsDevice(surfaceFactory)
 
-        (0..2).forEach {
+        repeat((0..2).count()) {
             expect(parentSurface1) { device[parent] }
             expect(childSurface1 ) { device[child ] }
             expect(nestedSurface1) { device[nested] }
@@ -176,7 +178,7 @@ class RealGraphicsDeviceTests {
 
         device.release(parent)
 
-        (0..2).forEach {
+        repeat((0..2).count()) {
             expect(parentSurface2) { device[parent] }
             expect(childSurface2 ) { device[child ] }
             expect(nestedSurface2) { device[nested] }
@@ -209,7 +211,7 @@ class RealGraphicsDeviceTests {
 
         val device = RealGraphicsDevice(surfaceFactory)
 
-        (0..2).forEach {
+        repeat((0..2).count()) {
             expect(parentSurface1) { device[parent] }
             expect(childSurface1 ) { device[child ] }
             expect(nestedSurface1) { device[nested] }
@@ -217,7 +219,7 @@ class RealGraphicsDeviceTests {
 
         device.release(parentSurface1)
 
-        (0..2).forEach {
+        repeat((0..2).count()) {
             expect(parentSurface2) { device[parent] }
             expect(childSurface2 ) { device[child ] }
             expect(nestedSurface2) { device[nested] }
