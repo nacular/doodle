@@ -135,8 +135,8 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
                                protected val namer        : (T) -> String,
                                override  val tabHeight    : Double = 40.0,
                                protected val tabRadius    : Double = 10.0,
-                               protected val selectedColor: Color = white,
-                               protected val tabColor     : Color = Color(0xdee1e6u)): TabProducer<T> {
+                               protected val selectedColor: Color  = white,
+                               protected val tabColor     : Color  = Color(0xdee1e6u)): TabProducer<T> {
     override val spacing = -2 * tabRadius
 
     override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(item), tabRadius, tabColor, selectedColor).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
@@ -208,7 +208,7 @@ open class BasicTabbedPanelUI<T>(private val tabProducer    : TabProducer<T>,
         (container.children[0] as TabContainer<*>).apply {
             oldIndex?.let{ children[it] }?.let { it.zOrder = 0 }
 
-            newIndex.let { children[it] }.zOrder = -1
+            newIndex.let { children[it] }.zOrder = 1
 
             dirty.forEach {
                 children.getOrNull(it)?.rerender()

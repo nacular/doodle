@@ -57,7 +57,7 @@ class RealGraphicsSurface private constructor(
     override var zOrder = 0
         set(new) {
             field = new
-            rootElement.style.zIndex = "${-1 * new}"
+            rootElement.style.zIndex = "$new"
         }
 
     lateinit var canvas: Canvas
