@@ -38,6 +38,7 @@ import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
@@ -89,9 +90,8 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
     }
 }
 
-private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
+private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, private var index: Int): View() {
     private var icon       = null as Label?
-    private var index      = index
     private var depth      = -1
     private var content    = contentGenerator(tree, node, path, index)
     private val iconWidth  = 20.0
@@ -125,8 +125,18 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
                     setOf(path).also {
                         tree.apply {
                             when {
-                                Ctrl in event.modifiers || Meta in event.modifiers -> if (selected(path)) removeSelection(it) else addSelection(it)
-                                else                                               -> setSelection(it)
+                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
+                                Shift in event.modifiers && lastSelection != null -> {
+                                    selectionAnchor?.let { rowFromPath(it) }?.let { anchor ->
+                                        rowFromPath(path)?.let { current ->
+                                            when {
+                                                current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
+                                                anchor  < current -> setSelection((anchor  .. current).           toSet())
+                                            }
+                                        }
+                                    }
+                                }
+                                else -> setSelection(it)
                             }
                         }
                     }
@@ -141,7 +151,8 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
     }
 
     fun update(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int) {
-        this.path = path
+        this.path  = path
+        this.index = index
 
         content = contentGenerator(tree, node, path, index, content).also {
             if (it != content) {

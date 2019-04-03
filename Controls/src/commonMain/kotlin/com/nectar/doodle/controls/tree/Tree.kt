@@ -79,7 +79,10 @@ open class Tree<T, out M: Model<T>>(
     val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
     val selectionChanged: Pool<SetObserver<Tree<T, *>, Path<Int>>> by lazy { SetPool<SetObserver<Tree<T, *>, Path<Int>>>() }
 
-    val selection get() = selectionModel?.toSet() ?: emptySet()
+    val firstSelection  get() = selectionModel?.first
+    val lastSelection   get() = selectionModel?.last
+    val selectionAnchor get() = selectionModel?.anchor
+    val selection       get() = selectionModel?.toSet() ?: emptySet()
 
     protected var itemPositioner  = null as RowPositioner<T>?
     private   var itemUIGenerator = null as RowGenerator<T>?
@@ -97,7 +100,7 @@ open class Tree<T, out M: Model<T>>(
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (parent as? ScrollPanel)?.let { parent ->
-            added.firstOrNull()?.let { added ->
+            added.lastOrNull()?.let { added ->
                 itemPositioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
                     parent.scrollToVisible(it)
                 }
@@ -322,6 +325,12 @@ open class Tree<T, out M: Model<T>>(
     fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     fun addSelection(paths: Set<Path<Int>>) {
         selectionModel?.addAll(paths)
+    }
+
+    @JvmName("toggleSelectionRows")
+    fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun toggleSelection(paths: Set<Path<Int>>) {
+        selectionModel?.toggle(paths)
     }
 
     @JvmName("setSelectionRows")

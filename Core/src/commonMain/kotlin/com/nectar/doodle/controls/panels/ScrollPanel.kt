@@ -115,7 +115,7 @@ open class ScrollPanel(content: View? = null): View() {
         farSide = scroll.y + height
 
         val y = when {
-            point.y > farSide  ->  point.y - farSide
+            point.y > farSide  -> point.y - farSide
             point.y < scroll.y -> point.y - scroll.y
             else               -> 0.0
         }

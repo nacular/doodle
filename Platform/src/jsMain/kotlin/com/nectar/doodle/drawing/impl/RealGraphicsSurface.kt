@@ -144,7 +144,8 @@ class RealGraphicsSurface private constructor(
     private var augmentedTransform = Identity
         set (new) {
             field = new
-            rootElement.style.setTransform(field.translate(position))
+
+            updateTransform(position)
         }
 
     private fun refreshAugmentedTransform() {
@@ -162,10 +163,14 @@ class RealGraphicsSurface private constructor(
 //            }
 //        }
 
-            rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
-                rootElement.style.setTransform(augmentedTransform.translate(new))
-            } }
+            updateTransform(new)
         }
+    }
+
+    private fun updateTransform(position: Point) {
+        rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
+            rootElement.style.setTransform(augmentedTransform.translate(position))
+        } }
     }
 
     override var size: Size by observable(Empty) { _,_,new ->
