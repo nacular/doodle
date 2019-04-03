@@ -117,24 +117,18 @@ class RealGraphicsSurface private constructor(
         canvas.clear()
         canvas.optimization = Quality
 
-        if (isContainer) {
-            canvasElement?.let {
-                if (it.numChildren == 0) {
-                    it.parent?.remove(it)
-                    indexStart = 0
-                }
-            }
-        }
-
         block(canvas)
 
         canvas.flush()
 
         if (isContainer) {
             canvasElement?.let {
-                if (it.numChildren > 0) {
+                indexStart = if (it.numChildren == 0) {
+                    it.parent?.remove(it)
+                    0
+                } else {
                     rootElement.insert(it, 0)
-                    indexStart = 1
+                    1
                 }
             }
         }
