@@ -315,7 +315,6 @@ class RenderManagerImpl(
                 if (view in dirtyViews) {
                     dirtyViews    -= view
                     neverRendered -= view
-//                    pendingRender -= view
 
                     graphicsSurface.render { canvas ->
                         view.render(canvas)
@@ -343,7 +342,6 @@ class RenderManagerImpl(
         views               -= view
         dirtyViews          -= view
         pendingLayout       -= view
-        pendingRender       -= view
         pendingBoundsChange -= view
 
         view.boundsChanged              -= boundsChanged_
