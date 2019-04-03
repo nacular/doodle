@@ -195,8 +195,9 @@ class ColorPicker(color: Color): View() {
         var color = color
             set(new) {
                 if (field == new) { return }
-                field = new
-                brush = LinearGradientBrush(transparent, new.with(1f))
+                field   = new
+                brush   = LinearGradientBrush(transparent, new.with(1f))
+                opacity = color.opacity
 
                 rerender()
             }
@@ -300,6 +301,7 @@ class ColorPicker(color: Color): View() {
         changed += { _,old,new ->
             new.toRgb().let {
                 opacityStrip.color          = it
+                hueStrip.hue                = new.hue
                 colorSquare.backgroundColor = it
 
                 changed_(old.toRgb(), it)
