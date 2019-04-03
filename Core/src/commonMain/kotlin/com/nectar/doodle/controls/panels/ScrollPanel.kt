@@ -156,7 +156,5 @@ open class ScrollPanel(content: View? = null): View() {
                 it.bounds = Rectangle(-scroll.x, -scroll.y, width, height)
             }
         }
-
-        override val usesChildIdealSize = true
     }
 }

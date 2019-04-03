@@ -2,6 +2,7 @@ package com.nectar.doodle.animation
 
 import com.nectar.doodle.animation.transition.FixedSpeedLinear
 import com.nectar.doodle.animation.transition.FixedTimeLinear
+import com.nectar.doodle.animation.transition.SpeedUpSlowDown
 import com.nectar.doodle.animation.transition.Transition
 import com.nectar.doodle.utils.Cancelable
 import com.nectar.measured.units.InverseUnit
@@ -47,6 +48,10 @@ fun <T: Unit> fixedSpeedLinear(speed: Measure<UnitRatio<T, Time>>): (Measure<T>,
 fun <T: Number> fixedTimeLinear(time: Measure<Time>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedTimeLinear(time, end * noneUnits) }
 
 fun <T: Unit> fixedTimeLinearM(time: Measure<Time>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedTimeLinear(time, end) }
+
+fun <T: Number> speedUpSlowDown(time: Measure<Time>, accelerationFraction: Float = 0.5f): (T, T) -> Transition<NoneUnit> = { _,end -> SpeedUpSlowDown(time, end * noneUnits, accelerationFraction) }
+
+fun <T: Unit> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float = 0.5f): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> SpeedUpSlowDown(time, end, accelerationFraction) }
 
 interface TransitionBuilder<T: Number> {
     infix fun then(transition: Transition<NoneUnit>): TransitionBuilder<T>

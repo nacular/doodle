@@ -91,9 +91,11 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
 
 private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, index: Int): View() {
     private var icon       = null as Label?
+    private var index      = index
     private var depth      = -1
     private var content    = contentGenerator(tree, node, path, index)
     private val iconWidth  = 20.0
+    private var mouseOver  = false
     private var background = null as Color?
 
     private lateinit var constraintLayout: ConstraintLayout
@@ -103,11 +105,10 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
         styleChanged += { rerender() }
         mouseChanged += object: MouseListener {
             private var pressed   = false
-            private var mouseOver = false
 
             override fun mouseEntered(event: MouseEvent) {
                 mouseOver       = true
-                backgroundColor = backgroundColor?.lighter(0.25f)
+                backgroundColor = (background ?: striped(lightgray)).lighter(0.25f)
             }
 
             override fun mouseExited(event: MouseEvent) {
@@ -144,9 +145,11 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
 
         content = contentGenerator(tree, node, path, index, content).also {
             if (it != content) {
-                children -= content
-                children += it
-                depth     = -1 // force layout
+                children.batch {
+                    remove(content)
+                    add   (it     )
+                }
+                depth = -1 // force layout
             }
         }
 
@@ -164,71 +167,65 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
             depth  = newDepth
         }
 
-        when (!tree.isLeaf(this.path)) {
-            true  -> {
-                val text = if (tree.expanded(path)) "-" else "+"
+        if (tree.isLeaf(this.path)) {
+            icon?.let {
+                this.children -= it
+                constraintLayout.unconstrain(it)
+            }
+            icon = null
+        } else  {
+            val text = if (tree.expanded(path)) "-" else "+"
 
-                icon = icon?.apply {
-                    this.text = text
-                } ?: labelFactory(text).apply {
-                    fitText = false
-                    width   = iconWidth
-                    height  = width
+            icon = icon?.apply {
+                this.text = text
+            } ?: labelFactory(text).apply {
+                fitText = false
+                width   = iconWidth
+                height  = width
 
-                    this@BasicTreeRow.children += this
+                this@BasicTreeRow.children += this
 
-                    mouseChanged += object: MouseListener {
-                        private var pressed   = false
-                        private var mouseOver = false
+                mouseChanged += object: MouseListener {
+                    private var pressed   = false
+                    private var mouseOver = false
 
-                        override fun mouseEntered(event: MouseEvent) {
-                            mouseOver = true
-                        }
-
-                        override fun mouseExited(event: MouseEvent) {
-                            mouseOver = false
-                        }
-
-                        override fun mousePressed(event: MouseEvent) {
-                            pressed   = true
-                            mouseOver = true
-                        }
-
-                        override fun mouseReleased(event: MouseEvent) {
-                            if (mouseOver && pressed) {
-                                when (tree.expanded(this@BasicTreeRow.path)) {
-                                    true -> tree.collapse(this@BasicTreeRow.path)
-                                    else -> tree.expand  (this@BasicTreeRow.path)
-                                }
-                            }
-                            pressed = false
-                        }
+                    override fun mouseEntered(event: MouseEvent) {
+                        mouseOver = true
                     }
 
-                    constrainIcon(this)
-                }
-            }
+                    override fun mouseExited(event: MouseEvent) {
+                        mouseOver = false
+                    }
 
-            false -> {
-                icon?.let {
-                    this.children -= it
-                    constraintLayout.unconstrain(it)
+                    override fun mousePressed(event: MouseEvent) {
+                        pressed   = true
+                        mouseOver = true
+                    }
+
+                    override fun mouseReleased(event: MouseEvent) {
+                        if (mouseOver && pressed) {
+                            when (tree.expanded(this@BasicTreeRow.path)) {
+                                true -> tree.collapse(this@BasicTreeRow.path)
+                                else -> tree.expand  (this@BasicTreeRow.path)
+                            }
+                        }
+                        pressed = false
+                    }
                 }
-                icon = null
+
+                constrainIcon(this)
             }
         }
 
-        background = if (tree.selected(path)) {
-            when {
-                index.isEven -> green.lighter()
-                else         -> green
-            }
-        } else null
-
-
-        backgroundColor = background
+        background      = if (tree.selected(path)) striped(green) else null
+        backgroundColor = background ?: if (mouseOver) striped(lightgray).lighter(0.25f) else null
         idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
     }
+
+    private fun striped(color: Color): Color = when {
+            index.isEven -> color.lighter()
+            else         -> color
+        }
 
     override fun render(canvas: Canvas) {
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }

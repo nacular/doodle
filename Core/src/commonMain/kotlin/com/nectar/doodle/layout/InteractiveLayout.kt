@@ -13,11 +13,21 @@ class InteractiveLayout(private val start: Layout, private val end: Layout): Lay
     var progress = 0f
 
     override fun layout(positionable: Positionable) {
-        start.layout(positionable)
+        if (progress < 1f) {
+            start.layout(positionable)
+        }
 
-        val startBounds = positionable.children.map { it.bounds }
+        if (progress == 0f) {
+            return
+        }
+
+        val startBounds = if (progress != 1f) positionable.children.map { it.bounds } else emptyList()
 
         end.layout(positionable)
+
+        if (progress == 1f) {
+            return
+        }
 
         val endBounds = positionable.children.map { it.bounds }
 
@@ -29,4 +39,6 @@ class InteractiveLayout(private val start: Layout, private val end: Layout): Lay
                     Size(start.width + progress * (end.width - start.width), start.height + progress * (end.height - start.height)))
         }
     }
+
+    val inverse: InteractiveLayout get() = InteractiveLayout(end, start)
 }

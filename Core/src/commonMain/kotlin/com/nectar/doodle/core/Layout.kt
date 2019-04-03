@@ -42,6 +42,11 @@ class PositionableWrapper(val view: View): Positionable {
  * @author Nicholas Eddy
  */
 abstract class Layout {
+    /**
+     * Lays out the children of the given [Positionable].
+     *
+     * @param positionable to be laid out
+     */
     abstract fun layout(positionable: Positionable)
 
     /**
@@ -70,28 +75,6 @@ abstract class Layout {
      * @return The child (null if no child contains the given point)
      */
     open fun child(of: Positionable, at: Point): View? = null
-
-    /**
-     * Indicates that this Layout takes the ideal size of the [View]'s
-     * children into account when positioning them.
-     *
-     * This will be invoked before calling [Layout.layout],
-     * allowing optimization for Layouts that ignore this property.
-     *
-     * @return true if the Layout takes child ideal size into account when sizing it
-     */
-    open val usesChildIdealSize: Boolean get() = false
-
-    /**
-     * Indicates that this Layout takes the minimum size of the [View]'s
-     * children into account when positioning them.
-     *
-     * This will be invoked before calling [Layout.layout],
-     * allowing optimization for Layouts that ignore this property.
-     *
-     * @return true if the Layout takes child minimum size into account when sizing it
-     */
-    open val usesChildMinimumSize: Boolean get() = false
 
     /**
      * Causes the Layout to position the children of the given [View]. NOTE: stateful layouts will only
