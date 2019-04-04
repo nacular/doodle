@@ -46,15 +46,15 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button            -> it.renderer = buttonBehavior
-            is Slider            -> it.renderer = sliderBehavior
-            is SplitPanel        -> it.renderer = splitPanelBehavior
-            is ProgressBar       -> it.renderer = (progressBarBehavior as Behavior<ProgressIndicator>)
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).renderer = mutableListBehavior
-            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).renderer = mutableTreeBehavior
-            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).renderer = listBehavior
-            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).renderer = treeBehavior
-            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).renderer = spinnerBehavior
+            is Button            -> it.behavior = buttonBehavior
+            is Slider            -> it.behavior = sliderBehavior
+            is SplitPanel        -> it.behavior = splitPanelBehavior
+            is ProgressBar       -> it.behavior = (progressBarBehavior as Behavior<ProgressIndicator>)
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).behavior = mutableListBehavior
+            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).behavior = mutableTreeBehavior
+            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).behavior = listBehavior
+            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).behavior = treeBehavior
+            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).behavior = spinnerBehavior
         }
     }
 

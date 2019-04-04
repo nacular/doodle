@@ -15,18 +15,18 @@ import com.nectar.doodle.utils.Orientation.Vertical
 
 class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
-    var renderer: SplitPanelBehavior? = null
+    var behavior: SplitPanelBehavior? = null
         set(new) {
 
             divider?.let { children -= it }
 
             field?.uninstall(this)
 
-            field = new?.also { renderer ->
-                divider = renderer.divider(this)
+            field = new?.also { behavior ->
+                divider = behavior.divider(this)
 
                 divider?.let {
-                    if (renderer.dividerVisible) {
+                    if (behavior.dividerVisible) {
                         panelSpacing = it.width
                     }
 
@@ -39,7 +39,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                     updateLayout()
                 }
 
-                renderer.install(this)
+                behavior.install(this)
             }
         }
 
@@ -92,10 +92,10 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     private fun fireChanged() {
         updateLayout()

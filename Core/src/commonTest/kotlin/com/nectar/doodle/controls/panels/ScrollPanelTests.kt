@@ -21,8 +21,8 @@ import kotlin.test.expect
 class ScrollPanelTests {
     @Test @JsName("scrollToPoint")
     fun `scroll to point`() {
-        val renderer = renderer()
-        val panel    = panel(renderer)
+        val behavior = behavior()
+        val panel    = panel(behavior)
 
         listOf(
             Point( 10.0, 10.0),
@@ -33,20 +33,20 @@ class ScrollPanelTests {
                 panel.scroll
             }
 
-            verify { renderer.scrollTo(it) }
+            verify { behavior.scrollTo(it) }
         }
     }
 
     @Test @JsName("scrollBy")
     fun `scroll by`() {
-        val renderer = renderer()
+        val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
         listOf(
             Point( 10.0, 10.0),
             Point(-10.0,  0.0)
         ).forEach { point ->
-            panel(renderer).apply {
+            panel(behavior).apply {
                 scrollTo(start)
 
                 expect(start + point) {
@@ -55,20 +55,20 @@ class ScrollPanelTests {
                 }
             }
 
-            verify { renderer.scrollTo(start + point) }
+            verify { behavior.scrollTo(start + point) }
         }
     }
 
     @Test @JsName("scrollToVisiblePoint")
     fun `scroll to visible point`() {
-        val renderer = renderer()
+        val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
         mapOf(
             Point( 100.0, 10.0) to Point( 90.0, 5.0),
             Point( -10.0,  0.0) to Point(-10.0, 0.0)
         ).forEach { (target, result) ->
-            panel(renderer).apply {
+            panel(behavior).apply {
                 scrollTo(start)
 
                 expect(result) {
@@ -77,30 +77,30 @@ class ScrollPanelTests {
                 }
             }
 
-            verify { renderer.scrollTo(result) }
+            verify { behavior.scrollTo(result) }
         }
     }
 
-    private fun panel(renderer: ScrollPanelBehavior = renderer()): ScrollPanel {
+    private fun panel(behavior: ScrollPanelBehavior = behavior()): ScrollPanel {
         val content = Box().apply { size = Size(100.0, 100.0) }
 
         return ScrollPanel(content).apply {
-            this.renderer = renderer
+            this.behavior = behavior
             size          = Size(10.0, 10.0)
         }
     }
 
-    private fun renderer(): ScrollPanelBehavior {
-        val renderer = mockk<ScrollPanelBehavior>(relaxed = true)
+    private fun behavior(): ScrollPanelBehavior {
+        val behavior = mockk<ScrollPanelBehavior>(relaxed = true)
 
         val point    = CapturingSlot<Point>()
         val onScroll = CapturingSlot<(Point) -> Unit>()
 
-        every { renderer.onScroll = capture(onScroll) } just Runs
-        every { renderer.scrollTo(capture(point)) } answers {
+        every { behavior.onScroll = capture(onScroll) } just Runs
+        every { behavior.scrollTo(capture(point)) } answers {
             onScroll.captured(point.captured)
         }
 
-        return renderer
+        return behavior
     }
 }

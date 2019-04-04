@@ -39,7 +39,7 @@ abstract class Button protected constructor(
 
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<View, String>)
 
-    var renderer: Behavior<Button>? = null
+    var behavior: Behavior<Button>? = null
         set(new) {
             if (field == new) { return }
 
@@ -91,10 +91,10 @@ abstract class Button protected constructor(
         }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     private val fired_ by lazy { ChangeObserversImpl(this) }
 
@@ -141,7 +141,7 @@ abstract class Button protected constructor(
 //
 //    private fun mouseReleased(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
 //        if (enabled) {
-//            renderer?.mouseReleaseAutoClicks?.ifTrue { model.armed = false }
+//            behavior?.mouseReleaseAutoClicks?.ifTrue { model.armed = false }
 //
 //            model.pressed = false
 //            model.armed   = false

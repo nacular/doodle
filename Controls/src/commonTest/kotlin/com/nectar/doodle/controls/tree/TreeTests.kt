@@ -56,9 +56,9 @@ class TreeTests {
             node("child3")
         }
 
-        val uiGenerator = rowGenerator<String>()
+        val generator = rowGenerator<String>()
 
-        val tree = tree(root, renderer(uiGenerator)).apply { expand(0) }
+        val tree = tree(root, behavior(generator)).apply { expand(0) }
 
         expect(5) { tree.numRows }
 
@@ -187,7 +187,7 @@ class TreeTests {
 
     private fun <T> rowGenerator(): RowGenerator<T> = mockk(relaxed = true)
 
-    private fun <T> renderer(uiGenerator: RowGenerator<T> = rowGenerator()): TreeBehavior<T> {
+    private fun <T> behavior(uiGenerator: RowGenerator<T> = rowGenerator()): TreeBehavior<T> {
         val ui = mockk<TreeBehavior<T>>(relaxed = true)
 
         every { ui.generator } returns uiGenerator
@@ -195,7 +195,7 @@ class TreeTests {
         return ui
     }
 
-    private fun <T> tree(root: TreeNode<T>, ui: TreeBehavior<T> = renderer()) = Tree(SimpleModel(root)).apply { renderer = ui }
+    private fun <T> tree(root: TreeNode<T>, ui: TreeBehavior<T> = behavior()) = Tree(SimpleModel(root)).apply { behavior = ui }
 
     private fun <T> validateGetRow(root: TreeNode<T>, expected: List<T>, block: Tree<T, *>.() -> Unit = {}) {
         val tree = tree(root).also { block(it) }

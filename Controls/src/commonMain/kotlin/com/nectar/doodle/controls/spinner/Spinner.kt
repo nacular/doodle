@@ -37,7 +37,7 @@ open class Spinner<T, M: Model<T>>(model: M): View() {
          val hasNext     get() = model.hasNext
          val hasPrevious get() = model.hasPrevious
 
-    var renderer: SpinnerBehavior<T, M>? = null
+    var behavior: SpinnerBehavior<T, M>? = null
         set(new) {
             children.clear()
 
@@ -54,7 +54,7 @@ open class Spinner<T, M: Model<T>>(model: M): View() {
         }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
     @Suppress("PrivatePropertyName")

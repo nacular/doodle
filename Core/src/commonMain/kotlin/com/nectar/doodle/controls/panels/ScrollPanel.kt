@@ -49,7 +49,7 @@ open class ScrollPanel(content: View? = null): View() {
     var scroll = Origin
         private set
 
-    var renderer: ScrollPanelBehavior? = null
+    var behavior: ScrollPanelBehavior? = null
         set(new) {
             field?.onScroll = null
 
@@ -66,10 +66,10 @@ open class ScrollPanel(content: View? = null): View() {
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     /**
      * Scrolls the viewport so the top-left is at point, or as close as possible.
@@ -79,7 +79,7 @@ open class ScrollPanel(content: View? = null): View() {
     fun scrollTo(point: Point) {
         scrollTo(point, false)
 
-        renderer?.scrollTo(point)
+        behavior?.scrollTo(point)
     }
 
     /**
