@@ -67,9 +67,9 @@ open class List<T, out M: Model<T>>(
     protected var firstVisibleRow =  0
     protected var lastVisibleRow  = -1
 
-    var renderer: ListBehavior<T>? = null
+    var behavior: ListBehavior<T>? = null
         set(new) {
-            if (new == renderer) { return }
+            if (new == behavior) { return }
 
             field?.uninstall(this)
 
@@ -106,7 +106,7 @@ open class List<T, out M: Model<T>>(
     override var isFocusCycleRoot = true
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
     override fun removedFromDisplay() {

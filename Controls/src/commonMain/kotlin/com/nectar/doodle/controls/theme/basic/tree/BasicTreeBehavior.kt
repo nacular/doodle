@@ -35,6 +35,10 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.ConstraintLayout
+import com.nectar.doodle.layout.Constraints
+import com.nectar.doodle.layout.HorizontalConstraint
+import com.nectar.doodle.layout.MagnitudeConstraint
+import com.nectar.doodle.layout.ParentConstraints
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
@@ -45,6 +49,12 @@ import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.RelativePositionMonitor
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
+
+private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraints) -> ParentConstraints): Constraints by delegate {
+    override val parent = parent(delegate.parent)
+}
+
+private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
     override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = contentBounds(tree, node, path, index, current).let {
@@ -78,6 +88,16 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
 
 interface ContentGenerator<T> {
     operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View? = null): View
+
+//    val position: Constraints.() -> Unit get() = {
+//        left    = parent.left
+//        centerY = parent.centerY
+//    }
+
+    fun position(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
+        left    = parent.left
+        centerY = parent.centerY
+    }
 }
 
 private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
@@ -168,8 +188,15 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
 
         if (newDepth != depth) {
             constraintLayout = constrain(content) {
-                it.left    = it.parent.left + { iconWidth * (1 + newDepth) }
-                it.centerY = it.parent.centerY
+                contentGenerator.position(tree, node, path, index)(ConstraintWrapper(it) { parent ->
+                    object: ParentConstraintWrapper(parent) {
+                        override val left  = HorizontalConstraint(this@BasicTreeRow) { iconWidth * (1 + newDepth) }
+                        override val width = MagnitudeConstraint (this@BasicTreeRow) { it.width - iconWidth * (1 + newDepth) }
+                    }
+                })
+
+//                it.left    = it.parent.left + { iconWidth * (1 + newDepth) }
+//                it.centerY = it.parent.centerY
             }
 
             constrainIcon(icon)

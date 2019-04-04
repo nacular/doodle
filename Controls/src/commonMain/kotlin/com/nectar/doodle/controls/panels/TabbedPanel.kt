@@ -44,7 +44,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
     var selection  : Int            by ObservableProperty(0   ,        { this }, selectionChanged   as PropertyObserversImpl)
     var orientation: BoxOrientation by ObservableProperty(orientation, { this }, orientationChanged as PropertyObserversImpl)
 
-    var renderer: TabbedPanelBehavior<T>? = null
+    var behavior: TabbedPanelBehavior<T>? = null
         set(new) {
             if (new == field) return
 
@@ -64,7 +64,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
         items += remaining
 
         selectionChanged += { _,old,new ->
-            renderer?.selectionChanged(this, wrapper, selectedItem, new!!, old?.let { get(it) }, old)
+            behavior?.selectionChanged(this, wrapper, selectedItem, new!!, old?.let { get(it) }, old)
         }
 
         items.changed += { _,removed,added,moved ->
@@ -95,7 +95,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
     val selectedItem: T get() = get(selection)!!

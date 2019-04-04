@@ -17,7 +17,7 @@ import kotlin.math.round
 open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Orientation.Horizontal): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Orientation.Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
-    var renderer: Behavior<Slider>? = null
+    var behavior: Behavior<Slider>? = null
         set(new) {
             if (field == new) { return }
 
@@ -69,8 +69,8 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 }

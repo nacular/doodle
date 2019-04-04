@@ -14,7 +14,7 @@ import com.nectar.doodle.utils.size
 open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
-    var renderer: Behavior<ProgressIndicator>? = null
+    var behavior: Behavior<ProgressIndicator>? = null
         set(new) {
             if (field == new) { return }
 
@@ -56,10 +56,10 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     override var focusable = false
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = renderer?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }

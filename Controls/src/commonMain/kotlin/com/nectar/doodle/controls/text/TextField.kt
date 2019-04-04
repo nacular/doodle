@@ -43,7 +43,7 @@ open class TextField: TextInput() {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-    var renderer: TextFieldBehavior? = null
+    var behavior: TextFieldBehavior? = null
         set(new) {
             field = new
 
@@ -58,7 +58,7 @@ open class TextField: TextInput() {
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
     override var text
@@ -90,8 +90,8 @@ open class TextField: TextInput() {
 
     private fun fitText() {
         fitText?.let { fitText ->
-            if (renderer != null) {
-                renderer?.let {
+            if (behavior != null) {
+                behavior?.let {
                     val size = it.fitTextSize(this)
 
                     if (TextFit.Width  in fitText) width  = size.width

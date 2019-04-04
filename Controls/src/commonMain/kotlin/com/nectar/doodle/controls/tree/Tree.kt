@@ -56,9 +56,9 @@ open class Tree<T, out M: Model<T>>(
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var renderer: TreeBehavior<T>? = null
+    var behavior: TreeBehavior<T>? = null
         set(new) {
-            if (new == renderer) { return }
+            if (new == behavior) { return }
 
             field?.uninstall(this)
 
@@ -136,7 +136,7 @@ open class Tree<T, out M: Model<T>>(
     }
 
     override fun render(canvas: Canvas) {
-        renderer?.render(this, canvas)
+        behavior?.render(this, canvas)
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
