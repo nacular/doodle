@@ -1,13 +1,13 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.list.ListRenderer.ItemPositioner
-import com.nectar.doodle.controls.list.ListRenderer.ItemUIGenerator
+import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
+import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.scheduler.Strand
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.AdaptingObservableSet
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Pool
@@ -19,8 +19,8 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 3/19/18.
  */
-interface ListRenderer<T>: Renderer<List<T, *>> {
-    interface ItemUIGenerator<T> {
+interface ListBehavior<T>: Behavior<List<T, *>> {
+    interface ItemGenerator<T> {
         operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
     }
 
@@ -30,8 +30,8 @@ interface ListRenderer<T>: Renderer<List<T, *>> {
         fun rowFor(list: List<T, *>, y: Double): Int
     }
 
-    val positioner : ItemPositioner<T>
-    val uiGenerator: ItemUIGenerator<T>
+    val generator : ItemGenerator<T>
+    val positioner: ItemPositioner<T>
 }
 
 open class List<T, out M: Model<T>>(
@@ -58,8 +58,8 @@ open class List<T, out M: Model<T>>(
         }
     }
 
-    private var itemPositioner : ItemPositioner<T>?  = null
-    private var itemUIGenerator: ItemUIGenerator<T>? = null
+    private var itemGenerator  : ItemGenerator <T>? = null
+    private var itemPositioner : ItemPositioner<T>? = null
     private val halfCacheLength = cacheLength / 2
     private var minVisibleY     = 0.0
     private var maxVisibleY     = 0.0
@@ -67,7 +67,7 @@ open class List<T, out M: Model<T>>(
     protected var firstVisibleRow =  0
     protected var lastVisibleRow  = -1
 
-    var renderer: ListRenderer<T>? = null
+    var renderer: ListBehavior<T>? = null
         set(new) {
             if (new == renderer) { return }
 
@@ -75,7 +75,7 @@ open class List<T, out M: Model<T>>(
 
             field = new?.also {
                 itemPositioner  = it.positioner
-                itemUIGenerator = it.uiGenerator
+                itemGenerator = it.generator
 
                 children.batch {
                     clear()
@@ -173,7 +173,7 @@ open class List<T, out M: Model<T>>(
     }
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
-        itemUIGenerator?.let { uiGenerator ->
+        itemGenerator?.let { uiGenerator ->
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
@@ -193,7 +193,7 @@ open class List<T, out M: Model<T>>(
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
-            itemUIGenerator?.let { uiGenerator ->
+            itemGenerator?.let { uiGenerator ->
                 model[index]?.let { row ->
                     val i = index % children.size
 

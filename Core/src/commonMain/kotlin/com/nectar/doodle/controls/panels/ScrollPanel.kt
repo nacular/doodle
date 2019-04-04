@@ -7,14 +7,14 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
 import kotlin.math.min
 
 
-interface ScrollPanelRenderer: Renderer<ScrollPanel> {
+interface ScrollPanelBehavior: Behavior<ScrollPanel> {
     var onScroll: ((Point) -> Unit)?
 
     fun scrollTo(point: Point)
@@ -49,7 +49,7 @@ open class ScrollPanel(content: View? = null): View() {
     var scroll = Origin
         private set
 
-    var renderer: ScrollPanelRenderer? = null
+    var renderer: ScrollPanelBehavior? = null
         set(new) {
             field?.onScroll = null
 

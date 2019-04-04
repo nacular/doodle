@@ -3,7 +3,7 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
@@ -17,7 +17,7 @@ import kotlin.math.round
 open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Orientation.Horizontal): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Orientation.Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
-    var renderer: Renderer<Slider>? = null
+    var renderer: Behavior<Slider>? = null
         set(new) {
             if (field == new) { return }
 

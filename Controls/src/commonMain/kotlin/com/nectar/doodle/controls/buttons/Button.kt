@@ -4,7 +4,7 @@ import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment.Center
@@ -39,7 +39,7 @@ abstract class Button protected constructor(
 
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<View, String>)
 
-    var renderer: Renderer<Button>? = null
+    var renderer: Behavior<Button>? = null
         set(new) {
             if (field == new) { return }
 

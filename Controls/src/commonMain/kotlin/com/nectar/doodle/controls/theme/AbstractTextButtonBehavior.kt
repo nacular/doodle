@@ -15,10 +15,10 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 10/3/18.
  */
-abstract class AbstractTextButtonUI(
+abstract class AbstractTextButtonBehavior(
         private val textMetrics: TextMetrics,
         private val defaultFont: Font?  = null,
-        private val insets     : Insets = Insets.None): AbstractButtonUI() {
+        private val insets     : Insets = Insets.None): AbstractButtonBehavior() {
 
     protected fun textPosition(button: Button, icon: Icon<Button>? = null, bounds: Rectangle = button.bounds): Point {
         val minX       = insets.left

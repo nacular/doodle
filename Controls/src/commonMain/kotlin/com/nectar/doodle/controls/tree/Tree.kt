@@ -5,9 +5,9 @@ package com.nectar.doodle.controls.tree
 import com.nectar.doodle.JvmName
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.panels.ScrollPanel
-import com.nectar.doodle.controls.theme.TreeRenderer
-import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
-import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
+import com.nectar.doodle.controls.theme.TreeBehavior
+import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
+import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -56,15 +56,15 @@ open class Tree<T, out M: Model<T>>(
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var renderer: TreeRenderer<T>? = null
+    var renderer: TreeBehavior<T>? = null
         set(new) {
             if (new == renderer) { return }
 
             field?.uninstall(this)
 
             field = new?.also {
-                itemPositioner  = it.positioner
-                itemUIGenerator = it.generator
+                this.generator  = it.generator
+                this.positioner = it.positioner
 
                 children.batch {
                     clear     ()
@@ -84,8 +84,8 @@ open class Tree<T, out M: Model<T>>(
     val selectionAnchor get() = selectionModel?.anchor
     val selection       get() = selectionModel?.toSet() ?: emptySet()
 
-    protected var itemPositioner  = null as RowPositioner<T>?
-    private   var itemUIGenerator = null as RowGenerator<T>?
+    private   var generator       = null as RowGenerator<T>?
+    protected var positioner      = null as RowPositioner<T>?
     private   val expandedPaths   = mutableSetOf<Path<Int>>()
     private   val rowToPath       = mutableMapOf<Int, Path<Int>>()
     private   val halfCacheLength = cacheLength / 2
@@ -101,7 +101,7 @@ open class Tree<T, out M: Model<T>>(
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (parent as? ScrollPanel)?.let { parent ->
             added.lastOrNull()?.let { added ->
-                itemPositioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
+                positioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
                     parent.scrollToVisible(it)
                 }
             }
@@ -140,7 +140,7 @@ open class Tree<T, out M: Model<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        itemPositioner?.let { positioner ->
+        positioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return
             }
@@ -376,7 +376,7 @@ open class Tree<T, out M: Model<T>>(
         numRows = rowsBelow(Path()) + if(rootVisible) 1 else 0
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, itemPositioner?.row(this, y) ?: nearbyRow)
+    private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, positioner?.row(this, y) ?: nearbyRow)
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until model.numChildren(parent)).map { parent + it }
@@ -442,7 +442,7 @@ open class Tree<T, out M: Model<T>>(
         var result: Int? = index
 
         rowToPath[index] = path
-        itemUIGenerator?.let {
+        generator?.let {
             model[path]?.let { value ->
 //                    pathToRow[path ] = index
 
@@ -498,7 +498,7 @@ open class Tree<T, out M: Model<T>>(
 
             // Path index not found (could be invisible)
             if (index in firstVisibleRow..lastVisibleRow) {
-                itemUIGenerator?.let {
+                generator?.let {
                     model[path]?.let { value ->
                         //                    pathToRow[path ] = index
 
@@ -520,7 +520,7 @@ open class Tree<T, out M: Model<T>>(
     }
 
     protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
-        itemPositioner?.let {
+        positioner?.let {
             view.bounds = it.rowBounds(this, node, path, index, view)
 
             width       = max(width, view.width)
@@ -604,7 +604,7 @@ open class Tree<T, out M: Model<T>>(
     }
 
     // TODO: move this logic into ItemPositioner
-    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { itemPositioner?.rowBounds(this, it, path, 0)?.height } ?: 0.0)
+    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { positioner?.rowBounds(this, it, path, 0)?.height } ?: 0.0)
 
     private fun expandAllBelowPath(path: Path<Int>, expandedPath: MutableSet<Path<Int>> = mutableSetOf()) {
         if (model.isLeaf(path)) {

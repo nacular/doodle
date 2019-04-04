@@ -81,7 +81,7 @@ class ScrollPanelTests {
         }
     }
 
-    private fun panel(renderer: ScrollPanelRenderer = renderer()): ScrollPanel {
+    private fun panel(renderer: ScrollPanelBehavior = renderer()): ScrollPanel {
         val content = Box().apply { size = Size(100.0, 100.0) }
 
         return ScrollPanel(content).apply {
@@ -90,8 +90,8 @@ class ScrollPanelTests {
         }
     }
 
-    private fun renderer(): ScrollPanelRenderer {
-        val renderer = mockk<ScrollPanelRenderer>(relaxed = true)
+    private fun renderer(): ScrollPanelBehavior {
+        val renderer = mockk<ScrollPanelBehavior>(relaxed = true)
 
         val point    = CapturingSlot<Point>()
         val onScroll = CapturingSlot<(Point) -> Unit>()

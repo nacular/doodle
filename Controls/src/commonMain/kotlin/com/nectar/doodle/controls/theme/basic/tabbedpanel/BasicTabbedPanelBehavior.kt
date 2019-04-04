@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic.tabbedpanel
 
 import com.nectar.doodle.controls.panels.TabbedPanel
-import com.nectar.doodle.controls.theme.TabbedPanelUI
+import com.nectar.doodle.controls.theme.TabbedPanelBehavior
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Layout
@@ -158,9 +158,9 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
     }
 }
 
-open class BasicTabbedPanelUI<T>(private val tabProducer    : TabProducer<T>,
-                                 private val backgroundColor: Color = Color(0xdee1e6u),
-                                 private val displayer      : (T) -> View): TabbedPanelUI<T> {
+open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<T>,
+                                       private val backgroundColor: Color = Color(0xdee1e6u),
+                                       private val displayer      : (T) -> View): TabbedPanelBehavior<T> {
 
     override fun install(panel: TabbedPanel<T>, container: Container) {
         container.apply {

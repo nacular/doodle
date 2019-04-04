@@ -10,10 +10,10 @@ import com.nectar.doodle.controls.list.MutableModel
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.theme.basic.list.BasicListUI
-import com.nectar.doodle.controls.theme.basic.list.BasicMutableListUI
-import com.nectar.doodle.controls.theme.basic.tree.BasicMutableTreeUI
-import com.nectar.doodle.controls.theme.basic.tree.BasicTreeUI
+import com.nectar.doodle.controls.theme.basic.list.BasicListBehavior
+import com.nectar.doodle.controls.theme.basic.list.BasicMutableListBehavior
+import com.nectar.doodle.controls.theme.basic.tree.BasicMutableTreeBehavior
+import com.nectar.doodle.controls.theme.basic.tree.BasicTreeBehavior
 import com.nectar.doodle.controls.tree.Model
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
@@ -23,7 +23,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Theme
 
 /**
@@ -46,29 +46,29 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button            -> it.renderer = buttonUI
-            is Slider            -> it.renderer = sliderUI
-            is SplitPanel        -> it.renderer = splitPanelUI
-            is ProgressBar       -> it.renderer = (progressBarUI as Renderer<ProgressIndicator>)
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).renderer = mutableListUI
-            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).renderer = mutableTreeUI
-            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).renderer = listUI
-            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).renderer = treeUI
-            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).renderer = spinnerUI
+            is Button            -> it.renderer = buttonBehavior
+            is Slider            -> it.renderer = sliderBehavior
+            is SplitPanel        -> it.renderer = splitPanelBehavior
+            is ProgressBar       -> it.renderer = (progressBarBehavior as Behavior<ProgressIndicator>)
+            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).renderer = mutableListBehavior
+            is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).renderer = mutableTreeBehavior
+            is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).renderer = listBehavior
+            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).renderer = treeBehavior
+            is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).renderer = spinnerBehavior
         }
     }
 
     override fun toString() = this::class.simpleName ?: ""
 
-    private val listUI        by lazy { BasicListUI<Any>       (textMetrics               ) }
-    private val treeUI        by lazy { BasicTreeUI<Any>       (labelFactory, focusManager) }
-    private val buttonUI      by lazy { BasicButtonUI          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
-    private val sliderUI      by lazy { BasicSliderUI          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
-    private val spinnerUI     by lazy { BasicSpinnerUI         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }
-    private val splitPanelUI  by lazy { BasicSplitPanelUI      () }
-    private val mutableListUI by lazy { BasicMutableListUI<Any>(focusManager, textMetrics ) }
-    private val progressBarUI by lazy { BasicProgressBarUI     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
-    private val mutableTreeUI by lazy { BasicMutableTreeUI<Any>(labelFactory, focusManager) }
+    private val listBehavior        by lazy { BasicListBehavior<Any>       (textMetrics               ) }
+    private val treeBehavior        by lazy { BasicTreeBehavior<Any>       (labelFactory, focusManager) }
+    private val buttonBehavior      by lazy { BasicButtonBehavior          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
+    private val sliderBehavior      by lazy { BasicSliderBehavior          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
+    private val spinnerBehavior     by lazy { BasicSpinnerBehavior         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }
+    private val splitPanelBehavior  by lazy { BasicSplitPanelBehavior      () }
+    private val mutableListBehavior by lazy { BasicMutableListBehavior<Any>(focusManager, textMetrics ) }
+    private val progressBarBehavior by lazy { BasicProgressBarBehavior     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
+    private val mutableTreeBehavior by lazy { BasicMutableTreeBehavior<Any>(labelFactory, focusManager) }
 }
 
 //val basicThemeModule = Module(allowSilentOverride = true) {

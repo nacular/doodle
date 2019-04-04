@@ -3,9 +3,9 @@ package com.nectar.doodle.controls.theme.basic.tree
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.TextField
-import com.nectar.doodle.controls.theme.TreeRenderer
-import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
-import com.nectar.doodle.controls.theme.TreeRenderer.RowPositioner
+import com.nectar.doodle.controls.theme.TreeBehavior
+import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
+import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
 import com.nectar.doodle.controls.tree.EditOperation
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
@@ -275,7 +275,7 @@ class BasicMutableTreeRowGenerator<T>(labelFactory: LabelFactory, focusManager: 
     }
 }
 
-open class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer<T>, KeyListener {
+open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBehavior<T>, KeyListener {
     constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicTreeRowGenerator(labelFactory, focusManager))
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
@@ -308,10 +308,10 @@ open class BasicTreeUI<T>(override val generator: RowGenerator<T>): TreeRenderer
     }
 }
 
-class BasicMutableTreeUI<T>(generator: RowGenerator<T>): BasicTreeUI<T>(generator) {
+class BasicMutableTreeBehavior<T>(generator: RowGenerator<T>): BasicTreeBehavior<T>(generator) {
     constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicMutableTreeRowGenerator(labelFactory, focusManager))
 
-    override val positioner: TreeRenderer.RowPositioner<T> = BasicTreeRowPositioner(20.0)
+    override val positioner: TreeBehavior.RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
         canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(20, 40)) {

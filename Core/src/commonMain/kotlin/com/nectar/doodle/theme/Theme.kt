@@ -27,10 +27,10 @@ interface Theme {
 }
 
 /**
- * A Renderer can be used by [View]s and [Theme]s to allow delegation of the [View.render] call.  This way, a [View] can have it's visual style
- * controlled by a Theme.
+ * A Behavior can be used by [View]s and [Theme]s to allow delegation of the [View.render] call and other characteristics of the [View].
+ * This way, a [View] can have it's visual style and behaviors controlled by a delegate.
  */
-interface Renderer<in T: View> {
+interface Behavior<in T: View> {
     /**
      * Invoked to render the given [View].
      *
@@ -40,7 +40,7 @@ interface Renderer<in T: View> {
     fun render(view: T, canvas: Canvas)
 
     /**
-     * Returns true if the [View] contains point.  This can be used to handle cases when the [Renderer] wants to control hit detection.
+     * Returns true if the [View] contains point.  This can be used to handle cases when the [Behavior] wants to control hit detection.
      *
      * @param view
      * @param point
@@ -48,14 +48,14 @@ interface Renderer<in T: View> {
     fun contains(view: T, point: Point): Boolean = point in view.bounds
 
     /**
-     * Called when the Renderer is applied to a [View].
+     * Called when the Behavior is applied to a [View].
      *
      * @param view being applied to
      */
     fun install(view: T) {}
 
     /**
-     * Called when the Renderer is removed from a [View].
+     * Called when the Behavior is removed from a [View].
      *
      * @param view being removed from
      */

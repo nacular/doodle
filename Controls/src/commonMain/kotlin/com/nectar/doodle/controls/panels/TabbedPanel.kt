@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.controls.theme.TabbedPanelUI
+import com.nectar.doodle.controls.theme.TabbedPanelBehavior
 import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.View
@@ -44,7 +44,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
     var selection  : Int            by ObservableProperty(0   ,        { this }, selectionChanged   as PropertyObserversImpl)
     var orientation: BoxOrientation by ObservableProperty(orientation, { this }, orientationChanged as PropertyObserversImpl)
 
-    var renderer: TabbedPanelUI<T>? = null
+    var renderer: TabbedPanelBehavior<T>? = null
         set(new) {
             if (new == field) return
 

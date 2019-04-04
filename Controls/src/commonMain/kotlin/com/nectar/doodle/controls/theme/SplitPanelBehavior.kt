@@ -7,19 +7,19 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.system.Cursor.Companion.ColResize
 import com.nectar.doodle.system.Cursor.Companion.RowResize
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
 import kotlin.math.max
 import kotlin.math.min
 
-interface SplitPanelUI: Renderer<SplitPanel> {
+interface SplitPanelBehavior: Behavior<SplitPanel> {
     fun divider(panel: SplitPanel): View?
 
     val dividerVisible: Boolean
 }
 
-abstract class AbstractSplitPanelUI(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelUI, MouseListener, MouseMotionListener {
+abstract class AbstractSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, MouseListener, MouseMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var orientation     = Vertical

@@ -1,7 +1,7 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.panels.ScrollPanel
-import com.nectar.doodle.controls.panels.ScrollPanelRenderer
+import com.nectar.doodle.controls.panels.ScrollPanelBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeScrollPanelFactory
 import com.nectar.doodle.geometry.Point
@@ -9,7 +9,7 @@ import com.nectar.doodle.geometry.Point
 /**
  * Created by Nicholas Eddy on 2/5/18.
  */
-class SystemScrollPanelUI(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelRenderer {
+class SystemScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
     override fun scrollTo(point: Point) {
         nativePeer.scrollTo(point)
     }

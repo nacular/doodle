@@ -1,8 +1,8 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.controls.theme.TreeRenderer
-import com.nectar.doodle.controls.theme.TreeRenderer.RowGenerator
+import com.nectar.doodle.controls.theme.TreeBehavior
+import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.utils.Path
 import io.mockk.every
 import io.mockk.mockk
@@ -187,15 +187,15 @@ class TreeTests {
 
     private fun <T> rowGenerator(): RowGenerator<T> = mockk(relaxed = true)
 
-    private fun <T> renderer(uiGenerator: RowGenerator<T> = rowGenerator()): TreeRenderer<T> {
-        val ui = mockk<TreeRenderer<T>>(relaxed = true)
+    private fun <T> renderer(uiGenerator: RowGenerator<T> = rowGenerator()): TreeBehavior<T> {
+        val ui = mockk<TreeBehavior<T>>(relaxed = true)
 
         every { ui.generator } returns uiGenerator
 
         return ui
     }
 
-    private fun <T> tree(root: TreeNode<T>, ui: TreeRenderer<T> = renderer()) = Tree(SimpleModel(root)).apply { renderer = ui }
+    private fun <T> tree(root: TreeNode<T>, ui: TreeBehavior<T> = renderer()) = Tree(SimpleModel(root)).apply { renderer = ui }
 
     private fun <T> validateGetRow(root: TreeNode<T>, expected: List<T>, block: Tree<T, *>.() -> Unit = {}) {
         val tree = tree(root).also { block(it) }

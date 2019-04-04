@@ -2,10 +2,10 @@ package com.nectar.doodle.controls.theme.basic.list
 
 import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
+import com.nectar.doodle.controls.list.ListBehavior
+import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
+import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
 import com.nectar.doodle.controls.list.ListEditor
-import com.nectar.doodle.controls.list.ListRenderer
-import com.nectar.doodle.controls.list.ListRenderer.ItemPositioner
-import com.nectar.doodle.controls.list.ListRenderer.ItemUIGenerator
 import com.nectar.doodle.controls.list.Model
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.Label
@@ -97,7 +97,7 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, var
     }
 }
 
-private open class LabelItemUIGenerator<T>(private val textMetrics: TextMetrics): ItemUIGenerator<T> {
+private open class LabelItemGenerator<T>(private val textMetrics: TextMetrics): ItemGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> current.apply { update(list, row, index) }
         else          -> ListRow(textMetrics, list, row, index)
@@ -114,7 +114,7 @@ private class BasicListPositioner<T>(private val height: Double): ItemPositioner
     }
 }
 
-private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemUIGenerator<T>(textMetrics) {
+private class MutableLabelItemGenerator<T>(private val focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemGenerator<T>(textMetrics) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -132,16 +132,16 @@ private class MutableLabelItemUIGenerator<T>(private val focusManager: FocusMana
     }
 }
 
-class BasicListUI<T>(textMetrics: TextMetrics): ListRenderer<T> {
+class BasicListBehavior<T>(textMetrics: TextMetrics): ListBehavior<T> {
     override val positioner : ItemPositioner<T>  = BasicListPositioner (20.0       )
-    override val uiGenerator: ItemUIGenerator<T> = LabelItemUIGenerator(textMetrics)
+    override val generator: ItemGenerator<T> = LabelItemGenerator(textMetrics)
 
     override fun render(view: List<T, *>, canvas: Canvas) {}
 }
 
-class BasicMutableListUI<T>(focusManager: FocusManager?, textMetrics: TextMetrics): ListRenderer<T>, KeyListener {
+class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): ListBehavior<T>, KeyListener {
     override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
-    override val uiGenerator: ItemUIGenerator<T> = MutableLabelItemUIGenerator(focusManager, textMetrics)
+    override val generator: ItemGenerator<T> = MutableLabelItemGenerator(focusManager, textMetrics)
 
     override fun render(view: List<T, *>, canvas: Canvas) {}
 

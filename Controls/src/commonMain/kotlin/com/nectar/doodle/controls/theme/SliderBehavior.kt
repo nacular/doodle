@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
 import com.nectar.doodle.utils.size
@@ -14,7 +14,7 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-abstract class SliderUI: Renderer<Slider>, MouseListener, MouseMotionListener {
+abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListener {
 
     private   var lastStart         = -1.0
     protected var lastMousePosition = -1.0

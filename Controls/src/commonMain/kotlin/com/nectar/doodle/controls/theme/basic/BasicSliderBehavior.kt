@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.Slider
-import com.nectar.doodle.controls.theme.SliderUI
+import com.nectar.doodle.controls.theme.SliderBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -13,7 +13,7 @@ import com.nectar.doodle.utils.Orientation.Vertical
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
-class BasicSliderUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderUI() {
+class BasicSliderBehavior(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): SliderBehavior() {
     override fun render(view: Slider, canvas: Canvas) {
         val rect1: Rectangle
         val rect2: Rectangle

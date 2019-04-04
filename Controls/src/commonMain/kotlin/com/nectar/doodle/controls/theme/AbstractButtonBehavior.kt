@@ -6,10 +6,10 @@ import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 
 
-abstract class AbstractButtonUI: Renderer<Button>, MouseListener, KeyListener {
+abstract class AbstractButtonBehavior: Behavior<Button>, MouseListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
         enabledChanged(view as Button)

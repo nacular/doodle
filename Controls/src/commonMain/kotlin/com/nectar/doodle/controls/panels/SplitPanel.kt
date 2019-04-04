@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.controls.theme.SplitPanelUI
+import com.nectar.doodle.controls.theme.SplitPanelBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
@@ -15,7 +15,7 @@ import com.nectar.doodle.utils.Orientation.Vertical
 
 class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
-    var renderer: SplitPanelUI? = null
+    var renderer: SplitPanelBehavior? = null
         set(new) {
 
             divider?.let { children -= it }

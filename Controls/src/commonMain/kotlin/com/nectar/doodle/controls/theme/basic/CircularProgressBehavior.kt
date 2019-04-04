@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.ProgressIndicator
-import com.nectar.doodle.controls.theme.ProgressIndicatorUI
+import com.nectar.doodle.controls.theme.ProgressIndicatorBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -15,7 +15,7 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-class CircularProgressUI(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorUI<ProgressIndicator>() {
+class CircularProgressBehavior(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorBehavior<ProgressIndicator>() {
     override fun render(view: ProgressIndicator, canvas: Canvas) {
         val border = 1.0
         val radius = min(view.width, view.height) / 2

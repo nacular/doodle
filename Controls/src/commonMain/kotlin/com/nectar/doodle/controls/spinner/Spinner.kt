@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.spinner
 
-import com.nectar.doodle.controls.theme.SpinnerUI
+import com.nectar.doodle.controls.theme.SpinnerBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.utils.ChangeObservers
@@ -37,7 +37,7 @@ open class Spinner<T, M: Model<T>>(model: M): View() {
          val hasNext     get() = model.hasNext
          val hasPrevious get() = model.hasPrevious
 
-    var renderer: SpinnerUI<T, M>? = null
+    var renderer: SpinnerBehavior<T, M>? = null
         set(new) {
             children.clear()
 

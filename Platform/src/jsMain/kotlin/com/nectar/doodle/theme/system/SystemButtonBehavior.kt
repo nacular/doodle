@@ -1,14 +1,14 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.controls.theme.AbstractTextButtonUI
+import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
 
-internal class SystemButtonUI(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonUI(textMetrics) {
+internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonBehavior(textMetrics) {
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 

@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.controls.theme.AbstractTextButtonUI
+import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -16,13 +16,13 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 3/17/18.
  */
-class BasicButtonUI(
+class BasicButtonBehavior(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val borderColor        : Color,
-        private val borderWidth        : Double = 1.0): AbstractTextButtonUI(textMetrics) {
+        private val borderWidth        : Double = 1.0): AbstractTextButtonBehavior(textMetrics) {
 
     private var insets = Insets(4.0)
 

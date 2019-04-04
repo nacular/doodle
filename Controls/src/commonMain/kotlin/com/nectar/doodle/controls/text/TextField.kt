@@ -2,13 +2,13 @@ package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
 
 
-interface TextFieldRenderer: Renderer<TextField> {
+interface TextFieldBehavior: Behavior<TextField> {
     fun fitTextSize(textField: TextField): Size
 }
 
@@ -43,7 +43,7 @@ open class TextField: TextInput() {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-    var renderer: TextFieldRenderer? = null
+    var renderer: TextFieldBehavior? = null
         set(new) {
             field = new
 

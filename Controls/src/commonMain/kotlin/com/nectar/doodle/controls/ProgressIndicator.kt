@@ -3,7 +3,7 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.theme.Renderer
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.size
@@ -14,7 +14,7 @@ import com.nectar.doodle.utils.size
 open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
-    var renderer: Renderer<ProgressIndicator>? = null
+    var renderer: Behavior<ProgressIndicator>? = null
         set(new) {
             if (field == new) { return }
 

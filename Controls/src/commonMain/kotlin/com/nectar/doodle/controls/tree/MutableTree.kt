@@ -90,7 +90,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
                 this[path]?.let { node ->
                     val row = rowFromPath(path)!!
 
-                    itemPositioner?.rowBounds(this, node, path, row)
+                    positioner?.rowBounds(this, node, path, row)
                 }
             }
         }
@@ -131,7 +131,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
                 val i = rowFromPath(path)!! % children.size
 
                 editingPath   = path
-                editOperation = it.edit(this, item, path, super.itemPositioner?.contentBounds(this, item, path, i, children.getOrNull(i)) ?: Rectangle.Empty, children[i]).also {
+                editOperation = it.edit(this, item, path, super.positioner?.contentBounds(this, item, path, i, children.getOrNull(i)) ?: Rectangle.Empty, children[i]).also {
                     it()?.let { children[i] = it }
 
                     layout(children[i], item, path, i)

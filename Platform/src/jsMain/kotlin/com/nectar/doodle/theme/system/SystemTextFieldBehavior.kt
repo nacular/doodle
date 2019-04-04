@@ -1,12 +1,12 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.text.TextField
-import com.nectar.doodle.controls.text.TextFieldRenderer
+import com.nectar.doodle.controls.text.TextFieldBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 
 
-class SystemTextFieldUI(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): TextFieldRenderer {
+class SystemTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): TextFieldBehavior {
     private val nativePeer by lazy { nativeTextFieldFactory(textField) }
 
     override fun fitTextSize(textField: TextField) = nativePeer.fitTextSize()

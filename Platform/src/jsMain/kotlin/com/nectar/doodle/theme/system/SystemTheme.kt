@@ -43,10 +43,10 @@ class SystemTheme internal constructor(
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button      -> it.renderer = SystemButtonUI     (nativeButtonFactory,      textMetrics, it)
-            is Slider      -> it.renderer = SystemSliderUI     (nativeSliderFactory,      it             )
-            is TextField   -> it.renderer = SystemTextFieldUI  (nativeTextFieldFactory,   it             )
-            is ScrollPanel -> it.renderer = SystemScrollPanelUI(nativeScrollPanelFactory, it             )
+            is Button      -> it.renderer = SystemButtonBehavior     (nativeButtonFactory,      textMetrics, it)
+            is Slider      -> it.renderer = SystemSliderBehavior     (nativeSliderFactory,      it             )
+            is TextField   -> it.renderer = SystemTextFieldBehavior  (nativeTextFieldFactory,   it             )
+            is ScrollPanel -> it.renderer = SystemScrollPanelBehavior(nativeScrollPanelFactory, it             )
         }
     }
 
