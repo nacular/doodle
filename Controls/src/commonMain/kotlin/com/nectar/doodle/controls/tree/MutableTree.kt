@@ -85,7 +85,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
     private var editingPath = null as Path<Int>?
         set(new) {
-            field = new
+            field       = new
             editingRect = field?.let { path ->
                 this[path]?.let { node ->
                     val row = rowFromPath(path)!!
@@ -93,7 +93,11 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
                     positioner?.rowBounds(this, node, path, row)
                 }
             }
+
+            preEditValue = new?.let { model[it] }
         }
+
+    private var preEditValue = null as T?
 
     private var editingRect   = null as Rectangle?
     private var editOperation = null as EditOperation<T>?
@@ -128,13 +132,15 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
         editor?.let {
             model[path]?.let { item ->
-                val i = rowFromPath(path)!! % children.size
+                rowFromPath(path)?.let { row ->
+                    val i = row % children.size
 
-                editingPath   = path
-                editOperation = it.edit(this, item, path, super.positioner?.contentBounds(this, item, path, i, children.getOrNull(i)) ?: Rectangle.Empty, children[i]).also {
-                    it()?.let { children[i] = it }
+                    editingPath   = path
+                    editOperation = it.edit(this, item, path, positioner?.contentBounds(this, item, path, i, children[i]) ?: Rectangle.Empty, children[i]).also {
+                        it()?.let { children[i] = it }
 
-                    layout(children[i], item, path, i)
+                        layout(children[i], item, path, i)
+                    }
                 }
             }
         }
@@ -147,17 +153,21 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
 
                 cleanupEditing()
 
-                if (result == model.set(path, result)) {
-                    // This is the case that the "new" value is the same as what was there
-                    // so need to explicitly update since the model won't fire a change
-                    update(children, path)
-                }
+                updateModel(path, result)
             }
         }
     }
 
     fun cancelEditing() {
-        cleanupEditing()?.let { update(children, it) }
+        preEditValue?.let { oldValue -> cleanupEditing()?.let { path -> updateModel(path, oldValue) } }
+    }
+
+    private fun updateModel(path: Path<Int>, value: T) {
+        if (value == model.set(path, value)) {
+            // This is the case that the "new" value is the same as what was there
+            // so need to explicitly update since the model won't fire a change
+            update(children, path)
+        }
     }
 
     private fun cleanupEditing(): Path<Int>? {
@@ -165,6 +175,7 @@ class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionMode
         val result    = editingPath
         editOperation = null
         editingPath   = null
+
         return result
     }
 

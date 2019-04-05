@@ -57,28 +57,22 @@ private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraint
 private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
-    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = contentBounds(tree, node, path, index, current).let {
-        val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
-        val indent   = 20.0 * (1 + depth)
-        val maxWidth = tree.width - tree.insets.run { left + right } - indent
+    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = Rectangle(
+            tree.insets.left,
+            tree.insets.top + index * height,
+            max(tree.width - tree.insets.run { left + right }, contentBounds(tree, node, path, index, current).right),
+            height)
 
-        Rectangle(tree.insets.left, it.y, max(maxWidth, it.width) + it.x, it.height)
-    }
+    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = when (current) {
+        is BasicTreeRow<*> -> current.content.bounds.let { it.at(y = it.y + index * height) }
+        else               -> {
+            // FIXME: Centralize
+            val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
+            val indent   = 20.0 * (1 + depth)
+            val maxWidth = tree.width - tree.insets.run { left + right } - indent
 
-    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): Rectangle {
-        // FIXME: Centralize
-        val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
-        val indent   = 20.0 * (1 + depth)
-        val maxWidth = tree.width - tree.insets.run { left + right } - indent
-
-        return Rectangle(
-                tree.insets.left + indent,
-                tree.insets.top + index * height,
-                when (current) {
-                    is BasicTreeRow<*> -> current.idealSize!!.width - if (tree.isLeaf(path)) 0 else 20
-                    else               -> maxWidth
-                },
-                height)
+            Rectangle(tree.insets.left + indent, tree.insets.top + index * height, maxWidth, height)
+        }
     }
 
     override fun row(of: Tree<T, *>, atY: Double): Int {
@@ -88,11 +82,6 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
 
 interface ContentGenerator<T> {
     operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View? = null): View
-
-//    val position: Constraints.() -> Unit get() = {
-//        left    = parent.left
-//        centerY = parent.centerY
-//    }
 
     fun position(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
         left    = parent.left
@@ -111,12 +100,12 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
 }
 
 private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, private var index: Int): View() {
-    private var icon       = null as Label?
-    private var depth      = -1
-    private var content    = contentGenerator(tree, node, path, index)
-    private val iconWidth  = 20.0
-    private var mouseOver  = false
-    private var background = null as Color?
+    private  var icon       = null as Label?
+    private  var depth      = -1
+    internal var content    = contentGenerator(tree, node, path, index)
+    private  val iconWidth  = 20.0
+    private  var mouseOver  = false
+    private  var background = null as Color?
 
     private lateinit var constraintLayout: ConstraintLayout
 

@@ -69,22 +69,37 @@ class RelativePositionMonitorImpl: RelativePositionMonitor {
             mutableListOf()
         } += listener
 
-        val ancestors = mutableListOf(view)
-
-        var p = view.parent
+        var p = view as View?
 
         while (p != null) {
-            ancestors += p
-            p = p.parent
-        }
+            p.boundsChanged += boundsChanged_
+            listenerCounts[p] = listenerCounts.getOrPut(p) { 0 } + 1
 
-        ancestors.forEach {
-            it.boundsChanged += boundsChanged_
-            listenerCounts[it] = listenerCounts.getOrPut(it) { 0 } + 1
+            p = p.parent
         }
     }
 
     fun remove(view: View, listener: AbsoluteBoundsListener) {
+        absoluteMapping[view]?.let {
+            it -= listener
+
+            if (it.isEmpty()) {
+                absolutePositions -= view
+
+                var p = view as View?
+
+                while (p != null) {
+                    p.boundsChanged -= boundsChanged_
+                    listenerCounts[p] = listenerCounts.getOrPut(p) { 0 } - 1
+
+                    if (listenerCounts[p]!! <= 0) {
+                        listenerCounts -= p
+                    }
+
+                    p = p.parent
+                }
+            }
+        }
     }
 
     fun add(view: View, relativeTo: View, listener: RelativeBoundsListener) {
