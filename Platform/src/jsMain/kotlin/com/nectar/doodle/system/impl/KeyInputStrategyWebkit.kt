@@ -20,8 +20,10 @@ import com.nectar.doodle.event.KeyState.Type.Up
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy.EventHandler
+import com.nectar.doodle.utils.ifTrue
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -105,59 +107,39 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
         return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else result
     }
 
-    private fun dispatchKeyEvent(event: KeyboardEvent, type: Type): Boolean {
-        eventHandler?.let {
-            val keyEvent = KeyState(
-                    event.keyCode,
-                    event.keyCode.toChar(),
-                    createModifiers(event),
-                    type)
+    private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.let {
+        val keyEvent = KeyState(
+                event.keyCode,
+                event.keyCode.toChar(),
+                createModifiers(event),
+                type)
 
-            return it(keyEvent)
-        }
+        return it(keyEvent)
+    } ?: true
 
-        return true
+    private fun isClipboardOperation(event: KeyboardEvent) = event.ctrlKey && event.keyCode.let { it == VK_V || it == VK_C || it == VK_X }
+
+    private fun shouldSuppressKeyEvent(event: KeyboardEvent) = event.run {
+        keyCode == VK_ALT          ||
+        keyCode == VK_TAB          ||
+        keyCode == VK_BACKSPACE    ||
+        keyCode in VK_F1..VK_F12   ||
+        keyCode == VK_A && ctrlKey ||
+        keyCode == VK_F && ctrlKey ||
+        keyCode == VK_R && ctrlKey
     }
 
-    private fun isClipboardOperation(event: KeyboardEvent): Boolean {
-        val keyCode = event.keyCode
-
-        return event.ctrlKey && (keyCode == VK_V || keyCode == VK_C || keyCode == VK_X)
+    private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {
+        event.altKey.ifTrue   { it += Alt   }
+        event.ctrlKey.ifTrue  { it += Ctrl  }
+        event.metaKey.ifTrue  { it += Meta  }
+        event.shiftKey.ifTrue { it += Shift }
     }
 
-    private fun shouldSuppressKeyEvent(event: KeyboardEvent): Boolean {
-        return event.keyCode == VK_ALT ||
-               event.keyCode == VK_TAB ||
-               event.keyCode == VK_BACKSPACE ||
-               event.keyCode in VK_F1..VK_F12 ||
-               event.ctrlKey && event.keyCode == VK_A ||
-               event.ctrlKey && event.keyCode == VK_F ||
-               event.ctrlKey && event.keyCode == VK_R
-    }
-
-    private fun createModifiers(event: KeyboardEvent): Set<Modifier> {
-        var modifiers = setOf<Modifier>()
-
-        if (event.altKey) {
-            modifiers += Alt
-        }
-        if (event.ctrlKey) {
-            modifiers += Ctrl
-        }
-        if (event.shiftKey) {
-            modifiers += Shift
-        }
-
-        return modifiers
-    }
-
-    private fun suppressEvent(event: Event): Boolean {
+    private fun suppressEvent(event: Event) = false.also {
         event.preventDefault ()
         event.stopPropagation()
-
-        return false
     }
-
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
         onkeyup    = { this@KeyInputServiceStrategyWebkit.keyUp   (it) }

@@ -21,6 +21,7 @@ import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
@@ -349,8 +350,13 @@ open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBe
                         else -> tree.lastSelection?.let { tree.rowFromPath(it) }?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > tree.numRows - 1 }?.let { tree.setSelection(setOf(it)) }
                     }?.let { Unit } ?: Unit
                 }
-                VK_RIGHT -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
-                VK_LEFT  -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                VK_RIGHT       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                VK_LEFT        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                VK_A           -> {
+                    if (Ctrl in event || Meta in event) {
+                        tree.selectAll()
+                    }
+                }
             }
         }
     }

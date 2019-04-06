@@ -321,6 +321,16 @@ open class Tree<T, out M: Model<T>>(
     fun selected(row : Int      ) = pathFromRow(row)?.let { selected(it) } ?: false
     fun selected(path: Path<Int>) = selectionModel?.contains(path) ?: false
 
+    fun selectAll() {
+        (0 .. numRows).mapNotNull {
+            pathFromRow(it)
+        }.toList()
+
+        selectionModel?.addAll((0 .. numRows).mapNotNull {
+            pathFromRow(it)
+        }.toList())
+    }
+
     @JvmName("addSelectionRows")
     fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     fun addSelection(paths: Set<Path<Int>>) {

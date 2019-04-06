@@ -101,7 +101,13 @@ class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
         return result
     }
 
-    override fun addAll(items: Collection<T>) = items.lastOrNull()?.let { add(it) } ?: false
+    override fun addAll(items: Collection<T>): Boolean {
+        if (observableSet.firstOrNull() in items) {
+            return false
+        }
+
+        return items.lastOrNull()?.let { add(it) } ?: false
+    }
 
     override fun replaceAll(items: Collection<T>) = items.lastOrNull()?.let { super.replaceAll(listOf(it)) } ?: false
 

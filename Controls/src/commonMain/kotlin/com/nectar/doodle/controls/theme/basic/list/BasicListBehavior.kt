@@ -16,9 +16,12 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
+import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
+import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -26,6 +29,7 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
@@ -70,8 +74,17 @@ private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, var
                     setOf(index).also {
                         list.apply {
                             when {
-                                Ctrl in event.modifiers || Meta in event.modifiers -> if (selected(index)) removeSelection(it) else addSelection(it)
-                                else                                               -> setSelection   (it)
+                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
+                                Shift in event.modifiers && lastSelection != null -> {
+                                    selectionAnchor?.let { anchor ->
+                                        val current = index
+                                        when {
+                                            current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
+                                            anchor  < current -> setSelection((anchor  .. current).           toSet())
+                                        }
+                                    }
+                                }
+                                else -> setSelection(it)
                             }
                         }
                     }
@@ -132,18 +145,45 @@ private class MutableLabelItemGenerator<T>(private val focusManager: FocusManage
     }
 }
 
-class BasicListBehavior<T>(textMetrics: TextMetrics): ListBehavior<T> {
-    override val positioner : ItemPositioner<T>  = BasicListPositioner (20.0       )
-    override val generator: ItemGenerator<T> = LabelItemGenerator(textMetrics)
+open class BasicListBehavior<T>(textMetrics: TextMetrics): ListBehavior<T>, KeyListener {
+    override val generator : ItemGenerator<T>  = LabelItemGenerator (textMetrics)
+    override val positioner: ItemPositioner<T> = BasicListPositioner(20.0       )
 
     override fun render(view: List<T, *>, canvas: Canvas) {}
+
+    override fun keyPressed(event: KeyEvent) {
+        (event.source as List<*, *>).let { list ->
+            when (event.code) {
+                VK_UP, VK_DOWN -> {
+                    when (Shift) {
+                        in event -> {
+                            list.selectionAnchor?.let { anchor ->
+                                list.lastSelection?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > list.numRows - 1 }?.let { current ->
+                                    when {
+                                        current < anchor  -> list.setSelection((current .. anchor ).reversed().toSet())
+                                        anchor  < current -> list.setSelection((anchor  .. current).           toSet())
+                                        else              -> list.setSelection(setOf(current))
+                                    }
+                                }
+                            }
+                        }
+                        else -> list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > list.numRows - 1 }?.let { list.setSelection(setOf(it)) }
+                    }?.let { Unit } ?: Unit
+                }
+
+                VK_A -> {
+                    if (Ctrl in event || Meta in event) {
+                        list.selectAll()
+                    }
+                }
+            }
+        }
+    }
 }
 
-class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): ListBehavior<T>, KeyListener {
-    override val positioner : ItemPositioner<T>  = BasicListPositioner(20.0)
-    override val generator: ItemGenerator<T> = MutableLabelItemGenerator(focusManager, textMetrics)
-
-    override fun render(view: List<T, *>, canvas: Canvas) {}
+class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicListBehavior<T>(textMetrics) {
+    override val generator : ItemGenerator<T>  = MutableLabelItemGenerator(focusManager, textMetrics)
+    override val positioner: ItemPositioner<T> = BasicListPositioner(20.0)
 
     override fun install(view: List<T, *>) {
         view.keyChanged += this
@@ -158,6 +198,7 @@ class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: Text
             VK_DELETE, VK_BACKSPACE -> (event.source as MutableList<*,*>).let { list ->
                 list.selection.sortedByDescending { it }.forEach { list.removeAt(it) }
             }
+            else -> super.keyPressed(event)
         }
     }
 }

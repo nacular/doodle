@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.list
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
 import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
+import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -41,10 +42,19 @@ open class List<T, out M: Model<T>>(
         private        val fitContent    : Boolean              = true,
         private        val cacheLength   : Int                  = 10): View() {
 
+    val numRows: Int get() = model.size
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
 
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
+        (parent as? ScrollPanel)?.let { parent ->
+            lastSelection?.let { added ->
+                positioner?.invoke(this, this[added]!!, added)?.let {
+                    parent.scrollToVisible(it)
+                }
+            }
+        }
+
         val adaptingSet: ObservableSet<List<T, *>, Int> = AdaptingObservableSet(this, set)
 
         (selectionChanged as SetPool).forEach {
@@ -58,8 +68,8 @@ open class List<T, out M: Model<T>>(
         }
     }
 
-    private var itemGenerator  : ItemGenerator <T>? = null
-    private var itemPositioner : ItemPositioner<T>? = null
+    private var generator       : ItemGenerator <T>? = null
+    private var positioner      : ItemPositioner<T>? = null
     private val halfCacheLength = cacheLength / 2
     private var minVisibleY     = 0.0
     private var maxVisibleY     = 0.0
@@ -74,8 +84,8 @@ open class List<T, out M: Model<T>>(
             field?.uninstall(this)
 
             field = new?.also {
-                itemPositioner  = it.positioner
-                itemGenerator = it.generator
+                this.generator  = it.generator
+                this.positioner = it.positioner
 
                 children.batch {
                     clear()
@@ -88,7 +98,7 @@ open class List<T, out M: Model<T>>(
         }
 
     protected fun updateVisibleHeight() {
-        height = model.size * (model[0]?.let { itemPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+        height = model.size * (model[0]?.let { positioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
     }
 
     public override var insets
@@ -116,7 +126,7 @@ open class List<T, out M: Model<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        itemPositioner?.let { positioner ->
+        positioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return
             }
@@ -159,21 +169,26 @@ open class List<T, out M: Model<T>>(
     }
 
     fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
+    fun selectAll      (              ) { selectionModel?.addAll    ((0 until numRows).toList()) }
     fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
     fun setSelection   (rows: Set<Int>) { selectionModel?.replaceAll(rows) }
     fun removeSelection(rows: Set<Int>) { selectionModel?.removeAll (rows) }
+    fun toggleSelection(rows: Set<Int>) { selectionModel?.toggle    (rows) }
     fun clearSelection (              ) = selectionModel?.clear     (    )
 
-    val selection get() = selectionModel?.toSet() ?: emptySet()
+    val firstSelection  get() = selectionModel?.first
+    val lastSelection   get() = selectionModel?.last
+    val selectionAnchor get() = selectionModel?.anchor
+    val selection       get() = selectionModel?.toSet() ?: emptySet()
 
     protected fun layout(view: View, row: T, index: Int) {
-        itemPositioner?.let {
+        positioner?.let {
             view.bounds = it(this, row, index)
         }
     }
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
-        itemGenerator?.let { uiGenerator ->
+        generator?.let { uiGenerator ->
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
@@ -193,7 +208,7 @@ open class List<T, out M: Model<T>>(
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
-            itemGenerator?.let { uiGenerator ->
+            generator?.let { uiGenerator ->
                 model[index]?.let { row ->
                     val i = index % children.size
 
@@ -208,7 +223,7 @@ open class List<T, out M: Model<T>>(
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int): Int {
-        return min(model.size - 1, itemPositioner?.rowFor(this, y) ?: nearbyRow)
+        return min(model.size - 1, positioner?.rowFor(this, y) ?: nearbyRow)
     }
 
     companion object {
