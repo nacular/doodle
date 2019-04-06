@@ -333,9 +333,22 @@ open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBe
     override fun keyPressed(event: KeyEvent) {
         (event.source as Tree<*, *>).let { tree ->
             when (event.code) {
-                // TODO: Centralize
-                VK_UP    -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it > 0               ) tree.setSelection(setOf(it - 1)) } }?.let { Unit } ?: Unit
-                VK_DOWN  -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it < tree.numRows - 1) tree.setSelection(setOf(it + 1)) } }?.let { Unit } ?: Unit
+                VK_UP, VK_DOWN -> {
+                    when (Shift) {
+                        in event -> {
+                            tree.selectionAnchor?.let { tree.rowFromPath(it) }?.let { anchor ->
+                                tree.lastSelection?.let { tree.rowFromPath(it) }?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > tree.numRows - 1 }?.let { current ->
+                                    when {
+                                        current < anchor  -> tree.setSelection((current .. anchor ).reversed().toSet())
+                                        anchor  < current -> tree.setSelection((anchor  .. current).           toSet())
+                                        else              -> tree.setSelection(setOf(current))
+                                    }
+                                }
+                            }
+                        }
+                        else -> tree.lastSelection?.let { tree.rowFromPath(it) }?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > tree.numRows - 1 }?.let { tree.setSelection(setOf(it)) }
+                    }?.let { Unit } ?: Unit
+                }
                 VK_RIGHT -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
                 VK_LEFT  -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
             }
@@ -346,31 +359,11 @@ open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBe
 class BasicMutableTreeBehavior<T>(generator: RowGenerator<T>): BasicTreeBehavior<T>(generator) {
     constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicMutableTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory)))
 
-    override val positioner: TreeBehavior.RowPositioner<T> = BasicTreeRowPositioner(20.0)
-
-    override fun render(view: Tree<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(20, 40)) {
-            rect(Rectangle(       20, 20), ColorBrush(lightgray.lighter()))
-            rect(Rectangle(0, 20, 20, 20), ColorBrush(lightgray          ))
-        })
-    }
-
-    override fun install(view: Tree<T, *>) {
-        view.keyChanged += this
-    }
-
-    override fun uninstall(view: Tree<T, *>) {
-        view.keyChanged -= this
-    }
-
     override fun keyPressed(event: KeyEvent) {
         (event.source as MutableTree<*, *>).let { tree ->
             when (event.code) {
-                VK_DELETE, VK_BACKSPACE -> tree.selection./*sortedByDescending { it }.*/forEach { tree.removeAt(it) }
-                VK_UP                   -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it > 0               ) tree.setSelection(setOf(it - 1)) } }?.let { Unit } ?: Unit
-                VK_DOWN                 -> tree.selection.firstOrNull()?.also { tree.rowFromPath(it)?.also { if (it < tree.numRows - 1) tree.setSelection(setOf(it + 1)) } }?.let { Unit } ?: Unit
-                VK_RIGHT                -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
-                VK_LEFT                 -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                VK_DELETE, VK_BACKSPACE -> tree.selection.forEach { tree.removeAt(it) }
+                else                    -> super.keyPressed(event)
             }
         }
     }
