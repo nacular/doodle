@@ -145,8 +145,8 @@ internal sealed class Repeat(val value: String) {
 }
 
 internal sealed class Overflow(val value: String) {
+    internal class Auto  : Overflow("auto"  )
     internal class Hidden: Overflow("hidden")
-    internal class Scroll: Overflow("scroll")
 }
 
 internal sealed class FontStyle(val value: String) {

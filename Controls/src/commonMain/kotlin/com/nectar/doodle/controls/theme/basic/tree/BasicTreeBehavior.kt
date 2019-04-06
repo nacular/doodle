@@ -15,9 +15,11 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
+import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
@@ -99,8 +101,29 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
     }
 }
 
-private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val labelFactory: LabelFactory, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, private var index: Int): View() {
-    private  var icon       = null as Label?
+private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, private var index: Int): View() {
+    private class Icon: View() {
+        var expanded = false
+            set (new) {
+                field = new
+                rerender()
+            }
+
+        override fun render(canvas: Canvas) {
+            val pen      = Pen(black)
+            val length   = 3.5
+            val width_2  = width  / 2
+            val height_2 = height / 2
+
+            if (!expanded) {
+                canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
+            }
+
+            canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
+        }
+    }
+
+    private  var icon       = null as Icon?
     private  var depth      = -1
     internal var content    = contentGenerator(tree, node, path, index)
     private  val iconWidth  = 20.0
@@ -201,14 +224,10 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
             }
             icon = null
         } else  {
-            val text = if (tree.expanded(path)) "-" else "+"
-
-            icon = icon?.apply {
-                this.text = text
-            } ?: labelFactory(text).apply {
-                fitText = false
-                width   = iconWidth
-                height  = width
+            icon = icon?.apply { expanded = tree.expanded(path) } ?: Icon().apply {
+                width    = iconWidth
+                height   = width
+                expanded = tree.expanded(path)
 
                 this@BasicTreeRow.children += this
 
@@ -258,7 +277,7 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
     }
 
-    private fun constrainIcon(icon: Label?) {
+    private fun constrainIcon(icon: Icon?) {
         icon?.let {
             constraintLayout.constrain(it, content) { icon, label ->
                 icon.right   = label.left
@@ -268,14 +287,14 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
     }
 }
 
-open class BasicTreeRowGenerator<T>(private val labelFactory: LabelFactory, private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): RowGenerator<T> {
+open class BasicTreeRowGenerator<T>(private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T>): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is BasicTreeRow<*> -> (current as BasicTreeRow<T>).apply { update(tree, node, path, index) }
-        else               -> BasicTreeRow(contentGenerator, labelFactory, focusManager, tree, node, path, index)
+        else               -> BasicTreeRow(contentGenerator, focusManager, tree, node, path, index)
     }
 }
 
-class BasicMutableTreeRowGenerator<T>(labelFactory: LabelFactory, focusManager: FocusManager?, contentGenerator: ContentGenerator<T> = LabelContentGenerator(labelFactory)): BasicTreeRowGenerator<T>(labelFactory, focusManager, contentGenerator) {
+class BasicMutableTreeRowGenerator<T>(focusManager: FocusManager?, contentGenerator: ContentGenerator<T>): BasicTreeRowGenerator<T>(focusManager, contentGenerator) {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
         if (current !is BasicTreeRow<*>) {
             val result = it as BasicTreeRow<*>
@@ -292,7 +311,7 @@ class BasicMutableTreeRowGenerator<T>(labelFactory: LabelFactory, focusManager: 
 }
 
 open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBehavior<T>, KeyListener {
-    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicTreeRowGenerator(labelFactory, focusManager))
+    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory)))
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
@@ -325,7 +344,7 @@ open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBe
 }
 
 class BasicMutableTreeBehavior<T>(generator: RowGenerator<T>): BasicTreeBehavior<T>(generator) {
-    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicMutableTreeRowGenerator(labelFactory, focusManager))
+    constructor(labelFactory: LabelFactory, focusManager: FocusManager?): this(BasicMutableTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory)))
 
     override val positioner: TreeBehavior.RowPositioner<T> = BasicTreeRowPositioner(20.0)
 
