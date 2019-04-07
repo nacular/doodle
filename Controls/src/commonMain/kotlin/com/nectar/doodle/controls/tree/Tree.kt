@@ -99,7 +99,7 @@ open class Tree<T, out M: Model<T>>(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
-        (parent as? ScrollPanel)?.let { parent ->
+        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { added ->
                 positioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
                     parent.scrollToVisible(it)

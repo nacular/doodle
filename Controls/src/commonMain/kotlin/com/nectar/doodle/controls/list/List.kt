@@ -47,7 +47,7 @@ open class List<T, out M: Model<T>>(
 
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
-        (parent as? ScrollPanel)?.let { parent ->
+        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { added ->
                 positioner?.invoke(this, this[added]!!, added)?.let {
                     parent.scrollToVisible(it)

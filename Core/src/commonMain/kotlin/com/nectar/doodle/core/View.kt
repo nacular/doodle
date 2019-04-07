@@ -226,6 +226,16 @@ abstract class View protected constructor() {
     var boundingBox = bounds
         private set
 
+    fun mostRecentAncestor(filter: (View) -> Boolean): View? {
+        var result = parent
+
+        while (result != null && !filter(result)) {
+            result = result.parent
+        }
+
+        return result
+    }
+
     // ================= Container ================= //
     internal val insets_ get() = insets
 
