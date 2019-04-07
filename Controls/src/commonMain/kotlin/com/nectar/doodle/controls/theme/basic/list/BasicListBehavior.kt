@@ -14,6 +14,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
@@ -27,6 +28,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
@@ -203,13 +205,13 @@ class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: Text
     }
 }
 
-@Suppress("PrivatePropertyName", "unused")
 open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
         private val encoder     : Encoder<T, String>,
         private val list        : MutableList<T, *>,
                     row         : T,
-        private var index       : Int): TextField(), EditOperation<T> {
+        private var index       : Int,
+                    current     : View): TextField(), EditOperation<T> {
 
     private val listSelectionChanged = { _:ObservableSet<out List<*, Model<*>>, *>,_: Set<Int>,_:  Set<Int> ->
         list.cancelEditing()
@@ -217,8 +219,9 @@ open class TextEditOperation<T>(
 
     init {
         text                = encoder.encode(row) ?: ""
-        fitText             = setOf(TextFit.Width)
+        fitText             = setOf(TextFit.Width, TextFit.Height)
         borderVisible       = false
+        backgroundColor     = current.backgroundColor
         horizontalAlignment = Left
 
         styleChanged += { rerender() }
@@ -245,19 +248,26 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke() = this
+    override fun invoke() = object: View() {
+        init {
+            children += this@TextEditOperation
+
+            layout = constrain(this@TextEditOperation) {
+                it.centerY = it.parent.centerY
+            }
+        }
+
+        override fun render(canvas: Canvas) {
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+        }
+    }
     override fun complete() = encoder.decode(text)
 
     override fun cancel() {
         list.selectionChanged -= listSelectionChanged
     }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun listSelectionChanged(set: ObservableSet<out List<*, Model<*>>, *>, removed: Set<Int>, added: Set<Int>) {
-        list.cancelEditing()
-    }
 }
 
 class ListTextEditor<T>(private val focusManager: FocusManager?, private val encoder: Encoder<T, String>): ListEditor<T> {
-    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View?): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, index)
+    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, index, current)
 }

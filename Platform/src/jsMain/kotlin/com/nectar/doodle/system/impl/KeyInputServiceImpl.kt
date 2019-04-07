@@ -71,20 +71,20 @@ class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy): KeyInp
     private fun notifyKeyEvent(keyState: KeyState): Boolean {
         notifying = true
 
-        for (preprocessor in preprocessors) {
-            if (preprocessor(keyState)) {
+        preprocessors.forEach {
+            if (it(keyState)) {
                 return true
             }
         }
 
-        for (listener in listeners) {
-            if (listener(keyState)) {
+        listeners.forEach {
+            if (it(keyState)) {
                 return true
             }
         }
 
-        for (postprocessor in postprocessors) {
-            if (postprocessor(keyState)) {
+        postprocessors.forEach {
+            if (it(keyState)) {
                 return true
             }
         }

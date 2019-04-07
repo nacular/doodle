@@ -69,7 +69,6 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
                 startMonitorProperties(focusOwner)
 
                 // Listen for removal of this item or any of its ancestors
-
                 registerAncestorListeners()
             }
 
@@ -126,8 +125,8 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
 
     private fun stopMonitorProperties(view: View) {
         view.enabledChanged      -= focusabilityChanged
-        view.focusabilityChanged -= focusabilityChanged
         view.visibilityChanged   -= focusabilityChanged
+        view.focusabilityChanged -= focusabilityChanged
     }
 
     private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { list,removed,added,_ ->
