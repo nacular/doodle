@@ -46,6 +46,9 @@ open class ScrollPanel(content: View? = null): View() {
 
     val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
+    var scrollsVertically   = true
+    var scrollsHorizontally = true
+
     var scroll = Origin
         private set
 
@@ -147,11 +150,6 @@ open class ScrollPanel(content: View? = null): View() {
             positionable.children.forEach  {
                 var width  = it.width
                 var height = it.height
-
-                it.idealSize?.let {
-                    width  = it.width
-                    height = it.height
-                }
 
                 it.bounds = Rectangle(-scroll.x, -scroll.y, width, height)
             }

@@ -8,8 +8,8 @@ import com.nectar.doodle.layout.Insets
 
 interface Positionable {
     var size       : Size
-    val width      : Double
-    val height     : Double
+    var width      : Double
+    var height     : Double
     val insets     : Insets
     val parent     : View?      // TODO: Should this be a Positionable?
     val children   : List<View> // TODO: Should this be a List<Positionable>?
@@ -20,8 +20,10 @@ interface Positionable {
 class PositionableWrapper(val view: View): Positionable {
     override var size        get() = view.size
         set(value) { view.size = value }
-    override val width       get() = view.width
-    override val height      get() = view.height
+    override var width       get() = view.width
+        set(value) { view.width = value }
+    override var height      get() = view.height
+        set(value) { view.height = value }
     override val insets      get() = view.insets_
     override val parent      get() = view.parent
     override val children    get() = view.children_

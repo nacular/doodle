@@ -7,6 +7,24 @@ import com.nectar.doodle.utils.SetObserver
 /**
  * Created by Nicholas Eddy on 3/19/18.
  */
+interface Selectable<T> {
+    fun selected       (item : T    ): Boolean
+    fun selectAll      (            )
+    fun addSelection   (item: Set<T>)
+    fun setSelection   (item: Set<T>)
+    fun removeSelection(item: Set<T>)
+    fun toggleSelection(item: Set<T>)
+    fun clearSelection (            )
+
+    fun next    (after : T): T?
+    fun previous(before: T): T?
+
+    val firstSelection : T?
+    val lastSelection  : T?
+    val selectionAnchor: T?
+    val selection      : Set<T>
+}
+
 interface SelectionModel<T>: Iterable<T> {
     val first  : T?
     val last   : T?
@@ -126,4 +144,22 @@ class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
 
         return result
     }
+}
+
+class ListSelectionManager(private val selectionModel: SelectionModel<Int>?, private val numRows: () -> Int): Selectable<Int> {
+    override fun selected       (item : Int    ) = selectionModel?.contains  (item ) ?: false
+    override fun selectAll      (              ) { selectionModel?.addAll    ((0 until numRows()).toList()) }
+    override fun addSelection   (item: Set<Int>) { selectionModel?.addAll    (item) }
+    override fun setSelection   (item: Set<Int>) { selectionModel?.replaceAll(item) }
+    override fun removeSelection(item: Set<Int>) { selectionModel?.removeAll (item) }
+    override fun toggleSelection(item: Set<Int>) { selectionModel?.toggle    (item) }
+    override fun clearSelection (              ) { selectionModel?.clear     (    ) }
+
+    override fun next    (after : Int) = (after  + 1).takeIf { it <  numRows() }
+    override fun previous(before: Int) = (before - 1).takeIf { it >= 0         }
+
+    override val firstSelection  get() = selectionModel?.first
+    override val lastSelection   get() = selectionModel?.last
+    override val selectionAnchor get() = selectionModel?.anchor
+    override val selection       get() = selectionModel?.toSet() ?: emptySet()
 }

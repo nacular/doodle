@@ -86,14 +86,12 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
         }
 
     override fun update(view: View) {
-        selected?.install(display, sequenceOf(view))
+        if (view.acceptsThemes) {
+            selected?.install(display, sequenceOf(view))
+        }
     }
 
-    private val allViews: Sequence<View> get() {
-        val iterator = BreadthFirstTreeIterator(DummyRoot(display.children))
-
-        return Sequence { iterator }.drop(1)
-    }
+    private val allViews: Sequence<View> get() = Sequence { BreadthFirstTreeIterator(DummyRoot(display.children)) }.drop(1).filter { it.acceptsThemes }
 }
 
 private class DummyRoot(children: List<View>): Node<View> {

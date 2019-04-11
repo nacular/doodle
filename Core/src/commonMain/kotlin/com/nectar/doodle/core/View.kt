@@ -226,6 +226,8 @@ abstract class View protected constructor() {
     var boundingBox = bounds
         private set
 
+    var acceptsThemes = true
+
     fun mostRecentAncestor(filter: (View) -> Boolean): View? {
         var result = parent
 

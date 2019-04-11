@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.list
 
+import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
@@ -8,11 +9,12 @@ import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
 import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.Model
 import com.nectar.doodle.controls.list.MutableList
-import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.TextField
+import com.nectar.doodle.controls.theme.basic.ListPositioner
+import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color.Companion.green
+import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
@@ -28,89 +30,18 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
-import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableSet
-import com.nectar.doodle.utils.isEven
-import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 3/20/18.
  */
-
-private class ListRow<T>(textMetrics: TextMetrics, list: List<*, *>, row: T, var index: Int): Label(textMetrics, StyledText(row.toString())) {
-
-    private var background = lightgray
-
-    init {
-        fitText             = false
-        horizontalAlignment = Left
-
-        styleChanged += { rerender() }
-
-        mouseChanged += object: MouseListener {
-            private var pressed   = false
-            private var mouseOver = false
-
-            override fun mouseEntered(event: MouseEvent) {
-                mouseOver       = true
-                backgroundColor = backgroundColor?.lighter(0.25f)
-            }
-
-            override fun mouseExited(event: MouseEvent) {
-                mouseOver       = false
-                backgroundColor = background
-            }
-
-            override fun mousePressed(event: MouseEvent) {
-                pressed = true
-            }
-
-            override fun mouseReleased(event: MouseEvent) {
-                if (mouseOver && pressed) {
-                    setOf(index).also {
-                        list.apply {
-                            when {
-                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
-                                Shift in event.modifiers && lastSelection != null -> {
-                                    selectionAnchor?.let { anchor ->
-                                        val current = index
-                                        when {
-                                            current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
-                                            anchor  < current -> setSelection((anchor  .. current).           toSet())
-                                        }
-                                    }
-                                }
-                                else -> setSelection(it)
-                            }
-                        }
-                    }
-                }
-                pressed = false
-            }
-        }
-
-        update(list, row, index)
-    }
-
-    fun update(list: List<*, *>, row: Any?, index: Int) {
-        text       = row.toString()
-        this.index = index
-        background = if (list.selected(index)) green else lightgray
-
-        background = when {
-            index.isEven -> background.lighter()
-            else         -> background
-        }
-
-        backgroundColor = background
-    }
-}
 
 private open class LabelItemGenerator<T>(private val textMetrics: TextMetrics): ItemGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
@@ -119,14 +50,10 @@ private open class LabelItemGenerator<T>(private val textMetrics: TextMetrics): 
     }
 }
 
-private class BasicListPositioner<T>(private val height: Double): ItemPositioner<T> {
-    override fun rowFor(list: List<T, *>, y: Double): Int {
-        return max(0, ((y - list.insets.top) / height).toInt())
-    }
+private class BasicListPositioner<T>(height: Double): ListPositioner(height), ItemPositioner<T> {
+    override fun rowFor(list: List<T, *>, y: Double) = super.rowFor(list.insets, y)
 
-    override fun invoke(list: List<T, *>, row: T, index: Int): Rectangle {
-        return Rectangle(list.insets.left, list.insets.top + index * height, list.width - list.insets.run { left + right }, height)
-    }
+    override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
 }
 
 private class MutableLabelItemGenerator<T>(private val focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemGenerator<T>(textMetrics) {
@@ -147,20 +74,25 @@ private class MutableLabelItemGenerator<T>(private val focusManager: FocusManage
     }
 }
 
-open class BasicListBehavior<T>(textMetrics: TextMetrics): ListBehavior<T>, KeyListener {
+open class BasicListBehavior<T>(textMetrics: TextMetrics, private val rowHeight: Double = 20.0): ListBehavior<T>, KeyListener {
     override val generator : ItemGenerator<T>  = LabelItemGenerator (textMetrics)
-    override val positioner: ItemPositioner<T> = BasicListPositioner(20.0       )
+    override val positioner: ItemPositioner<T> = BasicListPositioner(rowHeight  )
 
-    override fun render(view: List<T, *>, canvas: Canvas) {}
+    override fun render(view: List<T, *>, canvas: Canvas) {
+        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(rowHeight, 2 * rowHeight)) {
+            rect(Rectangle(                rowHeight, rowHeight), ColorBrush(lightgray.lighter()))
+            rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(lightgray          ))
+        })
+    }
 
     override fun keyPressed(event: KeyEvent) {
-        (event.source as List<*, *>).let { list ->
+        (event.source as Selectable<Int>).let { list ->
             when (event.code) {
                 VK_UP, VK_DOWN -> {
                     when (Shift) {
                         in event -> {
                             list.selectionAnchor?.let { anchor ->
-                                list.lastSelection?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > list.numRows - 1 }?.let { current ->
+                                list.lastSelection?.let { if (event.code == VK_UP) list.previous(it) else list.next(it) }?.let { current ->
                                     when {
                                         current < anchor  -> list.setSelection((current .. anchor ).reversed().toSet())
                                         anchor  < current -> list.setSelection((anchor  .. current).           toSet())
@@ -169,7 +101,7 @@ open class BasicListBehavior<T>(textMetrics: TextMetrics): ListBehavior<T>, KeyL
                                 }
                             }
                         }
-                        else -> list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > list.numRows - 1 }?.let { list.setSelection(setOf(it)) }
+                        else -> list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) list.previous(it) else list.next(it) }?.let { list.setSelection(setOf(it)) }
                     }?.let { Unit } ?: Unit
                 }
 

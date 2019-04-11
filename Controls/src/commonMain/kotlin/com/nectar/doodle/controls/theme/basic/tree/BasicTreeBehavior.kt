@@ -270,9 +270,9 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
     }
 
     private fun striped(color: Color): Color = when {
-            index.isEven -> color.lighter()
-            else         -> color
-        }
+        index.isEven -> color.lighter()
+        else         -> color
+    }
 
     override fun render(canvas: Canvas) {
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }

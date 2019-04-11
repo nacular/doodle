@@ -1,5 +1,7 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.ListSelectionManager
+import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
 import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
@@ -40,7 +42,7 @@ open class List<T, out M: Model<T>>(
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true,
-        private        val cacheLength   : Int                  = 10): View() {
+        private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     val numRows: Int get() = model.size
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
@@ -164,22 +166,12 @@ open class List<T, out M: Model<T>>(
                 jobs += (start..lastVisibleRow).asSequence().map { { insert(children, it) } }
             }
 
-            strand(jobs)
+            // TODO: Is there a better way to avoid laying out when only a scroll happens?
+            strand(jobs.ifEmpty {
+                (firstVisibleRow..lastVisibleRow).asSequence().mapNotNull { index -> model[index]?.let { item -> { layout(children[index % children.size], item, index) } } }
+            })
         }
     }
-
-    fun selected       (row : Int     ) = selectionModel?.contains  (row ) ?: false
-    fun selectAll      (              ) { selectionModel?.addAll    ((0 until numRows).toList()) }
-    fun addSelection   (rows: Set<Int>) { selectionModel?.addAll    (rows) }
-    fun setSelection   (rows: Set<Int>) { selectionModel?.replaceAll(rows) }
-    fun removeSelection(rows: Set<Int>) { selectionModel?.removeAll (rows) }
-    fun toggleSelection(rows: Set<Int>) { selectionModel?.toggle    (rows) }
-    fun clearSelection (              ) = selectionModel?.clear     (    )
-
-    val firstSelection  get() = selectionModel?.first
-    val lastSelection   get() = selectionModel?.last
-    val selectionAnchor get() = selectionModel?.anchor
-    val selection       get() = selectionModel?.toSet() ?: emptySet()
 
     protected fun layout(view: View, row: T, index: Int) {
         positioner?.let {

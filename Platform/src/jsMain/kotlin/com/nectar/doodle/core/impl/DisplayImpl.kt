@@ -140,14 +140,18 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
     private inner class PositionableWrapper: Positionable {
         override var size        get() = this@DisplayImpl.size
-            set(value) { this@DisplayImpl.size = value }
-        override val width       get() = this@DisplayImpl.width
-        override val height      get() = this@DisplayImpl.height
+            set(_) {}
+        override var width       get() = this@DisplayImpl.width
+            set(_) {}
+        override var height      get() = this@DisplayImpl.height
+            set(_) {}
         override val insets      get() = this@DisplayImpl.insets
         override val parent            = null as View?
-        override val children    get() = this@DisplayImpl.children
-        override var idealSize         = null as Size?
-        override var minimumSize       = Empty
+        override val children          = this@DisplayImpl.children
+        override var idealSize   get() = null as Size?
+            set(_) {}
+        override var minimumSize get() = Empty
+            set(_) {}
     }
 
     private val positionableWrapper = PositionableWrapper()
