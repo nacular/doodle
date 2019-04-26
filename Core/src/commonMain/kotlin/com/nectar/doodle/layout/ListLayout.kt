@@ -22,7 +22,7 @@ class ListLayout constructor(private val spacing: Int = 0, private val widthSour
 
         val width = when (widthSource) {
             WidthSource.Parent -> positionable.run { idealSize?.width ?: width }
-            else               -> positionable.children.asSequence().filter { it.visible }.map{ it.idealSize?.width ?: it.width }.max() ?: 0.0
+            else               -> positionable.children.asSequence().filter { it.visible }.map { it.idealSize?.width ?: it.width }.max() ?: 0.0
         }
 
         var i = 0
