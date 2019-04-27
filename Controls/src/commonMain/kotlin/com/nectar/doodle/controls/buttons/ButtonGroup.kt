@@ -8,7 +8,7 @@ class ButtonGroup {
 
     val size: Int get() = buttons.size
 
-    private val buttons: MutableSet<Button> by lazy { mutableSetOf<Button>() }
+    private val buttons      : MutableSet<Button> by lazy { mutableSetOf<Button>() }
     private var selectedModel: ButtonModel? = null
 
     operator fun plusAssign(button: Button) {
@@ -16,7 +16,7 @@ class ButtonGroup {
 
         button.model.buttonGroup = this
 
-        if (button.model.selected == true) {
+        if (button.model.selected) {
             if (selectedModel == null) {
                 selectedModel = button.model
             } else {

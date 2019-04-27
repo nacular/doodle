@@ -44,6 +44,7 @@ import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
+import kotlin.js.JsName
 import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
@@ -174,7 +175,8 @@ abstract class View protected constructor() {
 
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
 
-    private fun styleChanged() = (styleChanged as ChangeObserversImpl)()
+    @JsName("fireStyleChanged")
+    protected fun styleChanged() = (styleChanged as ChangeObserversImpl)()
 
     var x: Double
         get( ) = bounds.x

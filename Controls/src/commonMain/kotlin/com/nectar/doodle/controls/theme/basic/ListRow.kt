@@ -19,25 +19,23 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-class ListRow<T>(textMetrics: TextMetrics,
-        list: Selectable<Int>,
-        row: T,
-        var index: Int,
-        val evenRowColor: Color? = null,
-        val oddRowColor : Color? = evenRowColor?.darker()): Label(textMetrics, StyledText(row.toString())) {
+class ListRow<T>(    textMetrics : TextMetrics,
+                 var list        : Selectable<Int>,
+                 var row         : T,
+                 var index       : Int,
+                 val evenRowColor: Color? = null,
+                 val oddRowColor : Color? = evenRowColor?.darker()): Label(textMetrics, StyledText(row.toString())) {
 
     var colorPolicy: (ListRow<T>) -> Color? = {
         val color = when {
-            list.selected(index) -> green
-            it.index.isEven      -> evenRowColor
-            else                 -> oddRowColor
+            it.index.isEven -> if (list.selected(index)) green           else evenRowColor
+            else            -> if (list.selected(index)) green.lighter() else oddRowColor
         }
 
         if (it.mouseOver) color?.lighter(0.25f) else color
     }
 
     private  var mouseOver  = false
-//    private  var background = null as Color?
 
     init {
         fitText             = false
@@ -50,12 +48,12 @@ class ListRow<T>(textMetrics: TextMetrics,
 
             override fun mouseEntered(event: MouseEvent) {
                 mouseOver       = true
-                backgroundColor = colorPolicy(this@ListRow) //backgroundColor?.let(colorPolicy)
+                backgroundColor = colorPolicy(this@ListRow)
             }
 
             override fun mouseExited(event: MouseEvent) {
                 mouseOver       = false
-                backgroundColor = colorPolicy(this@ListRow) //background
+                backgroundColor = colorPolicy(this@ListRow)
             }
 
             override fun mousePressed(event: MouseEvent) {
@@ -89,18 +87,14 @@ class ListRow<T>(textMetrics: TextMetrics,
         update(list, row, index)
     }
 
-    fun update(list: Selectable<Int>, row: Any?, index: Int) {
-        text       = row.toString()
+    fun update(list: Selectable<Int>, row: T, index: Int) {
+        this.list  = list
+        this.row   = row
         this.index = index
+        text       = row.toString()
 
-//        background      = if (list.selected(index)) striped(green) else null
-        backgroundColor = colorPolicy(this@ListRow) //background ?: if (mouseOver) (if (index.isEven) evenRowColor else oddRowColor)?.let(colorPolicy) else null
+        backgroundColor = colorPolicy(this)
     }
-
-//    private fun striped(color: Color): Color = when {
-//        index.isEven -> color.lighter()
-//        else         -> color
-//    }
 }
 
 open class ListPositioner(private val height: Double) {

@@ -5,6 +5,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.utils.Anchor
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment.Center
@@ -47,29 +48,30 @@ abstract class Button protected constructor(
             field = new?.apply { install(this@Button) }
         }
 
-    var iconTextSpacing     = 4.0
-    var verticalAlignment   = Middle
+    var iconTextSpacing = 4.0
+        set(new) { field = new; styleChanged() }
+
+    var verticalAlignment = Middle
+        set(new) { field = new; styleChanged() }
+
     var horizontalAlignment = Center
+        set(new) { field = new; styleChanged() }
 
-//    var iconAnchor: Anchor?
-//        get() = mIconAnchor
-//        set(aIconAnchor) {
-//            setProperty(object : AbstractNamedProperty<Anchor>(ICON_ANCHOR) {
-//                var value: Anchor?
-//                    get() = this@Button.mIconAnchor
-//                    set(aValue) {
-//                        this@Button.mIconAnchor = aValue
-//                    }
-//            },
-//                    aIconAnchor)
-//        }
+    var iconAnchor = Anchor.Left
+        set(new) { field = new; styleChanged() }
 
-    var pressedIcon          : Icon<Button>? = null
-    var disabledIcon         : Icon<Button>? = null
-    var selectedIcon         : Icon<Button>? = null
-    var mouseOverIcon        : Icon<Button>? = null
-    var disabledSelectedIcon : Icon<Button>? = null
+    var pressedIcon: Icon<Button>? = null
+        get() = field ?: icon
+    var disabledIcon: Icon<Button>? = null
+        get() = field ?: icon
+    var selectedIcon: Icon<Button>? = null
+        get() = field ?: icon
+    var mouseOverIcon: Icon<Button>? = null
+        get() = field ?: icon
+    var disabledSelectedIcon: Icon<Button>? = null
+        get() = field ?: disabledIcon
     var mouseOverSelectedIcon: Icon<Button>? = null
+        get() = field ?: selectedIcon
 
     var selected: Boolean
         get(   ) = model.selected
@@ -101,50 +103,4 @@ abstract class Button protected constructor(
     val fired: ChangeObservers<Button> = fired_
 
     abstract fun click()
-
-//    override fun handleMouseEvent(event: MouseEvent) {
-//        super.handleMouseEvent(event)
-//
-//        when (event.type) {
-//            Up    -> mouseReleased(event)
-//            Down  -> mousePressed (event)
-//            Exit  -> mouseExited  (event)
-//            Enter -> mouseEntered (event)
-//            else  -> return
-//        }
-//    }
-//
-//    private fun mouseEntered(event: MouseEvent) {
-//        model.mouseOver = true
-//
-//        if (enabled) {
-//            if (event.buttons == setOf(Button1) && model.pressed) {
-//                model.armed = true
-//            }
-//        }
-//    }
-//
-//    private fun mouseExited(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
-//        model.mouseOver = false
-//
-//        if (enabled) {
-//            model.armed = false
-//        }
-//    }
-//
-//    private fun mousePressed(event: MouseEvent) {
-//        if (enabled && event.buttons == setOf(Button1)) {
-//            model.armed   = true
-//            model.pressed = true
-//        }
-//    }
-//
-//    private fun mouseReleased(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
-//        if (enabled) {
-//            behavior?.mouseReleaseAutoClicks?.ifTrue { model.armed = false }
-//
-//            model.pressed = false
-//            model.armed   = false
-//        }
-//    }
 }

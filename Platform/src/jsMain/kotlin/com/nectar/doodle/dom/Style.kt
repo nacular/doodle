@@ -98,6 +98,13 @@ internal inline fun Style.setBorderLeft  (value: Double) { borderLeft   = value.
 internal inline fun Style.setBorderRight (value: Double) { borderRight  = value.toString() }
 internal inline fun Style.setBorderBottom(value: Double) { borderBottom = value.toString() }
 
+internal inline fun Style.setMargin      (value: Double) { margin       = value.toString() }
+internal inline fun Style.setMarginTop   (value: Double) { marginTop    = value.toString() }
+internal inline fun Style.setMarginLeft  (value: Double) { marginLeft   = value.toString() }
+internal inline fun Style.setMarginRight (value: Double) { marginRight  = value.toString() }
+internal inline fun Style.setMarginBottom(value: Double) { marginBottom = value.toString() }
+
+
 internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value }
 
 internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value }

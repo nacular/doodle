@@ -10,24 +10,25 @@ private class ToggleButtonModel: ButtonModelImpl() {
     override var selected
         get(   ) = super.selected
         set(new) {
-            if (super.selected != new) {
+            if (tempSelected != new) {
+                tempSelected = new
+
                 buttonGroup?.let {
                     callCount++
                     it.setSelected(this, new)
                     callCount--
 
-//                    TODO: make more efficient, at this point the ButtonGroup has reset the selection, so no need to tell listeners
-//                    if (callCount > 0) {
-//                        super.selected = new
-//                        return
-//                    }
+                    if (callCount > 0) {
+                        return
+                    }
                 }
 
-                super.selected = new
+                super.selected = tempSelected
             }
         }
 
-    private var callCount = 0
+    private var callCount    = 0
+    private var tempSelected = super.selected
 
     override var pressed
         get(   ) = super.pressed
@@ -49,7 +50,7 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButt
 
     val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
 
-    private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }//= ::selectedChangedFun
+    private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
 
     init {
         super.model.apply {
@@ -57,6 +58,7 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButt
         }
     }
 
+    @Suppress("SetterBackingFieldAssignment")
     override var model = super.model
         set(new) {
             field.apply {

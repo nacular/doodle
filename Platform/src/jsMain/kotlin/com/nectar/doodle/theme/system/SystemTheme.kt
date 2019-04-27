@@ -3,6 +3,7 @@ package com.nectar.doodle.theme.system
 import com.nectar.doodle.application.Modules.Companion.themeModule
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.Display
@@ -13,6 +14,8 @@ import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactoryImpl
+import com.nectar.doodle.drawing.impl.NativeCheckBoxRadioButtonFactory
+import com.nectar.doodle.drawing.impl.NativeCheckBoxRadioButtonFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeEventHandlerFactory
 import com.nectar.doodle.drawing.impl.NativeEventHandlerImpl
 import com.nectar.doodle.drawing.impl.NativeEventListener
@@ -35,18 +38,20 @@ import org.w3c.dom.HTMLElement
  * Created by Nicholas Eddy on 1/28/18.
  */
 class SystemTheme internal constructor(
-        private val textMetrics             : TextMetrics,
-        private val nativeButtonFactory     : NativeButtonFactory,
-        private val nativeSliderFactory     : NativeSliderFactory,
-        private val nativeTextFieldFactory  : NativeTextFieldFactory,
-        private val nativeScrollPanelFactory: NativeScrollPanelFactory): Theme {
+        private val textMetrics                     : TextMetrics,
+        private val nativeButtonFactory             : NativeButtonFactory,
+        private val nativeSliderFactory             : NativeSliderFactory,
+        private val nativeTextFieldFactory          : NativeTextFieldFactory,
+        private val nativeScrollPanelFactory        : NativeScrollPanelFactory,
+        private val nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory): Theme {
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory,      textMetrics, it)
-            is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,      it             )
-            is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,   it             )
-            is ScrollPanel -> it.behavior = SystemScrollPanelBehavior(nativeScrollPanelFactory, it             )
+            is CheckBox    -> it.behavior = SystemCheckBoxBehavior         (nativeCheckBoxRadioButtonFactory, textMetrics, it)
+            is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory,              textMetrics, it)
+            is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,              it             )
+            is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,           it             )
+            is ScrollPanel -> it.behavior = SystemScrollPanelBehavior(nativeScrollPanelFactory,         it             )
         }
     }
 
@@ -57,13 +62,14 @@ class SystemTheme internal constructor(
             // TODO: Can this be handled better?
             bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
-            bind<ElementRuler>             () with singleton { ElementRulerImpl            (instance()                                                                              ) }
-            bind<NativeScrollPanelFactory> () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
-            bind<NativeButtonFactory>      () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
-            bind<NativeSliderFactory>      () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }
-            bind<NativeTextFieldFactory>   () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
-            bind<SystemTheme>              () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance()                              ) }
-            bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+            bind<ElementRuler>                    () with singleton { ElementRulerImpl            (instance()                                                                              ) }
+            bind<NativeScrollPanelFactory>        () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
+            bind<NativeButtonFactory>             () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeSliderFactory>             () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }
+            bind<NativeTextFieldFactory>          () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
+            bind<SystemTheme>                     () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance(), instance()                  ) }
+            bind<NativeEventHandlerFactory>       () with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+            bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
 
             import(themeModule, allowOverride = true)
         }

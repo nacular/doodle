@@ -4,6 +4,8 @@ import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.CheckBox
+import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.list.MutableModel
@@ -46,6 +48,8 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
+            is CheckBox          -> it.behavior = checkBoxBehavior
+            is RadioButton       -> it.behavior = radioButtonBehavior
             is Button            -> it.behavior = buttonBehavior
             is Slider            -> it.behavior = sliderBehavior
             is SplitPanel        -> it.behavior = splitPanelBehavior
@@ -60,12 +64,14 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun toString() = this::class.simpleName ?: ""
 
-    private val listBehavior        by lazy { BasicListBehavior<Any>       (textMetrics               ) }
+    private val listBehavior        by lazy { BasicListBehavior<Any>       (focusManager, textMetrics ) }
     private val treeBehavior        by lazy { BasicTreeBehavior<Any>       (labelFactory, focusManager) }
     private val buttonBehavior      by lazy { BasicButtonBehavior          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
     private val sliderBehavior      by lazy { BasicSliderBehavior          (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val spinnerBehavior     by lazy { BasicSpinnerBehavior         (borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = labelFactory) }
+    private val checkBoxBehavior    by lazy { BasicCheckBoxBehavior        (textMetrics               ) }
     private val splitPanelBehavior  by lazy { BasicSplitPanelBehavior      () }
+    private val radioButtonBehavior by lazy { BasicRadioBehavior           (textMetrics               ) }
     private val mutableListBehavior by lazy { BasicMutableListBehavior<Any>(focusManager, textMetrics ) }
     private val progressBarBehavior by lazy { BasicProgressBarBehavior     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val mutableTreeBehavior by lazy { BasicMutableTreeBehavior<Any>(labelFactory, focusManager) }

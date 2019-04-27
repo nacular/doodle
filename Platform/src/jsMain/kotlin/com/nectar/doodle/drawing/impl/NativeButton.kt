@@ -3,7 +3,6 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
-import com.nectar.doodle.dom.Absolute
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
@@ -12,26 +11,24 @@ import com.nectar.doodle.dom.Static
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
-import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderStyle
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setLeft
-import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.utils.Anchor
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right
@@ -124,7 +121,6 @@ class NativeButton internal constructor(
 
     private var textElement       : HTMLElement? = null
     private var iconElement       : HTMLElement? = null
-    private val glassPanelElement : HTMLElement
     private val nativeEventHandler: NativeEventHandler
 
     private val buttonElement = htmlFactory.createButton().apply {
@@ -151,7 +147,7 @@ class NativeButton internal constructor(
     }
 
     private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-        buttonElement.tabIndex = if (new) -1 else 0
+        buttonElement.tabIndex = if (new) 0 else -1
     }
 
     init {
@@ -159,18 +155,6 @@ class NativeButton internal constructor(
             registerFocusListener         ()
             registerClickListener         ()
 //            startConsumingMousePressEvents()
-        }
-
-        glassPanelElement = htmlFactory.create<HTMLElement>().apply {
-            style.setTop            (0.0       )
-            style.setLeft           (0.0       )
-            style.setOpacity        (0f        )
-            style.setPosition       (Absolute())
-            style.setWidthPercent   (100.0     )
-            style.setHeightPercent  (100.0     )
-            style.setBackgroundColor(Color.red )
-
-            buttonElement.add(this)
         }
 
         button.apply {
@@ -195,17 +179,17 @@ class NativeButton internal constructor(
     private val textPosition: Point get() {
         val bounds     = button.bounds
         val stringSize = stringSize // cache
-        val minX       = insets.left
+        var minX       = insets.left
         val minY       = insets.top
-        val maxX       = bounds.width  - stringSize.width  - insets.right
+        var maxX       = bounds.width  - stringSize.width  - insets.right
         val maxY       = bounds.height - stringSize.height - insets.bottom
 
-//        if (icon != null) {
-//            when (button.iconAnchor()) {
-//                LEFT, LEADING   -> minX += aIcon.width + button.getIconTextSpacing()
-//                RIGHT, TRAILING -> maxX -= aIcon.width + button.getIconTextSpacing()
-//            }
-//        }
+        icon?.let {
+            when (button.iconAnchor) {
+                Anchor.Left,  Anchor.Leading  -> minX += it.width + button.iconTextSpacing
+                Anchor.Right, Anchor.Trailing -> maxX -= it.width + button.iconTextSpacing
+            }
+        }
 
         val x = when (button.horizontalAlignment) {
             Right  -> maxX
@@ -227,42 +211,40 @@ class NativeButton internal constructor(
     private val stringSize get() = textMetrics.size(button.text, button.font)
 
     private val iconPosition: Point get() {
-        val x = insets.left
+        var x = insets.left
         var y = insets.top
 
         icon?.let {
-//            val minX         = padding.left
-//            val maxX         = button.width - icon.width - padding.right
-//            val aStringWidth = stringSize.width
-//
-//            when (button.getIconAnchor()) {
-//                LEADING  ->
-//
-//                    x = if (aStringWidth > 0) {
-//                        max(minX, aStringPosition.getX() - aIcon.width - button.getIconTextSpacing())
-//                    } else {
-//                        max(minX, min(maxX, (aBounds.width - aIcon.width) / 2))
-//                    }
-//
-//                RIGHT    ->
-//
-//                    x = if (aStringWidth > 0) {
-//                        max(maxX, aStringPosition.getX() + aStringWidth + button.getIconTextSpacing())
-//                    } else {
-//                        max(maxX, minX)
-//                    }
-//
-//                TRAILING ->
-//
-//                    x = if (aStringWidth > 0) {
-//                        aStringPosition.getX() + aStringWidth + button.getIconTextSpacing()
-//                    } else {
-//                        max(minX, min(maxX, (aBounds.width - aIcon.width) / 2))
-//                    }
-//
-//                LEFT     -> {
-//                }
-//            }
+            val minX         = insets.left
+            val maxX         = button.width - it.width - insets.right
+            val aStringWidth = stringSize.width
+
+            x = when (button.iconAnchor) {
+                Anchor.Leading       ->
+
+                    if (aStringWidth > 0) {
+                        max(minX, textPosition.x - it.width - button.iconTextSpacing)
+                    } else {
+                        max(minX, min(maxX, (button.width - it.width) / 2))
+                    }
+
+                Anchor.Right         ->
+
+                    if (aStringWidth > 0) {
+                        max(maxX, textPosition.x + aStringWidth + button.iconTextSpacing)
+                    } else {
+                        max(maxX, minX)
+                    }
+
+                Anchor.Trailing ->
+
+                    if (aStringWidth > 0) {
+                        textPosition.x + aStringWidth + button.iconTextSpacing
+                    } else {
+                        max(minX, min(maxX, (button.width - it.width) / 2))
+                    }
+                else -> x
+            }
 
             y = when (button.verticalAlignment) {
                 Bottom -> button.height - insets.bottom
@@ -318,7 +300,6 @@ class NativeButton internal constructor(
 
     fun render(canvas: Canvas) {
         if (canvas is CanvasImpl) {
-
             if (lastIcon !== icon || text != button.text) {
                 setIconText()
             }

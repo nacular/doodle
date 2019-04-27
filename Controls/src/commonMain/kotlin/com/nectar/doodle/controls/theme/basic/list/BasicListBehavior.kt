@@ -43,10 +43,16 @@ import com.nectar.doodle.utils.ObservableSet
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-private open class LabelItemGenerator<T>(private val textMetrics: TextMetrics): ItemGenerator<T> {
+private open class LabelItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics): ItemGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
-        is ListRow<*> -> current.apply { update(list, row, index) }
-        else          -> ListRow(textMetrics, list, row, index)
+        is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
+        else          -> ListRow(textMetrics, list, row, index).apply {
+            mouseChanged += object: MouseListener {
+                override fun mouseReleased(event: MouseEvent) {
+                    focusManager?.requestFocus(list)
+                }
+            }
+        }
     }
 }
 
@@ -56,7 +62,7 @@ private class BasicListPositioner<T>(height: Double): ListPositioner(height), It
     override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
 }
 
-private class MutableLabelItemGenerator<T>(private val focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemGenerator<T>(textMetrics) {
+private class MutableLabelItemGenerator<T>(focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemGenerator<T>(focusManager, textMetrics) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -65,8 +71,6 @@ private class MutableLabelItemGenerator<T>(private val focusManager: FocusManage
                 override fun mouseReleased(event: MouseEvent) {
                     if (event.clickCount == 2) {
                         (list as MutableList).startEditing(result.index)
-                    } else {
-                        focusManager?.requestFocus(list)
                     }
                 }
             }
@@ -74,9 +78,17 @@ private class MutableLabelItemGenerator<T>(private val focusManager: FocusManage
     }
 }
 
-open class BasicListBehavior<T>(textMetrics: TextMetrics, private val rowHeight: Double = 20.0): ListBehavior<T>, KeyListener {
-    override val generator : ItemGenerator<T>  = LabelItemGenerator (textMetrics)
-    override val positioner: ItemPositioner<T> = BasicListPositioner(rowHeight  )
+open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics, private val rowHeight: Double = 20.0): ListBehavior<T>, KeyListener {
+    override val generator : ItemGenerator<T>  = LabelItemGenerator (focusManager, textMetrics)
+    override val positioner: ItemPositioner<T> = BasicListPositioner(rowHeight                )
+
+    override fun install(view: List<T, *>) {
+        view.keyChanged += this
+    }
+
+    override fun uninstall(view: List<T, *>) {
+        view.keyChanged -= this
+    }
 
     override fun render(view: List<T, *>, canvas: Canvas) {
         canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(rowHeight, 2 * rowHeight)) {
@@ -115,17 +127,9 @@ open class BasicListBehavior<T>(textMetrics: TextMetrics, private val rowHeight:
     }
 }
 
-class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicListBehavior<T>(textMetrics) {
+class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicListBehavior<T>(focusManager, textMetrics) {
     override val generator : ItemGenerator<T>  = MutableLabelItemGenerator(focusManager, textMetrics)
     override val positioner: ItemPositioner<T> = BasicListPositioner(20.0)
-
-    override fun install(view: List<T, *>) {
-        view.keyChanged += this
-    }
-
-    override fun uninstall(view: List<T, *>) {
-        view.keyChanged -= this
-    }
 
     override fun keyPressed(event: KeyEvent) {
         when (event.code) {

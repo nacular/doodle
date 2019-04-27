@@ -7,8 +7,13 @@ import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
-import com.nectar.doodle.utils.HorizontalAlignment
-import com.nectar.doodle.utils.VerticalAlignment
+import com.nectar.doodle.utils.Anchor
+import com.nectar.doodle.utils.HorizontalAlignment.Center
+import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.HorizontalAlignment.Right
+import com.nectar.doodle.utils.VerticalAlignment.Bottom
+import com.nectar.doodle.utils.VerticalAlignment.Middle
+import com.nectar.doodle.utils.VerticalAlignment.Top
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,69 +26,66 @@ abstract class AbstractTextButtonBehavior(
         private val insets     : Insets = Insets.None): AbstractButtonBehavior() {
 
     protected fun textPosition(button: Button, icon: Icon<Button>? = null, bounds: Rectangle = button.bounds): Point {
-        val minX       = insets.left
+        var minX       = insets.left
         val stringSize = textMetrics.size(button.text, font(button))
-        val maxX       = bounds.width - stringSize.width - insets.right
+        var maxX       = bounds.width - stringSize.width - insets.right
 
-//        icon?.let {
-//            when (button.getIconAnchor()) {
-//                Left, LEADING   -> minX += it.size.width + button.iconTextSpacing
-//                RIGHT, TRAILING -> maxX -= it.size.width + button.iconTextSpacing
-//            }
-//        }
+        icon?.let {
+            when (button.iconAnchor) {
+                Anchor.Left,  Anchor.Leading  -> minX += it.width + button.iconTextSpacing
+                Anchor.Right, Anchor.Trailing -> maxX -= it.width + button.iconTextSpacing
+            }
+        }
 
         val x = when (button.horizontalAlignment) {
-            HorizontalAlignment.Right  -> max(maxX, minX)
-            HorizontalAlignment.Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2))
-            HorizontalAlignment.Left   -> minX
+            Right  -> max(maxX, minX)
+            Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2))
+            Left   -> minX
         }
 
         val y = when (button.verticalAlignment) {
-            VerticalAlignment.Bottom -> bounds.height - insets.bottom
-            VerticalAlignment.Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - stringSize.height) / 2))
-            VerticalAlignment.Top    -> insets.top
+            Bottom -> bounds.height - insets.bottom
+            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - stringSize.height) / 2))
+            Top    -> insets.top
         }
 
         return Point(x, y)
     }
 
     protected fun iconPosition(button: Button, icon: Icon<Button>, stringPosition: Point = textPosition(button, icon), bounds: Rectangle = button.bounds): Point {
-        val x = insets.left
         val y = when (button.verticalAlignment) {
-            VerticalAlignment.Bottom -> bounds.height - insets.bottom
-            VerticalAlignment.Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.size.height) / 2))
-            VerticalAlignment.Top    -> insets.top
+            Bottom -> bounds.height - insets.bottom
+            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.height) / 2))
+            Top    -> insets.top
         }
 
-//        val minX        = insets.left
-//        val maxX        = bounds.width - icon.size.width - insets.right
-//        val stringWidth = font(button)!!.getStringWidth(button.text)
+        val minX        = insets.left
+        val maxX        = bounds.width - icon.width - insets.right
+        val stringWidth = textMetrics.width(button.text, font(button))
 
-//        when (button.getIconAnchor()) {
-//            LEADING  ->
-//
-//                if (stringWidth > 0) {
-//                    x = max(minX, stringPosition.getX() - icon!!.width - button.iconTextSpacing)
-//                } else {
-//                    x = max(minX, min(maxX, (bounds.width - icon!!.width) / 2))
-//                }
-//
-//            RIGHT    ->
-//
-//                if (stringWidth > 0) {
-//                    x = max(maxX, stringPosition.getX() + stringWidth + button.iconTextSpacing)
-//                } else {
-//                    x = max(maxX, minX)
-//                }
-//
-//            TRAILING ->
-//
-//                if (stringWidth > 0) {
-//                    x = stringPosition.getX() + stringWidth + button.iconTextSpacing
-//                } else {
-//                    x = max(minX, min(maxX, (bounds.width - icon!!.width) / 2))
-//                }
-//        }
+        val x = when (button.iconAnchor) {
+            Anchor.Leading ->
+                if (stringWidth > 0) {
+                    max(minX, stringPosition.x - icon.width - button.iconTextSpacing)
+                } else {
+                    max(minX, min(maxX, (bounds.width - icon.width) / 2))
+                }
+
+            Anchor.Right ->
+                if (stringWidth > 0) {
+                    max(maxX, stringPosition.x + stringWidth + button.iconTextSpacing)
+                } else {
+                    max(maxX, minX)
+                }
+
+            Anchor.Trailing ->
+                if (stringWidth > 0) {
+                    stringPosition.x + stringWidth + button.iconTextSpacing
+                } else {
+                    max(minX, min(maxX, (bounds.width - icon.width) / 2))
+                }
+            else -> insets.left
+        }
 
         return Point(x, y)
     }

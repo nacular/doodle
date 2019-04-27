@@ -17,10 +17,15 @@ class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
     override fun size  (element: HTMLElement) = measure(element) { Size(width, height) }
 
     private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
+        val parent = element.parent
+        val index  = parent?.index(element) ?: -1
+
         htmlFactory.root.insert(element, 0)
 
         return element.run(block).also {
             htmlFactory.root.removeChild(element)
+
+            parent?.insert(element, index)
         }
     }
 }

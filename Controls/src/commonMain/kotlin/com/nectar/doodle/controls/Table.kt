@@ -15,6 +15,7 @@ import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.theme.Behavior
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 4/6/19.
@@ -56,6 +57,117 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     val headerCellGenerator: HeaderCellGenerator<T>
 }
 
+interface ColumnSizePolicy<T> {
+    fun layout(table: Table<T, *>, columns: List<Column<T, *>>)
+
+    fun widthChanged(table: Table<T, *>, columns: List<Column<T, *>>, index: Int)
+}
+
+class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
+    override fun layout(table: Table<T, *>, columns: List<Column<T, *>>) {
+        var numNull          = columns.filter { it.width == null }.size
+        val totalColumnWidth = columns.fold(0.0) { sum, column -> sum + column.renderWidth }
+        var remainingWidth   = table.width - totalColumnWidth
+
+        if (remainingWidth > 0) {
+            val sortedColumns = columns.sortedWith(compareByDescending<Column<T, *>>{ it.width }.thenByDescending { it.maxWidth }).toMutableList()
+
+            sortedColumns.iterator().let {
+                while (it.hasNext() && remainingWidth > 0) {
+                    val column = it.next()
+                    val old    = column.renderWidth
+
+                    column.width?.let { width ->
+                        column.renderWidth += min(remainingWidth, width - column.renderWidth)
+                    } ?: {
+                        column.renderWidth += remainingWidth / numNull
+                        --numNull
+                    }()
+
+                    remainingWidth -= column.renderWidth - old
+
+                    if (column.renderWidth == column.maxWidth) {
+                        it.remove()
+                    }
+                }
+            }
+
+            if (remainingWidth > 0) {
+                sortedColumns.forEach { column ->
+                    if (remainingWidth > 0) {
+                        val old = column.renderWidth
+
+                        column.maxWidth?.let { maxWidth ->
+                            column.renderWidth += min(remainingWidth, maxWidth - column.renderWidth)
+                        }
+
+                        remainingWidth -= column.renderWidth - old
+                    }
+                }
+            }
+        } else if (remainingWidth < 0) {
+            val sortedColumns = columns.sortedWith(compareBy<Column<T, *>>{ it.width }.thenBy { it.maxWidth }).toMutableList()
+
+            sortedColumns.iterator().let {
+                while (it.hasNext() && remainingWidth < 0) {
+                    val column = it.next()
+                    val old    = column.renderWidth
+
+                    column.width?.let { width ->
+                        column.renderWidth += min(remainingWidth, width - column.renderWidth)
+                    } ?: {
+                        column.renderWidth += remainingWidth / numNull
+                        --numNull
+                    }()
+
+                    remainingWidth -= column.renderWidth - old
+
+                    if (column.renderWidth == column.maxWidth) {
+                        it.remove()
+                    }
+                }
+            }
+        }
+    }
+
+//    override fun layout(table: Table<T, *>, columns: List<Column<T, *>>) {
+//        val nullColumns      = mutableSetOf<Column<T, *>>()
+//        var totalColumnWidth = columns.fold(0.0) { sum, column -> sum + (column.width ?: 0.0.also { nullColumns += column }) }
+//        var remainingWidth   = table.width - totalColumnWidth
+//
+//        if (remainingWidth >= 0) {
+//            nullColumns.iterator().let {
+//                while (it.hasNext()) {
+//                    val column = it.next()
+//
+//                    column.renderWidth = remainingWidth / nullColumns.size
+//
+//                    remainingWidth   -= column.renderWidth
+//                    totalColumnWidth += column.renderWidth
+//
+//                    it.remove()
+//                }
+//            }
+//        } else {
+//            nullColumns.forEach { column ->
+//                column.renderWidth = 0.0
+//            }
+//        }
+//
+//        remainingWidth = table.width - totalColumnWidth
+//
+//        if (remainingWidth != 0.0) {
+//            columns.forEach { column ->
+//                column.renderWidth += if (totalColumnWidth > 0) remainingWidth * column.renderWidth / totalColumnWidth else 0.0
+//            }
+//        }
+//    }
+
+    override fun widthChanged(table: Table<T, *>, columns: List<Table.Column<T, *>>, index: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
+
 open class ListModel<T>(private val list: List<T>): Model<T> {
 
     override val size get() = list.size
@@ -72,7 +184,18 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
                                           column        : Column<T, Any>,
                             vararg        columns       : Column<T, Any>): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
-    data class Column<T, R>(val name: String, val extractor: (T) -> R)
+    class Column<T, R>(val text: String, val width: Double? = null, val minWidth: Double = 0.0, val maxWidth: Double? = null, val extractor: (T) -> R) {
+        internal var renderWidth = width ?: 0.0
+            set(new) {
+                field = max(minWidth, new).let {
+                    if (maxWidth != null) {
+                        min(maxWidth, it)
+                    } else {
+                        it
+                    }
+                }
+            }
+    }
 
     private inner class FieldModel<A>(private val model: M, private val extractor: (T) -> A): com.nectar.doodle.controls.list.Model<A> {
         override val size get() = model.size
@@ -87,6 +210,8 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
     }
 
     val numRows: Int get() = model.size
+
+    val columnSizePolicy = ConstrainedSizePolicy<T>()
 
     public override var insets
         get(   ) = super.insets
@@ -120,8 +245,12 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
                 header.children.batch {
                     clear()
 
-                    addAll(columns.keys.map {
-                        behavior.headerCellGenerator(this@Table, it)
+                    headerItemsToColumns.clear()
+
+                    addAll(columns.keys.map { column ->
+                        behavior.headerCellGenerator(this@Table, column).also {
+                            headerItemsToColumns[it] = column
+                        }
                     })
                 }
 
@@ -131,20 +260,45 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top   = header.parent.top + y
-                        header.left  = header.parent.left
-                        header.right = header.parent.right
+                        header.top = header.parent.top + y
+//                        header.left  = header.parent.left
+//                        header.right = header.parent.right
                     }
 
                     panel.top    = header.bottom
-                    panel.left   = header.left
-                    panel.right  = header.right
+                    panel.left   = panel.parent.left
+                    panel.right  = panel.parent.right
                     panel.bottom = panel.parent.bottom
                 }
             }
         }
 
-    private val columns = listOf(column, *columns).associate {
+//    private class CustomList<T, M: com.nectar.doodle.controls.list.Model<T>>(strand: Strand, model: M, selectionModel: SelectionModel<Int>?, val column: Column<*, T>): com.nectar.doodle.controls.list.List<T, M>(strand, model, selectionModel) {
+//        init {
+//            acceptsThemes = false
+//        }
+//    }
+
+    override fun doLayout() {
+        columnSizePolicy.layout(this, this.columns.keys.toList())
+
+        super.doLayout()
+
+        header.doLayout()
+        (panel.content as? Box)?.doLayout()
+    }
+
+    private val headerItemsToColumns = mutableMapOf<View, Column<T, *>>()
+
+    private var numNullWidths = 0
+
+    private val fillerColumn = Column<T, String>("") { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
+
+    private val columns = listOf(column, *columns, fillerColumn).associate {
+        if (it.width == null) {
+            ++numNullWidths
+        }
+
         it to com.nectar.doodle.controls.list.List(strand, FieldModel(model, it.extractor), selectionModel).apply {
             acceptsThemes = false
         }
@@ -153,14 +307,17 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
     private val header = Box().apply {
         layout = object: Layout() {
             override fun layout(positionable: Positionable) {
-                var x     = 0.0
-                val width = positionable.width / positionable.children.size
+                var x          = 0.0
+                var totalWidth = 0.0
 
-                positionable.children.forEach {
-                    it.bounds = Rectangle(Point(x, 0.0), Size(width, positionable.height))
+                positionable.children.forEachIndexed { index, view ->
+                    view.bounds = Rectangle(Point(x, 0.0), Size(this@Table.columns.keys.toList()[index].renderWidth, positionable.height))
 
-                    x += it.width
+                    x += view.width
+                    totalWidth += view.width
                 }
+
+                positionable.width = totalWidth
             }
         }
     }
@@ -171,18 +328,19 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
 
             layout = object : Layout() {
                 override fun layout(positionable: Positionable) {
-                    var x      = 0.0
-                    val width  = positionable.width / positionable.children.size
-                    var height = 0.0
+                    var x          = 0.0
+                    var height     = 0.0
+                    var totalWidth = 0.0
 
-                    positionable.children.forEach {
-                        it.bounds = Rectangle(Point(x, 0.0), Size(width, it.height))
+                    positionable.children.forEachIndexed { index, view ->
+                        view.bounds = Rectangle(Point(x, 0.0), Size(this@Table.columns.keys.toList()[index].renderWidth, view.height))
 
-                        x      += it.width
-                        height  = max(height, it.height)
+                        x          += view.width
+                        height      = max(height, view.height)
+                        totalWidth += view.width
                     }
 
-                    positionable.height = height
+                    positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
                 }
             }
         }
@@ -190,7 +348,14 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
         override fun render(canvas: Canvas) {
             behavior?.render(this@Table, canvas)
         }
-    }).apply { scrollsHorizontally = false }
+    }.apply {
+        // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
+        boundsChanged += { _,old,new ->
+            if (old.x != new.x) {
+                header.x = new.x
+            }
+        }
+    })
 
     init {
         children += listOf(header, panel)

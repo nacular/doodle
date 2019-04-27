@@ -4,7 +4,6 @@ import com.nectar.doodle.dom.ShapeRendering
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
-import com.nectar.doodle.dom.index
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
@@ -149,16 +148,26 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     override fun clear() {}
 
     override fun flush() {
-        // Remove all elements after the current render position
-        renderPosition?.let {
-            val index = region.index(it)
+        var element = renderPosition
 
-            if (index >= 0) {
-                while (index < region.numChildren) {
-                    region.remove(region.childAt(index)!!)
-                }
-            }
+        while (element != null) {
+            val next = element.nextSibling
+
+            element.parent?.remove(element)
+
+            element = next
         }
+
+//        // Remove all elements after the current render position
+//        renderPosition?.let {
+//            val index = region.index(it)
+//
+//            if (index >= 0) {
+//                while (index < region.numChildren) {
+//                    region.remove(region.childAt(index)!!)
+//                }
+//            }
+//        }
 
         renderPosition = null
     }

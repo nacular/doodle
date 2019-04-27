@@ -21,18 +21,11 @@ internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
 
         view.cursor = Default
 
-//        if (shouldOverwriteProperty(view.getIdealSize())) {
-            view.idealSize = nativePeer.idealSize
-//        }
+        view.idealSize = nativePeer.idealSize
 
         view.idealSize?.let {
             view.size = it
         }
-
-//        if (view.idealSize != null /*&&
-//            ( aButton.getParent() == null || aButton.getParent().getLayout() == null )*/) {
-//            view.size = view.idealSize
-//        }
 
         view.rerender()
     }
