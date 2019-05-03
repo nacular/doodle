@@ -14,6 +14,11 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.utils.AdaptingObservableSet
+import com.nectar.doodle.utils.ObservableSet
+import com.nectar.doodle.utils.Pool
+import com.nectar.doodle.utils.SetObserver
+import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
 import kotlin.math.min
 
@@ -32,7 +37,7 @@ interface Model<T>: Iterable<T> {
 
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, cell: A, row: Int, current: View? = null): View
+        operator fun <A> invoke(table: Table<T, *>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
     }
 
     interface RowPositioner<T> {
@@ -46,7 +51,7 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     }
 
     interface HeaderCellGenerator<T> {
-        operator fun invoke(table: Table<T, *>, column: Column<T, *>): View
+        operator fun invoke(table: Table<T, *>, column: Column): View
     }
 
     data class HeaderGeometry(val y: Double, val height: Double)
@@ -55,22 +60,28 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     val rowPositioner      : RowPositioner<T>
     val headerPositioner   : HeaderPositioner<T>
     val headerCellGenerator: HeaderCellGenerator<T>
+
+    var headerDirty: (() -> Unit)?
+    var bodyDirty  : (() -> Unit)?
+
+    fun renderHeader(table: Table<T, *>, canvas: Canvas) {}
+    fun renderBody  (table: Table<T, *>, canvas: Canvas) {}
 }
 
 interface ColumnSizePolicy<T> {
-    fun layout(table: Table<T, *>, columns: List<Column<T, *>>)
+    fun layout(table: Table<T, *>, columns: List<Column>)
 
-    fun widthChanged(table: Table<T, *>, columns: List<Column<T, *>>, index: Int)
+    fun widthChanged(table: Table<T, *>, columns: List<Column>, index: Int)
 }
 
 class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
-    override fun layout(table: Table<T, *>, columns: List<Column<T, *>>) {
+    override fun layout(table: Table<T, *>, columns: List<Column>) {
         var numNull          = columns.filter { it.width == null }.size
         val totalColumnWidth = columns.fold(0.0) { sum, column -> sum + column.renderWidth }
         var remainingWidth   = table.width - totalColumnWidth
 
         if (remainingWidth > 0) {
-            val sortedColumns = columns.sortedWith(compareByDescending<Column<T, *>>{ it.width }.thenByDescending { it.maxWidth }).toMutableList()
+            val sortedColumns = columns.sortedWith(compareByDescending<Column>{ it.width }.thenByDescending { it.maxWidth }).toMutableList()
 
             sortedColumns.iterator().let {
                 while (it.hasNext() && remainingWidth > 0) {
@@ -106,7 +117,7 @@ class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
                 }
             }
         } else if (remainingWidth < 0) {
-            val sortedColumns = columns.sortedWith(compareBy<Column<T, *>>{ it.width }.thenBy { it.maxWidth }).toMutableList()
+            val sortedColumns = columns.sortedWith(compareBy<Column>{ it.width }.thenBy { it.maxWidth }).toMutableList()
 
             sortedColumns.iterator().let {
                 while (it.hasNext() && remainingWidth < 0) {
@@ -163,7 +174,7 @@ class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
 //        }
 //    }
 
-    override fun widthChanged(table: Table<T, *>, columns: List<Table.Column<T, *>>, index: Int) {
+    override fun widthChanged(table: Table<T, *>, columns: List<Table.Column>, index: Int) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
@@ -178,66 +189,44 @@ open class ListModel<T>(private val list: List<T>): Model<T> {
     override fun iterator(                       ) = list.iterator(                                   )
 }
 
-class Table<T, M: Model<T>>(private   val strand        : Strand,
-                            private   val model         : M,
-                            protected val selectionModel: SelectionModel<Int>? = null,
-                                          column        : Column<T, Any>,
-                            vararg        columns       : Column<T, Any>): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+open class Table<T, M: Model<T>>(private   val strand        : Strand,
+                                 private   val model         : M,
+                                 protected val selectionModel: SelectionModel<Int>? = null,
+                                               block         : ColumnBuilder<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
-    class Column<T, R>(val text: String, val width: Double? = null, val minWidth: Double = 0.0, val maxWidth: Double? = null, val extractor: (T) -> R) {
-        internal var renderWidth = width ?: 0.0
-            set(new) {
-                field = max(minWidth, new).let {
-                    if (maxWidth != null) {
-                        min(maxWidth, it)
-                    } else {
-                        it
-                    }
-                }
-            }
+    interface Column {
+        val text       : String
+        val width      : Double?
+        val minWidth   : Double
+        val maxWidth   : Double?
+        var renderWidth: Double
     }
 
-    private inner class FieldModel<A>(private val model: M, private val extractor: (T) -> A): com.nectar.doodle.controls.list.Model<A> {
-        override val size get() = model.size
-
-        override fun get(index: Int) = model[index]?.let(extractor)
-
-        override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
-
-        override fun contains(value: A) = value in model.map(extractor)
-
-        override fun iterator() = model.map(extractor).iterator()
+    interface ColumnBuilder<T> {
+        fun <R> column(text: String, width: Double? = null, minWidth: Double = 0.0, maxWidth: Double? = null, itemGenerator: ItemGenerator<R>, extractor: T.() -> R): Column
     }
 
     val numRows: Int get() = model.size
 
-    val columnSizePolicy = ConstrainedSizePolicy<T>()
-
-    public override var insets
-        get(   ) = super.insets
-        set(new) { super.insets = new }
+    var columnSizePolicy: ColumnSizePolicy<T> = ConstrainedSizePolicy()
 
     var behavior = null as TableBehavior<T>?
         set(new) {
             if (new == behavior) { return }
 
-            field?.uninstall(this)
+            field?.let {
+                it.bodyDirty   = null
+                it.headerDirty = null
+
+                it.uninstall(this)
+            }
 
             field = new?.also { behavior ->
-                columns.values.forEach {
-                    it.behavior = object: ListBehavior<Any> {
-                        override val generator: ListBehavior.ItemGenerator<Any> get() = object: ListBehavior.ItemGenerator<Any> {
-                            override fun invoke(list: com.nectar.doodle.controls.list.List<Any, *>, row: Any, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, row, index, current)
-                        }
+                behavior.bodyDirty   = bodyDirty
+                behavior.headerDirty = headerDirty
 
-                        override val positioner: ListBehavior.ItemPositioner<Any> get() = object: ListBehavior.ItemPositioner<Any> {
-                            override fun invoke(list: com.nectar.doodle.controls.list.List<Any, *>, row: Any, index: Int) = behavior.rowPositioner.invoke(this@Table, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
-
-                            override fun rowFor(list: com.nectar.doodle.controls.list.List<Any, *>, y: Double) = behavior.rowPositioner.rowFor(this@Table, y)
-                        }
-
-                        override fun render(view: com.nectar.doodle.controls.list.List<Any, *>, canvas: Canvas) {}
-                    }
+                columns.forEach {
+                    it.behavior(behavior)
                 }
 
                 behavior.install(this)
@@ -247,7 +236,7 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
 
                     headerItemsToColumns.clear()
 
-                    addAll(columns.keys.map { column ->
+                    addAll(columns.map { column ->
                         behavior.headerCellGenerator(this@Table, column).also {
                             headerItemsToColumns[it] = column
                         }
@@ -273,58 +262,106 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
             }
         }
 
-//    private class CustomList<T, M: com.nectar.doodle.controls.list.Model<T>>(strand: Strand, model: M, selectionModel: SelectionModel<Int>?, val column: Column<*, T>): com.nectar.doodle.controls.list.List<T, M>(strand, model, selectionModel) {
-//        init {
-//            acceptsThemes = false
-//        }
-//    }
-
-    override fun doLayout() {
-        columnSizePolicy.layout(this, this.columns.keys.toList())
-
-        super.doLayout()
-
-        header.doLayout()
-        (panel.content as? Box)?.doLayout()
+    private inner class ColumnBuilderImpl: ColumnBuilder<T> {
+        override fun <R> column(text: String, width: Double?, minWidth: Double, maxWidth: Double?, itemGenerator: ItemGenerator<R>, extractor: (T) -> R) = InternalColumn(text, itemGenerator, width, minWidth, maxWidth, extractor).also { columns += it }
     }
 
-    private val headerItemsToColumns = mutableMapOf<View, Column<T, *>>()
+    private inner class InternalColumn<R>(
+            override val text         : String,
+                     val itemGenerator: ItemGenerator<R>,
+            override val width        : Double? = null,
+            override val minWidth     : Double  = 0.0,
+            override val maxWidth     : Double? = null,
+                         extractor    : T.() -> R): Column {
 
-    private var numNullWidths = 0
+        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): com.nectar.doodle.controls.list.Model<A> {
+            override val size get() = model.size
 
-    private val fillerColumn = Column<T, String>("") { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
+            override fun get(index: Int) = model[index]?.let(extractor)
 
-    private val columns = listOf(column, *columns, fillerColumn).associate {
-        if (it.width == null) {
-            ++numNullWidths
+            override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
+
+            override fun contains(value: A) = value in model.map(extractor)
+
+            override fun iterator() = model.map(extractor).iterator()
         }
 
-        it to com.nectar.doodle.controls.list.List(strand, FieldModel(model, it.extractor), selectionModel).apply {
+        override var renderWidth = width ?: 0.0
+            set(new) {
+                field = max(minWidth, new).let {
+                    if (maxWidth != null) {
+                        min(maxWidth, it)
+                    } else {
+                        it
+                    }
+                }
+            }
+
+        val list = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator, selectionModel).apply {
             acceptsThemes = false
         }
+
+        fun behavior(behavior: TableBehavior<T>?) {
+            behavior?.let {
+                list.behavior = object : ListBehavior<R> {
+                    override val generator: ListBehavior.RowGenerator<R>
+                        get() = object : ListBehavior.RowGenerator<R> {
+                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, row, index, itemGenerator, current)
+                        }
+
+                    override val positioner: ListBehavior.RowPositioner<R>
+                        get() = object : ListBehavior.RowPositioner<R> {
+                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = behavior.rowPositioner.invoke(this@Table, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
+
+                            override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = behavior.rowPositioner.rowFor(this@Table, y)
+                        }
+
+                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {}
+                }
+            }
+        }
     }
 
-    private val header = Box().apply {
-        layout = object: Layout() {
-            override fun layout(positionable: Positionable) {
-                var x          = 0.0
-                var totalWidth = 0.0
 
-                positionable.children.forEachIndexed { index, view ->
-                    view.bounds = Rectangle(Point(x, 0.0), Size(this@Table.columns.keys.toList()[index].renderWidth, positionable.height))
+    private val columns = mutableListOf<InternalColumn<*>>()
 
-                    x += view.width
-                    totalWidth += view.width
+    init {
+        ColumnBuilderImpl().apply(block)
+
+        columns += InternalColumn("", itemGenerator = object : ItemGenerator<String> {
+            override fun invoke(item: String, previous: View?) = object : View() {}
+        }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
+    }
+
+    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*>>()
+
+    private val header = object: Box() {
+        init {
+            layout = object : Layout() {
+                override fun layout(positionable: Positionable) {
+                    var x = 0.0
+                    var totalWidth = 0.0
+
+                    positionable.children.forEachIndexed { index, view ->
+                        view.bounds = Rectangle(Point(x, 0.0), Size(columns[index].renderWidth, positionable.height))
+
+                        x += view.width
+                        totalWidth += view.width
+                    }
+
+                    positionable.width = totalWidth
                 }
-
-                positionable.width = totalWidth
             }
+        }
+
+        override fun render(canvas: Canvas) {
+            behavior?.renderHeader(this@Table, canvas)
         }
     }
 
     private val panel = ScrollPanel(object: Box() {
         init {
-            children += this@Table.columns.values
+            children += columns.map { it.list }
 
             layout = object : Layout() {
                 override fun layout(positionable: Positionable) {
@@ -333,7 +370,7 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
                     var totalWidth = 0.0
 
                     positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(this@Table.columns.keys.toList()[index].renderWidth, view.height))
+                        view.bounds = Rectangle(Point(x, 0.0), Size(columns[index].renderWidth, view.height))
 
                         x          += view.width
                         height      = max(height, view.height)
@@ -346,7 +383,7 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
         }
 
         override fun render(canvas: Canvas) {
-            behavior?.render(this@Table, canvas)
+            behavior?.renderBody(this@Table, canvas)
         }
     }.apply {
         // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
@@ -356,28 +393,62 @@ class Table<T, M: Model<T>>(private   val strand        : Strand,
             }
         }
     })
+    @Suppress("PrivatePropertyName")
+    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
+        val adaptingSet: ObservableSet<Table<T, *>, Int> = AdaptingObservableSet(this, set)
+
+        (selectionChanged as SetPool).forEach {
+            it(adaptingSet, removed, added)
+        }
+    }
 
     init {
         children += listOf(header, panel)
+
+        selectionModel?.let { it.changed += selectionChanged_ }
+    }
+
+    private val bodyDirty  : () -> Unit = { panel.content?.rerender() }
+    private val headerDirty: () -> Unit = { header.rerender        () }
+
+    operator fun get(index: Int) = model[index]
+
+    val selectionChanged: Pool<SetObserver<Table<T, *>, Int>> = SetPool()
+
+    override fun removedFromDisplay() {
+        selectionModel?.let { it.changed -= selectionChanged_ }
+
+        super.removedFromDisplay()
+    }
+
+    public override var insets
+        get(   ) = super.insets
+        set(new) { super.insets = new }
+
+    override fun doLayout() {
+        columnSizePolicy.layout(this, this.columns)
+
+        super.doLayout()
+
+        header.doLayout()
+        (panel.content as? Box)?.doLayout()
     }
 
     companion object {
 //        operator fun invoke(
 //                strand        : Strand,
-//                progression   : IntProgression
-////                selectionModel: SelectionModel<Int>? = null,
+//                progression   : IntProgression,
+//                selectionModel: SelectionModel<Int>? = null
 ////                fitContent    : Boolean              = true,
-//                /*cacheLength   : Int                  = 10*/) =
-//                Table(strand, progression.toList())
+//                /*cacheLength   : Int                  = 10*/) = Table(strand, progression.toList())
 
         operator fun <T> invoke(
                        strand        : Strand,
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
-                       column        : Column<T, Any>,
-                vararg columns       : Column<T, Any>
+                       block         : ColumnBuilder<T>.() -> Unit
 //                selectionModel: SelectionModel<Int>? = null,
 //                fitContent    : Boolean              = true,
-                /*cacheLength   : Int                  = 10*/): Table<T, Model<T>> = Table(strand, ListModel(values), selectionModel, column, *columns)
+                /*cacheLength   : Int                  = 10*/): Table<T, Model<T>> = Table(strand, ListModel(values), selectionModel, block)
     }
 }

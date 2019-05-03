@@ -127,7 +127,7 @@ class RealGraphicsSurface private constructor(
                     it.parent?.remove(it)
                     0
                 } else {
-                    rootElement.insert(it, 0)
+                    if (it.parent == null) rootElement.insert(it, 0)
                     1
                 }
             }

@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
+import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.Table
 import com.nectar.doodle.controls.Table.Column
@@ -14,6 +15,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
@@ -27,22 +29,31 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.system.SystemInputEvent
 import com.nectar.doodle.text.StyledText
+import com.nectar.doodle.utils.SetObserver
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
 class BasicTableBehavior<T>(
-        private val focusManager: FocusManager?,
-        private val textMetrics : TextMetrics,
-                val rowHeight   : Double = 20.0,
-                val headerColor : Color? = lightgray,
-                val evenRowColor: Color? = white,
-                val oddRowColor : Color? = lightgray.lighter().lighter()): TableBehavior<T>, KeyListener {
+        private val focusManager  : FocusManager?,
+        private val textMetrics   : TextMetrics,
+                val rowHeight     : Double = 20.0,
+                val headerColor   : Color? = lightgray,
+                val evenRowColor  : Color? = white,
+                val oddRowColor   : Color? = lightgray.lighter().lighter(),
+                val selectionColor: Color? = green.lighter()): TableBehavior<T>, KeyListener {
+
+    override var headerDirty: (() -> Unit)? = null
+    override var bodyDirty  : (() -> Unit)? = null
+
+    private val selectionChanged: SetObserver<Table<T, *>, Int> = { set,_,_ ->
+        bodyDirty?.invoke()
+    }
 
     override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, cell: A, row: Int, current: View?): View = when (current) {
+        override fun <A> invoke(table: Table<T, *>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
-            else          -> ListRow(textMetrics, table, cell, row).apply {
+            else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null).apply {
                 mouseChanged += object: MouseListener {
                     override fun mouseReleased(event: MouseEvent) {
                         focusManager?.requestFocus(table)
@@ -64,23 +75,37 @@ class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun invoke(table: Table<T, *>, column: Column<T, *>) = Label(textMetrics, StyledText(column.text)).apply { fitText = false; backgroundColor = headerColor }
+        override fun invoke(table: Table<T, *>, column: Column) = Label(textMetrics, StyledText(column.text)).apply { fitText = false }
     }
 
-    override fun render(view: Table<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(rowHeight, 2 * rowHeight)) {
+    override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorBrush(it)) }
+    }
+
+    override fun renderBody(table: Table<T, *>, canvas: Canvas) {
+        canvas.rect(Rectangle(size = canvas.size), CanvasBrush(Size(rowHeight, 2 * rowHeight)) {
             evenRowColor?.let { rect(Rectangle(                rowHeight, rowHeight), ColorBrush(it)) }
-            oddRowColor?.let  { rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(it )) }
+            oddRowColor?.let  { rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(it)) }
         })
+
+        if (selectionColor != null) {
+            table.selection.map { it to table[it] }.forEach { (index, row) ->
+                row?.let {
+                    canvas.rect(rowPositioner(table, row, index), ColorBrush(selectionColor))
+                }
+            }
+        }
     }
 
     // FIXME: Centralize
     override fun install(view: Table<T, *>) {
-        view.keyChanged += this
+        view.keyChanged       += this
+        view.selectionChanged += selectionChanged
     }
 
     override fun uninstall(view: Table<T, *>) {
-        view.keyChanged -= this
+        view.keyChanged       -= this
+        view.selectionChanged -= selectionChanged
     }
 
     override fun keyPressed(event: KeyEvent) {

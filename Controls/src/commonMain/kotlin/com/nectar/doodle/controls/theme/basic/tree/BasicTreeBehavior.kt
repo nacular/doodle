@@ -207,9 +207,6 @@ private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>,
                         override val width = MagnitudeConstraint (this@BasicTreeRow) { it.width - iconWidth * (1 + newDepth) }
                     }
                 })
-
-//                it.left    = it.parent.left + { iconWidth * (1 + newDepth) }
-//                it.centerY = it.parent.centerY
             }
 
             constrainIcon(icon)

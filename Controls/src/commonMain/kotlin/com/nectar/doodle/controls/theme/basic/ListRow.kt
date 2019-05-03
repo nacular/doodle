@@ -1,48 +1,59 @@
 package com.nectar.doodle.controls.theme.basic
 
+import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.Selectable
-import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent
-import com.nectar.doodle.text.StyledText
-import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-class ListRow<T>(    textMetrics : TextMetrics,
-                 var list        : Selectable<Int>,
-                 var row         : T,
-                 var index       : Int,
-                 val evenRowColor: Color? = null,
-                 val oddRowColor : Color? = evenRowColor?.darker()): Label(textMetrics, StyledText(row.toString())) {
+class ListRow<T>(private var list          : Selectable<Int>,
+                 private var row           : T,
+                         var index         : Int,
+                 private val itemGenerator : ItemGenerator<T>,
+                 private val evenRowColor  : Color? = null,
+                 private val oddRowColor   : Color? = evenRowColor?.darker(),
+                 private val selectionColor: Color? = green): View() {
 
     var colorPolicy: (ListRow<T>) -> Color? = {
         val color = when {
-            it.index.isEven -> if (list.selected(index)) green           else evenRowColor
-            else            -> if (list.selected(index)) green.lighter() else oddRowColor
+            it.index.isEven -> if (list.selected(index) && selectionColor != null) selectionColor.lighter() else evenRowColor
+            else            -> if (list.selected(index) && selectionColor != null) selectionColor           else oddRowColor
         }
 
         if (it.mouseOver) color?.lighter(0.25f) else color
     }
 
-    private  var mouseOver  = false
+    var positioner: Constraints.() -> Unit = {
+        centerY = parent.centerY
+    }
+        set(new) {
+            field = new
+
+            layout = constrain(children[0]) {
+                positioner(it)
+            }
+        }
+
+    private var mouseOver = false
 
     init {
-        fitText             = false
-        horizontalAlignment = HorizontalAlignment.Left
+        children += itemGenerator(row)
 
         styleChanged += { rerender() }
-
         mouseChanged += object: MouseListener {
             private var pressed = false
 
@@ -91,9 +102,18 @@ class ListRow<T>(    textMetrics : TextMetrics,
         this.list  = list
         this.row   = row
         this.index = index
-        text       = row.toString()
+
+        children[0] = itemGenerator(row, children.getOrNull(0))
+
+        layout = constrain(children[0]) {
+            positioner(it)
+        }
 
         backgroundColor = colorPolicy(this)
+    }
+
+    override fun render(canvas: Canvas) {
+        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
     }
 }
 

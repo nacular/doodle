@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.scheduler.Strand
@@ -18,9 +19,10 @@ interface ListEditor<T> {
 open class MutableList<T, M: MutableModel<T>>(
         strand        : Strand,
         model         : M,
+        itemGenerator : ItemGenerator<T>?    = null,
         selectionModel: SelectionModel<Int>? = null,
         fitContent    : Boolean              = true,
-        cacheLength   : Int                  = 10): List<T, M>(strand, model, selectionModel, fitContent, cacheLength) {
+        cacheLength   : Int                  = 10): List<T, M>(strand, model, itemGenerator, selectionModel, fitContent, cacheLength) {
 
     private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
@@ -175,17 +177,19 @@ open class MutableList<T, M: MutableModel<T>>(
         operator fun invoke(
                 strand        : Strand,
                 progression   : IntProgression,
+                itemGenerator : ItemGenerator<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
-                MutableList(strand, progression.toMutableList(), selectionModel, fitContent, cacheLength)
+                MutableList(strand, progression.toMutableList(), itemGenerator, selectionModel, fitContent, cacheLength)
 
         operator fun <T> invoke(
                 strand        : Strand,
                 values        : kotlin.collections.List<T>,
+                itemGenerator : ItemGenerator<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10): MutableList<T, MutableListModel<T>> =
-                MutableList(strand, MutableListModel(values.toMutableList()), selectionModel, fitContent, cacheLength)
+                MutableList(strand, MutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
     }
 }

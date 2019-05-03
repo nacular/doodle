@@ -1,11 +1,12 @@
 package com.nectar.doodle.controls.theme.basic.list
 
 import com.nectar.doodle.controls.Selectable
+import com.nectar.doodle.controls.ToStringItemGenerator
 import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
-import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
-import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
+import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
+import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.Model
 import com.nectar.doodle.controls.list.MutableList
@@ -43,10 +44,10 @@ import com.nectar.doodle.utils.ObservableSet
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-private open class LabelItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics): ItemGenerator<T> {
+private open class BasicItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(textMetrics, list, row, index).apply {
+        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics)).apply {
             mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
                     focusManager?.requestFocus(list)
@@ -56,13 +57,13 @@ private open class LabelItemGenerator<T>(private val focusManager: FocusManager?
     }
 }
 
-private class BasicListPositioner<T>(height: Double): ListPositioner(height), ItemPositioner<T> {
+private class BasicListPositioner<T>(height: Double): ListPositioner(height), RowPositioner<T> {
     override fun rowFor(list: List<T, *>, y: Double) = super.rowFor(list.insets, y)
 
     override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
 }
 
-private class MutableLabelItemGenerator<T>(focusManager: FocusManager?, textMetrics: TextMetrics): LabelItemGenerator<T>(focusManager, textMetrics) {
+private class MutableBasicItemGenerator<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicItemGenerator<T>(focusManager, textMetrics) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -79,8 +80,8 @@ private class MutableLabelItemGenerator<T>(focusManager: FocusManager?, textMetr
 }
 
 open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics, private val rowHeight: Double = 20.0): ListBehavior<T>, KeyListener {
-    override val generator : ItemGenerator<T>  = LabelItemGenerator (focusManager, textMetrics)
-    override val positioner: ItemPositioner<T> = BasicListPositioner(rowHeight                )
+    override val generator : RowGenerator<T>  = BasicItemGenerator (focusManager, textMetrics)
+    override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight                )
 
     override fun install(view: List<T, *>) {
         view.keyChanged += this
@@ -128,8 +129,8 @@ open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMe
 }
 
 class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicListBehavior<T>(focusManager, textMetrics) {
-    override val generator : ItemGenerator<T>  = MutableLabelItemGenerator(focusManager, textMetrics)
-    override val positioner: ItemPositioner<T> = BasicListPositioner(20.0)
+    override val generator : RowGenerator<T>  = MutableBasicItemGenerator(focusManager, textMetrics)
+    override val positioner: RowPositioner<T> = BasicListPositioner(20.0)
 
     override fun keyPressed(event: KeyEvent) {
         when (event.code) {

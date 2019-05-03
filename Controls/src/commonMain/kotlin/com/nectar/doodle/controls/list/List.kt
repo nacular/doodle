@@ -1,10 +1,11 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.list.ListBehavior.ItemGenerator
-import com.nectar.doodle.controls.list.ListBehavior.ItemPositioner
+import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
+import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -23,23 +24,24 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 3/19/18.
  */
 interface ListBehavior<T>: Behavior<List<T, *>> {
-    interface ItemGenerator<T> {
+    interface RowGenerator<T> {
         operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
     }
 
-    interface ItemPositioner<T> {
+    interface RowPositioner<T> {
         operator fun invoke(list: List<T, *>, row: T, index: Int): Rectangle
 
         fun rowFor(list: List<T, *>, y: Double): Int
     }
 
-    val generator : ItemGenerator<T>
-    val positioner: ItemPositioner<T>
+    val generator : RowGenerator<T>
+    val positioner: RowPositioner<T>
 }
 
 open class List<T, out M: Model<T>>(
         private        val strand        : Strand,
         protected open val model         : M,
+                       val itemGenerator : ItemGenerator<T>?    = null,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true,
         private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
@@ -51,7 +53,7 @@ open class List<T, out M: Model<T>>(
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { added ->
-                positioner?.invoke(this, this[added]!!, added)?.let {
+                rowPositioner?.invoke(this, this[added]!!, added)?.let {
                     parent.scrollToVisible(it)
                 }
             }
@@ -70,8 +72,8 @@ open class List<T, out M: Model<T>>(
         }
     }
 
-    private var generator       : ItemGenerator <T>? = null
-    private var positioner      : ItemPositioner<T>? = null
+    private var rowGenerator    : RowGenerator <T>? = null
+    private var rowPositioner   : RowPositioner<T>? = null
     private val halfCacheLength = cacheLength / 2
     private var minVisibleY     = 0.0
     private var maxVisibleY     = 0.0
@@ -86,8 +88,8 @@ open class List<T, out M: Model<T>>(
             field?.uninstall(this)
 
             field = new?.also {
-                this.generator  = it.generator
-                this.positioner = it.positioner
+                this.rowGenerator  = it.generator
+                this.rowPositioner = it.positioner
 
                 children.batch {
                     clear()
@@ -100,7 +102,7 @@ open class List<T, out M: Model<T>>(
         }
 
     protected fun updateVisibleHeight() {
-        height = model.size * (model[0]?.let { positioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+        height = model.size * (model[0]?.let { rowPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
     }
 
     public override var insets
@@ -128,7 +130,7 @@ open class List<T, out M: Model<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        positioner?.let { positioner ->
+        rowPositioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return
             }
@@ -174,13 +176,13 @@ open class List<T, out M: Model<T>>(
     }
 
     protected fun layout(view: View, row: T, index: Int) {
-        positioner?.let {
+        rowPositioner?.let {
             view.bounds = it(this, row, index)
         }
     }
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
-        generator?.let { uiGenerator ->
+        rowGenerator?.let { uiGenerator ->
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
@@ -200,7 +202,7 @@ open class List<T, out M: Model<T>>(
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
-            generator?.let { uiGenerator ->
+            rowGenerator?.let { uiGenerator ->
                 model[index]?.let { row ->
                     val i = index % children.size
 
@@ -215,25 +217,27 @@ open class List<T, out M: Model<T>>(
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int): Int {
-        return min(model.size - 1, positioner?.rowFor(this, y) ?: nearbyRow)
+        return min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
     }
 
     companion object {
         operator fun invoke(
                 strand        : Strand,
                 progression   : IntProgression,
+                itemGenerator : ItemGenerator<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
-                List<Int, Model<Int>>(strand, IntProgressionModel(progression), selectionModel, fitContent, cacheLength)
+                List<Int, Model<Int>>(strand, IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
 
         operator fun <T> invoke(
                 strand        : Strand,
                 values        : kotlin.collections.List<T>,
+                itemGenerator : ItemGenerator<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10): List<T, Model<T>> =
-                List<T, Model<T>>(strand, ListModel(values), selectionModel, fitContent, cacheLength)
+                List<T, Model<T>>(strand, ListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
     }
 }
 

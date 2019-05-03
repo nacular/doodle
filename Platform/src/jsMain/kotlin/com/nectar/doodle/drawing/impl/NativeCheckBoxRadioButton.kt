@@ -3,10 +3,10 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ButtonModel
 import com.nectar.doodle.core.View
-import com.nectar.doodle.dom.Absolute
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Inline
+import com.nectar.doodle.dom.Static
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
@@ -64,40 +64,45 @@ internal class NativeCheckBoxRadioButton(
                     htmlFactory   : HtmlFactory,
                     type          : Type): NativeEventListener {
 
-    private var textSize = Size.Empty
+    private var textSize  = Size.Empty
+    private var inputSize = Size.Empty
 
     val idealSize: Size? get() {
-        val size = elementRuler.size(inputElement)
-
-        return Size(size.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0, max(size.height, textSize.height))
+        return Size(inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0, max(inputSize.height, textSize.height))
     }
 
-    private val inputHeight      : Double
     private val rootEventHandler : NativeEventHandler
     private val inputEventHandler: NativeEventHandler
 
     private val inputElement = htmlFactory.createInput().apply {
         this.type = type.value
+        checked   = button.selected
+        tabIndex  = if (button.selected) 0 else -1
+        disabled  = !button.enabled
+
+        style.setPosition(Static()) // remove absolute positioning due to global style
+
+        val block = htmlFactory.create<HTMLElement>().also {
+            it.style.setPosition(Static())
+            it.style.fontFamily = "unset"
+            it.style.fontSize   = "unset"
+
+            it.add(this)
+        }
+
+        inputSize = elementRuler.size(block)
+
+        style.setPosition() // restore absolute
 
         inputEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
             registerFocusListener         ()
             startConsumingMousePressEvents()
         }
-
-        checked  = button.selected
-        tabIndex = if (button.selected) 0 else -1
-        disabled = !button.enabled
-
-        style.setMargin  (0.0       )
-        style.setPosition(Absolute())
-
-        inputHeight = elementRuler.height(this)
     }
 
     private val rootElement = htmlFactory.create<HTMLElement>("LABEL").apply {
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
-        style.setPosition(Absolute())
 
         rootEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
             registerFocusListener         ()
@@ -160,8 +165,7 @@ internal class NativeCheckBoxRadioButton(
         if (canvas is CanvasImpl) {
             canvas.addData(listOf(rootElement), Point.Origin)
 
-            inputElement.style.setTop((button.height - inputHeight) / 2)
-            textElement?.style?.setTop((button.height - inputHeight) / 2)
+            positionElements()
 
             if (button.hasFocus) {
                 inputElement.focus()
@@ -204,8 +208,6 @@ internal class NativeCheckBoxRadioButton(
                     it.style.setMargin (0.0     )
                     it.style.setDisplay(Inline())
 
-                    setMargins()
-
                     textSize = textMetrics.size(button.text, button.font)
                 }
             }
@@ -215,26 +217,24 @@ internal class NativeCheckBoxRadioButton(
         text = button.text
     }
 
-    private fun setMargins() {
+    private fun positionElements() {
+        inputElement.style.setTop ((button.height - inputSize.height) / 2)
+
         textElement?.let { textElement ->
+            textElement.style.setTop((button.height - textSize.height ) / 2)
+
             when (button.iconAnchor) {
                 Anchor.Right, Anchor.Trailing -> {
                     rootElement.insert(textElement, 0)
 
-                    inputElement.style.setLeft(elementRuler.width(textElement) + button.iconTextSpacing)
+                    inputElement.style.setLeft(textSize.width + button.iconTextSpacing)
                     textElement.style.setLeft(0.0)
                 }
 
-                Anchor.Leading -> {
-                    rootElement.add(textElement)
-
-                    inputElement.style.setLeft(0.0)
-                    textElement.style.setLeft(elementRuler.width(textElement) + button.iconTextSpacing)
-                }
-                else -> {
+                else                          -> {
                     rootElement.add(textElement)
                     inputElement.style.setLeft(0.0)
-                    textElement.style.setLeft(elementRuler.width(textElement) + button.iconTextSpacing)
+                    textElement.style.setLeft(inputSize.width + button.iconTextSpacing)
                 }
             }
         }

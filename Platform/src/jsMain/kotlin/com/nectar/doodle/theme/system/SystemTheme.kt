@@ -4,6 +4,7 @@ import com.nectar.doodle.application.Modules.Companion.themeModule
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
+import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.core.Display
@@ -47,7 +48,8 @@ class SystemTheme internal constructor(
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is CheckBox    -> it.behavior = SystemCheckBoxBehavior         (nativeCheckBoxRadioButtonFactory, textMetrics, it)
+            is RadioButton -> it.behavior = SystemRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, it)
+            is CheckBox    -> it.behavior = SystemCheckBoxBehavior   (nativeCheckBoxRadioButtonFactory, textMetrics, it)
             is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory,              textMetrics, it)
             is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,              it             )
             is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,           it             )

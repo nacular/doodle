@@ -6,13 +6,11 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.Inline
 import com.nectar.doodle.dom.Static
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setBorderStyle
-import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
@@ -82,15 +80,14 @@ class NativeButtonFactoryImpl internal constructor(
     }
 
     private val buttonInsets: Insets by lazy {
-        val block  = htmlFactory.create<HTMLElement>()
-        val button = htmlFactory.createButton().also {
-            it.textContent = "foo"
+        val block = htmlFactory.create<HTMLElement>().apply {
+            style.setPosition(Static())
+
+            add(htmlFactory.createText("foo"))
         }
-
-        block.style.setDisplay (Inline())
-        block.style.setPosition(Static())
-
-        block.add(htmlFactory.createText("foo"))
+        val button = htmlFactory.createButton().apply {
+            textContent = "foo"
+        }
 
         val s = elementRuler.size(block)
 
@@ -304,8 +301,7 @@ class NativeButton internal constructor(
                 setIconText()
             }
 
-            updateIconPosition()
-            updateTextPosition()
+            positionElements()
 
             canvas.addData(listOf(buttonElement))
 
@@ -378,18 +374,16 @@ class NativeButton internal constructor(
             }
         }
 
-    private fun updateTextPosition() {
-        textElement?.let {
-            textPosition.apply {
+    private fun positionElements() {
+        iconElement?.let {
+            iconPosition.apply {
                 it.style.setTop (y)
                 it.style.setLeft(x)
             }
         }
-    }
 
-    private fun updateIconPosition() {
-        iconElement?.let {
-            iconPosition.apply {
+        textElement?.let {
+            textPosition.apply {
                 it.style.setTop (y)
                 it.style.setLeft(x)
             }

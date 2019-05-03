@@ -39,10 +39,14 @@ open class CheckRadioButtonBehavior protected constructor(
         val idealWidth = icon.width + if (textSize.width > 0) spacing + textSize.width else 0.0
 
         view.icon                = icon
-        view.idealSize           = Size(idealWidth, max(icon.height, if (!textSize.empty) textSize.height else 0.0)).also { view.size = it }
         view.iconAnchor          = Anchor.Left
         view.minimumSize         = icon.size
         view.iconTextSpacing     = spacing
         view.horizontalAlignment = Left
+
+        Size(idealWidth, max(icon.height, if (!textSize.empty) textSize.height else 0.0)).let {
+            view.idealSize = it
+            view.size      = it
+        }
     }
 }

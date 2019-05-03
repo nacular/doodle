@@ -37,7 +37,7 @@ interface Behavior<in T: View> {
      * @param view  the View being rendered
      * @param canvas the Canvas given to the View during a system call to [View.render]
      */
-    fun render(view: T, canvas: Canvas)
+    fun render(view: T, canvas: Canvas) {}
 
     /**
      * Returns true if the [View] contains point.  This can be used to handle cases when the [Behavior] wants to control hit detection.
