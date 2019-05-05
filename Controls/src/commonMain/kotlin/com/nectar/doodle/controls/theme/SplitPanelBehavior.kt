@@ -53,7 +53,7 @@ abstract class AbstractSplitPanelBehavior(private val divider: View, override va
         }
     }
 
-    override fun mouseDragged(mouseEvent: MouseEvent) {
+    override fun mouseDragged(event: MouseEvent) {
         splitPanel?.let { splitPanel ->
 
             var minPosition = 0.0
@@ -63,14 +63,14 @@ abstract class AbstractSplitPanelBehavior(private val divider: View, override va
             when (orientation) {
                 Vertical   -> {
                     minPosition = splitPanel.insets.left
-                    position    = divider.x + mouseEvent.location.x - pressedLocation
+                    position    = divider.x + event.location.x - pressedLocation
                     maxPosition = splitPanel.run { width - divider.width - insets.run { right } }
                 }
 
                 Horizontal -> {
 
                     minPosition = splitPanel.insets.top
-                    position    = divider.y + mouseEvent.location.y - pressedLocation
+                    position    = divider.y + event.location.y - pressedLocation
                     maxPosition = splitPanel.run { height - divider.width - insets.run { bottom } }
                 }
             }

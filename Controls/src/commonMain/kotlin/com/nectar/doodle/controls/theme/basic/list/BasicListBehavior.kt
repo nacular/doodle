@@ -8,7 +8,7 @@ import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.list.ListEditor
-import com.nectar.doodle.controls.list.Model
+import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.theme.basic.ListPositioner
@@ -150,7 +150,7 @@ open class TextEditOperation<T>(
         private var index       : Int,
                     current     : View): TextField(), EditOperation<T> {
 
-    private val listSelectionChanged = { _:ObservableSet<out List<*, Model<*>>, *>,_: Set<Int>,_:  Set<Int> ->
+    private val listSelectionChanged = { _:ObservableSet<out List<*, ListModel<*>>, *>,_: Set<Int>,_:  Set<Int> ->
         list.cancelEditing()
     }
 

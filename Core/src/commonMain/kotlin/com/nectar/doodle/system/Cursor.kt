@@ -26,6 +26,7 @@ class Cursor private constructor(private val type: String) {
         val SResize   = Cursor("s-resize"  )
         val EResize   = Cursor("e-resize"  )
         val WResize   = Cursor("w-resize"  )
+        val EWResize  = Cursor("ew-resize" )
         val Grabbing  = Cursor("grabbing"  )
         val Progress  = Cursor("progress"  )
         val NeResize  = Cursor("ne-resize" )

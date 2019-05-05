@@ -11,14 +11,14 @@ interface MouseMotionListener {
     /**
      * Informs listener that the mouse has been moved while over the source.
      *
-     * @param mouseEvent The event
+     * @param event The event
      */
-    fun mouseMoved(mouseEvent: MouseEvent) {}
+    fun mouseMoved(event: MouseEvent) {}
 
     /**
      * Informs listener that the mouse has been dragged.
      *
-     * @param mouseEvent The event
+     * @param event The event
      */
-    fun mouseDragged(mouseEvent: MouseEvent) {}
+    fun mouseDragged(event: MouseEvent) {}
 }

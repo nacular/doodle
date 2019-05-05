@@ -1,6 +1,9 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ModelObserver
+import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.scheduler.Strand
@@ -16,7 +19,7 @@ interface ListEditor<T> {
     fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>
 }
 
-open class MutableList<T, M: MutableModel<T>>(
+open class MutableList<T, M: MutableListModel<T>>(
         strand        : Strand,
         model         : M,
         itemGenerator : ItemGenerator<T>?    = null,
@@ -189,7 +192,7 @@ open class MutableList<T, M: MutableModel<T>>(
                 itemGenerator : ItemGenerator<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10): MutableList<T, MutableListModel<T>> =
-                MutableList(strand, MutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
+                cacheLength   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
+                MutableList(strand, SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
     }
 }

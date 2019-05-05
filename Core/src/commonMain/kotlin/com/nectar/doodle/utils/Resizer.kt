@@ -73,12 +73,12 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
         }
     }
 
-    override fun mouseMoved(mouseEvent: MouseEvent) {
-        updateCursor(mouseEvent)
+    override fun mouseMoved(event: MouseEvent) {
+        updateCursor(event)
     }
 
-    override fun mouseDragged(mouseEvent: MouseEvent) {
-        val delta = mouseEvent.location - initialPosition
+    override fun mouseDragged(event: MouseEvent) {
+        val delta = event.location - initialPosition
 
         if (dragMode.isEmpty() && movable) {
             view.position += delta

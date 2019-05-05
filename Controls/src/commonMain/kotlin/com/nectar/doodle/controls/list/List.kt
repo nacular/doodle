@@ -1,7 +1,9 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.SimpleListModel
 import com.nectar.doodle.controls.ListSelectionManager
+import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
@@ -38,7 +40,7 @@ interface ListBehavior<T>: Behavior<List<T, *>> {
     val positioner: RowPositioner<T>
 }
 
-open class List<T, out M: Model<T>>(
+open class List<T, out M: ListModel<T>>(
         private        val strand        : Strand,
         protected open val model         : M,
                        val itemGenerator : ItemGenerator<T>?    = null,
@@ -228,7 +230,7 @@ open class List<T, out M: Model<T>>(
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
-                List<Int, Model<Int>>(strand, IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
+                List<Int, ListModel<Int>>(strand, IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
 
         operator fun <T> invoke(
                 strand        : Strand,
@@ -236,12 +238,12 @@ open class List<T, out M: Model<T>>(
                 itemGenerator : ItemGenerator<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10): List<T, Model<T>> =
-                List<T, Model<T>>(strand, ListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
+                cacheLength   : Int                  = 10): List<T, ListModel<T>> =
+                List<T, ListModel<T>>(strand, SimpleListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
     }
 }
 
-private class IntProgressionModel(private val progression: IntProgression): Model<Int> {
+private class IntProgressionModel(private val progression: IntProgression): ListModel<Int> {
     override val size = progression.run { (last - first) / step }
 
     override fun get(index: Int) = progression.elementAt(index)

@@ -8,7 +8,7 @@ import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.MutableList
-import com.nectar.doodle.controls.list.MutableModel
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
@@ -16,7 +16,7 @@ import com.nectar.doodle.controls.theme.basic.list.BasicListBehavior
 import com.nectar.doodle.controls.theme.basic.list.BasicMutableListBehavior
 import com.nectar.doodle.controls.theme.basic.tree.BasicMutableTreeBehavior
 import com.nectar.doodle.controls.theme.basic.tree.BasicTreeBehavior
-import com.nectar.doodle.controls.tree.Model
+import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.Display
@@ -39,9 +39,9 @@ private val darkBackgroundColor    = Color(0xaaaaaau)
 private val defaultBackgroundColor = backgroundColor
 
 
-typealias ListModel<T>        = com.nectar.doodle.controls.list.Model<T>
+typealias ListModel<T>        = com.nectar.doodle.controls.ListModel<T>
 typealias SpinnerModel<T>     = com.nectar.doodle.controls.spinner.Model<T>
-typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableModel<T>
+typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableTreeModel<T>
 
 @Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
 class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics, private val focusManager: FocusManager?): Theme {
@@ -54,10 +54,10 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
             is Slider            -> it.behavior = sliderBehavior
             is SplitPanel        -> it.behavior = splitPanelBehavior
             is ProgressBar       -> it.behavior = (progressBarBehavior as Behavior<ProgressIndicator>)
-            is MutableList<*, *> -> (it as MutableList<Any, MutableModel<Any>>    ).behavior = mutableListBehavior
+            is MutableList<*, *> -> (it as MutableList<Any, MutableListModel<Any>>    ).behavior = mutableListBehavior
             is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).behavior = mutableTreeBehavior
             is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).behavior = listBehavior
-            is Tree<*, *>        -> (it as Tree<Any, Model<Any>>                  ).behavior = treeBehavior
+            is Tree<*, *>        -> (it as Tree<Any, TreeModel<Any>>                  ).behavior = treeBehavior
             is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).behavior = spinnerBehavior
         }
     }

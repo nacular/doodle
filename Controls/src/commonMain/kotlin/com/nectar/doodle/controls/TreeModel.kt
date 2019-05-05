@@ -7,7 +7,7 @@ import com.nectar.doodle.utils.SetPool
 /**
  * Created by Nicholas Eddy on 3/23/18.
  */
-interface Model<T> {
+interface TreeModel<T> {
     operator fun get(path: Path<Int>): T?
 
     fun isEmpty   (): Boolean
@@ -21,9 +21,9 @@ interface Model<T> {
     fun indexOfChild(parent: Path<Int>, child: T  ): Int
 }
 
-typealias ModelObserver<T> = (source: MutableModel<T>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
+typealias ModelObserver<T> = (source: MutableTreeModel<T>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
 
-interface MutableModel<T>: Model<T> {
+interface MutableTreeModel<T>: TreeModel<T> {
     operator fun set(path: Path<Int>, value: T): T?
 
     fun add        (path : Path<Int>, values: T            )
@@ -42,7 +42,7 @@ open class TreeNode<T>(open val value: T, open val children: List<TreeNode<T>> =
 
 class MutableTreeNode<T>(override var value: T, override var children: List<MutableTreeNode<T>> = emptyList()): TreeNode<T>(value, children)
 
-open class SimpleModel<T, N: TreeNode<T>>(protected val root: N): Model<T> {
+open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): TreeModel<T> {
 
     override fun get(path: Path<Int>) = node(path)?.value
 
@@ -72,7 +72,7 @@ open class SimpleModel<T, N: TreeNode<T>>(protected val root: N): Model<T> {
 }
 
 
-class MutableTreeModel<T>(root: MutableTreeNode<T>): SimpleModel<T, MutableTreeNode<T>>(root), MutableModel<T> {
+class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeModel<T, MutableTreeNode<T>>(root), MutableTreeModel<T> {
     override operator fun set(path: Path<Int>, value: T): T? {
         var node = root as MutableTreeNode?
 

@@ -16,7 +16,7 @@ import kotlin.test.expect
 class TreeTests {
     @Test @JsName("rootDefaultsToHidden")
     fun `root defaults to hidden`() {
-        val tree = Tree<Int, Model<Int>>(model())
+        val tree = Tree<Int, TreeModel<Int>>(model())
 
         expect(false) { tree.rootVisible     }
         expect(false) { tree.visible(Path()) }
@@ -195,7 +195,7 @@ class TreeTests {
         return ui
     }
 
-    private fun <T> tree(root: TreeNode<T>, ui: TreeBehavior<T> = behavior()) = Tree(SimpleModel(root)).apply { behavior = ui }
+    private fun <T> tree(root: TreeNode<T>, ui: TreeBehavior<T> = behavior()) = Tree(SimpleTreeModel(root)).apply { behavior = ui }
 
     private fun <T> validateGetRow(root: TreeNode<T>, expected: List<T>, block: Tree<T, *>.() -> Unit = {}) {
         val tree = tree(root).also { block(it) }
@@ -213,8 +213,8 @@ class TreeTests {
         }
     }
 
-    private fun <T> model(): Model<T> {
-        val result = mockk<Model<T>>(relaxed = true)
+    private fun <T> model(): TreeModel<T> {
+        val result = mockk<TreeModel<T>>(relaxed = true)
 
         every { result.isEmpty() } returns true
 

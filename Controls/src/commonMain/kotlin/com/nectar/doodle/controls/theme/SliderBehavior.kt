@@ -60,12 +60,12 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
         lastMousePosition = -1.0
     }
 
-    override fun mouseDragged(mouseEvent: MouseEvent) {
-        val slider = mouseEvent.source as Slider
+    override fun mouseDragged(event: MouseEvent) {
+        val slider = event.source as Slider
 
         val delta = when (slider.orientation) {
-            Horizontal -> mouseEvent.location.x - lastMousePosition
-            Vertical   -> mouseEvent.location.y - lastMousePosition
+            Horizontal -> event.location.x - lastMousePosition
+            Vertical   -> event.location.y - lastMousePosition
         }
 
         val deltaValue = delta / scaleFactor(slider)

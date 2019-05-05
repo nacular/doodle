@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.list
+package com.nectar.doodle.controls
 
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.Pool
@@ -8,7 +8,7 @@ import com.nectar.doodle.utils.SetPool
  * Created by Nicholas Eddy on 3/19/18.
  */
 
-interface Model<T>: Iterable<T> {
+interface ListModel<T>: Iterable<T> {
     val size: Int
 
     operator fun get(index: Int): T?
@@ -18,10 +18,10 @@ interface Model<T>: Iterable<T> {
     fun contains(value: T               ): Boolean
 }
 
-typealias ModelObserver<T> = (source: MutableModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+typealias ModelObserver<T> = (source: MutableListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 
 
-interface MutableModel<T>: Model<T> {
+interface MutableListModel<T>: ListModel<T> {
 
     operator fun set(index: Int, value: T): T?
 
@@ -40,7 +40,7 @@ interface MutableModel<T>: Model<T> {
     val changed: Pool<ModelObserver<T>>
 }
 
-open class ListModel<T>(private val list: kotlin.collections.List<T>): Model<T> {
+open class SimpleListModel<T>(private val list: kotlin.collections.List<T>): ListModel<T> {
 
     override val size get() = list.size
 
@@ -50,7 +50,7 @@ open class ListModel<T>(private val list: kotlin.collections.List<T>): Model<T> 
     override fun iterator(                       ) = list.iterator(                                   )
 }
 
-open class MutableListModel<T>(list: kotlin.collections.MutableList<T> = mutableListOf()): ListModel<T>(list), MutableModel<T> {
+open class SimpleMutableListModel<T>(list: kotlin.collections.MutableList<T> = mutableListOf()): SimpleListModel<T>(list), MutableListModel<T> {
 
     private val list by lazy { ObservableList(this, list) }
 

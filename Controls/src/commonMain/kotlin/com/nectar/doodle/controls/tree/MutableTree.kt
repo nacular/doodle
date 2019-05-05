@@ -20,7 +20,7 @@ interface TreeEditor<T> {
     fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
-class MutableTree<T, M: MutableModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
+class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }

@@ -95,9 +95,9 @@ class ColorPicker(color: Color): View() {
             }
 
             mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(mouseEvent: MouseEvent) {
+                override fun mouseDragged(event: MouseEvent) {
                     if (mousePressed) {
-                        selection = mouseEvent.location.run { (x / width).toFloat() to (y / height).toFloat() }
+                        selection = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
                     }
                 }
             }
@@ -160,9 +160,9 @@ class ColorPicker(color: Color): View() {
             }
 
             mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(mouseEvent: MouseEvent) {
+                override fun mouseDragged(event: MouseEvent) {
                     if (mousePressed) {
-                        this@HueStrip.hue = (360 * min(1.0, max(0.0, mouseEvent.location.x / width))) * degrees
+                        this@HueStrip.hue = (360 * min(1.0, max(0.0, event.location.x / width))) * degrees
                     }
                 }
             }
@@ -235,9 +235,9 @@ class ColorPicker(color: Color): View() {
             }
 
             mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(mouseEvent: MouseEvent) {
+                override fun mouseDragged(event: MouseEvent) {
                     if (mousePressed) {
-                        opacity = min(1f, max(0f, (mouseEvent.location.x / width).toFloat()))
+                        opacity = min(1f, max(0f, (event.location.x / width).toFloat()))
                     }
                 }
             }

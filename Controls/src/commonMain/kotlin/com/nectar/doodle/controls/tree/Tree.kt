@@ -30,7 +30,7 @@ import kotlin.math.min
 typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) -> Unit
 typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
-open class Tree<T, out M: Model<T>>(
+open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Path<Int>>? = null,
         private        val cacheLength   : Int                        = 10): View() {
