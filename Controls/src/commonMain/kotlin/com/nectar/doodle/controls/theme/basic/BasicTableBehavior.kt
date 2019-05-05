@@ -14,10 +14,12 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.gray
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
+import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
@@ -149,6 +151,13 @@ class BasicTableBehavior<T>(
                         it.centerY = it.parent.centerY
                     }
                 }
+            }
+
+            override fun render(canvas: Canvas) {
+                val thickness = 1.0
+                val x         = width - thickness
+
+                canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.darker(0.25f) ?: gray))
             }
         }
     }

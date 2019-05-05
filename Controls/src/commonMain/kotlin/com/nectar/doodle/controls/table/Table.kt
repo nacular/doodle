@@ -84,7 +84,7 @@ open class Table<T, M: ListModel<T>>(
 
                     headerItemsToColumns.clear()
 
-                    addAll(internalColumns.map { column ->
+                    addAll(internalColumns.dropLast(1).map { column ->
                         behavior.headerCellGenerator(this@Table, column).also {
                             headerItemsToColumns[it] = column
                         }
@@ -190,7 +190,7 @@ open class Table<T, M: ListModel<T>>(
         }
     }
 
-    val columns: List<Column<T>> get() = internalColumns
+    val columns: List<Column<T>> get() = internalColumns.dropLast(1)
 
     private val internalColumns = mutableListOf<InternalColumn<*>>()
 
@@ -218,7 +218,7 @@ open class Table<T, M: ListModel<T>>(
                         totalWidth += view.width
                     }
 
-                    positionable.width = totalWidth
+                    positionable.width = totalWidth + internalColumns[internalColumns.size - 1].width
                 }
             }
         }
