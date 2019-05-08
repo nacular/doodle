@@ -3,6 +3,7 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JvmName
+import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.theme.TreeBehavior
@@ -30,12 +31,31 @@ import kotlin.math.min
 typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) -> Unit
 typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
+interface TreeLike: Selectable<Path<Int>> {
+    val rootVisible: Boolean
+
+    fun isLeaf(path: Path<Int>): Boolean
+
+    fun expanded(path: Path<Int>): Boolean
+
+    fun pathFromRow(index: Int): Path<Int>?
+    fun rowFromPath(path: Path<Int>): Int?
+
+    fun selected       (row : Int     ) = pathFromRow(row)?.let { selected(it) } ?: false
+    fun addSelection   (rows: Set<Int>) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun toggleSelection(rows: Set<Int>) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun setSelection   (rows: Set<Int>) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun collapse(path: Path<Int>)
+    fun expand(path: Path<Int>)
+}
+
 open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Path<Int>>? = null,
-        private        val cacheLength   : Int                        = 10): View() {
+        private        val cacheLength   : Int                        = 10): View(), TreeLike {
 
-    var rootVisible = false
+    override var rootVisible = false
         set(new) {
             if (field == new) { return }
 
@@ -79,10 +99,10 @@ open class Tree<T, out M: TreeModel<T>>(
     val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
     val selectionChanged: Pool<SetObserver<Tree<T, *>, Path<Int>>> by lazy { SetPool<SetObserver<Tree<T, *>, Path<Int>>>() }
 
-    val firstSelection  get() = selectionModel?.first
-    val lastSelection   get() = selectionModel?.last
-    val selectionAnchor get() = selectionModel?.anchor
-    val selection       get() = selectionModel?.toSet() ?: emptySet()
+    override val firstSelection  get() = selectionModel?.first
+    override val lastSelection   get() = selectionModel?.last
+    override val selectionAnchor get() = selectionModel?.anchor
+    override val selection       get() = selectionModel?.toSet() ?: emptySet()
 
     private   var generator       = null as RowGenerator<T>?
     protected var positioner      = null as RowPositioner<T>?
@@ -206,16 +226,17 @@ open class Tree<T, out M: TreeModel<T>>(
 
     operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
 
-    fun isLeaf(path: Path<Int>) = model.isLeaf(path)
+    override fun isLeaf(path: Path<Int>) = model.isLeaf(path)
 
-    fun expanded(path: Path<Int>) = path in expandedPaths
+    override fun expanded(path: Path<Int>) = path in expandedPaths
 
     @JvmName("expandRows") fun expand(row : Int     ) = expand(setOf(row))
     @JvmName("expandRows") fun expand(rows: Set<Int>) = expand(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
 
-    fun expand(path: Path<Int>) = expand(setOf(path))
+    override fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
+        println("here")
         val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toList()
 
         var empty         = true
@@ -267,7 +288,7 @@ open class Tree<T, out M: TreeModel<T>>(
     @JvmName("collapseRows") fun collapse(row : Int     ) = collapse(setOf(row))
     @JvmName("collapseRows") fun collapse(rows: Set<Int>) = collapse(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
 
-    fun collapse(path : Path<Int>     ) = collapse(setOf(path))
+    override fun collapse(path : Path<Int>     ) = collapse(setOf(path))
     fun collapse(paths: Set<Path<Int>>) {
         var empty   = true
         val pathSet = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
@@ -318,44 +339,44 @@ open class Tree<T, out M: TreeModel<T>>(
 
     fun collapseAll() = collapse(expandedPaths)
 
-    fun selected(row : Int      ) = pathFromRow(row)?.let { selected(it) } ?: false
-    fun selected(path: Path<Int>) = selectionModel?.contains(path) ?: false
+    override fun selected(row: Int) = pathFromRow(row)?.let { selected(it) } ?: false
+    override fun selected(item: Path<Int>) = selectionModel?.contains(item) ?: false
 
-    fun selectAll() {
-        (0 .. numRows).mapNotNull {
-            pathFromRow(it)
-        }.toList()
-
+    override fun selectAll() {
         selectionModel?.addAll((0 .. numRows).mapNotNull {
             pathFromRow(it)
         }.toList())
     }
 
     @JvmName("addSelectionRows")
-    fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun addSelection(paths: Set<Path<Int>>) {
-        selectionModel?.addAll(paths)
+    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    override fun addSelection(items: Set<Path<Int>>) {
+        selectionModel?.addAll(items)
     }
 
     @JvmName("toggleSelectionRows")
-    fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun toggleSelection(paths: Set<Path<Int>>) {
-        selectionModel?.toggle(paths)
+    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    override fun toggleSelection(items: Set<Path<Int>>) {
+        selectionModel?.toggle(items)
     }
 
     @JvmName("setSelectionRows")
-    fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun setSelection(paths: Set<Path<Int>>) {
-        selectionModel?.replaceAll(paths)
+    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    override fun setSelection(items: Set<Path<Int>>) {
+        selectionModel?.replaceAll(items)
     }
 
     @JvmName("removeSelectionRows")
-    fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun removeSelection(paths: Set<Path<Int>>) {
-        selectionModel?.removeAll(paths)
+    override fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    override fun removeSelection(items: Set<Path<Int>>) {
+        selectionModel?.removeAll(items)
     }
 
-    fun clearSelection() = selectionModel?.clear()
+    override fun clearSelection() = selectionModel?.clear().let { Unit }
+
+    override fun next(after: Path<Int>) = item(after, withOffset = 1)
+
+    override fun previous(before: Path<Int>) = item(before, withOffset = -1)
 
     fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
@@ -387,6 +408,21 @@ open class Tree<T, out M: TreeModel<T>>(
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, positioner?.row(this, y) ?: nearbyRow)
+
+    private fun item(from: Path<Int>, withOffset: Int): Path<Int>? {
+        return from.bottom?.let { index ->
+            from.parent?.let { parent ->
+                val targetIndex = index + withOffset
+                val numChildren = model.numChildren(parent)
+
+                when {
+                    targetIndex in 0..(numChildren - 1) -> parent + withOffset
+                    targetIndex < 0                     -> item(parent, targetIndex)
+                    else                                -> item(parent, targetIndex - numChildren)
+                }
+            }
+        }
+    }
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until model.numChildren(parent)).map { parent + it }
@@ -550,7 +586,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
     private fun rowExpanded(index: Int) = pathFromRow(index)?.let { expanded(it) } ?: false
 
-    fun pathFromRow(index: Int): Path<Int>? {
+    override fun pathFromRow(index: Int): Path<Int>? {
         if (model.isEmpty()) {
             return null
         }
@@ -564,7 +600,7 @@ open class Tree<T, out M: TreeModel<T>>(
 //        return addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first
     }
 
-    fun rowFromPath(path: Path<Int>): Int? /*= pathToRow.getOrPut(path)*/ {
+    override fun rowFromPath(path: Path<Int>): Int? /*= pathToRow.getOrPut(path)*/ {
         var row         = if (rootVisible) 0 else -1
         var pathIndex   = 0
         var currentPath = Path<Int>()

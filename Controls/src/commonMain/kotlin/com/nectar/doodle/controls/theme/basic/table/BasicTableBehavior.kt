@@ -1,15 +1,17 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.controls.theme.basic.table
 
 import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.Selectable
+import com.nectar.doodle.controls.table.Column
+import com.nectar.doodle.controls.table.HeaderGeometry
 import com.nectar.doodle.controls.table.Table
-import com.nectar.doodle.controls.table.Table.Column
 import com.nectar.doodle.controls.table.TableBehavior
 import com.nectar.doodle.controls.table.TableBehavior.CellGenerator
 import com.nectar.doodle.controls.table.TableBehavior.HeaderCellGenerator
-import com.nectar.doodle.controls.table.TableBehavior.HeaderGeometry
 import com.nectar.doodle.controls.table.TableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TableBehavior.RowPositioner
+import com.nectar.doodle.controls.theme.basic.ListPositioner
+import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
@@ -20,7 +22,6 @@ import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
-import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
@@ -42,7 +43,6 @@ import com.nectar.doodle.utils.SetObserver
  */
 class BasicTableBehavior<T>(
         private val focusManager  : FocusManager?,
-        private val textMetrics   : TextMetrics,
                 val rowHeight     : Double = 20.0,
                 val headerColor   : Color? = lightgray,
                 val evenRowColor  : Color? = white,

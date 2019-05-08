@@ -1,11 +1,11 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.ItemGenerator
-import com.nectar.doodle.controls.SimpleListModel
-import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.ListModel
+import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.SimpleListModel
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.panels.ScrollPanel
@@ -48,7 +48,11 @@ open class List<T, out M: ListModel<T>>(
         private        val fitContent    : Boolean              = true,
         private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
-    val numRows: Int get() = model.size
+    val numRows get() = model.size
+    val isEmpty get() = model.isEmpty()
+
+    fun contains(value: T) = value in model
+
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
 
     @Suppress("PrivatePropertyName")

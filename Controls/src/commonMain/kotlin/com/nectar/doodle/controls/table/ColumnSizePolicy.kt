@@ -8,14 +8,14 @@ interface ColumnSizePolicy<T> {
         val preferredWidth: Double?
     }
 
-    fun layout(table: Table<T, *>, columns: List<Column>, startIndex: Int = 0): Double
+    fun layout(width: Double, columns: List<Column>, startIndex: Int = 0): Double
 
-    fun widthChanged(table: Table<T, *>, columns: List<Column>, index: Int, to: Double)
+    fun widthChanged(width: Double, columns: List<Column>, index: Int, to: Double)
 }
 
 class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
-    override fun layout(table: Table<T, *>, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
-        var remainingWidth = table.width
+    override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
+        var remainingWidth = width
 
         // Set initial widths
         columns.forEachIndexed { index, it ->
@@ -48,10 +48,10 @@ class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
             }
         }
 
-        return table.width - remainingWidth
+        return width - remainingWidth
     }
 
-    override fun widthChanged(table: Table<T, *>, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
+    override fun widthChanged(width: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
         var old = columns[index].width
 
         columns[index].width = to

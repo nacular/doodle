@@ -40,9 +40,9 @@ class MouseEvent(
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + type.hashCode()
+        result = 31 * result + type.hashCode    ()
         result = 31 * result + location.hashCode()
-        result = 31 * result + buttons.hashCode()
+        result = 31 * result + buttons.hashCode ()
         result = 31 * result + clickCount
         return result
     }

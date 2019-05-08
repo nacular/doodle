@@ -6,20 +6,19 @@ import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
+import com.nectar.doodle.controls.theme.basic.ContentGenerator
+import com.nectar.doodle.controls.theme.basic.TreeRow
 import com.nectar.doodle.controls.tree.EditOperation
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor
+import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasBrush
-import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
@@ -37,12 +36,8 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.Constraints
-import com.nectar.doodle.layout.HorizontalConstraint
-import com.nectar.doodle.layout.MagnitudeConstraint
 import com.nectar.doodle.layout.ParentConstraints
-import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
@@ -50,14 +45,7 @@ import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.RelativePositionMonitor
-import com.nectar.doodle.utils.isEven
 import kotlin.math.max
-
-private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraints) -> ParentConstraints): Constraints by delegate {
-    override val parent = parent(delegate.parent)
-}
-
-private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
     override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = Rectangle(
@@ -67,7 +55,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
             height)
 
     override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = when (current) {
-        is BasicTreeRow<*> -> current.content.bounds.let { it.at(y = it.y + index * height) }
+        is TreeRow<*> -> current.content.bounds.let { it.at(y = it.y + index * height) }
         else               -> {
             // FIXME: Centralize
             val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
@@ -83,17 +71,8 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     }
 }
 
-interface ContentGenerator<T> {
-    operator fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View? = null): View
-
-    fun position(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
-        left    = parent.left
-        centerY = parent.centerY
-    }
-}
-
 private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
-    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, previous: View?) = when (previous) {
+    override fun invoke(tree: TreeLike, node: T, path: Path<Int>, index: Int, previous: View?) = when (previous) {
         is Label -> { previous.text = node.toString(); previous }
         else     -> labelFactory(node.toString()).apply {
             fitText             = true
@@ -102,200 +81,17 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
     }
 }
 
-private class BasicTreeRow<T>(private val contentGenerator: ContentGenerator<T>, private val focusManager: FocusManager?, tree: Tree<T, *>, node: T, var path: Path<Int>, private var index: Int): View() {
-    private class Icon: View() {
-        var expanded = false
-            set (new) {
-                field = new
-                rerender()
-            }
-
-        override fun render(canvas: Canvas) {
-            val pen      = Pen(black)
-            val length   = 3.5
-            val width_2  = width  / 2
-            val height_2 = height / 2
-
-            if (!expanded) {
-                canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
-            }
-
-            canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
-        }
-    }
-
-    private  var icon       = null as Icon?
-    private  var depth      = -1
-    internal var content    = contentGenerator(tree, node, path, index)
-    private  val iconWidth  = 20.0
-    private  var mouseOver  = false
-    private  var background = null as Color?
-
-    private lateinit var constraintLayout: ConstraintLayout
-
-    init {
-        children     += content
-        styleChanged += { rerender() }
-        mouseChanged += object: MouseListener {
-            private var pressed   = false
-
-            override fun mouseEntered(event: MouseEvent) {
-                mouseOver       = true
-                backgroundColor = (background ?: striped(lightgray)).lighter(0.25f)
-            }
-
-            override fun mouseExited(event: MouseEvent) {
-                mouseOver       = false
-                backgroundColor = background
-            }
-
-            override fun mousePressed(event: MouseEvent) {
-                pressed = true
-            }
-
-            override fun mouseReleased(event: MouseEvent) {
-                if (mouseOver && pressed) {
-                    setOf(path).also {
-                        tree.apply {
-                            when {
-                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
-                                Shift in event.modifiers && lastSelection != null -> {
-                                    selectionAnchor?.let { rowFromPath(it) }?.let { anchor ->
-                                        rowFromPath(path)?.let { current ->
-                                            when {
-                                                current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
-                                                anchor  < current -> setSelection((anchor  .. current).           toSet())
-                                            }
-                                        }
-                                    }
-                                }
-                                else -> setSelection(it)
-                            }
-                        }
-                    }
-
-                    focusManager?.requestFocus(tree)
-                }
-                pressed = false
-            }
-        }
-
-        update(tree, node, path, index)
-    }
-
-    fun update(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int) {
-        this.path  = path
-        this.index = index
-
-        content = contentGenerator(tree, node, path, index, content).also {
-            if (it != content) {
-                children.batch {
-                    remove(content)
-                    add   (it     )
-                }
-                depth = -1 // force layout
-            }
-        }
-
-        val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
-
-        if (newDepth != depth) {
-            constraintLayout = constrain(content) {
-                contentGenerator.position(tree, node, path, index)(ConstraintWrapper(it) { parent ->
-                    object: ParentConstraintWrapper(parent) {
-                        override val left  = HorizontalConstraint(this@BasicTreeRow) { iconWidth * (1 + newDepth) }
-                        override val width = MagnitudeConstraint (this@BasicTreeRow) { it.width - iconWidth * (1 + newDepth) }
-                    }
-                })
-            }
-
-            constrainIcon(icon)
-
-            layout = constraintLayout
-            depth  = newDepth
-        }
-
-        if (tree.isLeaf(this.path)) {
-            icon?.let {
-                this.children -= it
-                constraintLayout.unconstrain(it)
-            }
-            icon = null
-        } else  {
-            icon = icon?.apply { expanded = tree.expanded(path) } ?: Icon().apply {
-                width    = iconWidth
-                height   = width
-                expanded = tree.expanded(path)
-
-                this@BasicTreeRow.children += this
-
-                mouseChanged += object: MouseListener {
-                    private var pressed   = false
-                    private var mouseOver = false
-
-                    override fun mouseEntered(event: MouseEvent) {
-                        mouseOver = true
-                    }
-
-                    override fun mouseExited(event: MouseEvent) {
-                        mouseOver = false
-                    }
-
-                    override fun mousePressed(event: MouseEvent) {
-                        pressed   = true
-                        mouseOver = true
-                    }
-
-                    override fun mouseReleased(event: MouseEvent) {
-                        if (mouseOver && pressed) {
-                            when (tree.expanded(this@BasicTreeRow.path)) {
-                                true -> tree.collapse(this@BasicTreeRow.path)
-                                else -> tree.expand  (this@BasicTreeRow.path)
-                            }
-                        }
-                        pressed = false
-                    }
-                }
-
-                constrainIcon(this)
-            }
-        }
-
-        background      = if (tree.selected(path)) striped(green) else null
-        backgroundColor = background ?: if (mouseOver) striped(lightgray).lighter(0.25f) else null
-        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
-    }
-
-    private fun striped(color: Color): Color = when {
-        index.isEven -> color.lighter()
-        else         -> color
-    }
-
-    override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-    }
-
-    private fun constrainIcon(icon: Icon?) {
-        icon?.let {
-            constraintLayout.constrain(it, content) { icon, label ->
-                icon.right   = label.left
-                icon.centerY = label.centerY
-            }
-        }
-    }
-}
-
 open class BasicTreeRowGenerator<T>(private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T>): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
-        is BasicTreeRow<*> -> (current as BasicTreeRow<T>).apply { update(tree, node, path, index) }
-        else               -> BasicTreeRow(contentGenerator, focusManager, tree, node, path, index)
+        is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
+        else          -> TreeRow(tree, node, path, index, contentGenerator)
     }
 }
 
 class BasicMutableTreeRowGenerator<T>(focusManager: FocusManager?, contentGenerator: ContentGenerator<T>): BasicTreeRowGenerator<T>(focusManager, contentGenerator) {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
-        if (current !is BasicTreeRow<*>) {
-            val result = it as BasicTreeRow<*>
+        if (current !is TreeRow<*>) {
+            val result = it as TreeRow<*>
 
             it.mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {

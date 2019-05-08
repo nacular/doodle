@@ -14,7 +14,7 @@ interface ListModel<T>: Iterable<T> {
     operator fun get(index: Int): T?
 
     fun isEmpty (                       ) = size == 0
-    fun section (range: ClosedRange<Int>): kotlin.collections.List<T>
+    fun section (range: ClosedRange<Int>): List<T>
     fun contains(value: T               ): Boolean
 }
 
@@ -40,7 +40,7 @@ interface MutableListModel<T>: ListModel<T> {
     val changed: Pool<ModelObserver<T>>
 }
 
-open class SimpleListModel<T>(private val list: kotlin.collections.List<T>): ListModel<T> {
+open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
     override val size get() = list.size
 
@@ -50,7 +50,7 @@ open class SimpleListModel<T>(private val list: kotlin.collections.List<T>): Lis
     override fun iterator(                       ) = list.iterator(                                   )
 }
 
-open class SimpleMutableListModel<T>(list: kotlin.collections.MutableList<T> = mutableListOf()): SimpleListModel<T>(list), MutableListModel<T> {
+open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): SimpleListModel<T>(list), MutableListModel<T> {
 
     private val list by lazy { ObservableList(this, list) }
 

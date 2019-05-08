@@ -8,13 +8,13 @@ import com.nectar.doodle.utils.SetObserver
  * Created by Nicholas Eddy on 3/19/18.
  */
 interface Selectable<T> {
-    fun selected       (item : T    ): Boolean
-    fun selectAll      (            )
-    fun addSelection   (item: Set<T>)
-    fun setSelection   (item: Set<T>)
-    fun removeSelection(item: Set<T>)
-    fun toggleSelection(item: Set<T>)
-    fun clearSelection (            )
+    fun selected       (item : T     ): Boolean
+    fun selectAll      (             )
+    fun addSelection   (items: Set<T>)
+    fun setSelection   (items: Set<T>)
+    fun removeSelection(items: Set<T>)
+    fun toggleSelection(items: Set<T>)
+    fun clearSelection (             )
 
     fun next    (after : T): T?
     fun previous(before: T): T?
@@ -147,13 +147,13 @@ class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
 }
 
 class ListSelectionManager(private val selectionModel: SelectionModel<Int>?, private val numRows: () -> Int): Selectable<Int> {
-    override fun selected       (item : Int    ) = selectionModel?.contains  (item ) ?: false
-    override fun selectAll      (              ) { selectionModel?.addAll    ((0 until numRows()).toList()) }
-    override fun addSelection   (item: Set<Int>) { selectionModel?.addAll    (item) }
-    override fun setSelection   (item: Set<Int>) { selectionModel?.replaceAll(item) }
-    override fun removeSelection(item: Set<Int>) { selectionModel?.removeAll (item) }
-    override fun toggleSelection(item: Set<Int>) { selectionModel?.toggle    (item) }
-    override fun clearSelection (              ) { selectionModel?.clear     (    ) }
+    override fun selected       (item : Int     ) = selectionModel?.contains  (item ) ?: false
+    override fun selectAll      (               ) { selectionModel?.addAll    ((0 until numRows()).toList()) }
+    override fun addSelection   (items: Set<Int>) { selectionModel?.addAll    (items) }
+    override fun setSelection   (items: Set<Int>) { selectionModel?.replaceAll(items) }
+    override fun removeSelection(items: Set<Int>) { selectionModel?.removeAll (items) }
+    override fun toggleSelection(items: Set<Int>) { selectionModel?.toggle    (items) }
+    override fun clearSelection (               ) { selectionModel?.clear     (     ) }
 
     override fun next    (after : Int) = (after  + 1).takeIf { it <  numRows() }
     override fun previous(before: Int) = (before - 1).takeIf { it >= 0         }
@@ -163,3 +163,40 @@ class ListSelectionManager(private val selectionModel: SelectionModel<Int>?, pri
     override val selectionAnchor get() = selectionModel?.anchor
     override val selection       get() = selectionModel?.toSet() ?: emptySet()
 }
+
+//class TreeSelectionManager(private val selectionModel: SelectionModel<Path<Int>>?, private val pathFromRow: (Int) -> Path<Int>, private val numChildren: (Path<Int>) -> Int): Selectable<Path<Int>> {
+//    override fun selected       (item : Path<Int>     ) = selectionModel?.contains  (item ) ?: false
+//    override fun selectAll      (                     ) { selectionModel?.addAll((0 .. numRows).mapNotNull {
+//            pathFromRow(it)
+//        }.toList())
+//    }
+//    override fun addSelection   (items: Set<Path<Int>>) { selectionModel?.addAll    (items) }
+//    override fun setSelection   (items: Set<Path<Int>>) { selectionModel?.replaceAll(items) }
+//    override fun removeSelection(items: Set<Path<Int>>) { selectionModel?.removeAll (items) }
+//    override fun toggleSelection(items: Set<Path<Int>>) { selectionModel?.toggle    (items) }
+//    override fun clearSelection (                     ) { selectionModel?.clear     (    ) }
+//
+//    override fun next(after: Path<Int>) = item(after, withOffset = 1)
+//
+//    override fun previous(before: Path<Int>) = item(before, withOffset = -1)
+//
+//    override val firstSelection  get() = selectionModel?.first
+//    override val lastSelection   get() = selectionModel?.last
+//    override val selectionAnchor get() = selectionModel?.anchor
+//    override val selection       get() = selectionModel?.toSet() ?: emptySet()
+//
+//    private fun item(from: Path<Int>, withOffset: Int): Path<Int>? {
+//        return from.bottom?.let { index ->
+//            from.parent?.let { parent ->
+//                val targetIndex = index + withOffset
+//                val numChildren = numChildren(parent)
+//
+//                when {
+//                    targetIndex in 0..(numChildren - 1) -> parent + withOffset
+//                    targetIndex < 0                     -> item(parent, targetIndex)
+//                    else                                -> item(parent, targetIndex - numChildren)
+//                }
+//            }
+//        }
+//    }
+//}
