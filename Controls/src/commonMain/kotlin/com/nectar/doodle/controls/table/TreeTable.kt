@@ -1,12 +1,12 @@
 package com.nectar.doodle.controls.table
 
 import com.nectar.doodle.controls.ItemGenerator
-import com.nectar.doodle.controls.ListModel
+import com.nectar.doodle.controls.ModelObserver
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.theme.TreeBehavior
-import com.nectar.doodle.controls.tree.ExpansionObserver
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.controls.tree.TreeModel
@@ -33,7 +33,11 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 5/5/19.
  */
 
-private class TreePathIterator(private val tree: Tree<*,*>): Iterator<Path<Int>> {
+typealias ExpansionObserver<T>  = (source: TreeTable<T, *>, paths: Set<Path<Int>>) -> Unit
+typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
+
+
+private class TreePathIterator(private val tree: TreeLike): Iterator<Path<Int>> {
     private var index = 0
 
     override fun hasNext() = index < tree.numRows
@@ -69,57 +73,11 @@ fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
     override fun indexOfChild(parent: Path<Int>, child: R) = children(parent).asSequence().indexOf(child)
 }
 
-fun SelectionModel<Path<Int>>.map(mapper: (Path<Int>) -> Int, unmapper: (Int) -> Path<Int>) = object: SelectionModel<Int> {
-    override val first   = this@map.first?.let (mapper)
-    override val last    = this@map.last?.let  (mapper)
-    override val anchor  = this@map.anchor?.let(mapper)
-    override val size    = this@map.size
-    override val isEmpty = this@map.isEmpty
-
-    override fun add(item: Int) = this@map.add(unmapper(item))
-
-    override fun clear() = this@map.clear()
-
-    override fun addAll(items: Collection<Int>) = this@map.addAll(items.map(unmapper))
-
-    override fun remove(item: Int) = this@map.remove(unmapper(item))
-
-    override fun contains(item: Int) = this@map.contains(unmapper(item))
-
-    override fun removeAll(items: Collection<Int>) = this@map.removeAll(items.map(unmapper))
-
-    override fun retainAll(items: Collection<Int>) = this@map.retainAll(items.map(unmapper))
-
-    override fun replaceAll(items: Collection<Int>) = this@map.replaceAll(items.map(unmapper))
-
-    override fun containsAll(items: Collection<Int>) = this@map.containsAll(items.map(unmapper))
-
-    override fun toggle(items: Collection<Int>) = this@map.toggle(items.map(unmapper))
-
-    override val changed = object: Pool<SetObserver<SelectionModel<Int>, Int>> {
-        override fun plusAssign(item: SetObserver<SelectionModel<Int>, Int>) {
-//            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-
-//            this@map.changed += object: SetObserver<SelectionModel<Path<Int>>, Path<Int>> {
-//                override fun invoke(source: ObservableSet<SelectionModel<Path<Int>>, Path<Int>>, removed: Set<Path<Int>>, added: Set<Path<Int>>) {
-//                    item(this, removed.map(mapper).toSet(), added.map(mapper).toSet())
-//                }
-//            }
-        }
-
-        override fun minusAssign(item: SetObserver<SelectionModel<Int>, Int>) {
-//            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-    }
-
-    override fun iterator() = this@map.iterator().map(mapper)
-}
-
 class TreeTable<T, M: TreeModel<T>>(
         private   val strand        : Strand,
-        model         : M,
+                      model         : M,
         protected val selectionModel: SelectionModel<Path<Int>>? = null,
-        block         : ColumnBuilder<T>.() -> Unit): View(), TreeLike {
+                      block         : ColumnBuilder<T>.() -> Unit): View(), TreeLike {
     override val rootVisible get() = tree.rootVisible
 
     override fun isLeaf  (path: Path<Int>) = tree.isLeaf  (path)
@@ -137,12 +95,19 @@ class TreeTable<T, M: TreeModel<T>>(
     override fun next           (after : Path<Int>     ) = tree.next           (after )
     override fun previous       (before: Path<Int>     ) = tree.previous       (before)
 
-    override val firstSelection  get() = tree.firstSelection
-    override val lastSelection   get() = tree.lastSelection
-    override val selectionAnchor get() = tree.selectionAnchor
     override val selection       get() = tree.selection
+    override val lastSelection   get() = tree.lastSelection
+    override val firstSelection  get() = tree.firstSelection
+    override val selectionAnchor get() = tree.selectionAnchor
+
+    val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
 
     private lateinit var tree: Tree<*, TreeModel<*>>
+
+    private class ExpansionObserversImpl<T>(private val source: TreeTable<T, *>, mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
+        operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
+    }
 
     private inner class ColumnBuilderImpl: ColumnBuilder<T> {
         override fun <R> column(header       : View?,
@@ -155,7 +120,14 @@ class TreeTable<T, M: TreeModel<T>>(
             return if (!::tree.isInitialized) {
                 InternalTreeColumn(header, itemGenerator, width, minWidth, maxWidth, extractor).also {
                     internalColumns += it
-                    tree = it.view
+                    tree = it.view.apply {
+                        expanded += { _: Tree<*, *>, paths: Set<Path<Int>> ->
+                            this@TreeTable.expanded.forEach { it(this@TreeTable, paths) }
+                        }
+                        collapsed += { _: Tree<*, *>, paths: Set<Path<Int>> ->
+                            this@TreeTable.collapsed.forEach { it(this@TreeTable, paths) }
+                        }
+                    }
                 }
             } else {
                 InternalListColumn(header, itemGenerator, width, minWidth, maxWidth, extractor).also { internalColumns += it }
@@ -192,8 +164,6 @@ class TreeTable<T, M: TreeModel<T>>(
         abstract val view: View
 
         abstract fun behavior(behavior: TreeTableBehavior<T>?)
-
-        abstract fun refresh()
     }
 
     private inner class InternalTreeColumn<R>(
@@ -206,20 +176,6 @@ class TreeTable<T, M: TreeModel<T>>(
 
         override val view = Tree(model.map(extractor), selectionModel).apply {
             acceptsThemes = false
-
-            val handler: ExpansionObserver<R> = { _,_ ->
-                internalColumns.forEach { it.refresh() }
-
-                // FIXME
-                (panel.content as? Box)?.children?.let { children ->
-                    (1 until children.size).forEach {
-                        children[it] = internalColumns[it].view
-                    }
-                }
-            }
-
-            expanded  += handler
-            collapsed += handler
         }
 
         override fun behavior(behavior: TreeTableBehavior<T>?) {
@@ -239,51 +195,80 @@ class TreeTable<T, M: TreeModel<T>>(
                 }
             }
         }
-
-        override fun refresh() {}
     }
 
     private inner class InternalListColumn<R>(
-            header         : View?,
-            itemGenerator  : ItemGenerator<R>,
-            preferredWidth : Double?        = null,
-            minWidth       : Double         = 0.0,
-            maxWidth       : Double?        = null,
-            private val extractor      : T.() -> R): InternalColumn<R>(header, itemGenerator, preferredWidth, minWidth, maxWidth) {
+            header        : View?,
+            itemGenerator : ItemGenerator<R>,
+            preferredWidth: Double? = null,
+            minWidth      : Double  = 0.0,
+            maxWidth      : Double? = null,
+            extractor     : T.() -> R): InternalColumn<R>(header, itemGenerator, preferredWidth, minWidth, maxWidth) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
+        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
+            init {
+                this@TreeTable.expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                    changed.forEach {
+                        it(this, emptyMap(), paths.associate { this@TreeTable.rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap())
+                    }
+                }
+
+                this@TreeTable.collapsed += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                    changed.forEach {
+                        it(this, paths.associate { this@TreeTable.rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap(), emptyMap())
+                    }
+                }
+            }
+
+            override fun set(index: Int, value: A): A? = null
+
+            override fun add(value: A) {}
+
+            override fun add(index: Int, values: A) {}
+
+            override fun remove(value: A) {}
+
+            override fun removeAt(index: Int): A? = null
+
+            override fun addAll(values: Collection<A>) {}
+
+            override fun addAll(index: Int, values: Collection<A>) {}
+
+            override fun removeAll(values: Collection<A>) {}
+
+            override fun retainAll(values: Collection<A>) {}
+
+            override fun removeAllAt(indexes: Collection<Int>) {}
+
+            override fun clear() {}
+
+            override val changed = SetPool<ModelObserver<A>>()
+
             override val size get() = numRows
 
-            override fun get(index: Int) = tree.pathFromRow(index)?.let { model[it]?.let(extractor) }
+            override fun get(index: Int) = this@TreeTable.pathFromRow(index)?.let { model[it]?.let(extractor) }
 
             override fun section(range: ClosedRange<Int>) = iterator().asSequence().toList().subList(range.start, range.endInclusive + 1)
 
             override fun contains(value: A) = value in iterator().asSequence()
 
             // TODO: Re-use
-            override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(tree))
+            override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override var view = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator, selectionModel?.map({ tree.rowFromPath(it)!! }, { tree.pathFromRow(it)!! })).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(strand, FieldModel(model, extractor), itemGenerator).apply {
             acceptsThemes = false
-        }
-
-        override fun refresh() {
-            view = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator, selectionModel?.map({ tree.rowFromPath(it)!! }, { tree.pathFromRow(it)!! })).apply {
-                acceptsThemes = false
-                behavior      = view.behavior
-            }
         }
 
         override fun behavior(behavior: TreeTableBehavior<T>?) {
             behavior?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, row, tree.pathFromRow(index)!!, index, itemGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, row, this@TreeTable.pathFromRow(index)!!, index, itemGenerator, current)
                     }
 
                     override val positioner get() = object : ListBehavior.RowPositioner<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, tree.pathFromRow(index)!!, model[tree.pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, this@TreeTable.pathFromRow(index)!!, model[this@TreeTable.pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
 
                         override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@TreeTable, y)
                     }
@@ -297,11 +282,11 @@ class TreeTable<T, M: TreeModel<T>>(
     var model = model
         private set
 
-    val numRows: Int get() = tree.numRows
+    override val numRows: Int get() = tree.numRows
 
     operator fun get(path: Path<Int>): T? = model[path]
 
-    operator fun get(row: Int): T? = tree.pathFromRow(row)?.let { model[it] }
+    operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
 
     override fun pathFromRow(index: Int) = tree.pathFromRow(index)
 

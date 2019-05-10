@@ -36,8 +36,6 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.layout.Constraints
-import com.nectar.doodle.layout.ParentConstraints
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
@@ -84,7 +82,13 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
 open class BasicTreeRowGenerator<T>(private val focusManager: FocusManager?, private val contentGenerator: ContentGenerator<T>): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
-        else          -> TreeRow(tree, node, path, index, contentGenerator)
+        else          -> TreeRow(tree, node, path, index, contentGenerator).apply {
+            mouseChanged += object: MouseListener {
+                override fun mouseReleased(event: MouseEvent) {
+                    focusManager?.requestFocus(tree)
+                }
+            }
+        }
     }
 }
 
@@ -143,8 +147,8 @@ open class BasicTreeBehavior<T>(override val generator: RowGenerator<T>): TreeBe
                         else -> tree.lastSelection?.let { tree.rowFromPath(it) }?.let { if (event.code == VK_UP) it - 1 else it + 1 }?.takeUnless { it < 0 || it > tree.numRows - 1 }?.let { tree.setSelection(setOf(it)) }
                     }?.let { Unit } ?: Unit
                 }
-                VK_RIGHT       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
                 VK_LEFT        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                VK_RIGHT       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
                 VK_A           -> {
                     if (Ctrl in event || Meta in event) {
                         tree.selectAll()

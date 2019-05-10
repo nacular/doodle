@@ -13,7 +13,9 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.SystemInputEvent
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
@@ -76,8 +78,8 @@ class ListRow<T>(private var list          : Selectable<Int>,
                     setOf(index).also {
                         list.apply {
                             when {
-                                SystemInputEvent.Modifier.Ctrl in event.modifiers || SystemInputEvent.Modifier.Meta in event.modifiers -> toggleSelection(it)
-                                SystemInputEvent.Modifier.Shift in event.modifiers && lastSelection != null                            -> {
+                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
+                                Shift in event.modifiers && lastSelection != null  -> {
                                     selectionAnchor?.let { anchor ->
                                         val current = index
                                         when {
@@ -86,7 +88,7 @@ class ListRow<T>(private var list          : Selectable<Int>,
                                         }
                                     }
                                 }
-                                else                                                                                                   -> setSelection(it)
+                                else                                               -> setSelection(it)
                             }
                         }
                     }
@@ -120,5 +122,5 @@ class ListRow<T>(private var list          : Selectable<Int>,
 open class ListPositioner(private val height: Double) {
     fun rowFor(insets: Insets, y: Double) = max(0, ((y - insets.top) / height).toInt())
 
-    fun invoke(list: View, insets: Insets, index: Int) = Rectangle(insets.left, insets.top + index * height, list.width - insets.run { left + right }, height)
+    operator fun invoke(list: View, insets: Insets, index: Int) = Rectangle(insets.left, insets.top + index * height, list.width - insets.run { left + right }, height)
 }

@@ -33,6 +33,7 @@ typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 interface TreeLike: Selectable<Path<Int>> {
     val rootVisible: Boolean
+    val numRows: Int
 
     fun isLeaf(path: Path<Int>): Boolean
 
@@ -69,8 +70,7 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-    var numRows = 0
-        private set
+    override var numRows = 0
 
     public override var insets
         get(   ) = super.insets
@@ -236,7 +236,6 @@ open class Tree<T, out M: TreeModel<T>>(
     override fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        println("here")
         val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toList()
 
         var empty         = true
@@ -374,9 +373,9 @@ open class Tree<T, out M: TreeModel<T>>(
 
     override fun clearSelection() = selectionModel?.clear().let { Unit }
 
-    override fun next(after: Path<Int>) = item(after, withOffset = 1)
+    override fun next(after: Path<Int>) = rowFromPath(after)?.let { it + 1 }?.let { pathFromRow(it) }
 
-    override fun previous(before: Path<Int>) = item(before, withOffset = -1)
+    override fun previous(before: Path<Int>) = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it).also { println("$it -> $this") } }
 
     fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
@@ -408,21 +407,6 @@ open class Tree<T, out M: TreeModel<T>>(
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, positioner?.row(this, y) ?: nearbyRow)
-
-    private fun item(from: Path<Int>, withOffset: Int): Path<Int>? {
-        return from.bottom?.let { index ->
-            from.parent?.let { parent ->
-                val targetIndex = index + withOffset
-                val numChildren = model.numChildren(parent)
-
-                when {
-                    targetIndex in 0..(numChildren - 1) -> parent + withOffset
-                    targetIndex < 0                     -> item(parent, targetIndex)
-                    else                                -> item(parent, targetIndex - numChildren)
-                }
-            }
-        }
-    }
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until model.numChildren(parent)).map { parent + it }
@@ -591,13 +575,13 @@ open class Tree<T, out M: TreeModel<T>>(
             return null
         }
 
-        return rowToPath.getOrElse(index) {
-            addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first?.also {
-                rowToPath[index] = it
+        return if (index < 0 && !rootVisible) null else {
+            rowToPath.getOrElse(index) {
+                addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first?.also {
+                    rowToPath[index] = it
+                }
             }
         }
-
-//        return addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first
     }
 
     override fun rowFromPath(path: Path<Int>): Int? /*= pathToRow.getOrPut(path)*/ {
@@ -709,10 +693,7 @@ open class Tree<T, out M: TreeModel<T>>(
     }
 }
 
-
-private class ExpansionObserversImpl<T>(
-        private val source: Tree<T, *>,
-        mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
+private class ExpansionObserversImpl<T>(private val source: Tree<T, *>, mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
     operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
 }
 

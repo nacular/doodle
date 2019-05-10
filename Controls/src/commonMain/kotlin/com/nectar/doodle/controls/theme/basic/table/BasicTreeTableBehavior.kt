@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.theme.basic.table
 import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.table.Column
+import com.nectar.doodle.controls.table.ExpansionObserver
 import com.nectar.doodle.controls.table.HeaderGeometry
 import com.nectar.doodle.controls.table.TreeTable
 import com.nectar.doodle.controls.table.TreeTableBehavior
@@ -26,6 +27,11 @@ import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_A
+import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
+import com.nectar.doodle.event.KeyEvent.Companion.VK_LEFT
+import com.nectar.doodle.event.KeyEvent.Companion.VK_RIGHT
+import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -38,7 +44,9 @@ import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
 import com.nectar.doodle.system.Cursor.Companion.WResize
-import com.nectar.doodle.system.SystemInputEvent
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.SetObserver
 
@@ -46,28 +54,23 @@ import com.nectar.doodle.utils.SetObserver
  * Created by Nicholas Eddy on 4/8/19.
  */
 fun <T, R> Selectable<T>.map(mapper: (R) -> T, unmapper: (T) -> R) = object: Selectable<R> {
-    override fun selected(item: R) = this@map.selected(mapper(item))
 
-    override fun selectAll() = this@map.selectAll()
-
-    override fun addSelection(items: Set<R>) = this@map.addSelection(items.map(mapper).toSet())
-
-    override fun setSelection(items: Set<R>) = this@map.setSelection(items.map(mapper).toSet())
-
-    override fun removeSelection(items: Set<R>) = this@map.removeSelection(items.map(mapper).toSet())
-
-    override fun toggleSelection(items: Set<R>) = this@map.toggleSelection(items.map(mapper).toSet())
-
+    override fun selectAll     () = this@map.selectAll     ()
     override fun clearSelection() = this@map.clearSelection()
 
-    override fun next(after: R): R? = this@map.next(mapper(after))?.let(unmapper)
+    override fun selected       (item : R     ) = this@map.selected       (mapper(item))
+    override fun setSelection   (items: Set<R>) = this@map.setSelection   (items.map(mapper).toSet())
+    override fun addSelection   (items: Set<R>) = this@map.addSelection   (items.map(mapper).toSet())
+    override fun removeSelection(items: Set<R>) = this@map.removeSelection(items.map(mapper).toSet())
+    override fun toggleSelection(items: Set<R>) = this@map.toggleSelection(items.map(mapper).toSet())
 
+    override fun next    (after : R): R? = this@map.next    (mapper(after ))?.let(unmapper)
     override fun previous(before: R): R? = this@map.previous(mapper(before))?.let(unmapper)
 
-    override val firstSelection: R?  = this@map.firstSelection?.let(unmapper)
-    override val lastSelection: R?   = this@map.lastSelection?.let(unmapper)
-    override val selectionAnchor: R? = this@map.selectionAnchor?.let(unmapper)
-    override val selection: Set<R>   = this@map.selection.map(unmapper).toSet()
+    override val selection      : Set<R> get() = this@map.selection.map(unmapper).toSet()
+    override val lastSelection  : R?     get() = this@map.lastSelection?.let(unmapper)
+    override val firstSelection : R?     get() = this@map.firstSelection?.let(unmapper)
+    override val selectionAnchor: R?     get() = this@map.selectionAnchor?.let(unmapper)
 }
 
 class BasicTreeTableBehavior<T>(
@@ -81,8 +84,14 @@ class BasicTreeTableBehavior<T>(
     override var headerDirty: (() -> Unit)? = null
     override var bodyDirty  : (() -> Unit)? = null
 
-    private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { set,_,_ ->
+    private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { _,_,_ ->
         bodyDirty?.invoke()
+    }
+
+    private val expansionChanged: ExpansionObserver<T> = { treeTable,_ ->
+        if (treeTable.selection.isNotEmpty()) {
+            bodyDirty?.invoke()
+        }
     }
 
     override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
@@ -120,7 +129,7 @@ class BasicTreeTableBehavior<T>(
     override val rowPositioner = object: RowPositioner<T> {
         private val delegate = ListPositioner(rowHeight)
 
-        override fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.invoke(table, table.insets, index)
+        override fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate(table, table.insets, index)
         override fun rowFor(table: TreeTable<T, *>, y: Double)                           = delegate.rowFor(table.insets, y)
     }
 
@@ -227,38 +236,48 @@ class BasicTreeTableBehavior<T>(
 
     // FIXME: Centralize
     override fun install(view: TreeTable<T, *>) {
+        view.expanded         += expansionChanged
+        view.collapsed        += expansionChanged
         view.keyChanged       += this
         view.selectionChanged += selectionChanged
     }
 
     override fun uninstall(view: TreeTable<T, *>) {
+        view.expanded         -= expansionChanged
+        view.collapsed        -= expansionChanged
         view.keyChanged       -= this
         view.selectionChanged -= selectionChanged
     }
 
     override fun keyPressed(event: KeyEvent) {
-        (event.source as Selectable<Int>).let { list ->
+        (event.source as TreeLike).let { tree ->
             when (event.code) {
-                KeyEvent.VK_UP, KeyEvent.VK_DOWN -> {
-                    when (SystemInputEvent.Modifier.Shift) {
+                VK_UP, VK_DOWN -> {
+                    when (Shift) {
                         in event -> {
-                            list.selectionAnchor?.let { anchor ->
-                                list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) list.previous(it) else list.next(it) }?.let { current ->
-                                    when {
-                                        current < anchor  -> list.setSelection((current .. anchor ).reversed().toSet())
-                                        anchor  < current -> list.setSelection((anchor  .. current).           toSet())
-                                        else              -> list.setSelection(setOf(current))
+                            tree.selectionAnchor?.let { anchor ->
+                                tree.lastSelection?.let { if (event.code == VK_UP) tree.previous(it) else tree.next(it) }?.let { current ->
+                                    val currentRow = tree.rowFromPath(current)
+                                    val anchorRow  = tree.rowFromPath(anchor )
+
+                                    if (currentRow != null && anchorRow != null) {
+                                        when {
+                                            currentRow < anchorRow -> tree.setSelection((currentRow..anchorRow).reversed().toSet())
+                                            anchorRow < currentRow -> tree.setSelection((anchorRow..currentRow).toSet())
+                                            else                   -> tree.setSelection(setOf(currentRow))
+                                        }
                                     }
                                 }
                             }
                         }
-                        else -> list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) list.previous(it) else list.next(it) }?.let { list.setSelection(setOf(it)) }
+                        else -> tree.lastSelection?.let { if (event.code == VK_UP) tree.previous(it) else tree.next(it) }?.let { tree.setSelection(setOf(it)) }
                     }?.let { Unit } ?: Unit
                 }
-
-                KeyEvent.VK_A                    -> {
-                    if (SystemInputEvent.Modifier.Ctrl in event || SystemInputEvent.Modifier.Meta in event) {
-                        list.selectAll()
+                VK_LEFT        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                VK_RIGHT       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                VK_A           -> {
+                    if (Ctrl in event || Meta in event) {
+                        tree.selectAll()
                     }
                 }
             }

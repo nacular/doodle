@@ -87,7 +87,7 @@ open class Table<T, M: ListModel<T>>(
 
         val view: View get() = list
 
-        private val list = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator, selectionModel).apply {
+        private val list = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator).apply {
             acceptsThemes = false
         }
 
