@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.list
 
-import com.nectar.doodle.controls.Selectable
+import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ToStringItemGenerator
 import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
@@ -8,34 +8,26 @@ import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.list.ListEditor
-import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.theme.basic.ListPositioner
 import com.nectar.doodle.controls.theme.basic.ListRow
+import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.stripedBrush
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
-import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
-import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
-import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
-import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.ObservableSet
@@ -79,7 +71,9 @@ private class MutableBasicItemGenerator<T>(focusManager: FocusManager?, textMetr
     }
 }
 
-open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics, private val rowHeight: Double = 20.0): ListBehavior<T>, KeyListener {
+open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics, rowHeight: Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
+    private val brush = stripedBrush(rowHeight, lightgray.lighter(), lightgray)
+
     override val generator : RowGenerator<T>  = BasicItemGenerator (focusManager, textMetrics)
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight                )
 
@@ -92,39 +86,11 @@ open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMe
     }
 
     override fun render(view: List<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, CanvasBrush(Size(rowHeight, 2 * rowHeight)) {
-            rect(Rectangle(                rowHeight, rowHeight), ColorBrush(lightgray.lighter()))
-            rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(lightgray          ))
-        })
+        canvas.rect(view.bounds.atOrigin, brush)
     }
 
     override fun keyPressed(event: KeyEvent) {
-        (event.source as Selectable<Int>).let { list ->
-            when (event.code) {
-                VK_UP, VK_DOWN -> {
-                    when (Shift) {
-                        in event -> {
-                            list.selectionAnchor?.let { anchor ->
-                                list.lastSelection?.let { if (event.code == VK_UP) list.previous(it) else list.next(it) }?.let { current ->
-                                    when {
-                                        current < anchor  -> list.setSelection((current .. anchor ).reversed().toSet())
-                                        anchor  < current -> list.setSelection((anchor  .. current).           toSet())
-                                        else              -> list.setSelection(setOf(current))
-                                    }
-                                }
-                            }
-                        }
-                        else -> list.lastSelection?.let { if (event.code == KeyEvent.VK_UP) list.previous(it) else list.next(it) }?.let { list.setSelection(setOf(it)) }
-                    }?.let { Unit } ?: Unit
-                }
-
-                VK_A -> {
-                    if (Ctrl in event || Meta in event) {
-                        list.selectAll()
-                    }
-                }
-            }
-        }
+        super<SelectableListKeyHandler>.keyPressed(event)
     }
 }
 

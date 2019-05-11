@@ -1,9 +1,11 @@
 package com.nectar.doodle.controls.theme.basic
 
+import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
@@ -33,12 +35,56 @@ private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraint
 
 private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
-interface ContentGenerator<T> {
-    operator fun invoke(tree: TreeLike, node: T, path: Path<Int>, index: Int, previous: View? = null): View
-
+interface ContentGenerator<T>: ItemGenerator<T> {
     fun position(tree: TreeLike, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
         left    = parent.left
         centerY = parent.centerY
+    }
+}
+
+abstract class TreeRowIcon: View() {
+    abstract var expanded: Boolean
+}
+
+class SimpleTreeRowIcon: TreeRowIcon() {
+    override var expanded = false
+        set (new) {
+            field = new
+            rerender()
+        }
+
+    override fun render(canvas: Canvas) {
+        val pen      = Pen(Color.black)
+        val length   = 3.5
+        val width_2  = width  / 2
+        val height_2 = height / 2
+
+        if (!expanded) {
+            canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
+        }
+
+        canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
+    }
+}
+
+class BasicTreeRowIcon: TreeRowIcon() {
+    override var expanded = false
+        set (new) {
+            field = new
+            rerender()
+        }
+
+    override fun render(canvas: Canvas) {
+        val pen      = Pen(Color.black)
+        val length   = 3.5
+        val width_2  = width  / 2
+        val height_2 = height / 2
+
+        if (!expanded) {
+            canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
+        }
+
+        canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
     }
 }
 
@@ -49,7 +95,8 @@ class TreeRow<T>(
         private val contentGenerator: ContentGenerator<T>,
         private val evenRowColor    : Color? = null,
         private val oddRowColor     : Color? = evenRowColor?.darker(),
-        private val selectionColor  : Color? = Color.green): View() {
+        private val selectionColor  : Color? = green,
+        private val iconFactory     : () -> TreeRowIcon): View() {
 
     var colorPolicy: (TreeRow<T>) -> Color? = {
         val color = when {
@@ -60,31 +107,9 @@ class TreeRow<T>(
         if (it.mouseOver) color?.lighter(0.25f) else color
     }
 
-    // FIXME: Inject
-    private class Icon: View() {
-        var expanded = false
-            set (new) {
-                field = new
-                rerender()
-            }
-
-        override fun render(canvas: Canvas) {
-            val pen      = Pen(Color.black)
-            val length   = 3.5
-            val width_2  = width  / 2
-            val height_2 = height / 2
-
-            if (!expanded) {
-                canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
-            }
-
-            canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
-        }
-    }
-
-    private  var icon      = null as Icon?
+    private  var icon      = null as TreeRowIcon?
     private  var depth     = -1
-    internal var content   = contentGenerator(tree, node, path, index)
+    internal var content   = contentGenerator(node)
     private  val iconWidth = 20.0
     private  var mouseOver = false
 
@@ -143,7 +168,7 @@ class TreeRow<T>(
         this.path  = path
         this.index = index
 
-        content = contentGenerator(tree, node, path, index, content).also {
+        content = contentGenerator(node, content).also {
             if (it != content) {
                 children.batch {
                     remove(content)
@@ -178,7 +203,7 @@ class TreeRow<T>(
             }
             icon = null
         } else  {
-            icon = icon?.apply { expanded = tree.expanded(path) } ?: Icon().apply {
+            icon = icon?.apply { expanded = tree.expanded(path) } ?: iconFactory().apply {
                 width    = iconWidth
                 height   = width
                 expanded = tree.expanded(path)
@@ -225,7 +250,7 @@ class TreeRow<T>(
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
     }
 
-    private fun constrainIcon(icon: Icon?) {
+    private fun constrainIcon(icon: TreeRowIcon?) {
         icon?.let {
             constraintLayout.constrain(it, content) { icon, label ->
                 icon.right   = label.left
