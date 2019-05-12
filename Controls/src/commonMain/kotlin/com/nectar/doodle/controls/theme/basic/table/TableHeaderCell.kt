@@ -4,27 +4,35 @@ import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.system.Cursor.Companion.EResize
+import com.nectar.doodle.system.Cursor.Companion.EWResize
+import com.nectar.doodle.system.Cursor.Companion.WResize
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-class TableHeaderCell(column: Column<*>, val headerColor: Color?): View() {
+class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View() {
     init {
+        var resizing                = false
+        var mouseDown               = false
         var initialWidth            = column.width
         var initialPosition: Point? = null
-        var mouseDown               = false
+
+        styleChanged += {
+            rerender()
+        }
 
         fun newCursor() = when {
-            column.width > column.minWidth && column.width < column.maxWidth ?: Double.MAX_VALUE -> Cursor.EWResize
-            column.width < column.maxWidth ?: Double.MAX_VALUE                                   -> Cursor.EResize
-            else                                                                                 -> Cursor.WResize
+            column.width > column.minWidth && column.width < column.maxWidth ?: Double.MAX_VALUE -> EWResize
+            column.width < column.maxWidth ?: Double.MAX_VALUE                                   -> EResize
+            else                                                                                 -> WResize
         }
 
         fun overHandle(mouseLocation: Point) = mouseLocation.x in width - 5.0..width
@@ -45,11 +53,14 @@ class TableHeaderCell(column: Column<*>, val headerColor: Color?): View() {
             }
 
             override fun mousePressed(event: MouseEvent) {
-                mouseDown = true
+                mouseDown       = true
+                initialPosition = event.location
 
                 if (overHandle(event.location)) {
-                    initialWidth    = column.width
-                    initialPosition = event.location
+                    resizing     = true
+                    initialWidth = column.width
+                } else {
+                    backgroundColor = headerColor?.darker()
                 }
             }
 
@@ -58,6 +69,14 @@ class TableHeaderCell(column: Column<*>, val headerColor: Color?): View() {
                 initialPosition = null
 
                 updateCursor(event.location)
+
+                backgroundColor = null
+
+                if (!resizing) {
+                    column.resetPosition()
+                }
+
+                resizing = false
             }
         }
 
@@ -68,19 +87,23 @@ class TableHeaderCell(column: Column<*>, val headerColor: Color?): View() {
 
             override fun mouseDragged(event: MouseEvent) {
                 initialPosition?.let {
-                    cursor = newCursor()
+                    val delta = (event.location - it).x
 
-                    val delta = event.location - it
+                    if (resizing) {
+                        cursor = newCursor()
 
-                    column.preferredWidth = initialWidth + delta.x
+                        column.preferredWidth = initialWidth + delta
+                    } else {
+                        column.moveBy(delta)
+                    }
                 }
             }
         }
 
-        column.header?.let {
-            children += it
+        column.header?.let { header ->
+            children += header
 
-            layout = constrain(it) {
+            layout = constrain(header) {
                 it.centerX = it.parent.centerX
                 it.centerY = it.parent.centerY
             }
@@ -91,6 +114,7 @@ class TableHeaderCell(column: Column<*>, val headerColor: Color?): View() {
         val thickness = 1.0
         val x         = width - thickness
 
+        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
         canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.darker(0.25f) ?: Color.gray))
     }
 }

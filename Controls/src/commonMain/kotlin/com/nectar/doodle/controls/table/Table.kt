@@ -12,6 +12,7 @@ import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -84,6 +85,74 @@ open class Table<T, M: ListModel<T>>(
                     }
                 }
             }
+
+        override fun moveBy(x: Double) {
+            val myIndex    = this@Table.columns.indexOf(this)
+            val header     = this@Table.header.children[myIndex]
+            val translateX = view.transform.translateX
+            val delta      = min(max(x, 0 - (header.x + translateX)), this@Table.width - width - (header.x + translateX))
+
+            this@Table.header.children[myIndex].transform *= Identity.translate(delta)
+            view.transform *= Identity.translate(delta)
+
+            internalColumns.dropLast(1).forEachIndexed { index, column ->
+                val targetBounds = this@Table.header.children[index].bounds
+
+                if (column != this) {
+                    if (index < myIndex && header.x + translateX < targetBounds.x + targetBounds.width / 2) {
+                        this@Table.header.children[index].transform = Identity.translate(width)
+                        column.view.transform = Identity.translate(width)
+                    } else if (index > myIndex && header.x + translateX + header.width > targetBounds.x + targetBounds.width / 2) {
+                        this@Table.header.children[index].transform = Identity.translate(-width)
+                        column.view.transform = Identity.translate(-width)
+                    } else {
+                        this@Table.header.children[index].transform = Identity
+                        column.view.transform = Identity
+                    }
+                }
+            }
+        }
+
+        override fun resetPosition() {
+            var moved      = false
+            val myIndex    = this@Table.columns.indexOf(this)
+            val myOffset   = this@Table.header.children[myIndex].run { x + transform.translateX }
+            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else myIndex
+
+            internalColumns.forEachIndexed { index, column ->
+                if (!moved && myOffset < column.view.run { x + transform.translateX }) {
+                    myNewIndex = index - if (myIndex < index) 1 else 0
+                    moved = true
+                }
+
+                this@Table.header.children.getOrNull(index)?.transform = Identity
+                column.view.transform = Identity
+            }
+
+            if (myIndex == myNewIndex) {
+                return
+            }
+
+            this@Table.header.children.batch {
+                if (myNewIndex < size) {
+                    add(myNewIndex, removeAt(myIndex))
+                } else {
+                    add(removeAt(myIndex))
+                }
+            }
+
+            (panel.content as Box).children.batch {
+                if (myNewIndex < size) {
+                    add(myNewIndex, removeAt(myIndex))
+                } else {
+                    add(removeAt(myIndex))
+                }
+            }
+
+            internalColumns.add(myNewIndex, internalColumns.removeAt(myIndex))
+
+            doLayout()
+        }
 
         val view: View get() = list
 

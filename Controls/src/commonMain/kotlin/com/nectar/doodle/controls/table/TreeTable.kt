@@ -14,6 +14,7 @@ import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -161,6 +162,76 @@ class TreeTable<T, M: TreeModel<T>>(
                 }
             }
 
+        /** FIXME: Refactor and join w/ impl in [[Table]] */
+        override fun moveBy(x: Double) {
+            val myIndex    = this@TreeTable.columns.indexOf(this)
+            val header     = this@TreeTable.header.children[myIndex]
+            val translateX = view.transform.translateX
+            val delta      = min(max(x, 0 - (header.x + translateX)), this@TreeTable.width - width - (header.x + translateX))
+
+            this@TreeTable.header.children[myIndex].transform *= AffineTransform.Identity.translate(delta)
+            view.transform *= AffineTransform.Identity.translate(delta)
+
+            internalColumns.dropLast(1).forEachIndexed { index, column ->
+                // FIXME: Support fixed columns instead?
+
+                if (column != this && index > 0) {
+                    val targetBounds = this@TreeTable.header.children[index].bounds
+
+                    if (index < myIndex && header.x + translateX < targetBounds.x + targetBounds.width / 2) {
+                        this@TreeTable.header.children[index].transform = AffineTransform.Identity.translate(width)
+                        column.view.transform = AffineTransform.Identity.translate(width)
+                    } else if (index > myIndex && header.x + translateX + header.width > targetBounds.x + targetBounds.width / 2) {
+                        this@TreeTable.header.children[index].transform = AffineTransform.Identity.translate(-width)
+                        column.view.transform = AffineTransform.Identity.translate(-width)
+                    } else {
+                        this@TreeTable.header.children[index].transform = AffineTransform.Identity
+                        column.view.transform = AffineTransform.Identity
+                    }
+                }
+            }
+        }
+
+        override fun resetPosition() {
+            var moved      = false
+            val myIndex    = this@TreeTable.columns.indexOf(this)
+            val myOffset   = this@TreeTable.header.children[myIndex].run { x + transform.translateX }
+            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else myIndex
+
+            internalColumns.forEachIndexed { index, column ->
+                if (!moved && myOffset < column.view.run { x + transform.translateX }) {
+                    myNewIndex = index - if (myIndex < index) 1 else 0
+                    moved = true
+                }
+
+                this@TreeTable.header.children.getOrNull(index)?.transform = AffineTransform.Identity
+                column.view.transform = AffineTransform.Identity
+            }
+
+            if (myIndex == myNewIndex) {
+                return
+            }
+
+            this@TreeTable.header.children.batch {
+                if (myNewIndex < size) {
+                    add(myNewIndex, removeAt(myIndex))
+                } else {
+                    add(removeAt(myIndex))
+                }
+            }
+
+            (panel.content as Box).children.batch {
+                if (myNewIndex < size) {
+                    add(myNewIndex, removeAt(myIndex))
+                } else {
+                    add(removeAt(myIndex))
+                }
+            }
+
+            internalColumns.add(myNewIndex, internalColumns.removeAt(myIndex))
+
+            doLayout()
+        }
         abstract val view: View
 
         abstract fun behavior(behavior: TreeTableBehavior<T>?)
@@ -194,6 +265,14 @@ class TreeTable<T, M: TreeModel<T>>(
                     }
                 }
             }
+        }
+
+        override fun moveBy(x: Double) {
+            // NO-OP
+        }
+
+        override fun resetPosition() {
+            // NO-OP
         }
     }
 
