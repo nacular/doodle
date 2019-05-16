@@ -35,6 +35,9 @@ interface TreeLike: Selectable<Path<Int>> {
     val rootVisible: Boolean
     val numRows: Int
 
+    fun visible(row: Int): Boolean
+    fun visible(path: Path<Int>): Boolean
+
     fun isLeaf(path: Path<Int>): Boolean
 
     fun expanded(path: Path<Int>): Boolean
@@ -111,6 +114,13 @@ open class Tree<T, out M: TreeModel<T>>(
     private   val halfCacheLength = cacheLength / 2
     private   var minVisibleY     = 0.0
     private   var maxVisibleY     = 0.0
+    private   var minHeight       = 0.0
+        set(new) {
+            field = new
+
+            minimumSize = Size(minimumSize.width, field)
+            height      = field
+        }
 
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
@@ -236,16 +246,12 @@ open class Tree<T, out M: TreeModel<T>>(
     override fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val pathList = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toList()
+        val patSet = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
 
-        var empty         = true
         val pathsToUpdate = mutableSetOf<Path<Int>>()
 
         children.batch {
-
-            pathList.forEach {
-                empty = false
-
+            patSet.forEach {
                 expandedPaths += it
 
                 if (visible(it)) {
@@ -253,7 +259,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
                     numRows += rowsBelow(it)
 
-                    this@Tree.height += heightBelow(it)
+                    minHeight += heightBelow(it)
 
                     update        (this, it)
                     insertChildren(this, it)
@@ -271,8 +277,8 @@ open class Tree<T, out M: TreeModel<T>>(
 
         expandedPaths.addAll(paths)
 
-        if (!empty) {
-            (expanded as ExpansionObserversImpl)(pathList.toSet())
+        if (children.isNotEmpty() && patSet.isEmpty()) {
+            (expanded as ExpansionObserversImpl)(patSet)
         }
     }
 
@@ -306,7 +312,7 @@ open class Tree<T, out M: TreeModel<T>>(
                 updateNumRows()
 
                 // FIXME: This should be handled better
-                this@Tree.height = heightBelow(Path()) + insets.run { top + bottom }
+                minHeight = heightBelow(Path()) + insets.run { top + bottom }
 
                 // Remove old children
                 (numRows until size).forEach {
@@ -377,9 +383,9 @@ open class Tree<T, out M: TreeModel<T>>(
 
     override fun previous(before: Path<Int>) = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it).also { println("$it -> $this") } }
 
-    fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
+    override fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
-    tailrec fun visible(path: Path<Int>): Boolean = when {
+    override tailrec fun visible(path: Path<Int>): Boolean = when {
         path.depth == 0 -> rootVisible
         path.depth == 1 -> true
         else            -> {
@@ -430,19 +436,20 @@ open class Tree<T, out M: TreeModel<T>>(
 
     protected fun refreshAll() {
         val root      = Path<Int>()
-        val oldHeight = height
+        val oldHeight = minHeight
 
         // FIXME: Move to better location; handle rootVisible case
-        height = heightBelow(root) + insets.run { top + bottom }
 
-        if (oldHeight == height) {
+        minHeight = heightBelow(root) + insets.run { top + bottom }
+
+        if (oldHeight == minHeight) {
             // FIXME: This reset logic could be handled better
             minVisibleY     =  0.0
             maxVisibleY     =  0.0
             firstVisibleRow =  0
             lastVisibleRow  = -1
 
-            handleDisplayRectEvent(Empty, Rectangle(width, height))
+            handleDisplayRectEvent(Empty, Rectangle(width, minHeight))
         }
 
         updateNumRows()
@@ -554,7 +561,7 @@ open class Tree<T, out M: TreeModel<T>>(
             view.bounds = it.rowBounds(this, node, path, index, view)
 
             width       = max(width, view.width)
-            minimumSize = Size(width, height)
+            minimumSize = Size(width, minHeight)
         }
     }
 

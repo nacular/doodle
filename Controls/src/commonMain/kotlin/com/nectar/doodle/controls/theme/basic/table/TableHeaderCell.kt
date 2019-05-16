@@ -10,6 +10,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
@@ -19,6 +20,19 @@ import com.nectar.doodle.system.Cursor.Companion.WResize
  * Created by Nicholas Eddy on 5/10/19.
  */
 class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View() {
+
+    var positioner: Constraints.() -> Unit = {
+        centerX = parent.centerX
+        centerY = parent.centerY
+    }
+        set(new) {
+            field = new
+
+            layout = constrain(children[0]) {
+                positioner(it)
+            }
+        }
+
     init {
         var resizing                = false
         var mouseDown               = false
@@ -104,8 +118,7 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
             children += header
 
             layout = constrain(header) {
-                it.centerX = it.parent.centerX
-                it.centerY = it.parent.centerY
+                positioner(it)
             }
         }
     }

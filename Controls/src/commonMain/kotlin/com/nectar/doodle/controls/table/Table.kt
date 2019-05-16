@@ -17,6 +17,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.utils.AdaptingObservableSet
@@ -154,15 +155,13 @@ open class Table<T, M: ListModel<T>>(
             doLayout()
         }
 
-        val view: View get() = list
-
-        private val list = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator).apply {
+        val view = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator).apply {
             acceptsThemes = false
         }
 
         fun behavior(behavior: TableBehavior<T>?) {
             behavior?.let {
-                list.behavior = object : ListBehavior<R> {
+                view.behavior = object : ListBehavior<R> {
                     override val generator: ListBehavior.RowGenerator<R>
                         get() = object : ListBehavior.RowGenerator<R> {
                             override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, row, index, itemGenerator, current)
@@ -175,7 +174,11 @@ open class Table<T, M: ListModel<T>>(
                             override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = behavior.rowPositioner.rowFor(this@Table, y)
                         }
 
-                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {}
+                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
+                        if (this@InternalColumn != internalColumns.last()) {
+                            behavior.renderColumnBody(this@Table, this@InternalColumn, canvas)
+                        }
+                    }
                 }
             }
         }
@@ -232,9 +235,8 @@ open class Table<T, M: ListModel<T>>(
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top = header.parent.top + y
-//                        header.left  = header.parent.left
-//                        header.right = header.parent.right
+                        header.top    = header.parent.top + y
+                        header.height = constant(height)
                     }
 
                     panel.top    = header.bottom
@@ -296,7 +298,7 @@ open class Table<T, M: ListModel<T>>(
                     var totalWidth = 0.0
 
                     positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.height))
+                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
                         x          += view.width
                         height      = max(height, view.height)
@@ -304,6 +306,10 @@ open class Table<T, M: ListModel<T>>(
                     }
 
                     positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
+
+                    positionable.children.forEach {
+                        it.height = positionable.height
+                    }
                 }
             }
         }
@@ -363,13 +369,6 @@ open class Table<T, M: ListModel<T>>(
     }
 
     companion object {
-//        operator fun invoke(
-//                strand        : Strand,
-//                progression   : IntProgression,
-//                selectionModel: SelectionModel<Int>? = null
-////                fitContent    : Boolean              = true,
-//                /*cacheLength   : Int                  = 10*/) = Table(strand, progression.toList())
-
         operator fun <T> invoke(
                        strand        : Strand,
                        values        : List<T>,

@@ -12,6 +12,7 @@ import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.AdaptingObservableSet
@@ -83,6 +84,13 @@ open class List<T, out M: ListModel<T>>(
     private val halfCacheLength = cacheLength / 2
     private var minVisibleY     = 0.0
     private var maxVisibleY     = 0.0
+    private var minHeight       = 0.0
+        set(new) {
+            field = new
+
+            minimumSize = Size(minimumSize.width, field)
+            height      = field
+        }
 
     protected var firstVisibleRow =  0
     protected var lastVisibleRow  = -1
@@ -108,7 +116,7 @@ open class List<T, out M: ListModel<T>>(
         }
 
     protected fun updateVisibleHeight() {
-        height = model.size * (model[0]?.let { rowPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+        minHeight = model.size * (model[0]?.let { rowPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
     }
 
     public override var insets
@@ -222,9 +230,7 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int): Int {
-        return min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
-    }
+    private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
 
     companion object {
         operator fun invoke(

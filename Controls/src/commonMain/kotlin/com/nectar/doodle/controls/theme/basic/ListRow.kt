@@ -39,9 +39,7 @@ class ListRow<T>(private var list          : Selectable<Int>,
         if (it.mouseOver) color?.lighter(0.25f) else color
     }
 
-    var positioner: Constraints.() -> Unit = {
-        centerY = parent.centerY
-    }
+    var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
             field = new
 

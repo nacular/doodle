@@ -298,7 +298,11 @@ class HorizontalConstraint(target: View, dependencies: Set<View> = emptySet(), d
 //    override fun toString() = "H ($default) <- $dependencies"
 }
 
-class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
+private object ConstantTarget: View()
+
+fun constant(value: Double) = MagnitudeConstraint(ConstantTarget, block = { value })
+
+open class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
     operator fun plus(value: Number) = plus { value }
 
     operator fun plus(value: () -> Number) = MagnitudeConstraint(target, dependencies) {

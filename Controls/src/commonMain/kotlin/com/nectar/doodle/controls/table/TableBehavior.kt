@@ -29,7 +29,7 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     }
 
     interface HeaderCellGenerator<T> {
-        operator fun invoke(table: Table<T, *>, column: Column<T>): View
+        operator fun <A> invoke(table: Table<T, *>, column: Column<A>): View
     }
 
     val cellGenerator      : CellGenerator<T>
@@ -40,8 +40,9 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     var headerDirty: (() -> Unit)?
     var bodyDirty  : (() -> Unit)?
 
-    fun renderHeader(table: Table<T, *>, canvas: Canvas) {}
-    fun renderBody  (table: Table<T, *>, canvas: Canvas) {}
+    fun renderHeader    (table: Table<T, *>,                    canvas: Canvas) {}
+    fun renderBody      (table: Table<T, *>,                    canvas: Canvas) {}
+    fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
 }
 
 

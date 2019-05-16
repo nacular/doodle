@@ -2,9 +2,9 @@ package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.ModelObserver
-import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.scheduler.Strand
 
@@ -34,6 +34,8 @@ open class MutableList<T, M: MutableListModel<T>>(
         itemsRemoved(trueRemoved)
         itemsAdded  (trueAdded  )
 
+        val oldHeight = height
+
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
         }
@@ -41,12 +43,10 @@ open class MutableList<T, M: MutableListModel<T>>(
         trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
         trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
-        if (trueRemoved.size > trueAdded.size) {
-            if (children.size == lastVisibleRow - 1) {
-                children.batch {
-                    for (it in 0..trueRemoved.size - trueAdded.size) {
-                        removeAt(0)
-                    }
+        if (trueRemoved.size > trueAdded.size && height < oldHeight) {
+            children.batch {
+                for (it in 0 until trueRemoved.size - trueAdded.size) {
+                    removeAt(0)
                 }
             }
         }

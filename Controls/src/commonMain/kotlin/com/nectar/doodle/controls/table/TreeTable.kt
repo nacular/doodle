@@ -19,6 +19,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.utils.AdaptingObservableSet
@@ -81,6 +82,9 @@ class TreeTable<T, M: TreeModel<T>>(
                       block         : ColumnBuilder<T>.() -> Unit): View(), TreeLike {
     override val rootVisible get() = tree.rootVisible
 
+    override fun visible(row : Int      ) = tree.visible(row )
+    override fun visible(path: Path<Int>) = tree.visible(path)
+
     override fun isLeaf  (path: Path<Int>) = tree.isLeaf  (path)
     override fun expanded(path: Path<Int>) = tree.expanded(path)
     override fun collapse(path: Path<Int>) = tree.collapse(path)
@@ -125,6 +129,7 @@ class TreeTable<T, M: TreeModel<T>>(
                         expanded += { _: Tree<*, *>, paths: Set<Path<Int>> ->
                             this@TreeTable.expanded.forEach { it(this@TreeTable, paths) }
                         }
+
                         collapsed += { _: Tree<*, *>, paths: Set<Path<Int>> ->
                             this@TreeTable.collapsed.forEach { it(this@TreeTable, paths) }
                         }
@@ -140,8 +145,8 @@ class TreeTable<T, M: TreeModel<T>>(
             override val header         : View?,
                      val itemGenerator  : ItemGenerator<R>,
                          preferredWidth : Double? = null,
-            override val minWidth       : Double  = 0.0,
-            override val maxWidth       : Double? = null): Column<T>, ColumnSizePolicy.Column {
+                         minWidth       : Double  = 0.0,
+                         maxWidth       : Double? = null): Column<T>, ColumnSizePolicy.Column {
 
         override var preferredWidth = preferredWidth
             set(new) {
@@ -160,6 +165,16 @@ class TreeTable<T, M: TreeModel<T>>(
                 field = max(minWidth, new).let {
                     maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
                 }
+            }
+
+        override var minWidth = minWidth
+            protected set(new) {
+                field = maxWidth?.let { max(new, it) } ?: new
+            }
+
+        override var maxWidth = maxWidth
+            protected set(new) {
+                field = new?.let { min(new, minWidth) }
             }
 
         /** FIXME: Refactor and join w/ impl in [[Table]] */
@@ -247,6 +262,16 @@ class TreeTable<T, M: TreeModel<T>>(
 
         override val view = Tree(model.map(extractor), selectionModel).apply {
             acceptsThemes = false
+
+//            expanded += { _,_ ->
+//                this@InternalTreeColumn.minWidth       = minimumSize.width
+//                this@InternalTreeColumn.preferredWidth = minimumSize.width
+//            }
+//
+//            collapsed += { _,_ ->
+//                this@InternalTreeColumn.minWidth       = minimumSize.width
+//                this@InternalTreeColumn.preferredWidth = minimumSize.width
+//            }
         }
 
         override fun behavior(behavior: TreeTableBehavior<T>?) {
@@ -276,6 +301,11 @@ class TreeTable<T, M: TreeModel<T>>(
         }
     }
 
+    /**
+     * Returns all rows below the given [[Path]]; even if path is collapsed/invisible
+     */
+    private fun rowsBelow(path: Path<Int>): List<Path<Int>> = (0 until model.numChildren(path)).map { path + it }.flatMap { listOf(it) + if (expanded(it)) rowsBelow(it) else emptyList() }
+
     private inner class InternalListColumn<R>(
             header        : View?,
             itemGenerator : ItemGenerator<R>,
@@ -287,14 +317,22 @@ class TreeTable<T, M: TreeModel<T>>(
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
             init {
                 this@TreeTable.expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                    val added = paths.flatMap { rowsBelow(it) }
+
                     changed.forEach {
-                        it(this, emptyMap(), paths.associate { this@TreeTable.rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap())
+                        it(this, emptyMap(), added.associate { rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap())
                     }
                 }
 
                 this@TreeTable.collapsed += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                    val removed = paths.flatMap {
+                        var index = rowFromPath(it)!!
+
+                        rowsBelow(it).map { index++ to it }
+                    }
+
                     changed.forEach {
-                        it(this, paths.associate { this@TreeTable.rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap(), emptyMap())
+                        it(this, removed.associate { (index, path) -> index to extractor(model[path]!!) }, emptyMap(), emptyMap())
                     }
                 }
             }
@@ -325,7 +363,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
             override val size get() = numRows
 
-            override fun get(index: Int) = this@TreeTable.pathFromRow(index)?.let { model[it]?.let(extractor) }
+            override fun get(index: Int) = pathFromRow(index)?.let { model[it]?.let(extractor) }
 
             override fun section(range: ClosedRange<Int>) = iterator().asSequence().toList().subList(range.start, range.endInclusive + 1)
 
@@ -335,7 +373,7 @@ class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(strand, FieldModel(model, extractor), itemGenerator).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(strand, FieldModel(model, extractor), itemGenerator, cacheLength = 0).apply {
             acceptsThemes = false
         }
 
@@ -343,11 +381,11 @@ class TreeTable<T, M: TreeModel<T>>(
             behavior?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, row, this@TreeTable.pathFromRow(index)!!, index, itemGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, row, pathFromRow(index)!!, index, itemGenerator, current)
                     }
 
                     override val positioner get() = object : ListBehavior.RowPositioner<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, this@TreeTable.pathFromRow(index)!!, model[this@TreeTable.pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
 
                         override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@TreeTable, y)
                     }
@@ -417,9 +455,8 @@ class TreeTable<T, M: TreeModel<T>>(
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@TreeTable).apply {
-                        header.top = header.parent.top + y
-//                        header.left  = header.parent.left
-//                        header.right = header.parent.right
+                        header.top    = header.parent.top + y
+                        header.height = constant(height)
                     }
 
                     panel.top    = header.bottom
@@ -481,14 +518,18 @@ class TreeTable<T, M: TreeModel<T>>(
                     var totalWidth = 0.0
 
                     positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.height))
+                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
                         x          += view.width
                         height      = max(height, view.height)
                         totalWidth += view.width
                     }
 
-                    positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
+                    positionable.height = max(positionable.parent!!.height, height)
+
+                    positionable.children.forEach {
+                        it.height = positionable.height
+                    }
                 }
             }
         }
@@ -503,7 +544,10 @@ class TreeTable<T, M: TreeModel<T>>(
                 header.x = new.x
             }
         }
-    })
+    }).apply {
+        scrollsHorizontally = false
+    }
+
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         val adaptingSet: ObservableSet<TreeTable<T, *>, Path<Int>> = AdaptingObservableSet(this, set)
@@ -541,6 +585,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
         super.doLayout()
 
+        // Needed b/c width of header isn't constrained
         header.doLayout()
         (panel.content as? Box)?.doLayout() // FIXME
     }
