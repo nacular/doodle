@@ -10,10 +10,10 @@ import com.nectar.doodle.utils.SetPool
 
 interface ListModel<T>: Iterable<T> {
     val size: Int
+    val isEmpty get() = size == 0
 
     operator fun get(index: Int): T?
 
-    fun isEmpty (                       ) = size == 0
     fun section (range: ClosedRange<Int>): List<T>
     fun contains(value: T               ): Boolean
 }

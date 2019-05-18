@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.Slider
@@ -8,7 +9,6 @@ import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.MutableList
-import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.text.LabelFactory
@@ -16,9 +16,9 @@ import com.nectar.doodle.controls.theme.basic.list.BasicListBehavior
 import com.nectar.doodle.controls.theme.basic.list.BasicMutableListBehavior
 import com.nectar.doodle.controls.theme.basic.tree.BasicMutableTreeBehavior
 import com.nectar.doodle.controls.theme.basic.tree.BasicTreeBehavior
-import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
+import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
@@ -54,10 +54,10 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
             is Slider            -> it.behavior = sliderBehavior
             is SplitPanel        -> it.behavior = splitPanelBehavior
             is ProgressBar       -> it.behavior = (progressBarBehavior as Behavior<ProgressIndicator>)
-            is MutableList<*, *> -> (it as MutableList<Any, MutableListModel<Any>>    ).behavior = mutableListBehavior
+            is MutableList<*, *> -> (it as MutableList<Any, MutableListModel<Any>>).behavior = mutableListBehavior
             is MutableTree<*, *> -> (it as MutableTree<Any, MutableTreeModel<Any>>).behavior = mutableTreeBehavior
             is List<*, *>        -> (it as List<Any, ListModel<Any>>              ).behavior = listBehavior
-            is Tree<*, *>        -> (it as Tree<Any, TreeModel<Any>>                  ).behavior = treeBehavior
+            is Tree<*, *>        -> (it as Tree<Any, TreeModel<Any>>              ).behavior = treeBehavior
             is Spinner<*, *>     -> (it as Spinner<Any, SpinnerModel<Any>>        ).behavior = spinnerBehavior
         }
     }

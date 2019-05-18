@@ -125,9 +125,7 @@ class AnimatorImpl<P>(
         private val scheduler         : Scheduler,
         private val animationScheduler: AnimationScheduler): Animator<P>
 {
-    override fun <T: Number> invoke(pair: Pair<T, T>): InterpolationStart<T> {
-        return InterpolationStartImpl(timer, animationScheduler, pair.first, pair.second)
-    }
+    override fun <T: Number> invoke(pair: Pair<T, T>): InterpolationStart<T> = InterpolationStartImpl(timer, animationScheduler, pair.first, pair.second)
 
     override fun <T: com.nectar.measured.units.Unit> invoke(pair: Pair<Measure<T>, Measure<T>>): MeasureInterpolationStart<T> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

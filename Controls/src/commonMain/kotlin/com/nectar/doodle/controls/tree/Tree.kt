@@ -257,8 +257,7 @@ open class Tree<T, out M: TreeModel<T>>(
                 if (visible(it)) {
                     pathsToUpdate -= it
 
-                    numRows += rowsBelow(it)
-
+                    numRows   += rowsBelow  (it)
                     minHeight += heightBelow(it)
 
                     update        (this, it)
@@ -271,13 +270,11 @@ open class Tree<T, out M: TreeModel<T>>(
             pathsToUpdate.forEach {
                 updateRecursively(this, it)
             }
-
-            updateNumRows()
         }
 
         expandedPaths.addAll(paths)
 
-        if (children.isNotEmpty() && patSet.isEmpty()) {
+        if (children.isNotEmpty() && patSet.isNotEmpty()) {
             (expanded as ExpansionObserversImpl)(patSet)
         }
     }
@@ -339,7 +336,9 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-        (collapsed as ExpansionObserversImpl)(pathSet)
+        if (!empty) {
+            (collapsed as ExpansionObserversImpl)(pathSet)
+        }
     }
 
     fun collapseAll() = collapse(expandedPaths)

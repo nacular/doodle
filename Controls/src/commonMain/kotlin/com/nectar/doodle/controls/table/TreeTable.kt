@@ -14,7 +14,7 @@ import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
-import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -153,9 +153,9 @@ class TreeTable<T, M: TreeModel<T>>(
                 field = new
 
                 field?.let {
-                    resizingCol = columns.indexOf(this)
-                    columnSizePolicy.widthChanged(this@TreeTable.width, internalColumns, columns.indexOf(this), it)
-                    this@TreeTable.doLayout()
+                    resizingCol = index
+                    columnSizePolicy.widthChanged(this@TreeTable.width, internalColumns, index, it)
+                    doLayout()
                     resizingCol = null
                 }
             }
@@ -177,31 +177,30 @@ class TreeTable<T, M: TreeModel<T>>(
                 field = new?.let { min(new, minWidth) }
             }
 
-        /** FIXME: Refactor and join w/ impl in [[Table]] */
-        override fun moveBy(x: Double) {
-            val myIndex    = this@TreeTable.columns.indexOf(this)
-            val header     = this@TreeTable.header.children[myIndex]
-            val translateX = view.transform.translateX
-            val delta      = min(max(x, 0 - (header.x + translateX)), this@TreeTable.width - width - (header.x + translateX))
+        private val index get() = columns.indexOf(this)
 
-            this@TreeTable.header.children[myIndex].transform *= AffineTransform.Identity.translate(delta)
-            view.transform *= AffineTransform.Identity.translate(delta)
+        private var transform get() = view.transform
+            set(new) {
+                this@TreeTable.header.children.getOrNull(index)?.transform = new
+                view.transform = new
+            }
+
+        /** FIXME: Refactor and join w/ impl in [[Table]] and move to Behavior */
+        override fun moveBy(x: Double) {
+            val translateX = transform.translateX
+            val delta      = min(max(x, 0 - (view.x + translateX)), this@TreeTable.width - width - (view.x + translateX))
+
+            transform *= Identity.translate(delta)
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
                 // FIXME: Support fixed columns instead?
-
                 if (column != this && index > 0) {
                     val targetBounds = this@TreeTable.header.children[index].bounds
 
-                    if (index < myIndex && header.x + translateX < targetBounds.x + targetBounds.width / 2) {
-                        this@TreeTable.header.children[index].transform = AffineTransform.Identity.translate(width)
-                        column.view.transform = AffineTransform.Identity.translate(width)
-                    } else if (index > myIndex && header.x + translateX + header.width > targetBounds.x + targetBounds.width / 2) {
-                        this@TreeTable.header.children[index].transform = AffineTransform.Identity.translate(-width)
-                        column.view.transform = AffineTransform.Identity.translate(-width)
-                    } else {
-                        this@TreeTable.header.children[index].transform = AffineTransform.Identity
-                        column.view.transform = AffineTransform.Identity
+                    column.transform = when {
+                        index < this.index && view.x + translateX              < targetBounds.x + targetBounds.width / 2 -> Identity.translate( width)
+                        index > this.index && view.x + translateX + view.width > targetBounds.x + targetBounds.width / 2 -> Identity.translate(-width)
+                        else                                                                                             -> Identity
                     }
                 }
             }
@@ -209,44 +208,43 @@ class TreeTable<T, M: TreeModel<T>>(
 
         override fun resetPosition() {
             var moved      = false
-            val myIndex    = this@TreeTable.columns.indexOf(this)
-            val myOffset   = this@TreeTable.header.children[myIndex].run { x + transform.translateX }
-            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else myIndex
+            val myOffset   = view.x + transform.translateX
+            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
 
             internalColumns.forEachIndexed { index, column ->
-                if (!moved && myOffset < column.view.run { x + transform.translateX }) {
-                    myNewIndex = index - if (myIndex < index) 1 else 0
+                if (!moved && myOffset < column.view.x + column.transform.translateX) {
+                    myNewIndex = index - if (this.index < index) 1 else 0
                     moved = true
                 }
 
-                this@TreeTable.header.children.getOrNull(index)?.transform = AffineTransform.Identity
-                column.view.transform = AffineTransform.Identity
+                column.transform = Identity
             }
 
-            if (myIndex == myNewIndex) {
+            if (index == myNewIndex) {
                 return
             }
 
             this@TreeTable.header.children.batch {
                 if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(myIndex))
+                    add(myNewIndex, removeAt(index))
                 } else {
-                    add(removeAt(myIndex))
+                    add(removeAt(index))
                 }
             }
 
             (panel.content as Box).children.batch {
                 if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(myIndex))
+                    add(myNewIndex, removeAt(index))
                 } else {
-                    add(removeAt(myIndex))
+                    add(removeAt(index))
                 }
             }
 
-            internalColumns.add(myNewIndex, internalColumns.removeAt(myIndex))
+            internalColumns.add(myNewIndex, internalColumns.removeAt(index))
 
             doLayout()
         }
+
         abstract val view: View
 
         abstract fun behavior(behavior: TreeTableBehavior<T>?)
@@ -316,7 +314,8 @@ class TreeTable<T, M: TreeModel<T>>(
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
             init {
-                this@TreeTable.expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                // FIXME: Centralize to avoid calling rowsBelow more than once per changed path
+                expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
                     val added = paths.flatMap { rowsBelow(it) }
 
                     changed.forEach {
@@ -324,7 +323,7 @@ class TreeTable<T, M: TreeModel<T>>(
                     }
                 }
 
-                this@TreeTable.collapsed += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
+                collapsed += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
                     val removed = paths.flatMap {
                         var index = rowFromPath(it)!!
 

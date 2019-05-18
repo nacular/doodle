@@ -50,7 +50,7 @@ open class List<T, out M: ListModel<T>>(
         private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     val numRows get() = model.size
-    val isEmpty get() = model.isEmpty()
+    val isEmpty get() = model.isEmpty
 
     fun contains(value: T) = value in model
 

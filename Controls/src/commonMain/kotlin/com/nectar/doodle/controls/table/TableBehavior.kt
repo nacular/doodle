@@ -5,6 +5,8 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.utils.Cancelable
+import com.nectar.doodle.utils.NoOpCancelable
 import com.nectar.doodle.utils.Path
 
 /**
@@ -39,6 +41,8 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
 
     var headerDirty: (() -> Unit)?
     var bodyDirty  : (() -> Unit)?
+
+    fun moveColumn(block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
 
     fun renderHeader    (table: Table<T, *>,                    canvas: Canvas) {}
     fun renderBody      (table: Table<T, *>,                    canvas: Canvas) {}

@@ -21,6 +21,7 @@ import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.utils.AdaptingObservableSet
+import com.nectar.doodle.utils.Cancelable
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -35,7 +36,8 @@ open class Table<T, M: ListModel<T>>(
                       block         : ColumnBuilder<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnBuilderImpl: ColumnBuilder<T> {
-        override fun <R> column(header       : View?,
+        override fun <R> column(
+                header       : View?,
                 width        : Double?,
                 minWidth     : Double,
                 maxWidth     : Double?,
@@ -69,9 +71,9 @@ open class Table<T, M: ListModel<T>>(
                 field = new
 
                 field?.let {
-                    resizingCol = columns.indexOf(this)
-                    columnSizePolicy.widthChanged(this@Table.width, internalColumns, columns.indexOf(this), it)
-                    this@Table.doLayout()
+                    resizingCol = index
+                    columnSizePolicy.widthChanged(this@Table.width, internalColumns, index, it)
+                    doLayout()
                     resizingCol = null
                 }
             }
@@ -87,28 +89,54 @@ open class Table<T, M: ListModel<T>>(
                 }
             }
 
-        override fun moveBy(x: Double) {
-            val myIndex    = this@Table.columns.indexOf(this)
-            val header     = this@Table.header.children[myIndex]
-            val translateX = view.transform.translateX
-            val delta      = min(max(x, 0 - (header.x + translateX)), this@Table.width - width - (header.x + translateX))
+        private val x get() = view.x
 
-            this@Table.header.children[myIndex].transform *= Identity.translate(delta)
-            view.transform *= Identity.translate(delta)
+        private val index get() = columns.indexOf(this)
+
+        private var transform get() = view.transform
+            set(new) {
+                this@Table.header.children.getOrNull(index)?.transform = new
+                view.transform = new
+            }
+
+        private var animation: Cancelable? = null
+            set(new) {
+                field?.cancel()
+
+                field = new
+            }
+
+        override fun moveBy(x: Double) {
+            val translateX = transform.translateX
+            val delta      = min(max(x, 0 - (view.x + translateX)), this@Table.width - width - (view.x + translateX))
+
+            transform *= Identity.translate(delta)
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
-                val targetBounds = this@Table.header.children[index].bounds
-
                 if (column != this) {
-                    if (index < myIndex && header.x + translateX < targetBounds.x + targetBounds.width / 2) {
-                        this@Table.header.children[index].transform = Identity.translate(width)
-                        column.view.transform = Identity.translate(width)
-                    } else if (index > myIndex && header.x + translateX + header.width > targetBounds.x + targetBounds.width / 2) {
-                        this@Table.header.children[index].transform = Identity.translate(-width)
-                        column.view.transform = Identity.translate(-width)
-                    } else {
-                        this@Table.header.children[index].transform = Identity
-                        column.view.transform = Identity
+                    val targetBounds = this@Table.header.children[index].bounds
+                    val targetMiddle = targetBounds.x + column.transform.translateX + targetBounds.width / 2
+
+                    val value = when (targetMiddle) {
+                        in view.x + translateX + delta            .. view.x + translateX                    ->  width
+                        in view.x + translateX                    .. view.x + translateX + delta            -> -width
+                        in view.bounds.right + translateX         .. view.bounds.right + translateX + delta -> -width
+                        in view.bounds.right + translateX + delta .. view.bounds.right + translateX         ->  width
+                        else                                                                                ->  null
+                    }
+
+                    value?.let {
+                        val oldTransform = column.transform
+                        val minViewX     = if (index > this.index) column.x - width else column.x
+                        val maxViewX     = minViewX + width
+                        val offset       = column.x + column.transform.translateX
+                        val translate    = min(max(value, minViewX - offset), maxViewX - offset)
+
+//                        println("index: $index, min: $minViewX, max: $maxViewX, offset: $offset, translate: $translate")
+
+                        column.animation = behavior?.moveColumn {
+                            column.transform = oldTransform.translate(translate * it)
+                        }
                     }
                 }
             }
@@ -116,41 +144,40 @@ open class Table<T, M: ListModel<T>>(
 
         override fun resetPosition() {
             var moved      = false
-            val myIndex    = this@Table.columns.indexOf(this)
-            val myOffset   = this@Table.header.children[myIndex].run { x + transform.translateX }
-            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else myIndex
+            val myOffset   = view.x + transform.translateX
+            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
 
             internalColumns.forEachIndexed { index, column ->
-                if (!moved && myOffset < column.view.run { x + transform.translateX }) {
-                    myNewIndex = index - if (myIndex < index) 1 else 0
-                    moved = true
+                if (!moved && myOffset < column.view.x + column.transform.translateX) {
+                    myNewIndex = index - if (this.index < index) 1 else 0
+                    moved      = true
                 }
 
-                this@Table.header.children.getOrNull(index)?.transform = Identity
-                column.view.transform = Identity
+                column.animation?.cancel()
+                column.transform = Identity
             }
 
-            if (myIndex == myNewIndex) {
+            if (index == myNewIndex) {
                 return
             }
 
             this@Table.header.children.batch {
                 if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(myIndex))
+                    add(myNewIndex, removeAt(index))
                 } else {
-                    add(removeAt(myIndex))
+                    add(removeAt(index))
                 }
             }
 
             (panel.content as Box).children.batch {
                 if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(myIndex))
+                    add(myNewIndex, removeAt(index))
                 } else {
-                    add(removeAt(myIndex))
+                    add(removeAt(index))
                 }
             }
 
-            internalColumns.add(myNewIndex, internalColumns.removeAt(myIndex))
+            internalColumns.add(myNewIndex, internalColumns.removeAt(index))
 
             doLayout()
         }
@@ -185,9 +212,7 @@ open class Table<T, M: ListModel<T>>(
     }
 
     val numRows get() = model.size
-    val isEmpty get() = model.isEmpty()
-
-    fun contains(value: T) = value in model
+    val isEmpty get() = model.isEmpty
 
     var columnSizePolicy: ColumnSizePolicy<T> = ConstrainedSizePolicy()
         set(new) {
@@ -250,6 +275,8 @@ open class Table<T, M: ListModel<T>>(
     val columns: List<Column<T>> get() = internalColumns.dropLast(1)
 
     val selectionChanged: Pool<SetObserver<Table<T, *>, Int>> = SetPool()
+
+    fun contains(value: T) = value in model
 
     private val internalColumns = mutableListOf<InternalColumn<*>>()
 

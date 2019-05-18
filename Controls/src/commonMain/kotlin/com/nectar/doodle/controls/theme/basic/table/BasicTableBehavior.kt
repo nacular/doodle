@@ -31,7 +31,7 @@ import com.nectar.doodle.utils.SetObserver
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-class BasicTableBehavior<T>(
+open class BasicTableBehavior<T>(
         private val focusManager  : FocusManager?,
         private val rowHeight     : Double = 20.0,
         private val headerColor   : Color? = lightgray,
@@ -42,7 +42,7 @@ class BasicTableBehavior<T>(
     override var headerDirty: (() -> Unit)? = null
     override var bodyDirty  : (() -> Unit)? = null
 
-    private val selectionChanged: SetObserver<Table<T, *>, Int> = { set,_,_ ->
+    private val selectionChanged: SetObserver<Table<T, *>, Int> = { _,_,_ ->
         bodyDirty?.invoke()
     }
 
@@ -73,7 +73,7 @@ class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun invoke(table: Table<T, *>, column: Column<T>) = TableHeaderCell(column, headerColor)
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
