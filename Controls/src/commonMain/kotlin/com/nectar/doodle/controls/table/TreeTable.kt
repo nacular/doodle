@@ -23,6 +23,7 @@ import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.utils.AdaptingObservableSet
+import com.nectar.doodle.utils.Cancelable
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.Pool
@@ -177,36 +178,89 @@ class TreeTable<T, M: TreeModel<T>>(
                 field = new?.let { min(new, minWidth) }
             }
 
-        private val index get() = columns.indexOf(this)
+        private val x get() = view.x
+
+        private var index get() = columns.indexOf(this)
+            set(new) {
+                val index = this.index
+
+                this@TreeTable.header.children.batch {
+                    if (new < size) {
+                        add(new, removeAt(index))
+                    } else {
+                        add(removeAt(index))
+                    }
+                }
+
+                (panel.content as Box).children.batch {
+                    if (new < size) {
+                        add(new, removeAt(index))
+                    } else {
+                        add(removeAt(index))
+                    }
+                }
+
+                internalColumns.add(new, internalColumns.removeAt(index))
+
+                doLayout()
+            }
 
         private var transform get() = view.transform
             set(new) {
                 this@TreeTable.header.children.getOrNull(index)?.transform = new
-                view.transform = new
+                view.transform                                             = new
+            }
+
+        private var zOrder get() = view.zOrder
+            set(new) {
+                this@TreeTable.header.children.getOrNull(index)?.zOrder = new
+                view.zOrder                                             = new
+            }
+
+        private var animation: Cancelable? = null
+            set(new) {
+                field?.cancel()
+                field = new
             }
 
         /** FIXME: Refactor and join w/ impl in [[Table]] and move to Behavior */
         override fun moveBy(x: Double) {
+            zOrder         = 1
             val translateX = transform.translateX
             val delta      = min(max(x, 0 - (view.x + translateX)), this@TreeTable.width - width - (view.x + translateX))
 
             transform *= Identity.translate(delta)
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
-                // FIXME: Support fixed columns instead?
                 if (column != this && index > 0) {
                     val targetBounds = this@TreeTable.header.children[index].bounds
+                    val targetMiddle = targetBounds.x + column.transform.translateX + targetBounds.width / 2
 
-                    column.transform = when {
-                        index < this.index && view.x + translateX              < targetBounds.x + targetBounds.width / 2 -> Identity.translate( width)
-                        index > this.index && view.x + translateX + view.width > targetBounds.x + targetBounds.width / 2 -> Identity.translate(-width)
-                        else                                                                                             -> Identity
+                    val value = when (targetMiddle) {
+                        in view.x + translateX + delta            .. view.x + translateX                    ->  width
+                        in view.x + translateX                    .. view.x + translateX + delta            -> -width
+                        in view.bounds.right + translateX         .. view.bounds.right + translateX + delta -> -width
+                        in view.bounds.right + translateX + delta .. view.bounds.right + translateX         ->  width
+                        else                                                                                ->  null
+                    }
+
+                    value?.let {
+                        val oldTransform = column.transform
+                        val minViewX     = if (index > this.index) column.x - width else column.x
+                        val maxViewX     = minViewX + width
+                        val offset       = column.x + column.transform.translateX
+                        val translate    = min(max(value, minViewX - offset), maxViewX - offset)
+
+                        column.animation = behavior?.moveColumn {
+                            column.transform = oldTransform.translate(translate * it)
+                        }
                     }
                 }
             }
         }
 
         override fun resetPosition() {
+            zOrder         = 0
             var moved      = false
             val myOffset   = view.x + transform.translateX
             var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
@@ -217,6 +271,7 @@ class TreeTable<T, M: TreeModel<T>>(
                     moved = true
                 }
 
+                column.animation?.cancel()
                 column.transform = Identity
             }
 
@@ -224,25 +279,7 @@ class TreeTable<T, M: TreeModel<T>>(
                 return
             }
 
-            this@TreeTable.header.children.batch {
-                if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(index))
-                } else {
-                    add(removeAt(index))
-                }
-            }
-
-            (panel.content as Box).children.batch {
-                if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(index))
-                } else {
-                    add(removeAt(index))
-                }
-            }
-
-            internalColumns.add(myNewIndex, internalColumns.removeAt(index))
-
-            doLayout()
+            index = myNewIndex
         }
 
         abstract val view: View

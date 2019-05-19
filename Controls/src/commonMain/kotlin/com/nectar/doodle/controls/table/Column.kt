@@ -8,7 +8,6 @@ interface Column<T> {
     val minWidth      : Double
     val maxWidth      : Double?
     var preferredWidth: Double?
-//        val comparator  : Comparator<T>?
 
     fun moveBy(x: Double)
     fun resetPosition()

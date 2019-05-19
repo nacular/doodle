@@ -39,8 +39,8 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     val headerPositioner   : HeaderPositioner<T>
     val headerCellGenerator: HeaderCellGenerator<T>
 
-    var headerDirty: (() -> Unit)?
     var bodyDirty  : (() -> Unit)?
+    var headerDirty: (() -> Unit)?
 
     fun moveColumn(block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
 
@@ -81,6 +81,8 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
 
     var headerDirty: (() -> Unit)?
     var bodyDirty  : (() -> Unit)?
+
+    fun moveColumn(block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
 
     fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {}
     fun renderBody  (table: TreeTable<T, *>, canvas: Canvas) {}

@@ -57,7 +57,7 @@ fun <T, R> Selectable<T>.map(mapper: (R) -> T, unmapper: (T) -> R) = object: Sel
     override val selectionAnchor: R?     get() = this@map.selectionAnchor?.let(unmapper)
 }
 
-class BasicTreeTableBehavior<T>(
+open class BasicTreeTableBehavior<T>(
         private val focusManager  : FocusManager?,
         private val rowHeight     : Double = 20.0,
         private val headerColor   : Color? = lightgray,

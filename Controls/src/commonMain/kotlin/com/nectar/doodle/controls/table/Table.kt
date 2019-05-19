@@ -91,22 +91,51 @@ open class Table<T, M: ListModel<T>>(
 
         private val x get() = view.x
 
-        private val index get() = columns.indexOf(this)
+        private var index get() = columns.indexOf(this)
+            set(new) {
+                val index = this.index
+
+                this@Table.header.children.batch {
+                    if (new < size) {
+                        add(new, removeAt(index))
+                    } else {
+                        add(removeAt(index))
+                    }
+                }
+
+                (panel.content as Box).children.batch {
+                    if (new < size) {
+                        add(new, removeAt(index))
+                    } else {
+                        add(removeAt(index))
+                    }
+                }
+
+                internalColumns.add(new, internalColumns.removeAt(index))
+
+                doLayout()
+            }
 
         private var transform get() = view.transform
             set(new) {
                 this@Table.header.children.getOrNull(index)?.transform = new
-                view.transform = new
+                view.transform                                         = new
+            }
+
+        private var zOrder get() = view.zOrder
+            set(new) {
+                this@Table.header.children.getOrNull(index)?.zOrder = new
+                view.zOrder                                             = new
             }
 
         private var animation: Cancelable? = null
             set(new) {
                 field?.cancel()
-
                 field = new
             }
 
         override fun moveBy(x: Double) {
+            zOrder         = 1
             val translateX = transform.translateX
             val delta      = min(max(x, 0 - (view.x + translateX)), this@Table.width - width - (view.x + translateX))
 
@@ -132,8 +161,6 @@ open class Table<T, M: ListModel<T>>(
                         val offset       = column.x + column.transform.translateX
                         val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
-//                        println("index: $index, min: $minViewX, max: $maxViewX, offset: $offset, translate: $translate")
-
                         column.animation = behavior?.moveColumn {
                             column.transform = oldTransform.translate(translate * it)
                         }
@@ -143,6 +170,7 @@ open class Table<T, M: ListModel<T>>(
         }
 
         override fun resetPosition() {
+            zOrder         = 0
             var moved      = false
             val myOffset   = view.x + transform.translateX
             var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
@@ -161,25 +189,7 @@ open class Table<T, M: ListModel<T>>(
                 return
             }
 
-            this@Table.header.children.batch {
-                if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(index))
-                } else {
-                    add(removeAt(index))
-                }
-            }
-
-            (panel.content as Box).children.batch {
-                if (myNewIndex < size) {
-                    add(myNewIndex, removeAt(index))
-                } else {
-                    add(removeAt(index))
-                }
-            }
-
-            internalColumns.add(myNewIndex, internalColumns.removeAt(index))
-
-            doLayout()
+            index = myNewIndex
         }
 
         val view = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator).apply {

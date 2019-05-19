@@ -39,8 +39,8 @@ open class BasicTableBehavior<T>(
                     oddRowColor   : Color? = lightgray.lighter().lighter(),
         private val selectionColor: Color? = green.lighter()): TableBehavior<T>, KeyListener, SelectableListKeyHandler {
 
-    override var headerDirty: (() -> Unit)? = null
     override var bodyDirty  : (() -> Unit)? = null
+    override var headerDirty: (() -> Unit)? = null
 
     private val selectionChanged: SetObserver<Table<T, *>, Int> = { _,_,_ ->
         bodyDirty?.invoke()
