@@ -19,10 +19,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.scheduler.Strand
-import com.nectar.doodle.utils.AdaptingObservableSet
 import com.nectar.doodle.utils.Cancelable
-import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
@@ -30,7 +27,6 @@ import kotlin.math.max
 import kotlin.math.min
 
 open class Table<T, M: ListModel<T>>(
-        private   val strand        : Strand,
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
                       block         : ColumnBuilder<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
@@ -192,7 +188,7 @@ open class Table<T, M: ListModel<T>>(
             index = myNewIndex
         }
 
-        val view = com.nectar.doodle.controls.list.List(strand, FieldModel(model, extractor), itemGenerator).apply {
+        val view = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), itemGenerator, selectionModel).apply {
             acceptsThemes = false
         }
 
@@ -363,11 +359,9 @@ open class Table<T, M: ListModel<T>>(
         }
     })
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
-        val adaptingSet: ObservableSet<Table<T, *>, Int> = AdaptingObservableSet(this, set)
-
+    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(adaptingSet, removed, added)
+            it(this, removed, added)
         }
     }
 
@@ -407,9 +401,8 @@ open class Table<T, M: ListModel<T>>(
 
     companion object {
         operator fun <T> invoke(
-                       strand        : Strand,
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
-                       block         : ColumnBuilder<T>.() -> Unit): Table<T, ListModel<T>> = Table(strand, SimpleListModel(values), selectionModel, block)
+                       block         : ColumnBuilder<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, block)
     }
 }

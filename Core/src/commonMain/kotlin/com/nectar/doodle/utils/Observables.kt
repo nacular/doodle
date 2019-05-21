@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty
  */
 
 
-typealias SetObserver     <S, T> = (source: ObservableSet <S, T>, removed: Set<T>,      added: Set<T>                                    ) -> Unit
+typealias SetObserver     <S, T> = (source: S, removed: Set<T>,      added: Set<T>                                    ) -> Unit
 typealias ListObserver    <S, T> = (source: ObservableList<S, T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 typealias ChangeObserver  <S>    = (source: S                                                                                            ) -> Unit
 typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                            ) -> Unit
@@ -187,12 +187,12 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
 
     override fun add(element: E) = set.add(element).ifTrue {
         changed_.forEach {
-            it(this, emptySet(), setOf(element))
+            it(this.source, emptySet(), setOf(element))
         }
     }
 
     override fun remove(element: E): Boolean {
-        return set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
+        return set.remove(element).ifTrue { changed_.forEach { it(this.source, setOf(element), emptySet()) } }
     }
 
     override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
@@ -212,7 +212,7 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
             set.run(block).also {
                 if (old != this) {
                     changed_.forEach {
-                        it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
+                        it(this.source, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
                     }
                 }
             }
@@ -225,7 +225,7 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
         set.clear()
 
         changed_.forEach {
-            it(this, oldSet, emptySet())
+            it(this.source, oldSet, emptySet())
         }
     }
 }

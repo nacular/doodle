@@ -14,8 +14,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.utils.AdaptingObservableSet
-import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -128,7 +126,7 @@ open class Tree<T, out M: TreeModel<T>>(
     protected var lastVisibleRow  = -1
 
     @Suppress("PrivatePropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { added ->
                 positioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
@@ -137,10 +135,8 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-        val adaptingSet: ObservableSet<Tree<T, *>, Path<Int>> = AdaptingObservableSet(this, set)
-
         (selectionChanged as SetPool).forEach {
-            it(adaptingSet, removed, added)
+            it(this, removed, added)
         }
 
         children.batch {

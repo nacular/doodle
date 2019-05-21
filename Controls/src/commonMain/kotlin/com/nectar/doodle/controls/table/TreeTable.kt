@@ -21,10 +21,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.scheduler.Strand
-import com.nectar.doodle.utils.AdaptingObservableSet
 import com.nectar.doodle.utils.Cancelable
-import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -60,6 +57,8 @@ fun <T, R> Iterator<T>.map(mapper: (T) -> R) = object: Iterator<R> {
     override fun next() = mapper(this@map.next())
 }
 
+fun <T, R: Any> Iterator<T>.mapNotNull(mapper: (T) -> R?) = this.asSequence().mapNotNull(mapper).iterator()
+
 fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
     override fun get(path: Path<Int>): R? = this@map[path]?.let(mapper)
 
@@ -76,8 +75,51 @@ fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
     override fun indexOfChild(parent: Path<Int>, child: R) = children(parent).asSequence().indexOf(child)
 }
 
+fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T?) = object: SelectionModel<R> {
+    val self: SelectionModel<R> = this
+
+    override val first   get() = this@map.first?.let(mapper)
+    override val last    get() = this@map.last?.let(mapper)
+    override val anchor  get() = this@map.anchor?.let(mapper)
+    override val size    get() = this@map.size
+    override val isEmpty get() = this@map.isEmpty
+
+    override fun add(item: R) = /*unmapper(item)?.let { this@map.add(it) } ?:*/ false
+
+    override fun clear() {} //= this@map.clear()
+
+    override fun addAll(items: Collection<R>) = /*this@map.addAll(items.mapNotNull(unmapper))*/ false
+
+    override fun remove(item: R) = /*unmapper(item)?.let { this@map.remove(it) } ?:*/ false
+
+    override fun contains(item: R) = unmapper(item) in this@map
+
+    override fun removeAll(items: Collection<R>) = /*this@map.removeAll(items.mapNotNull(unmapper))*/ false
+
+    override fun retainAll(items: Collection<R>) = /*this@map.retainAll(items.mapNotNull(unmapper))*/ false
+
+    override fun replaceAll(items: Collection<R>) = /*this@map.replaceAll(items.mapNotNull(unmapper))*/ false
+
+    override fun containsAll(items: Collection<R>) = this@map.containsAll(items.mapNotNull(unmapper))
+
+    override fun toggle(items: Collection<R>) = /*this@map.toggle(items.mapNotNull(unmapper))*/ false
+
+    override fun iterator() = this@map.iterator().mapNotNull(mapper)
+
+    // FIXME: This is pretty inefficient
+    override val changed: Pool<SetObserver<SelectionModel<R>, R>> = SetPool()
+
+    init {
+        this@map.changed += { _, removed, added ->
+            // FIXME: This isn't correct since the underlying set isn't used when notifying listeners
+            (changed as SetPool).forEach {
+                it(this, removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
+            }
+        }
+    }
+}
+
 class TreeTable<T, M: TreeModel<T>>(
-        private   val strand        : Strand,
                       model         : M,
         protected val selectionModel: SelectionModel<Path<Int>>? = null,
                       block         : ColumnBuilder<T>.() -> Unit): View(), TreeLike {
@@ -409,7 +451,7 @@ class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(strand, FieldModel(model, extractor), itemGenerator, cacheLength = 0).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), itemGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
             acceptsThemes = false
         }
 
@@ -585,11 +627,9 @@ class TreeTable<T, M: TreeModel<T>>(
     }
 
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
-        val adaptingSet: ObservableSet<TreeTable<T, *>, Path<Int>> = AdaptingObservableSet(this, set)
-
+    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(adaptingSet, removed, added)
+            it(this, removed, added)
         }
     }
 

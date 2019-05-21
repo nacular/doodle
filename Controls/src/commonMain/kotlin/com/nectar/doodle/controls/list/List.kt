@@ -13,10 +13,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.scheduler.Strand
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.utils.AdaptingObservableSet
-import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
@@ -42,7 +39,6 @@ interface ListBehavior<T>: Behavior<List<T, *>> {
 }
 
 open class List<T, out M: ListModel<T>>(
-        private        val strand        : Strand,
         protected open val model         : M,
                        val itemGenerator : ItemGenerator<T>?    = null,
         protected      val selectionModel: SelectionModel<Int>? = null,
@@ -57,7 +53,7 @@ open class List<T, out M: ListModel<T>>(
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
 
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
+    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { added ->
                 rowPositioner?.invoke(this, this[added]!!, added)?.let {
@@ -66,10 +62,8 @@ open class List<T, out M: ListModel<T>>(
             }
         }
 
-        val adaptingSet: ObservableSet<List<T, *>, Int> = AdaptingObservableSet(this, set)
-
         (selectionChanged as SetPool).forEach {
-            it(adaptingSet, removed, added)
+            it(this, removed, added)
         }
 
         children.batch {
@@ -165,12 +159,10 @@ open class List<T, out M: ListModel<T>>(
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
             model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
 
-            var jobs = emptySequence<() -> Unit>()
-
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
 
-                jobs += (firstVisibleRow until end).asSequence().map { { insert(children, it) } }
+                (firstVisibleRow until end).asSequence().forEach { insert(children, it) }
             }
 
             if (oldLast < lastVisibleRow) {
@@ -179,13 +171,8 @@ open class List<T, out M: ListModel<T>>(
                     else                      -> firstVisibleRow
                 }
 
-                jobs += (start..lastVisibleRow).asSequence().map { { insert(children, it) } }
+                (start..lastVisibleRow).asSequence().forEach { insert(children, it) }
             }
-
-            // TODO: Is there a better way to avoid laying out when only a scroll happens?
-            strand(jobs.ifEmpty {
-                (firstVisibleRow..lastVisibleRow).asSequence().mapNotNull { index -> model[index]?.let { item -> { layout(children[index % children.size], item, index) } } }
-            })
         }
     }
 
@@ -234,22 +221,20 @@ open class List<T, out M: ListModel<T>>(
 
     companion object {
         operator fun invoke(
-                strand        : Strand,
                 progression   : IntProgression,
                 itemGenerator : ItemGenerator<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
-                List<Int, ListModel<Int>>(strand, IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
+                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
 
         operator fun <T> invoke(
-                strand        : Strand,
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemGenerator<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10): List<T, ListModel<T>> =
-                List<T, ListModel<T>>(strand, SimpleListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
+                List<T, ListModel<T>>(SimpleListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
     }
 }
 
