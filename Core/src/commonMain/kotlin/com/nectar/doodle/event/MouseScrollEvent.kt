@@ -7,6 +7,7 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier
 
 class MouseScrollEvent(
         source: View,
+        val target: View,
         val location: Point,
         val xRotation: Double,
         val yRotation: Double,

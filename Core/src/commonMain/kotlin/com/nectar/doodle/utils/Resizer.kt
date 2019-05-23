@@ -47,19 +47,17 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
     override fun mousePressed(event: MouseEvent) {
         dragMode.clear()
 
-        view.let {
-            initialPosition = event.location
-            initialSize     = it.size
+        initialPosition = view.toLocal(event.location, event.target)
+        initialSize     = view.size
 
-            when {
-                initialPosition.y <= hotspotSize             -> dragMode.plusAssign(North)
-                initialPosition.y >= it.height - hotspotSize -> dragMode.plusAssign(South)
-            }
+        when {
+            initialPosition.y <= hotspotSize               -> dragMode.plusAssign(North)
+            initialPosition.y >= view.height - hotspotSize -> dragMode.plusAssign(South)
+        }
 
-            when {
-                initialPosition.x >= it.width - hotspotSize -> dragMode.plusAssign(East)
-                initialPosition.x <= hotspotSize            -> dragMode.plusAssign(West)
-            }
+        when {
+            initialPosition.x >= view.width - hotspotSize -> dragMode.plusAssign(East)
+            initialPosition.x <= hotspotSize              -> dragMode.plusAssign(West)
         }
     }
 
@@ -78,7 +76,7 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
     }
 
     override fun mouseDragged(event: MouseEvent) {
-        val delta = event.location - initialPosition
+        val delta = view.toLocal(event.location, event.target) - initialPosition
 
         if (dragMode.isEmpty() && movable) {
             view.position += delta
@@ -111,16 +109,17 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
         }
     }
 
-    private fun updateCursor(mouseEvent: MouseEvent) {
+    private fun updateCursor(event: MouseEvent) {
         if (dragMode.isNotEmpty()) {
             return
         }
 
-        val x      = mouseEvent.location.x
-        val y      = mouseEvent.location.y
-        val mask   = mutableSetOf<Direction>()
-        var innerX = false
-        var innerY = false
+        val location = view.toLocal(event.location, event.target)
+        val x        = location.x
+        val y        = location.y
+        val mask     = mutableSetOf<Direction>()
+        var innerX   = false
+        var innerY   = false
 
         if (x <= hotspotSize) {
             if (West in directions) {

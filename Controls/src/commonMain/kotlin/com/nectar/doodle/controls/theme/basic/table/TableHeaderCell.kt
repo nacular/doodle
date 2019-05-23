@@ -51,8 +51,8 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
 
         fun overHandle(mouseLocation: Point) = mouseLocation.x in width - 5.0..width
 
-        fun updateCursor(mouseLocation: Point) {
-            if (overHandle(mouseLocation)) {
+        fun updateCursor(event: MouseEvent) {
+            if (overHandle(toLocal(event.location, event.target))) {
                 cursor = newCursor()
             } else {
                 cursor = null
@@ -62,15 +62,15 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         mouseChanged += object: MouseListener {
             override fun mouseEntered(event: MouseEvent) {
                 if (!mouseDown) {
-                    updateCursor(event.location)
+                    updateCursor(event)
                 }
             }
 
             override fun mousePressed(event: MouseEvent) {
                 mouseDown       = true
-                initialPosition = event.location
+                initialPosition = toLocal(event.location, event.target)
 
-                if (overHandle(event.location)) {
+                if (overHandle(initialPosition!!)) {
                     resizing     = true
                     initialWidth = column.width
                 } else {
@@ -82,7 +82,7 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
                 mouseDown       = false
                 initialPosition = null
 
-                updateCursor(event.location)
+                updateCursor(event)
 
                 backgroundColor = null
 
@@ -96,12 +96,12 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
 
         mouseMotionChanged += object : MouseMotionListener {
             override fun mouseMoved(event: MouseEvent) {
-                updateCursor(event.location)
+                updateCursor(event)
             }
 
             override fun mouseDragged(event: MouseEvent) {
                 initialPosition?.let {
-                    val delta = (event.location - it).x
+                    val delta = (toLocal(event.location, event.target) - it).x
 
                     if (resizing) {
                         cursor = newCursor()
@@ -110,6 +110,8 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
                     } else {
                         column.moveBy(delta)
                     }
+
+                    event.consume()
                 }
             }
         }

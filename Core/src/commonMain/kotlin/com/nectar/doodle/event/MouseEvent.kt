@@ -9,6 +9,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Type
 
 class MouseEvent(
         source        : View,
+        val target    : View,
         val type      : Type,
         val location  : Point,
         val buttons   : Set<Button>,
@@ -17,11 +18,14 @@ class MouseEvent(
 
     constructor(
             source    : View,
+            target    : View,
             type      : Type,
             location  : Point,
             button    : Button,
             clickCount: Int,
-            modifiers : Set<Modifier>): this(source, type, location, setOf(button), clickCount, modifiers)
+            modifiers : Set<Modifier>): this(source, target, type, location, setOf(button), clickCount, modifiers)
+
+    fun with(source: View) = MouseEvent(source, target, type, location, buttons, clickCount, modifiers)
 
     override fun toString() = "${this::class.simpleName} -> ${source::class.simpleName}: $type $location $buttons"
 

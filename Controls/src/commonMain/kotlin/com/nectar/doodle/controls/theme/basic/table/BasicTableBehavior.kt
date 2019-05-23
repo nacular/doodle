@@ -26,23 +26,29 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
 open class BasicTableBehavior<T>(
-        private val focusManager  : FocusManager?,
-        private val rowHeight     : Double = 20.0,
-        private val headerColor   : Color? = lightgray,
-                    evenRowColor  : Color? = white,
-                    oddRowColor   : Color? = lightgray.lighter().lighter(),
-        private val selectionColor: Color? = green.lighter()): TableBehavior<T>, KeyListener, SelectableListKeyHandler {
+        private val focusManager         : FocusManager?,
+        private val rowHeight            : Double = 20.0,
+        private val headerColor          : Color? = lightgray,
+                    evenRowColor         : Color? = white,
+                    oddRowColor          : Color? = lightgray.lighter().lighter(),
+        private val selectionColor       : Color? = green.lighter(),
+        private val blurredSelectionColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
 
     override var bodyDirty  : (() -> Unit)? = null
     override var headerDirty: (() -> Unit)? = null
 
     private val selectionChanged: SetObserver<Table<T, *>, Int> = { _,_,_ ->
+        bodyDirty?.invoke()
+    }
+
+    private val focusChanged: PropertyObserver<View, Boolean> = { _,_,_ ->
         bodyDirty?.invoke()
     }
 
@@ -52,11 +58,11 @@ open class BasicTableBehavior<T>(
         override fun <A> invoke(table: Table<T, *>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
             else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null).apply {
-                mouseChanged += object: MouseListener {
-                    override fun mouseReleased(event: MouseEvent) {
-                        focusManager?.requestFocus(table)
-                    }
-                }
+//                mouseChanged += object: MouseListener {
+//                    override fun mousePressed(event: MouseEvent) {
+//                        focusManager?.requestFocus(table)
+//                    }
+//                }
             }
         }
     }
@@ -73,7 +79,14 @@ open class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
+//            // FIXME: Remove once better mouse bubbling is in place
+//            mouseChanged += object: MouseListener {
+//                override fun mousePressed(event: MouseEvent) {
+//                    focusManager?.requestFocus(table)
+//                }
+//            }
+        }
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
@@ -83,10 +96,12 @@ open class BasicTableBehavior<T>(
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
         canvas.rect(Rectangle(size = canvas.size), canvasBrush)
 
-        if (selectionColor != null) {
+        val color = if (table.hasFocus) selectionColor else blurredSelectionColor
+
+        if (color != null) {
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, row, index), ColorBrush(selectionColor))
+                    canvas.rect(rowPositioner(table, row, index), ColorBrush(color))
                 }
             }
         }
@@ -95,12 +110,20 @@ open class BasicTableBehavior<T>(
     // FIXME: Centralize
     override fun install(view: Table<T, *>) {
         view.keyChanged       += this
+        view.mouseChanged     += this
+        view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
     }
 
     override fun uninstall(view: Table<T, *>) {
         view.keyChanged       -= this
+        view.mouseChanged     -= this
+        view.focusChanged     -= focusChanged
         view.selectionChanged -= selectionChanged
+    }
+
+    override fun mousePressed(event: MouseEvent) {
+        focusManager?.requestFocus(event.source)
     }
 
     override fun keyPressed(event: KeyEvent) {

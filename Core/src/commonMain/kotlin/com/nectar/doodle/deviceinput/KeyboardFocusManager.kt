@@ -94,17 +94,17 @@ class KeyboardFocusManagerImpl(
             focusManager.moveFocusDownward(view)
             keyEvent.consume()
         } else {
-            var g: View? = view
+//            var g: View? = view
 
-            while (g != null) {
-                if (g.monitorsKeyboard) {
-                    g.handleKeyEvent_(keyEvent)
+//            while (g != null) {
+//                if (g.monitorsKeyboard) {
+                    view.handleKeyEvent_(keyEvent)
                     keyEvent.consume()
-                    break
-                } else {
-                    g = g.parent
-                }
-            }
+//                    break
+//                } else {
+//                    g = g.parent
+//                }
+//            }
         }
     }
 

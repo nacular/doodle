@@ -38,7 +38,6 @@ import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
-import com.nectar.doodle.utils.OverridableProperty
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
@@ -50,8 +49,6 @@ import kotlin.reflect.KProperty
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
 
 private typealias ZOrderObservers = PropertyObservers<View, Int>
-
-typealias ZOrderObserver = (source: View, old: Int, new: Int) -> Unit
 
 /**
  * The smallest unit of displayable, interactive content within the framework.
@@ -112,37 +109,17 @@ abstract class View protected constructor() {
     /** The current text to display for tool-tips. */
     var toolTipText = ""
 
+    val mouseFilter  by lazy { SetPool<MouseListener>() }
     val mouseChanged by lazy { SetPool<MouseListener>() }
-
-    var monitorsMouse by object: OverridableProperty<Boolean>(true, { _,_,_ ->
-
-    }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseChanged.isNotEmpty()
-    }
 
     val keyChanged by lazy { SetPool<KeyListener>() }
 
-    var monitorsKeyboard by object: OverridableProperty<Boolean>(true, { _,_,_ ->
 
-    }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && keyChanged.isNotEmpty()
-    }
-
+    val mouseMotionFilter  by lazy { SetPool<MouseMotionListener>() }
     val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
-
-    var monitorsMouseMotion by object: OverridableProperty<Boolean>(true, { _,_,_ ->
-
-    }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseMotionChanged.isNotEmpty()
-    }
 
     val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
 
-    var monitorsMouseScroll by object: OverridableProperty<Boolean>(true, { _,_,_ ->
-
-    }) {
-        override fun getValue(thisRef: Any?, property: KProperty<*>) = super.getValue(thisRef, property) && mouseScrollChanged.isNotEmpty()
-    }
 
     val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
@@ -462,14 +439,18 @@ abstract class View protected constructor() {
     }
 
     fun toLocal(point: Point, from: View): Point {
+        if (from === this) {
+            return point
+        }
+
         val source      = from.toAbsolute(point )
         val destination = this.toAbsolute(Origin)
 
         return source - destination
     }
 
-    fun toAbsolute  (point: Point) = modifyHierarchically(point) { p, view -> p + view.position }
-    fun fromAbsolute(point: Point) = modifyHierarchically(point) { p, view -> p - view.position }
+    fun toAbsolute  (point: Point): Point = (parent?.toAbsolute  (point) ?: point).let { transform.inverse?.invoke(it) ?: it } + position
+    fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: point).let { transform.inverse?.invoke(it) ?: it } - position
 
     internal fun handleDisplayRectEvent_(old: Rectangle, new: Rectangle) = handleDisplayRectEvent(old, new)
 
@@ -497,6 +478,23 @@ abstract class View protected constructor() {
         }
     }
 
+    internal fun filterMouseEvent_(event: MouseEvent) = filterMouseEvent(event)
+
+    /**
+     * This is an event invoked on a [View] during the filter phase of a mouse event.
+     *
+     * @param event The event
+     */
+    protected open fun filterMouseEvent(event: MouseEvent) = mouseFilter.forEach {
+        when(event.type) {
+            Up    -> it.mouseReleased(event)
+            Down  -> it.mousePressed (event)
+            Exit  -> it.mouseExited  (event)
+            Enter -> it.mouseEntered (event)
+            else  -> return
+        }
+    }
+
     internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
 
     /**
@@ -511,6 +509,21 @@ abstract class View protected constructor() {
             Exit  -> it.mouseExited  (event)
             Enter -> it.mouseEntered (event)
             else  -> return
+        }
+    }
+
+    internal fun filterMouseMotionEvent_(event: MouseEvent) = filterMouseMotionEvent(event)
+
+    /**
+     * This is an event invoked on a [View] during the filter phase of a mouse-motion event.
+     *
+     * @param event The event
+     */
+    protected open fun filterMouseMotionEvent(event: MouseEvent) = mouseMotionFilter.forEach {
+        when(event.type) {
+            Move -> it.mouseMoved  (event)
+            Drag -> it.mouseDragged(event)
+            else -> return
         }
     }
 
@@ -596,18 +609,6 @@ abstract class View protected constructor() {
      */
     private fun setBounds(x: Double, y: Double, width: Double, height: Double) {
         bounds = Rectangle(x, y, width, height)
-    }
-
-    private fun modifyHierarchically(point: Point, operation: (Point, View) -> Point): Point {
-        var view   = this as View?
-        var result = point
-
-        while (view != null) {
-            result = operation(result, view)
-            view  = view.parent
-        }
-
-        return result
     }
 
 //    operator fun plus (listener: MouseWheelListener ): View = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }

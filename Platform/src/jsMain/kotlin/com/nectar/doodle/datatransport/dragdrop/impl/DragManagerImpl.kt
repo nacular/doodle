@@ -117,6 +117,7 @@ internal class DragManagerImpl(
 
     private fun mouseEvent(event: SystemMouseEvent, view: View) = MouseEvent(
             view,
+            view,
             event.type,
             event.location - view.toAbsolute(Origin),
             event.buttons,
