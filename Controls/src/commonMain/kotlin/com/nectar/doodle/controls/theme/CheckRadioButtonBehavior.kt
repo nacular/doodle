@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -19,11 +20,15 @@ import kotlin.math.max
 open class CheckRadioButtonBehavior protected constructor(
         private val textMetrics: TextMetrics,
         private val icon       : Icon<Button>,
-        private val spacing    : Double = 2.0): AbstractTextButtonBehavior(textMetrics) {
+        private val spacing    : Double = 2.0): AbstractTextButtonBehavior<ToggleButton>(textMetrics) {
 
     protected val insets = Insets()
 
-    override fun render(view: Button, canvas: Canvas) {
+    private val selectionChanged: (ToggleButton, Boolean, Boolean) -> Unit = { button,_,_ ->
+        button.rerender()
+    }
+
+    override fun render(view: ToggleButton, canvas: Canvas) {
         val icon      = icon(view)
         val textColor = if (view.enabled) black else Color(0xccccccu)
 
@@ -32,7 +37,7 @@ open class CheckRadioButtonBehavior protected constructor(
         icon?.render(view, canvas, iconPosition(view, this.icon))
     }
 
-    override fun install(view: Button) {
+    override fun install(view: ToggleButton) {
         super.install(view)
 
         val textSize   = textMetrics.size(view.text, font(view))
@@ -44,9 +49,17 @@ open class CheckRadioButtonBehavior protected constructor(
         view.iconTextSpacing     = spacing
         view.horizontalAlignment = Left
 
+        view.selectedChanged += selectionChanged
+
         Size(idealWidth, max(icon.height, if (!textSize.empty) textSize.height else 0.0)).let {
             view.idealSize = it
             view.size      = it
         }
+    }
+
+    override fun uninstall(view: ToggleButton) {
+        super.uninstall(view)
+
+        view.selectedChanged -= selectionChanged
     }
 }

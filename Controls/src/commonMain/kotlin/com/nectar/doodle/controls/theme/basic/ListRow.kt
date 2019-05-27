@@ -41,6 +41,10 @@ class ListRow<T>(private var list          : Selectable<Int>,
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
+            if (field == new) {
+                return
+            }
+
             field = new
 
             layout = constrain(children[0]) {

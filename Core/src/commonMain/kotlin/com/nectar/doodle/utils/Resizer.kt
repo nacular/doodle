@@ -25,7 +25,8 @@ import kotlin.math.max
 class Resizer(private val view: View): MouseListener, MouseMotionListener {
 
     init {
-        view.let { it.mouseChanged += this; it.mouseMotionChanged += this }
+        view.mouseChanged       += this
+        view.mouseMotionChanged += this
     }
 
     var movable     = true

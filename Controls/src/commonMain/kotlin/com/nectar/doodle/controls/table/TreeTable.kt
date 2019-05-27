@@ -19,6 +19,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.utils.Cancelable
@@ -76,8 +77,6 @@ fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
 }
 
 fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T?) = object: SelectionModel<R> {
-    val self: SelectionModel<R> = this
-
     override val first   get() = this@map.first?.let(mapper)
     override val last    get() = this@map.last?.let(mapper)
     override val anchor  get() = this@map.anchor?.let(mapper)
@@ -122,7 +121,7 @@ fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T
 class TreeTable<T, M: TreeModel<T>>(
                       model         : M,
         protected val selectionModel: SelectionModel<Path<Int>>? = null,
-                      block         : ColumnBuilder<T>.() -> Unit): View(), TreeLike {
+                      block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
     override val rootVisible get() = tree.rootVisible
 
     override fun visible(row : Int      ) = tree.visible(row )
@@ -132,6 +131,9 @@ class TreeTable<T, M: TreeModel<T>>(
     override fun expanded(path: Path<Int>) = tree.expanded(path)
     override fun collapse(path: Path<Int>) = tree.collapse(path)
     override fun expand  (path: Path<Int>) = tree.expand  (path)
+
+    override fun expandAll  () = tree.expandAll()
+    override fun collapseAll() = tree.collapseAll()
 
     override fun selectAll      (                      ) = tree.selectAll      (      )
     override fun selected       (item  : Path<Int>     ) = tree.selected       (item  )
@@ -157,16 +159,19 @@ class TreeTable<T, M: TreeModel<T>>(
         operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
     }
 
-    private inner class ColumnBuilderImpl: ColumnBuilder<T> {
-        override fun <R> column(header       : View?,
-                width        : Double?,
-                minWidth     : Double,
-                maxWidth     : Double?,
-                itemGenerator: ItemGenerator<R>,
-                extractor    : (T) -> R
-        ): Column<T> {
+    private inner class ColumnFactoryImpl: ColumnFactory<T> {
+        override fun <R> column(
+                header        : View?,
+                headerPosition: (Constraints.() -> Unit)?,
+                width         : Double?,
+                minWidth      : Double,
+                maxWidth      : Double?,
+                cellGenerator : ItemGenerator<R>,
+                cellPosition  : (Constraints.() -> Unit)?,
+                extractor     : (T) -> R
+        ): Column<R> {
             return if (!::tree.isInitialized) {
-                InternalTreeColumn(header, itemGenerator, width, minWidth, maxWidth, extractor).also {
+                InternalTreeColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also {
                     internalColumns += it
                     tree = it.view.apply {
                         expanded += { _: Tree<*, *>, paths: Set<Path<Int>> ->
@@ -179,17 +184,19 @@ class TreeTable<T, M: TreeModel<T>>(
                     }
                 }
             } else {
-                InternalListColumn(header, itemGenerator, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+                InternalListColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also { internalColumns += it }
             }
         }
     }
 
     private abstract inner class InternalColumn<R>(
-            override val header         : View?,
-                     val itemGenerator  : ItemGenerator<R>,
-                         preferredWidth : Double? = null,
-                         minWidth       : Double  = 0.0,
-                         maxWidth       : Double? = null): Column<T>, ColumnSizePolicy.Column {
+            override val header        : View?,
+            override val headerPosition: (Constraints.() -> Unit)? = null,
+                     val cellGenerator : ItemGenerator<R>,
+            override val cellPosition  : (Constraints.() -> Unit)? = null,
+                         preferredWidth: Double? = null,
+                         minWidth      : Double  = 0.0,
+                         maxWidth      : Double? = null): Column<R>, ColumnSizePolicy.Column {
 
         override var preferredWidth = preferredWidth
             set(new) {
@@ -271,7 +278,13 @@ class TreeTable<T, M: TreeModel<T>>(
             val translateX = transform.translateX
             val delta      = min(max(x, 0 - (view.x + translateX)), this@TreeTable.width - width - (view.x + translateX))
 
+            if (translateX == 0.0) {
+                behavior?.columnMoveStart(this@TreeTable, this)
+            }
+
             transform *= Identity.translate(delta)
+
+            behavior?.columnMoved(this@TreeTable, this)
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
                 if (column != this && index > 0) {
@@ -293,7 +306,7 @@ class TreeTable<T, M: TreeModel<T>>(
                         val offset       = column.x + column.transform.translateX
                         val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
-                        column.animation = behavior?.moveColumn {
+                        column.animation = behavior?.moveColumn(this@TreeTable) {
                             column.transform = oldTransform.translate(translate * it)
                         }
                     }
@@ -302,6 +315,8 @@ class TreeTable<T, M: TreeModel<T>>(
         }
 
         override fun resetPosition() {
+            behavior?.columnMoveEnd(this@TreeTable, this)
+
             zOrder         = 0
             var moved      = false
             val myOffset   = view.x + transform.translateX
@@ -331,13 +346,15 @@ class TreeTable<T, M: TreeModel<T>>(
 
     private inner class InternalTreeColumn<R>(
             header        : View?,
-            itemGenerator : ItemGenerator<R>,
+            headerPosition: (Constraints.() -> Unit)?,
+            cellGenerator : ItemGenerator<R>,
+            cellPosition  : (Constraints.() -> Unit)?,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : T.() -> R): InternalColumn<R>(header, itemGenerator, preferredWidth, minWidth, maxWidth) {
+            extractor     : T.() -> R): InternalColumn<R>(header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth) {
 
-        override val view = Tree(model.map(extractor), selectionModel).apply {
+        override val view = Tree(model.map(extractor), selectionModel, cacheLength = 0).apply {
             acceptsThemes = false
 
 //            expanded += { _,_ ->
@@ -355,15 +372,21 @@ class TreeTable<T, M: TreeModel<T>>(
             behavior?.let {
                 view.behavior = object: TreeBehavior<R> {
                     override val generator get() = object: TreeBehavior.RowGenerator<R> {
-                        override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator.invoke(this@TreeTable, node, path, index, itemGenerator)
+                        override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator.invoke(this@TreeTable, this@InternalTreeColumn, node, path, index, cellGenerator, current)
                     }
 
                     override val positioner get() = object: TreeBehavior.RowPositioner<R> {
-                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.invoke(this@TreeTable, path, model[path]!!, index)
+                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.invoke(this@TreeTable, path, model[path]!!, index).run { Rectangle(0.0, y, tree.width, height) }
 
                         override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = rowBounds(tree, node, path, index, current) // FIXME
 
                         override fun row(of: Tree<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
+                    }
+
+                    override fun render(view: Tree<R, *>, canvas: Canvas) {
+                        if (this@InternalTreeColumn != internalColumns.last()) {
+                            behavior.renderColumnBody(this@TreeTable, this@InternalTreeColumn, canvas)
+                        }
                     }
                 }
             }
@@ -385,11 +408,13 @@ class TreeTable<T, M: TreeModel<T>>(
 
     private inner class InternalListColumn<R>(
             header        : View?,
-            itemGenerator : ItemGenerator<R>,
+            headerPosition: (Constraints.() -> Unit)? = null,
+            cellGenerator : ItemGenerator<R>,
+            cellPosition  : (Constraints.() -> Unit)? = null,
             preferredWidth: Double? = null,
             minWidth      : Double  = 0.0,
             maxWidth      : Double? = null,
-            extractor     : T.() -> R): InternalColumn<R>(header, itemGenerator, preferredWidth, minWidth, maxWidth) {
+            extractor     : T.() -> R): InternalColumn<R>(header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
             init {
@@ -397,6 +422,7 @@ class TreeTable<T, M: TreeModel<T>>(
                 expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
                     val added = paths.flatMap { rowsBelow(it) }
 
+                    // FIXME: This is way too expensive for large trees
                     changed.forEach {
                         it(this, emptyMap(), added.associate { rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap())
                     }
@@ -409,6 +435,7 @@ class TreeTable<T, M: TreeModel<T>>(
                         rowsBelow(it).map { index++ to it }
                     }
 
+                    // FIXME: This is way too expensive for large trees
                     changed.forEach {
                         it(this, removed.associate { (index, path) -> index to extractor(model[path]!!) }, emptyMap(), emptyMap())
                     }
@@ -451,7 +478,7 @@ class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), itemGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
             acceptsThemes = false
         }
 
@@ -459,7 +486,7 @@ class TreeTable<T, M: TreeModel<T>>(
             behavior?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, row, pathFromRow(index)!!, index, itemGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, this@InternalListColumn, row, pathFromRow(index)!!, index, cellGenerator, current)
                     }
 
                     override val positioner get() = object : ListBehavior.RowPositioner<R> {
@@ -468,7 +495,11 @@ class TreeTable<T, M: TreeModel<T>>(
                         override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@TreeTable, y)
                     }
 
-                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {}
+                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
+                        if (this@InternalListColumn != internalColumns.last()) {
+                            behavior.renderColumnBody(this@TreeTable, this@InternalListColumn, canvas)
+                        }
+                    }
                 }
             }
         }
@@ -501,6 +532,7 @@ class TreeTable<T, M: TreeModel<T>>(
             field?.let {
                 it.bodyDirty   = null
                 it.headerDirty = null
+                it.columnDirty = null
 
                 it.uninstall(this)
             }
@@ -508,6 +540,7 @@ class TreeTable<T, M: TreeModel<T>>(
             field = new?.also { behavior ->
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
+                behavior.columnDirty = columnDirty
 
                 internalColumns.forEach {
                     it.behavior(behavior)
@@ -545,16 +578,16 @@ class TreeTable<T, M: TreeModel<T>>(
             }
         }
 
-    val columns: List<Column<T>> get() = internalColumns.dropLast(1)
+    val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
     val selectionChanged: Pool<SetObserver<TreeTable<T, *>, Path<Int>>> = SetPool()
 
     private val internalColumns = mutableListOf<InternalColumn<*>>()
 
     init {
-        ColumnBuilderImpl().apply(block)
+        ColumnFactoryImpl().apply(block)
 
-        internalColumns += InternalListColumn(null, itemGenerator = object : ItemGenerator<String> {
+        internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemGenerator<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
@@ -639,8 +672,9 @@ class TreeTable<T, M: TreeModel<T>>(
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 
-    private val bodyDirty  : () -> Unit = { panel.content?.rerender() }
-    private val headerDirty: () -> Unit = { header.rerender        () }
+    private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
+    private val headerDirty: (         ) -> Unit = { header.rerender        () }
+    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*>)?.view?.rerender() }
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }

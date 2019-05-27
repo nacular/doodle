@@ -22,7 +22,7 @@ class BasicButtonBehavior(
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val borderColor        : Color,
-        private val borderWidth        : Double = 1.0): AbstractTextButtonBehavior(textMetrics) {
+        private val borderWidth        : Double = 1.0): AbstractTextButtonBehavior<Button>(textMetrics) {
 
     private var insets = Insets(4.0)
 

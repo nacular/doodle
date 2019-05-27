@@ -41,8 +41,9 @@ open class BasicTableBehavior<T>(
         private val selectionColor       : Color? = green.lighter(),
         private val blurredSelectionColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
 
-    override var bodyDirty  : (() -> Unit)? = null
-    override var headerDirty: (() -> Unit)? = null
+    override var bodyDirty  : ((         ) -> Unit)? = null
+    override var headerDirty: ((         ) -> Unit)? = null
+    override var columnDirty: ((Column<*>) -> Unit)? = null
 
     private val selectionChanged: SetObserver<Table<T, *>, Int> = { _,_,_ ->
         bodyDirty?.invoke()
@@ -54,17 +55,13 @@ open class BasicTableBehavior<T>(
 
     private val canvasBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
 
+    private val movingColumns = mutableSetOf<Column<*>>()
+
     override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
-            else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null).apply {
-//                mouseChanged += object: MouseListener {
-//                    override fun mousePressed(event: MouseEvent) {
-//                        focusManager?.requestFocus(table)
-//                    }
-//                }
-            }
-        }
+            else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null)
+        }.apply { column.cellPosition?.let { positioner = it } }
     }
 
     override val headerPositioner = object: HeaderPositioner<T> {
@@ -79,14 +76,7 @@ open class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
-//            // FIXME: Remove once better mouse bubbling is in place
-//            mouseChanged += object: MouseListener {
-//                override fun mousePressed(event: MouseEvent) {
-//                    focusManager?.requestFocus(table)
-//                }
-//            }
-        }
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerPosition?.let { positioner = it } }
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
@@ -104,6 +94,12 @@ open class BasicTableBehavior<T>(
                     canvas.rect(rowPositioner(table, row, index), ColorBrush(color))
                 }
             }
+        }
+    }
+
+    override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
+        if (column in movingColumns && headerColor != null) {
+            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.with(0.2f)))
         }
     }
 
@@ -128,5 +124,25 @@ open class BasicTableBehavior<T>(
 
     override fun keyPressed(event: KeyEvent) {
         super<SelectableListKeyHandler>.keyPressed(event)
+    }
+
+    override fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {
+        if (headerColor == null) {
+            return
+        }
+
+        movingColumns += column
+
+        columnDirty?.invoke(column)
+    }
+
+    override fun <A> columnMoveEnd(table: Table<T, *>, column: Column<A>) {
+        if (headerColor == null) {
+            return
+        }
+
+        movingColumns -= column
+
+        columnDirty?.invoke(column)
     }
 }

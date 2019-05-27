@@ -32,6 +32,7 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.utils.Path
+import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
 
 /**
@@ -58,17 +59,23 @@ fun <T, R> Selectable<T>.map(mapper: (R) -> T, unmapper: (T) -> R) = object: Sel
 }
 
 open class BasicTreeTableBehavior<T>(
-        private val focusManager  : FocusManager?,
-        private val rowHeight     : Double = 20.0,
-        private val headerColor   : Color? = lightgray,
-                    evenRowColor  : Color? = white,
-                    oddRowColor   : Color? = lightgray.lighter().lighter(),
-        private val selectionColor: Color? = green.lighter()): TreeTableBehavior<T>, KeyListener, SelectableTreeKeyHandler {
+        private val focusManager         : FocusManager?,
+        private val rowHeight            : Double = 20.0,
+        private val headerColor          : Color? = lightgray,
+                    evenRowColor         : Color? = white,
+                    oddRowColor          : Color? = lightgray.lighter().lighter(),
+        private val selectionColor       : Color? = green.lighter(),
+        private val blurredSelectionColor: Color? = lightgray): TreeTableBehavior<T>, MouseListener, KeyListener, SelectableTreeKeyHandler {
 
-    override var headerDirty: (() -> Unit)? = null
-    override var bodyDirty  : (() -> Unit)? = null
+    override var headerDirty: ((         ) -> Unit)? = null
+    override var bodyDirty  : ((         ) -> Unit)? = null
+    override var columnDirty: ((Column<*>) -> Unit)? = null
 
     private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { _,_,_ ->
+        bodyDirty?.invoke()
+    }
+
+    private val focusChanged: PropertyObserver<View, Boolean> = { _,_,_ ->
         bodyDirty?.invoke()
     }
 
@@ -80,32 +87,22 @@ open class BasicTreeTableBehavior<T>(
 
     private val canvasBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
 
+    private val movingColumns = mutableSetOf<Column<*>>()
+
     override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, object: ContentGenerator<A> {
                 override fun invoke(item: A, previous: View?) = itemGenerator(item, previous)
-            }, iconFactory = { SimpleTreeRowIcon() }, selectionColor = null).apply {
-                mouseChanged += object: MouseListener {
-                    override fun mouseReleased(event: MouseEvent) {
-                        focusManager?.requestFocus(table)
-                    }
-                }
-            }
+            }, iconFactory = { SimpleTreeRowIcon() }, selectionColor = null)
         }
     }
 
     override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, selectionColor = null).apply {
-                mouseChanged += object: MouseListener {
-                    override fun mouseReleased(event: MouseEvent) {
-                        focusManager?.requestFocus(table)
-                    }
-                }
-            }
-        }
+            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, selectionColor = null)
+        }.apply { column.cellPosition?.let { positioner = it } }
     }
 
     override val headerPositioner = object: HeaderPositioner<T> {
@@ -120,7 +117,7 @@ open class BasicTreeTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun invoke(table: TreeTable<T, *>, column: Column<T>) = TableHeaderCell(column, headerColor)
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerPosition?.let { positioner = it } }
     }
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
@@ -130,12 +127,20 @@ open class BasicTreeTableBehavior<T>(
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
         canvas.rect(Rectangle(size = canvas.size), canvasBrush)
 
-        if (selectionColor != null) {
+        val color = if (table.hasFocus) selectionColor else blurredSelectionColor
+
+        if (color != null) {
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!), ColorBrush(selectionColor))
+                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!), ColorBrush(color))
                 }
             }
+        }
+    }
+
+    override fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {
+        if (column in movingColumns && headerColor != null) {
+            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.with(0.2f)))
         }
     }
 
@@ -144,6 +149,8 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         += expansionChanged
         view.collapsed        += expansionChanged
         view.keyChanged       += this
+        view.mouseChanged     += this
+        view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
     }
 
@@ -151,10 +158,36 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         -= expansionChanged
         view.collapsed        -= expansionChanged
         view.keyChanged       -= this
+        view.mouseChanged     -= this
+        view.focusChanged     -= focusChanged
         view.selectionChanged -= selectionChanged
+    }
+
+    override fun mousePressed(event: MouseEvent) {
+        focusManager?.requestFocus(event.source)
     }
 
     override fun keyPressed(event: KeyEvent) {
         super<SelectableTreeKeyHandler>.keyPressed(event)
+    }
+
+    override fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {
+        if (headerColor == null) {
+            return
+        }
+
+        movingColumns += column
+
+        columnDirty?.invoke(column)
+    }
+
+    override fun <A> columnMoveEnd(table: TreeTable<T, *>, column: Column<A>) {
+        if (headerColor == null) {
+            return
+        }
+
+        movingColumns -= column
+
+        columnDirty?.invoke(column)
     }
 }

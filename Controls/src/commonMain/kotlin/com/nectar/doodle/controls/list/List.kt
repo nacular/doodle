@@ -9,6 +9,8 @@ import com.nectar.doodle.controls.SimpleListModel
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.panels.ScrollPanel
+import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -55,9 +57,11 @@ open class List<T, out M: ListModel<T>>(
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { added ->
-                rowPositioner?.invoke(this, this[added]!!, added)?.let {
-                    parent.scrollToVisible(it)
+            lastSelection?.let { lastSelection ->
+                this[lastSelection]?.let {
+                    rowPositioner?.invoke(this, it, lastSelection)?.let {
+                        parent.scrollToVisible(it)
+                    }
                 }
             }
         }
@@ -121,6 +125,16 @@ open class List<T, out M: ListModel<T>>(
         monitorsDisplayRect = true
 
         selectionModel?.let { it.changed += selectionChanged_ }
+
+        layout = object: Layout() {
+            override fun layout(positionable: Positionable) {
+                (firstVisibleRow .. lastVisibleRow).forEach {
+                    model[it]?.let { row ->
+                        layout(children[it % children.size], row, it)
+                    }
+                }
+            }
+        }
     }
 
     operator fun get(index: Int) = model[index]
@@ -144,7 +158,7 @@ open class List<T, out M: ListModel<T>>(
             }
 
             val oldFirst = firstVisibleRow
-            val oldLast = lastVisibleRow
+            val oldLast  = lastVisibleRow
 
             firstVisibleRow = when (val y = new.y) {
                 old.y -> firstVisibleRow

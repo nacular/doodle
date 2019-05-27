@@ -79,67 +79,65 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
 
     fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
 
-    fun <T> batch(block: MutableList<E>.() -> T): T {
-        return if (changed_.isEmpty()) {
-            list.run(block)
-        } else {
-            // TODO: Can this be optimized?
-            val old = ArrayList(list)
+    fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
+        list.run(block)
+    } else {
+        // TODO: Can this be optimized?
+        val old = ArrayList(list)
 
-            list.run(block).also {
-                if (old != this) {
-                    val removed       = mutableMapOf<Int, E>()
-                    val added         = mutableMapOf<Int, E>()
-                    val moved         = mutableMapOf<Int, Pair<Int, E>>()
-                    var unusedIndexes = (0 until this.size).toSet()
+        list.run(block).also {
+            if (old != this) {
+                val removed       = mutableMapOf<Int, E>()
+                val added         = mutableMapOf<Int, E>()
+                val moved         = mutableMapOf<Int, Pair<Int, E>>()
+                var unusedIndexes = (0 until this.size).toSet()
 
-                    old.forEachIndexed { index, item ->
-                        if (index >= this.size || this[index] != item) {
+                old.forEachIndexed { index, item ->
+                    if (index >= this.size || this[index] != item) {
 
-                            val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }
+                        val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }
 
-                            when (newIndex) {
-                                null -> removed[index] = item
-                                else -> {
-                                    moved[index]   = newIndex to item
-                                    unusedIndexes -= newIndex
-                                }
+                        when (newIndex) {
+                            null -> removed[index] = item
+                            else -> {
+                                moved[index]   = newIndex to item
+                                unusedIndexes -= newIndex
                             }
                         }
                     }
+                }
 
-                    removed.forEach { (removedIndex, _) ->
-                        moved.filterKeys { index -> index >= removedIndex }.entries.sortedBy { it.key }.forEach {
-                            if (it.key - 1 == it.value.first) {
+                removed.forEach { (removedIndex, _) ->
+                    moved.filterKeys { index -> index >= removedIndex }.entries.sortedBy { it.key }.forEach {
+                        if (it.key - 1 == it.value.first) {
+                            moved.remove(it.key)
+                        } else {
+                            moved[it.key - 1] = it.value
+                            moved.remove(it.key)
+                        }
+                    }
+                }
+
+                unusedIndexes.forEach {
+                    val item = this[it]
+
+                    if (it >= old.size || old[it] != item) {
+                        added[it] = item
+
+                        // Adjust all the moves
+                        moved.filterKeys { index -> index >= it }.entries.sortedByDescending { it.key } .forEach {
+                            if (it.key + 1 == it.value.first) {
                                 moved.remove(it.key)
                             } else {
-                                moved[it.key - 1] = it.value
+                                moved[it.key + 1] = it.value
                                 moved.remove(it.key)
                             }
                         }
                     }
+                }
 
-                    unusedIndexes.forEach {
-                        val item = this[it]
-
-                        if (it >= old.size || old[it] != item) {
-                            added[it] = item
-
-                            // Adjust all the moves
-                            moved.filterKeys { index -> index >= it }.entries.sortedByDescending { it.key } .forEach {
-                                if (it.key + 1 == it.value.first) {
-                                    moved.remove(it.key)
-                                } else {
-                                    moved[it.key + 1] = it.value
-                                    moved.remove(it.key)
-                                }
-                            }
-                        }
-                    }
-
-                    changed_.forEach {
-                        it(this, removed, added, moved)
-                    }
+                changed_.forEach {
+                    it(this, removed, added, moved)
                 }
             }
         }
@@ -191,9 +189,7 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
         }
     }
 
-    override fun remove(element: E): Boolean {
-        return set.remove(element).ifTrue { changed_.forEach { it(this.source, setOf(element), emptySet()) } }
-    }
+    override fun remove(element: E) = set.remove(element).ifTrue { changed_.forEach { it(this.source, setOf(element), emptySet()) } }
 
     override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
 
@@ -202,18 +198,16 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
 
     fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
 
-    fun <T> batch(block: MutableSet<E>.() -> T): T {
-        return if (changed_.isEmpty()) {
-            set.run(block)
-        } else {
-            // TODO: Can this be optimized?
-            val old = HashSet(set)
+    fun <T> batch(block: MutableSet<E>.() -> T): T = if (changed_.isEmpty()) {
+        set.run(block)
+    } else {
+        // TODO: Can this be optimized?
+        val old = HashSet(set)
 
-            set.run(block).also {
-                if (old != this) {
-                    changed_.forEach {
-                        it(this.source, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
-                    }
+        set.run(block).also {
+            if (old != this) {
+                changed_.forEach {
+                    it(this.source, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
                 }
             }
         }

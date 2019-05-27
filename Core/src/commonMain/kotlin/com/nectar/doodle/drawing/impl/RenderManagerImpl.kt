@@ -330,6 +330,10 @@ class RenderManagerImpl(
 
     private fun updateGraphicsSurface(view: View, surface: GraphicsSurface) {
         surface.bounds = view.bounds
+
+        if (view in displayTree) {
+            checkDisplayRectChange(view)
+        }
     }
 
     private fun releaseResources(view: View) {
@@ -505,9 +509,9 @@ class RenderManagerImpl(
             schedulePaint()
         }
 
-        if (displayTree.containsKey(view)) {
-            checkDisplayRectChange(view)
-        }
+//        if (displayTree.containsKey(view)) {
+//            checkDisplayRectChange(view)
+//        }
     }
 
     @Suppress("UNUSED_PARAMETER")

@@ -9,6 +9,8 @@ import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
+import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -50,6 +52,8 @@ interface TreeLike: Selectable<Path<Int>> {
     fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     fun collapse(path: Path<Int>)
     fun expand(path: Path<Int>)
+    fun expandAll()
+    fun collapseAll()
 }
 
 open class Tree<T, out M: TreeModel<T>>(
@@ -128,9 +132,14 @@ open class Tree<T, out M: TreeModel<T>>(
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { added ->
-                positioner?.rowBounds(this, this[added]!!, added, rowFromPath(added)!!)?.let {
-                    parent.scrollToVisible(it)
+            lastSelection?.let { lastSelection ->
+                val item  = this[lastSelection]
+                val index = rowFromPath(lastSelection)
+
+                if (item != null && index != null) {
+                    positioner?.rowBounds(this, item, lastSelection, index)?.let {
+                        parent.scrollToVisible(it)
+                    }
                 }
             }
         }
@@ -149,16 +158,27 @@ open class Tree<T, out M: TreeModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        // FIXME: Move to layout
-        boundsChanged += { _,_,_ ->
-            children.forEach {
-                it.width = width
-            }
-        }
+//        // FIXME: Move to layout
+//        boundsChanged += { _,_,_ ->
+//            children.forEach {
+//                it.width = width
+//            }
+//        }
 
         selectionModel?.let { it.changed += selectionChanged_ }
 
         updateNumRows()
+
+
+        layout = object: Layout() {
+            override fun layout(positionable: Positionable) {
+                (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                    model[path]?.let { value ->
+                        layout(children[index % children.size], value, path, index)
+                    }
+                }
+            }
+        }
     }
 
     override fun render(canvas: Canvas) {
@@ -242,12 +262,12 @@ open class Tree<T, out M: TreeModel<T>>(
     override fun expand(path: Path<Int>) = expand(setOf(path))
 
     fun expand(paths: Set<Path<Int>>) {
-        val patSet = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
+        val pathSet = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
 
         val pathsToUpdate = mutableSetOf<Path<Int>>()
 
         children.batch {
-            patSet.forEach {
+            pathSet.forEach {
                 expandedPaths += it
 
                 if (visible(it)) {
@@ -268,14 +288,19 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
+        if (maxVisibleY < displayRect.bottom) {
+            // TODO: Can this be done better?  It feels a bit hacky
+            handleDisplayRectEvent(Rectangle(0.0, minVisibleY, width, maxVisibleY - minVisibleY), displayRect)
+        }
+
         expandedPaths.addAll(paths)
 
-        if (children.isNotEmpty() && patSet.isNotEmpty()) {
-            (expanded as ExpansionObserversImpl)(patSet)
+        if (children.isNotEmpty() && pathSet.isNotEmpty()) {
+            (expanded as ExpansionObserversImpl)(pathSet)
         }
     }
 
-    fun expandAll() {
+    override fun expandAll() {
         val pathsToExpand = HashSet<Path<Int>>()
 
         expandAllBelowPath(Path(), pathsToExpand)
@@ -307,6 +332,11 @@ open class Tree<T, out M: TreeModel<T>>(
                 // FIXME: This should be handled better
                 minHeight = heightBelow(Path()) + insets.run { top + bottom }
 
+                if (maxVisibleY < displayRect.bottom) {
+                    // TODO: Can this be done better?  It feels a bit hacky
+                    handleDisplayRectEvent(displayRect, Rectangle(0.0, minVisibleY, width, maxVisibleY - minVisibleY))
+                }
+
                 // Remove old children
                 (numRows until size).forEach {
                     removeAt(numRows)
@@ -337,7 +367,7 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    fun collapseAll() = collapse(expandedPaths)
+    override fun collapseAll() = collapse(expandedPaths)
 
     override fun selected(row: Int) = pathFromRow(row)?.let { selected(it) } ?: false
     override fun selected(item: Path<Int>) = selectionModel?.contains(item) ?: false
@@ -376,7 +406,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
     override fun next(after: Path<Int>) = rowFromPath(after)?.let { it + 1 }?.let { pathFromRow(it) }
 
-    override fun previous(before: Path<Int>) = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it).also { println("$it -> $this") } }
+    override fun previous(before: Path<Int>) = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it) }
 
     override fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
@@ -493,7 +523,7 @@ open class Tree<T, out M: TreeModel<T>>(
                     update(children, path, index)
                 }
 
-                result = result!! + 1
+                result = result?.let { it + 1 }
 
                 if (path.depth == 0 || expanded) {
                     result = insertChildren(children, path, index)
@@ -532,7 +562,7 @@ open class Tree<T, out M: TreeModel<T>>(
             if (index in firstVisibleRow..lastVisibleRow) {
                 generator?.let {
                     model[path]?.let { value ->
-                        //                    pathToRow[path ] = index
+                        // pathToRow[path ] = index
 
                         val i = index % children.size
 
@@ -555,8 +585,7 @@ open class Tree<T, out M: TreeModel<T>>(
         positioner?.let {
             view.bounds = it.rowBounds(this, node, path, index, view)
 
-            width       = max(width, view.width)
-            minimumSize = Size(width, minHeight)
+            minimumSize = Size(max(width, view.width), minHeight)
         }
     }
 

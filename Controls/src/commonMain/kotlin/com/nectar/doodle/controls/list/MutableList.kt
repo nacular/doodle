@@ -6,6 +6,7 @@ import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.core.View
+import com.nectar.doodle.utils.size
 
 
 interface EditOperation<T> {
@@ -32,7 +33,7 @@ open class MutableList<T, M: MutableListModel<T>>(
         itemsRemoved(trueRemoved)
         itemsAdded  (trueAdded  )
 
-        val oldHeight = height
+        val oldVisibleRange = firstVisibleRow..lastVisibleRow
 
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
@@ -41,7 +42,7 @@ open class MutableList<T, M: MutableListModel<T>>(
         trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
         trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
-        if (trueRemoved.size > trueAdded.size && height < oldHeight) {
+        if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleRow..lastVisibleRow).size) {
             children.batch {
                 for (it in 0 until trueRemoved.size - trueAdded.size) {
                     removeAt(0)

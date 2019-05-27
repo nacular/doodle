@@ -17,7 +17,7 @@ data class HeaderGeometry(val y: Double, val height: Double)
 
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
     }
 
     interface RowPositioner<T> {
@@ -39,24 +39,29 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     val headerPositioner   : HeaderPositioner<T>
     val headerCellGenerator: HeaderCellGenerator<T>
 
-    var bodyDirty  : (() -> Unit)?
-    var headerDirty: (() -> Unit)?
+    var bodyDirty  : ((         ) -> Unit)?
+    var headerDirty: ((         ) -> Unit)?
+    var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
+    fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
 
-    fun renderHeader    (table: Table<T, *>,                    canvas: Canvas) {}
-    fun renderBody      (table: Table<T, *>,                    canvas: Canvas) {}
+    fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
+    fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
+    fun <A> columnMoveEnd  (table: Table<T, *>, column: Column<A>) {}
+
+    fun renderHeader        (table: Table<T, *>,                    canvas: Canvas) {}
+    fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
     fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
 }
 
 
 interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     interface TreeCellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
     }
 
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
     }
 
     interface RowPositioner<T> {
@@ -70,7 +75,7 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     }
 
     interface HeaderCellGenerator<T> {
-        operator fun invoke(table: TreeTable<T, *>, column: Column<T>): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>): View
     }
 
     val treeCellGenerator  : TreeCellGenerator<T>
@@ -79,11 +84,17 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     val headerPositioner   : HeaderPositioner<T>
     val headerCellGenerator: HeaderCellGenerator<T>
 
-    var headerDirty: (() -> Unit)?
-    var bodyDirty  : (() -> Unit)?
+    var bodyDirty  : ((         ) -> Unit)?
+    var headerDirty: ((         ) -> Unit)?
+    var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
+    fun moveColumn(table: TreeTable<T, *>, block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
 
-    fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {}
-    fun renderBody  (table: TreeTable<T, *>, canvas: Canvas) {}
+    fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {}
+    fun <A> columnMoved    (table: TreeTable<T, *>, column: Column<A>) {}
+    fun <A> columnMoveEnd  (table: TreeTable<T, *>, column: Column<A>) {}
+
+    fun renderHeader        (table: TreeTable<T, *>, canvas: Canvas) {}
+    fun renderBody          (table: TreeTable<T, *>, canvas: Canvas) {}
+    fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {}
 }

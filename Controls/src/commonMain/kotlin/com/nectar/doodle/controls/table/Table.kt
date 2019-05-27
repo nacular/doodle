@@ -17,6 +17,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.utils.Cancelable
@@ -29,26 +30,30 @@ import kotlin.math.min
 open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
-                      block         : ColumnBuilder<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+                      block         : ColumnFactory<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
-    private inner class ColumnBuilderImpl: ColumnBuilder<T> {
+    private inner class ColumnFactoryImpl: ColumnFactory<T> {
         override fun <R> column(
-                header       : View?,
-                width        : Double?,
-                minWidth     : Double,
-                maxWidth     : Double?,
-                itemGenerator: ItemGenerator<R>,
-                extractor    : (T) -> R
-        ) = InternalColumn(header, itemGenerator, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+                header        : View?,
+                headerPosition: (Constraints.() -> Unit)?,
+                width         : Double?,
+                minWidth      : Double,
+                maxWidth      : Double?,
+                cellGenerator : ItemGenerator<R>,
+                cellPosition  : (Constraints.() -> Unit)?,
+                extractor     : (T) -> R
+        ) = InternalColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also { internalColumns += it }
     }
 
     private inner class InternalColumn<R>(
             override val header        : View?,
+            override val headerPosition: (Constraints.() -> Unit)? = null,
                      val itemGenerator : ItemGenerator<R>,
+            override val cellPosition  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
             override val minWidth      : Double  = 0.0,
             override val maxWidth      : Double? = null,
-                         extractor     : T.() -> R): Column<T>, ColumnSizePolicy.Column {
+                         extractor     : T.() -> R): Column<R>, ColumnSizePolicy.Column {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
             override val size get() = model.size
@@ -135,7 +140,13 @@ open class Table<T, M: ListModel<T>>(
             val translateX = transform.translateX
             val delta      = min(max(x, 0 - (view.x + translateX)), this@Table.width - width - (view.x + translateX))
 
+            if (translateX == 0.0) {
+                behavior?.columnMoveStart(this@Table, this)
+            }
+
             transform *= Identity.translate(delta)
+
+            behavior?.columnMoved(this@Table, this)
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
                 if (column != this) {
@@ -157,7 +168,7 @@ open class Table<T, M: ListModel<T>>(
                         val offset       = column.x + column.transform.translateX
                         val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
-                        column.animation = behavior?.moveColumn {
+                        column.animation = behavior?.moveColumn(this@Table) {
                             column.transform = oldTransform.translate(translate * it)
                         }
                     }
@@ -166,6 +177,8 @@ open class Table<T, M: ListModel<T>>(
         }
 
         override fun resetPosition() {
+            behavior?.columnMoveEnd(this@Table, this)
+
             zOrder         = 0
             var moved      = false
             val myOffset   = view.x + transform.translateX
@@ -197,7 +210,7 @@ open class Table<T, M: ListModel<T>>(
                 view.behavior = object : ListBehavior<R> {
                     override val generator: ListBehavior.RowGenerator<R>
                         get() = object : ListBehavior.RowGenerator<R> {
-                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, row, index, itemGenerator, current)
+                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, this@InternalColumn, row, index, itemGenerator, current)
                         }
 
                     override val positioner: ListBehavior.RowPositioner<R>
@@ -234,6 +247,7 @@ open class Table<T, M: ListModel<T>>(
             field?.let {
                 it.bodyDirty   = null
                 it.headerDirty = null
+                it.columnDirty = null
 
                 it.uninstall(this)
             }
@@ -241,6 +255,7 @@ open class Table<T, M: ListModel<T>>(
             field = new?.also { behavior ->
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
+                behavior.columnDirty = columnDirty
 
                 internalColumns.forEach {
                     it.behavior(behavior)
@@ -278,7 +293,7 @@ open class Table<T, M: ListModel<T>>(
             }
         }
 
-    val columns: List<Column<T>> get() = internalColumns.dropLast(1)
+    val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
     val selectionChanged: Pool<SetObserver<Table<T, *>, Int>> = SetPool()
 
@@ -287,9 +302,9 @@ open class Table<T, M: ListModel<T>>(
     private val internalColumns = mutableListOf<InternalColumn<*>>()
 
     init {
-        ColumnBuilderImpl().apply(block)
+        ColumnFactoryImpl().apply(block)
 
-        internalColumns += InternalColumn(null, itemGenerator = object : ItemGenerator<String> {
+        internalColumns += InternalColumn(header = null, itemGenerator = object : ItemGenerator<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
@@ -371,8 +386,9 @@ open class Table<T, M: ListModel<T>>(
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 
-    private val bodyDirty  : () -> Unit = { panel.content?.rerender() }
-    private val headerDirty: () -> Unit = { header.rerender        () }
+    private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
+    private val headerDirty: (         ) -> Unit = { header.rerender        () }
+    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*>)?.view?.rerender() }
 
     operator fun get(index: Int) = model[index]
 
@@ -403,6 +419,6 @@ open class Table<T, M: ListModel<T>>(
         operator fun <T> invoke(
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
-                       block         : ColumnBuilder<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, block)
+                       block         : ColumnFactory<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, block)
     }
 }

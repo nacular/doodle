@@ -14,6 +14,7 @@ import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
+import com.nectar.doodle.system.Cursor.Companion.Grabbing
 import com.nectar.doodle.system.Cursor.Companion.WResize
 
 /**
@@ -103,12 +104,14 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
                 initialPosition?.let {
                     val delta = (toLocal(event.location, event.target) - it).x
 
-                    if (resizing) {
-                        cursor = newCursor()
-
+                    cursor = if (resizing) {
                         column.preferredWidth = initialWidth + delta
+
+                        newCursor()
                     } else {
                         column.moveBy(delta)
+
+                        Grabbing
                     }
 
                     event.consume()
@@ -130,6 +133,6 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         val x         = width - thickness
 
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-        canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.darker(0.25f) ?: Color.gray))
+        canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.darker(0.25f) ?: Color.gray, thickness))
     }
 }

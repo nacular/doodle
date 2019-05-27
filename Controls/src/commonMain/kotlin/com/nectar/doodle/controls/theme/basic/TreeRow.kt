@@ -233,6 +233,8 @@ class TreeRow<T>(
                                 true -> tree.collapse(this@TreeRow.path)
                                 else -> tree.expand  (this@TreeRow.path)
                             }
+
+                            event.consume()
                         }
                         pressed = false
                     }

@@ -8,7 +8,7 @@ import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
 
-internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonBehavior(textMetrics) {
+internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonBehavior<Button>(textMetrics) {
 
     private val nativePeer by lazy{ nativeButtonFactory(button) }
 

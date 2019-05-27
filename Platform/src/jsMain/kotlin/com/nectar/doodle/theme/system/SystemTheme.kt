@@ -27,6 +27,7 @@ import com.nectar.doodle.drawing.impl.NativeSliderFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Theme
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
@@ -48,8 +49,8 @@ class SystemTheme internal constructor(
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is RadioButton -> it.behavior = SystemRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, it)
-            is CheckBox    -> it.behavior = SystemCheckBoxBehavior   (nativeCheckBoxRadioButtonFactory, textMetrics, it)
+            is RadioButton -> it.behavior = SystemRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
+            is CheckBox    -> it.behavior = SystemCheckBoxBehavior   (nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
             is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory,              textMetrics, it)
             is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,              it             )
             is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,           it             )

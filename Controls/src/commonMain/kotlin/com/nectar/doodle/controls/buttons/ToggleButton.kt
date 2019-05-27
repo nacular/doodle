@@ -46,8 +46,6 @@ private class ToggleButtonModel: ButtonModelImpl() {
 // FIXME: It is possible to assign a non-ToggleButtonModel to these types.  Is that desirable?
 @Suppress("PrivatePropertyName")
 open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButton(text, icon, ToggleButtonModel()) {
-    constructor(icon: Icon<Button>): this("", icon)
-
     val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
 
     private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }

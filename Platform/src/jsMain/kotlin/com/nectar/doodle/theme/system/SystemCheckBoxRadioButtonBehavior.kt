@@ -1,6 +1,7 @@
 package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
@@ -17,15 +18,15 @@ internal abstract class AbstractSystemCheckBoxRadioButtonBehavior(
         private val nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
                     textMetrics                     : TextMetrics,
         private val button                          : Button,
-        private val type                            : Type): AbstractTextButtonBehavior(textMetrics) {
+        private val type                            : Type): AbstractTextButtonBehavior<ToggleButton>(textMetrics) {
 
     private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
 
-    override fun render(view: Button, canvas: Canvas) {
+    override fun render(view: ToggleButton, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 
-    override fun install(view: Button) {
+    override fun install(view: ToggleButton) {
         super.install(view)
 
         view.cursor    = Cursor.Default
@@ -35,7 +36,7 @@ internal abstract class AbstractSystemCheckBoxRadioButtonBehavior(
         view.rerender()
     }
 
-    override fun uninstall(view: Button) {
+    override fun uninstall(view: ToggleButton) {
         super.uninstall(view)
 
         nativePeer.discard()

@@ -48,8 +48,8 @@ class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is CheckBox          -> it.behavior = checkBoxBehavior
-            is RadioButton       -> it.behavior = radioButtonBehavior
+            is CheckBox          -> it.behavior = checkBoxBehavior as Behavior<Button>
+            is RadioButton       -> it.behavior = radioButtonBehavior as Behavior<Button>
             is Button            -> it.behavior = buttonBehavior
             is Slider            -> it.behavior = sliderBehavior
             is SplitPanel        -> it.behavior = splitPanelBehavior
