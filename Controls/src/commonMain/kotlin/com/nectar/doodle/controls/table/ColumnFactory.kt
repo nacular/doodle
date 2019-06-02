@@ -4,35 +4,41 @@ import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
 
+interface ColumnBuilder {
+    var headerAlignment: (Constraints.() -> Unit)?
+    var width         : Double?
+    var minWidth      : Double
+    var maxWidth      : Double?
+    var cellAlignment : (Constraints.() -> Unit)?
+}
+
+internal class ColumnBuilderImpl: ColumnBuilder {
+    override var headerAlignment: (Constraints.() -> Unit)? = null
+    override var width         : Double? = null
+    override var minWidth      : Double = 0.0
+    override var maxWidth      : Double? = null
+    override var cellAlignment : (Constraints.() -> Unit)? = null
+}
+
 interface ColumnFactory<T> {
     fun <R> column(
-            header        : View?,
-            headerPosition: (Constraints.() -> Unit)? = null,
-            width         : Double? = null,
-            minWidth      : Double = 0.0,
-            maxWidth      : Double? = null,
-            cellGenerator : ItemGenerator<R>,
-            cellPosition  : (Constraints.() -> Unit)? = null,
-            extractor     : T.() -> R): Column<R>
+            header       : View?,
+            extractor    : T.() -> R,
+            cellGenerator: ItemGenerator<R>,
+            builder      : ColumnBuilder.() -> Unit): Column<R>
 }
 
 interface MutableColumnFactory<T>: ColumnFactory<T> {
     override fun <R> column(
-            header        : View?,
-            headerPosition: (Constraints.() -> Unit)?,
-            width         : Double?,
-            minWidth      : Double,
-            maxWidth      : Double?,
-            cellGenerator : ItemGenerator<R>,
-            cellPosition  : (Constraints.() -> Unit)?,
-            extractor     : T.() -> R): Column<R> = column(header, width, minWidth, maxWidth, cellGenerator, extractor, null)
+            header       : View?,
+            extractor    : T.() -> R,
+            cellGenerator: ItemGenerator<R>,
+            builder      : ColumnBuilder.() -> Unit): Column<R> = column(header, extractor, cellGenerator, null, builder)
 
     fun <R> column(
             header       : View?,
-            width        : Double? = null,
-            minWidth     : Double = 0.0,
-            maxWidth     : Double? = null,
-            itemGenerator: ItemGenerator<R>,
             extractor    : T.() -> R,
-            editor       : ((T) -> T)?): Column<R>
+            cellGenerator: ItemGenerator<R>,
+            editor       : ((T) -> T)?,
+            builder      : ColumnBuilder.() -> Unit): Column<R>
 }

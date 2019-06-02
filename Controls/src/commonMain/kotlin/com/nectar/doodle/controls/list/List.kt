@@ -54,8 +54,8 @@ open class List<T, out M: ListModel<T>>(
 
     val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
 
-    @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
+    @Suppress("PropertyName")
+    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 this[lastSelection]?.let {

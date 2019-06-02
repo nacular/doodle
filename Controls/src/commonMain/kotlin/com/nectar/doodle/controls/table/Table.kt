@@ -33,23 +33,18 @@ open class Table<T, M: ListModel<T>>(
                       block         : ColumnFactory<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(
-                header        : View?,
-                headerPosition: (Constraints.() -> Unit)?,
-                width         : Double?,
-                minWidth      : Double,
-                maxWidth      : Double?,
-                cellGenerator : ItemGenerator<R>,
-                cellPosition  : (Constraints.() -> Unit)?,
-                extractor     : (T) -> R
-        ) = InternalColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemGenerator<R>, builder: ColumnBuilder.() -> Unit): Column<R> = ColumnBuilderImpl().run {
+            builder(this)
+
+            InternalColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+        }
     }
 
-    private inner class InternalColumn<R>(
+    protected open inner class InternalColumn<R>(
             override val header        : View?,
-            override val headerPosition: (Constraints.() -> Unit)? = null,
+            override var headerAlignment: (Constraints.() -> Unit)? = null,
                      val itemGenerator : ItemGenerator<R>,
-            override val cellPosition  : (Constraints.() -> Unit)? = null,
+            override var cellAlignment  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
             override val minWidth      : Double  = 0.0,
             override val maxWidth      : Double? = null,
@@ -82,11 +77,7 @@ open class Table<T, M: ListModel<T>>(
         override var width = preferredWidth ?: minWidth
             set(new) {
                 field = max(minWidth, new).let {
-                    if (maxWidth != null) {
-                        min(maxWidth, it)
-                    } else {
-                        it
-                    }
+                    maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
                 }
             }
 
@@ -201,12 +192,12 @@ open class Table<T, M: ListModel<T>>(
             index = myNewIndex
         }
 
-        val view = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), itemGenerator, selectionModel).apply {
+        val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), itemGenerator, selectionModel).apply {
             acceptsThemes = false
         }
 
         fun behavior(behavior: TableBehavior<T>?) {
-            behavior?.let {
+            if (behavior != null) {
                 view.behavior = object : ListBehavior<R> {
                     override val generator: ListBehavior.RowGenerator<R>
                         get() = object : ListBehavior.RowGenerator<R> {
@@ -239,6 +230,11 @@ open class Table<T, M: ListModel<T>>(
 
             doLayout()
         }
+
+////    var <T: Table<R,*>, R> T.behavior: TableBehavior<R>?
+//    var Table<T,M>.behavior: TableBehavior<T>?
+//        get(     ) = behavior_
+//        set(value) { behavior_ = value }
 
     var behavior = null as TableBehavior<T>?
         set(new) {
@@ -299,7 +295,7 @@ open class Table<T, M: ListModel<T>>(
 
     fun contains(value: T) = value in model
 
-    private val internalColumns = mutableListOf<InternalColumn<*>>()
+    protected val internalColumns = mutableListOf<InternalColumn<*>>()
 
     init {
         ColumnFactoryImpl().apply(block)

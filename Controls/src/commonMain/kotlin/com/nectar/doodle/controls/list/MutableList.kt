@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
@@ -8,12 +9,6 @@ import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.utils.size
 
-
-interface EditOperation<T> {
-    operator fun invoke(): View?
-    fun complete(): T?
-    fun cancel()
-}
 
 interface ListEditor<T> {
     fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>

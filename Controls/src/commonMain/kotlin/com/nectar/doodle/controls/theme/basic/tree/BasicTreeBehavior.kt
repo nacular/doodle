@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.tree
 
+import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.TextField
@@ -10,7 +11,6 @@ import com.nectar.doodle.controls.theme.basic.ContentGenerator
 import com.nectar.doodle.controls.theme.basic.SelectableTreeKeyHandler
 import com.nectar.doodle.controls.theme.basic.SimpleTreeRowIcon
 import com.nectar.doodle.controls.theme.basic.TreeRow
-import com.nectar.doodle.controls.tree.EditOperation
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor

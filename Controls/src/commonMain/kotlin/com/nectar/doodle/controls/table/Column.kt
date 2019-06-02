@@ -8,10 +8,10 @@ interface Column<T> {
     val width         : Double
     val minWidth      : Double
     val maxWidth      : Double?
-    var preferredWidth: Double?
 
-    val cellPosition  : (Constraints.() -> Unit)?
-    val headerPosition: (Constraints.() -> Unit)?
+    var preferredWidth : Double?
+    var cellAlignment  : (Constraints.() -> Unit)?
+    var headerAlignment: (Constraints.() -> Unit)?
 
     fun moveBy(x: Double)
     fun resetPosition()

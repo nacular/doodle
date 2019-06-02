@@ -160,18 +160,11 @@ class TreeTable<T, M: TreeModel<T>>(
     }
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(
-                header        : View?,
-                headerPosition: (Constraints.() -> Unit)?,
-                width         : Double?,
-                minWidth      : Double,
-                maxWidth      : Double?,
-                cellGenerator : ItemGenerator<R>,
-                cellPosition  : (Constraints.() -> Unit)?,
-                extractor     : (T) -> R
-        ): Column<R> {
-            return if (!::tree.isInitialized) {
-                InternalTreeColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemGenerator<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+            builder(this)
+
+            if (!::tree.isInitialized) {
+                InternalTreeColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also {
                     internalColumns += it
                     tree = it.view.apply {
                         expanded += { _: Tree<*, *>, paths: Set<Path<Int>> ->
@@ -184,16 +177,16 @@ class TreeTable<T, M: TreeModel<T>>(
                     }
                 }
             } else {
-                InternalListColumn(header, headerPosition, cellGenerator, cellPosition, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+                InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
             }
         }
     }
 
     private abstract inner class InternalColumn<R>(
             override val header        : View?,
-            override val headerPosition: (Constraints.() -> Unit)? = null,
+            override var headerAlignment: (Constraints.() -> Unit)? = null,
                      val cellGenerator : ItemGenerator<R>,
-            override val cellPosition  : (Constraints.() -> Unit)? = null,
+            override var cellAlignment  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
                          minWidth      : Double  = 0.0,
                          maxWidth      : Double? = null): Column<R>, ColumnSizePolicy.Column {

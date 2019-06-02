@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.tree
 
+import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
@@ -8,13 +9,6 @@ import com.nectar.doodle.utils.Path
 /**
  * Created by Nicholas Eddy on 12/13/18.
  */
-
-interface EditOperation<T> {
-    operator fun invoke(): View?
-
-    fun complete(): T?
-    fun cancel  ()
-}
 
 interface TreeEditor<T> {
     fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>

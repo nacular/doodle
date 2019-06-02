@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.theme.basic.table
 import com.nectar.doodle.controls.ItemGenerator
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.HeaderGeometry
+import com.nectar.doodle.controls.table.MutableTable
 import com.nectar.doodle.controls.table.Table
 import com.nectar.doodle.controls.table.TableBehavior
 import com.nectar.doodle.controls.table.TableBehavior.CellGenerator
@@ -32,6 +33,14 @@ import com.nectar.doodle.utils.SetObserver
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
+
+open class BasicCellGenerator<T>: CellGenerator<T> {
+    override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
+        is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
+        else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null)
+    }.apply { column.cellAlignment?.let { positioner = it } }
+}
+
 open class BasicTableBehavior<T>(
         private val focusManager         : FocusManager?,
         private val rowHeight            : Double = 20.0,
@@ -57,12 +66,7 @@ open class BasicTableBehavior<T>(
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
-    override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
-            is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
-            else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null)
-        }.apply { column.cellPosition?.let { positioner = it } }
-    }
+    override val cellGenerator = BasicCellGenerator<T>()
 
     override val headerPositioner = object: HeaderPositioner<T> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
@@ -76,7 +80,7 @@ open class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerPosition?.let { positioner = it } }
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerAlignment?.let { positioner = it } }
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
@@ -144,5 +148,31 @@ open class BasicTableBehavior<T>(
         movingColumns -= column
 
         columnDirty?.invoke(column)
+    }
+}
+
+class BasicMutableTableBehavior<T>(
+        focusManager         : FocusManager?,
+        rowHeight            : Double = 20.0,
+        headerColor          : Color? = lightgray,
+        evenRowColor         : Color? = white,
+        oddRowColor          : Color? = lightgray.lighter().lighter(),
+        selectionColor       : Color? = green.lighter(),
+        blurredSelectionColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, blurredSelectionColor) {
+
+    override val cellGenerator = object: BasicCellGenerator<T>() {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
+            if (current !is ListRow<*>) {
+                val result = it as ListRow<*>
+
+                it.mouseChanged += object: MouseListener {
+                    override fun mouseReleased(event: MouseEvent) {
+                        if (event.clickCount == 2) {
+                            (table as? MutableTable)?.startEditing(result.index, column)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

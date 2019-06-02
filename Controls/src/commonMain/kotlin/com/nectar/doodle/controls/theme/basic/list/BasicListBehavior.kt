@@ -1,8 +1,8 @@
 package com.nectar.doodle.controls.theme.basic.list
 
+import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ToStringItemGenerator
-import com.nectar.doodle.controls.list.EditOperation
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
@@ -59,10 +59,11 @@ private class MutableBasicItemGenerator<T>(focusManager: FocusManager?, textMetr
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
 
-            it.mouseChanged += object: MouseListener {
+            it.mouseFilter += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
-                    if (event.clickCount == 2) {
-                        (list as MutableList).startEditing(result.index)
+                    if (list.selected(result.index)) {
+                        (list as? MutableList)?.startEditing(result.index)
+                        event.consume()
                     }
                 }
             }
