@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.table
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
@@ -33,7 +33,7 @@ open class Table<T, M: ListModel<T>>(
                       block         : ColumnFactory<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemGenerator<R>, builder: ColumnBuilder.() -> Unit): Column<R> = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit): Column<R> = ColumnBuilderImpl().run {
             builder(this)
 
             InternalColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
@@ -43,7 +43,7 @@ open class Table<T, M: ListModel<T>>(
     protected open inner class InternalColumn<R>(
             override val header        : View?,
             override var headerAlignment: (Constraints.() -> Unit)? = null,
-                     val itemGenerator : ItemGenerator<R>,
+                     val itemGenerator : ItemVisualizer<R>,
             override var cellAlignment  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
             override val minWidth      : Double  = 0.0,
@@ -291,7 +291,7 @@ open class Table<T, M: ListModel<T>>(
 
     val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    val selectionChanged: Pool<SetObserver<Table<T, *>, Int>> = SetPool()
+    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
 
     fun contains(value: T) = value in model
 
@@ -300,7 +300,7 @@ open class Table<T, M: ListModel<T>>(
     init {
         ColumnFactoryImpl().apply(block)
 
-        internalColumns += InternalColumn(header = null, itemGenerator = object : ItemGenerator<String> {
+        internalColumns += InternalColumn(header = null, itemGenerator = object : ItemVisualizer<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
@@ -370,9 +370,9 @@ open class Table<T, M: ListModel<T>>(
         }
     })
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
+    protected open val selectionChanged_: SetObserver<Int> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(this, removed, added)
+            it(set, removed, added)
         }
     }
 

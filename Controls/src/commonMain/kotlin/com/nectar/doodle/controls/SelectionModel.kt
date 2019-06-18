@@ -43,14 +43,14 @@ interface SelectionModel<T>: Iterable<T> {
     fun containsAll(items: Collection<T>): Boolean
     fun toggle     (items: Collection<T>): Boolean
 
-    val changed: Pool<SetObserver<SelectionModel<T>, T>>
+    val changed: Pool<SetObserver<T>>
 }
 
 open class MultiSelectionModel<T>: SelectionModel<T> {
 
     private val set = LinkedHashSet<T>()
     private var anchor_: T? = null
-    protected val observableSet by lazy { ObservableSet(this as SelectionModel<T>, set) }
+    protected val observableSet by lazy { ObservableSet(set) }
 
     init {
         observableSet.changed += { set, removed, added ->

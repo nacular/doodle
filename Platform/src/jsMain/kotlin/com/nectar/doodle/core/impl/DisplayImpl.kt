@@ -24,17 +24,12 @@ import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
-import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.observable
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
-    private class ZOrderObserversImpl(mutableSet: MutableSet<(child: View, old: Int, new: Int) -> Unit> = mutableSetOf()): SetPool<(child: View, old: Int, new: Int) -> Unit>(mutableSet) {
-        operator fun invoke(child: View, old: Int, new: Int) = delegate.forEach { it(child, old, new) }
-    }
-
     private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         size = Size(rootElement.width, rootElement.height)
     }
@@ -50,7 +45,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         doLayout()
     }
 
-    override val children by lazy { ObservableList<Display, View>(this).apply {
+    override val children by lazy { ObservableList<View>().apply {
         changed += { _,_,added,_ ->
             added.forEach { item ->
                 filterIndexed { index, view -> index != item.key && view == item.value }.forEach { remove(it) }
@@ -121,8 +116,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         var topZOrder = 0
 
         children.reversed().forEach {
-            if (it.visible && at in it && (result == null || it.zOrder < topZOrder)) {
-                result = it
+            if (it.visible && at in it && (result == null || it.zOrder > topZOrder)) {
+                result    = it
                 topZOrder = it.zOrder
             }
         }

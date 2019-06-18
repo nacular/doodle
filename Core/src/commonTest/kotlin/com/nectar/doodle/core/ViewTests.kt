@@ -63,12 +63,8 @@ class ViewTests {
                 View::idealSize           to null,
                 View::displayRect         to Empty,
                 View::minimumSize         to Size.Empty,
-                View::monitorsMouse       to false,
                 View::foregroundColor     to null,
                 View::backgroundColor     to null,
-                View::monitorsKeyboard    to false,
-                View::monitorsMouseScroll to false,
-                View::monitorsMouseMotion to false,
                 View::monitorsDisplayRect to false
         ).forEach { validateDefault(it.key, it.value) }
     }
@@ -97,12 +93,8 @@ class ViewTests {
         validateSetter(View::focusable,           false                           )
         validateSetter(View::idealSize,           Size(20.0, 37.6)                )
         validateSetter(View::minimumSize,         Size.Empty                      )
-        validateSetter(View::monitorsMouse,       false                           )
         validateSetter(View::foregroundColor,     red                             )
         validateSetter(View::backgroundColor,     green                           )
-        validateSetter(View::monitorsKeyboard,    false                           )
-        validateSetter(View::monitorsMouseScroll, false                           )
-        validateSetter(View::monitorsMouseMotion, false                           )
         validateSetter(View::monitorsDisplayRect, false                           )
     }
 

@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.list
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
@@ -42,7 +42,7 @@ interface ListBehavior<T>: Behavior<List<T, *>> {
 
 open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemGenerator : ItemGenerator<T>?    = null,
+                       val itemGenerator : ItemVisualizer<T>?    = null,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true,
         private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
@@ -52,10 +52,10 @@ open class List<T, out M: ListModel<T>>(
 
     fun contains(value: T) = value in model
 
-    val selectionChanged: Pool<SetObserver<List<T, *>, Int>> = SetPool()
+    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
 
     @Suppress("PropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
+    private val selectionChanged_: SetObserver<Int> = { set,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 this[lastSelection]?.let {
@@ -67,7 +67,7 @@ open class List<T, out M: ListModel<T>>(
         }
 
         (selectionChanged as SetPool).forEach {
-            it(this, removed, added)
+            it(set, removed, added)
         }
 
         children.batch {
@@ -236,7 +236,7 @@ open class List<T, out M: ListModel<T>>(
     companion object {
         operator fun invoke(
                 progression   : IntProgression,
-                itemGenerator : ItemGenerator<Int>,
+                itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
@@ -244,7 +244,7 @@ open class List<T, out M: ListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : ItemGenerator<T>,
+                itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10): List<T, ListModel<T>> =

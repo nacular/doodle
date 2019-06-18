@@ -14,7 +14,6 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.utils.MutableTreeSet
-import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ifTrue
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
@@ -159,7 +158,7 @@ class RenderManagerImpl(
                 view.zOrderChanged              += zOrderChanged_
                 view.transformChanged           += transformChanged_
                 view.visibilityChanged          += visibilityChanged_
-                view.children_.changed          += childrenChanged_
+                view.childrenChanged_           += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
             }
 
@@ -352,7 +351,7 @@ class RenderManagerImpl(
         view.zOrderChanged              -= zOrderChanged_
         view.transformChanged           -= transformChanged_
         view.visibilityChanged          -= visibilityChanged_
-        view.children_.changed          -= childrenChanged_
+        view.childrenChanged_           -= childrenChanged_
         view.displayRectHandlingChanged -= displayRectHandlingChanged_
 
         unregisterDisplayRectMonitoring(view)
@@ -374,9 +373,7 @@ class RenderManagerImpl(
         }
     }
 
-    private fun childrenChanged(list: ObservableList<View, View>, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) {
-        val parent = list.source
-
+    private fun childrenChanged(parent: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) {
         removed.values.forEach { childRemoved(parent, it) }
         added.values.forEach   { childAdded  (parent, it) }
 
@@ -388,9 +385,9 @@ class RenderManagerImpl(
             }
         }
 
-        if (removed.isEmpty() && added.isEmpty()) {
-            return
-        }
+//        if (removed.isEmpty() && added.isEmpty()) {
+//            return
+//        }
 
         if (parent.visible && !parent.size.empty) {
             parent.revalidate_()

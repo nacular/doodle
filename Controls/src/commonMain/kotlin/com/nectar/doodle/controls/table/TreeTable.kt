@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.table
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
@@ -23,6 +23,7 @@ import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.utils.Cancelable
+import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -106,13 +107,13 @@ fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T
     override fun iterator() = this@map.iterator().mapNotNull(mapper)
 
     // FIXME: This is pretty inefficient
-    override val changed: Pool<SetObserver<SelectionModel<R>, R>> = SetPool()
+    override val changed: Pool<SetObserver<R>> = SetPool()
 
     init {
-        this@map.changed += { _, removed, added ->
-            // FIXME: This isn't correct since the underlying set isn't used when notifying listeners
+        this@map.changed += { set, removed, added ->
+            // FIXME: Can this be optimized?
             (changed as SetPool).forEach {
-                it(this, removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
+                it(ObservableSet(set.mapNotNull(mapper).toMutableSet()), removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
             }
         }
     }
@@ -160,7 +161,7 @@ class TreeTable<T, M: TreeModel<T>>(
     }
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemGenerator<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             if (!::tree.isInitialized) {
@@ -185,7 +186,7 @@ class TreeTable<T, M: TreeModel<T>>(
     private abstract inner class InternalColumn<R>(
             override val header        : View?,
             override var headerAlignment: (Constraints.() -> Unit)? = null,
-                     val cellGenerator : ItemGenerator<R>,
+                     val cellGenerator : ItemVisualizer<R>,
             override var cellAlignment  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
                          minWidth      : Double  = 0.0,
@@ -340,7 +341,7 @@ class TreeTable<T, M: TreeModel<T>>(
     private inner class InternalTreeColumn<R>(
             header        : View?,
             headerPosition: (Constraints.() -> Unit)?,
-            cellGenerator : ItemGenerator<R>,
+            cellGenerator : ItemVisualizer<R>,
             cellPosition  : (Constraints.() -> Unit)?,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
@@ -402,7 +403,7 @@ class TreeTable<T, M: TreeModel<T>>(
     private inner class InternalListColumn<R>(
             header        : View?,
             headerPosition: (Constraints.() -> Unit)? = null,
-            cellGenerator : ItemGenerator<R>,
+            cellGenerator : ItemVisualizer<R>,
             cellPosition  : (Constraints.() -> Unit)? = null,
             preferredWidth: Double? = null,
             minWidth      : Double  = 0.0,
@@ -573,14 +574,14 @@ class TreeTable<T, M: TreeModel<T>>(
 
     val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    val selectionChanged: Pool<SetObserver<TreeTable<T, *>, Path<Int>>> = SetPool()
+    val selectionChanged: Pool<SetObserver<Path<Int>>> = SetPool()
 
     private val internalColumns = mutableListOf<InternalColumn<*>>()
 
     init {
         ColumnFactoryImpl().apply(block)
 
-        internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemGenerator<String> {
+        internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
@@ -653,9 +654,9 @@ class TreeTable<T, M: TreeModel<T>>(
     }
 
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
+    protected open val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(this, removed, added)
+            it(set, removed, added)
         }
     }
 

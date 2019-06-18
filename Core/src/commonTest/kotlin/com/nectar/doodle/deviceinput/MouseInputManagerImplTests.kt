@@ -163,27 +163,6 @@ class MouseInputManagerImplTests {
         verify(exactly = 5) { inputService.cursor = Progress }
     }
 
-    @Test @JsName("mouseDownNoHandler")
-    fun `mouse down, no handler`() {
-        val display      = display()
-        val inputService = mockk<MouseInputService>(relaxed = true)
-        val child        = spyk(view())
-
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
-
-        display.children += child
-
-        val manager = MouseInputManagerImpl(display, inputService)
-
-        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
-
-        verify(exactly = 2) { inputService.toolTipText = "" }
-
-        verify(exactly = 0) { child.handleMouseEvent_(any()) }
-    }
-
     @Test @JsName("mouseDownNoHit")
     fun `mouse down, no hit`() {
         val display      = display()
@@ -202,7 +181,7 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
 
-        verify(exactly = 2) { inputService.toolTipText = "" }
+        verify(atLeast = 2) { inputService.toolTipText = "" }
 
         verify(exactly = 0) { child.handleMouseEvent_(any()) }
     }
@@ -225,9 +204,9 @@ class MouseInputManagerImplTests {
 
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
-        child.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        child.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
     }
 
     @Test @JsName("mouseDownInformsParentHandler")
@@ -251,9 +230,9 @@ class MouseInputManagerImplTests {
 
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
-        parent.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        parent.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
     }
 
     @Test @JsName("mouseDragInformsHandler")
@@ -276,11 +255,11 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_      (MouseEvent(child, Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
-            child.handleMouseMotionEvent_(MouseEvent(child, Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_      (MouseEvent(child, child, Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
+            child.handleMouseMotionEvent_(MouseEvent(child, child, Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
 
@@ -306,8 +285,8 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
-            child.handleMouseEvent_      (MouseEvent(child, Enter,     Point( 1.0,  1.0), Button1, 1, emptySet()))
-            child.handleMouseMotionEvent_(MouseEvent(child, Type.Move, Point(11.0, 11.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_      (MouseEvent(child, child, Enter,     Point( 1.0,  1.0), Button1, 1, emptySet()))
+            child.handleMouseMotionEvent_(MouseEvent(child, child, Type.Move, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
 
@@ -330,12 +309,12 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Click, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Click, Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -358,12 +337,12 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
         }
     }
 
@@ -386,11 +365,11 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -413,8 +392,8 @@ class MouseInputManagerImplTests {
         manager.changed(SystemMouseEvent(Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -436,11 +415,11 @@ class MouseInputManagerImplTests {
 
         manager.changed(SystemMouseEvent(Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
-        verify(exactly = 1) { inputService.toolTipText = "" }
+        verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handleMouseEvent_(MouseEvent(child, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
-            child.handleMouseEvent_(MouseEvent(child, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
 

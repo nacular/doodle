@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -25,7 +25,7 @@ import kotlin.math.max
 class ListRow<T>(private var list          : Selectable<Int>,
                  private var row           : T,
                          var index         : Int,
-                 private val itemGenerator : ItemGenerator<T>,
+                 private val itemGenerator : ItemVisualizer<T>,
                  private val evenRowColor  : Color? = null,
                  private val oddRowColor   : Color? = evenRowColor?.darker(),
                  private val selectionColor: Color? = green): View() {

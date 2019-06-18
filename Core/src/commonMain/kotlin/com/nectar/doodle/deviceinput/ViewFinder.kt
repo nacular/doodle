@@ -17,9 +17,8 @@ class ViewFinderImpl(private val display: Display): ViewFinder {
         var view     = display.child(at)
 
         while(view != null) {
-            newPoint -= view.position
-
-            view = view.child_(at = newPoint) ?: break
+            newPoint = view.toLocal(newPoint, view.parent)
+            view     = view.child_(at = newPoint) ?: break
         }
 
         return view

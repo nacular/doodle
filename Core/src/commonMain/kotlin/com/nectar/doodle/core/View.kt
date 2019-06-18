@@ -50,6 +50,8 @@ private typealias BooleanObservers = PropertyObservers<View, Boolean>
 
 private typealias ZOrderObservers = PropertyObservers<View, Int>
 
+internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) -> Unit
+
 /**
  * The smallest unit of displayable, interactive content within the framework.
  * [View]s are the visual entities used to display components for an application.
@@ -61,6 +63,10 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
  * @constructor
  */
 abstract class View protected constructor() {
+    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
+        operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
+    }
+
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
@@ -231,23 +237,27 @@ abstract class View protected constructor() {
         if (renderManager!= null) doLayout()
     }
 
+    internal val childrenChanged_: Pool<ChildObserver> by lazy { ChildObserversImpl() }
+
     internal val children_ get() = children
 
     /** List of child Views within this one */
     protected open val children by lazy {
-        ObservableList<View, View>(this).also {
-            it.changed += { _, removed, added, _ ->
+        ObservableList<View>().apply {
+            changed += { _, removed, added, moved ->
                 removed.values.forEach {
                     it.parent   = null
                     it.zOrder   = 0
                     it.position = Origin
                 }
                 added.values.forEach {
-                    require(it !== this         ) { "cannot add to self"                }
-                    require(!it.ancestorOf(this)) { "cannot add ancestor to descendant" }
+                    require(it !== this@View) { "cannot add to self"                }
+                    require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
 
-                    it.parent = this
+                    it.parent = this@View
                 }
+
+                (childrenChanged_ as ChildObserversImpl).invoke(removed, added, moved)
             }
         }
     }
@@ -364,7 +374,11 @@ abstract class View protected constructor() {
         var topZOrder = 0
 
         children.reversed().forEach {
-            if (it.visible && at in it && (result == null || it.zOrder < topZOrder)) {
+            if (it.cursor == Cursor.Grabbing && at !in it) {
+                println("here")
+            }
+
+            if (it.visible && at in it && (result == null || it.zOrder > topZOrder)) {
                 result    = it
                 topZOrder = it.zOrder
             }
@@ -413,7 +427,7 @@ abstract class View protected constructor() {
      * @param point The point to check
      * @return true if the point falls within the View
      */
-    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false //point in bounds
+    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.
@@ -438,15 +452,11 @@ abstract class View protected constructor() {
         }
     }
 
-    fun toLocal(point: Point, from: View): Point {
-        if (from === this) {
-            return point
-        }
-
-        val source      = from.toAbsolute(point )
-        val destination = this.toAbsolute(Origin)
-
-        return source - destination
+    fun toLocal(point: Point, from: View?): Point = when {
+        from ==  null        -> fromAbsolute(point)
+        from === this        -> point
+        from === this.parent -> (transform.inverse?.invoke(point) ?: point) - position
+        else                 -> from.toAbsolute(point) - this.toAbsolute(Origin)
     }
 
     fun toAbsolute  (point: Point): Point = (parent?.toAbsolute  (point) ?: point).let { transform.inverse?.invoke(it) ?: it } + position

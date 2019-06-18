@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.table
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -17,7 +17,7 @@ data class HeaderGeometry(val y: Double, val height: Double)
 
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A>, current: View? = null): View
     }
 
     interface RowPositioner<T> {
@@ -57,11 +57,11 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
 
 interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     interface TreeCellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A>, current: View? = null): View
     }
 
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemGenerator<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A>, current: View? = null): View
     }
 
     interface RowPositioner<T> {

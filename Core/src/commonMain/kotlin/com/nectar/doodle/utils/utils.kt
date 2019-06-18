@@ -24,3 +24,8 @@ fun Boolean.ifFalse(block: () -> Unit): Boolean {
 
     return this
 }
+
+fun <T> MutableList<T>.addOrAppend(at: Int, value: T) = when {
+    at < size -> add(at, value)
+    else      -> add(    value).run { Unit }
+}

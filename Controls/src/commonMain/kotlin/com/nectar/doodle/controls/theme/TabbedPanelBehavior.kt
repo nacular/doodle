@@ -32,4 +32,6 @@ interface TabbedPanelBehavior<T> {
     fun uninstall(panel: TabbedPanel<T>, container: Container)
 
     fun selectionChanged(panel: TabbedPanel<T>, container: Container, new: T, newIndex: Int, old: T?, oldIndex: Int?)
+
+    fun tabsChanged(panel: TabbedPanel<T>, container: Container, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
 }

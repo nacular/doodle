@@ -83,7 +83,7 @@ class RenderManagerImplTests {
 
         val display = display(view())
 
-        val slot = slot<ListObserver<Display, View>>()
+        val slot = slot<ListObserver<View>>()
 
         every { display.children.changed.plusAssign(capture(slot)) } just Runs
 
@@ -543,7 +543,7 @@ class RenderManagerImplTests {
     }
 
     private fun display(vararg children: View): Display = mockk<Display>(relaxed = true).apply {
-        val displayChildren = ObservableList<Display, View>(this)
+        val displayChildren = ObservableList<View>()
 
         displayChildren.addAll(children)
 

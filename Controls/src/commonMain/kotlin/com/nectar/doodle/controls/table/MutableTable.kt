@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.table
 
 import com.nectar.doodle.controls.EditOperation
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
@@ -23,7 +23,7 @@ class MutableTable<T, M: MutableListModel<T>>(
     private val editors = mutableMapOf<Column<*>, ((T) -> T)?>()
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemGenerator<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also {

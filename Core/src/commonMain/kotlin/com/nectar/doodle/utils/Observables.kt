@@ -1,5 +1,7 @@
 package com.nectar.doodle.utils
 
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -9,10 +11,10 @@ import kotlin.reflect.KProperty
  */
 
 
-typealias SetObserver     <S, T> = (source: S, removed: Set<T>,      added: Set<T>                                    ) -> Unit
-typealias ListObserver    <S, T> = (source: ObservableList<S, T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
-typealias ChangeObserver  <S>    = (source: S                                                                                            ) -> Unit
-typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                            ) -> Unit
+typealias SetObserver     <T>    = (source: ObservableSet<T>,  removed: Set<T>,      added: Set<T>                                    ) -> Unit
+typealias ListObserver    <T>    = (source: ObservableList<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+typealias ChangeObserver  <S>    = (source: S                                                                                         ) -> Unit
+typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                         ) -> Unit
 
 interface Pool<in T> {
     operator fun plusAssign (item: T)
@@ -35,10 +37,11 @@ class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<
     operator fun invoke(old: T, new: T) = delegate.forEach { it(source, old, new) }
 }
 
-class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
+// FIXME: Expose factory methods instead to avoid the case where the given list is modified
+class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
 
-    private val changed_ = SetPool<ListObserver<S, E>>()
-    val changed: Pool<ListObserver<S, E>> = changed_
+    private val changed_ = SetPool<ListObserver<E>>()
+    val changed: Pool<ListObserver<E>> = changed_
 
     fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
@@ -79,6 +82,29 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
 
     fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
 
+    private data class Move<T>(val from: Int, val to:Int, val value: T) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Move<*>) return false
+
+//            if (value != other.value) return false
+
+            if (from !in listOf(other.from, other.to  )) return false
+            if (to   !in listOf(other.to,   other.from)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            val first = min(from, to)
+            val last  = max(from, to)
+
+            var result = first
+            result = 31 * result + last
+            return result
+        }
+    }
+
     fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
         list.run(block)
     } else {
@@ -89,8 +115,8 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
             if (old != this) {
                 val removed       = mutableMapOf<Int, E>()
                 val added         = mutableMapOf<Int, E>()
-                val moved         = mutableMapOf<Int, Pair<Int, E>>()
-                var unusedIndexes = (0 until this.size).toSet()
+                val uniqueMoved   = mutableSetOf<Move<E>>()
+                val unusedIndexes = (0 until this.size).toMutableSet()
 
                 old.forEachIndexed { index, item ->
                     if (index >= this.size || this[index] != item) {
@@ -100,20 +126,20 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
                         when (newIndex) {
                             null -> removed[index] = item
                             else -> {
-                                moved[index]   = newIndex to item
-                                unusedIndexes -= newIndex
+                                uniqueMoved    += Move(from = index, to = newIndex, value = item)
+                                unusedIndexes.remove(newIndex)
                             }
                         }
                     }
                 }
 
                 removed.forEach { (removedIndex, _) ->
-                    moved.filterKeys { index -> index >= removedIndex }.entries.sortedBy { it.key }.forEach {
-                        if (it.key - 1 == it.value.first) {
-                            moved.remove(it.key)
+                    uniqueMoved.filter { it.from >= removedIndex }.sortedBy { it.to }.forEach { element ->
+                        if (element.from - 1 == element.to) {
+                            uniqueMoved.remove(element)
                         } else {
-                            moved[it.key - 1] = it.value
-                            moved.remove(it.key)
+                            uniqueMoved.remove(element)
+                            uniqueMoved.add(Move(element.from - 1, element.to, element.value))
                         }
                     }
                 }
@@ -125,19 +151,19 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
                         added[it] = item
 
                         // Adjust all the moves
-                        moved.filterKeys { index -> index >= it }.entries.sortedByDescending { it.key } .forEach {
-                            if (it.key + 1 == it.value.first) {
-                                moved.remove(it.key)
+                        uniqueMoved.filter { element -> element.from >= it }.sortedByDescending { it.to }.forEach { element ->
+                            if (element.from + 1 == element.to) {
+                                uniqueMoved.remove(element)
                             } else {
-                                moved[it.key + 1] = it.value
-                                moved.remove(it.key)
+                                uniqueMoved.remove(element)
+                                uniqueMoved.add(Move(element.from + 1, element.to, element.value))
                             }
                         }
                     }
                 }
 
                 changed_.forEach {
-                    it(this, removed, added, moved)
+                    it(this, removed, added, uniqueMoved.associate { it.from to (it.to to it.value) })
                 }
             }
         }
@@ -177,19 +203,18 @@ class ObservableList<S, E>(val source: S, val list: MutableList<E> = mutableList
     }
 }
 
-class AdaptingObservableSet<T, S, E>(source: S, delegate: ObservableSet<T, E>): ObservableSet<S, E>(source, delegate)
-
-open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
-    private val changed_ = SetPool<SetObserver<S, E>>()
-    val changed: Pool<SetObserver<S, E>> = changed_
+// FIXME: Expose factory methods instead to avoid the case where the given set is modified
+open class ObservableSet<E>(protected val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
+    private val changed_ = SetPool<SetObserver<E>>()
+    val changed: Pool<SetObserver<E>> = changed_
 
     override fun add(element: E) = set.add(element).ifTrue {
         changed_.forEach {
-            it(this.source, emptySet(), setOf(element))
+            it(this, emptySet(), setOf(element))
         }
     }
 
-    override fun remove(element: E) = set.remove(element).ifTrue { changed_.forEach { it(this.source, setOf(element), emptySet()) } }
+    override fun remove(element: E) = set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
 
     override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
 
@@ -207,7 +232,7 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
         set.run(block).also {
             if (old != this) {
                 changed_.forEach {
-                    it(this.source, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
+                    it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
                 }
             }
         }
@@ -219,7 +244,7 @@ open class ObservableSet<S, E>(val source: S, private val set: MutableSet<E> = m
         set.clear()
 
         changed_.forEach {
-            it(this.source, oldSet, emptySet())
+            it(this, oldSet, emptySet())
         }
     }
 }

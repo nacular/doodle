@@ -58,7 +58,7 @@ interface TreeLike: Selectable<Path<Int>> {
 
 open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
-        protected      val selectionModel: SelectionModel<Path<Int>>? = null,
+        protected      val selectionModel: SelectionModel<Path<Int>>? = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
         private        val cacheLength   : Int                        = 10): View(), TreeLike {
 
     override var rootVisible = false
@@ -100,9 +100,9 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-    val expanded        : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
-    val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
-    val selectionChanged: Pool<SetObserver<Tree<T, *>, Path<Int>>> by lazy { SetPool<SetObserver<Tree<T, *>, Path<Int>>>() }
+    val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
+    val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
+    val selectionChanged: Pool<SetObserver<Path<Int>>> by lazy { SetPool<SetObserver<Path<Int>>>() }
 
     override val firstSelection  get() = selectionModel?.first
     override val lastSelection   get() = selectionModel?.last
@@ -130,7 +130,7 @@ open class Tree<T, out M: TreeModel<T>>(
     protected var lastVisibleRow  = -1
 
     @Suppress("PrivatePropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
+    private val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 val item  = this[lastSelection]
@@ -145,7 +145,7 @@ open class Tree<T, out M: TreeModel<T>>(
         }
 
         (selectionChanged as SetPool).forEach {
-            it(this, removed, added)
+            it(set, removed, added)
         }
 
         children.batch {

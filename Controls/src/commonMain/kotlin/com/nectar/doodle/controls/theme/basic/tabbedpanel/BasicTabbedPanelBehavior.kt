@@ -17,12 +17,15 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.path
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.utils.addOrAppend
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -33,18 +36,21 @@ import kotlin.math.sqrt
 
 open class BasicTab<T>(private val textMetrics  : TextMetrics,
                        private val panel        : TabbedPanel<T>,
-                               val index        : Int,
+                               var index        : Int,
                        private val name         : String,
                        private val radius       : Double,
                        private val panelColor   : Color,
-                       private val selectedColor: Color): View() {
+                       private val selectedColor: Color,
+                       private val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
+                       private val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): View() {
     private var mouseOver = false
         set(new) {
             field = new
             if (!selected) backgroundColor = panelColor.lighter()
         }
 
-    private var mouseDown = false
+    private var mouseDown       = false
+    private var initialPosition = null as Point?
 
     private val selected get() = panel.selection == index
 
@@ -60,10 +66,33 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
 
     init {
         mouseChanged += object: MouseListener {
-            override fun mousePressed (event: MouseEvent) { mouseDown = true  }
+            override fun mousePressed (event: MouseEvent) { mouseDown = true; panel.selection = index; initialPosition = toLocal(event.location, event.target) }
             override fun mouseEntered (event: MouseEvent) { mouseOver = true  }
             override fun mouseExited  (event: MouseEvent) { mouseOver = false }
-            override fun mouseReleased(event: MouseEvent) { if (mouseDown) { panel.selection = index }; mouseDown = false }
+            override fun mouseReleased(event: MouseEvent) {
+                if (mouseDown) {
+                    mouseDown = false
+                    cursor    = null
+
+                    cancelMove(panel, index)
+                }
+
+                initialPosition = null
+            }
+        }
+
+        mouseMotionChanged += object: MouseMotionListener {
+            override fun mouseDragged(event: MouseEvent) {
+                initialPosition?.let {
+                    val delta = (toLocal(event.location, event.target) - it).x
+
+                    move(panel, index, delta)
+
+                    cursor = Cursor.Grabbing
+
+                    event.consume()
+                }
+            }
         }
 
         boundsChanged += { _,_,_ -> path = updatePath() }
@@ -100,17 +129,15 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
         }
     }
 
-    override fun contains(point: Point): Boolean {
-        return super.contains(point) && when (val localPoint = point - position) {
-            in Rectangle(radius, 0.0, width - 2 * radius, height) -> when (localPoint) {
-                in Rectangle(            radius, 0.0, radius, radius)     -> sqrt((Point(        2 * radius,          radius) - localPoint).run { x * x + y * y }) <= radius
-                in Rectangle(width - 2 * radius, 0.0, radius, radius)     -> sqrt((Point(width - 2 * radius,          radius) - localPoint).run { x * x + y * y }) <= radius
-                else                                                      -> true
-            }
-            in Rectangle(           0.0, height - radius, radius, radius) -> sqrt((Point(  0.0, height - radius) - localPoint).run { x * x + y * y }) >  radius
-            in Rectangle(width - radius, height - radius, radius, radius) -> sqrt((Point(width, height - radius) - localPoint).run { x * x + y * y }) >  radius
-            else                                                          -> false
+    override fun contains(point: Point) = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
+        in Rectangle(radius, 0.0, width - 2 * radius, height) -> when (localPoint) {
+            in Rectangle(            radius, 0.0, radius, radius)     -> sqrt((Point(        2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
+            in Rectangle(width - 2 * radius, 0.0, radius, radius)     -> sqrt((Point(width - 2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
+            else                                                      -> true
         }
+        in Rectangle(           0.0, height - radius, radius, radius) -> sqrt((Point(  0.0, height - radius) - localPoint).run { x * x + y * y }) >  radius
+        in Rectangle(width - radius, height - radius, radius, radius) -> sqrt((Point(width, height - radius) - localPoint).run { x * x + y * y }) >  radius
+        else                                                          -> false
     }
 
     private fun updatePath() = path(Point(0.0, height)).
@@ -139,7 +166,11 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
                                protected val tabColor     : Color  = Color(0xdee1e6u)): TabProducer<T> {
     override val spacing = -2 * tabRadius
 
-    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(item), tabRadius, tabColor, selectedColor).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(item), tabRadius, tabColor, selectedColor, move, cancelMove).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+
+    protected open val move = { _: TabbedPanel<T>, _: Int,_: Double -> }
+
+    protected open val cancelMove = { _: TabbedPanel<T>, _: Int -> }
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout() {
@@ -194,25 +225,55 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         val dirty = mutableSetOf<Int>()
 
         oldIndex?.let {
-            container.children[it + 1].visible = false
+            container.children.getOrNull(it + 1)?.visible = false
 
-            dirty += listOf(it, it - 1)
+            dirty += it
         }
 
         newIndex.let {
-            container.children[it + 1].visible = true
+            container.children.getOrNull(it + 1)?.visible = true
 
-            dirty += listOf(it, it - 1)
+            dirty += it
         }
 
         (container.children[0] as TabContainer<*>).apply {
-            oldIndex?.let{ children[it] }?.let { it.zOrder = 0 }
+            oldIndex?.let{ children.getOrNull(it) }?.let { it.zOrder = 0 }
 
-            newIndex.let { children[it] }.zOrder = 1
+            newIndex.let { children.getOrNull(it) }?.zOrder = 1
 
             dirty.forEach {
                 children.getOrNull(it)?.rerender()
             }
+        }
+    }
+
+    override fun tabsChanged(panel: TabbedPanel<T>, container: Container, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+        (container.first() as? TabContainer<T>)?.apply {
+            children.batch {
+                removed.keys.forEach { removeAt(it) }
+
+                added.forEach { (index, item) ->
+                    addOrAppend(index, tabProducer(panel, item, index))
+                }
+
+                moved.forEach { (oldIndex, new) ->
+                    addOrAppend(new.first, removeAt(oldIndex))
+                }
+
+                this.forEachIndexed { index, item ->
+                    (item as? BasicTab<*>)?.index = index // FIXME
+                }
+            }
+        }
+
+        removed.keys.forEach { container.children.removeAt(it + 1) }
+
+        added.forEach { (index, item) ->
+            container.children.addOrAppend(index + 1, displayer(item))
+        }
+
+        moved.forEach { (oldIndex, new) ->
+            container.children.addOrAppend(new.first + 1, container.children.removeAt(oldIndex + 1))
         }
     }
 

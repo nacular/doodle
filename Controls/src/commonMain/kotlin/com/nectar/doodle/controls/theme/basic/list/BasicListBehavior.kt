@@ -1,7 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.list
 
 import com.nectar.doodle.controls.EditOperation
-import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ToStringItemGenerator
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
@@ -30,6 +29,7 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.ObservableSet
 
 /**
  * Created by Nicholas Eddy on 3/20/18.
@@ -116,7 +116,7 @@ open class TextEditOperation<T>(
         private var index       : Int,
                     current     : View): TextField(), EditOperation<T> {
 
-    private val listSelectionChanged = { _:List<*, ListModel<*>>,_: Set<Int>,_:  Set<Int> ->
+    private val listSelectionChanged = { _:ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
         list.cancelEditing()
     }
 

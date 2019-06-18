@@ -12,6 +12,7 @@ import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
+import com.nectar.doodle.utils.addOrAppend
 
 /**
  * Created by Nicholas Eddy on 4/2/18.
@@ -20,7 +21,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remaining: T): View(), Iterable<T> {
     constructor(item: T, vararg remaining: T): this(Top, item, *remaining)
 
-    private val wrapper: Container = object: Container {
+    private val wrapper = object: Container {
         override var insets
             get(   ) = this@TabbedPanel.insets
             set(new) { this@TabbedPanel.insets = new }
@@ -57,7 +58,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
             }
         }
 
-    private val items = ObservableList<TabbedPanel<T>, T>(this)
+    private val items = ObservableList<T>()
 
     init {
         items += item
@@ -68,6 +69,9 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
         }
 
         items.changed += { _,removed,added,moved ->
+
+            behavior?.tabsChanged(this, wrapper, removed, added, moved)
+
             removed.forEach { (index, _) ->
                 selection = when {
                     selection >  index -> selection - 1
@@ -88,6 +92,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
                 selection = when (selection) {
                     in (from + 1)..(to   - 1) -> selection - 1
                     in (to   + 1)..(from - 1) -> selection + 1
+                    from                      -> to
                     else                      -> selection
                 }
             }
@@ -97,6 +102,8 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
+
+    override operator fun iterator() = items.iterator()
 
     val selectedItem: T get() = get(selection)!!
 
@@ -110,8 +117,6 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
 
     operator fun get(index: Int) = items.getOrNull(index)
 
-    override operator fun iterator() = items.iterator()
-
     fun add(item: T) = items.add(item)
 
     fun add(at: Int, item: T) = items.add(at, item)
@@ -121,6 +126,14 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
     fun remove(item: T) = items.remove(item)
 
     fun remove(at: Int) = items.removeAt(at)
+
+    fun move(item: T, to: Int) = items.batch {
+        val index = indexOf(item)
+
+        if (index >= 0 && index != to) {
+            addOrAppend(to, removeAt(index))
+        }
+    }
 
     operator fun set(at: Int, item: T) = items.set(at, item)
 }

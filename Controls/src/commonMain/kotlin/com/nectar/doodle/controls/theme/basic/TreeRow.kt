@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -35,7 +35,7 @@ private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraint
 
 private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
-interface ContentGenerator<T>: ItemGenerator<T> {
+interface ContentGenerator<T>: ItemVisualizer<T> {
     fun position(tree: TreeLike, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
         left    = parent.left
         centerY = parent.centerY

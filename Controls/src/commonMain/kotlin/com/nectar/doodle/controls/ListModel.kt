@@ -52,7 +52,7 @@ open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
 open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): SimpleListModel<T>(list), MutableListModel<T> {
 
-    private val list by lazy { ObservableList(this, list) }
+    private val list by lazy { ObservableList(list) }
 
     init {
         this.list.changed += { _,removed,added,moved ->

@@ -12,7 +12,7 @@ import kotlin.test.expect
 class ObservableSetTests {
     @Test @JsName("addNotifies")
     fun `add notifies`() {
-        validateChanges(ObservableSet<Int, Int>(10)) { set, changed ->
+        validateChanges(ObservableSet<Int>()) { set, changed ->
             set += 4
             set += 5
             set += listOf(6, 7, 8)
@@ -27,7 +27,7 @@ class ObservableSetTests {
 
     @Test @JsName("removeNotifies")
     fun `remove notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set -= 4
             set -= 5
             set -= listOf(6, 7, 8)
@@ -43,7 +43,7 @@ class ObservableSetTests {
 
     @Test @JsName("removeUnknownNoops")
     fun `remove unknown no-ops`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set -= 1
             set -= 2
             set -= listOf(0, 9, 10)
@@ -57,7 +57,7 @@ class ObservableSetTests {
 
     @Test @JsName("clearNotifies")
     fun `clear notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.clear()
 
             verify(exactly = 1) { changed(set, setOf(4, 5, 6, 7, 8), emptySet()) }
@@ -69,7 +69,7 @@ class ObservableSetTests {
 
     @Test @JsName("retainAllNotifies")
     fun `retainAll notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.retainAll(setOf(5, 6))
 
             verify(exactly = 1) { changed(set, setOf(4, 7, 8), emptySet()) }
@@ -81,7 +81,7 @@ class ObservableSetTests {
 
     @Test @JsName("replaceAllNoNewNotifies")
     fun `replace all no new notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(5, 6))
 
             verify(exactly = 1) { changed(set, setOf(4, 7, 8), emptySet()) }
@@ -93,7 +93,7 @@ class ObservableSetTests {
 
     @Test @JsName("replaceAllNewNotifies")
     fun `replace all new notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(1, 2, 3))
 
             verify(exactly = 1) { changed(set, setOf(4, 5, 6, 7, 8), setOf(1, 2, 3)) }
@@ -105,7 +105,7 @@ class ObservableSetTests {
 
     @Test @JsName("replaceAllSameNoops")
     fun `replace all same no-ops`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(4, 5, 6, 7, 8))
 
             verify(exactly = 0) { changed(any(), any(), any()) }
@@ -117,7 +117,7 @@ class ObservableSetTests {
 
     @Test @JsName("batchingNotifies")
     fun `batching notifies`() {
-        validateChanges(ObservableSet(10, mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
+        validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.batch {
                 remove(5)
                 remove(7)
@@ -128,8 +128,8 @@ class ObservableSetTests {
         }
     }
 
-    private fun <S, E> validateChanges(set: ObservableSet<S, E>, block: (ObservableSet<S, E>, SetObserver<S, E>) -> Unit) {
-        val changed = mockk<SetObserver<S, E>>(relaxed = true)
+    private fun <T> validateChanges(set: ObservableSet<T>, block: (ObservableSet<T>, SetObserver<T>) -> Unit) {
+        val changed = mockk<SetObserver<T>>(relaxed = true)
 
         set.changed += changed
 
@@ -140,7 +140,7 @@ class ObservableSetTests {
 class ObservableListTests {
     @Test @JsName("addNotifies")
     fun `add notifies`() {
-        validateChanges(ObservableList<Int, Int>(10)) { list, changed ->
+        validateChanges(ObservableList<Int>()) { list, changed ->
             list += 4
             list += 5
             list += listOf(6, 7, 8)
@@ -155,7 +155,7 @@ class ObservableListTests {
 
     @Test @JsName("insertNotifies")
     fun `insert notifies`() {
-        validateChanges(ObservableList<Int, Int>(10)) { list, changed ->
+        validateChanges(ObservableList<Int>()) { list, changed ->
             list += 4
             list += 6
             list.add(1, 5)
@@ -170,7 +170,7 @@ class ObservableListTests {
 
     @Test @JsName("setNotifies")
     fun `set notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list[1] = 10
             list[2] = 12
 
@@ -184,7 +184,7 @@ class ObservableListTests {
 
     @Test @JsName("removeNotifies")
     fun `remove notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list -= 4
             list.removeAt(0)
             list -= listOf(6, 7, 8)
@@ -200,7 +200,7 @@ class ObservableListTests {
 
     @Test @JsName("removeUnknownNoops")
     fun `remove unknown no-ops`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list -= 1
             list -= 2
             list -= listOf(0, 9, 10)
@@ -214,7 +214,7 @@ class ObservableListTests {
 
     @Test @JsName("clearNotifies")
     fun `clear notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.clear()
 
             verify(exactly = 1) { changed(list, mapOf(0 to 4, 1 to 5, 2 to 6, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
@@ -226,7 +226,7 @@ class ObservableListTests {
 
     @Test @JsName("addAllNotifies")
     fun `addAll notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.addAll(1, setOf(1, 2))
 
             verify(exactly = 1) { changed(list, emptyMap(), mapOf(1 to 1, 2 to 2), emptyMap()) }
@@ -238,7 +238,7 @@ class ObservableListTests {
 
     @Test @JsName("retainAllNotifies")
     fun `retainAll notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.retainAll(setOf(5, 6))
 
             verify(exactly = 1) { changed(list, mapOf(0 to 4, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
@@ -250,7 +250,7 @@ class ObservableListTests {
 
     @Test @JsName("replaceAllNoNewNotifies")
     fun `replace all no new notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(5, 6))
 
             verify(exactly = 1) { changed(list, mapOf(0 to 4, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
@@ -262,7 +262,7 @@ class ObservableListTests {
 
     @Test @JsName("replaceAllNewNotifies")
     fun `replace all new notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(1, 2, 3))
 
             verify(exactly = 1) { changed(list, mapOf(0 to 4, 1 to 5, 2 to 6, 3 to 7, 4 to 8), mapOf(0 to 1, 1 to 2, 2 to 3), emptyMap()) }
@@ -274,7 +274,7 @@ class ObservableListTests {
 
     @Test @JsName("replaceAllSameNoops")
     fun `replace all same no-ops`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(4, 5, 6, 7, 8))
 
             verify(exactly = 0) { changed(any(), any(), any(), any()) }
@@ -286,7 +286,7 @@ class ObservableListTests {
 
     @Test @JsName("batchingNotifies")
     fun `batching notifies`() {
-        validateChanges(ObservableList(10, mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.batch {
                 remove(8)
                 addAll(listOf(3, 67))
@@ -300,8 +300,23 @@ class ObservableListTests {
         }
     }
 
-    private fun <S, E> validateChanges(list: ObservableList<S, E>, block: (ObservableList<S, E>, ListObserver<S, E>) -> Unit) {
-        val changed = mockk<ListObserver<S, E>>(relaxed = true)
+    @Test @JsName("moveNotifies")
+    fun `move notifies`() {
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.batch {
+                remove('a')
+                add(2, 'a')
+            }
+
+            verify(exactly = 1) { changed(list, emptyMap(), emptyMap(), mapOf(0 to (2 to 'a'))) }
+
+            expect(4    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+    }
+
+    private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<T>) -> Unit) {
+        val changed = mockk<ListObserver<T>>(relaxed = true)
 
         list.changed += changed
 

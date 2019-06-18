@@ -67,7 +67,7 @@ interface Behavior<in T: View> {
  */
 interface ThemeManager {
     /** Convenient set of [Theme]s that an application can manage */
-    val themes: ObservableSet<ThemeManager, Theme>
+    val themes: ObservableSet<Theme>
 
     /** The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [View]s therein. */
     var selected: Theme?
@@ -78,7 +78,7 @@ abstract class InternalThemeManager: ThemeManager {
 }
 
 class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
-    override val themes by lazy { ObservableSet<ThemeManager, Theme>(this) }
+    override val themes by lazy { ObservableSet<Theme>() }
 
     override var selected = null as Theme?
         set(new) {

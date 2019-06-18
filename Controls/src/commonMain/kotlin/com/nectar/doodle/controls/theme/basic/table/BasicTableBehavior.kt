@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.table
 
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.HeaderGeometry
 import com.nectar.doodle.controls.table.MutableTable
@@ -35,7 +35,7 @@ import com.nectar.doodle.utils.SetObserver
  */
 
 open class BasicCellGenerator<T>: CellGenerator<T> {
-    override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?): View = when (current) {
+    override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A>, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
         else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null)
     }.apply { column.cellAlignment?.let { positioner = it } }
@@ -54,7 +54,7 @@ open class BasicTableBehavior<T>(
     override var headerDirty: ((         ) -> Unit)? = null
     override var columnDirty: ((Column<*>) -> Unit)? = null
 
-    private val selectionChanged: SetObserver<Table<T, *>, Int> = { _,_,_ ->
+    private val selectionChanged: SetObserver<Int> = { _,_,_ ->
         bodyDirty?.invoke()
     }
 
@@ -161,7 +161,7 @@ class BasicMutableTableBehavior<T>(
         blurredSelectionColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, blurredSelectionColor) {
 
     override val cellGenerator = object: BasicCellGenerator<T>() {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemGenerator<A>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
             if (current !is ListRow<*>) {
                 val result = it as ListRow<*>
 

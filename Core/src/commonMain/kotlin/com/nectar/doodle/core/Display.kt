@@ -31,7 +31,7 @@ interface Display: Iterable<View> {
     var insets: Insets
 
     /** The list of top-level items added to the Display */
-    val children: ObservableList<Display, View>
+    val children: ObservableList<View>
 
     /** Fires when the display cursor changes */
     val cursorChanged: PropertyObservers<Display, Cursor?>

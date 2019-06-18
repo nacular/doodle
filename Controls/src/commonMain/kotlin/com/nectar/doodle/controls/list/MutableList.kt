@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.EditOperation
-import com.nectar.doodle.controls.ItemGenerator
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
@@ -16,7 +16,7 @@ interface ListEditor<T> {
 
 open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
-        itemGenerator : ItemGenerator<T>?    = null,
+        itemGenerator : ItemVisualizer<T>?    = null,
         selectionModel: SelectionModel<Int>? = null,
         fitContent    : Boolean              = true,
         cacheLength   : Int                  = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, cacheLength) {
@@ -173,7 +173,7 @@ open class MutableList<T, M: MutableListModel<T>>(
     companion object {
         operator fun invoke(
                 progression   : IntProgression,
-                itemGenerator : ItemGenerator<Int>,
+                itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10) =
@@ -181,7 +181,7 @@ open class MutableList<T, M: MutableListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : ItemGenerator<T>,
+                itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 cacheLength   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =

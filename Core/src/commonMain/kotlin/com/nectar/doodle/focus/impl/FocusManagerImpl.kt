@@ -129,7 +129,7 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
         view.focusabilityChanged -= focusabilityChanged
     }
 
-    private val childrenChanged: (ObservableList<View, View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { list,removed,added,_ ->
+    private val childrenChanged: (ObservableList<View>, Map<Int, View>, Map<Int, View>, Map<Int, Pair<Int, View>>) -> Unit = { list,removed,added,_ ->
         added.values.forEach {
             if (it === focusOwner || it in ancestors) {
                 val owner = focusOwner
@@ -147,8 +147,8 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
                 if (owner != null) {
                     val sibling = max(0, index - 1)
 
-                    if (sibling < list.source.children_.size) {
-                        moveFocusForward(list.source.children_[sibling])
+                    if (sibling < list.size) {
+                        moveFocusForward(list[sibling])
                     }
                 }
 
