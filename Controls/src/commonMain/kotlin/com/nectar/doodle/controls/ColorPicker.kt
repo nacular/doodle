@@ -12,6 +12,7 @@ import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.HsvColor
 import com.nectar.doodle.drawing.LinearGradientBrush
+import com.nectar.doodle.drawing.LinearGradientBrush.Stop
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -24,6 +25,8 @@ import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.layout.max
 import com.nectar.doodle.layout.min
 import com.nectar.doodle.system.Cursor.Companion.Crosshair
+import com.nectar.doodle.system.Cursor.Companion.Grab
+import com.nectar.doodle.system.Cursor.Companion.Grabbing
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.measured.units.Angle
@@ -85,8 +88,10 @@ class ColorPicker(color: Color): View() {
 
             mouseChanged += object: MouseListener {
                 override fun mousePressed(event: MouseEvent) {
-                    selection = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
+                    selection    = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
                     mousePressed = true
+
+                    event.consume()
                 }
 
                 override fun mouseReleased(event: MouseEvent) {
@@ -98,6 +103,8 @@ class ColorPicker(color: Color): View() {
                 override fun mouseDragged(event: MouseEvent) {
                     if (mousePressed) {
                         selection = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
+
+                        event.consume()
                     }
                 }
             }
@@ -122,10 +129,86 @@ class ColorPicker(color: Color): View() {
         }
     }
 
-    private class HueStrip(hue: Measure<Angle>): View() {
-        private val brush = LinearGradientBrush(listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> LinearGradientBrush.Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) })
+    private open class Strip(ratio: Float): View() {
+        private class Handle: View() {
+            override fun render(canvas: Canvas) {
+                val inset = 2.0
+
+                canvas.outerShadow(blurRadius = inset) {
+                    canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(white))
+                }
+            }
+        }
 
         private val handle: Handle = Handle().apply { width = 12.0 }
+
+        var ratio = ratio
+            set(new) {
+                if (field == new) { return }
+
+                val old = field
+                field = new
+
+                handle.x = (width - handle.width) * field
+
+                changed_.forEach { it(this@Strip, old, field) }
+            }
+
+        init {
+            children += handle
+
+            layout = constrain(handle) {
+                it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { this.ratio } - handle.width / 2))
+                it.centerY = it.parent.centerY
+                it.height  = it.parent.height
+            }
+
+            mouseChanged += object: MouseListener {
+                override fun mousePressed(event: MouseEvent) {
+                    mousePressed     = true
+                    this@Strip.ratio = (toLocal(event.location, from = event.target).x / width).toFloat()
+                    cursor           = Grabbing
+                    event.consume()
+                }
+
+                override fun mouseEntered(event: MouseEvent) {
+                    if (mousePressed) {
+                        return
+                    }
+
+                    cursor = when (event.target) {
+                        handle -> Grab
+                        else   -> null
+                    }
+                }
+
+                override fun mouseReleased(event: MouseEvent) {
+                    mousePressed = false
+
+                    cursor = when (event.target) {
+                        handle -> Grab
+                        else   -> null
+                    }
+                }
+            }
+
+            mouseMotionChanged += object: MouseMotionListener {
+                override fun mouseDragged(event: MouseEvent) {
+                    if (mousePressed) {
+                        this@Strip.ratio = min(1f, max(0f, (toLocal(event.location, from = event.target).x / width).toFloat()))
+                        event.consume()
+                    }
+                }
+            }
+        }
+
+        protected val changed_: PropertyObserversImpl<Strip, Float> by lazy { PropertyObserversImpl<Strip, Float>(this) }
+
+        private var mousePressed = false
+    }
+
+    private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {
+        private val brush = LinearGradientBrush(listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) })
 
         var hue = hue
             set(new) {
@@ -134,63 +217,38 @@ class ColorPicker(color: Color): View() {
                 val old = field
                 field = new
 
-                handle.x = (width - handle.width) * (field / (360 * degrees))
+                ratio = (new / (360 * degrees)).toFloat()
 
                 (changed as PropertyObserversImpl).forEach { it(this@HueStrip, old, field) }
             }
 
         init {
-            children += handle
-
-            layout = constrain(handle) {
-                it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { (this.hue / (360 * degrees)) } - handle.width / 2))
-                it.centerY = it.parent.centerY
-                it.height  = it.parent.height
-            }
-
-            mouseChanged += object: MouseListener {
-                override fun mousePressed(event: MouseEvent) {
-                    mousePressed      = true
-                    this@HueStrip.hue = (360 * event.location.x / width) * degrees
-                }
-
-                override fun mouseReleased(event: MouseEvent) {
-                    mousePressed = false
-                }
-            }
-
-            mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(event: MouseEvent) {
-                    if (mousePressed) {
-                        this@HueStrip.hue = (360 * min(1.0, max(0.0, event.location.x / width))) * degrees
-                    }
-                }
+            changed_ += { _,_,new ->
+                this@HueStrip.hue = new * 360 * degrees
             }
         }
 
         val changed: PropertyObservers<HueStrip, Measure<Angle>> by lazy { PropertyObserversImpl<HueStrip, Measure<Angle>>(this) }
-
-        private var mousePressed = false
 
         override fun render(canvas: Canvas) {
             canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
         }
     }
 
-    private class OpacityStrip(color: Color): View() {
-        private val checkerBrush = CanvasBrush(Size(30.0, 15.0)) {
-            val w = 16.0
-            val h = w / 2
+    private class OpacityStrip(color: Color): Strip(color.opacity) {
+        private val checkerBrush = CanvasBrush(Size(32.0, 15.0)) {
+            val w         = 32.0 / 2
+            val h         = 15.0 / 2
+            val white     = ColorBrush(white    )
+            val lightGray = ColorBrush(lightgray)
 
-            rect(Rectangle(0.0, 0.0, w, h), ColorBrush(white    ))
-            rect(Rectangle(0.0,   h, w, h), ColorBrush(lightgray))
-            rect(Rectangle(w,   0.0, w, h), ColorBrush(lightgray))
-            rect(Rectangle(w,     h, w, h), ColorBrush(white    ))
+            rect(Rectangle(0.0, 0.0, w, h), white    )
+            rect(Rectangle(0.0,   h, w, h), lightGray)
+            rect(Rectangle(w,   0.0, w, h), lightGray)
+            rect(Rectangle(w,     h, w, h), white    )
         }
 
         private var brush = LinearGradientBrush(transparent, color.with(1f))
-
-        private val handle: Handle = Handle().apply { width = 12.0 }
 
         var color = color
             set(new) {
@@ -209,43 +267,18 @@ class ColorPicker(color: Color): View() {
                 val old = field
                 field = new
 
-                handle.x = (width - handle.width) * field
+                ratio = new
 
                 (changed as PropertyObserversImpl).forEach { it(this@OpacityStrip, old, field) }
             }
 
         init {
-            children += handle
-
-            layout = constrain(handle) {
-                it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { this.opacity } - handle.width / 2))
-                it.centerY = it.parent.centerY
-                it.height  = it.parent.height
-            }
-
-            mouseChanged += object: MouseListener {
-                override fun mousePressed(event: MouseEvent) {
-                    mousePressed = true
-                    opacity      = (event.location.x / width).toFloat()
-                }
-
-                override fun mouseReleased(event: MouseEvent) {
-                    mousePressed = false
-                }
-            }
-
-            mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(event: MouseEvent) {
-                    if (mousePressed) {
-                        opacity = min(1f, max(0f, (event.location.x / width).toFloat()))
-                    }
-                }
+            changed_ += { _,_,new ->
+                opacity = new
             }
         }
 
         val changed: PropertyObservers<OpacityStrip, Float> by lazy { PropertyObserversImpl<OpacityStrip, Float>(this) }
-
-        private var mousePressed = false
 
         override fun render(canvas: Canvas) {
 //            canvas.innerShadow {
@@ -253,16 +286,6 @@ class ColorPicker(color: Color): View() {
 //            }
 
             canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
-        }
-    }
-
-    private class Handle: View() {
-        override fun render(canvas: Canvas) {
-            val inset = 2.0
-
-            canvas.outerShadow(blurRadius = inset) {
-                canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(white))
-            }
         }
     }
 
@@ -276,7 +299,7 @@ class ColorPicker(color: Color): View() {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
                     val brushSize = Size(width * 2 / 3, height * 2 / 3)
                     val checkerBrush = CanvasBrush(brushSize) {
-                        val w = brushSize.width / 2
+                        val w = brushSize.width  / 2
                         val h = brushSize.height / 2
 
                         rect(Rectangle(0.0, 0.0, w, h), ColorBrush(lightgray))
