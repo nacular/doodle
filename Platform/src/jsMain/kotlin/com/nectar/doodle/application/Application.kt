@@ -155,7 +155,7 @@ class Modules {
         val dragDropModule = Module(allowSilentOverride = true) {
             import(mouseModule)
 
-            bind<DragManager> () with singleton { DragManagerImpl (instance(), instance(), instance(), instance(), instance()) }
+            bind<DragManager>() with singleton { DragManagerImpl (instance(), instance(), instance(), instance(), instance()) }
         }
     }
 }
