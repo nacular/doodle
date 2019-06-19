@@ -21,7 +21,7 @@ import com.nectar.doodle.utils.addOrAppend
 class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remaining: T): View(), Iterable<T> {
     constructor(item: T, vararg remaining: T): this(Top, item, *remaining)
 
-    private val wrapper = object: Container {
+    private val wrapper: Container = object: Container {
         override var insets
             get(   ) = this@TabbedPanel.insets
             set(new) { this@TabbedPanel.insets = new }

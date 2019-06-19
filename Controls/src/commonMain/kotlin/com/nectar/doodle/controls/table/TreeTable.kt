@@ -588,7 +588,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*>>()
 
-    private val header = object: Box() {
+    private val header: Box = object: Box() {
         init {
             layout = object : Layout() {
                 override fun layout(positionable: Positionable) {
