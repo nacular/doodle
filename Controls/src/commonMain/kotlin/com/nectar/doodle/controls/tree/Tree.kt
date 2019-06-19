@@ -46,10 +46,11 @@ interface TreeLike: Selectable<Path<Int>> {
     fun rowFromPath(path: Path<Int>): Int?
 
     fun selected       (row : Int     ) = pathFromRow(row)?.let { selected(it) } ?: false
-    fun addSelection   (rows: Set<Int>) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun toggleSelection(rows: Set<Int>) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun setSelection   (rows: Set<Int>) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun removeSelection(rows: Set<Int>) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    // FIXME: Hack to work around https://youtrack.jetbrains.com/issue/KT-32032
+    fun addSelection   (rows: Set<Int>, jvmWorkaround: Int = 0) = addSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun toggleSelection(rows: Set<Int>, jvmWorkaround: Int = 0) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun setSelection   (rows: Set<Int>, jvmWorkaround: Int = 0) = setSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    fun removeSelection(rows: Set<Int>, jvmWorkaround: Int = 0) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     fun collapse(path: Path<Int>)
     fun expand(path: Path<Int>)
     fun expandAll()
@@ -295,7 +296,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
         expandedPaths.addAll(paths)
 
-        if (children.isNotEmpty() && pathSet.isNotEmpty()) {
+        if (pathSet.isNotEmpty()) {
             (expanded as ExpansionObserversImpl)(pathSet)
         }
     }
@@ -378,26 +379,26 @@ open class Tree<T, out M: TreeModel<T>>(
         }.toList())
     }
 
-    @JvmName("addSelectionRows")
-    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+//    @JvmName("addSelectionRows")
+//    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun addSelection(items: Set<Path<Int>>) {
         selectionModel?.addAll(items)
     }
 
-    @JvmName("toggleSelectionRows")
-    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+//    @JvmName("toggleSelectionRows")
+//    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun toggleSelection(items: Set<Path<Int>>) {
         selectionModel?.toggle(items)
     }
 
-    @JvmName("setSelectionRows")
-    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+//    @JvmName("setSelectionRows")
+//    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun setSelection(items: Set<Path<Int>>) {
         selectionModel?.replaceAll(items)
     }
 
-    @JvmName("removeSelectionRows")
-    override fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+//    @JvmName("removeSelectionRows")
+//    override fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun removeSelection(items: Set<Path<Int>>) {
         selectionModel?.removeAll(items)
     }
