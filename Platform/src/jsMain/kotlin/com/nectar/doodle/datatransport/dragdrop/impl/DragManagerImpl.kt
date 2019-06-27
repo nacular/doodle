@@ -14,6 +14,7 @@ import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.Renderable
+import com.nectar.doodle.drawing.impl.ImageCanvas
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
@@ -38,7 +39,8 @@ internal class DragManagerImpl(
                       private val viewFinder       : ViewFinder,
                       private val scheduler        : Scheduler,
                       private val mouseInputService: MouseInputService,
-                      private val graphicsDevice   : GraphicsDevice<RealGraphicsSurface>, htmlFactory: HtmlFactory): DragManager {
+                      private val graphicsDevice   : GraphicsDevice<RealGraphicsSurface>,
+                      private val htmlFactory      : HtmlFactory): DragManager {
     private val isIE                 = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var mouseDown            = null as MouseEvent?
     private var rootElement          = htmlFactory.root
@@ -332,14 +334,14 @@ internal class DragManagerImpl(
     }
 
     private fun createVisual(visual: Renderable?) {
+        // TODO: Make this a general purpose View -> Image generator
         visualCanvas = graphicsDevice.create()
 
         if (visual != null) {
-            visualCanvas.size = visual.size
+            visualCanvas.zOrder = -Int.MAX_VALUE
+            visualCanvas.size   = visual.size
 
-            visualCanvas.render {
-                visual.render(it)
-            }
+            visual.render(ImageCanvas(visualCanvas.rootElement, htmlFactory).apply { size = visual.size })
         }
     }
 

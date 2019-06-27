@@ -309,7 +309,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         element.setRX(ellipse.xRadius)
         element.setRY(ellipse.yRadius)
 
-        element.setFill(null)
+        element.setFill  (null)
         element.setStroke(null)
 
         return element
@@ -380,10 +380,8 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         element.setStroke(pen.color)
         element.setStrokeWidth(pen.thickness)
 
-        pen.dashStyle?.let {
-            if (it.dashes.size > 1) {
-                element.setStrokeDash(dashArray(pen))
-            }
+        pen.dashes?.let {
+            element.setStrokeDash(dashArray(pen))
         }
     }
 
@@ -400,7 +398,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
     }
 
-    private fun dashArray(pen: Pen) = pen.dashStyle?.dashes?.mapIndexed { index, dash ->
+    private fun dashArray(pen: Pen) = pen.dashes?.mapIndexed { index, dash ->
         max(0, dash + if (index.isEven) -1 else 1)
     }?.joinToString(",") ?: ""
 

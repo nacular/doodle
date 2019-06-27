@@ -1,8 +1,8 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 

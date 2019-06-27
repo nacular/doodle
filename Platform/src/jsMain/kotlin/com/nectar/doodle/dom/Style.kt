@@ -109,7 +109,7 @@ internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign
 
 internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value }
 
-internal inline fun Style.setFloat(float: Float? = null) { setPropertyValue("float", float?.value ?: "") }
+internal inline fun Style.setFloat(float: Float? = null) { cssFloat = float?.value ?: "" }
 
 internal fun Style.translate(to: Point) = translate(to.x, to.y)
 internal fun Style.translate(x: Double, y: Double) {

@@ -24,11 +24,9 @@ import com.nectar.doodle.text.StyledText
 import org.w3c.dom.HTMLElement
 import kotlin.dom.clear
 
-
 internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
-
     override fun create(text: String, font: Font?, possible: HTMLElement?): HTMLElement {
-        val element = htmlFactory.createOrUse("PRE", possible)
+        val element = htmlFactory.createOrUse(TEXT_ELEMENT, possible)
 
         if (element.innerHTML != text) {
             element.innerHTML = ""
@@ -36,7 +34,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         font?.let {
-            element.run {
+            element.apply {
                 style.setFontSize  (it.size  )
                 style.setFontFamily(it.family)
                 style.setFontWeight(it.weight)
@@ -80,7 +78,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     }
 
     override fun wrapped(text: StyledText, width: Double, indent: Double, possible: HTMLElement?) = create(text, possible).also {
-        if (it.nodeName.equals("PRE", ignoreCase = true)) {
+        if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {
             applyWrap(it, indent)
         } else {
             (0 until it.numChildren).map { i -> it.childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, indent) }
@@ -101,5 +99,9 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         style.background?.let {
             element.style.setBackgroundColor(it)
         }
+    }
+
+    private companion object {
+        private const val TEXT_ELEMENT = "PRE"
     }
 }

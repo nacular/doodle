@@ -40,6 +40,7 @@ import com.nectar.doodle.drawing.OuterShadow
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.Renderer.FillRule
+import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
@@ -61,6 +62,7 @@ import com.nectar.measured.units.times
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
+import org.w3c.dom.Text
 import kotlin.dom.clear
 import kotlin.math.max
 
@@ -75,7 +77,7 @@ internal open class CanvasImpl(
 
     override var size           = Empty
     override var renderRegion   = renderParent
-    override var optimization   = Renderer.Optimization.Quality
+    override var optimization   = Quality
     override var renderPosition = null as Node?
 
     private val vectorRenderer by lazy { rendererFactory(this) }
@@ -200,51 +202,11 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
-        Origin -> block()
-        else   -> transform(Identity.translate(by), block)
-    }
-
-    override fun scale(x: Double, y: Double, block: Canvas.() -> Unit) = when {
-        x == 1.0 && y == 1.0 -> block()
-        else                 -> transform(Identity.scale(x, y), block)
-    }
-
-    override fun scale(around: Point, x: Double, y: Double, block: Canvas.() -> Unit) = when {
-        x == 1.0 && y == 1.0 -> block()
-        else                 -> {
-            val point = around - (size / 2.0).run { Point(width, height) }
-
-            transform(Identity.translate(point).scale(x, y).translate(-point), block)
+    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
+        true -> block()
+        else -> subFrame(block) {
+            it.style.setTransform(transform)
         }
-    }
-
-    override fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit) = transform(Identity.rotate(by), block)
-
-    override fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
-        val point = around - (size / 2.0).run { Point(width, height) }
-
-        transform(Identity.translate(point).rotate(by).translate(-point), block)
-    }
-
-    override fun flipVertically(block: Canvas.() -> Unit) = scale(1.0, -1.0, block = block)
-
-    override fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(0.0, around)).
-            scale(1.0, -1.0).
-            translate(Point(0.0, -around)),
-            block)
-
-    override fun flipHorizontally(block: Canvas.() -> Unit) = scale(-1.0, 1.0, block = block)
-
-    override fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(around, 0.0)).
-            scale(-1.0, 1.0).
-            translate(Point(-around, 0.0)),
-            block)
-
-    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setTransform(transform)
     }
 
     override fun clear() {
@@ -343,8 +305,6 @@ internal open class CanvasImpl(
                     it.style.setBorderColor(pen.color    )
                 }
 
-//                "data:image/svg+xml;utf8,<svg shape-rendering='auto'><polygon points='-5,-5 5,-5 5,5 -5,5' fill='#FFFFFF' opacity='1' stroke='#ffffff' stroke-width='1'></polygon><polygon points='-5,5 5,5 5,15 -5,15' fill='#000002' opacity='1' stroke='#000000' stroke-width='1'></polygon></svg>"
-
                 completeOperation(it)
             }
         }
@@ -394,9 +354,9 @@ internal open class CanvasImpl(
                 is OuterShadow -> ""
             }}${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
 
-            when (element.nodeName.toLowerCase()) {
-                "pre" -> element.style.textShadow += shadow
-                else  -> element.style.boxShadow  += shadow
+            when (element.firstChild) {
+                is Text -> element.style.textShadow += shadow
+                else    -> element.style.boxShadow  += shadow
             }
         }
 
@@ -474,6 +434,7 @@ internal open class CanvasImpl(
 
         if (result == null || result !is HTMLImageElement || result.parentNode != null && result.nodeName != image.nodeName) {
             result = image.cloneNode(false)
+            (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
             result.clearBoundStyles ()
             result.clearVisualStyles()

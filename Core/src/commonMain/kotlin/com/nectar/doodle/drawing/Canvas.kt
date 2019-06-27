@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Circle
@@ -21,18 +22,47 @@ interface Canvas: Renderer {
     var size        : Size
     var optimization: Optimization
 
-    fun scale    (x        : Double,         y: Double,            block: Canvas.() -> Unit)
-    fun scale    (around   : Point,          x: Double, y: Double, block: Canvas.() -> Unit)
-    fun rotate   (by       : Measure<Angle>,                       block: Canvas.() -> Unit)
-    fun rotate   (around   : Point,          by: Measure<Angle>,   block: Canvas.() -> Unit)
-    fun translate(by       : Point,                                block: Canvas.() -> Unit)
-    fun transform(transform: AffineTransform,                      block: Canvas.() -> Unit)
+    fun scale(x: Double, y: Double, block: Canvas.() -> Unit) = when {
+        x == 1.0 && y == 1.0 -> block()
+        else                 -> transform(Identity.scale(x, y), block)
+    }
 
-    fun flipVertically(                block: Canvas.() -> Unit)
-    fun flipVertically(around: Double, block: Canvas.() -> Unit)
+    fun scale(around: Point, x: Double, y: Double, block: Canvas.() -> Unit) = when {
+        x == 1.0 && y == 1.0 -> block()
+        else                 -> {
+            val point = around - (size / 2.0).run { Point(width, height) }
 
-    fun flipHorizontally(                block: Canvas.() -> Unit)
-    fun flipHorizontally(around: Double, block: Canvas.() -> Unit)
+            transform(Identity.translate(point).scale(x, y).translate(-point), block)
+        }
+    }
+
+    fun rotate(by    : Measure<Angle>,                     block: Canvas.() -> Unit) = transform(Identity.rotate(by), block)
+    fun rotate(around: Point,          by: Measure<Angle>, block: Canvas.() -> Unit) {
+        val point = around - (size / 2.0).run { Point(width, height) }
+
+        transform(Identity.translate(point).rotate(by).translate(-point), block)
+    }
+
+    fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
+        Point.Origin -> block()
+        else         -> transform(Identity.translate(by), block)
+    }
+
+    fun flipVertically(                block: Canvas.() -> Unit) = scale(1.0, -1.0, block = block)
+    fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+            translate(Point(0.0, around)).
+            scale(1.0, -1.0).
+            translate(Point(0.0, -around)),
+            block)
+
+    fun flipHorizontally(                block: Canvas.() -> Unit) = scale(-1.0, 1.0, block = block)
+    fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+            translate(Point(around, 0.0)).
+            scale(-1.0, 1.0).
+            translate(Point(-around, 0.0)),
+            block)
+
+    fun transform(transform: AffineTransform, block: Canvas.() -> Unit)
 
     fun rect(rectangle: Rectangle,           brush: Brush        )
     fun rect(rectangle: Rectangle, pen: Pen, brush: Brush? = null)

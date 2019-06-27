@@ -34,9 +34,9 @@ class AffineTransform private constructor(private val matrix: SquareMatrix<Doubl
             shearY    : Double = 0.0,
             translateY: Double = 0.0):
             this(listOf(
-                listOf(scaleX, shearX, translateX),
-                listOf(shearY, scaleY, translateY),
-                listOf(   0.0,    0.0,        1.0)
+                 listOf(scaleX, shearX, translateX),
+                 listOf(shearY, scaleY, translateY),
+                 listOf(   0.0,    0.0,        1.0)
             ).let { squareMatrixOf(3) { col, row -> it[row][col] } })
 
     val isIdentity       = matrix.isIdentity

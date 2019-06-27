@@ -36,7 +36,7 @@ internal class HtmlFactoryImpl(override val root: HTMLElement): HtmlFactory {
 
     override fun createText(text: String) = document.createTextNode(text)
 
-    override fun createImage(source: String) = (create("IMG") as HTMLImageElement).also { it.src = source }
+    override fun createImage(source: String) = create<HTMLImageElement>("IMG").apply { src = source; draggable = false }
 
     override fun createOrUse(tag: String, possible: Node?): HTMLElement {
         var result = possible
