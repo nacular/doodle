@@ -25,7 +25,7 @@ internal class SystemStylerImpl: SystemStyler {
 
             insertRule("* { box-sizing:inherit }", 0)
 
-            insertRule("body * { position:absolute;overflow:hidden;font-family:monospace;font-size:13px }", 0)
+            insertRule("body * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", 0)
             insertRule("body pre { overflow:visible }", 0)
             insertRule("body div { display:inline }", 0)
 

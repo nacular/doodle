@@ -1,17 +1,14 @@
 package com.nectar.doodle.drawing
 
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.degrees
-import com.nectar.measured.units.times
+import com.nectar.doodle.geometry.Point
 
 /**
  * Created by Nicholas Eddy on 11/5/18.
  */
-class LinearGradientBrush(val colors: List<Stop>, val rotation: Measure<Angle> = 0 * degrees): Brush() {
+class LinearGradientBrush(val colors: List<Stop>, val start: Point, val end: Point): Brush() {
     data class Stop(val color: Color, val offset: Float)
 
-    constructor(color1: Color, color2: Color, rotation: Measure<Angle> = 0 * degrees): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), rotation)
+    constructor(color1: Color, color2: Color, start: Point, end: Point): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
 
     override val visible = colors.any { it.color.opacity > 0 }
 }

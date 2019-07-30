@@ -15,10 +15,13 @@ interface Renderer {
 
     fun line(point1: Point, point2: Point, pen: Pen)
 
-    fun path(points: List<Point>, pen: Pen)
+    fun path(points: List<Point>,           brush: Brush, fillRule: FillRule? = null)
+    fun path(points: List<Point>, pen: Pen                                          )
+    fun path(points: List<Point>, pen: Pen, brush: Brush, fillRule: FillRule? = null)
 
-    fun path(path: Path,           brush: Brush,         fillRule: FillRule? = null)
-    fun path(path: Path, pen: Pen, brush: Brush? = null, fillRule: FillRule? = null)
+    fun path(path: Path,           brush: Brush, fillRule: FillRule? = null)
+    fun path(path: Path, pen: Pen                                          )
+    fun path(path: Path, pen: Pen, brush: Brush, fillRule: FillRule? = null)
 
     fun poly(polygon: ConvexPolygon,           brush: Brush)
     fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush? = null)

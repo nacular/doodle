@@ -2,7 +2,6 @@ package com.nectar.doodle.controls
 
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.blackOrWhiteContrast
@@ -13,6 +12,7 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.HsvColor
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.LinearGradientBrush.Stop
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -120,9 +120,8 @@ class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
-                canvas.rect(rect, 3.0, ColorBrush(baseColor))
-                canvas.rect(rect, 3.0, LinearGradientBrush(white, transparent       ))
-                canvas.rect(rect, 3.0, LinearGradientBrush(black, transparent, angle))
+                canvas.rect(rect, 3.0, LinearGradientBrush(white, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
+                canvas.rect(rect, 3.0, LinearGradientBrush(black, transparent, Point(0.0, rect.height), Point.Origin          ))
             }
 
             canvas.circle(Circle(Point(selection.first * width, selection.second * height), 7.0), Pen(blackOrWhiteContrast(color.toRgb())))
@@ -208,7 +207,7 @@ class ColorPicker(color: Color): View() {
     }
 
     private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {
-        private val brush = LinearGradientBrush(listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) })
+        private lateinit var brush: LinearGradientBrush
 
         var hue = hue
             set(new) {
@@ -226,6 +225,12 @@ class ColorPicker(color: Color): View() {
             changed_ += { _,_,new ->
                 this@HueStrip.hue = new * 360 * degrees
             }
+
+            boundsChanged += { _,_,_ ->
+                updateBrush()
+            }
+
+            updateBrush()
         }
 
         val changed: PropertyObservers<HueStrip, Measure<Angle>> by lazy { PropertyObserversImpl<HueStrip, Measure<Angle>>(this) }
@@ -233,10 +238,17 @@ class ColorPicker(color: Color): View() {
         override fun render(canvas: Canvas) {
             canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
         }
+
+        private fun updateBrush() {
+            brush = LinearGradientBrush(
+                    listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) },
+                    Point.Origin, Point(width, 0.0)
+            )
+        }
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val checkerBrush = CanvasBrush(Size(32.0, 15.0)) {
+        private val checkerBrush = PatternBrush(Size(32.0, 15.0)) {
             val w         = 32.0 / 2
             val h         = 15.0 / 2
             val white     = ColorBrush(white    )
@@ -248,13 +260,13 @@ class ColorPicker(color: Color): View() {
             rect(Rectangle(w,     h, w, h), white    )
         }
 
-        private var brush = LinearGradientBrush(transparent, color.with(1f))
+        private lateinit var brush: LinearGradientBrush
 
         var color = color
             set(new) {
                 if (field == new) { return }
                 field   = new
-                brush   = LinearGradientBrush(transparent, new.with(1f))
+                updateBrush()
                 opacity = color.opacity
 
                 rerender()
@@ -276,6 +288,10 @@ class ColorPicker(color: Color): View() {
             changed_ += { _,_,new ->
                 opacity = new
             }
+
+            boundsChanged += { _,_,_ ->
+                updateBrush()
+            }
         }
 
         val changed: PropertyObservers<OpacityStrip, Float> by lazy { PropertyObserversImpl<OpacityStrip, Float>(this) }
@@ -286,6 +302,10 @@ class ColorPicker(color: Color): View() {
 //            }
 
             canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
+        }
+
+        private fun updateBrush() {
+            brush = LinearGradientBrush(transparent, color.with(1f), Point.Origin, Point(width, 0.0))
         }
     }
 
@@ -298,7 +318,7 @@ class ColorPicker(color: Color): View() {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
                     val brushSize = Size(width * 2 / 3, height * 2 / 3)
-                    val checkerBrush = CanvasBrush(brushSize) {
+                    val checkerBrush = PatternBrush(brushSize) {
                         val w = brushSize.width  / 2
                         val h = brushSize.height / 2
 

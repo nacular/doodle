@@ -31,12 +31,11 @@ import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.InnerShadow
-import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.OuterShadow
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.Renderer.FillRule
@@ -57,8 +56,6 @@ import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.degrees
-import com.nectar.measured.units.times
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.Node
@@ -68,7 +65,7 @@ import kotlin.math.max
 
 
 
-internal open class CanvasImpl(
+/*internal*/ open class CanvasImpl(
         private val renderParent           : HTMLElement,
         private val htmlFactory            : HtmlFactory,
         private val textFactory            : TextFactory,
@@ -85,8 +82,8 @@ internal open class CanvasImpl(
     override val shadows = mutableListOf<Shadow>()
 
     protected open fun isSimple(brush: Brush) = when (brush) {
-        is ColorBrush, is CanvasBrush -> true
-        else                          -> false
+        is ColorBrush, is PatternBrush -> true
+        else                           -> false
     }
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { getRect(rectangle) } else vectorRenderer.rect(rectangle, brush)
@@ -105,10 +102,13 @@ internal open class CanvasImpl(
 
     override fun line(point1: Point, point2: Point, pen: Pen) = vectorRenderer.line(point1, point2, pen)
 
-    override fun path(points: List<Point>, pen: Pen) = vectorRenderer.path(points, pen)
+    override fun path(points: List<Point>, pen: Pen                                   ) = vectorRenderer.path(points, pen                 )
+    override fun path(points: List<Point>,           brush: Brush, fillRule: FillRule?) = vectorRenderer.path(points,      brush, fillRule)
+    override fun path(points: List<Point>, pen: Pen, brush: Brush, fillRule: FillRule?) = vectorRenderer.path(points, pen, brush, fillRule)
 
-    override fun path(path: Path,           brush: Brush,  fillRule: FillRule?)  = vectorRenderer.path(path,      brush, fillRule)
-    override fun path(path: Path, pen: Pen, brush: Brush?, fillRule: FillRule?)  = vectorRenderer.path(path, pen, brush, fillRule)
+    override fun path(path: Path, pen: Pen                                   ) = vectorRenderer.path(path, pen                 )
+    override fun path(path: Path,           brush: Brush, fillRule: FillRule?) = vectorRenderer.path(path,      brush, fillRule)
+    override fun path(path: Path, pen: Pen, brush: Brush, fillRule: FillRule?) = vectorRenderer.path(path, pen, brush, fillRule)
 
     override fun poly(polygon: ConvexPolygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
     override fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
@@ -236,11 +236,7 @@ internal open class CanvasImpl(
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         shadows += shadow
 
-        vectorRenderer.add(shadow)
-
         apply(block)
-
-        vectorRenderer.remove(shadow)
 
         shadows -= shadow
     }
@@ -295,9 +291,8 @@ internal open class CanvasImpl(
         if (visible(pen, brush)) {
             block()?.let {
                 when (brush) {
-                    is ColorBrush          -> it.style.setBackgroundColor(brush.color)
-                    is CanvasBrush         -> it.style.background = vectorBackgroundFactory(brush)
-                    is LinearGradientBrush -> it.style.background = "linear-gradient(${90 * degrees - brush.rotation `in` degrees}deg, ${brush.colors.joinToString(",") { "${it.color.run {"rgba($red,$green,$blue,$opacity)"}} ${it.offset * 100}%" }})"
+                    is ColorBrush   -> it.style.setBackgroundColor(brush.color)
+                    is PatternBrush -> it.style.background = vectorBackgroundFactory(brush)
                 }
                 if (pen != null) {
                     it.style.setBorderWidth(pen.thickness)

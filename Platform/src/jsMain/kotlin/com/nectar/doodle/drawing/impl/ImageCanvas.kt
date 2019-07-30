@@ -2,6 +2,10 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
+import com.nectar.doodle.dom.defaultFontFamily
+import com.nectar.doodle.dom.defaultFontSize
+import com.nectar.doodle.dom.defaultFontWeight
+import com.nectar.doodle.dom.rgbaString
 import com.nectar.doodle.dom.setFontFamily
 import com.nectar.doodle.dom.setFontSize
 import com.nectar.doodle.dom.setFontWeight
@@ -13,8 +17,10 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.LinearGradientBrush
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
-import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
@@ -30,11 +36,18 @@ import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
+import com.nectar.measured.units.degrees
 import com.nectar.measured.units.radians
+import com.nectar.measured.units.times
+import org.w3c.dom.CanvasFillRule
+import org.w3c.dom.CanvasPattern
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.CanvasTextBaseline
+import org.w3c.dom.EVENODD
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.NONZERO
+import org.w3c.dom.Path2D
 import org.w3c.dom.TOP
 import kotlin.browser.window
 import kotlin.math.PI
@@ -42,8 +55,7 @@ import kotlin.math.PI
 /**
  * Created by Nicholas Eddy on 6/22/19.
  */
-class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private val handleRetina: Boolean = true): Canvas {
-
+class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactory, private val handleRetina: Boolean = true): Canvas {
     private interface CSSFontSerializer {
         operator fun invoke(font: Font?): String
     }
@@ -58,10 +70,8 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
                 style.setFontWeight(font.weight)
 
                 style.run { "$fontStyle $fontVariant $fontWeight $fontSize $fontFamily" }
-
-//                style.font
             }
-            else -> "13px monospace" // FIXME: centralize w/ FontDetector
+            else -> "$defaultFontWeight ${defaultFontSize}px $defaultFontFamily"
         }
     }
 
@@ -75,8 +85,6 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
             field = new
 
             // FIXME: Inject Window object
-            val scale = if (handleRetina) window.devicePixelRatio else 1.0 // Address issues on Retina displays
-
             delegate.canvas.apply {
                 style.setSize(new)
 
@@ -88,6 +96,9 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
 
             currentTransform = Identity.scale(scale, scale)
         }
+
+
+    private val scale get() = if (handleRetina) window.devicePixelRatio else 1.0 // Address issues on Retina displays
 
     override var optimization = Quality
 
@@ -134,6 +145,13 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
 
     private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
 
+    private fun createPattern(brush: PatternBrush): CanvasPattern? = ImageCanvas(htmlFactory.create(), htmlFactory).let {
+        it.size = brush.size
+        brush.fill(it)
+
+        delegate.createPattern(it.delegate.canvas, "repeat")
+    }
+
     private fun configureFill(brush: Brush): Boolean {
         if (!brush.visible) {
             return false
@@ -141,21 +159,44 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
 
         when (brush) {
             is ColorBrush          -> delegate.fillColor = brush.color
-//            is CanvasBrush         -> it.style.background = vectorBackgroundFactory(brush)
-//            is LinearGradientBrush -> it.style.background = "linear-gradient(${90 * degrees - brush.rotation `in` degrees}deg, ${brush.colors.joinToString(",") { "${it.color.run {"rgba($red,$green,$blue,$opacity)"}} ${it.offset * 100}%" }})"
+            is PatternBrush        -> delegate.fillStyle = createPattern(brush)
+            is LinearGradientBrush -> delegate.apply {
+                fillStyle = createLinearGradient(brush.start.x, brush.start.y, brush.end.x, brush.end.y).apply {
+                    brush.colors.forEach {
+                        addColorStop(it.offset.toDouble(), it.color.rgbaString)
+                    }
+                }
+            }
             else                   -> return false
         }
 
         return true
     }
 
-    private fun present(pen: Pen? = null, brush: Brush?, block: () -> Unit) {
+    private fun present(pen: Pen? = null, brush: Brush?, fillRule: FillRule? = null, block: CanvasRenderingContext2D.() -> Unit) {
         if (visible(pen, brush)) {
             delegate.beginPath()
-            block()
+
+            block(delegate)
 
             if (brush != null && configureFill(brush)) {
-                delegate.fill()
+                if (brush is PatternBrush) {
+                    delegate.resetTransform()
+                }
+
+                when (fillRule) {
+                    null -> delegate.fill()
+                    else -> delegate.fill(fillRule.let {
+                        when (it) {
+                            FillRule.EvenOdd -> CanvasFillRule.EVENODD
+                            else             -> CanvasFillRule.NONZERO
+                        }
+                    })
+                }
+
+                if (brush is PatternBrush) {
+                    delegate.scale(scale, scale)
+                }
             }
 
             if (pen != null) {
@@ -170,10 +211,13 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
         }
     }
 
-    override fun rect(rectangle: Rectangle,                           brush: Brush ) = present(brush = brush) { rectangle.apply { delegate.rect(x, y, width, height) } }
-    override fun rect(rectangle: Rectangle,                 pen: Pen, brush: Brush?) = present(pen,    brush) { rectangle.apply { delegate.rect(x, y, width, height) } }
-    override fun rect(rectangle: Rectangle, radius: Double,           brush: Brush ) = present(brush = brush) { rectangle.apply { delegate.roundedRect(rectangle, radius) } }
-    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush?) = present(pen,    brush) { rectangle.apply { delegate.roundedRect(rectangle, radius) } }
+    override fun rect(rectangle: Rectangle,                            brush: Brush ) = rect(rectangle, null,        brush)
+    override fun rect(rectangle: Rectangle,                 pen: Pen,  brush: Brush?) = rect(rectangle, pen as Pen?, brush)
+    private  fun rect(rectangle: Rectangle,                 pen: Pen?, brush: Brush?) = present(pen, brush) { rectangle.apply { rect(x, y, width, height) } }
+
+    override fun rect(rectangle: Rectangle, radius: Double,            brush: Brush ) = rect(rectangle, radius, null,        brush)
+    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen,  brush: Brush?) = rect(rectangle, radius, pen as Pen?, brush)
+    private  fun rect(rectangle: Rectangle, radius: Double, pen: Pen?, brush: Brush?) = present(pen, brush) { rectangle.apply { roundedRect(rectangle, radius) } }
 
     private fun path(block: CanvasRenderingContext2D.() -> Unit) {
         delegate.beginPath()
@@ -183,22 +227,27 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
         delegate.closePath()
     }
 
-    override fun circle(circle: Circle,           brush: Brush ) = present(brush = brush) { path { circle.apply { arc(center.x, center.y, radius, 0.0, 2 * PI, false) } } }
-    override fun circle(circle: Circle, pen: Pen, brush: Brush?) = present(pen,    brush) { path { circle.apply { arc(center.x, center.y, radius, 0.0, 2 * PI, false) } } }
+    override fun circle(circle: Circle,            brush: Brush ) = circle(circle, null,        brush)
+    override fun circle(circle: Circle, pen: Pen,  brush: Brush?) = circle(circle, pen as Pen?, brush)
+    private  fun circle(circle: Circle, pen: Pen?, brush: Brush?) = present(pen, brush) { path { circle.apply { arc(center.x, center.y, radius, 0.0, 2 * PI, false) } } }
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush ) = present(brush = brush) { path { arc(center.x, center.y, radius, rotation `in` radians, sweep `in` radians, false) } }
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) = present(pen,    brush) { path { arc(center.x, center.y, radius, rotation `in` radians, sweep `in` radians, false) } }
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = arc(center, radius, sweep, rotation, null,        brush)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = arc(center, radius, sweep, rotation, pen as Pen?, brush)
+    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) { path { arc(center, radius, sweep, rotation) } }
+    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>                          ) = delegate.apply { arc(center.x, center.y, radius, (rotation - 90 * degrees) `in` radians, (sweep - 90 * degrees) `in` radians, false) }
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, brush: Brush) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = wedge(center, radius, sweep, rotation, null,        brush)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = wedge(center, radius, sweep, rotation, pen as Pen?, brush)
+    private  fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
+        path {
+            arc(center, radius, sweep, rotation)
+            lineTo(center.x, center.y)
+        }
     }
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun ellipse(ellipse: Ellipse,           brush: Brush ) = present(brush = brush) { path { ellipse.apply { ellipse(center.x, center.y, xRadius, yRadius, 0.0, 0.0, 2 * PI, false) } } }
-    override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = present(pen,    brush) { path { ellipse.apply { ellipse(center.x, center.y, xRadius, yRadius, 0.0, 0.0, 2 * PI, false) } } }
+    override fun ellipse(ellipse: Ellipse,            brush: Brush ) = ellipse(ellipse, null,        brush)
+    override fun ellipse(ellipse: Ellipse, pen: Pen,  brush: Brush?) = ellipse(ellipse, pen as Pen?, brush)
+    private  fun ellipse(ellipse: Ellipse, pen: Pen?, brush: Brush?) = present(pen, brush) { path { ellipse.apply { ellipse(center.x, center.y, xRadius, yRadius, 0.0, 0.0, 2 * PI, false) } } }
 
     override fun text(text: String, font: Font?, at: Point, brush: Brush) {
         if (text.isEmpty()) {
@@ -272,15 +321,28 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
 
     override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
         rectangle.apply { delegate.rect(x, y, width, height) }
+        delegate.save()
+
         delegate.clip()
 
         block(this)
 
-        delegate.resetClip()
+        delegate.restore()
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//        delegate.apply {
+//            shadowOffsetX = shadow.horizontal
+//            shadowOffsetY = shadow.vertical
+//            shadowBlur    = shadow.blurRadius
+//            shadowColor   = shadow.color.rgbaString
+//        }
+
+        // FIXME: Support Inner shadow
+
+        apply(block)
+
+//        delegate.shadowColor = Color.transparent.rgbaString
     }
 
     override fun line(point1: Point, point2: Point, pen: Pen) = present(pen, brush = null) {
@@ -290,24 +352,69 @@ class ImageCanvas(renderParent: HTMLElement, htmlFactory: HtmlFactory, private v
         }
     }
 
-    override fun path(points: List<Point>, pen: Pen) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun path(points: List<Point>, pen: Pen                                     ) = path(points, pen as Pen?, null,  null    )
+    override fun path(points: List<Point>,            brush: Brush,  fillRule: FillRule?) = path(points, null,        brush, fillRule)
+    override fun path(points: List<Point>, pen: Pen,  brush: Brush,  fillRule: FillRule?) = path(points, pen as Pen?, brush, fillRule)
+    private  fun path(points: List<Point>, pen: Pen?, brush: Brush?, fillRule: FillRule?) = present(pen, brush, fillRule) {
+        path {
+            points.firstOrNull()?.apply {
+                moveTo(x, y)
+            }
+            points.drop(1).forEach {
+                lineTo(it.x, it.y)
+            }
+        }
     }
 
-    override fun path(path: Path, brush: Brush, fillRule: Renderer.FillRule?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun path(path: Path,            brush: Brush,  fillRule: FillRule?) = path(path, null,        brush, fillRule)
+    override fun path(path: Path, pen: Pen                                     ) = path(path, pen as Pen?, null,  null    )
+    override fun path(path: Path, pen: Pen,  brush: Brush,  fillRule: FillRule?) = path(path, pen as Pen?, brush, fillRule)
+    private  fun path(path: Path, pen: Pen?, brush: Brush?, fillRule: FillRule?) {
+        if (visible(pen, brush)) {
+            val path2d = Path2D(path.data)
+
+            if (brush != null && configureFill(brush)) {
+                if (brush is PatternBrush) {
+                    delegate.resetTransform()
+                }
+
+                when (fillRule) {
+                    null -> delegate.fill(path2d)
+                    else -> delegate.fill(path2d, fillRule.let {
+                        when (it) {
+                            FillRule.EvenOdd -> CanvasFillRule.EVENODD
+                            else             -> CanvasFillRule.NONZERO
+                        }
+                    })
+                }
+
+                if (brush is PatternBrush) {
+                    delegate.scale(scale, scale)
+                }
+            }
+
+            if (pen != null) {
+                delegate.lineWidth   = pen.thickness
+                delegate.strokeColor = pen.color
+
+                pen.dashes?.let { delegate.setLineDash(it.map { it.toDouble() }.toTypedArray()) }
+
+                delegate.stroke(path2d)
+            }
+        }
     }
 
-    override fun path(path: Path, pen: Pen, brush: Brush?, fillRule: Renderer.FillRule?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun poly(polygon: ConvexPolygon, brush: Brush) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun poly(polygon: ConvexPolygon,            brush: Brush ) = poly(polygon, null, brush)
+    override fun poly(polygon: ConvexPolygon, pen: Pen,  brush: Brush?) = poly(polygon, pen as Pen?, brush)
+    private  fun poly(polygon: ConvexPolygon, pen: Pen?, brush: Brush?) = present(pen, brush) {
+        path {
+            polygon.points.firstOrNull()?.apply {
+                moveTo(x, y)
+            }
+            polygon.points.drop(1).forEach {
+                lineTo(it.x, it.y)
+            }
+        }
     }
 }
 
@@ -332,11 +439,11 @@ private fun CanvasRenderingContext2D.roundedRect(rectangle: Rectangle, radius: D
 private var CanvasRenderingContext2D.strokeColor: Color
     get() = Color.black
     set(new) {
-        this.strokeStyle = "#${new.hexString}"
+        this.strokeStyle = new.rgbaString
     }
 
 private var CanvasRenderingContext2D.fillColor: Color
     get() = Color.black
     set(new) {
-        this.fillStyle = "#${new.hexString}"
+        this.fillStyle = new.rgbaString
     }

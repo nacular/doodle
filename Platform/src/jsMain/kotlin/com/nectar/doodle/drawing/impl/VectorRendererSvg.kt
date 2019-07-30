@@ -13,6 +13,7 @@ import com.nectar.doodle.dom.setCY
 import com.nectar.doodle.dom.setFill
 import com.nectar.doodle.dom.setFillPattern
 import com.nectar.doodle.dom.setFillRule
+import com.nectar.doodle.dom.setGradientUnits
 import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setId
 import com.nectar.doodle.dom.setPathData
@@ -26,16 +27,16 @@ import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setX
-import com.nectar.doodle.dom.setX1Percent
-import com.nectar.doodle.dom.setX2Percent
+import com.nectar.doodle.dom.setX1
+import com.nectar.doodle.dom.setX2
 import com.nectar.doodle.dom.setY
-import com.nectar.doodle.dom.setY1Percent
-import com.nectar.doodle.dom.setY2Percent
+import com.nectar.doodle.dom.setY1
+import com.nectar.doodle.dom.setY2
 import com.nectar.doodle.dom.shapeRendering
 import com.nectar.doodle.drawing.Brush
-import com.nectar.doodle.drawing.CanvasBrush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.LinearGradientBrush
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization
@@ -56,6 +57,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
 import org.w3c.dom.svg.SVGEllipseElement
+import org.w3c.dom.svg.SVGGradientElement
 import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGRectElement
 import kotlin.dom.clear
@@ -113,12 +115,15 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
 
     fun nextId() = "${id++}"
 
-    override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, point1, point2)
+    override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, null, null, point1, point2)
 
-    override fun path(points: List<Point>, pen: Pen) = drawPath(pen, *points.toTypedArray())
+    override fun path(points: List<Point>,           brush: Brush, fillRule: FillRule?) = drawPath(null, brush, fillRule, *points.toTypedArray())
+    override fun path(points: List<Point>, pen: Pen                                   ) = drawPath(pen,  null,  null,     *points.toTypedArray())
+    override fun path(points: List<Point>, pen: Pen, brush: Brush, fillRule: FillRule?) = drawPath(pen,  brush, fillRule, *points.toTypedArray())
 
-    override fun path(path: com.nectar.doodle.geometry.Path,           brush: Brush,  fillRule: FillRule?) = drawPath(path.data, null, brush, fillRule)
-    override fun path(path: com.nectar.doodle.geometry.Path, pen: Pen, brush: Brush?, fillRule: FillRule?) = drawPath(path.data, pen,  brush, fillRule)
+    override fun path(path: com.nectar.doodle.geometry.Path,           brush: Brush, fillRule: FillRule?) = drawPath(path.data, null, brush, fillRule)
+    override fun path(path: com.nectar.doodle.geometry.Path, pen: Pen                                   ) = drawPath(path.data, pen,  null,  null    )
+    override fun path(path: com.nectar.doodle.geometry.Path, pen: Pen, brush: Brush, fillRule: FillRule?) = drawPath(path.data, pen,  brush, fillRule)
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = drawRect(rectangle, null, brush)
     override fun rect(rectangle: Rectangle, pen: Pen, brush: Brush?) = drawRect(rectangle, pen,  brush)
@@ -172,13 +177,10 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         renderPosition = null
     }
 
-    private fun drawPath(pen: Pen, vararg points: Point) {
-        if (pen.visible && points.isNotEmpty()) {
-            val element = makePath(*points)
-
-            outlineElement(element, pen)
-
-            completeOperation(element)
+    private fun drawPath(pen: Pen?, brush: Brush? = null, fillRule: FillRule? = null, vararg points: Point) = present(pen, brush) {
+        when {
+            points.isNotEmpty() -> makePath(*points).also { it.setFillRule(fillRule) }
+            else                -> null
         }
     }
 
@@ -389,7 +391,7 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         when (brush) {
             is ColorBrush          -> SolidFillHandler.fill(this, element, brush)
 //          is TextureFillHandler  ->
-            is CanvasBrush         -> CanvasFillHandler().fill(this, element, brush)
+            is PatternBrush        -> CanvasFillHandler().fill(this, element, brush)
             is LinearGradientBrush -> LinearFillHandler().fill(this, element, brush)
         }
 
@@ -552,8 +554,8 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
         }
     }
 
-    private inner class CanvasFillHandler: FillHandler<CanvasBrush> {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: CanvasBrush) {
+    private inner class CanvasFillHandler: FillHandler<PatternBrush> {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: PatternBrush) {
             element.style.background = vectorBackgroundFactory(brush)
         }
     }
@@ -608,9 +610,10 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
     private inner class LinearFillHandler: FillHandler<LinearGradientBrush> {
         override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: LinearGradientBrush) {
             // FIXME: Re-use elements when possible
-            val gradient = svgFactory<SVGElement>("linearGradient").apply {
-                setId(renderer.nextId())
-                clear(                 )
+            val gradient = svgFactory<SVGGradientElement>("linearGradient").apply {
+                setId(renderer.nextId()                       )
+                configureGradient(this, brush.start, brush.end)
+                clear(                                        )
             }
 
             brush.colors.forEach {
@@ -621,47 +624,23 @@ class VectorRendererSvg constructor(private val context: CanvasContext, private 
                 })
             }
 
-            var rotation = brush.rotation
-
-            rotation = ((rotation `in` degrees) % 360) * degrees
-
-            if (rotation < 0 * degrees) {
-                rotation = 180 * degrees - rotation
-            }
-
-            val fortyFive = 45 * degrees
-
-            if (rotation > fortyFive && rotation < 3 * fortyFive || rotation > 5 * fortyFive && rotation < 7 * fortyFive) {
-                configureGradient2(gradient, cos(rotation), rotation, 5 * fortyFive)
-            } else {
-                configureGradient1(gradient, sin(rotation), rotation, 3 * fortyFive)
-            }
-
             renderer.completeOperation(gradient)
 
             element.setFillPattern(gradient)
         }
 
-        private fun configureGradient1(gradient: SVGElement, delta: Double, rotation: Measure<Angle>, rotationThreshold: Measure<Angle>) {
-            gradient.setY1Percent(50 * (1 - delta))
-            gradient.setY2Percent(50 * (1 + delta))
-
-            gradient.setX1Percent(if (rotation > rotationThreshold) 100.0 else   0.0)
-            gradient.setX2Percent(if (rotation > rotationThreshold)   0.0 else 100.0)
-        }
-
-        private fun configureGradient2(gradient: SVGElement, delta: Double, rotation: Measure<Angle>, rotationThreshold: Measure<Angle>) {
-            gradient.setX1Percent(50 * (1 - delta))
-            gradient.setX2Percent(50 * (1 + delta))
-
-            gradient.setY2Percent(if (rotation > rotationThreshold) 100.0 else   0.0)
-            gradient.setY1Percent(if (rotation > rotationThreshold)   0.0 else 100.0)
+        private fun configureGradient(gradient: SVGGradientElement, start: Point, end: Point) {
+            gradient.setGradientUnits("userSpaceOnUse")
+            gradient.setX1(start.x)
+            gradient.setY1(start.y)
+            gradient.setX2(end.x  )
+            gradient.setY2(end.y  )
         }
     }
 
     companion object {
-        private var id     = 0
-        private val svgTag = "svg"
+        private       var id     = 0
+        private const val svgTag = "svg"
 
 //        private var sClipId = 0.0
     }

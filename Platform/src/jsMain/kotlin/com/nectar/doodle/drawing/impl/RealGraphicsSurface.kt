@@ -208,7 +208,9 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    private fun setZIndex(child: RealGraphicsSurface, index: Int) {
+    private fun setIndex(child: RealGraphicsSurface, index: Int) {
+        val numChildren = rootElement.numChildren
+
         if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
 
         indexSet.add(index)

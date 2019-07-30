@@ -11,6 +11,7 @@ import com.nectar.measured.units.degrees
 import org.w3c.dom.svg.SVGCircleElement
 import org.w3c.dom.svg.SVGElement
 import org.w3c.dom.svg.SVGEllipseElement
+import org.w3c.dom.svg.SVGGradientElement
 import org.w3c.dom.svg.SVGRectElement
 import kotlin.math.max
 import kotlin.math.min
@@ -28,14 +29,10 @@ inline fun SVGRectElement.setHeight (value: Double) = setAttribute("height", "$v
 
 inline fun SVGElement.setId(value: String) { setAttributeNS( null, "id", value ); }
 
-//inline fun SVGElement.setX1         (value : Double      ) = setAttribute  ("x1",               "$value"       )
-//inline fun SVGElement.setX2         (value : Double      ) = setAttribute  ("x2",               "$value"       )
-//inline fun SVGElement.setY1         (value : Double      ) = setAttribute  ("y1",               "$value"       )
-//inline fun SVGElement.setY2         (value : Double      ) = setAttribute  ("y2",               "$value"       )
-inline fun SVGElement.setX1Percent  (value : Double      ) = setAttribute  ("x1",               "$value%"      )
-inline fun SVGElement.setX2Percent  (value : Double      ) = setAttribute  ("x2",               "$value%"      )
-inline fun SVGElement.setY1Percent  (value : Double      ) = setAttribute  ("y1",               "$value%"      )
-inline fun SVGElement.setY2Percent  (value : Double      ) = setAttribute  ("y2",               "$value%"      )
+inline fun SVGGradientElement.setX1(value: Double) = setAttribute("x1", "$value")
+inline fun SVGGradientElement.setX2(value: Double) = setAttribute("x2", "$value")
+inline fun SVGGradientElement.setY1(value: Double) = setAttribute("y1", "$value")
+inline fun SVGGradientElement.setY2(value: Double) = setAttribute("y2", "$value")
 inline fun SVGEllipseElement.setRX  (value : Double      ) = setAttribute  ("rx",               "$value"       )
 inline fun SVGEllipseElement.setRY  (value : Double      ) = setAttribute  ("ry",               "$value"       )
 inline fun SVGEllipseElement.setCX  (value : Double      ) = setAttribute  ("cx",               "$value"       )
@@ -67,9 +64,9 @@ fun SVGElement.setSpreadMethod (value: String) { setAttribute("spreadMethod",  v
 fun SVGElement.setGradientUnits(value: String) { setAttribute("gradientUnits", value) }
 
 
-private fun SVGElement.setStopColor         (value: String      ) { setAttribute("stop-color",          value ) }
-private fun SVGElement.setStopOpacity       (value: kotlin.Float) { setAttribute("stop-opacity",      "$value") }
-private fun SVGElement.setStopOffsetInternal(value: kotlin.Float) { setAttribute("offset",            "$value") }
+private fun SVGElement.setStopColor         (value: String      ) { setAttribute("stop-color",     value ) }
+private fun SVGElement.setStopOpacity       (value: kotlin.Float) { setAttribute("stop-opacity", "$value") }
+private fun SVGElement.setStopOffsetInternal(value: kotlin.Float) { setAttribute("offset",       "$value") }
 
 var SVGElement.shapeRendering
     get() = when(getAttribute("shape-rendering")) {

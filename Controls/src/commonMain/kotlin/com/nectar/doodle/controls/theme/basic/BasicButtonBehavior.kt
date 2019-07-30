@@ -42,12 +42,11 @@ class BasicButtonBehavior(
 
         canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
 
-        val icon         = icon(view)
-        val text         = view.text
-        val textPosition = textPosition(view, icon)
+        val icon = icon(view)
+        val text = view.text
 
         if (text.isNotBlank()) {
-            canvas.text(text, font(view), textPosition, ColorBrush(textColor))
+            canvas.text(text, font(view), textPosition(view, icon), ColorBrush(textColor))
         }
 
         icon?.render(view, canvas, iconPosition(view, icon))

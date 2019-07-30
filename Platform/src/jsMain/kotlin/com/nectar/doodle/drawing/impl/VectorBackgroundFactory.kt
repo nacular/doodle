@@ -8,7 +8,7 @@ import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.setFloat
 import com.nectar.doodle.drawing.Brush
-import com.nectar.doodle.drawing.CanvasBrush
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.TextFactory
 import org.w3c.dom.HTMLBodyElement
 import org.w3c.dom.HTMLElement
@@ -24,17 +24,17 @@ import kotlin.browser.document
  * Created by Nicholas Eddy on 1/21/19.
  */
 interface VectorBackgroundFactory {
-    operator fun invoke(brush: CanvasBrush): String
+    operator fun invoke(brush: PatternBrush): String
 }
 
 class VectorBackgroundFactoryImage(private val htmlFactory: HtmlFactory): VectorBackgroundFactory {
-    override fun invoke(brush: CanvasBrush): String = "url(\"${
+    override fun invoke(brush: PatternBrush): String = "url(\"${
         ImageCanvas(htmlFactory.create(), htmlFactory, false).apply{ size = brush.size; brush.fill(this) }.image.source
     }\")"
 }
 
 class VectorBackgroundFactorySvg(private val htmlFactory: HtmlFactory, private val textFactory: TextFactory, private val svgFactory: SvgFactory): VectorBackgroundFactory {
-    override fun invoke(brush: CanvasBrush): String {
+    override fun invoke(brush: PatternBrush): String {
         val region = htmlFactory.create<HTMLElement>()
 
         // FIXME: Need to ensure this canvas only uses svg

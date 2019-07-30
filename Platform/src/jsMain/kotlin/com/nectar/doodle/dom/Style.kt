@@ -15,9 +15,15 @@ import com.nectar.doodle.system.Cursor
 import org.w3c.dom.css.CSSStyleDeclaration
 import kotlin.math.max
 
+internal val defaultFontWeight = 500
+internal val defaultFontFamily = "monospace"
+internal val defaultFontSize   = 13
+
 private typealias Style = CSSStyleDeclaration
 
-private inline fun em(value: Number) =  "${value.toDouble()}px" //"${value.toDouble() / 16}em" // TODO: Fix
+val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
+
+private inline fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it > 0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value) }
 
@@ -48,7 +54,7 @@ internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)"
 
 internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) } ?: "" }
 internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
-internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = value.toString() }
+internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = if (value != 1f) value.toString() else "" }
 
 internal fun Style.setFont(value: Font?) {
     when (value) {
@@ -85,11 +91,11 @@ internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat
 
 internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
 
-internal inline fun Style.setOutlineWidth(value: Double           ) { outlineWidth  = "${value}px" }
+internal inline fun Style.setOutlineWidth(value: Double           ) { outlineWidth = em(value) }
 
-internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = "${value}px" }
-internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = "${value}px" }
-internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${x}px / ${y}px" }
+internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = em(value) }
+internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = em(value) }
+internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${em(x, true)} / ${em(y, true)}" }
 internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it)} ?: "" }
 internal inline fun Style.setBorderStyle (style: BorderStyle) { borderStyle  = style.value }
 
@@ -116,7 +122,7 @@ internal fun Style.translate(x: Double, y: Double) {
     // FIXME: Handle case when transform is already set?
     transform = when {
         x == 0.0 && y == 0.0 -> ""
-        else                 -> "translate(${em(x)}, ${em(y)})"
+        else                 -> "translate(${em(x, true)}, ${em(y, true)})"
     }
 }
 
