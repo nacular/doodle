@@ -17,6 +17,7 @@ import com.nectar.doodle.dom.setFontWeight
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setTextIndent
 import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.text.Style
@@ -94,10 +95,18 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
     private fun applyStyle(element: HTMLElement, style: Style) {
         style.foreground?.let {
-            element.style.setColor(it)
+            if (it is ColorBrush) {
+                element.style.setColor(it.color)
+            } else {
+                // TODO: Implement
+            }
         }
         style.background?.let {
-            element.style.setBackgroundColor(it)
+            if (it is ColorBrush) {
+                element.style.setBackgroundColor(it.color)
+            } else {
+                // TODO: Implement
+            }
         }
     }
 

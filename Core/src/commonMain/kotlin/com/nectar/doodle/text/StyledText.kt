@@ -1,6 +1,8 @@
 package com.nectar.doodle.text
 
+import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 
 /**
@@ -8,8 +10,8 @@ import com.nectar.doodle.drawing.Font
  */
 interface Style {
     val font      : Font?
-    val foreground: Color?
-    val background: Color?
+    val foreground: Brush?
+    val background: Brush?
 }
 
 data class MutablePair<A, B>(var first: A, var second: B) {
@@ -21,8 +23,8 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
     constructor(
         text      : String,
         font      : Font?  = null,
-        foreground: Color? = null,
-        background: Color? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
+        foreground: Brush? = null,
+        background: Brush? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
     val text  get() = data.joinToString { it.first }
     val count get() = data.size
@@ -34,7 +36,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
     operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
     operator fun rangeTo(font : Font  ) = this.also { add(MutablePair("",   StyleImpl(font))) }
-    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = color))) }
+    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorBrush(color)))) }
     operator fun rangeTo(text : String) = this.also { add(MutablePair(text, StyleImpl())) }
 
     private fun add(pair: MutablePair<String, StyleImpl>) {
@@ -70,7 +72,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
     }
 
 
-    data class StyleImpl(override var font: Font? = null, override var foreground: Color? = null, override var background: Color? = null): Style
+    data class StyleImpl(override var font: Font? = null, override var foreground: Brush? = null, override var background: Brush? = null): Style
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
@@ -84,11 +86,11 @@ operator fun Font.invoke(text: () -> StyledText) = text().apply {
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Color.invoke(text: String    ) = StyledText(text = text, foreground = this)
+operator fun Color.invoke(text: String, background: Boolean = false) = if (background) StyledText(text = text, background = ColorBrush(this)) else StyledText(text = text, foreground = ColorBrush(this))
 operator fun Color.invoke(text: () -> StyledText) = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null) {
-            style.foreground = this@invoke
+            style.foreground = ColorBrush(this@invoke)
         }
     }
 }

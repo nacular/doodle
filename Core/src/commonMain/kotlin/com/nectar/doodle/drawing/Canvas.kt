@@ -83,14 +83,14 @@ interface Canvas: Renderer {
     fun wrapped(
             text       : String,
             font       : Font,
-            point      : Point,
+            at         : Point,
             leftMargin : Double,
             rightMargin: Double,
             brush      : Brush)
 
     fun wrapped(
             text       : StyledText,
-            point      : Point,
+            at         : Point,
             leftMargin : Double,
             rightMargin: Double)
 

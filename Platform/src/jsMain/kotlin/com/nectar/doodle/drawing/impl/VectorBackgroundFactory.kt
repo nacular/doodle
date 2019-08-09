@@ -39,8 +39,8 @@ class VectorBackgroundFactorySvg(private val htmlFactory: HtmlFactory, private v
 
         // FIXME: Need to ensure this canvas only uses svg
         // FIXME: Need to find a way to get foreignObject to work
-        val canvas = object: CanvasImpl(region, htmlFactory, textFactory, this, {
-            VectorRendererSvg(it, svgFactory, this)
+        val canvas = object: CanvasImpl(region, htmlFactory, textFactory, {
+            VectorRendererSvg(it, svgFactory)
         }) {
             override fun isSimple(brush: Brush) = false
         }

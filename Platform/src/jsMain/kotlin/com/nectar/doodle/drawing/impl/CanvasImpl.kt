@@ -11,6 +11,7 @@ import com.nectar.doodle.dom.left
 import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
+import com.nectar.doodle.dom.rgbaString
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderColor
 import com.nectar.doodle.dom.setBorderRadius
@@ -35,7 +36,6 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.InnerShadow
 import com.nectar.doodle.drawing.OuterShadow
-import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer
 import com.nectar.doodle.drawing.Renderer.FillRule
@@ -66,11 +66,10 @@ import kotlin.math.max
 
 
 /*internal*/ open class CanvasImpl(
-        private val renderParent           : HTMLElement,
-        private val htmlFactory            : HtmlFactory,
-        private val textFactory            : TextFactory,
-        private val vectorBackgroundFactory: VectorBackgroundFactory,
-        rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
+        private val renderParent   : HTMLElement,
+        private val htmlFactory    : HtmlFactory,
+        private val textFactory    : TextFactory,
+                    rendererFactory: VectorRendererFactory): Canvas, Renderer, CanvasContext {
 
     override var size           = Empty
     override var renderRegion   = renderParent
@@ -79,11 +78,13 @@ import kotlin.math.max
 
     private val vectorRenderer by lazy { rendererFactory(this) }
 
+    private var innerShadowCount = 0
+
     override val shadows = mutableListOf<Shadow>()
 
-    protected open fun isSimple(brush: Brush) = when (brush) {
-        is ColorBrush, is PatternBrush -> true
-        else                           -> false
+    protected open fun isSimple(brush: Brush) = when {
+        brush is ColorBrush && innerShadowCount == 0 -> true
+        else                                         -> false
     }
 
     override fun rect(rectangle: Rectangle,           brush: Brush ) = if (isSimple(brush)) present(brush = brush) { getRect(rectangle) } else vectorRenderer.rect(rectangle, brush)
@@ -147,23 +148,23 @@ import kotlin.math.max
         }
     }
 
-    override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+    override fun wrapped(text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
         when {
             text.isEmpty() || !brush.visible -> return
             brush is ColorBrush              -> completeOperation(createWrappedTextGlyph(brush,
                                                                   text,
                                                                   font,
-                                                                  point,
+                                                                  at,
                                                                   leftMargin,
                                                                   rightMargin))
             else                             -> return // TODO IMPLEMENT
         }
     }
 
-    override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
         completeOperation(createWrappedStyleTextGlyph(
                     text,
-                    point,
+                    at,
                     leftMargin,
                     rightMargin))
     }
@@ -210,7 +211,7 @@ import kotlin.math.max
     }
 
     override fun clear() {
-        renderPosition = renderParent.childAt(0)
+        renderPosition = renderParent.firstChild
 
         vectorRenderer.clear()
     }
@@ -236,7 +237,15 @@ import kotlin.math.max
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         shadows += shadow
 
+        if (shadow is InnerShadow) ++innerShadowCount
+
+        vectorRenderer.add(shadow)
+
         apply(block)
+
+        vectorRenderer.remove(shadow)
+
+        if (shadow is InnerShadow) --innerShadowCount
 
         shadows -= shadow
     }
@@ -291,8 +300,7 @@ import kotlin.math.max
         if (visible(pen, brush)) {
             block()?.let {
                 when (brush) {
-                    is ColorBrush   -> it.style.setBackgroundColor(brush.color)
-                    is PatternBrush -> it.style.background = vectorBackgroundFactory(brush)
+                    is ColorBrush -> it.style.setBackgroundColor(brush.color)
                 }
                 if (pen != null) {
                     it.style.setBorderWidth(pen.thickness)
@@ -344,14 +352,15 @@ import kotlin.math.max
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {
             // FIXME: Need to move this to Style and avoid raw px
+            // FIXME: Move text inner shadow to vector renderer
             val shadow = "${when(it) {
                 is InnerShadow -> "inset "
                 is OuterShadow -> ""
-            }}${it.horizontal}px ${it.vertical}px ${it.blurRadius}px #${it.color.hexString}"
+            }}${it.horizontal}px ${it.vertical}px ${it.blurRadius - 1}px ${it.color.rgbaString}"
 
             when (element.firstChild) {
                 is Text -> element.style.textShadow += shadow
-                else    -> element.style.boxShadow  += shadow
+                else    -> element.style.filter     += "drop-shadow($shadow)"
             }
         }
 

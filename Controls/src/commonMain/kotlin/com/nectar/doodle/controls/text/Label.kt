@@ -48,7 +48,7 @@ open class Label internal constructor(
 
     var text: String get() = styledText.text
         set(new) {
-            styledText = StyledText(new, font, foregroundColor)
+            styledText = StyledText(new, font, foregroundColor?.let { ColorBrush(it) })
         }
 
     var styledText = font?.invoke { foregroundColor?.invoke { styledText } ?: styledText } ?: styledText

@@ -200,7 +200,7 @@ abstract class View protected constructor() {
 
     val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
 
-    var transform: AffineTransform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
+    open var transform: AffineTransform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
         override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
             boundingBox = newValue(bounds).boundingRectangle
 

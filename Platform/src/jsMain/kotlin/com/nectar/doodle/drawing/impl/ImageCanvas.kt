@@ -15,8 +15,10 @@ import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.InnerShadow
 import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
@@ -33,7 +35,9 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.impl.ImageImpl
+import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
+import com.nectar.doodle.utils.splitMatches
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.degrees
@@ -77,22 +81,21 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
 
     val image: Image get() = object: Image {
         override val size   = this@ImageCanvas.size
-        override val source = this@ImageCanvas.delegate.canvas.toDataURL("image/png", 1.0)
+        override val source = this@ImageCanvas.renderingContext.canvas.toDataURL("image/png", 1.0)
     }
 
     override var size = Empty
         set(new) {
             field = new
 
-            // FIXME: Inject Window object
-            delegate.canvas.apply {
+            renderingContext.canvas.apply {
                 style.setSize(new)
 
                 width  = (new.width  * scale).toInt()
                 height = (new.height * scale).toInt()
             }
 
-            delegate.scale(scale, scale)
+            renderingContext.scale(scale, scale)
 
             currentTransform = Identity.scale(scale, scale)
         }
@@ -102,17 +105,19 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
 
     override var optimization = Quality
 
-    private val delegate: CanvasRenderingContext2D = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
+    private val renderingContext: CanvasRenderingContext2D = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 
     private var currentTransform = Identity
 
     private val fontSerializer = CSSFontSerializerImpl(htmlFactory)
 
+    private val shadows = mutableListOf<Shadow>()
+
     init {
-        renderParent.add(delegate.canvas)
+        renderParent.add(renderingContext.canvas)
     }
 
-    override fun clear() = delegate.clearRect(0.0, 0.0, size.width, size.height)
+    override fun clear() = renderingContext.clearRect(0.0, 0.0, size.width, size.height)
 
     override fun flush() {}
 
@@ -133,11 +138,11 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         else -> {
             val old = currentTransform
 
-            transform.apply { delegate.transform(scaleX, shearY, shearX, scaleY, translateX, translateY) }
+            transform.apply { renderingContext.transform(scaleX, shearY, shearX, scaleY, translateX, translateY) }
 
             block(this)
 
-            old.apply { delegate.setTransform(scaleX, shearY, shearX, scaleY, translateX, translateY) }
+            old.apply { renderingContext.setTransform(scaleX, shearY, shearX, scaleY, translateX, translateY) }
 
             Unit
         }
@@ -149,7 +154,7 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         it.size = brush.size
         brush.fill(it)
 
-        delegate.createPattern(it.delegate.canvas, "repeat")
+        renderingContext.createPattern(it.renderingContext.canvas, "repeat")
     }
 
     private fun configureFill(brush: Brush): Boolean {
@@ -158,9 +163,9 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         }
 
         when (brush) {
-            is ColorBrush          -> delegate.fillColor = brush.color
-            is PatternBrush        -> delegate.fillStyle = createPattern(brush)
-            is LinearGradientBrush -> delegate.apply {
+            is ColorBrush          -> renderingContext.fillColor = brush.color
+            is PatternBrush        -> renderingContext.fillStyle = createPattern(brush)
+            is LinearGradientBrush -> renderingContext.apply {
                 fillStyle = createLinearGradient(brush.start.x, brush.start.y, brush.end.x, brush.end.y).apply {
                     brush.colors.forEach {
                         addColorStop(it.offset.toDouble(), it.color.rgbaString)
@@ -173,20 +178,58 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         return true
     }
 
+    private fun shadows(block: CanvasRenderingContext2D.() -> Unit): Sequence<HTMLCanvasElement> = shadows.asSequence().map {
+        val tempCanvas = ImageCanvas(htmlFactory.create(), htmlFactory).also { it.size = size }
+
+        tempCanvas.renderingContext.run {
+            save()
+
+            /*
+             * Shadows require a stroked/filled path to be visible.  This offset moves that shadow path out of view so it doesn't show up after the shadow
+             * canvas is composited.
+             */
+            val offset = 100000.0
+            translate(offset, 0.0)
+
+            beginPath()
+
+            block(this)
+
+            closePath()
+
+            shadowBlur    = it.blurRadius
+            shadowColor   = it.color.rgbaString
+            shadowOffsetX = it.horizontal - 2 * offset
+            shadowOffsetY = it.vertical
+            lineWidth     = 0.5
+
+            stroke()
+
+            globalCompositeOperation = when (it) {
+                is InnerShadow -> "destination-out"
+                else           -> "source-out"
+            }
+
+            restore()
+
+            canvas
+        }
+    }
+
     private fun present(pen: Pen? = null, brush: Brush?, fillRule: FillRule? = null, block: CanvasRenderingContext2D.() -> Unit) {
         if (visible(pen, brush)) {
-            delegate.beginPath()
+            renderingContext.beginPath()
 
-            block(delegate)
+            block(renderingContext)
 
             if (brush != null && configureFill(brush)) {
                 if (brush is PatternBrush) {
-                    delegate.resetTransform()
+                    renderingContext.resetTransform()
                 }
 
                 when (fillRule) {
-                    null -> delegate.fill()
-                    else -> delegate.fill(fillRule.let {
+                    null -> renderingContext.fill()
+                    else -> renderingContext.fill(fillRule.let {
                         when (it) {
                             FillRule.EvenOdd -> CanvasFillRule.EVENODD
                             else             -> CanvasFillRule.NONZERO
@@ -195,19 +238,25 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
                 }
 
                 if (brush is PatternBrush) {
-                    delegate.scale(scale, scale)
+                    renderingContext.scale(scale, scale)
                 }
             }
 
             if (pen != null) {
-                delegate.lineWidth   = pen.thickness
-                delegate.strokeColor = pen.color
+                renderingContext.lineWidth   = pen.thickness
+                renderingContext.strokeColor = pen.color
 
-                pen.dashes?.let { delegate.setLineDash(it.map { it.toDouble() }.toTypedArray()) }
+                pen.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
 
-                delegate.stroke()
+                renderingContext.stroke()
             }
-            delegate.closePath()
+            renderingContext.closePath()
+
+            shadows(block).forEach {
+                renderingContext.resetTransform()
+                renderingContext.drawImage(it, 0.0, 0.0)
+                renderingContext.scale(scale, scale)
+            }
         }
     }
 
@@ -220,11 +269,11 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
     private  fun rect(rectangle: Rectangle, radius: Double, pen: Pen?, brush: Brush?) = present(pen, brush) { rectangle.apply { roundedRect(rectangle, radius) } }
 
     private fun path(block: CanvasRenderingContext2D.() -> Unit) {
-        delegate.beginPath()
+        renderingContext.beginPath()
 
-        block(delegate)
+        block(renderingContext)
 
-        delegate.closePath()
+        renderingContext.closePath()
     }
 
     override fun circle(circle: Circle,            brush: Brush ) = circle(circle, null,        brush)
@@ -234,7 +283,7 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = arc(center, radius, sweep, rotation, null,        brush)
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = arc(center, radius, sweep, rotation, pen as Pen?, brush)
     private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) { path { arc(center, radius, sweep, rotation) } }
-    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>                          ) = delegate.apply { arc(center.x, center.y, radius, (rotation - 90 * degrees) `in` radians, (sweep - 90 * degrees) `in` radians, false) }
+    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>                          ) = renderingContext.apply { arc(center.x, center.y, radius, (rotation - 90 * degrees) `in` radians, (sweep - 90 * degrees) `in` radians, false) }
 
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = wedge(center, radius, sweep, rotation, null,        brush)
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = wedge(center, radius, sweep, rotation, pen as Pen?, brush)
@@ -254,47 +303,89 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
             return
         }
 
+        renderingContext.font = fontSerializer(font)
+
+        text(text, at, brush)
+    }
+
+    private fun text(text: String, at: Point, brush: Brush) {
         configureFill(brush)
 
-        delegate.font = fontSerializer(font)
+        renderingContext.textBaseline = CanvasTextBaseline.TOP
 
-        delegate.textBaseline = CanvasTextBaseline.TOP
-
-        delegate.fillText(text, at.x, at.y)
+        renderingContext.fillText(text, at.x, at.y)
     }
 
     override fun text(text: StyledText, at: Point) {
         var offset = at
 
         text.forEach {  (text, style) ->
-            val metrics = delegate.measureText(text)
+            renderingContext.font = fontSerializer(style.font)
+
+            val metrics = renderingContext.measureText(text)
 
             style.background?.let {
-                rect(Rectangle(position = offset, size = Size(metrics.width, metrics.actualBoundingBoxDescent)), ColorBrush(it))
+                rect(Rectangle(position = offset, size = Size(metrics.width, (style.font?.size ?: defaultFontSize).toDouble())), it)
             }
 
-            text(text, style.font, at = offset, brush = ColorBrush(style.foreground ?: Color.black))
+            text(text, at = offset, brush = style.foreground ?: ColorBrush(black))
 
             offset += Point(metrics.width, 0.0)
         }
     }
 
-    override fun wrapped(text: String, font: Font, point: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun wrapped(text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+        StyledText(text, font, foreground = brush).first().let { (text, style) ->
+            wrappedText(text, style, at, leftMargin, rightMargin)
+        }
     }
 
-    override fun wrapped(text: StyledText, point: Point, leftMargin: Double, rightMargin: Double) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
+        var offset = at
+
+        text.forEach { (text, style) ->
+            offset = wrappedText(text, style, offset, leftMargin, rightMargin)
+        }
     }
 
-    private fun drawImage(image: ImageImpl, source: Rectangle, destination: Rectangle, opacity: Float) {
-        delegate.globalAlpha = opacity.toDouble()
+    private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double): Point {
+        val lines        = mutableListOf<Pair<String, Point>>()
+        val words        = text.splitMatches("""\s""".toRegex())
+        var line         = ""
+        var lineTest     : String
+        var currentPoint = at
+        var endX         = currentPoint.x
 
-        delegate.drawImage(image.image,
-                sx = source.x,      sy = source.y,      sw = source.width,      sh = source.height,
-                dx = destination.x, dy = destination.y, dw = destination.width, dh = destination.height)
+        renderingContext.font = fontSerializer(style.font)
 
-        delegate.globalAlpha = 1.0
+        words.forEach { (word, delimiter) ->
+            lineTest = line + word + delimiter
+
+            val metric = renderingContext.measureText(lineTest)
+
+            endX = currentPoint.x + metric.width
+
+            if (endX > rightMargin) {
+                lines += line to currentPoint
+                line   = word + delimiter
+
+                currentPoint = Point(leftMargin, at.y + lines.size * (1 + (style.font?.size ?: defaultFontSize).toDouble()))
+                endX         = leftMargin
+            } else {
+                line = lineTest
+            }
+        }
+
+        if (line.isNotEmpty()) {
+            endX   = currentPoint.x + renderingContext.measureText(line).width
+            lines += line to currentPoint
+        }
+
+        lines.forEach { (text, at) ->
+            text(StyledText(text, style.font, foreground = style.foreground, background = style.background), at)
+        }
+
+        return Point(endX, currentPoint.y)
     }
 
     override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
@@ -306,43 +397,46 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
     override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
         if (image is ImageImpl && opacity > 0 && !destination.empty) {
             if (radius > 0) {
-                delegate.roundedRect(destination, radius)
+                renderingContext.roundedRect(destination, radius)
 
-                delegate.clip()
+                renderingContext.clip()
 
                 drawImage(image, Rectangle(size = image.size), destination, opacity)
 
-                delegate.resetClip()
+                renderingContext.resetClip()
             } else {
                 drawImage(image, Rectangle(size = image.size), destination, opacity)
             }
         }
     }
 
-    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
-        rectangle.apply { delegate.rect(x, y, width, height) }
-        delegate.save()
+    private fun drawImage(image: ImageImpl, source: Rectangle, destination: Rectangle, opacity: Float) {
+        renderingContext.globalAlpha = opacity.toDouble()
 
-        delegate.clip()
+        renderingContext.drawImage(image.image,
+                sx = source.x,      sy = source.y,      sw = source.width,      sh = source.height,
+                dx = destination.x, dy = destination.y, dw = destination.width, dh = destination.height)
+
+        renderingContext.globalAlpha = 1.0
+    }
+
+    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
+        rectangle.apply { renderingContext.rect(x, y, width, height) }
+        renderingContext.save()
+
+        renderingContext.clip()
 
         block(this)
 
-        delegate.restore()
+        renderingContext.restore()
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
-//        delegate.apply {
-//            shadowOffsetX = shadow.horizontal
-//            shadowOffsetY = shadow.vertical
-//            shadowBlur    = shadow.blurRadius
-//            shadowColor   = shadow.color.rgbaString
-//        }
-
-        // FIXME: Support Inner shadow
+        shadows += shadow
 
         apply(block)
 
-//        delegate.shadowColor = Color.transparent.rgbaString
+        shadows -= shadow
     }
 
     override fun line(point1: Point, point2: Point, pen: Pen) = present(pen, brush = null) {
@@ -370,17 +464,18 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
     override fun path(path: Path, pen: Pen                                     ) = path(path, pen as Pen?, null,  null    )
     override fun path(path: Path, pen: Pen,  brush: Brush,  fillRule: FillRule?) = path(path, pen as Pen?, brush, fillRule)
     private  fun path(path: Path, pen: Pen?, brush: Brush?, fillRule: FillRule?) {
+        // TODO: Unify with present
         if (visible(pen, brush)) {
             val path2d = Path2D(path.data)
 
             if (brush != null && configureFill(brush)) {
                 if (brush is PatternBrush) {
-                    delegate.resetTransform()
+                    renderingContext.resetTransform()
                 }
 
                 when (fillRule) {
-                    null -> delegate.fill(path2d)
-                    else -> delegate.fill(path2d, fillRule.let {
+                    null -> renderingContext.fill(path2d)
+                    else -> renderingContext.fill(path2d, fillRule.let {
                         when (it) {
                             FillRule.EvenOdd -> CanvasFillRule.EVENODD
                             else             -> CanvasFillRule.NONZERO
@@ -389,17 +484,17 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
                 }
 
                 if (brush is PatternBrush) {
-                    delegate.scale(scale, scale)
+                    renderingContext.scale(scale, scale)
                 }
             }
 
             if (pen != null) {
-                delegate.lineWidth   = pen.thickness
-                delegate.strokeColor = pen.color
+                renderingContext.lineWidth   = pen.thickness
+                renderingContext.strokeColor = pen.color
 
-                pen.dashes?.let { delegate.setLineDash(it.map { it.toDouble() }.toTypedArray()) }
+                pen.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
 
-                delegate.stroke(path2d)
+                renderingContext.stroke(path2d)
             }
         }
     }
@@ -428,22 +523,22 @@ private fun CanvasRenderingContext2D.roundedRect(rectangle: Rectangle, radius: D
 
         beginPath()
         moveTo(x + radius, y)
-        arcTo(x + width, y,          x + width, y + height, r)
-        arcTo(x + width, y + height, x,         y + height, r)
-        arcTo(x,         y + height, x,         y,          r)
-        arcTo(x,         y,          x + width, y,          r)
+        arcTo (x + width, y,          x + width, y + height, r)
+        arcTo (x + width, y + height, x,         y + height, r)
+        arcTo (x,         y + height, x,         y,          r)
+        arcTo (x,         y,          x + width, y,          r)
         closePath()
     }
 }
 
 private var CanvasRenderingContext2D.strokeColor: Color
-    get() = Color.black
+    get() = black
     set(new) {
         this.strokeStyle = new.rgbaString
     }
 
 private var CanvasRenderingContext2D.fillColor: Color
-    get() = Color.black
+    get() = black
     set(new) {
         this.fillStyle = new.rgbaString
     }

@@ -5,6 +5,7 @@ import com.nectar.doodle.dom.ShapeRendering.CrispEdges
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.geometry.Size
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.degrees
@@ -23,11 +24,12 @@ inline fun SVGRectElement.setX      (value: Double) = setAttribute("x",      "$v
 inline fun SVGRectElement.setY      (value: Double) = setAttribute("y",      "$value")
 inline fun SVGRectElement.setRX     (value: Double) = setAttribute("rx",     "$value")
 inline fun SVGRectElement.setRY     (value: Double) = setAttribute("ry",     "$value")
-inline fun SVGRectElement.setWidth  (value: Double) = setAttribute("width",  "$value")
-inline fun SVGRectElement.setHeight (value: Double) = setAttribute("height", "$value")
 
 
-inline fun SVGElement.setId(value: String) { setAttributeNS( null, "id", value ); }
+inline fun SVGElement.setId    (value: String) { setAttributeNS( null, "id", value ); }
+inline fun SVGElement.setWidth (value: Double) = setAttribute("width",  "$value")
+inline fun SVGElement.setHeight(value: Double) = setAttribute("height", "$value")
+inline fun SVGElement.setSize  (value: Size  ) { setWidth(value.width); setHeight(value.height) }
 
 inline fun SVGGradientElement.setX1(value: Double) = setAttribute("x1", "$value")
 inline fun SVGGradientElement.setX2(value: Double) = setAttribute("x2", "$value")
