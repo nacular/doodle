@@ -6,8 +6,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.get
 
 
-inline fun HTMLElement.cloneNode() = cloneNode(true)
-
 fun Node.childAt(index: Int): Node? {
     if( index in 0 until childNodes.length ) {
         return childNodes[index]
@@ -27,12 +25,6 @@ inline fun Node.add(child: Node) = appendChild(child)
 inline fun Node.insert(element: Node, index: Int) = insertBefore(element, childAt(index))
 
 inline fun Node.remove(element: Node) = removeChild(element)
-
-//fun Node.removeAll() {
-//    while(firstChild != null) {
-//        firstChild?.let { remove(it as HTMLElement) }
-//    }
-//}
 
 inline val HTMLElement.top    get() = offsetTop.toDouble   ()
 inline val HTMLElement.left   get() = offsetLeft.toDouble  ()

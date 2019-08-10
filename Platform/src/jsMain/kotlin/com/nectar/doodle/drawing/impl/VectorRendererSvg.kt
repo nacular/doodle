@@ -73,7 +73,7 @@ import kotlin.dom.clear
 import kotlin.math.max
 
 internal open class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
-    private lateinit var svgElement: SVGElement
+    private lateinit var svgElement    : SVGElement
     private lateinit var rootSvgElement: SVGElement
 
     private val region get() = context.renderRegion
