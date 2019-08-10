@@ -74,6 +74,7 @@ import kotlin.math.max
 
 internal open class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
     private lateinit var svgElement: SVGElement
+    private lateinit var rootSvgElement: SVGElement
 
     private val region get() = context.renderRegion
 
@@ -455,18 +456,22 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     }
 
     protected open fun completeOperation(element: SVGElement) {
-        if (!::svgElement.isInitialized) {
-            svgElement = createElement("svg")
+        if (!::rootSvgElement.isInitialized || (context.renderPosition != rootSvgElement && context.renderPosition != rootSvgElement.nextSibling)) {
+            // Initialize new SVG root if
+            // 1) not initialized
+            // 2) it is not longer the active element
+            svgElement     = createElement("svg")
+            rootSvgElement = svgElement
         }
 
-        val svg = svgElement
-
-        if (context.renderPosition == null && svg.parent == null) {
-            region.add(svg)
+        if (context.renderPosition == null && svgElement.parent == null) {
+            region.add(svgElement)
+        } else if (context.renderPosition !== rootSvgElement) {
+            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
         }
 
         if (renderPosition == null) {
-            svg.add(element)
+            svgElement.add(element)
         } else {
             if (renderPosition !== element) {
                 renderPosition?.parent?.replaceChild(element, renderPosition!!)
@@ -475,7 +480,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             renderPosition = element.nextSibling
         }
 
-        context.renderPosition = svg.nextSibling
+        context.renderPosition = svgElement.nextSibling
     }
 
     private class SVGPath: Path("M", "L", "Z")
@@ -608,7 +613,5 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     companion object {
         private       var id     = 0
         private const val svgTag = "svg"
-
-//        private var sClipId = 0.0
     }
 }
