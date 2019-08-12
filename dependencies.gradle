@@ -1,6 +1,6 @@
 ext {
     // Common
-    mockk         = '1.9.2'
+    mockk         = '1.9.3'
 
     // JVM
     junit_version = '4.12'

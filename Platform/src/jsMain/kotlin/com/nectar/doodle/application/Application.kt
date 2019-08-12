@@ -11,7 +11,7 @@ import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.HtmlFactoryImpl
+import com.nectar.doodle.dom.impl.HtmlFactoryImpl
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
@@ -68,14 +68,13 @@ import kotlin.browser.document
  */
 abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = emptySet()) {
     protected var injector = Kodein.direct {
-        bind<SystemStyler>() with instance(SystemStylerImpl())
-
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document                                            ) }
         bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
         bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
         bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
-        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root                                                            ) }
-        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root                                                            ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
+        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance()                              ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }

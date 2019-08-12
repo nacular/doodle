@@ -82,7 +82,7 @@ interface Canvas: Renderer {
 
     fun wrapped(
             text       : String,
-            font       : Font,
+            font       : Font?,
             at         : Point,
             leftMargin : Double,
             rightMargin: Double,

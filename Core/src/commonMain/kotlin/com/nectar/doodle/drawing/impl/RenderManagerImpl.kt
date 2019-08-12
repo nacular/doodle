@@ -79,7 +79,6 @@ class RenderManagerImpl(
         }
 
         display.sizeChanged += { display, _, _ ->
-
             display.doLayout()
 
             display.forEach { checkDisplayRectChange(it) }

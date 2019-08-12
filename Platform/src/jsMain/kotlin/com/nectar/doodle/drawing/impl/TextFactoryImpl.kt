@@ -1,6 +1,5 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.dom.FontStyle
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Inline
 import com.nectar.doodle.dom.Relative
@@ -10,10 +9,7 @@ import com.nectar.doodle.dom.numChildren
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setDisplay
-import com.nectar.doodle.dom.setFontFamily
-import com.nectar.doodle.dom.setFontSize
-import com.nectar.doodle.dom.setFontStyle
-import com.nectar.doodle.dom.setFontWeight
+import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setTextIndent
 import com.nectar.doodle.dom.setWidth
@@ -35,15 +31,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         font?.let {
-            element.apply {
-                style.setFontSize  (it.size  )
-                style.setFontFamily(it.family)
-                style.setFontWeight(it.weight)
-            }
-
-            if (it.italic) {
-                element.style.setFontStyle(FontStyle.Italic())
-            }
+            element.style.setFont(it)
         }
 
         return element

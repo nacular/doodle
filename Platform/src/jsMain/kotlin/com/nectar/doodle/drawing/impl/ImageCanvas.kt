@@ -79,10 +79,10 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         }
     }
 
-    val image: Image get() = object: Image {
-        override val size   = this@ImageCanvas.size
-        override val source = this@ImageCanvas.renderingContext.canvas.toDataURL("image/png", 1.0)
-    }
+//    val image: Image get() = object: Image {
+//        override val size   = this@ImageCanvas.size
+//        override val source = this@ImageCanvas.renderingContext.canvas.toDataURL("image/png", 1.0)
+//    }
 
     override var size = Empty
         set(new) {
@@ -334,7 +334,7 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         }
     }
 
-    override fun wrapped(text: String, font: Font, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
         StyledText(text, font, foreground = brush).first().let { (text, style) ->
             wrappedText(text, style, at, leftMargin, rightMargin)
         }
