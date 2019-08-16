@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 
 class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
 
-    constructor(radius: Double): this(Origin, radius)
+    constructor(radius: Double = 0.0): this(Origin, radius)
 
     val radius get() = xRadius
 
@@ -27,6 +27,7 @@ class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
     fun inset(inset: Double) = Circle(center, radius - inset)
 
     companion object {
-        val Unit = Circle(1.0)
+        val Unit  = Circle(1.0)
+        val Empty = Circle(   )
     }
 }

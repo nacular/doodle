@@ -94,19 +94,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         }
     }
 
-    override infix fun ancestorOf(view: View): Boolean {
-        if (children.isNotEmpty()) {
-            var child: View? = view
+    override infix fun ancestorOf(view: View): Boolean = if (children.isNotEmpty()) {
+        var child: View? = view
 
-            while (child?.parent != null) {
-                child = child.parent
-            }
-
-            return child in children
+        while (child?.parent != null) {
+            child = child.parent
         }
 
-        return false
-    }
+        child in children
+    } else false
 
     override fun child(at: Point): View? = layout?.child(positionableWrapper, at) ?: {
         var result    = null as View?
@@ -121,8 +117,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 
         result
     }()
-
-    operator fun contains(view: View) = view in children
 
     override fun iterator() = children.iterator()
 

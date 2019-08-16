@@ -8,6 +8,7 @@ import org.w3c.dom.svg.SVGGradientElement
 import org.w3c.dom.svg.SVGGraphicsElement
 import org.w3c.dom.svg.SVGPathElement
 import org.w3c.dom.svg.SVGPatternElement
+import org.w3c.dom.svg.SVGPolygonElement
 import org.w3c.dom.svg.SVGRectElement
 
 /**
@@ -18,6 +19,7 @@ actual typealias SVGPathElement     = SVGPathElement
 actual typealias SVGRectElement     = SVGRectElement
 actual typealias SVGCircleElement   = SVGCircleElement
 actual typealias SVGEllipseElement  = SVGEllipseElement
+actual typealias SVGPolygonElement  = SVGPolygonElement
 actual typealias SVGPatternElement  = SVGPatternElement
 actual typealias SVGGradientElement = SVGGradientElement
 actual typealias SVGGraphicsElement = SVGGraphicsElement

@@ -22,7 +22,7 @@ private typealias Style = CSSStyleDeclaration
 
 val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
-private inline fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it > 0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
+internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it > 0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value) }
 

@@ -129,4 +129,6 @@ actual abstract class StyleSheetList {
     }
 }
 
-actual interface ElementCSSInlineStyle
+actual interface ElementCSSInlineStyle {
+    actual val style: CSSStyleDeclaration
+}

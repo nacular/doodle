@@ -8,6 +8,7 @@ expect abstract class SVGRectElement    : SVGGeometryElement
 expect abstract class SVGPathElement    : SVGGeometryElement
 expect abstract class SVGCircleElement  : SVGGeometryElement
 expect abstract class SVGEllipseElement : SVGGeometryElement
+expect abstract class SVGPolygonElement : SVGGeometryElement
 expect abstract class SVGPatternElement : SVGElement
 expect abstract class SVGGradientElement: SVGElement
 

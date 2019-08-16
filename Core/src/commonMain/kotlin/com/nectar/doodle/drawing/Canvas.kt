@@ -82,7 +82,7 @@ interface Canvas: Renderer {
 
     fun wrapped(
             text       : String,
-            font       : Font?,
+            font       : Font? = null,
             at         : Point,
             leftMargin : Double,
             rightMargin: Double,
@@ -94,9 +94,7 @@ interface Canvas: Renderer {
             leftMargin : Double,
             rightMargin: Double)
 
-    fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float = 1f)
-
-    fun image(image: Image, destination: Rectangle, radius: Double = 0.0, opacity: Float = 1f)
+    fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
 
     fun clip(rectangle: Rectangle, block: Canvas.() -> Unit)
 

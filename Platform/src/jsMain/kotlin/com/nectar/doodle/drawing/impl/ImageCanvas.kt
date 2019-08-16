@@ -388,13 +388,7 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         return Point(endX, currentPoint.y)
     }
 
-    override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
-        if (image is ImageImpl && opacity > 0 && !source.empty && !destination.empty) {
-            drawImage(image, source, destination, opacity)
-        }
-    }
-
-    override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
+    override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (image is ImageImpl && opacity > 0 && !destination.empty) {
             if (radius > 0) {
                 renderingContext.roundedRect(destination, radius)

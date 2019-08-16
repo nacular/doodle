@@ -54,7 +54,9 @@ expect class DOMRect {
     var height: Double
 }
 
-expect interface ElementCSSInlineStyle
+expect interface ElementCSSInlineStyle {
+    val style: CSSStyleDeclaration
+}
 
 expect abstract class Element: Node {
     var id        : String

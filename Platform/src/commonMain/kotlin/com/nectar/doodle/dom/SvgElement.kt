@@ -1,18 +1,18 @@
 package com.nectar.doodle.dom
 
-//import org.w3c.dom.svg.SVGCircleElement
-//import org.w3c.dom.svg.SVGElement
-//import org.w3c.dom.svg.SVGEllipseElement
-//import org.w3c.dom.svg.SVGGradientElement
-//import org.w3c.dom.svg.SVGRectElement
 import com.nectar.doodle.SVGCircleElement
 import com.nectar.doodle.SVGElement
 import com.nectar.doodle.SVGEllipseElement
+import com.nectar.doodle.SVGGeometryElement
 import com.nectar.doodle.SVGGradientElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Renderer
+import com.nectar.doodle.geometry.Circle
+import com.nectar.doodle.geometry.Ellipse
+import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
@@ -23,32 +23,47 @@ import kotlin.math.min
 inline val SVGElement.parent get() = parentNode
 
 
-inline fun SVGRectElement.setX      (value: Double) = setAttribute("x",      "$value")
-inline fun SVGRectElement.setY      (value: Double) = setAttribute("y",      "$value")
-inline fun SVGRectElement.setRX     (value: Double) = setAttribute("rx",     "$value")
-inline fun SVGRectElement.setRY     (value: Double) = setAttribute("ry",     "$value")
+inline fun SVGRectElement.setRX  (value: Double) = setAttribute("rx",     "$value")
+inline fun SVGRectElement.setRY  (value: Double) = setAttribute("ry",     "$value")
 
-inline fun SVGElement.setId    (value: String) { setAttributeNS(null, "id", value ); }
-inline fun SVGElement.setWidth (value: Double) = setAttribute("width",  "$value")
-inline fun SVGElement.setHeight(value: Double) = setAttribute("height", "$value")
-inline fun SVGElement.setSize  (value: Size  ) { setWidth(value.width); setHeight(value.height) }
+inline fun SVGElement.setId      (value: String   ) { setAttributeNS(null, "id", value ); }
+inline fun SVGElement.setX       (value: Double   ) = setAttribute("x",      "$value")
+inline fun SVGElement.setY       (value: Double   ) = setAttribute("y",      "$value")
+inline fun SVGElement.setSize    (value: Size     ) { setWidth(value.width); setHeight(value.height) }
+inline fun SVGElement.setWidth   (value: Double   ) = setAttribute("width",  "$value")
+inline fun SVGElement.setHeight  (value: Double   ) = setAttribute("height", "$value")
+inline fun SVGElement.setPosition(value: Point    ) { setX(value.x); setY(value.y) }
+inline fun SVGElement.setBounds  (value: Rectangle) { setPosition(value.position); setSize(value.size) }
 
 inline fun SVGGradientElement.setX1(value: Double) = setAttribute("x1", "$value")
 inline fun SVGGradientElement.setX2(value: Double) = setAttribute("x2", "$value")
 inline fun SVGGradientElement.setY1(value: Double) = setAttribute("y1", "$value")
 inline fun SVGGradientElement.setY2(value: Double) = setAttribute("y2", "$value")
-inline fun SVGEllipseElement.setRX  (value : Double      ) = setAttribute  ("rx",               "$value"       )
-inline fun SVGEllipseElement.setRY  (value : Double      ) = setAttribute  ("ry",               "$value"       )
-inline fun SVGEllipseElement.setCX  (value : Double      ) = setAttribute  ("cx",               "$value"       )
-inline fun SVGEllipseElement.setCY  (value : Double      ) = setAttribute  ("cy",               "$value"       )
-inline fun SVGCircleElement.setCX   (value : Double      ) = setAttribute  ("cx",               "$value"       )
-inline fun SVGCircleElement.setCY   (value : Double      ) = setAttribute  ("cy",               "$value"       )
-inline fun SVGCircleElement.setR    (value : Double      ) = setAttribute  ("r",                "$value"       )
+
+inline fun SVGEllipseElement.setRX     (value : Double ) = setAttribute("rx", "$value")
+inline fun SVGEllipseElement.setRY     (value : Double ) = setAttribute("ry", "$value")
+inline fun SVGEllipseElement.setCX     (value : Double ) = setAttribute("cx", "$value")
+inline fun SVGEllipseElement.setCY     (value : Double ) = setAttribute("cy", "$value")
+inline fun SVGEllipseElement.setEllipse(value : Ellipse) {
+    setCX(value.center.x)
+    setCY(value.center.y)
+    setRX(value.xRadius)
+    setRY(value.yRadius)
+}
+
+inline fun SVGCircleElement.setCX    (value : Double) = setAttribute  ("cx",               "$value"       )
+inline fun SVGCircleElement.setCY    (value : Double) = setAttribute  ("cy",               "$value"       )
+inline fun SVGCircleElement.setR     (value : Double) = setAttribute  ("r",                "$value"       )
+inline fun SVGCircleElement.setCircle(value : Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
+
+
 inline fun SVGElement.setPathData   (value : String      ) = setAttribute  ("d",                  value        )
 inline fun SVGElement.setStrokeWidth(value : Double      ) = setAttribute  ("stroke-width",     "$value"       )
 inline fun SVGElement.setStrokeDash (value : String      ) = setAttribute  ("stroke-dasharray",   value        )
 //inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
 //inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
+
+inline fun SVGGeometryElement.setPoints(vararg points: Point) = setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
 
 fun SVGElement.setStopColor(color: Color) {
     setStopColor("#${color.hexString}")
@@ -85,12 +100,12 @@ fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     else -> "#${color.hexString}"
 })
 
-inline fun SVGElement.setFill(color: Color?) = convert(color) {
+fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
     color?.let { setAttribute("fill-opacity", "${it.opacity}") }
 }
 
-inline fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
+fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
     setAttribute("fill-rule", when (fillRule) {
         Renderer.FillRule.EvenOdd -> "evenodd"
         Renderer.FillRule.NonZero -> "nonzero"
@@ -103,7 +118,7 @@ fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fill", when 
     else -> "url(#${pattern.id})"
 })
 
-inline fun SVGElement.setStroke(color: Color?) = convert(color) {
+fun SVGElement.setStroke(color: Color?) = convert(color) {
     setAttribute("stroke", it)
     color?.let { setAttribute("stroke-opacity", "${it.opacity}") }
 }

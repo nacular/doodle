@@ -11,11 +11,11 @@ import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
 import com.nectar.doodle.dom.HtmlFactory
-import com.nectar.doodle.dom.impl.HtmlFactoryImpl
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
 import com.nectar.doodle.dom.SystemStylerImpl
+import com.nectar.doodle.dom.impl.HtmlFactoryImpl
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager

@@ -175,37 +175,36 @@ open class CanvasImpl(
                     rightMargin))
     }
 
-    override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
-        if (shouldDrawImage(image, Rectangle(size = image.size), destination, opacity)) {
-            completeOperation(createImage(image, destination, radius, opacity))
-        }
-    }
-
-    override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
+    override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (shouldDrawImage(image, source, destination, opacity)) {
-            val clipRect          = getRect(destination)
-            val oldRenderPosition = renderPosition
+            if (source.size == image.size && source.position == Origin) {
+                completeOperation(createImage(image, destination, radius, opacity))
+            } else {
 
-            renderPosition = clipRect.childAt(0)
+                val clipRect = getRect(destination)
+                val oldRenderPosition = renderPosition
 
-            val xRatio = destination.width  / source.width
-            val yRatio = destination.height / source.height
+                renderPosition = clipRect.childAt(0)
 
-            val imageElement = createImage(image,
-                    Rectangle(0 - xRatio * source.x,
-                              0 - yRatio * source.y,
-                              xRatio * image.size.width,
-                              yRatio * image.size.height),
-                    0.0,
-                    opacity)
+                val xRatio = destination.width / source.width
+                val yRatio = destination.height / source.height
 
-            if (renderPosition !== imageElement) {
-                clipRect.add(imageElement)
+                val imageElement = createImage(image,
+                        Rectangle(0 - xRatio * source.x,
+                                  0 - yRatio * source.y,
+                                      xRatio * image.size.width,
+                                      yRatio * image.size.height),
+                                  0.0,
+                                  opacity)
+
+                if (renderPosition !== imageElement) {
+                    clipRect.add(imageElement)
+                }
+
+                renderPosition = oldRenderPosition
+
+                completeOperation(clipRect)
             }
-
-            renderPosition = oldRenderPosition
-
-            completeOperation(clipRect)
         }
     }
 
@@ -287,7 +286,7 @@ open class CanvasImpl(
 
         val clipRect = getRectElement()
 
-        if (clipRect.parentNode == null) {
+        if (clipRect.parent == null) {
             renderPosition?.let {
                 it.parent?.replaceChild(clipRect, it)
             } ?: renderRegion.add(clipRect)
@@ -327,9 +326,7 @@ open class CanvasImpl(
 
     private fun getRectElement(): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
         it.clear()
-        it.style.setTransform    (     )
-//        it.style.setWidthPercent (100.0)
-//        it.style.setHeightPercent(100.0)
+        it.style.setTransform()
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
@@ -388,11 +385,7 @@ open class CanvasImpl(
         return element
     }
 
-    private fun createTextGlyph(brush: ColorBrush, text: String, font: Font?, at: Point): HTMLElement {
-        val element = textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
-
-        return configure(element, brush, at)
-    }
+    private fun createTextGlyph(brush: ColorBrush, text: String, font: Font?, at: Point) = configure(textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), brush, at)
 
     private fun createWrappedTextGlyph(brush: ColorBrush, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
@@ -406,12 +399,8 @@ open class CanvasImpl(
         return configure(element, brush, at)
     }
 
-    private fun createStyledTextGlyph(text: StyledText, at: Point): HTMLElement {
-        val element = textFactory.create(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null)
-
-        element.style.translate(at)
-
-        return element
+    private fun createStyledTextGlyph(text: StyledText, at: Point) = textFactory.create(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null).apply {
+        style.translate(at)
     }
 
     private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
@@ -447,7 +436,7 @@ open class CanvasImpl(
     private fun pickImageElement(image: HTMLImageElement, possible: Node?): HTMLImageElement {
         var result = possible
 
-        if (result == null || result !is HTMLImageElement || result.parentNode != null && result.nodeName != image.nodeName) {
+        if (result == null || result !is HTMLImageElement || result.parent != null && result.nodeName != image.nodeName) {
             result = image.cloneNode(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {

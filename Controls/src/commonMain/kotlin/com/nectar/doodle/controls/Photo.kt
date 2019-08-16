@@ -13,6 +13,6 @@ class Photo(private var image: Image): View() {
     }
 
     override fun render(canvas: Canvas) {
-        canvas.image(image, bounds.atOrigin)
+        canvas.image(image, source = bounds.atOrigin)
     }
 }

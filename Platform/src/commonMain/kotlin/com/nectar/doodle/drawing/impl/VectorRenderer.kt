@@ -26,7 +26,7 @@ interface VectorRenderer: Renderer {
     fun ellipse(ellipse: Ellipse,           brush: Brush        )
     fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
 
-    fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit)
+//    fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit)
 
     fun add   (shadow: Shadow)
     fun remove(shadow: Shadow)

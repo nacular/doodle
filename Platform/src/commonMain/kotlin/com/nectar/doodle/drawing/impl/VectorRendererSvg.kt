@@ -7,6 +7,7 @@ import com.nectar.doodle.SVGEllipseElement
 import com.nectar.doodle.SVGGradientElement
 import com.nectar.doodle.SVGPathElement
 import com.nectar.doodle.SVGPatternElement
+import com.nectar.doodle.SVGPolygonElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.clear
 import com.nectar.doodle.dom.SvgFactory
@@ -15,15 +16,16 @@ import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
-import com.nectar.doodle.dom.setCX
-import com.nectar.doodle.dom.setCY
+import com.nectar.doodle.dom.setBounds
+import com.nectar.doodle.dom.setCircle
+import com.nectar.doodle.dom.setEllipse
 import com.nectar.doodle.dom.setFill
 import com.nectar.doodle.dom.setFillPattern
 import com.nectar.doodle.dom.setFillRule
 import com.nectar.doodle.dom.setGradientUnits
 import com.nectar.doodle.dom.setId
 import com.nectar.doodle.dom.setPathData
-import com.nectar.doodle.dom.setR
+import com.nectar.doodle.dom.setPoints
 import com.nectar.doodle.dom.setRX
 import com.nectar.doodle.dom.setRY
 import com.nectar.doodle.dom.setSize
@@ -32,10 +34,8 @@ import com.nectar.doodle.dom.setStopOffset
 import com.nectar.doodle.dom.setStroke
 import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
-import com.nectar.doodle.dom.setX
 import com.nectar.doodle.dom.setX1
 import com.nectar.doodle.dom.setX2
-import com.nectar.doodle.dom.setY
 import com.nectar.doodle.dom.setY1
 import com.nectar.doodle.dom.setY2
 import com.nectar.doodle.drawing.AffineTransform
@@ -77,7 +77,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private var renderPosition: Node? = null
 
-    fun nextId() = "${id++}"
+    private fun nextId() = "${id++}"
 
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, null, null, point1, point2)
 
@@ -110,9 +110,9 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     override fun ellipse(ellipse: Ellipse,           brush: Brush ) = drawEllipse(ellipse, null, brush)
     override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = drawEllipse(ellipse, pen,  brush)
 
-    override fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+//    override fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit) {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
 
     override fun add(shadow: Shadow) {
         val svg = createElement<SVGElement>("svg").apply {
@@ -148,7 +148,10 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     }
 
     override fun clear() {
-        renderPosition = (0 until context.renderRegion.childNodes.length).map { context.renderRegion.childNodes[it] }.firstOrNull { isCompatibleSvgElement(it) }?.firstChild
+        (0 until context.renderRegion.childNodes.length).map { context.renderRegion.childNodes[it] }.firstOrNull { isCompatibleSvgElement(it) }?.let {
+            rootSvgElement = it as SVGElement
+            renderPosition = it.firstChild
+        }
     }
 
     override fun flush() {
@@ -209,7 +212,8 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private fun drawRect(rectangle: Rectangle, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            !rectangle.empty -> makeClosedPath(Point(rectangle.x, rectangle.y),
+            !rectangle.empty -> makeClosedPath(
+                    Point(rectangle.x,                   rectangle.y                   ),
                     Point(rectangle.x + rectangle.width, rectangle.y                   ),
                     Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
                     Point(rectangle.x,                   rectangle.y + rectangle.height))
@@ -264,15 +268,13 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     }
 
     private fun makeRect(rectangle: Rectangle): SVGRectElement = createElement<SVGRectElement>("rect").apply {
-        setX   (rectangle.x   )
-        setY   (rectangle.y   )
-        setSize(rectangle.size)
+        setBounds(rectangle)
 
         setFill  (null)
         setStroke(null)
     }
 
-    private fun makeRoundedRect(aRectangle: Rectangle, radius: Double): SVGRectElement = makeRect(aRectangle).apply {
+    private fun makeRoundedRect(rectangle: Rectangle, radius: Double): SVGRectElement = makeRect(rectangle).apply {
         setRX(radius)
         setRY(radius)
 
@@ -281,19 +283,14 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     }
 
     private fun makeCircle(circle: Circle): SVGCircleElement = createElement<SVGCircleElement>("circle").apply {
-        setCX(circle.center.x)
-        setCY(circle.center.y)
-        setR(circle.radius)
+        setCircle(circle)
 
-        setFill(null)
+        setFill  (null)
         setStroke(null)
     }
 
     private fun makeEllipse(ellipse: Ellipse): SVGEllipseElement = createElement<SVGEllipseElement>("ellipse").apply {
-        setCX(ellipse.center.x)
-        setCY(ellipse.center.y)
-        setRX(ellipse.xRadius)
-        setRY(ellipse.yRadius)
+        setEllipse(ellipse)
 
         setFill  (null)
         setStroke(null)
@@ -328,8 +325,8 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         return makePath(path)
     }
 
-    private fun makeClosedPath(vararg points: Point) = createElement<SVGElement>("polygon").apply {
-        setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
+    private fun makeClosedPath(vararg points: Point) = createElement<SVGPolygonElement>("polygon").apply {
+        setPoints(*points)
     }
 
     private fun makePath(path: Path): SVGPathElement = makePath(path.data)
@@ -487,7 +484,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         }
     }
 
-    private val canvasFillHandler by lazy {
+    private val canvasFillHandler: FillHandler<PatternBrush> by lazy {
         object: FillHandler<PatternBrush> {
             override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: PatternBrush) {
 
@@ -555,11 +552,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun image(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun image(image: Image, destination: Rectangle, radius: Double, opacity: Float) {
+        override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 

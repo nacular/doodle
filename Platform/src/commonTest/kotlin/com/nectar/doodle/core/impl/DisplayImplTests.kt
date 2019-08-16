@@ -2,9 +2,9 @@ package com.nectar.doodle.core.impl
 
 import com.nectar.doodle.Event
 import com.nectar.doodle.HTMLElement
-import com.nectar.doodle.JsName
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
+import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.geometry.Point
@@ -30,8 +30,7 @@ import kotlin.test.expect
 
 @Suppress("FunctionName")
 class DisplayImplTests {
-    @Test @JsName("defaults")
-    fun `defaults valid`() {
+    @Test fun `defaults valid`() {
         expect(true, "DisplayImpl::children.isEmpty()") { display().children.isEmpty() }
 
         mapOf(
@@ -44,8 +43,7 @@ class DisplayImplTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test @JsName("registersOnresize")
-    fun `registers onresize`() {
+    @Test fun `registers onresize`() {
         val rootElement = spyk<HTMLElement>()
 
         display(rootElement = rootElement)
@@ -53,8 +51,7 @@ class DisplayImplTests {
         verify(exactly = 1) { rootElement.onresize = any() }
     }
 
-    @Test @JsName("handlesWindowResize")
-    fun `has initial window size`() {
+    @Test fun `has initial window size`() {
         val rootElement = spyk<HTMLElement>().apply {
             every { offsetWidth  } returns 100
             every { offsetHeight } returns 150
@@ -63,14 +60,13 @@ class DisplayImplTests {
         expect(Size(100, 150)) { display(rootElement = rootElement).size }
     }
 
-    @Test @JsName("handlesWindowResize")
-    fun `handles window resize`() {
-        val rootElement = spyk<HTMLElement>()
-
+    @Test fun `handles window resize`() {
         var slot = slot<(Event) -> Unit>()
 
-        every { rootElement.onresize = captureLambda() } answers {
-            slot = lambda()
+        val rootElement = spyk<HTMLElement>().apply {
+            every { onresize = captureLambda() } answers {
+                slot = lambda()
+            }
         }
 
         val sizeObserver = mockk<PropertyObserver<Display, Size>>(relaxed = true)
@@ -93,8 +89,7 @@ class DisplayImplTests {
         expect(newSize) { display.size }
     }
 
-    @Test @JsName("notifiesCursorChange")
-    fun `notifies cursor change`() {
+    @Test fun `notifies cursor change`() {
         val cursorObserver = mockk<PropertyObserver<Display, Cursor?>>(relaxed = true)
 
         val display = display().apply {
@@ -108,8 +103,7 @@ class DisplayImplTests {
         expect<Cursor?>(Cursor.Grab) { display.cursor }
     }
 
-    @Test @JsName("childAtWorks")
-    fun `child at works`() {
+    @Test fun `child at (no layout) works`() {
         val display = display()
         val child0  = view().apply { x += 10.0; y += 12.0 }
         val child1  = view().apply { x += 10.0; y += 12.0 }
@@ -130,8 +124,27 @@ class DisplayImplTests {
         expect(child0) { display.child(at = Point(11.0, 13.0)) }
     }
 
-    @Test @JsName("isAncestorWorks")
-    fun `is-ancestor works`() {
+    @Test fun `child at works`() {
+        val at     = Point(11.0, 13.0)
+        val result = mockk<View>(relaxed = true)
+        val layout = mockk<Layout>(relaxed = true).apply {
+            every { child(any(), at = at) } returns result
+        }
+
+        display().apply {
+            this.layout = layout
+
+            expect(result) { child(at) }
+
+            every { layout.child(any(), at = at) } returns null
+
+            expect(null) { child(at) }
+
+            verify(exactly = 2) { layout.child(any(), at) }
+        }
+    }
+
+    @Test fun `is-ancestor works`() {
         val display = display()
         val parent  = object: Box() {}
         val child   = object: View() {}
@@ -144,6 +157,22 @@ class DisplayImplTests {
 
         expect(true) { display ancestorOf parent }
         expect(true) { display ancestorOf child  }
+    }
+
+    @Test fun `layout works`() {
+        val layout = mockk<Layout>(relaxed = true)
+
+        display().apply {
+            doLayout() // should no-op
+
+            this.layout = layout
+
+            verify (exactly= 1) { layout.layout(any()) }
+
+            doLayout()
+
+            verify (exactly= 2) { layout.layout(any()) }
+        }
     }
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }

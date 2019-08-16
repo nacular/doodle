@@ -1,37 +1,69 @@
 apply plugin: 'jacoco'
 
 jacoco {
-    toolVersion = '0.8.2'
+    toolVersion = '0.8.4'
 }
 
-task jacocoTestReport(type: JacocoReport, dependsOn: 'jvmTest' /*'testDebugUnitTest'*/) {
-    group = 'Reporting'
-    description = 'Generate Jacoco coverage reports for Debug build'
+//task jacocoTestReport(type: JacocoReport, dependsOn: 'jvmTest' /*'testDebugUnitTest'*/) {
+//    group = 'Reporting'
+//    description = 'Generate Jacoco coverage reports for Debug build'
+//
+//    reports {
+//        xml.enabled  = false
+//        html.enabled = true
+//    }
+//
+//    // what to exclude from coverage report: generated classes, platform classes, etc.
+//    def excludes = [
+//        '**/Manifest*.*',
+//        '**/*Test*.*',
+//    ]
+//
+//    // generated classes
+//    classDirectories = fileTree(
+//        dir: '$buildDir/intermediates/classes/debug',
+//        excludes: excludes
+//    ) + fileTree(
+//        dir: '$buildDir/tmp/kotlin-classes/debug',
+//        excludes: excludes
+//    )
+//
+//    executionData = files('$buildDir/jacoco/test.exec')
+//
+//    sourceDirectories = files([
+//        "./src/commonMain/kotlin",
+//        "./src/jvmMain/kotlin"
+//    ])
+//}
 
-    reports {
-        xml.enabled  = false
-        html.enabled = true
+project.afterEvaluate {
+    def testTaskName = "jvmTestClasses"
+
+    // Create gradle task
+    task "testCommonUnitTestCoverage" (type:JacocoReport, dependsOn: "$testTaskName") {
+        group       = "Reporting"
+        description = "Generate Jacoco coverage reports on the common module build."
+
+        def excludes = [
+            '**/*Test*.*'
+        ]
+
+        classDirectories = fileTree(
+            dir     : "${project.buildDir}/classes/kotlin/jvm/",
+            excludes: excludes
+        )
+
+        def coverageSourceDirs = [
+            "src/commonMain/kotlin"
+        ]
+
+        additionalSourceDirs = files(coverageSourceDirs)
+        sourceDirectories    = files(coverageSourceDirs)
+        executionData        = files("${project.buildDir}/jacoco/jvmTest.exec")
+
+        reports {
+            xml.enabled = true
+            html.enabled = true
+        }
     }
-
-    // what to exclude from coverage report: generated classes, platform classes, etc.
-    def excludes = [
-        '**/Manifest*.*',
-        '**/*Test*.*',
-    ]
-
-    // generated classes
-    classDirectories = fileTree(
-        dir: '$buildDir/intermediates/classes/debug',
-        excludes: excludes
-    ) + fileTree(
-        dir: '$buildDir/tmp/kotlin-classes/debug',
-        excludes: excludes
-    )
-
-    executionData = files('$buildDir/jacoco/test.exec')
-
-    sourceDirectories = files([
-        "./src/commonMain/kotlin",
-        "./src/jvmMain/kotlin"
-    ])
 }

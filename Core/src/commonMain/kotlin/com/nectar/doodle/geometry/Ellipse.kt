@@ -26,6 +26,7 @@ open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double):
     override fun intersects(rectangle: Rectangle) = false // TODO: IMPLEMENT
 
     companion object {
-        val Unit = Ellipse(1.0, 1.0)
+        val Unit  = Ellipse(1.0, 1.0)
+        val Empty = Ellipse(0.0, 0.0)
     }
 }

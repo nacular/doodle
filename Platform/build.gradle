@@ -1,6 +1,7 @@
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 apply plugin: 'org.jetbrains.dokka'
+apply from  : '../jacoco.gradle'
 
 kotlin {
     targets {
@@ -45,11 +46,6 @@ kotlin {
             implementation dep.kotlin_stdlib_js
             implementation 'org.kodein.di:kodein-di-erased-js:5.0.0'
         }
-
-//        jsTest.dependencies {
-//            implementation dep.mockk_js
-//            implementation dep.kotlin_test_js
-//        }
 
         jvmMain.dependencies {
             implementation dep.kotlin_stdlib_jdk8
