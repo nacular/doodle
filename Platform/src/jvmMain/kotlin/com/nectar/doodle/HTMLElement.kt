@@ -55,9 +55,9 @@ actual class DOMRect {
 }
 
 actual abstract class Element: Node() {
-    actual var id         = ""
-    actual var scrollTop  = 0.0
-    actual var scrollLeft = 0.0
+    actual open var id         = ""
+    actual open var scrollTop  = 0.0
+    actual open var scrollLeft = 0.0
 
     actual fun getBoundingClientRect() = DOMRect()
 

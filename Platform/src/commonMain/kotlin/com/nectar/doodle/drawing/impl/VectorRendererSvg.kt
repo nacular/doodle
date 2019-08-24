@@ -12,7 +12,7 @@ import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.clear
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
-import com.nectar.doodle.dom.insert
+import com.nectar.doodle.dom.addIfNotPresent
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
@@ -115,16 +115,18 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 //    }
 
     override fun add(shadow: Shadow) {
-        val svg = createElement<SVGElement>("svg").apply {
+        val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
             // Here to ensure nested SVG has correct size
-            insert(makeRect(Rectangle(size = context.size)), 0)
+            addIfNotPresent(makeRect(Rectangle(size = context.size)), 0)
 
             renderPosition = renderPosition?.nextSibling
         }
 
         if (!::svgElement.isInitialized || svg.parentNode != svgElement) {
+            updateRootSvg()
+
             completeOperation(svg)
         }
 
@@ -140,6 +142,9 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     }
 
     override fun remove(shadow: Shadow) {
+        // Clear any remaining items that were previously rendered with the shadow that won't be rendered anymore
+        flush()
+
         renderPosition = svgElement.nextSibling
 
         svgElement.parentNode?.let {
@@ -165,18 +170,27 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             element = next
         }
 
-//        // Remove all elements after the current render position
-//        renderPosition?.let {
-//            val index = region.index(it)
-//
-//            if (index >= 0) {
-//                while (index < region.numChildren) {
-//                    region.remove(region.childAt(index)!!)
-//                }
-//            }
-//        }
-
         renderPosition = null
+    }
+
+    protected open fun completeOperation(element: SVGElement) {
+        if (context.renderPosition == null && svgElement.parent == null) {
+            region.add(svgElement)
+        } else if (context.renderPosition !== rootSvgElement) {
+            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
+        }
+
+        if (renderPosition == null) {
+            svgElement.add(element)
+        } else {
+            if (renderPosition !== element) {
+                renderPosition?.parent?.replaceChild(element, renderPosition!!)
+            }
+
+            renderPosition = element.nextSibling
+        }
+
+        context.renderPosition = rootSvgElement.nextSibling
     }
 
     private fun drawPath(pen: Pen?, brush: Brush? = null, fillRule: FillRule? = null, vararg points: Point) = present(pen, brush) {
@@ -195,6 +209,9 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private fun present(pen: Pen?, brush: Brush?, block: () -> SVGElement?) {
         if (visible(pen, brush)) {
+            // Update SVG Element to enable re-use if the top-level cursor has moved to a new place
+            updateRootSvg()
+
             block()?.let {
                 // make sure element is in dom first since some brushes add new elements to the dom
                 // this means we get better re-use of nodes since the order in the dom is the element creation order
@@ -232,8 +249,8 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private fun drawPoly(polygon: ConvexPolygon, pen: Pen?, brush: Brush?) = present(pen, brush) {
         when {
-            polygon.points.size > 1 -> makeClosedPath(*polygon.points.toTypedArray())
-            else                    -> null
+            !polygon.empty -> makeClosedPath(*polygon.points.toTypedArray())
+            else           -> null
         }
     }
 
@@ -267,7 +284,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         }
     }
 
-    private fun makeRect(rectangle: Rectangle): SVGRectElement = createElement<SVGRectElement>("rect").apply {
+    private fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
         setBounds(rectangle)
 
         setFill  (null)
@@ -282,14 +299,14 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         setStroke(null)
     }
 
-    private fun makeCircle(circle: Circle): SVGCircleElement = createElement<SVGCircleElement>("circle").apply {
+    private fun makeCircle(circle: Circle): SVGCircleElement = createOrUse<SVGCircleElement>("circle").apply {
         setCircle(circle)
 
         setFill  (null)
         setStroke(null)
     }
 
-    private fun makeEllipse(ellipse: Ellipse): SVGEllipseElement = createElement<SVGEllipseElement>("ellipse").apply {
+    private fun makeEllipse(ellipse: Ellipse): SVGEllipseElement = createOrUse<SVGEllipseElement>("ellipse").apply {
         setEllipse(ellipse)
 
         setFill  (null)
@@ -299,7 +316,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     private fun makeArc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath(makeArcPathData(center, radius, sweep, rotation))
     private fun makeWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath("${makeArcPathData(center, radius, sweep, rotation)} L${center.x},${center.y}")
 
-    private fun withPath(path: String): SVGPathElement = createElement<SVGPathElement>("path").apply {
+    private fun withPath(path: String): SVGPathElement = createOrUse<SVGPathElement>("path").apply {
         setPathData(path)
         setFill    (null)
         setStroke  (null)
@@ -325,13 +342,13 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         return makePath(path)
     }
 
-    private fun makeClosedPath(vararg points: Point) = createElement<SVGPolygonElement>("polygon").apply {
+    private fun makeClosedPath(vararg points: Point) = createOrUse<SVGPolygonElement>("polygon").apply {
         setPoints(*points)
     }
 
     private fun makePath(path: Path): SVGPathElement = makePath(path.data)
 
-    private fun makePath(pathData: String): SVGPathElement = createElement<SVGPathElement>("path").apply {
+    private fun makePath(pathData: String): SVGPathElement = createOrUse<SVGPathElement>("path").apply {
         setPathData(pathData)
     }
 
@@ -368,13 +385,15 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         max(0, dash + if (index.isEven) -1 else 1)
     }?.joinToString(",") ?: ""
 
-    private fun <T: SVGElement> createElement(tag: String): T {
-        val element: Node? = renderPosition
+    private val containerElements = setOf(svgTag, "filter")
+
+    private fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
+        val element: Node? = possible ?: renderPosition
 
         return when {
             element == null || element.nodeName != tag -> svgFactory(tag)
             element is SVGElement                      -> {
-                if (tag != svgTag) { element.clear() }
+                if (tag !in containerElements) { element.clear() }
                 element.style.filter = ""
                 element.removeTransform()
                 @Suppress("UNCHECKED_CAST")
@@ -386,90 +405,99 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName
 
-    private fun outerShadow(shadow: OuterShadow) = createElement<SVGElement>("filter").apply {
+    private fun outerShadow(shadow: OuterShadow) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
-        clear()
 
-        add(createElement<SVGElement>("feDropShadow").apply {
+        val oldRenderPosition = renderPosition
+
+        renderPosition = firstChild
+
+        addIfNotPresent(createOrUse<SVGElement>("feDropShadow").apply {
             setAttribute("dx",            "${shadow.horizontal    }" )
             setAttribute("dy",            "${shadow.vertical      }" )
             setAttribute("stdDeviation",  "${shadow.blurRadius - 1}" )
             setAttribute("flood-color",   shadow.color.hexString     )
             setAttribute("flood-opacity", "${shadow.color.opacity}"  )
-        })
+        }, 0)
+
+        flush()
+        renderPosition = if (this.parentNode != null) this else oldRenderPosition
     }
 
-    private fun innerShadow(shadow: InnerShadow) = createElement<SVGElement>("filter").apply {
+    private fun innerShadow(shadow: InnerShadow) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
-        clear()
+
+        val oldRenderPosition = renderPosition
+
+        renderPosition = firstChild
+
+        var index = 0
 
         // Shadow Offset
-        add(createElement<SVGElement>("feOffset").apply {
+        addIfNotPresent(createOrUse<SVGElement>("feOffset").apply {
             setAttribute("dx", "${shadow.horizontal}")
             setAttribute("dy", "${shadow.vertical  }")
-        })
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
 
         // Shadow Blur
-        add(createElement<SVGElement>("feGaussianBlur").apply {
+        addIfNotPresent(createOrUse<SVGElement>("feGaussianBlur").apply {
             setAttribute("stdDeviation", "${shadow.blurRadius}")
-        })
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
 
         // Invert the drop shadow to create an inner shadow
-        add(createElement<SVGElement>("feComposite").apply {
+        addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute("operator", "out"          )
             setAttribute("in",       "SourceGraphic")
             setAttribute("in2",      "offset-blur"  )
             setAttribute("result",   "inverse"      )
-        })
+        }, index++)
 
-        add(createElement<SVGElement>("feFlood").apply {
+        renderPosition = renderPosition?.nextSibling
+
+        addIfNotPresent(createOrUse<SVGElement>("feFlood").apply {
             setAttribute("flood-color",   shadow.color.hexString   )
             setAttribute("flood-opacity", "${shadow.color.opacity}")
             setAttribute("result",        "color"                  )
-        })
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
 
         // Clip color inside shadow
-        add(createElement<SVGElement>("feComposite").apply {
+        addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute("operator", "in"     )
             setAttribute("in",       "color"  )
             setAttribute("in2",      "inverse")
             setAttribute("result",   "shadow" )
-        })
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
 
         // Put shadow over original object
-        add(createElement<SVGElement>("feComposite").apply {
+        addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute("operator", "over"         )
             setAttribute("in",       "shadow"       )
             setAttribute("in2",      "SourceGraphic")
-        })
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
+
+        flush()
+        renderPosition = if (this.parentNode != null) this else oldRenderPosition
     }
 
-    protected open fun completeOperation(element: SVGElement) {
-        if (!::rootSvgElement.isInitialized || (context.renderPosition != rootSvgElement && context.renderPosition != rootSvgElement.nextSibling)) {
+    private fun updateRootSvg() {
+        if (!::rootSvgElement.isInitialized || (context.renderPosition !== rootSvgElement && context.renderPosition !== rootSvgElement.nextSibling)) {
             // Initialize new SVG root if
             // 1) not initialized
             // 2) it is not longer the active element
-            svgElement     = createElement("svg")
+            svgElement     = createOrUse("svg", context.renderPosition)
             rootSvgElement = svgElement
+            renderPosition = svgElement.firstChild
         }
-
-        if (context.renderPosition == null && svgElement.parent == null) {
-            region.add(svgElement)
-        } else if (context.renderPosition !== rootSvgElement) {
-            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
-        }
-
-        if (renderPosition == null) {
-            svgElement.add(element)
-        } else {
-            if (renderPosition !== element) {
-                renderPosition?.parent?.replaceChild(element, renderPosition!!)
-            }
-
-            renderPosition = element.nextSibling
-        }
-
-        context.renderPosition = svgElement.nextSibling
     }
 
     private class SVGPath: Path("M", "L", "Z")
@@ -489,7 +517,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: PatternBrush) {
 
                 // FIXME: Re-use elements when possible
-                val pattern = createElement<SVGPatternElement>("pattern").apply {
+                val pattern = createOrUse<SVGPatternElement>("pattern").apply {
                     if (id.isBlank()) { setId(nextId()) }
 
                     setAttribute("patternUnits", "userSpaceOnUse")
@@ -570,7 +598,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
     private inner class LinearFillHandler: FillHandler<LinearGradientBrush> {
         override fun fill(renderer: VectorRendererSvg, element: SVGElement, brush: LinearGradientBrush) {
             // FIXME: Re-use elements when possible
-            val gradient = createElement<SVGGradientElement>("linearGradient").apply {
+            val gradient = createOrUse<SVGGradientElement>("linearGradient").apply {
                 if (id.isBlank()) { setId(nextId()) }
 
                 setGradientUnits("userSpaceOnUse")

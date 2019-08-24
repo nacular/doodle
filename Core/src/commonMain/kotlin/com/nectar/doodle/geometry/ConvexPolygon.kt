@@ -1,5 +1,7 @@
 package com.nectar.doodle.geometry
 
+import kotlin.math.abs
+
 
 abstract class Polygon: Shape {
     abstract val points: List<Point>
@@ -31,8 +33,24 @@ abstract class Polygon: Shape {
 private data class Line(val start: Point, val end: Point)
 
 abstract class ConvexPolygon: Polygon() {
-    override val area: Double get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val empty: Boolean get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    // https://en.wikipedia.org/wiki/Shoelace_formula
+    override val area : Double by lazy {
+        var area = 0.0         // Accumulates area in the loop
+        var j    = points.size - 1  // The last vertex is the 'previous' one to the first
+        var i    = 0
+
+        while (i < points.size) {
+            val ith = points[i]
+            val jth = points[j]
+
+            area += (jth.x + ith.x) * (jth.y - ith.y)
+            j = i  //j is previous vertex to i
+            i++
+        }
+
+        abs(area / 2)
+    }
+    override val empty: Boolean by lazy { area == 0.0 }
 
     private fun isLeft(line: Line, point: Point): Int = ((line.end.x - line.start.x) * (point.y - line.start.y) - (point.x - line.start.x) * (line.end.y - line.start.y)).toInt()
 

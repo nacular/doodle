@@ -8,12 +8,12 @@ package com.nectar.doodle
 
 actual inline operator fun NodeList.get(index: Int): Node? = item(index)
 
-actual abstract class NodeList {
+actual abstract class NodeList actual constructor() {
     private val values: List<Node> = mutableListOf()
 
-    actual val length = values.size
+    actual open val length = values.size
 
-    actual fun item(index: Int) = try {
+    actual open fun item(index: Int) = try {
         values[index]
     } catch (e: Exception) {
         null

@@ -22,6 +22,12 @@ fun Node.index(of: Node) = (0 until childNodes.length).firstOrNull { childNodes[
 
 inline fun Node.add(child: Node) = appendChild(child)
 
+fun Node.addIfNotPresent(child: Node, at: Int) {
+    if (child !== childNodes[at]) {
+        insert(child, at)
+    }
+}
+
 inline fun Node.insert(element: Node, index: Int) = insertBefore(element, childAt(index))
 
 inline fun Node.remove(element: Node) = removeChild(element)

@@ -3,7 +3,7 @@ package com.nectar.doodle
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual abstract class SVGElement        : Element           (), ElementCSSInlineStyle
+actual abstract class SVGElement actual constructor(): Element(), ElementCSSInlineStyle
 actual abstract class SVGPathElement    : SVGGeometryElement()
 actual abstract class SVGRectElement    : SVGGeometryElement()
 actual abstract class SVGCircleElement  : SVGGeometryElement()

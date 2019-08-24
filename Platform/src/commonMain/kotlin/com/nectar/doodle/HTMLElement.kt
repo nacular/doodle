@@ -59,9 +59,9 @@ expect interface ElementCSSInlineStyle {
 }
 
 expect abstract class Element: Node {
-    var id        : String
-    var scrollTop : Double
-    var scrollLeft: Double
+    open var id        : String
+    open var scrollTop : Double
+    open var scrollLeft: Double
 
     fun getBoundingClientRect(): DOMRect
 

@@ -67,8 +67,6 @@ class ColorPicker(color: Color): View() {
                 (changed as PropertyObserversImpl).forEach { it(this, old, new) }
             }
 
-        private val angle = 90 * degrees
-
         private var selection = 1f to 0f
             set(new) {
                 if (field == new) return
@@ -343,6 +341,7 @@ class ColorPicker(color: Color): View() {
     private val colorRect: ColorRect = ColorRect(HsvColor(color)).apply {
         changed += { _,old,new ->
             new.toRgb().let {
+                println("here")
                 opacityStrip.color          = it
                 hueStrip.hue                = new.hue
                 colorSquare.backgroundColor = it
