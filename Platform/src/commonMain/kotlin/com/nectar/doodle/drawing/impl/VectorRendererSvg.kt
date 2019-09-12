@@ -10,22 +10,30 @@ import com.nectar.doodle.SVGPatternElement
 import com.nectar.doodle.SVGPolygonElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.clear
+import com.nectar.doodle.dom.AlignmentBaseline.TextBeforeEdge
+import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.addIfNotPresent
+import com.nectar.doodle.dom.defaultFontSize
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
+import com.nectar.doodle.dom.setAlignmentBaseline
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setCircle
+import com.nectar.doodle.dom.setDefaultFill
 import com.nectar.doodle.dom.setEllipse
 import com.nectar.doodle.dom.setFill
 import com.nectar.doodle.dom.setFillPattern
 import com.nectar.doodle.dom.setFillRule
+import com.nectar.doodle.dom.setFloodColor
+import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setGradientUnits
 import com.nectar.doodle.dom.setId
 import com.nectar.doodle.dom.setPathData
 import com.nectar.doodle.dom.setPoints
+import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setRX
 import com.nectar.doodle.dom.setRY
 import com.nectar.doodle.dom.setSize
@@ -51,6 +59,7 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.drawing.Shadow
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
@@ -59,8 +68,10 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.get
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
+import com.nectar.doodle.utils.splitMatches
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.cos
@@ -69,7 +80,12 @@ import com.nectar.measured.units.sin
 import com.nectar.measured.units.times
 import kotlin.math.max
 
-internal open class VectorRendererSvg constructor(private val context: CanvasContext, private val svgFactory: SvgFactory): VectorRenderer {
+internal open class VectorRendererSvg constructor(
+        private val context    : CanvasContext,
+        private val svgFactory : SvgFactory,
+        private val htmlFactory: HtmlFactory,
+        private val textMetrics: TextMetrics): VectorRenderer {
+
     private lateinit var svgElement    : SVGElement
     private lateinit var rootSvgElement: SVGElement
 
@@ -109,6 +125,139 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     override fun ellipse(ellipse: Ellipse,           brush: Brush ) = drawEllipse(ellipse, null, brush)
     override fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush?) = drawEllipse(ellipse, pen,  brush)
+
+    override fun text(text: String, font: Font?, at: Point, brush: Brush) = present(pen = null, brush = brush) {
+        when {
+            text.isNotBlank() -> makeText(text, font, at, brush)
+            else              -> null
+        }
+    }
+
+    override fun text(text: StyledText, at: Point) {
+        when {
+            text.count > 0 -> {
+                updateRootSvg() // Done here since present normally does this
+                completeOperation(makeStyledText(text, at))
+            }
+        }
+    }
+
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
+        StyledText(text, font, foreground = brush).first().let { (text, style) ->
+            wrappedText(text, style, at, leftMargin, rightMargin)
+        }
+    }
+
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
+        var offset = at
+
+        text.forEach { (text, style) ->
+            offset = wrappedText(text, style, offset, leftMargin, rightMargin)
+        }
+    }
+
+    private fun makeText(text: String, font: Font?, at: Point, brush: Brush?) = createOrUse<SVGElement>("text").apply {
+        if (innerHTML != text) {
+            innerHTML = ""
+            add(htmlFactory.createText(text))
+        }
+
+        setPosition         (at            )
+        setAlignmentBaseline(TextBeforeEdge)
+
+        this.style.whiteSpace = "pre"
+
+        font?.let {
+            style.setFont(it)
+        }
+
+        when (brush) {
+            null -> setDefaultFill(    )
+            else -> setFill       (null)
+        }
+
+        setStroke(null)
+    }
+
+    private fun makeStyledText(text: StyledText, at: Point) = createOrUse<SVGElement>("text").apply {
+        clear()
+
+        setPosition(at)
+
+        text.forEach { (text, style) ->
+            val background: SVGElement? = (style.background?.takeIf { it is ColorBrush } as? ColorBrush?)?.let { textBackground(it) }?.also {
+                completeOperation(it)
+            }
+
+            add(makeTextSegment(text, style).also { segment ->
+                background?.let {
+                    segment.style.filter = "url(#${it.id})"
+                }
+            })
+        }
+    }
+
+    private fun makeTextSegment(text: String, style: Style) = createOrUse<SVGElement>("tspan").apply {
+        if (innerHTML != text) {
+            innerHTML = ""
+            add(htmlFactory.createText(text))
+        }
+
+        setFill             (null          )
+        setStroke           (null          )
+        setAlignmentBaseline(TextBeforeEdge)
+
+        this.style.whiteSpace = "pre"
+
+        style.font?.let {
+            this.style.setFont(it)
+        }
+
+        // TODO: Support Background
+
+        style.foreground?.let {
+            fillElement(this, it, true)
+        } ?: setDefaultFill()
+    }
+
+    private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double): Point {
+        val lines        = mutableListOf<Pair<String, Point>>()
+        val words        = text.splitMatches("""\s""".toRegex())
+        var line         = ""
+        var lineTest     : String
+        var currentPoint = at
+        var endX         = currentPoint.x
+
+        words.forEach { (word, delimiter) ->
+            lineTest = line + word + delimiter
+
+            val metric = textMetrics.size(lineTest, style.font)
+
+            endX = currentPoint.x + metric.width
+
+            if (endX > rightMargin) {
+                lines += line to currentPoint
+
+                line         = word + delimiter
+                currentPoint = Point(leftMargin, at.y + lines.size * (1 + (style.font?.size ?: defaultFontSize).toDouble()))
+                endX         = leftMargin
+            } else {
+                line = lineTest
+            }
+        }
+
+        if (line.isNotBlank()) {
+            endX   = currentPoint.x + textMetrics.width(line, style.font)
+            lines += line to currentPoint
+        }
+
+        lines.filter { it.first.isNotBlank() }.forEach { (text, at) ->
+            text(StyledText(text, style.font, foreground = style.foreground, background = style.background), at)
+        }
+
+        return Point(endX, currentPoint.y)
+    }
+
 
 //    override fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit) {
 //        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -405,6 +554,36 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
     private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName
 
+    private fun textBackground(brush: ColorBrush) = createOrUse<SVGElement>("filter").apply {
+        if (id.isBlank()) { setId(nextId()) }
+
+        setBounds(Rectangle(size = Size(1)))
+
+        var index = 0
+        val `in`  = "in"
+
+        val oldRenderPosition = renderPosition
+
+        renderPosition = firstChild
+
+        addIfNotPresent(createOrUse<SVGElement>("feFlood").apply {
+            setFloodColor(brush.color)
+            setAttribute("flood-opacity", "${brush.color.opacity}")
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
+
+        addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
+            setAttribute(`in`,       "SourceGraphic")
+            setAttribute("operator", "and"          )
+        }, index)
+
+        renderPosition = renderPosition?.nextSibling
+
+        flush()
+        renderPosition = if (this.parentNode != null) this else oldRenderPosition
+    }
+
     private fun outerShadow(shadow: OuterShadow) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
 
@@ -413,12 +592,14 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         renderPosition = firstChild
 
         addIfNotPresent(createOrUse<SVGElement>("feDropShadow").apply {
-            setAttribute("dx",            "${shadow.horizontal    }" )
-            setAttribute("dy",            "${shadow.vertical      }" )
-            setAttribute("stdDeviation",  "${shadow.blurRadius - 1}" )
-            setAttribute("flood-color",   shadow.color.hexString     )
-            setAttribute("flood-opacity", "${shadow.color.opacity}"  )
+            setAttribute("dx",            "${shadow.horizontal    }"  )
+            setAttribute("dy",            "${shadow.vertical      }"  )
+            setAttribute("stdDeviation",  "${shadow.blurRadius - 1}"  )
+            setFloodColor(shadow.color)
+            setAttribute("flood-opacity", "${shadow.color.opacity}"   )
         }, 0)
+
+        renderPosition = renderPosition?.nextSibling
 
         flush()
         renderPosition = if (this.parentNode != null) this else oldRenderPosition
@@ -431,7 +612,12 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
 
         renderPosition = firstChild
 
-        var index = 0
+        // TODO: Make first-class methods for these attributes
+        var index   = 0
+        val `in`    = "in"
+        val in2     = "in2"
+        val result  = "result"
+        val inverse = "inverse"
 
         // Shadow Offset
         addIfNotPresent(createOrUse<SVGElement>("feOffset").apply {
@@ -444,6 +630,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         // Shadow Blur
         addIfNotPresent(createOrUse<SVGElement>("feGaussianBlur").apply {
             setAttribute("stdDeviation", "${shadow.blurRadius}")
+            setAttribute(result,         "offset-blur"         )
         }, index++)
 
         renderPosition = renderPosition?.nextSibling
@@ -451,26 +638,26 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         // Invert the drop shadow to create an inner shadow
         addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute("operator", "out"          )
-            setAttribute("in",       "SourceGraphic")
-            setAttribute("in2",      "offset-blur"  )
-            setAttribute("result",   "inverse"      )
+            setAttribute(`in`,       "SourceGraphic")
+            setAttribute(in2,        "offset-blur"  )
+            setAttribute(result,     inverse        )
         }, index++)
 
         renderPosition = renderPosition?.nextSibling
 
         addIfNotPresent(createOrUse<SVGElement>("feFlood").apply {
-            setAttribute("flood-color",   shadow.color.hexString   )
+            setFloodColor(shadow.color)
             setAttribute("flood-opacity", "${shadow.color.opacity}")
-            setAttribute("result",        "color"                  )
+            setAttribute(result,          "color"                  )
         }, index++)
 
         renderPosition = renderPosition?.nextSibling
 
         // Clip color inside shadow
         addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
-            setAttribute("operator", "in"     )
-            setAttribute("in",       "color"  )
-            setAttribute("in2",      "inverse")
+            setAttribute("operator", `in`     )
+            setAttribute(`in`,       "color"  )
+            setAttribute(in2,        inverse  )
             setAttribute("result",   "shadow" )
         }, index++)
 
@@ -481,7 +668,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             setAttribute("operator", "over"         )
             setAttribute("in",       "shadow"       )
             setAttribute("in2",      "SourceGraphic")
-        }, index++)
+        }, index)
 
         renderPosition = renderPosition?.nextSibling
 
@@ -524,7 +711,7 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
                     setSize(brush.size       )
                     clear  (                 )
 
-                    brush.fill(PatternCanvas(this, object: CanvasContext {
+                    brush.fill(PatternCanvas(object: CanvasContext {
                         override var size: Size
                             get() = brush.size
                             set(value) {}
@@ -533,26 +720,18 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
                             set(value) {}
                         override val renderRegion = this@apply
                         override var renderPosition: Node? = null
-                        override val shadows: List<Shadow>
-                            get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-                    }, svgFactory))
+                        override val shadows get() = context.shadows
+                    }, svgFactory, htmlFactory, textMetrics))
                 }
 
                 renderer.completeOperation(pattern)
 
                 element.setFillPattern(pattern)
-
-//            element.style.background = vectorBackgroundFactory(brush)
             }
         }
     }
 
-    private class PatternCanvas(private val pattern: SVGPatternElement, private val context: CanvasContext, svgFactory: SvgFactory): VectorRendererSvg(context, svgFactory), Canvas {
-
-        override fun completeOperation(element: SVGElement) {
-            pattern.add(element)
-        }
-
+    private class PatternCanvas(private val context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics), Canvas {
         override var size: Size
             get() = context.size
             set(value) {}
@@ -561,22 +740,6 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
             set(value) {}
 
         override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun text(text: String, font: Font?, at: Point, brush: Brush) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun text(text: StyledText, at: Point) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
@@ -589,8 +752,8 @@ internal open class VectorRendererSvg constructor(private val context: CanvasCon
         }
 
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
-            add(shadow)
-            block(this)
+            add   (shadow)
+            block (this  )
             remove(shadow)
         }
     }

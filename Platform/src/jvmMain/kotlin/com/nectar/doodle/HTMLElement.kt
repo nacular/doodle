@@ -36,6 +36,7 @@ actual abstract class CSSStyleDeclaration {
     actual var fontWeight      = ""
     actual var background      = ""
     actual var marginLeft      = ""
+    actual var whiteSpace      = ""
     actual var marginRight     = ""
     actual var borderStyle     = ""
     actual var borderColor     = ""
@@ -56,6 +57,7 @@ actual class DOMRect {
 
 actual abstract class Element: Node() {
     actual open var id         = ""
+    actual open var innerHTML  = ""
     actual open var scrollTop  = 0.0
     actual open var scrollLeft = 0.0
 

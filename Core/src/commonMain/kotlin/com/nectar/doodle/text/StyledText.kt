@@ -4,6 +4,8 @@ import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.text.Fill.Background
+import com.nectar.doodle.text.Fill.Foreground
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
@@ -71,12 +73,11 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
         return text
     }
 
-
     data class StyleImpl(override var font: Font? = null, override var foreground: Brush? = null, override var background: Brush? = null): Style
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Font.invoke(text: String    ) = StyledText(text = text, font = this)
+operator fun Font.invoke(text: String          ) = StyledText(text = text, font = this)
 operator fun Font.invoke(text: () -> StyledText) = text().apply {
     data.forEach { (_, style) ->
         if (style.font == null) {
@@ -85,8 +86,25 @@ operator fun Font.invoke(text: () -> StyledText) = text().apply {
     }
 }
 
+//operator fun Font.get(text: String    ) = StyledText(text = text, font = this)
+//operator fun Font.get(text: StyledText) = text.apply {
+//    data.forEach { (_, style) ->
+//        if (style.font == null) {
+//            style.font = this@get
+//        }
+//    }
+//}
+
+
+enum class Fill {
+    Background,
+    Foreground
+}
+
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Color.invoke(text: String, background: Boolean = false) = if (background) StyledText(text = text, background = ColorBrush(this)) else StyledText(text = text, foreground = ColorBrush(this))
+operator fun Color.invoke(text: String, fill: Fill = Foreground) = ColorBrush(this).let {
+    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
+}
 operator fun Color.invoke(text: () -> StyledText) = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null) {
@@ -94,6 +112,17 @@ operator fun Color.invoke(text: () -> StyledText) = text().apply {
         }
     }
 }
+
+//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorBrush(this).let {
+//    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
+//}
+//operator fun Color.get(text: StyledText) = text.apply {
+//    data.forEach { (_, style) ->
+//        if (style.foreground == null) {
+//            style.foreground = ColorBrush(this@get)
+//        }
+//    }
+//}
 
 operator fun String.rangeTo(styled: StyledText) = StyledText(this) + styled
 

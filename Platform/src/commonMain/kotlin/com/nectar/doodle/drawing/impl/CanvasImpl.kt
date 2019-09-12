@@ -78,7 +78,7 @@ open class CanvasImpl(
         override var optimization get() = this@CanvasImpl.optimization
             set(new) { this@CanvasImpl.optimization = new }
 
-        override val renderRegion get() = this@CanvasImpl.renderParent
+        override val renderRegion get() = this@CanvasImpl.renderRegion
 
         override var renderPosition get() = this@CanvasImpl.renderPosition
             set(new) { this@CanvasImpl.renderPosition = new }
@@ -143,14 +143,17 @@ open class CanvasImpl(
 //    }
 
     override fun text(text: StyledText, at: Point) {
-        completeOperation(createStyledTextGlyph(text, at))
+        when {
+            isSimple(text) -> completeOperation(createStyledTextGlyph(text, at))
+            else           -> vectorRenderer.text(text, at)
+        }
     }
 
     override fun text(text: String, font: Font?, at: Point, brush: Brush) {
         when {
-            text.isEmpty() || !brush.visible -> return
-            brush is ColorBrush              -> completeOperation(createTextGlyph(brush, text, font, at))
-            else                             -> return // TODO IMPLEMENT
+            text.isEmpty() || !brush.visible  -> return
+            brush is ColorBrush               -> completeOperation(createTextGlyph(brush, text, font, at))
+            else                              -> vectorRenderer.text(text, font, at, brush)
         }
     }
 
@@ -163,16 +166,19 @@ open class CanvasImpl(
                                                                   at,
                                                                   leftMargin,
                                                                   rightMargin))
-            else                             -> return // TODO IMPLEMENT
+            else                             -> vectorRenderer.text(text, font, at, brush)
         }
     }
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
-        completeOperation(createWrappedStyleTextGlyph(
+        when {
+            isSimple(text) -> completeOperation(createWrappedStyleTextGlyph(
                     text,
                     at,
                     leftMargin,
                     rightMargin))
+            else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin)
+        }
     }
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
@@ -280,6 +286,10 @@ open class CanvasImpl(
         brush is ColorBrush && innerShadowCount == 0 -> true
         else                                         -> false
     }
+
+    private fun isSimple(text: StyledText): Boolean = text.firstOrNull { (_, style) ->
+        style.run { foreground?.let { !isSimple(it) } ?: true || background?.let { !isSimple(it) } ?: true }
+    }?.let { false } != false
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
         // TODO: Not sure if this is causing more element creations than necessary on re-draw

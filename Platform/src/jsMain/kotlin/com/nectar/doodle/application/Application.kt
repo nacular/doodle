@@ -76,7 +76,7 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance()                              ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
         bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (                                                                ) } // FIXME: Provide fallback in case not supported

@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
+import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Inline
 import com.nectar.doodle.dom.Relative
@@ -18,7 +19,6 @@ import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
-import org.w3c.dom.HTMLElement
 import kotlin.dom.clear
 
 internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {

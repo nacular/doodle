@@ -13,12 +13,13 @@ import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.drawing.GraphicsDevice
+import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Renderable
-import com.nectar.doodle.drawing.impl.ImageCanvas
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.MouseInputService.Preprocessor
@@ -192,8 +193,6 @@ internal class DragManagerImpl(
                 rootElement.ondragstart = {
                     createVisual(dragOperation.visual)
 
-                    dragOperation.visual?.let { visualCanvas.rootElement.style.setTop(-it.size.height) }
-
                     it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
 
                     it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
@@ -338,10 +337,14 @@ internal class DragManagerImpl(
         visualCanvas = graphicsDevice.create()
 
         if (visual != null) {
+            visualCanvas.rootElement.style.setTop(-visual.size.height)
+
             visualCanvas.zOrder = -Int.MAX_VALUE
             visualCanvas.size   = visual.size
 
-            visual.render(ImageCanvas(visualCanvas.rootElement, htmlFactory).apply { size = visual.size })
+            visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternBrush(visual.size) {
+                visual.render(this)
+            })
         }
     }
 

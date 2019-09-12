@@ -319,7 +319,7 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
     override fun text(text: StyledText, at: Point) {
         var offset = at
 
-        text.forEach {  (text, style) ->
+        text.forEach { (text, style) ->
             renderingContext.font = fontSerializer(style.font)
 
             val metrics = renderingContext.measureText(text)

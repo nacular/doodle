@@ -36,6 +36,7 @@ expect abstract class CSSStyleDeclaration {
     var fontWeight     : String
     var background     : String
     var marginLeft     : String
+    var whiteSpace     : String
     var marginRight    : String
     var borderStyle    : String
     var borderColor    : String
@@ -60,6 +61,7 @@ expect interface ElementCSSInlineStyle {
 
 expect abstract class Element: Node {
     open var id        : String
+    open var innerHTML : String
     open var scrollTop : Double
     open var scrollLeft: Double
 

@@ -100,9 +100,17 @@ fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     else -> "#${color.hexString}"
 })
 
+inline fun SVGElement.setAlignmentBaseline(value: AlignmentBaseline) {
+    setAttribute("alignment-baseline", value.value)
+}
+
 fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
     color?.let { setAttribute("fill-opacity", "${it.opacity}") }
+}
+
+inline fun SVGElement.setDefaultFill() {
+    removeAttribute("fill")
 }
 
 fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
@@ -111,6 +119,10 @@ fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
         Renderer.FillRule.NonZero -> "nonzero"
         else                      -> ""
     })
+}
+
+fun SVGElement.setFloodColor(color: Color?) = convert(color) {
+    setAttribute("flood-color",  it)
 }
 
 fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fill", when (pattern) {
@@ -131,6 +143,10 @@ fun SVGElement.setTransform(transform: AffineTransform?) = when(transform) {
 inline fun SVGElement.setTransform(transform: String) = setAttribute("transform", transform)
 
 inline fun SVGElement.removeTransform() = removeAttribute("transform")
+
+enum class AlignmentBaseline(val value: String) {
+    TextBeforeEdge("text-before-edge")
+}
 
 enum class ShapeRendering(val value: String) {
     CrispEdges("crispEdges"),
