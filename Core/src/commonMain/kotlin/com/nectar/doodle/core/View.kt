@@ -374,10 +374,6 @@ abstract class View protected constructor() {
         var topZOrder = 0
 
         children.reversed().forEach {
-            if (it.cursor == Cursor.Grabbing && at !in it) {
-                println("here")
-            }
-
             if (it.visible && at in it && (result == null || it.zOrder > topZOrder)) {
                 result    = it
                 topZOrder = it.zOrder

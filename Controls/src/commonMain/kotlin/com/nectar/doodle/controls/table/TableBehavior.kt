@@ -5,8 +5,8 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.utils.Cancelable
-import com.nectar.doodle.utils.NoOpCancelable
+import com.nectar.doodle.utils.Completable
+import com.nectar.doodle.utils.NoOpCompletable
 import com.nectar.doodle.utils.Path
 
 /**
@@ -43,7 +43,7 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     var headerDirty: ((         ) -> Unit)?
     var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
+    fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
     fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
     fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
@@ -88,7 +88,7 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     var headerDirty: ((         ) -> Unit)?
     var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(table: TreeTable<T, *>, block: (Float) -> Unit): Cancelable = NoOpCancelable.also { block(1f) }
+    fun moveColumn(table: TreeTable<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
     fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {}
     fun <A> columnMoved    (table: TreeTable<T, *>, column: Column<A>) {}

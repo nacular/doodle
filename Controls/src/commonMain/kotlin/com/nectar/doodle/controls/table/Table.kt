@@ -20,7 +20,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.utils.Cancelable
+import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
@@ -120,7 +120,7 @@ open class Table<T, M: ListModel<T>>(
                 view.zOrder                                             = new
             }
 
-        private var animation: Cancelable? = null
+        private var animation: Completable? = null
             set(new) {
                 field?.cancel()
                 field = new
@@ -141,8 +141,7 @@ open class Table<T, M: ListModel<T>>(
 
             internalColumns.dropLast(1).forEachIndexed { index, column ->
                 if (column != this) {
-                    val targetBounds = this@Table.header.children[index].bounds
-                    val targetMiddle = targetBounds.x + column.transform.translateX + targetBounds.width / 2
+                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
 
                     val value = when (targetMiddle) {
                         in view.x + translateX + delta            .. view.x + translateX                    ->  width
@@ -170,26 +169,60 @@ open class Table<T, M: ListModel<T>>(
         override fun resetPosition() {
             behavior?.columnMoveEnd(this@Table, this)
 
-            zOrder         = 0
-            var moved      = false
-            val myOffset   = view.x + transform.translateX
-            var myNewIndex = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
+            zOrder           = 0
+            val myOffset     = view.x + transform.translateX
+            var myNewIndex   = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
+            var targetBounds = view.bounds
 
-            internalColumns.forEachIndexed { index, column ->
-                if (!moved && myOffset < column.view.x + column.transform.translateX) {
-                    myNewIndex = index - if (this.index < index) 1 else 0
-                    moved      = true
+            run loop@ {
+                internalColumns.forEachIndexed { index, column ->
+                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
+
+                    if ((transform.translateX < 0 && myOffset <              targetMiddle) ||
+                        (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
+                        myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
+                        targetBounds = this@Table.header.children[myNewIndex].bounds
+                        return@loop
+                    }
                 }
-
-                column.animation?.cancel()
-                column.transform = Identity
             }
 
-            if (index == myNewIndex) {
-                return
+            val oldTransform = transform
+
+            animation = behavior?.moveColumn(this@Table) {
+                transform = when {
+                    index < myNewIndex -> oldTransform.translate((targetBounds.right - width - myOffset) * it)
+                    else               -> oldTransform.translate((targetBounds.x             - myOffset) * it)
+                }
+            }?.apply {
+                completed += {
+                    if (index != myNewIndex) {
+                        index = myNewIndex
+
+                        // Force refresh here to avoid jitter since transform takes affect right away, while layout is deferred
+                        // TODO: Can this refresh be more efficient?
+                        this@Table.header.children.forEach { it.rerenderNow() }
+                        (panel.content as Box).children.forEach { it.rerenderNow() }
+                    }
+
+                    internalColumns.forEach { it.transform = Identity }
+                }
             }
 
-            index = myNewIndex
+//            internalColumns.forEachIndexed { index, column ->
+//                if (!moved && myOffset < column.view.x + column.transform.translateX) {
+//                    myNewIndex = index - if (this.index < index) 1 else 0
+//                }
+//
+//                column.animation?.cancel()
+//                column.transform = Identity
+//            }
+//
+//            if (index == myNewIndex) {
+//                return
+//            }
+//
+//            index = myNewIndex
         }
 
         val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), itemGenerator, selectionModel).apply {

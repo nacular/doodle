@@ -18,7 +18,7 @@ class InteractiveLayout(private val start: Layout, private val end: Layout): Lay
         }
 
         if (progress == 0f) {
-            return
+            return // done since items are laid out according to start
         }
 
         val startBounds = if (progress != 1f) positionable.children.map { it.bounds } else emptyList()
@@ -26,7 +26,7 @@ class InteractiveLayout(private val start: Layout, private val end: Layout): Lay
         end.layout(positionable)
 
         if (progress == 1f) {
-            return
+            return // done since items are laid out according to end
         }
 
         val endBounds = positionable.children.map { it.bounds }
@@ -40,5 +40,5 @@ class InteractiveLayout(private val start: Layout, private val end: Layout): Lay
         }
     }
 
-    val inverse: InteractiveLayout get() = InteractiveLayout(end, start)
+    val inverse get() = InteractiveLayout(end, start)
 }

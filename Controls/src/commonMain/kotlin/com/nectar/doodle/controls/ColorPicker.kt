@@ -341,7 +341,6 @@ class ColorPicker(color: Color): View() {
     private val colorRect: ColorRect = ColorRect(HsvColor(color)).apply {
         changed += { _,old,new ->
             new.toRgb().let {
-                println("here")
                 opacityStrip.color          = it
                 hueStrip.hue                = new.hue
                 colorSquare.backgroundColor = it

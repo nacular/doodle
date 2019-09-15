@@ -4,7 +4,7 @@ import com.nectar.doodle.animation.transition.FixedSpeedLinear
 import com.nectar.doodle.animation.transition.FixedTimeLinear
 import com.nectar.doodle.animation.transition.SpeedUpSlowDown
 import com.nectar.doodle.animation.transition.Transition
-import com.nectar.doodle.utils.Cancelable
+import com.nectar.doodle.utils.Completable
 import com.nectar.measured.units.InverseUnit
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
@@ -56,7 +56,7 @@ fun <T: Unit> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float 
 interface TransitionBuilder<T: Number> {
     infix fun then(transition: Transition<NoneUnit>): TransitionBuilder<T>
 
-    operator fun invoke(block: (T) -> kotlin.Unit): Cancelable
+    operator fun invoke(block: (T) -> kotlin.Unit): Completable
 }
 
 interface InterpolationStart<T: Number> {

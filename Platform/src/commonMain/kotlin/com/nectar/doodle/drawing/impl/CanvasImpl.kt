@@ -287,9 +287,18 @@ open class CanvasImpl(
         else                                         -> false
     }
 
-    private fun isSimple(text: StyledText): Boolean = text.firstOrNull { (_, style) ->
-        style.run { foreground?.let { !isSimple(it) } ?: true || background?.let { !isSimple(it) } ?: true }
-    }?.let { false } != false
+    private fun isSimple(text: StyledText): Boolean {
+        text.forEach { (_, style) ->
+            val simpleForeground = style.foreground?.let { isSimple(it) } ?: true
+            val simpleBackground = style.background?.let { isSimple(it) } ?: true
+
+            if (!(simpleForeground && simpleBackground)) {
+                return false
+            }
+        }
+
+        return true
+    }
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
         // TODO: Not sure if this is causing more element creations than necessary on re-draw
