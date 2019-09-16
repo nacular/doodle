@@ -46,8 +46,8 @@ open class Table<T, M: ListModel<T>>(
                      val itemGenerator : ItemVisualizer<R>,
             override var cellAlignment  : (Constraints.() -> Unit)? = null,
                          preferredWidth: Double? = null,
-            override val minWidth      : Double  = 0.0,
-            override val maxWidth      : Double? = null,
+                         minWidth      : Double  = 0.0,
+                         maxWidth      : Double? = null,
                          extractor     : T.() -> R): Column<R>, ColumnSizePolicy.Column {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
@@ -81,6 +81,16 @@ open class Table<T, M: ListModel<T>>(
                 }
             }
 
+        override var minWidth = minWidth
+            protected set(new) {
+                field = maxWidth?.let { max(new, it) } ?: new
+            }
+
+        override var maxWidth = maxWidth
+            protected set(new) {
+                field = new?.let { min(new, minWidth) }
+            }
+
         private val x get() = view.x
 
         private var index get() = columns.indexOf(this)
@@ -104,8 +114,6 @@ open class Table<T, M: ListModel<T>>(
                 }
 
                 internalColumns.add(new, internalColumns.removeAt(index))
-
-                doLayout()
             }
 
         private var transform get() = view.transform
@@ -230,19 +238,17 @@ open class Table<T, M: ListModel<T>>(
         }
 
         fun behavior(behavior: TableBehavior<T>?) {
-            if (behavior != null) {
-                view.behavior = object : ListBehavior<R> {
-                    override val generator: ListBehavior.RowGenerator<R>
-                        get() = object : ListBehavior.RowGenerator<R> {
-                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = behavior.cellGenerator.invoke(this@Table, this@InternalColumn, row, index, itemGenerator, current)
-                        }
+            behavior?.let {
+                view.behavior = object: ListBehavior<R> {
+                    override val generator get() = object: ListBehavior.RowGenerator<R> {
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@Table, this@InternalColumn, row, index, itemGenerator, current)
+                    }
 
-                    override val positioner: ListBehavior.RowPositioner<R>
-                        get() = object : ListBehavior.RowPositioner<R> {
-                            override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = behavior.rowPositioner.invoke(this@Table, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
+                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@Table, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
 
-                            override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = behavior.rowPositioner.rowFor(this@Table, y)
-                        }
+                        override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@Table, y)
+                    }
 
                     override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
                         if (this@InternalColumn != internalColumns.last()) {
@@ -257,7 +263,7 @@ open class Table<T, M: ListModel<T>>(
     val numRows get() = model.size
     val isEmpty get() = model.isEmpty
 
-    var columnSizePolicy: ColumnSizePolicy<T> = ConstrainedSizePolicy()
+    var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
         set(new) {
             field = new
 

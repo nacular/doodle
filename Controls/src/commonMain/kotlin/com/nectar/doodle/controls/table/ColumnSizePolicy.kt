@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.table
 
-interface ColumnSizePolicy<T> {
+interface ColumnSizePolicy {
     interface Column {
         var width         : Double
         val minWidth      : Double
@@ -13,7 +13,7 @@ interface ColumnSizePolicy<T> {
     fun widthChanged(width: Double, columns: List<Column>, index: Int, to: Double)
 }
 
-class ConstrainedSizePolicy<T>: ColumnSizePolicy<T> {
+class ConstrainedSizePolicy: ColumnSizePolicy {
     override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
         var remainingWidth = width
 

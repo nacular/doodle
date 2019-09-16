@@ -18,8 +18,7 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.utils.Cancelable
 import com.nectar.doodle.utils.Completable
-import com.nectar.doodle.utils.Pool
-import com.nectar.doodle.utils.SetPool
+import com.nectar.doodle.utils.CompletableImpl
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.div
@@ -76,22 +75,15 @@ private class TransitionBuilderImpl<T: Number>(
         end       : T,
         transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T> {
 
-    // FIXME: Make work like CompletableImpl
-    private class CancelableWrapper(var cancelable: Cancelable): Completable {
-        private val completed_ by lazy { mutableSetOf<(source: Completable) -> Unit>() }
-        private val canceled_  by lazy { mutableSetOf<(source: Completable) -> Unit>() }
-
-        override val completed: Pool<(source: Completable) -> Unit> = SetPool(completed_)
-        override val canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ )
-
+    private class CancelableWrapper(var cancelable: Cancelable): CompletableImpl() {
         override fun cancel() {
             cancelable.cancel()
 
-            canceled_.forEach { it(this) }
+            super.cancel()
         }
 
-        internal fun completed() {
-            completed_.forEach { it(this) }
+        public override fun completed() {
+            super.completed()
         }
     }
 

@@ -3,6 +3,7 @@ package com.nectar.doodle.utils
 import com.nectar.doodle.utils.CompletableImpl.State.Active
 import com.nectar.doodle.utils.CompletableImpl.State.Canceled
 import com.nectar.doodle.utils.CompletableImpl.State.Completed
+import kotlin.js.JsName
 
 
 interface Completable: Cancelable {
@@ -24,7 +25,7 @@ internal class InstantPool<T>(private val source: T): Pool<(source: T) -> Unit> 
     override fun minusAssign(item: (source: T) -> Unit) {}
 }
 
-internal class CompletableImpl: Completable {
+open class CompletableImpl: Completable {
     enum class State { Active, Completed, Canceled }
 
     private var state: State = Active
@@ -54,20 +55,22 @@ internal class CompletableImpl: Completable {
     private val canceled_  by lazy { mutableSetOf<(source: Completable) -> Unit>() }
 
     override var completed: Pool<(source: Completable) -> Unit> = SetPool(completed_)
-        private set
+        protected set
     override var canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ )
-        private set
+        protected set
 
-    override fun cancel   () { state = Canceled }
-    internal fun completed() { state = Completed }
+    override  fun cancel   () { state = Canceled }
+
+    @JsName("completedFunc")
+    protected open fun completed() { state = Completed }
 }
 
-val NoOpCompletable: Completable = CompletableImpl().apply { completed() }
+val NoOpCompletable: Completable = object: CompletableImpl() {
+    init {
+        completed()
+    }
+}
 
 interface Cancelable {
     fun cancel()
-}
-
-object NoOpCancelable: Cancelable {
-    override fun cancel() {}
 }
