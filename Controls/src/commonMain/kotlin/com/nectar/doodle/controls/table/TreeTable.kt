@@ -14,7 +14,6 @@ import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
-import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -29,7 +28,6 @@ import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 5/5/19.
@@ -120,9 +118,9 @@ fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T
 }
 
 class TreeTable<T, M: TreeModel<T>>(
-                      model         : M,
+        model         : M,
         protected val selectionModel: SelectionModel<Path<Int>>? = null,
-                      block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
+        block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
     override val rootVisible get() = tree.rootVisible
 
     override fun visible(row : Int      ) = tree.visible(row )
@@ -183,175 +181,42 @@ class TreeTable<T, M: TreeModel<T>>(
         }
     }
 
-    private abstract inner class InternalColumn<R>(
-            override val header        : View?,
-            override var headerAlignment: (Constraints.() -> Unit)? = null,
-                     val cellGenerator : ItemVisualizer<R>,
-            override var cellAlignment  : (Constraints.() -> Unit)? = null,
-                         preferredWidth: Double? = null,
-                         minWidth      : Double  = 0.0,
-                         maxWidth      : Double? = null): Column<R>, ColumnSizePolicy.Column {
+    private inner class TableLikeWrapper: TableLike {
+        val delegate get() = this@TreeTable
 
-        override var preferredWidth = preferredWidth
+        override val width            get() = this@TreeTable.width
+        override val columns          get() = this@TreeTable.columns
+        override val internalColumns  get() = this@TreeTable.internalColumns
+        override val columnSizePolicy get() = this@TreeTable.columnSizePolicy
+        override val header           get() = this@TreeTable.header
+        override val panel            get() = this@TreeTable.panel
+
+        override var resizingCol get() = this@TreeTable.resizingCol
             set(new) {
-                field = new
-
-                field?.let {
-                    resizingCol = index
-                    columnSizePolicy.widthChanged(this@TreeTable.width, internalColumns, index, it)
-                    doLayout()
-                    resizingCol = null
-                }
+                this@TreeTable.resizingCol = new
             }
 
-        override var width = preferredWidth ?: minWidth
-            set(new) {
-                field = max(minWidth, new).let {
-                    maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
-                }
-            }
+        override fun doLayout() {
+            this@TreeTable.doLayout()
+        }
+    }
 
-        override var minWidth = minWidth
-            protected set(new) {
-                field = maxWidth?.let { max(new, it) } ?: new
-            }
+    private inner class TableLikeBehaviorWrapper: TableLikeBehavior<TableLikeWrapper> {
+        val delegate get() = this@TreeTable.behavior
 
-        override var maxWidth = maxWidth
-            protected set(new) {
-                field = new?.let { min(new, minWidth) }
-            }
-
-        private val x get() = view.x
-
-        private var index get() = columns.indexOf(this)
-            set(new) {
-                val index = this.index
-
-                this@TreeTable.header.children.batch {
-                    if (new < size) {
-                        add(new, removeAt(index))
-                    } else {
-                        add(removeAt(index))
-                    }
-                }
-
-                (panel.content as Box).children.batch {
-                    if (new < size) {
-                        add(new, removeAt(index))
-                    } else {
-                        add(removeAt(index))
-                    }
-                }
-
-                internalColumns.add(new, internalColumns.removeAt(index))
-            }
-
-        private var transform get() = view.transform
-            set(new) {
-                this@TreeTable.header.children.getOrNull(index)?.transform = new
-                view.transform                                             = new
-            }
-
-        private var zOrder get() = view.zOrder
-            set(new) {
-                this@TreeTable.header.children.getOrNull(index)?.zOrder = new
-                view.zOrder                                             = new
-            }
-
-        private var animation: Completable? = null
-            set(new) {
-                field?.cancel()
-                field = new
-            }
-
-        /** FIXME: Refactor and join w/ impl in [[Table]] and move to Behavior */
-        override fun moveBy(x: Double) {
-            zOrder         = 1
-            val translateX = transform.translateX
-            val delta      = min(max(x, 0 - (view.x + translateX)), this@TreeTable.width - width - (view.x + translateX))
-
-            if (translateX == 0.0) {
-                behavior?.columnMoveStart(this@TreeTable, this)
-            }
-
-            transform *= Identity.translate(delta)
-
-            behavior?.columnMoved(this@TreeTable, this)
-
-            internalColumns.dropLast(1).forEachIndexed { index, column ->
-                if (column != this && index > 0) {
-                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
-
-                    val value = when (targetMiddle) {
-                        in view.x + translateX + delta            .. view.x + translateX                    ->  width
-                        in view.x + translateX                    .. view.x + translateX + delta            -> -width
-                        in view.bounds.right + translateX         .. view.bounds.right + translateX + delta -> -width
-                        in view.bounds.right + translateX + delta .. view.bounds.right + translateX         ->  width
-                        else                                                                                ->  null
-                    }
-
-                    value?.let {
-                        val oldTransform = column.transform
-                        val minViewX     = if (index > this.index) column.x - width else column.x
-                        val maxViewX     = minViewX + width
-                        val offset       = column.x + column.transform.translateX
-                        val translate    = min(max(value, minViewX - offset), maxViewX - offset)
-
-                        column.animation = behavior?.moveColumn(this@TreeTable) {
-                            column.transform = oldTransform.translate(translate * it)
-                        }
-                    }
-                }
-            }
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoveStart(table.delegate, internalColumn)
         }
 
-        override fun resetPosition() {
-            behavior?.columnMoveEnd(this@TreeTable, this)
-
-            zOrder           = 0
-            val myOffset     = view.x + transform.translateX
-            var myNewIndex   = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
-            var targetBounds = view.bounds
-
-            run loop@ {
-                internalColumns.forEachIndexed { index, column ->
-                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
-
-                    if (index > 0 && (transform.translateX < 0 && myOffset <              targetMiddle) ||
-                        (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
-                        myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
-                        targetBounds = this@TreeTable.header.children[myNewIndex].bounds
-                        return@loop
-                    }
-                }
-            }
-
-            val oldTransform = transform
-
-            animation = behavior?.moveColumn(this@TreeTable) {
-                transform = when {
-                    index < myNewIndex -> oldTransform.translate((targetBounds.right - width - myOffset) * it)
-                    else               -> oldTransform.translate((targetBounds.x             - myOffset) * it)
-                }
-            }?.apply {
-                completed += {
-                    if (index != myNewIndex) {
-                        index = myNewIndex
-
-                        // Force refresh here to avoid jitter since transform takes affect right away, while layout is deferred
-                        // TODO: Can this refresh be more efficient?
-                        this@TreeTable.header.children.forEach { it.rerenderNow() }
-                        (panel.content as Box).children.forEach { it.rerenderNow() }
-                    }
-
-                    internalColumns.forEach { it.transform = Identity }
-                }
-            }
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoveEnd(table.delegate, internalColumn)
         }
 
-        abstract val view: View
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoved(table.delegate, internalColumn)
+        }
 
-        abstract fun behavior(behavior: TreeTableBehavior<T>?)
+        override fun moveColumn(table: TableLikeWrapper, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, function)
     }
 
     private inner class InternalTreeColumn<R>(
@@ -362,7 +227,7 @@ class TreeTable<T, M: TreeModel<T>>(
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : T.() -> R): InternalColumn<R>(header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth) {
+            extractor     : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
 
         override val view = Tree(model.map(extractor), selectionModel, cacheLength = 0).apply {
             acceptsThemes = false
@@ -378,8 +243,8 @@ class TreeTable<T, M: TreeModel<T>>(
 //            }
         }
 
-        override fun behavior(behavior: TreeTableBehavior<T>?) {
-            behavior?.let {
+        override fun behavior(behavior: TableLikeBehaviorWrapper?) {
+            behavior?.delegate?.let {
                 view.behavior = object: TreeBehavior<R> {
                     override val generator get() = object: TreeBehavior.RowGenerator<R> {
                         override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator.invoke(this@TreeTable, this@InternalTreeColumn, node, path, index, cellGenerator, current)
@@ -395,7 +260,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
                     override fun render(view: Tree<R, *>, canvas: Canvas) {
                         if (this@InternalTreeColumn != internalColumns.last()) {
-                            behavior.renderColumnBody(this@TreeTable, this@InternalTreeColumn, canvas)
+                            it.renderColumnBody(this@TreeTable, this@InternalTreeColumn, canvas)
                         }
                     }
                 }
@@ -417,14 +282,14 @@ class TreeTable<T, M: TreeModel<T>>(
     private fun rowsBelow(path: Path<Int>): List<Path<Int>> = (0 until model.numChildren(path)).map { path + it }.flatMap { listOf(it) + if (expanded(it)) rowsBelow(it) else emptyList() }
 
     private inner class InternalListColumn<R>(
-            header        : View?,
-            headerPosition: (Constraints.() -> Unit)? = null,
-            cellGenerator : ItemVisualizer<R>,
-            cellPosition  : (Constraints.() -> Unit)? = null,
-            preferredWidth: Double? = null,
-            minWidth      : Double  = 0.0,
-            maxWidth      : Double? = null,
-            extractor     : T.() -> R): InternalColumn<R>(header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth) {
+            header         : View?,
+            headerAlignment: (Constraints.() -> Unit)? = null,
+            cellGenerator  : ItemVisualizer<R>,
+            cellAlignment  : (Constraints.() -> Unit)? = null,
+            preferredWidth : Double? = null,
+            minWidth       : Double  = 0.0,
+            maxWidth       : Double? = null,
+            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
             init {
@@ -488,18 +353,18 @@ class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), this.cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
             acceptsThemes = false
         }
 
-        override fun behavior(behavior: TreeTableBehavior<T>?) {
-            behavior?.let {
+        override fun behavior(behavior: TableLikeBehaviorWrapper?) {
+            behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@TreeTable, this@InternalListColumn, row, pathFromRow(index)!!, index, cellGenerator, current)
                     }
 
-                    override val positioner get() = object : ListBehavior.RowPositioner<R> {
+                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
 
                         override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@TreeTable, y)
@@ -507,7 +372,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
                     override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
                         if (this@InternalListColumn != internalColumns.last()) {
-                            behavior.renderColumnBody(this@TreeTable, this@InternalListColumn, canvas)
+                            it.renderColumnBody(this@TreeTable, this@InternalListColumn, canvas)
                         }
                     }
                 }
@@ -528,7 +393,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
     override fun rowFromPath(path: Path<Int>) = tree.rowFromPath(path)
 
-    var columnSizePolicy: ColumnSizePolicy<T> = ConstrainedSizePolicy()
+    var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
         set(new) {
             field = new
 
@@ -547,13 +412,15 @@ class TreeTable<T, M: TreeModel<T>>(
                 it.uninstall(this)
             }
 
-            field = new?.also { behavior ->
+            field = new
+
+            new?.also { behavior ->
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
                 behavior.columnDirty = columnDirty
 
-                internalColumns.forEach {
-                    it.behavior(behavior)
+                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                    it.behavior(TableLikeBehaviorWrapper())
                 }
 
                 behavior.install(this)
@@ -592,7 +459,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
     val selectionChanged: Pool<SetObserver<Path<Int>>> = SetPool()
 
-    private val internalColumns = mutableListOf<InternalColumn<*>>()
+    private val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
     init {
         ColumnFactoryImpl().apply(block)
@@ -602,7 +469,7 @@ class TreeTable<T, M: TreeModel<T>>(
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
 
-    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*>>()
+    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*, *, *>>()
 
     private val header: Box = object: Box() {
         init {
@@ -684,7 +551,7 @@ class TreeTable<T, M: TreeModel<T>>(
 
     private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     private val headerDirty: (         ) -> Unit = { header.rerender        () }
-    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*>)?.view?.rerender() }
+    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*, *, *>)?.view?.rerender() }
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }

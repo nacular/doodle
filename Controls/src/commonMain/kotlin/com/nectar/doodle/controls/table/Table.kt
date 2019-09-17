@@ -12,7 +12,6 @@ import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.View
-import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -25,7 +24,6 @@ import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
-import kotlin.math.min
 
 open class Table<T, M: ListModel<T>>(
         protected val model         : M,
@@ -36,19 +34,57 @@ open class Table<T, M: ListModel<T>>(
         override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit): Column<R> = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
         }
     }
 
-    protected open inner class InternalColumn<R>(
-            override val header        : View?,
-            override var headerAlignment: (Constraints.() -> Unit)? = null,
-                     val itemGenerator : ItemVisualizer<R>,
-            override var cellAlignment  : (Constraints.() -> Unit)? = null,
-                         preferredWidth: Double? = null,
-                         minWidth      : Double  = 0.0,
-                         maxWidth      : Double? = null,
-                         extractor     : T.() -> R): Column<R>, ColumnSizePolicy.Column {
+    internal inner class TableLikeWrapper: TableLike {
+        val delegate get() = this@Table
+
+        override val width            get() = this@Table.width
+        override val columns          get() = this@Table.columns
+        override val internalColumns  get() = this@Table.internalColumns
+        override val columnSizePolicy get() = this@Table.columnSizePolicy
+        override val header           get() = this@Table.header
+        override val panel            get() = this@Table.panel
+
+        override var resizingCol get() = this@Table.resizingCol
+            set(new) {
+                this@Table.resizingCol = new
+            }
+
+        override fun doLayout() {
+            this@Table.doLayout()
+        }
+    }
+
+    internal inner class TableLikeBehaviorWrapper: TableLikeBehavior<TableLikeWrapper> {
+        val delegate get() = this@Table.behavior
+
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoveStart(table.delegate, internalColumn)
+        }
+
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoveEnd(table.delegate, internalColumn)
+        }
+
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+            behavior?.columnMoved(table.delegate, internalColumn)
+        }
+
+        override fun moveColumn(table: TableLikeWrapper, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, function)
+    }
+
+    internal inner class InternalListColumn<R>(
+            header         : View?,
+            headerAlignment: (Constraints.() -> Unit)? = null,
+            cellGenerator  : ItemVisualizer<R>,
+            cellAlignment  : (Constraints.() -> Unit)? = null,
+            preferredWidth : Double? = null,
+            minWidth       : Double  = 0.0,
+            maxWidth       : Double? = null,
+            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
             override val size get() = model.size
@@ -62,186 +98,15 @@ open class Table<T, M: ListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        override var preferredWidth = preferredWidth
-            set(new) {
-                field = new
-
-                field?.let {
-                    resizingCol = index
-                    columnSizePolicy.widthChanged(this@Table.width, internalColumns, index, it)
-                    doLayout()
-                    resizingCol = null
-                }
-            }
-
-        override var width = preferredWidth ?: minWidth
-            set(new) {
-                field = max(minWidth, new).let {
-                    maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
-                }
-            }
-
-        override var minWidth = minWidth
-            protected set(new) {
-                field = maxWidth?.let { max(new, it) } ?: new
-            }
-
-        override var maxWidth = maxWidth
-            protected set(new) {
-                field = new?.let { min(new, minWidth) }
-            }
-
-        private val x get() = view.x
-
-        private var index get() = columns.indexOf(this)
-            set(new) {
-                val index = this.index
-
-                this@Table.header.children.batch {
-                    if (new < size) {
-                        add(new, removeAt(index))
-                    } else {
-                        add(removeAt(index))
-                    }
-                }
-
-                (panel.content as Box).children.batch {
-                    if (new < size) {
-                        add(new, removeAt(index))
-                    } else {
-                        add(removeAt(index))
-                    }
-                }
-
-                internalColumns.add(new, internalColumns.removeAt(index))
-            }
-
-        private var transform get() = view.transform
-            set(new) {
-                this@Table.header.children.getOrNull(index)?.transform = new
-                view.transform                                         = new
-            }
-
-        private var zOrder get() = view.zOrder
-            set(new) {
-                this@Table.header.children.getOrNull(index)?.zOrder = new
-                view.zOrder                                             = new
-            }
-
-        private var animation: Completable? = null
-            set(new) {
-                field?.cancel()
-                field = new
-            }
-
-        override fun moveBy(x: Double) {
-            zOrder         = 1
-            val translateX = transform.translateX
-            val delta      = min(max(x, 0 - (view.x + translateX)), this@Table.width - width - (view.x + translateX))
-
-            if (translateX == 0.0) {
-                behavior?.columnMoveStart(this@Table, this)
-            }
-
-            transform *= Identity.translate(delta)
-
-            behavior?.columnMoved(this@Table, this)
-
-            internalColumns.dropLast(1).forEachIndexed { index, column ->
-                if (column != this) {
-                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
-
-                    val value = when (targetMiddle) {
-                        in view.x + translateX + delta            .. view.x + translateX                    ->  width
-                        in view.x + translateX                    .. view.x + translateX + delta            -> -width
-                        in view.bounds.right + translateX         .. view.bounds.right + translateX + delta -> -width
-                        in view.bounds.right + translateX + delta .. view.bounds.right + translateX         ->  width
-                        else                                                                                ->  null
-                    }
-
-                    value?.let {
-                        val oldTransform = column.transform
-                        val minViewX     = if (index > this.index) column.x - width else column.x
-                        val maxViewX     = minViewX + width
-                        val offset       = column.x + column.transform.translateX
-                        val translate    = min(max(value, minViewX - offset), maxViewX - offset)
-
-                        column.animation = behavior?.moveColumn(this@Table) {
-                            column.transform = oldTransform.translate(translate * it)
-                        }
-                    }
-                }
-            }
-        }
-
-        override fun resetPosition() {
-            behavior?.columnMoveEnd(this@Table, this)
-
-            zOrder           = 0
-            val myOffset     = view.x + transform.translateX
-            var myNewIndex   = if (myOffset >= internalColumns.last().view.x ) internalColumns.size - 2 else index
-            var targetBounds = view.bounds
-
-            run loop@ {
-                internalColumns.forEachIndexed { index, column ->
-                    val targetMiddle = column.x + column.transform.translateX + column.width / 2
-
-                    if ((transform.translateX < 0 && myOffset <              targetMiddle) ||
-                        (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
-                        myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
-                        targetBounds = this@Table.header.children[myNewIndex].bounds
-                        return@loop
-                    }
-                }
-            }
-
-            val oldTransform = transform
-
-            animation = behavior?.moveColumn(this@Table) {
-                transform = when {
-                    index < myNewIndex -> oldTransform.translate((targetBounds.right - width - myOffset) * it)
-                    else               -> oldTransform.translate((targetBounds.x             - myOffset) * it)
-                }
-            }?.apply {
-                completed += {
-                    if (index != myNewIndex) {
-                        index = myNewIndex
-
-                        // Force refresh here to avoid jitter since transform takes affect right away, while layout is deferred
-                        // TODO: Can this refresh be more efficient?
-                        this@Table.header.children.forEach { it.rerenderNow() }
-                        (panel.content as Box).children.forEach { it.rerenderNow() }
-                    }
-
-                    internalColumns.forEach { it.transform = Identity }
-                }
-            }
-
-//            internalColumns.forEachIndexed { index, column ->
-//                if (!moved && myOffset < column.view.x + column.transform.translateX) {
-//                    myNewIndex = index - if (this.index < index) 1 else 0
-//                }
-//
-//                column.animation?.cancel()
-//                column.transform = Identity
-//            }
-//
-//            if (index == myNewIndex) {
-//                return
-//            }
-//
-//            index = myNewIndex
-        }
-
-        val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), itemGenerator, selectionModel).apply {
+        override val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), cellGenerator, selectionModel).apply {
             acceptsThemes = false
         }
 
-        fun behavior(behavior: TableBehavior<T>?) {
-            behavior?.let {
+        override fun behavior(behavior: TableLikeBehaviorWrapper?) {
+            behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@Table, this@InternalColumn, row, index, itemGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@Table, this@InternalListColumn, row, index, cellGenerator, current)
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
@@ -251,8 +116,8 @@ open class Table<T, M: ListModel<T>>(
                     }
 
                     override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
-                        if (this@InternalColumn != internalColumns.last()) {
-                            behavior.renderColumnBody(this@Table, this@InternalColumn, canvas)
+                        if (this@InternalListColumn != internalColumns.last()) {
+                            it.renderColumnBody(this@Table, this@InternalListColumn, canvas)
                         }
                     }
                 }
@@ -270,11 +135,6 @@ open class Table<T, M: ListModel<T>>(
             doLayout()
         }
 
-////    var <T: Table<R,*>, R> T.behavior: TableBehavior<R>?
-//    var Table<T,M>.behavior: TableBehavior<T>?
-//        get(     ) = behavior_
-//        set(value) { behavior_ = value }
-
     var behavior = null as TableBehavior<T>?
         set(new) {
             if (new == behavior) { return }
@@ -287,13 +147,15 @@ open class Table<T, M: ListModel<T>>(
                 it.uninstall(this)
             }
 
-            field = new?.also { behavior ->
+            field = new
+
+            new?.also { behavior ->
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
                 behavior.columnDirty = columnDirty
 
-                internalColumns.forEach {
-                    it.behavior(behavior)
+                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                    it.behavior(TableLikeBehaviorWrapper())
                 }
 
                 behavior.install(this)
@@ -334,17 +196,17 @@ open class Table<T, M: ListModel<T>>(
 
     fun contains(value: T) = value in model
 
-    protected val internalColumns = mutableListOf<InternalColumn<*>>()
+    internal val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
     init {
         ColumnFactoryImpl().apply(block)
 
-        internalColumns += InternalColumn(header = null, itemGenerator = object : ItemVisualizer<String> {
+        internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
 
-    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*>>()
+    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*>>()
 
     private val header: Box = object: Box() {
         init {
@@ -423,7 +285,7 @@ open class Table<T, M: ListModel<T>>(
 
     private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     private val headerDirty: (         ) -> Unit = { header.rerender        () }
-    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*>)?.view?.rerender() }
+    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
     operator fun get(index: Int) = model[index]
 
