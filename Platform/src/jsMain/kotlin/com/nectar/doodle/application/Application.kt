@@ -10,6 +10,8 @@ import com.nectar.doodle.deviceinput.MouseInputManager
 import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
+import com.nectar.doodle.dom.ElementRuler
+import com.nectar.doodle.dom.ElementRulerImpl
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.SvgFactoryImpl
@@ -20,12 +22,14 @@ import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.drawing.TextFactory
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
 import com.nectar.doodle.drawing.impl.TextFactoryImpl
+import com.nectar.doodle.drawing.impl.TextMetricsImpl
 import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
@@ -76,6 +80,8 @@ abstract class Application(root: HTMLElement = document.body!!, modules: Set<Mod
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                              ) }
+        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                      ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }

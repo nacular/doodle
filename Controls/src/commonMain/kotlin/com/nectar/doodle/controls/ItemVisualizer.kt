@@ -27,7 +27,7 @@ class BooleanItemGenerator: ItemVisualizer<Boolean> {
     }
 }
 
-class ToStringItemGenerator<T>(textMetrics : TextMetrics): ItemVisualizer<T> {
+class ToStringItemGenerator<T>(textMetrics: TextMetrics): ItemVisualizer<T> {
     override fun invoke(item: T, previous: View?) = delegate(item.toString(), previous)
 
     private val delegate = TextItemGenerator(textMetrics)

@@ -10,6 +10,7 @@ import com.nectar.doodle.SVGPatternElement
 import com.nectar.doodle.SVGPolygonElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.clear
+import com.nectar.doodle.clipPath
 import com.nectar.doodle.dom.AlignmentBaseline.TextBeforeEdge
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
@@ -20,6 +21,7 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
 import com.nectar.doodle.dom.setAlignmentBaseline
+import com.nectar.doodle.dom.setBorderRadius
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setCircle
 import com.nectar.doodle.dom.setDefaultFill
@@ -31,6 +33,7 @@ import com.nectar.doodle.dom.setFloodColor
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setGradientUnits
 import com.nectar.doodle.dom.setId
+import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPathData
 import com.nectar.doodle.dom.setPoints
 import com.nectar.doodle.dom.setPosition
@@ -42,6 +45,7 @@ import com.nectar.doodle.dom.setStopOffset
 import com.nectar.doodle.dom.setStroke
 import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
+import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setX1
 import com.nectar.doodle.dom.setX2
 import com.nectar.doodle.dom.setY1
@@ -57,17 +61,18 @@ import com.nectar.doodle.drawing.OuterShadow
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
-import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.get
 import com.nectar.doodle.image.Image
+import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.Style
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
@@ -86,14 +91,14 @@ internal open class VectorRendererSvg constructor(
         private val htmlFactory: HtmlFactory,
         private val textMetrics: TextMetrics): VectorRenderer {
 
-    private lateinit var svgElement    : SVGElement
+    protected lateinit var svgElement    : SVGElement
     private lateinit var rootSvgElement: SVGElement
 
     private val region get() = context.renderRegion
 
     private var renderPosition: Node? = null
 
-    private fun nextId() = "${id++}"
+    protected fun nextId() = "${id++}"
 
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, null, null, point1, point2)
 
@@ -180,9 +185,9 @@ internal open class VectorRendererSvg constructor(
     }
 
     private fun makeStyledText(text: StyledText, at: Point) = createOrUse<SVGElement>("text").apply {
-        clear()
-
         setPosition(at)
+
+        val oldRenderPosition = renderPosition
 
         text.forEach { (text, style) ->
             val background: SVGElement? = (style.background?.takeIf { it is ColorBrush } as? ColorBrush?)?.let { textBackground(it) }?.also {
@@ -194,7 +199,13 @@ internal open class VectorRendererSvg constructor(
                     segment.style.filter = "url(#${it.id})"
                 }
             })
+
+            renderPosition = renderPosition?.nextSibling
         }
+
+        flush()
+
+        renderPosition = if (this.parentNode != null) this else oldRenderPosition
     }
 
     private fun makeTextSegment(text: String, style: Style) = createOrUse<SVGElement>("tspan").apply {
@@ -258,17 +269,12 @@ internal open class VectorRendererSvg constructor(
         return Point(endX, currentPoint.y)
     }
 
-
-//    override fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-
-    override fun add(shadow: Shadow) {
+    protected fun pushClip(rectangle: Rectangle) {
         val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
             // Here to ensure nested SVG has correct size
-            addIfNotPresent(makeRect(Rectangle(size = context.size)), 0)
+            addIfNotPresent(makeRect(rectangle), 0)
 
             renderPosition = renderPosition?.nextSibling
         }
@@ -280,18 +286,10 @@ internal open class VectorRendererSvg constructor(
         }
 
         svgElement = svg
-
-        when (shadow) {
-            is InnerShadow -> innerShadow(shadow)
-            is OuterShadow -> outerShadow(shadow)
-        }.let {
-            completeOperation(it)
-            svg.style.filter = "url(#${it.id})"
-        }
     }
 
-    override fun remove(shadow: Shadow) {
-        // Clear any remaining items that were previously rendered with the shadow that won't be rendered anymore
+    protected fun popClip() {
+        // Clear any remaining items that were previously rendered within the sub-region that won't be rendered anymore
         flush()
 
         renderPosition = svgElement.nextSibling
@@ -299,6 +297,22 @@ internal open class VectorRendererSvg constructor(
         svgElement.parentNode?.let {
             svgElement = it as SVGElement
         }
+    }
+
+    override fun add(shadow: Shadow) {
+        pushClip(Rectangle(size = context.size))
+
+        when (shadow) {
+            is InnerShadow -> innerShadow(shadow)
+            is OuterShadow -> outerShadow(shadow)
+        }.let {
+            completeOperation(it)
+            svgElement.style.filter = "url(#${it.id})"
+        }
+    }
+
+    override fun remove(shadow: Shadow) {
+        popClip()
     }
 
     override fun clear() {
@@ -433,7 +447,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
+    protected fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
         setBounds(rectangle)
 
         setFill  (null)
@@ -536,7 +550,7 @@ internal open class VectorRendererSvg constructor(
 
     private val containerElements = setOf(svgTag, "filter")
 
-    private fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
+    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
         val element: Node? = possible ?: renderPosition
 
         return when {
@@ -676,7 +690,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = if (this.parentNode != null) this else oldRenderPosition
     }
 
-    private fun updateRootSvg() {
+    protected fun updateRootSvg() {
         if (!::rootSvgElement.isInitialized || (context.renderPosition !== rootSvgElement && context.renderPosition !== rootSvgElement.nextSibling)) {
             // Initialize new SVG root if
             // 1) not initialized
@@ -715,9 +729,6 @@ internal open class VectorRendererSvg constructor(
                         override var size: Size
                             get() = brush.size
                             set(value) {}
-                        override var optimization: Optimization
-                            get() = context.optimization
-                            set(value) {}
                         override val renderRegion = this@apply
                         override var renderPosition: Node? = null
                         override val shadows get() = context.shadows
@@ -735,26 +746,81 @@ internal open class VectorRendererSvg constructor(
         override var size: Size
             get() = context.size
             set(value) {}
-        override var optimization: Optimization
-            get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-            set(value) {}
 
-        override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
+            true -> block(this)
+            else -> {
+                updateRootSvg()
+
+                pushClip(Rectangle(size = context.size))
+
+                svgElement.setTransform(transform)
+
+                block(this)
+
+                popClip()
+            }
         }
 
         override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            if (image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)) {
+                updateRootSvg()
+
+                if (source.size == image.size && source.position == Origin) {
+                    completeOperation(createImage(image, destination, radius, opacity))
+                } else {
+                    val xRatio = destination.width / source.width
+                    val yRatio = destination.height / source.height
+
+                    val imageElement = createImage(image,
+                            Rectangle(0 - xRatio * source.x,
+                                    0 - yRatio * source.y,
+                                    xRatio * image.size.width,
+                                    yRatio * image.size.height),
+                            0.0,
+                            opacity)
+
+                    createClip(destination).let {
+                        completeOperation(it)
+                        imageElement.style.clipPath = "url(#${it.id})"
+                    }
+
+                    completeOperation(imageElement)
+                }
+            }
         }
 
         override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            pushClip(rectangle)
+            block   (this     )
+            popClip (         )
         }
 
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
             add   (shadow)
             block (this  )
             remove(shadow)
+        }
+
+        private fun createClip(rectangle: Rectangle) = createOrUse<SVGElement>("clipPath").apply {
+            if (id.isBlank()) { setId(nextId()) }
+
+            addIfNotPresent(makeRect(rectangle) ,0)
+        }
+
+        private fun createImage(image: ImageImpl, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {
+            /*
+             * xlink:href (https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) is deprecated for SVG 2.0, but Safari doesn't seem to support just href yet
+             */
+            setAttributeNS("http://www.w3.org/2000/svg",   "xlink", "http://www.w3.org/1999/xlink")
+            setAttributeNS("http://www.w3.org/1999/xlink", "href",  image.source)
+
+            setBounds(destination)
+
+            style.apply {
+                setOpacity     (opacity)
+                setBorderRadius(radius )
+            }
         }
     }
 

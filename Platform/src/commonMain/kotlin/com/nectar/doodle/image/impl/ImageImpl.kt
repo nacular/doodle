@@ -16,9 +16,8 @@ internal class ImageImpl(val image: HTMLImageElement): Image {
     override fun hashCode() = image.hashCode()
 
     override fun equals(other: Any?): Boolean {
-        if (this === other     ) return true
-        if (other !is ImageImpl) return false
-
+        if (this === other      ) return true
+        if (other !is ImageImpl ) return false
         if (image != other.image) return false
 
         return true

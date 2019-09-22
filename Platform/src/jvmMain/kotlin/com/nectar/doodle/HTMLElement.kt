@@ -46,7 +46,12 @@ actual abstract class CSSStyleDeclaration {
     actual var outlineWidth    = ""
     actual var backgroundImage = ""
     actual var backgroundColor = ""
+
+    var clipPath_              = ""
 }
+
+actual var CSSStyleDeclaration.clipPath get() = clipPath_
+    set(new) { clipPath_ = new }
 
 actual class DOMRect {
     actual var x      = 0.0

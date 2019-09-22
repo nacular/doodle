@@ -2,7 +2,6 @@ package com.nectar.doodle.drawing
 
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Renderer.Optimization
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -19,8 +18,7 @@ class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: 
 class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
 
 interface Canvas: Renderer {
-    var size        : Size
-    var optimization: Optimization
+    var size: Size
 
     fun scale(x: Double, y: Double, block: Canvas.() -> Unit) = when {
         x == 1.0 && y == 1.0 -> block()

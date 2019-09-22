@@ -5,6 +5,7 @@ import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.utils.Completable
 import kotlin.math.max
@@ -197,7 +198,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
                     (table.panel.content as Box).children.forEach { it.rerenderNow() }
                 }
 
-                table.internalColumns.forEach { it.transform = AffineTransform.Identity }
+                table.internalColumns.forEach { it.transform = Identity }
             }
         }
     }

@@ -65,7 +65,6 @@ class SystemTheme internal constructor(
             // TODO: Can this be handled better?
             bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
-            bind<ElementRuler>                    () with singleton { ElementRulerImpl            (instance()                                                                              ) }
             bind<NativeScrollPanelFactory>        () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()                                                                  ) }
             bind<NativeButtonFactory>             () with singleton { NativeButtonFactoryImpl     (instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
             bind<NativeSliderFactory>             () with singleton { NativeSliderFactoryImpl     (instance(), instance(), instance(), instanceOrNull()                                    ) }

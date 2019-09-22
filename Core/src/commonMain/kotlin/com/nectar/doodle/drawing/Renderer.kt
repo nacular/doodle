@@ -31,11 +31,6 @@ interface Renderer {
     fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush)
     fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush? = null)
 
-    enum class Optimization {
-        Speed,
-        Quality
-    }
-
     enum class FillRule {
         NonZero,
         EvenOdd

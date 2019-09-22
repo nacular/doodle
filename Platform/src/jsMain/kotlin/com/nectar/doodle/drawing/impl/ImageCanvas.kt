@@ -23,7 +23,6 @@ import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
-import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.ConvexPolygon
@@ -102,8 +101,6 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
 
 
     private val scale get() = if (handleRetina) window.devicePixelRatio else 1.0 // Address issues on Retina displays
-
-    override var optimization = Quality
 
     private val renderingContext: CanvasRenderingContext2D = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 

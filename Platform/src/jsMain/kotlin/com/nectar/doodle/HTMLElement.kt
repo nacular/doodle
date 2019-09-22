@@ -26,6 +26,9 @@ actual typealias CSSStyleSheet = CSSStyleSheet
 
 actual typealias CSSStyleDeclaration = CSSStyleDeclaration
 
+actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"]
+    set(new) { this.asDynamic()["clip-path"] = new }
+
 actual typealias ElementCSSInlineStyle = ElementCSSInlineStyle
 
 actual typealias DOMRect   = DOMRect
@@ -36,7 +39,7 @@ actual typealias DragEvent = DragEvent
 actual typealias HTMLElement = HTMLElement
 
 actual var HTMLElement.onresize: ((Event) -> Unit)? get() = onresize
-    set(value) { onresize = value }
+    set(new) { onresize = new }
 actual var HTMLElement.ondragstart: ((DragEvent) -> Boolean)? get() = ondrag
     set(value) { ondragstart = value }
 

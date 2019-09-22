@@ -18,7 +18,6 @@ import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsSurface
-import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Size
@@ -115,7 +114,6 @@ class RealGraphicsSurface private constructor(
 
     override fun render(block: (Canvas) -> Unit) {
         canvas.clear()
-        canvas.optimization = Quality
 
         block(canvas)
 

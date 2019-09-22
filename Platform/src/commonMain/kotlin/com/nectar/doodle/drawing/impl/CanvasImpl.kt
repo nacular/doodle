@@ -41,7 +41,6 @@ import com.nectar.doodle.drawing.InnerShadow
 import com.nectar.doodle.drawing.OuterShadow
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.Renderer.FillRule
-import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
@@ -73,20 +72,13 @@ open class CanvasImpl(
             get(   ) = this@CanvasImpl.size
             set(new) { this@CanvasImpl.size = new }
 
-        override val shadows get() = this@CanvasImpl.shadows
-
-        override var optimization get() = this@CanvasImpl.optimization
-            set(new) { this@CanvasImpl.optimization = new }
-
-        override val renderRegion get() = this@CanvasImpl.renderRegion
-
+        override val shadows        get() = this@CanvasImpl.shadows
+        override val renderRegion   get() = this@CanvasImpl.renderRegion
         override var renderPosition get() = this@CanvasImpl.renderPosition
             set(new) { this@CanvasImpl.renderPosition = new }
     }
 
-    override var size         = Empty
-    override var optimization = Quality
-
+    override var size            = Empty
     private val shadows          = mutableListOf<Shadow>()
     private var renderRegion     = renderParent
     private var renderPosition   = null as Node?
@@ -182,7 +174,7 @@ open class CanvasImpl(
     }
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
-        if (shouldDrawImage(image, source, destination, opacity)) {
+        if (image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)) {
             if (source.size == image.size && source.position == Origin) {
                 completeOperation(createImage(image, destination, radius, opacity))
             } else {
@@ -374,8 +366,6 @@ open class CanvasImpl(
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }
     private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.setBorderRadius(xRadius, yRadius) }
 
-    private fun shouldDrawImage(image: Image, source: Rectangle, destination: Rectangle, opacity: Float) = image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)
-
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {
             // FIXME: Need to move this to Style and avoid raw px
@@ -443,7 +433,7 @@ open class CanvasImpl(
         }
     }
 
-    private fun createImage(image: Image, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement = pickImageElement((image as ImageImpl).image, renderPosition).also {
+    private fun createImage(image: ImageImpl, rectangle: Rectangle, radius: Double, opacity: Float): HTMLImageElement = pickImageElement(image.image, renderPosition).also {
         it.style.apply {
             translate      (rectangle.position)
             setSize        (rectangle.size    )
