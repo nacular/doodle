@@ -55,6 +55,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
     }
 
     companion object {
+        // FIXME: Inject these colors instead
         private const val sSpacing            =  8.0
         private const val sRectSize           = 12.0
         private       val sFillColor          = Color(0x21a121u)

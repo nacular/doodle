@@ -64,6 +64,7 @@ open class BasicTreeTableBehavior<T>(
         private val headerColor          : Color? = lightgray,
                     evenRowColor         : Color? = white,
                     oddRowColor          : Color? = lightgray.lighter().lighter(),
+                    iconColor            : Color  = Color.black,
         private val selectionColor       : Color? = green.lighter(),
         private val blurredSelectionColor: Color? = lightgray): TreeTableBehavior<T>, MouseListener, KeyListener, SelectableTreeKeyHandler {
 
@@ -94,7 +95,7 @@ open class BasicTreeTableBehavior<T>(
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, object: ContentGenerator<A> {
                 override fun invoke(item: A, previous: View?) = itemGenerator(item, previous)
-            }, iconFactory = { SimpleTreeRowIcon() }, selectionColor = null)
+            }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
     }
 

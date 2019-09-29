@@ -18,6 +18,7 @@ import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.Pool
+import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
@@ -32,8 +33,11 @@ typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) ->
 typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 interface TreeLike: Selectable<Path<Int>> {
+    val numRows    : Int
+    val hasFocus   : Boolean
     val rootVisible: Boolean
-    val numRows: Int
+
+    val focusChanged: PropertyObservers<View, Boolean>
 
     fun visible(row: Int): Boolean
     fun visible(path: Path<Int>): Boolean
@@ -110,14 +114,13 @@ open class Tree<T, out M: TreeModel<T>>(
     override val selectionAnchor get() = selectionModel?.anchor
     override val selection       get() = selectionModel?.toSet() ?: emptySet()
 
-    private   var generator       = null as RowGenerator<T>?
-    protected var positioner      = null as RowPositioner<T>?
-    private   val expandedPaths   = mutableSetOf<Path<Int>>()
-    private   val rowToPath       = mutableMapOf<Int, Path<Int>>()
-    private   val halfCacheLength = cacheLength / 2
-    private   var minVisibleY     = 0.0
-    private   var maxVisibleY     = 0.0
-    private   var minHeight       = 0.0
+    private   var generator     = null as RowGenerator<T>?
+    protected var positioner    = null as RowPositioner<T>?
+    private   val expandedPaths = mutableSetOf<Path<Int>>()
+    private   val rowToPath     = mutableMapOf<Int, Path<Int>>()
+    private   var minVisibleY   = 0.0
+    private   var maxVisibleY   = 0.0
+    private   var minHeight     = 0.0
         set(new) {
             field = new
 
@@ -132,25 +135,12 @@ open class Tree<T, out M: TreeModel<T>>(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
-        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { lastSelection ->
-                val item  = this[lastSelection]
-                val index = rowFromPath(lastSelection)
-
-                if (item != null && index != null) {
-                    positioner?.rowBounds(this, item, lastSelection, index)?.let {
-                        parent.scrollToVisible(it)
-                    }
-                }
-            }
-        }
-
         (selectionChanged as SetPool).forEach {
             it(set, removed, added)
         }
 
         children.batch {
-            (added + removed).forEach {
+            (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it) }.filter { it in removed || it in added }.forEach {
                 update(this, it)
             }
         }
@@ -204,6 +194,8 @@ open class Tree<T, out M: TreeModel<T>>(
                 old.bottom -> lastVisibleRow
                 else       -> min(numRows, findRowAt(y, lastVisibleRow) + cacheLength)
             }
+
+            val halfCacheLength = min(children.size, cacheLength) / 2
 
             pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow + halfCacheLength).y      } }
             pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
@@ -383,18 +375,24 @@ open class Tree<T, out M: TreeModel<T>>(
 //    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun addSelection(items: Set<Path<Int>>) {
         selectionModel?.addAll(items)
+
+        scrollToSelection()
     }
 
 //    @JvmName("toggleSelectionRows")
 //    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun toggleSelection(items: Set<Path<Int>>) {
         selectionModel?.toggle(items)
+
+        scrollToSelection()
     }
 
 //    @JvmName("setSelectionRows")
 //    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun setSelection(items: Set<Path<Int>>) {
         selectionModel?.replaceAll(items)
+
+        scrollToSelection()
     }
 
 //    @JvmName("removeSelectionRows")
@@ -431,6 +429,46 @@ open class Tree<T, out M: TreeModel<T>>(
             expand(parent)
 
             parent = parent.parent
+        }
+    }
+
+    protected fun update(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
+        var result = null as Int?
+
+        if (index != null) {
+            result = index
+            if (index >= 0) {
+                rowToPath[index] = path
+            }
+
+            // Path index not found (could be invisible)
+            if (index in firstVisibleRow..lastVisibleRow) {
+                generator?.let {
+                    model[path]?.let { value ->
+                        // pathToRow[path ] = index
+
+                        val i = index % children.size
+
+                        it(this, value, path, index, children.getOrNull(i)).also {
+                            children[i] = it
+
+                            layout(it, value, path, index)
+                        }
+
+                        ++result
+                    }
+                }
+            }
+        }
+
+        return result
+    }
+
+    protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
+        positioner?.let {
+            view.bounds = it.rowBounds(this, node, path, index, view)
+
+            minimumSize = Size(max(width, view.width), minHeight)
         }
     }
 
@@ -548,46 +586,6 @@ open class Tree<T, out M: TreeModel<T>>(
         }
 
         return index
-    }
-
-    protected fun update(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
-        var result = null as Int?
-
-        if (index != null) {
-            result = index
-            if (index >= 0) {
-                rowToPath[index] = path
-            }
-
-            // Path index not found (could be invisible)
-            if (index in firstVisibleRow..lastVisibleRow) {
-                generator?.let {
-                    model[path]?.let { value ->
-                        // pathToRow[path ] = index
-
-                        val i = index % children.size
-
-                        it(this, value, path, index, children.getOrNull(i)).also {
-                            children[i] = it
-
-                            layout(it, value, path, index)
-                        }
-
-                        ++result
-                    }
-                }
-            }
-        }
-
-        return result
-    }
-
-    protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
-        positioner?.let {
-            view.bounds = it.rowBounds(this, node, path, index, view)
-
-            minimumSize = Size(max(width, view.width), minHeight)
-        }
     }
 
     private fun updateRecursively(children: MutableList<View>, path: Path<Int>, index: Int? = rowFromPath(path)): Int? {
@@ -722,6 +720,21 @@ open class Tree<T, out M: TreeModel<T>>(
         }
 
         return if (newIndex == 0) newPath to newIndex else null
+    }
+
+    private fun scrollToSelection() {
+        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
+            lastSelection?.let { lastSelection ->
+                val item  = this[lastSelection]
+                val index = rowFromPath(lastSelection)
+
+                if (item != null && index != null) {
+                    positioner?.rowBounds(this, item, lastSelection, index)?.let {
+                        parent.scrollToVisible(it)
+                    }
+                }
+            }
+        }
     }
 }
 

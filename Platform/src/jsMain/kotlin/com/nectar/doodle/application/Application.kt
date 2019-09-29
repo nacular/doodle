@@ -65,14 +65,18 @@ import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.Window
 import kotlin.browser.document
+import kotlin.browser.window
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-abstract class Application(root: HTMLElement = document.body!!, modules: Set<Module> = emptySet()) {
+abstract class Application(root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()) {
     protected var injector = Kodein.direct {
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document                                            ) }
+        bind<Window>                   () with instance  ( window )
+
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                      ) }
         bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
         bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
         bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }

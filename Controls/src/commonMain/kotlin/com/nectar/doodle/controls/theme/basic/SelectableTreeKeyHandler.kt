@@ -28,9 +28,9 @@ interface SelectableTreeKeyHandler {
 
                                     if (currentRow != null && anchorRow != null) {
                                         when {
-                                            currentRow < anchorRow -> tree.setSelection((currentRow..anchorRow).reversed().toSet())
-                                            anchorRow < currentRow -> tree.setSelection((anchorRow..currentRow).toSet())
-                                            else                   -> tree.setSelection(setOf(currentRow))
+                                            currentRow < anchorRow  -> tree.setSelection((currentRow..anchorRow).reversed().toSet())
+                                            anchorRow  < currentRow -> tree.setSelection((anchorRow..currentRow).toSet())
+                                            else                    -> tree.setSelection(setOf(currentRow))
                                         }
                                     }
                                 }

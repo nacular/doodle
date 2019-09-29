@@ -15,6 +15,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.ConstraintLayout
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.HorizontalConstraint
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.MagnitudeConstraint
 import com.nectar.doodle.layout.ParentConstraints
 import com.nectar.doodle.layout.constrain
@@ -22,7 +23,6 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Path
-import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
 /**
@@ -46,7 +46,7 @@ abstract class TreeRowIcon: View() {
     abstract var expanded: Boolean
 }
 
-class SimpleTreeRowIcon: TreeRowIcon() {
+class SimpleTreeRowIcon(private val color: Color): TreeRowIcon() {
     override var expanded = false
         set (new) {
             field = new
@@ -54,7 +54,7 @@ class SimpleTreeRowIcon: TreeRowIcon() {
         }
 
     override fun render(canvas: Canvas) {
-        val pen      = Pen(Color.black)
+        val pen      = Pen(color)
         val length   = 3.5
         val width_2  = width  / 2
         val height_2 = height / 2
@@ -67,51 +67,25 @@ class SimpleTreeRowIcon: TreeRowIcon() {
     }
 }
 
-class BasicTreeRowIcon: TreeRowIcon() {
-    override var expanded = false
-        set (new) {
-            field = new
-            rerender()
-        }
-
-    override fun render(canvas: Canvas) {
-        val pen      = Pen(Color.black)
-        val length   = 3.5
-        val width_2  = width  / 2
-        val height_2 = height / 2
-
-        if (!expanded) {
-            canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
-        }
-
-        canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
-    }
-}
-
-class TreeRow<T>(
-                    tree            : TreeLike, node: T,
-                var path            : Path<Int>,
-        private var index           : Int,
-        private val contentGenerator: ContentGenerator<T>,
-        private val evenRowColor    : Color? = null,
-        private val oddRowColor     : Color? = evenRowColor?.darker(),
-        private val selectionColor  : Color? = green,
-        private val iconFactory     : () -> TreeRowIcon): View() {
-
-    var colorPolicy: (TreeRow<T>) -> Color? = {
-        val color = when {
-            it.index.isEven -> if (tree.selected(index) && selectionColor != null) selectionColor.lighter() else evenRowColor
-            else            -> if (tree.selected(index) && selectionColor != null) selectionColor           else oddRowColor
-        }
-
-        if (it.mouseOver) color?.lighter(0.25f) else color
-    }
+class TreeRow<T>(tree                : TreeLike, node: T,
+             var path                : Path<Int>,
+     private var index               : Int,
+     private val contentGenerator    : ContentGenerator<T>,
+     private val selectionColor      : Color? = green,
+     private val selectionBluredColor: Color? = selectionColor,
+     private val iconFactory         : () -> TreeRowIcon): View() {
 
     private  var icon      = null as TreeRowIcon?
     private  var depth     = -1
     internal var content   = contentGenerator(node)
     private  val iconWidth = 20.0
     private  var mouseOver = false
+
+    private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
+        if (tree.selected(index)) {
+            backgroundColor = if (new) selectionColor else selectionBluredColor
+        }
+    }
 
     private lateinit var constraintLayout: ConstraintLayout
 
@@ -122,13 +96,11 @@ class TreeRow<T>(
             private var pressed   = false
 
             override fun mouseEntered(event: MouseEvent) {
-                mouseOver       = true
-                backgroundColor = colorPolicy(this@TreeRow)
+                mouseOver = true
             }
 
             override fun mouseExited(event: MouseEvent) {
-                mouseOver       = false
-                backgroundColor = colorPolicy(this@TreeRow)
+                mouseOver = false
             }
 
             override fun mousePressed(event: MouseEvent) {
@@ -244,12 +216,22 @@ class TreeRow<T>(
             }
         }
 
-        backgroundColor = colorPolicy(this@TreeRow)
         idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
+        backgroundColor = when {
+            tree.selected(index) -> {
+                tree.focusChanged += treeFocusChanged
+
+                if (tree.hasFocus) selectionColor else selectionBluredColor
+            }
+            else                 -> {
+                tree.focusChanged -= treeFocusChanged
+                null
+            }
+        }
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorBrush(it)) }
     }
 
     private fun constrainIcon(icon: TreeRowIcon?) {

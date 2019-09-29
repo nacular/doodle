@@ -9,7 +9,7 @@ import com.nectar.doodle.get
  */
 interface SystemStyler
 
-internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document): SystemStyler {
+internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document, allowDefaultDarkMode: Boolean): SystemStyler {
     // FIXME: Make these styles local and applicable to the root not instead of assuming document.body
     init {
         if (document.styleSheets.length == 0) {
@@ -17,6 +17,10 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document): S
         }
 
         (document.styleSheets[0] as? CSSStyleSheet)?.apply {
+            if (allowDefaultDarkMode) {
+                insertRule(":root {color-scheme:light dark}", 0)
+            }
+
             // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
             insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", 0)
 

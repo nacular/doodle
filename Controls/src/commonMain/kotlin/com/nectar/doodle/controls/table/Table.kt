@@ -201,6 +201,7 @@ open class Table<T, M: ListModel<T>>(
     init {
         ColumnFactoryImpl().apply(block)
 
+        // Last, unusable column
         internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
             override fun invoke(item: String, previous: View?) = object : View() {}
         }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
@@ -270,6 +271,7 @@ open class Table<T, M: ListModel<T>>(
             }
         }
     })
+
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<Int> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {

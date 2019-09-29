@@ -77,12 +77,11 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var rowGenerator    : RowGenerator <T>? = null
-    private var rowPositioner   : RowPositioner<T>? = null
-    private val halfCacheLength = cacheLength / 2
-    private var minVisibleY     = 0.0
-    private var maxVisibleY     = 0.0
-    private var minHeight       = 0.0
+    private var rowGenerator : RowGenerator <T>? = null
+    private var rowPositioner: RowPositioner<T>? = null
+    private var minVisibleY  = 0.0
+    private var maxVisibleY  = 0.0
+    private var minHeight    = 0.0
         set(new) {
             field = new
 
@@ -169,6 +168,8 @@ open class List<T, out M: ListModel<T>>(
                 old.bottom -> lastVisibleRow
                 else       -> min(model.size - 1, findRowAt(y, lastVisibleRow) + cacheLength)
             }
+
+            val halfCacheLength = min(children.size, cacheLength) / 2
 
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
             model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }

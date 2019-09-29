@@ -27,6 +27,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
 
@@ -62,7 +63,7 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private val canvasBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private val patternBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
@@ -88,14 +89,14 @@ open class BasicTableBehavior<T>(
     }
 
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
-        canvas.rect(Rectangle(size = canvas.size), canvasBrush)
+        canvas.rect(Rectangle(size = canvas.size), patternBrush)
 
         val color = if (table.hasFocus) selectionColor else blurredSelectionColor
 
         if (color != null) {
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, row, index), ColorBrush(color))
+                    canvas.rect(rowPositioner(table, row, index).inset(Insets(top = 1.0)), ColorBrush(color))
                 }
             }
         }

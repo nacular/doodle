@@ -32,8 +32,8 @@ class ListRow<T>(private var list          : Selectable<Int>,
 
     var colorPolicy: (ListRow<T>) -> Color? = {
         val color = when {
-            it.index.isEven -> if (list.selected(index) && selectionColor != null) selectionColor.lighter() else evenRowColor
-            else            -> if (list.selected(index) && selectionColor != null) selectionColor           else oddRowColor
+            it.index.isEven -> if (list.selected(index) && selectionColor != null) selectionColor else evenRowColor
+            else            -> if (list.selected(index) && selectionColor != null) selectionColor else oddRowColor
         }
 
         if (it.mouseOver) color?.lighter(0.25f) else color

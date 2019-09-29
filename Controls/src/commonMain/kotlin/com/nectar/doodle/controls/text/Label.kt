@@ -4,16 +4,14 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.text.invoke
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
-import com.nectar.doodle.utils.HorizontalAlignment.Right
 import com.nectar.doodle.utils.VerticalAlignment
-import com.nectar.doodle.utils.VerticalAlignment.Bottom
 import com.nectar.doodle.utils.VerticalAlignment.Middle
 import com.nectar.doodle.utils.VerticalAlignment.Top
 import com.nectar.doodle.utils.observable
@@ -72,6 +70,20 @@ open class Label internal constructor(
     var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
     var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
 
+    var textSize = Size.Empty
+        private set(new) {
+            field             = new
+            if (fitText) size = new
+        }
+
+    var behavior: Behavior<Label>? = null
+        set(new) {
+            if (field == new) { return }
+
+            field?.uninstall(this)
+            field = new?.apply { install(this@Label) }
+        }
+
     private fun measureText(): Size {
         val height = when {
             fitText || verticalAlignment != Top -> if (wrapsWords) textMetrics.height(styledText, width) else textMetrics.height(styledText)
@@ -85,12 +97,6 @@ open class Label internal constructor(
 
         return Size(width, height).also { textSize = it }
     }
-
-    private var textSize = Size.Empty
-        set(new) {
-            field             = new
-            if (fitText) size = new
-        }
 
     init {
         boundsChanged += { _,old,new ->
@@ -116,27 +122,5 @@ open class Label internal constructor(
         }
     }
 
-    override fun render(canvas: Canvas) {
-        val y = when (verticalAlignment) {
-            Top    -> 0.0
-            Middle -> (height - textSize.height) / 2
-            Bottom ->  height - textSize.height
-        }
-
-        val x = when (horizontalAlignment) {
-            Left                       -> 0.0
-            Center -> (width - textSize.width) / 2
-            Right                      ->  width - textSize.width
-        }
-
-        backgroundColor?.let {
-            canvas.rect(bounds.atOrigin, ColorBrush(it))
-        }
-
-        if (wrapsWords) {
-            canvas.wrapped(styledText, Point(x, y), 0.0, width)
-        } else {
-            canvas.text(styledText, Point(x, y))
-        }
-    }
+    override fun render(canvas: Canvas) { behavior?.render(this, canvas) }
 }

@@ -14,6 +14,7 @@ import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
@@ -35,10 +36,10 @@ import com.nectar.doodle.utils.ObservableSet
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-private open class BasicItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics): RowGenerator<T> {
+private open class BasicItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics, private val selectionColor: Color = Color(0x0063e1u)): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics)).apply {
+        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics), selectionColor = selectionColor).apply {
             mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
                     focusManager?.requestFocus(list)
