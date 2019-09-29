@@ -144,10 +144,10 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
     }
 }
 
-class BasicMutableTreeBehavior<T>(generator            : RowGenerator<T>,
-                                  evenRowColor         : Color? = white,
-                                  oddRowColor          : Color? = lightgray.lighter().lighter(),
-                                  rowHeight            : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
+class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
+                                  evenRowColor: Color? = white,
+                                  oddRowColor : Color? = lightgray.lighter().lighter(),
+                                  rowHeight   : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
     constructor(labelFactory         : LabelFactory,
                 evenRowColor         : Color? = white,
                 oddRowColor          : Color? = lightgray.lighter().lighter(),
@@ -187,7 +187,6 @@ open class TextEditOperation<T>(
         fitText             = setOf(TextFit.Width)
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
         borderVisible       = false
-        backgroundColor     = current.backgroundColor
         horizontalAlignment = Left
 
         styleChanged += { rerender() }
@@ -212,6 +211,8 @@ open class TextEditOperation<T>(
 
     override fun addedToDisplay() {
         focusManager?.requestFocus(this)
+
+        backgroundColor = current.backgroundColor
         selectAll()
     }
 

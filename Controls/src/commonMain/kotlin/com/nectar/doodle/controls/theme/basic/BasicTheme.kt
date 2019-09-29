@@ -43,7 +43,7 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
             is Label             -> it.behavior = labelBehavior
-            is CheckBox          -> it.behavior = checkBoxBehavior as Behavior<Button>
+            is CheckBox          -> it.behavior = checkBoxBehavior    as Behavior<Button>
             is RadioButton       -> it.behavior = radioButtonBehavior as Behavior<Button>
             is Button            -> it.behavior = buttonBehavior
             is Slider            -> it.behavior = sliderBehavior
@@ -72,7 +72,7 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
         return Color(gray, gray, gray)
     }
 
-    private val listBehavior        by lazy { BasicListBehavior<Any>       (focusManager, textMetrics) }
+    private val listBehavior        by lazy { BasicListBehavior<Any>       (focusManager, textMetrics, foregroundColor.inverted, lightBackgroundColor, selectionColor, selectionColor.grayScale().lighter()) }
     private val treeBehavior        by lazy { BasicTreeBehavior<Any>       (labelFactory, foregroundColor.inverted, lightBackgroundColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, focusManager) }
     private val labelBehavior       by lazy { LabelBehavior                (foregroundColor) }
     private val buttonBehavior      by lazy { BasicButtonBehavior          (textMetrics, backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
@@ -81,7 +81,7 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
     private val checkBoxBehavior    by lazy { BasicCheckBoxBehavior        (textMetrics               ) }
     private val splitPanelBehavior  by lazy { BasicSplitPanelBehavior      () }
     private val radioButtonBehavior by lazy { BasicRadioBehavior           (textMetrics               ) }
-    private val mutableListBehavior by lazy { BasicMutableListBehavior<Any>(focusManager, textMetrics ) }
+    private val mutableListBehavior by lazy { BasicMutableListBehavior<Any>(focusManager, textMetrics, foregroundColor.inverted, lightBackgroundColor, selectionColor, selectionColor.grayScale().lighter() ) }
     private val progressBarBehavior by lazy { BasicProgressBarBehavior     (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val mutableTreeBehavior by lazy { BasicMutableTreeBehavior<Any>(labelFactory, foregroundColor.inverted, lightBackgroundColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, focusManager) }
 }

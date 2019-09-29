@@ -15,6 +15,7 @@ import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
@@ -36,10 +37,13 @@ import com.nectar.doodle.utils.ObservableSet
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-private open class BasicItemGenerator<T>(private val focusManager: FocusManager?, private val textMetrics: TextMetrics, private val selectionColor: Color = Color(0x0063e1u)): RowGenerator<T> {
+private open class BasicItemGenerator<T>(private val focusManager         : FocusManager?,
+                                         private val textMetrics          : TextMetrics,
+                                         private val selectionColor       : Color? = green.lighter(),
+                                         private val selectionBlurredColor: Color? = lightgray): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics), selectionColor = selectionColor).apply {
+        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics), selectionColor = selectionColor, selectionBluredColor = selectionBlurredColor).apply {
             mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
                     focusManager?.requestFocus(list)
@@ -55,7 +59,10 @@ private class BasicListPositioner<T>(height: Double): ListPositioner(height), Ro
     override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
 }
 
-private class MutableBasicItemGenerator<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicItemGenerator<T>(focusManager, textMetrics) {
+private class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
+                                           textMetrics          : TextMetrics,
+                                           selectionColor       : Color? = green.lighter(),
+                                           selectionBlurredColor: Color? = lightgray): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -72,11 +79,20 @@ private class MutableBasicItemGenerator<T>(focusManager: FocusManager?, textMetr
     }
 }
 
-open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics, rowHeight: Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
-    private val brush = stripedBrush(rowHeight, lightgray.lighter(), lightgray)
+open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
+                                             evenRowColor: Color? = Color.white,
+                                             oddRowColor : Color? = lightgray.lighter().lighter(),
+                                             rowHeight   : Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
+    constructor(focusManager         : FocusManager?,
+                textMetrics          : TextMetrics,
+                evenRowColor         : Color? = Color.white,
+                oddRowColor          : Color? = lightgray.lighter().lighter(),
+                selectionColor       : Color? = Color.green.lighter(),
+                selectionBlurredColor: Color? = lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
-    override val generator : RowGenerator<T>  = BasicItemGenerator (focusManager, textMetrics)
-    override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight                )
+    private val patternBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+
+    override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
     override fun install(view: List<T, *>) {
         view.keyChanged += this
@@ -87,7 +103,7 @@ open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMe
     }
 
     override fun render(view: List<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, brush)
+        canvas.rect(view.bounds.atOrigin, patternBrush)
     }
 
     override fun keyPressed(event: KeyEvent) {
@@ -95,9 +111,17 @@ open class BasicListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMe
     }
 }
 
-class BasicMutableListBehavior<T>(focusManager: FocusManager?, textMetrics: TextMetrics): BasicListBehavior<T>(focusManager, textMetrics) {
-    override val generator : RowGenerator<T>  = MutableBasicItemGenerator(focusManager, textMetrics)
-    override val positioner: RowPositioner<T> = BasicListPositioner(20.0)
+class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
+                                  evenRowColor: Color? = Color.white,
+                                  oddRowColor : Color? = lightgray.lighter().lighter(),
+                                  rowHeight   : Double = 20.0): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
+
+    constructor(focusManager         : FocusManager?,
+            textMetrics          : TextMetrics,
+            evenRowColor         : Color? = Color.white,
+            oddRowColor          : Color? = lightgray.lighter().lighter(),
+            selectionColor       : Color? = Color.green.lighter(),
+            selectionBlurredColor: Color? = lightgray): this(MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
     override fun keyPressed(event: KeyEvent) {
         when (event.code) {
@@ -138,8 +162,9 @@ open class TextEditOperation<T>(
 
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
-                if (event.code == VK_RETURN) {
-                    list.completeEditing()
+                when (event.code) {
+                    VK_RETURN          -> { list.completeEditing(); focusManager?.requestFocus(list) }
+                    KeyEvent.VK_ESCAPE -> { list.cancelEditing  (); focusManager?.requestFocus(list) }
                 }
             }
         }

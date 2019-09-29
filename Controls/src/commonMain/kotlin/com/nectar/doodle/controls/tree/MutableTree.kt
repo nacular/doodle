@@ -14,42 +14,8 @@ interface TreeEditor<T> {
     fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
-class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
-    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
-        var trueRemoved = removed.filterKeys { it !in added   }
-        var trueAdded   = added.filterKeys   { it !in removed }
-
-        itemsRemoved(trueRemoved)
-        itemsAdded  (trueAdded  )
-
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
-            refreshAll()
-        }
-
-        trueAdded   = trueAdded.filterKeys   { rowFromPath(it)?.let { it <= lastVisibleRow } ?: false }
-        trueRemoved = trueRemoved.filterKeys { rowFromPath(it)?.let { it <= lastVisibleRow } ?: false }
-
-        if (trueRemoved.size > trueAdded.size) {
-            if (children.size == lastVisibleRow - 1) {
-                children.batch {
-                    for (it in 0..trueRemoved.size - trueAdded.size) {
-                        children.removeAt(0)
-                    }
-                }
-            }
-        }
-
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
-            // FIXME: Make this more efficient
-            (firstVisibleRow..lastVisibleRow).forEach { update(children, pathFromRow(it)!!) }
-        } else {
-            // These are the edited rows
-            added.keys.filter { it in removed }.forEach { update(children, it) }
-        }
-    }
-
+class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, selectionModel) {
     init {
-        model.changed += modelChanged
         selectionChanged += { _,_,_ ->
             editingRect?.let {
                 cancelEditing()
@@ -79,12 +45,12 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Selection
 
     private var editingPath = null as Path<Int>?
         set(new) {
-            field       = new
+            field       = new?.also { selectionModel?.replaceAll(setOf(it)) }
             editingRect = field?.let { path ->
                 this[path]?.let { node ->
                     val row = rowFromPath(path)!!
 
-                    positioner?.rowBounds(this, node, path, row)
+                    rowPositioner?.rowBounds(this, node, path, row)
                 }
             }
 
@@ -100,12 +66,6 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Selection
     fun removeAt(path: Path<Int>                       ) = model.removeAt(path        )
     fun addAll  (path: Path<Int>, values: Collection<T>) = model.addAll  (path, values)
     fun clear   (                                      ) = model.clear   (            )
-
-    override fun removedFromDisplay() {
-        model.changed -= modelChanged
-
-        super.removedFromDisplay()
-    }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         super.handleDisplayRectEvent(old, new)
@@ -130,7 +90,7 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Selection
                     val i = row % children.size
 
                     editingPath   = path
-                    editOperation = it.edit(this, item, path, positioner?.contentBounds(this, item, path, i, children[i]) ?: Rectangle.Empty, children[i]).also {
+                    editOperation = it.edit(this, item, path, rowPositioner?.contentBounds(this, item, path, i, children[i]) ?: Rectangle.Empty, children[i]).also {
                         it()?.let { children[i] = it }
 
                         layout(children[i], item, path, i)
@@ -171,50 +131,5 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Selection
         editingPath   = null
 
         return result
-    }
-
-    private fun itemsAdded(values: Map<Path<Int>, T>) {
-//        if (selectionModel != null && values.isNotEmpty()) {
-//            val updatedSelection = mutableSetOf<Path<Int>>()
-//
-//            for (selectionItem in selectionModel) {
-//                var delta = 0
-//
-//                for (path in values.keys) {
-//                    if (selectionItem >= path) {
-//                        ++delta
-//                    }
-//                }
-//
-//                updatedSelection.add(selectionItem + delta)
-//            }
-//
-//            setSelection(updatedSelection)
-//        }
-    }
-
-    private fun itemsRemoved(values: Map<Path<Int>, T>) {
-//        if (selectionModel != null && values.isNotEmpty()) {
-//
-//            val updatedSelection = mutableSetOf<Path<Int>>()
-//
-//            for (selectionItem in selectionModel) {
-//                var delta = 0
-//
-//                for (path in values.keys) {
-//                    if (selectionItem > path) {
-//                        delta--
-//                    }
-//                }
-//
-//                if (delta != 0) {
-//                    updatedSelection.add(selectionItem + delta)
-//                }
-//            }
-//
-//            removeSelection(values.keys)
-//
-//            setSelection(updatedSelection)
-//        }
     }
 }

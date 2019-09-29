@@ -7,6 +7,7 @@ import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.SimpleListModel
 import com.nectar.doodle.controls.list.ListBehavior
+import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
@@ -28,7 +29,7 @@ import kotlin.math.max
 open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
-                      block         : ColumnFactory<T>.() -> Unit): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+                      block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
         override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit): Column<R> = ColumnBuilderImpl().run {

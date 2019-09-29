@@ -93,8 +93,8 @@ open class Tree<T, out M: TreeModel<T>>(
             field?.uninstall(this)
 
             field = new?.also {
-                this.generator  = it.generator
-                this.positioner = it.positioner
+                this.generator     = it.generator
+                this.rowPositioner = it.positioner
 
                 children.batch {
                     clear     ()
@@ -115,7 +115,7 @@ open class Tree<T, out M: TreeModel<T>>(
     override val selection       get() = selectionModel?.toSet() ?: emptySet()
 
     private   var generator     = null as RowGenerator<T>?
-    protected var positioner    = null as RowPositioner<T>?
+    protected var rowPositioner = null as RowPositioner<T>?
     private   val expandedPaths = mutableSetOf<Path<Int>>()
     private   val rowToPath     = mutableMapOf<Int, Path<Int>>()
     private   var minVisibleY   = 0.0
@@ -172,12 +172,20 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
+    override var isFocusCycleRoot = true
+
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
 
+    override fun removedFromDisplay() {
+        selectionModel?.let { it.changed -= selectionChanged_ }
+
+        super.removedFromDisplay()
+    }
+
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        positioner?.let { positioner ->
+        rowPositioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return
             }
@@ -233,12 +241,6 @@ open class Tree<T, out M: TreeModel<T>>(
                 }
             }
         }
-    }
-
-    override fun removedFromDisplay() {
-        selectionModel?.let { it.changed -= selectionChanged_ }
-
-        super.removedFromDisplay()
     }
 
     operator fun get(path: Path<Int>): T? = model[path]
@@ -465,7 +467,7 @@ open class Tree<T, out M: TreeModel<T>>(
     }
 
     protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
-        positioner?.let {
+        rowPositioner?.let {
             view.bounds = it.rowBounds(this, node, path, index, view)
 
             minimumSize = Size(max(width, view.width), minHeight)
@@ -476,7 +478,7 @@ open class Tree<T, out M: TreeModel<T>>(
         numRows = rowsBelow(Path()) + if(rootVisible) 1 else 0
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, positioner?.row(this, y) ?: nearbyRow)
+    private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, rowPositioner?.row(this, y) ?: nearbyRow)
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until model.numChildren(parent)).map { parent + it }
@@ -513,7 +515,7 @@ open class Tree<T, out M: TreeModel<T>>(
             firstVisibleRow =  0
             lastVisibleRow  = -1
 
-            handleDisplayRectEvent(Empty, Rectangle(width, minHeight))
+            handleDisplayRectEvent(Empty, displayRect)
         }
 
         updateNumRows()
@@ -664,7 +666,7 @@ open class Tree<T, out M: TreeModel<T>>(
     }
 
     // TODO: move this logic into ItemPositioner
-    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { positioner?.rowBounds(this, it, path, 0)?.height } ?: 0.0)
+    private fun heightBelow(path: Path<Int>) = rowsBelow(path) * (model[path]?.let { rowPositioner?.rowBounds(this, it, path, 0)?.height } ?: 0.0)
 
     private fun expandAllBelowPath(path: Path<Int>, expandedPath: MutableSet<Path<Int>> = mutableSetOf()) {
         if (model.isLeaf(path)) {
@@ -722,14 +724,14 @@ open class Tree<T, out M: TreeModel<T>>(
         return if (newIndex == 0) newPath to newIndex else null
     }
 
-    private fun scrollToSelection() {
+    fun scrollToSelection() {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 val item  = this[lastSelection]
                 val index = rowFromPath(lastSelection)
 
                 if (item != null && index != null) {
-                    positioner?.rowBounds(this, item, lastSelection, index)?.let {
+                    rowPositioner?.rowBounds(this, item, lastSelection, index)?.let {
                         parent.scrollToVisible(it)
                     }
                 }

@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.ItemVisualizer
-import com.nectar.doodle.controls.Selectable
+import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -16,28 +16,17 @@ import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
-import com.nectar.doodle.utils.isEven
 import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-class ListRow<T>(private var list          : Selectable<Int>,
-                 private var row           : T,
-                         var index         : Int,
-                 private val itemGenerator : ItemVisualizer<T>,
-                 private val evenRowColor  : Color? = null,
-                 private val oddRowColor   : Color? = evenRowColor?.darker(),
-                 private val selectionColor: Color? = green): View() {
-
-    var colorPolicy: (ListRow<T>) -> Color? = {
-        val color = when {
-            it.index.isEven -> if (list.selected(index) && selectionColor != null) selectionColor else evenRowColor
-            else            -> if (list.selected(index) && selectionColor != null) selectionColor else oddRowColor
-        }
-
-        if (it.mouseOver) color?.lighter(0.25f) else color
-    }
+class ListRow<T>(private var list                : ListLike,
+                 private var row                 : T,
+                         var index               : Int,
+                 private val itemGenerator       : ItemVisualizer<T>,
+                 private val selectionColor      : Color? = green,
+                 private val selectionBluredColor: Color? = selectionColor): View() {
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
@@ -54,6 +43,12 @@ class ListRow<T>(private var list          : Selectable<Int>,
 
     private var mouseOver = false
 
+    private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
+        if (list.selected(index)) {
+            backgroundColor = if (new) selectionColor else selectionBluredColor
+        }
+    }
+
     init {
         children += itemGenerator(row)
 
@@ -62,13 +57,11 @@ class ListRow<T>(private var list          : Selectable<Int>,
             private var pressed = false
 
             override fun mouseEntered(event: MouseEvent) {
-                mouseOver       = true
-                backgroundColor = colorPolicy(this@ListRow)
+                mouseOver = true
             }
 
             override fun mouseExited(event: MouseEvent) {
-                mouseOver       = false
-                backgroundColor = colorPolicy(this@ListRow)
+                mouseOver = false
             }
 
             override fun mousePressed(event: MouseEvent) {
@@ -102,7 +95,7 @@ class ListRow<T>(private var list          : Selectable<Int>,
         update(list, row, index)
     }
 
-    fun update(list: Selectable<Int>, row: T, index: Int) {
+    fun update(list: ListLike, row: T, index: Int) {
         this.list  = list
         this.row   = row
         this.index = index
@@ -113,11 +106,21 @@ class ListRow<T>(private var list          : Selectable<Int>,
             positioner(it)
         }
 
-        backgroundColor = colorPolicy(this)
+        backgroundColor = when {
+            list.selected(index) -> {
+                list.focusChanged += listFocusChanged
+
+                if (list.hasFocus) selectionColor else selectionBluredColor
+            }
+            else                 -> {
+                list.focusChanged -= listFocusChanged
+                null
+            }
+        }
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorBrush(it)) }
     }
 }
 

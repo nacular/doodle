@@ -17,6 +17,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Pool
+import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.SetObserver
 import com.nectar.doodle.utils.SetPool
 import kotlin.math.max
@@ -40,12 +41,17 @@ interface ListBehavior<T>: Behavior<List<T, *>> {
     val positioner: RowPositioner<T>
 }
 
+interface ListLike: Selectable<Int> {
+    val hasFocus    : Boolean
+    val focusChanged: PropertyObservers<View, Boolean>
+}
+
 open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemGenerator : ItemVisualizer<T>?    = null,
+                       val itemGenerator : ItemVisualizer<T>?   = null,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true,
-        private        val cacheLength   : Int                  = 10): View(), Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val cacheLength   : Int                  = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     val numRows get() = model.size
     val isEmpty get() = model.isEmpty
@@ -56,15 +62,7 @@ open class List<T, out M: ListModel<T>>(
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<Int> = { set,removed,added ->
-        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { lastSelection ->
-                this[lastSelection]?.let {
-                    rowPositioner?.invoke(this, it, lastSelection)?.let {
-                        parent.scrollToVisible(it)
-                    }
-                }
-            }
-        }
+        scrollToSelection() // FIXME: Avoid scrolling on selectAll, move to Behavior
 
         (selectionChanged as SetPool).forEach {
             it(set, removed, added)
@@ -113,7 +111,19 @@ open class List<T, out M: ListModel<T>>(
         }
 
     protected fun updateVisibleHeight() {
+        val oldHeight = minHeight
+
         minHeight = model.size * (model[0]?.let { rowPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+
+        if (oldHeight == minHeight) {
+            // FIXME: This reset logic could be handled better
+            minVisibleY     =  0.0
+            maxVisibleY     =  0.0
+            firstVisibleRow =  0
+            lastVisibleRow  = -1
+
+            handleDisplayRectEvent(Rectangle.Empty, displayRect)
+        }
     }
 
     public override var insets
@@ -194,6 +204,8 @@ open class List<T, out M: ListModel<T>>(
     protected fun layout(view: View, row: T, index: Int) {
         rowPositioner?.let {
             view.bounds = it(this, row, index)
+
+            minimumSize = Size(max(width, view.width), minHeight)
         }
     }
 
@@ -233,6 +245,18 @@ open class List<T, out M: ListModel<T>>(
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
+
+    fun scrollToSelection() {
+        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
+            lastSelection?.let { lastSelection ->
+                this[lastSelection]?.let {
+                    rowPositioner?.invoke(this, it, lastSelection)?.let {
+                        parent.scrollToVisible(it)
+                    }
+                }
+            }
+        }
+    }
 
     companion object {
         operator fun invoke(

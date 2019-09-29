@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme.basic.table
 
 import com.nectar.doodle.controls.ItemVisualizer
-import com.nectar.doodle.controls.Selectable
+import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.ExpansionObserver
 import com.nectar.doodle.controls.table.HeaderGeometry
@@ -17,6 +17,7 @@ import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.controls.theme.basic.SelectableTreeKeyHandler
 import com.nectar.doodle.controls.theme.basic.SimpleTreeRowIcon
 import com.nectar.doodle.controls.theme.basic.TreeRow
+import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -38,24 +39,26 @@ import com.nectar.doodle.utils.SetObserver
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-fun <T, R> Selectable<T>.map(mapper: (R) -> T, unmapper: (T) -> R) = object: Selectable<R> {
+fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int) = object: ListLike {
+    override val hasFocus     get() = this@map.hasFocus
+    override val focusChanged get() = this@map.focusChanged
 
     override fun selectAll     () = this@map.selectAll     ()
     override fun clearSelection() = this@map.clearSelection()
 
-    override fun selected       (item : R     ) = this@map.selected       (mapper(item))
-    override fun setSelection   (items: Set<R>) = this@map.setSelection   (items.map(mapper).toSet())
-    override fun addSelection   (items: Set<R>) = this@map.addSelection   (items.map(mapper).toSet())
-    override fun removeSelection(items: Set<R>) = this@map.removeSelection(items.map(mapper).toSet())
-    override fun toggleSelection(items: Set<R>) = this@map.toggleSelection(items.map(mapper).toSet())
+    override fun selected       (item : Int     ) = this@map.selected       (mapper(item))
+    override fun setSelection   (items: Set<Int>) = this@map.setSelection   (items.map(mapper).toSet())
+    override fun addSelection   (items: Set<Int>) = this@map.addSelection   (items.map(mapper).toSet())
+    override fun removeSelection(items: Set<Int>) = this@map.removeSelection(items.map(mapper).toSet())
+    override fun toggleSelection(items: Set<Int>) = this@map.toggleSelection(items.map(mapper).toSet())
 
-    override fun next    (after : R): R? = this@map.next    (mapper(after ))?.let(unmapper)
-    override fun previous(before: R): R? = this@map.previous(mapper(before))?.let(unmapper)
+    override fun next    (after : Int): Int? = this@map.next    (mapper(after ))?.let(unmapper)
+    override fun previous(before: Int): Int? = this@map.previous(mapper(before))?.let(unmapper)
 
-    override val selection      : Set<R> get() = this@map.selection.map(unmapper).toSet()
-    override val lastSelection  : R?     get() = this@map.lastSelection?.let(unmapper)
-    override val firstSelection : R?     get() = this@map.firstSelection?.let(unmapper)
-    override val selectionAnchor: R?     get() = this@map.selectionAnchor?.let(unmapper)
+    override val selection      : Set<Int> get() = this@map.selection.map(unmapper).toSet()
+    override val lastSelection  : Int?     get() = this@map.lastSelection?.let(unmapper)
+    override val firstSelection : Int?     get() = this@map.firstSelection?.let(unmapper)
+    override val selectionAnchor: Int?     get() = this@map.selectionAnchor?.let(unmapper)
 }
 
 open class BasicTreeTableBehavior<T>(

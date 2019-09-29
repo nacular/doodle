@@ -35,8 +35,7 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
 
     override fun requestFocus(view: View) = requestFocusInternal(view)
 
-    override fun clearFocus() = requestFocusInternal(null)
-
+    override fun clearFocus       (          ) = requestFocusInternal(null)
     override fun moveFocusForward (          ) = moveFocus(null, Forward )
     override fun moveFocusForward (from: View) = moveFocus(from, Forward )
     override fun moveFocusBackward(from: View) = moveFocus(from, Backward)
