@@ -12,7 +12,7 @@ interface TextFieldBehavior: Behavior<TextField> {
     fun fitTextSize(textField: TextField): Size
 }
 
-open class TextField: TextInput() {
+open class TextField(text: String = ""): TextInput(text) {
 
     enum class TextFit { Width, Height }
 

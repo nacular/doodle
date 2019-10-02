@@ -51,7 +51,7 @@ open class List<T, out M: ListModel<T>>(
                        val itemGenerator : ItemVisualizer<T>?   = null,
         protected      val selectionModel: SelectionModel<Int>? = null,
         private        val fitContent    : Boolean              = true,
-        private        val cacheLength   : Int                  = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val scrollCache   : Int                  = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     val numRows get() = model.size
     val isEmpty get() = model.isEmpty
@@ -171,15 +171,15 @@ open class List<T, out M: ListModel<T>>(
 
             firstVisibleRow = when (val y = new.y) {
                 old.y -> firstVisibleRow
-                else  -> max(0, findRowAt(y, firstVisibleRow) - cacheLength)
+                else  -> max(0, findRowAt(y, firstVisibleRow) - scrollCache)
             }
 
             lastVisibleRow = when (val y = new.bottom) {
                 old.bottom -> lastVisibleRow
-                else       -> min(model.size - 1, findRowAt(y, lastVisibleRow) + cacheLength)
+                else       -> min(model.size - 1, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            val halfCacheLength = min(children.size, cacheLength) / 2
+            val halfCacheLength = min(children.size, scrollCache) / 2
 
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
             model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
@@ -209,6 +209,22 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
+    protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
+        if (index in firstVisibleRow .. lastVisibleRow) {
+            rowGenerator?.let { uiGenerator ->
+                model[index]?.let { row ->
+                    val i = index % children.size
+
+                    uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
+                        children[i] = ui
+
+                        layout(ui, row, index)
+                    }
+                }
+            }
+        }
+    }
+
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
         rowGenerator?.let { uiGenerator ->
             model[index]?.let { row ->
@@ -228,22 +244,6 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
-        if (index in firstVisibleRow .. lastVisibleRow) {
-            rowGenerator?.let { uiGenerator ->
-                model[index]?.let { row ->
-                    val i = index % children.size
-
-                    uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
-                        children[i] = ui
-
-                        layout(ui, row, index)
-                    }
-                }
-            }
-        }
-    }
-
     private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
 
     fun scrollToSelection() {
@@ -251,7 +251,7 @@ open class List<T, out M: ListModel<T>>(
             lastSelection?.let { lastSelection ->
                 this[lastSelection]?.let {
                     rowPositioner?.invoke(this, it, lastSelection)?.let {
-                        parent.scrollToVisible(it)
+                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
                     }
                 }
             }
@@ -264,16 +264,16 @@ open class List<T, out M: ListModel<T>>(
                 itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10) =
-                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10) =
+                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, scrollCache)
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10): List<T, ListModel<T>> =
-                List<T, ListModel<T>>(SimpleListModel(values), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10): List<T, ListModel<T>> =
+                List<T, ListModel<T>>(SimpleListModel(values), itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }
 

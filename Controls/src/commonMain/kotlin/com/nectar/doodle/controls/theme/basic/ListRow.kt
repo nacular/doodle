@@ -26,7 +26,7 @@ class ListRow<T>(private var list                : ListLike,
                          var index               : Int,
                  private val itemGenerator       : ItemVisualizer<T>,
                  private val selectionColor      : Color? = green,
-                 private val selectionBluredColor: Color? = selectionColor): View() {
+                 private val selectionBlurredColor: Color? = selectionColor): View() {
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
@@ -45,7 +45,7 @@ class ListRow<T>(private var list                : ListLike,
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
-            backgroundColor = if (new) selectionColor else selectionBluredColor
+            backgroundColor = if (new) selectionColor else selectionBlurredColor
         }
     }
 
@@ -110,7 +110,7 @@ class ListRow<T>(private var list                : ListLike,
             list.selected(index) -> {
                 list.focusChanged += listFocusChanged
 
-                if (list.hasFocus) selectionColor else selectionBluredColor
+                if (list.hasFocus) selectionColor else selectionBlurredColor
             }
             else                 -> {
                 list.focusChanged -= listFocusChanged

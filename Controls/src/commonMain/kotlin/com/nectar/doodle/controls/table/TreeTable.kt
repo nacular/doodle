@@ -117,10 +117,9 @@ fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T
     }
 }
 
-class TreeTable<T, M: TreeModel<T>>(
-        model         : M,
-        protected val selectionModel: SelectionModel<Path<Int>>? = null,
-        block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
+class TreeTable<T, M: TreeModel<T>>(              model         : M,
+                                    protected val selectionModel: SelectionModel<Path<Int>>? = null,
+                                                  block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
     override val rootVisible get() = tree.rootVisible
 
     override fun visible(row : Int      ) = tree.visible(row )
@@ -229,7 +228,7 @@ class TreeTable<T, M: TreeModel<T>>(
             maxWidth      : Double?        = null,
             extractor     : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
 
-        override val view = Tree(model.map(extractor), selectionModel, cacheLength = 0).apply {
+        override val view = Tree(model.map(extractor), selectionModel, scrollCache = 0).apply {
             acceptsThemes = false
 
 //            expanded += { _,_ ->
@@ -353,7 +352,7 @@ class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), this.cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), cacheLength = 0).apply {
+        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), this.cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = 0).apply {
             acceptsThemes = false
         }
 

@@ -112,8 +112,8 @@ class MutableTable<T, M: MutableListModel<T>>(
 //                itemGenerator : ItemGenerator<Int>,
 //                selectionModel: SelectionModel<Int>? = null,
 //                fitContent    : Boolean              = true,
-//                cacheLength   : Int                  = 10) =
-//                MutableTable(strand, progression.toMutableList(), itemGenerator, selectionModel, fitContent, cacheLength)
+//                scrollCache   : Int                  = 10) =
+//                MutableTable(strand, progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
 //
 //        operator fun <T> invoke(
 //                strand        : Strand,
@@ -121,7 +121,7 @@ class MutableTable<T, M: MutableListModel<T>>(
 //                itemGenerator : ItemGenerator<T>,
 //                selectionModel: SelectionModel<Int>? = null,
 //                fitContent    : Boolean              = true,
-//                cacheLength   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
-//                MutableTable(strand, SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
+//                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
+//                MutableTable(strand, SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }

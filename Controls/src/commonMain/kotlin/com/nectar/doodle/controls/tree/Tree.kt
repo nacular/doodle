@@ -64,7 +64,7 @@ interface TreeLike: Selectable<Path<Int>> {
 open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
         protected      val selectionModel: SelectionModel<Path<Int>>? = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-        private        val cacheLength   : Int                        = 10): View(), TreeLike {
+        private        val scrollCache   : Int                        = 10): View(), TreeLike {
 
     override var rootVisible = false
         set(new) {
@@ -195,15 +195,15 @@ open class Tree<T, out M: TreeModel<T>>(
 
             firstVisibleRow = when (val y = new.y) {
                 old.y -> firstVisibleRow
-                else  -> max(0, findRowAt(y, firstVisibleRow) - cacheLength)
+                else  -> max(0, findRowAt(y, firstVisibleRow) - scrollCache)
             }
 
             lastVisibleRow = when (val y = new.bottom) {
                 old.bottom -> lastVisibleRow
-                else       -> min(numRows, findRowAt(y, lastVisibleRow) + cacheLength)
+                else       -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            val halfCacheLength = min(children.size, cacheLength) / 2
+            val halfCacheLength = min(children.size, scrollCache) / 2
 
             pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow + halfCacheLength).y      } }
             pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
@@ -732,7 +732,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
                 if (item != null && index != null) {
                     rowPositioner?.rowBounds(this, item, lastSelection, index)?.let {
-                        parent.scrollToVisible(it)
+                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
                     }
                 }
             }

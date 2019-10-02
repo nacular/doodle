@@ -17,7 +17,7 @@ open class MutableList<T, M: MutableListModel<T>>(
         itemGenerator : ItemVisualizer<T>?    = null,
         selectionModel: SelectionModel<Int>? = null,
         fitContent    : Boolean              = true,
-        cacheLength   : Int                  = 10): DynamicList<T, M>(model, itemGenerator, selectionModel, fitContent, cacheLength) {
+        scrollCache   : Int                  = 10): DynamicList<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
 
     val editing get() = editingRow != null
 
@@ -89,15 +89,15 @@ open class MutableList<T, M: MutableListModel<T>>(
                 itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10) =
-                MutableList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10) =
+                MutableList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
-                MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
+                MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }

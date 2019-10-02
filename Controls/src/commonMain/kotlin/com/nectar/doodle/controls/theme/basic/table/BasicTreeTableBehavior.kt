@@ -32,6 +32,7 @@ import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
@@ -96,7 +97,7 @@ open class BasicTreeTableBehavior<T>(
     override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
-            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, object: ContentGenerator<A> {
+            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, contentGenerator =  object: ContentGenerator<A> {
                 override fun invoke(item: A, previous: View?) = itemGenerator(item, previous)
             }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
@@ -134,9 +135,10 @@ open class BasicTreeTableBehavior<T>(
         val color = if (table.hasFocus) selectionColor else blurredSelectionColor
 
         if (color != null) {
+            // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!), ColorBrush(color))
+                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorBrush(color))
                 }
             }
         }

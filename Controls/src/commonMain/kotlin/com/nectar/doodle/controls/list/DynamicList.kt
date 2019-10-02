@@ -12,7 +12,7 @@ open class DynamicList<T, M: MutableListModel<T>>(
         itemGenerator : ItemVisualizer<T>?   = null,
         selectionModel: SelectionModel<Int>? = null,
         fitContent    : Boolean              = true,
-        cacheLength   : Int                  = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, cacheLength) {
+        scrollCache   : Int                  = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
 
     private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
@@ -108,15 +108,15 @@ open class DynamicList<T, M: MutableListModel<T>>(
                 itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10) =
-                DynamicList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10) =
+                DynamicList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                cacheLength   : Int                  = 10): DynamicList<T, SimpleMutableListModel<T>> =
-                DynamicList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, cacheLength)
+                scrollCache   : Int                  = 10): DynamicList<T, SimpleMutableListModel<T>> =
+                DynamicList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }

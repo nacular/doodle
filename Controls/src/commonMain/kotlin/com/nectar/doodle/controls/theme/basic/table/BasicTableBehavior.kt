@@ -38,7 +38,7 @@ import com.nectar.doodle.utils.SetObserver
 open class BasicCellGenerator<T>: CellGenerator<T> {
     override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A>, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
-        else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null)
+        else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
     }.apply { column.cellAlignment?.let { positioner = it } }
 }
 
@@ -49,7 +49,7 @@ open class BasicTableBehavior<T>(
                     evenRowColor         : Color? = white,
                     oddRowColor          : Color? = lightgray.lighter().lighter(),
         private val selectionColor       : Color? = green.lighter(),
-        private val blurredSelectionColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
+        private val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
 
     override var bodyDirty  : ((         ) -> Unit)? = null
     override var headerDirty: ((         ) -> Unit)? = null
@@ -77,7 +77,7 @@ open class BasicTableBehavior<T>(
         private val delegate = ListPositioner(rowHeight)
 
         override fun invoke(table: Table<T, *>, row: T, index: Int) = delegate(table, table.insets, index)
-        override fun rowFor(table: Table<T, *>, y: Double)          = delegate.rowFor(table.insets, y)
+        override fun rowFor(table: Table<T, *>, y: Double)          = delegate.rowFor(table.insets, y    )
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
@@ -91,9 +91,10 @@ open class BasicTableBehavior<T>(
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
         canvas.rect(Rectangle(size = canvas.size), patternBrush)
 
-        val color = if (table.hasFocus) selectionColor else blurredSelectionColor
+        val color = if (table.hasFocus) selectionColor else selectionBlurredColor
 
         if (color != null) {
+            // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
                     canvas.rect(rowPositioner(table, row, index).inset(Insets(top = 1.0)), ColorBrush(color))
@@ -159,7 +160,7 @@ class BasicMutableTableBehavior<T>(
         evenRowColor         : Color? = white,
         oddRowColor          : Color? = lightgray.lighter().lighter(),
         selectionColor       : Color? = green.lighter(),
-        blurredSelectionColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, blurredSelectionColor) {
+        selectionBlurredColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
     override val cellGenerator = object: BasicCellGenerator<T>() {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {

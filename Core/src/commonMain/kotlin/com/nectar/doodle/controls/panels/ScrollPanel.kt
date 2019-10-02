@@ -106,7 +106,21 @@ open class ScrollPanel(content: View? = null): View() {
      */
     fun scrollToVisible(rect: Rectangle) = moveToVisible(rect)
 
-    protected fun moveToVisible(point: Point) {
+    /**
+     * Scrolls the viewport horizontally so the given range is visible.
+     *
+     * @param range
+     */
+    fun scrollHorizontallyToVisible(range: ClosedRange<Double>) = moveHorizontallyToVisible(range)
+
+    /**
+     * Scrolls the viewport vertically so the given range is visible.
+     *
+     * @param range
+     */
+    fun scrollVerticallyToVisible(range: ClosedRange<Double>) = moveVerticallyToVisible(range)
+
+    private fun moveToVisible(point: Point) {
         var farSide = scroll.x + width
 
         val x = when {
@@ -126,9 +140,19 @@ open class ScrollPanel(content: View? = null): View() {
         scrollBy(Point(x, y))
     }
 
-    protected fun moveToVisible(rect: Rectangle) {
+    private fun moveToVisible(rect: Rectangle) {
         moveToVisible(rect.position)
         moveToVisible(Point(rect.right, rect.bottom))
+    }
+
+    private fun moveHorizontallyToVisible(range: ClosedRange<Double>) {
+        moveToVisible(Point(range.start,        scroll.y))
+        moveToVisible(Point(range.endInclusive, scroll.y))
+    }
+
+    private fun moveVerticallyToVisible(range: ClosedRange<Double>) {
+        moveToVisible(Point(scroll.x, range.start       ))
+        moveToVisible(Point(scroll.x, range.endInclusive))
     }
 
     private fun scrollTo(point: Point, force: Boolean = false) {

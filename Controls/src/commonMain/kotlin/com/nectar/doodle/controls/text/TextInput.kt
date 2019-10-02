@@ -18,7 +18,7 @@ class Selection(val position: Int, val anchor: Int) {
 
 typealias Validator = (String) -> String
 
-abstract class TextInput : View() /*, ContentRequestMonitor*/ {
+abstract class TextInput(text: String = "") : View() {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
@@ -26,7 +26,7 @@ abstract class TextInput : View() /*, ContentRequestMonitor*/ {
 
     val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(this) }
 
-    open var text: String by object: ObservableProperty<TextInput, String>("", { this }, textChanged as PropertyObserversImpl<TextInput, String>) {
+    open var text: String by object: ObservableProperty<TextInput, String>(text, { this }, textChanged as PropertyObserversImpl<TextInput, String>) {
         override fun afterChange(property: KProperty<*>, oldValue: String, newValue: String) {
             super.afterChange(property, oldValue, validator(newValue))
 
