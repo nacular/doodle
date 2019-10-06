@@ -158,6 +158,9 @@ open class BasicTreeTableBehavior<T>(
         view.mouseChanged     += this
         view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
+
+        bodyDirty?.invoke  ()
+        headerDirty?.invoke()
     }
 
     override fun uninstall(view: TreeTable<T, *>) {

@@ -185,7 +185,6 @@ class RealGraphicsDeviceTests {
         }
     }
 
-
     @Test @JsName("releaseSurface")
     fun `release surface`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)

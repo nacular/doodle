@@ -4,6 +4,7 @@ import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.gray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.MouseEvent
@@ -133,6 +134,6 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         val x         = width - thickness
 
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-        canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.darker(0.25f) ?: Color.gray, thickness))
+        canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.inverted ?: gray, thickness))
     }
 }

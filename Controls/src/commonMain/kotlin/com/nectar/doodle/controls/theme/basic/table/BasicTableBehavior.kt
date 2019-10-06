@@ -115,6 +115,9 @@ open class BasicTableBehavior<T>(
         view.mouseChanged     += this
         view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
+
+        bodyDirty?.invoke  ()
+        headerDirty?.invoke()
     }
 
     override fun uninstall(view: Table<T, *>) {

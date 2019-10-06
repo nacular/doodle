@@ -1,9 +1,10 @@
 package com.nectar.doodle.controls.table
 
+import com.nectar.doodle.controls.DynamicListModel
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
-import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.list.DynamicList
 import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.theme.TreeBehavior
@@ -290,7 +291,7 @@ class TreeTable<T, M: TreeModel<T>>(              model         : M,
             maxWidth       : Double? = null,
             extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): MutableListModel<A> {
+        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
             init {
                 // FIXME: Centralize to avoid calling rowsBelow more than once per changed path
                 expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
@@ -316,28 +317,6 @@ class TreeTable<T, M: TreeModel<T>>(              model         : M,
                 }
             }
 
-            override fun set(index: Int, value: A): A? = null
-
-            override fun add(value: A) {}
-
-            override fun add(index: Int, values: A) {}
-
-            override fun remove(value: A) {}
-
-            override fun removeAt(index: Int): A? = null
-
-            override fun addAll(values: Collection<A>) {}
-
-            override fun addAll(index: Int, values: Collection<A>) {}
-
-            override fun removeAll(values: Collection<A>) {}
-
-            override fun retainAll(values: Collection<A>) {}
-
-            override fun removeAllAt(indexes: Collection<Int>) {}
-
-            override fun clear() {}
-
             override val changed = SetPool<ModelObserver<A>>()
 
             override val size get() = numRows
@@ -352,7 +331,7 @@ class TreeTable<T, M: TreeModel<T>>(              model         : M,
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = com.nectar.doodle.controls.list.MutableList(FieldModel(model, extractor), this.cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = 0).apply {
+        override val view = DynamicList(FieldModel(model, extractor), this.cellGenerator, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = 0).apply {
             acceptsThemes = false
         }
 

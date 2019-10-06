@@ -16,10 +16,10 @@ class UserPreferencesImpl(private val window: Window): UserPreferences {
     private var old    = colorScheme
 
     init {
-        println(isDark)
+//        println(isDark)
 
         isDark.addListener {
-            println("isDark changed")
+//            println("isDark changed")
             (colorSchemeChanged as PropertyObserversImpl)(old, colorScheme)
 
             old = colorScheme

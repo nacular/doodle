@@ -514,9 +514,9 @@ open class Tree<T, out M: TreeModel<T>>(
             maxVisibleY     =  0.0
             firstVisibleRow =  0
             lastVisibleRow  = -1
-
-            handleDisplayRectEvent(Empty, displayRect)
         }
+
+        handleDisplayRectEvent(Empty, displayRect)
 
         updateNumRows()
     }

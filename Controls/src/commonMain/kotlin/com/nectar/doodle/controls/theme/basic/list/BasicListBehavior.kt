@@ -65,6 +65,8 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
 
     override fun install(view: List<T, *>) {
         view.keyChanged += this
+
+        view.rerender()
     }
 
     override fun uninstall(view: List<T, *>) {

@@ -324,10 +324,42 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
+    @Test
+    fun `renders pre-existing nested views`() {
+        val container = container()
+        val child     = spyk(view())
+
+        container.children += child
+
+        val display = display(container)
+
+        val renderManager = renderManager(display)
+
+        verifyChildAddedProperly(renderManager, child)
+    }
+
+    @Test
+    fun `renders re-added nested views`() {
+        val container = container()
+        val child     = spyk(view())
+
+        container.children += child
+
+        val display = display(container)
+
+        val renderManager = renderManager(display)
+
+        container.children -= child
+
+        container.children += child
+
+        verifyChildAddedProperly(renderManager, child, 2)
+    }
+
     @Test @JsName("rendersNewNestedViews")
     fun `renders new nested views`() {
         val container = container()
-        val child = spyk(view())
+        val child     = spyk(view())
 
         val display = display(container)
 
@@ -461,6 +493,113 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(child    ) }
     }
 
+    @Test
+    fun `renders removed when re-added (top-level)`() {
+        val child     = spyk(view())
+        val display   = display(child)
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        display.children -= child
+
+        // Add happens before next render
+
+        display.children += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child, 2)
+    }
+
+    @Test
+    fun `no-op removed re-added same parent`() {
+        val child     = spyk(view())
+        val container = container()
+
+        container.children += child
+
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child)
+
+        container.children -= child
+
+        // Add happens before next render
+
+        container.children += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child)
+    }
+
+    @Test
+    fun `renders removed re-added different parent`() {
+        val child      = spyk(view())
+        val container1 = container()
+        val container2 = container()
+
+        container1.children += child
+
+        val display   = display()
+        val scheduler = ManualAnimationScheduler()
+
+        display.children += listOf<View>(container1, container2)
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child)
+
+        // Add happens before next render
+
+        container1.children -= child
+        container2.children += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child, 2)
+    }
+
+    @Test
+    fun `renders removed re-added nested different parent`() {
+        val child      = spyk(view())
+        val container1 = container()
+        val container2 = container()
+
+        container1.children += child
+
+        val display   = display(container1)
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child)
+
+        container1.children -= child
+        container2.children += child
+
+        // Add happens before next render
+
+        display.children -= container1 as View
+        display.children += container2 as View
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, child, 2)
+    }
+
     private fun verifyLayout(block: (View) -> Unit) {
         val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
@@ -477,9 +616,9 @@ class RenderManagerImplTests {
         verify(exactly = 2) { container.doLayout_() }
     }
 
-    private fun verifyChildAddedProperly(renderManager: RenderManager, view: View) {
-        verify(exactly = 1) { view.addedToDisplay(renderManager) }
-        verify(exactly = 1) { view.render        (any()        ) }
+    private fun verifyChildAddedProperly(renderManager: RenderManager, view: View, times: Int = 1) {
+        verify(exactly = times) { view.addedToDisplay(renderManager) }
+        verify(exactly = times) { view.render        (any()        ) }
     }
 
     private fun verifyChildRemovedProperly(view: View) {

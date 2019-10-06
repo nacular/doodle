@@ -65,6 +65,30 @@ class RealGraphicsSurface private constructor(
     private var numChildren   = 0
     private var canvasElement = canvasElement as HTMLElement?
 
+    override var transform = Identity
+        set (new) {
+            field = new
+
+            refreshAugmentedTransform()
+        }
+
+    private var augmentedTransform = Identity
+        set (new) {
+            field = new
+
+            updateTransform(position)
+        }
+
+    override var size: Size by observable(Empty) { _,_,new ->
+        rootElement.parent?.let {
+            rootElement.style.setSize(new)
+
+            canvas.size = new
+
+            refreshAugmentedTransform() // Need to incorporate new size in transform calculation
+        }
+    }
+
     private var isContainer = false
         set(new) {
             if (field == new) { return }
@@ -82,7 +106,7 @@ class RealGraphicsSurface private constructor(
 
                     rootElement.insert(this, 0)
 
-                    canvas     = canvasFactory(this)
+                    canvas     = canvasFactory(this).also { it.size = size }
                     indexStart = 1
                 }
             } else {
@@ -96,6 +120,20 @@ class RealGraphicsSurface private constructor(
     private  var indexSet    = MutableTreeSet<Int>()
     private  var indexStart  = 0
     internal val rootElement = canvasElement
+
+    override var position: Point by observable(Origin) { _,old,new ->
+        if (new != old) {
+
+//        rootElement.parent?.let {
+//            when {
+//                (it as HTMLElement).hasAutoOverflow -> {} //rootElement.style.apply { setTop(new.y); setLeft(new.x) }
+//                else                                -> rootElement.style.translate(new)
+//            }
+//        }
+
+            updateTransform(new)
+        }
+    }
 
     init {
         this.isContainer = isContainer
@@ -132,53 +170,15 @@ class RealGraphicsSurface private constructor(
         }
     }
 
-    override var transform = Identity
-        set (new) {
-            field = new
-
-            refreshAugmentedTransform()
-        }
-
-    private var augmentedTransform = Identity
-        set (new) {
-            field = new
-
-            updateTransform(position)
-        }
-
     private fun refreshAugmentedTransform() {
         val point          = - Point(canvas.size.width / 2, canvas.size.height / 2)
         augmentedTransform = (Identity.translate(point) * transform).translate(-point)
-    }
-
-    override var position: Point by observable(Origin) { _,old,new ->
-        if (new != old) {
-
-//        rootElement.parent?.let {
-//            when {
-//                (it as HTMLElement).hasAutoOverflow -> {} //rootElement.style.apply { setTop(new.y); setLeft(new.x) }
-//                else                                -> rootElement.style.translate(new)
-//            }
-//        }
-
-            updateTransform(new)
-        }
     }
 
     private fun updateTransform(position: Point) {
         rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
             rootElement.style.setTransform(augmentedTransform.translate(position))
         } }
-    }
-
-    override var size: Size by observable(Empty) { _,_,new ->
-        rootElement.parent?.let {
-            rootElement.style.setSize(new)
-
-            canvas.size = new
-
-            refreshAugmentedTransform() // Need to incorporate new size in transform calculation
-        }
     }
 
     override fun release() {

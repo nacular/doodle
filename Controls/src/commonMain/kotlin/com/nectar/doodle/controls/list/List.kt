@@ -75,11 +75,11 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var rowGenerator : RowGenerator <T>? = null
-    private var rowPositioner: RowPositioner<T>? = null
-    private var minVisibleY  = 0.0
-    private var maxVisibleY  = 0.0
-    private var minHeight    = 0.0
+    private   var rowGenerator : RowGenerator <T>? = null
+    private   var rowPositioner: RowPositioner<T>? = null
+    private   var minVisibleY  = 0.0
+    private   var maxVisibleY  = 0.0
+    protected var minHeight    = 0.0
         set(new) {
             field = new
 
@@ -121,9 +121,9 @@ open class List<T, out M: ListModel<T>>(
             maxVisibleY     =  0.0
             firstVisibleRow =  0
             lastVisibleRow  = -1
-
-            handleDisplayRectEvent(Rectangle.Empty, displayRect)
         }
+
+        handleDisplayRectEvent(Rectangle.Empty, displayRect)
     }
 
     public override var insets

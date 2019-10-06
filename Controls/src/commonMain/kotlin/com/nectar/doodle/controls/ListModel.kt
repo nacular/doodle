@@ -18,10 +18,14 @@ interface ListModel<T>: Iterable<T> {
     fun contains(value: T               ): Boolean
 }
 
-typealias ModelObserver<T> = (source: MutableListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+typealias ModelObserver<T> = (source: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+
+interface DynamicListModel<T>: ListModel<T> {
+    val changed: Pool<ModelObserver<T>>
+}
 
 
-interface MutableListModel<T>: ListModel<T> {
+interface MutableListModel<T>: DynamicListModel<T> {
 
     operator fun set(index: Int, value: T): T?
 
@@ -36,8 +40,6 @@ interface MutableListModel<T>: ListModel<T> {
     fun removeAllAt(indexes: Collection<Int>           )
 
     fun clear()
-
-    val changed: Pool<ModelObserver<T>>
 }
 
 open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
@@ -72,7 +74,7 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
     override fun addAll     (index  : Int, values: Collection<T>) = list.addAll(index, values).run { Unit }
     override fun removeAll  (values : Collection<T>             ) = list.removeAll(values).run { Unit }
     override fun retainAll  (values : Collection<T>             ) = list.retainAll(values).run { Unit }
-    override fun removeAllAt(indexes: Collection<Int>           ) = list.batch { indexes.forEach { list.removeAt(it) } }
+    override fun removeAllAt(indexes: Collection<Int>           ) = list.batch { indexes.sortedDescending().forEach { list.removeAt(it) } }
 
     override fun clear() = list.clear()
 

@@ -133,6 +133,8 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
 
     override fun install(view: Tree<T, *>) {
         view.keyChanged += this
+
+        view.rerender()
     }
 
     override fun uninstall(view: Tree<T, *>) {

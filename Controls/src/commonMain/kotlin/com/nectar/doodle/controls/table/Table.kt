@@ -151,6 +151,20 @@ open class Table<T, M: ListModel<T>>(
             field = new
 
             new?.also { behavior ->
+
+                block?.let {
+                    factory.apply(it)
+
+                    // Last, unusable column
+                    internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
+                        override fun invoke(item: String, previous: View?) = object : View() {}
+                    }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
+
+                    children += listOf(header, panel)
+
+                    block = null
+                }
+
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
                 behavior.columnDirty = columnDirty
@@ -199,18 +213,13 @@ open class Table<T, M: ListModel<T>>(
 
     internal val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
-    init {
-        ColumnFactoryImpl().apply(block)
+    protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
-        // Last, unusable column
-        internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
-            override fun invoke(item: String, previous: View?) = object : View() {}
-        }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
-    }
+    private var block: (ColumnFactory<T>.() -> Unit)? = block
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*>>()
 
-    private val header: Box = object: Box() {
+    private val header: Box by lazy { object: Box() {
         init {
             layout = object : Layout() {
                 override fun layout(positionable: Positionable) {
@@ -232,46 +241,48 @@ open class Table<T, M: ListModel<T>>(
         override fun render(canvas: Canvas) {
             behavior?.renderHeader(this@Table, canvas)
         }
-    }
+    } }
 
-    private val panel = ScrollPanel(object: Box() {
-        init {
-            children += internalColumns.map { it.view }
+    private val panel by lazy {
+        ScrollPanel(object : Box() {
+            init {
+                children += internalColumns.map { it.view }
 
-            layout = object : Layout() {
-                override fun layout(positionable: Positionable) {
-                    var x          = 0.0
-                    var height     = 0.0
-                    var totalWidth = 0.0
+                layout = object : Layout() {
+                    override fun layout(positionable: Positionable) {
+                        var x = 0.0
+                        var height = 0.0
+                        var totalWidth = 0.0
 
-                    positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
+                        positionable.children.forEachIndexed { index, view ->
+                            view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
-                        x          += view.width
-                        height      = max(height, view.height)
-                        totalWidth += view.width
-                    }
+                            x += view.width
+                            height = max(height, view.height)
+                            totalWidth += view.width
+                        }
 
-                    positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
+                        positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
 
-                    positionable.children.forEach {
-                        it.height = positionable.height
+                        positionable.children.forEach {
+                            it.height = positionable.height
+                        }
                     }
                 }
             }
-        }
 
-        override fun render(canvas: Canvas) {
-            behavior?.renderBody(this@Table, canvas)
-        }
-    }.apply {
-        // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
-        boundsChanged += { _,old,new ->
-            if (old.x != new.x) {
-                header.x = new.x
+            override fun render(canvas: Canvas) {
+                behavior?.renderBody(this@Table, canvas)
             }
-        }
-    })
+        }.apply {
+            // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
+            boundsChanged += { _, old, new ->
+                if (old.x != new.x) {
+                    header.x = new.x
+                }
+            }
+        })
+    }
 
     @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<Int> = { set,removed,added ->
@@ -281,8 +292,6 @@ open class Table<T, M: ListModel<T>>(
     }
 
     init {
-        children += listOf(header, panel)
-
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 

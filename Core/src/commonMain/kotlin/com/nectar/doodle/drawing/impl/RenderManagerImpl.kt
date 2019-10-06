@@ -165,7 +165,7 @@ class RenderManagerImpl(
 
             themeManager?.update(view)
 
-            view.children_.forEach { record(it) }
+            view.children_.forEach { childAdded(view, it) }
 
             scheduleLayout(view)
 
@@ -361,13 +361,27 @@ class RenderManagerImpl(
     }
 
     private fun removeFromCleanupList(parent: View?, child: View) {
-        val views = pendingCleanup[parent]
+        if (child !in views) {
+            return
+        }
 
-        if (views != null) {
-            views.remove(child)
+        pendingCleanup.forEach {
+            val views = it.value
 
-            if (views.isEmpty()) {
-                pendingCleanup.remove(parent)
+            if (views.remove(child)) {
+                val oldParent = it.key
+
+                if (oldParent != parent) {
+                    // The child is being moved to a different parent, so we force clean-up
+                    releaseResources(child)
+                    graphicsDevice.release(child)
+                }
+
+                if (views.isEmpty()) {
+                    pendingCleanup.remove(parent)
+                }
+
+                return
             }
         }
     }

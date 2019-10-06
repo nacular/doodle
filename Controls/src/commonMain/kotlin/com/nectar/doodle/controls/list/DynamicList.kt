@@ -1,13 +1,13 @@
 package com.nectar.doodle.controls.list
 
+import com.nectar.doodle.controls.DynamicListModel
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
-import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.utils.size
 
-open class DynamicList<T, M: MutableListModel<T>>(
+open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
         itemGenerator : ItemVisualizer<T>?   = null,
         selectionModel: SelectionModel<Int>? = null,
@@ -23,12 +23,13 @@ open class DynamicList<T, M: MutableListModel<T>>(
 
         val oldVisibleRange = firstVisibleRow..lastVisibleRow
 
+        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
+
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
         }
 
-        trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
-        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
+        trueAdded = trueAdded.filterKeys { it <= lastVisibleRow }
 
         if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleRow..lastVisibleRow).size) {
             children.batch {

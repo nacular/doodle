@@ -1,104 +1,101 @@
 package com.nectar.doodle.controls.table
 
+import com.nectar.doodle.controls.DynamicListModel
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.list.DynamicList
+import com.nectar.doodle.controls.list.ListBehavior
+import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.layout.Constraints
+import com.nectar.doodle.utils.SetPool
 
 /**
  * Created by Nicholas Eddy on 9/29/19.
  */
-open class DynamicTable<T, M: MutableListModel<T>>(
+
+open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
         block         : ColumnFactory<T>.() -> Unit): Table<T, M>(model, selectionModel, block) {
 
-    private val editors = mutableMapOf<Column<*>, ((T) -> T)?>()
+    private inner class ColumnFactoryImpl: ColumnFactory<T> {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+            builder(this)
 
-    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
-        var trueRemoved = removed.filterKeys { it !in added   }
-        var trueAdded   = added.filterKeys   { it !in removed }
-
-        itemsRemoved(trueRemoved)
-        itemsAdded  (trueAdded  )
-
-        val oldHeight = height
-
-//        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
-//            updateVisibleHeight()
-//        }
-//
-//        trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
-//        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
-//
-//        if (trueRemoved.size > trueAdded.size && height < oldHeight) {
-//            children.batch {
-//                for (it in 0 until trueRemoved.size - trueAdded.size) {
-//                    removeAt(0)
-//                }
-//            }
-//        }
-//
-//        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
-//            // FIXME: Make this more efficient
-//            (firstVisibleRow..lastVisibleRow).forEach { update(children, it) }
-//        } else {
-//            // These are the edited rows
-//            added.keys.filter { it in removed }.forEach { update(children, it) }
-//        }
-    }
-
-    init {
-        model.changed += modelChanged
-    }
-
-    override fun removedFromDisplay() {
-        model.changed -= modelChanged
-
-        super.removedFromDisplay()
-    }
-
-    private fun itemsAdded(values: Map<Int, T>) {
-        if (selectionModel != null && values.isNotEmpty()) {
-            val updatedSelection = mutableSetOf<Int>()
-
-            for (selectionItem in selectionModel) {
-                var delta = 0
-
-                for (index in values.keys) {
-                    if (selectionItem >= index) {
-                        ++delta
-                    }
-                }
-
-                updatedSelection.add(selectionItem + delta)
-            }
-
-            setSelection(updatedSelection)
+            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
         }
     }
 
-    private fun itemsRemoved(values: Map<Int, T>) {
-        if (selectionModel != null && values.isNotEmpty()) {
+    internal inner class InternalListColumn<R>(
+            header         : View?,
+            headerAlignment: (Constraints.() -> Unit)? = null,
+            cellGenerator  : ItemVisualizer<R>,
+            cellAlignment  : (Constraints.() -> Unit)? = null,
+            preferredWidth : Double? = null,
+            minWidth       : Double  = 0.0,
+            maxWidth       : Double? = null,
+            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
-            val updatedSelection = mutableSetOf<Int>()
-
-            for (selectionItem in selectionModel) {
-                var delta = 0
-
-                for (index in values.keys) {
-                    if (selectionItem > index) {
-                        delta--
+        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
+            init {
+                model.changed += { source: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
+                    changed.forEach {
+                        it(this,removed.mapValues { extractor(it.value) }, added.mapValues { extractor(it.value) }, moved.mapValues { it.value.first to extractor(it.value.second) })
                     }
-                }
-
-                if (delta != 0) {
-                    updatedSelection.add(selectionItem + delta)
                 }
             }
 
-            removeSelection(values.keys)
+            override val changed = SetPool<ModelObserver<A>>()
 
-            setSelection(updatedSelection)
+            override val size get() = model.size
+
+            override fun get(index: Int) = model[index]?.let(extractor)
+
+            override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
+
+            override fun contains(value: A) = value in model.map(extractor)
+
+            override fun iterator() = model.map(extractor).iterator()
         }
+
+        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), cellGenerator, selectionModel).apply {
+            acceptsThemes = false
+        }
+
+        override fun behavior(behavior: TableLikeBehaviorWrapper?) {
+            behavior?.delegate?.let {
+                view.behavior = object: ListBehavior<R> {
+                    override val generator get() = object: ListBehavior.RowGenerator<R> {
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@DynamicTable, this@InternalListColumn, row, index, cellGenerator, current)
+                    }
+
+                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@DynamicTable, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
+
+                        override fun rowFor(list: com.nectar.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@DynamicTable, y)
+                    }
+
+                    override fun render(view: com.nectar.doodle.controls.list.List<R, *>, canvas: Canvas) {
+                        if (this@InternalListColumn != internalColumns.last()) {
+                            it.renderColumnBody(this@DynamicTable, this@InternalListColumn, canvas)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override val factory: ColumnFactory<T> = ColumnFactoryImpl()
+
+    companion object {
+        operator fun <T> invoke(
+                values        : List<T>,
+                selectionModel: SelectionModel<Int>? = null,
+                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(SimpleMutableListModel(values.toMutableList()), selectionModel, block)
     }
 }
