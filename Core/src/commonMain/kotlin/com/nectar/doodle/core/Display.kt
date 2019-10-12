@@ -1,6 +1,7 @@
 package com.nectar.doodle.core
 
 import com.nectar.doodle.drawing.Brush
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
@@ -15,7 +16,6 @@ import com.nectar.doodle.utils.PropertyObservers
  */
 interface Display: Iterable<View> {
     override fun iterator() = children.iterator()
-
     /**
      * The top-level cursor.  This will be the cursor used for [View] hierarchies that do not have one set.
      */
@@ -39,7 +39,7 @@ interface Display: Iterable<View> {
     /** Fires when the display re-sizes */
     val sizeChanged: PropertyObservers<Display, Size>
 
-//  var focusTraversalPolicy: FocusTraversalPolicy
+    var focusTraversalPolicy: FocusTraversalPolicy?
 
     fun fill (brush: Brush)
     fun child(at   : Point): View?

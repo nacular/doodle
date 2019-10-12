@@ -7,6 +7,8 @@ expect abstract class CSSStyleSheet {
     fun insertRule(rule: String, index: Int): Int
 }
 
+expect val CSSStyleSheet.numStyles: Int
+
 expect abstract class CSSStyleDeclaration {
     var top            : String
     var font           : String

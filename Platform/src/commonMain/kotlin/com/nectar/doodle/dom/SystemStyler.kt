@@ -3,6 +3,7 @@ package com.nectar.doodle.dom
 import com.nectar.doodle.CSSStyleSheet
 import com.nectar.doodle.Document
 import com.nectar.doodle.get
+import com.nectar.doodle.numStyles
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
@@ -18,27 +19,27 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document, al
 
         (document.styleSheets[0] as? CSSStyleSheet)?.apply {
             if (allowDefaultDarkMode) {
-                insertRule(":root {color-scheme:light dark}", 0)
+                insertRule(":root {color-scheme:light dark}", numStyles)
             }
 
             // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
-            insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", 0)
+            insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", numStyles)
 
-            insertRule("html { border:0;box-sizing:border-box }", 0)
-            insertRule("html,body{ height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", 0)
+            insertRule("html { border:0;box-sizing:border-box }", numStyles)
+            insertRule("html,body { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", numStyles)
 
-            insertRule("* { box-sizing:inherit }", 0)
+            insertRule("* { box-sizing:inherit }", numStyles)
 
-            insertRule("body * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", 0)
-            insertRule("body pre { overflow:visible }", 0)
-            insertRule("body div { display:inline }", 0)
+            insertRule("body * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
+            insertRule("body pre { overflow:visible }", numStyles)
+            insertRule("body div { display:inline }", numStyles)
 
-            insertRule("pre { margin:0 }", 0)
-            insertRule("svg { display:inline-block;width:100%;height:100% }", 0)
-            insertRule("svg * { position:absolute }", 0)
+            insertRule("pre { margin:0 }", numStyles)
+            insertRule("svg { display:inline-block;width:100%;height:100% }", numStyles)
+            insertRule("svg * { position:absolute }", numStyles)
 
             try {
-                insertRule("input[type=text]::-ms-clear{ display:none }", 0)
+                insertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
             } catch (ignore: Throwable) {}
         }
     }

@@ -24,6 +24,8 @@ import org.w3c.dom.events.Event
  */
 actual typealias CSSStyleSheet = CSSStyleSheet
 
+actual val com.nectar.doodle.CSSStyleSheet.numStyles: Int get() = this.cssRules.length
+
 actual typealias CSSStyleDeclaration = CSSStyleDeclaration
 
 actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"]

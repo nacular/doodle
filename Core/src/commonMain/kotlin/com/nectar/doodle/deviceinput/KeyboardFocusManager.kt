@@ -10,6 +10,7 @@ import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import com.nectar.doodle.system.KeyInputService
+import com.nectar.doodle.utils.contains
 
 /**
  * Created by Nicholas Eddy on 3/10/18.
@@ -81,31 +82,26 @@ class KeyboardFocusManagerImpl(
         val backwardKeyEvents = view[Backward] ?: defaultTraversalKeys[Backward]
         val downwardKeyEvents = if (view.isFocusCycleRoot_) view[Downward] else null
 
-        if (forwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusForward(view)
-            keyEvent.consume()
-        } else if (backwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusBackward(view)
-            keyEvent.consume()
-        } else if (upwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusUpward(view)
-            keyEvent.consume()
-        } else if (downwardKeyEvents?.contains(keyState) == true) {
-            focusManager.moveFocusDownward(view)
-            keyEvent.consume()
-        } else {
+        when (keyState) {
+            in forwardKeyEvents  -> focusManager.moveFocusForward (view)
+            in backwardKeyEvents -> focusManager.moveFocusBackward(view)
+            in upwardKeyEvents   -> focusManager.moveFocusUpward  (view)
+            in downwardKeyEvents -> focusManager.moveFocusDownward(view)
+            else                 -> {
 //            var g: View? = view
 
 //            while (g != null) {
 //                if (g.monitorsKeyboard) {
-                    view.handleKeyEvent_(keyEvent)
-                    keyEvent.consume()
+                view.handleKeyEvent_(keyEvent)
 //                    break
 //                } else {
 //                    g = g.parent
 //                }
 //            }
+            }
         }
+
+        keyEvent.consume()
     }
 
     private fun preprocessKeyEvent(event: KeyEvent) {

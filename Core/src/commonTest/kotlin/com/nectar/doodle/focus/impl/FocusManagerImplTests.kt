@@ -17,25 +17,25 @@ class FocusManagerImplTests {
 
     @Test @JsName("noDefaultFocusOwner")
     fun `no default focus owner`() {
-        expect(null) { FocusManagerImpl().focusOwner }
+        expect(null) { FocusManagerImpl(mockk(relaxed = true)).focusOwner }
     }
 
     @Test @JsName("noDefaultFocusCycleRoot")
     fun `no default focus-cycle-root`() {
-        expect(null) { FocusManagerImpl().focusCycleRoot }
+        expect(null) { FocusManagerImpl(mockk(relaxed = true)).focusCycleRoot }
     }
 
     @Test @JsName("validateFocusability")
     fun `validate focusability`() {
         createFocusablePermutations().forEach { (view, expected) ->
-            expect(expected) { FocusManagerImpl().focusable(view) }
+            expect(expected) { FocusManagerImpl(mockk(relaxed = true)).focusable(view) }
         }
     }
 
     @Test @JsName("requestFocusNoOpsIfNotFocusable")
     fun `request focus no-ops if not focusable`() {
         createFocusablePermutations().forEach { (view, expected) ->
-            FocusManagerImpl().apply {
+            FocusManagerImpl(mockk(relaxed = true)).apply {
                 val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
 
                 focusChanged += listener
@@ -59,7 +59,7 @@ class FocusManagerImplTests {
         val previous = createFocusableView()
         val view     = createFocusableView()
 
-        FocusManagerImpl().apply {
+        FocusManagerImpl(mockk(relaxed = true)).apply {
             val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
 
             focusChanged += listener
@@ -81,7 +81,7 @@ class FocusManagerImplTests {
     fun `request focus to focus owner no-ops`() {
         val view = createFocusableView()
 
-        FocusManagerImpl().apply {
+        FocusManagerImpl(mockk(relaxed = true)).apply {
             val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
 
             focusChanged += listener
@@ -140,14 +140,14 @@ class FocusManagerImplTests {
     }
 
     private fun createFocusablePermutations() = listOf(
-            FocusManagerImplTests.Focusability(false, false, false) to false,
-            FocusManagerImplTests.Focusability(false, false, true) to false,
-            FocusManagerImplTests.Focusability(false, true, false) to false,
-            FocusManagerImplTests.Focusability(false, true, true) to false,
-            FocusManagerImplTests.Focusability(true, false, false) to false,
-            FocusManagerImplTests.Focusability(true, false, true) to false,
-            FocusManagerImplTests.Focusability(true, true, false) to false,
-            FocusManagerImplTests.Focusability(true, true, true) to true
+            Focusability(false, false, false) to false,
+            Focusability(false, false, true ) to false,
+            Focusability(false, true,  false) to false,
+            Focusability(false, true,  true ) to false,
+            Focusability(true,  false, false) to false,
+            Focusability(true,  false, true ) to false,
+            Focusability(true,  true,  false) to false,
+            Focusability(true,  true,  true ) to true
     ).map { (row, expected) ->
         mockk<View>(relaxed = true).apply {
             every { enabled               } returns row.enabled

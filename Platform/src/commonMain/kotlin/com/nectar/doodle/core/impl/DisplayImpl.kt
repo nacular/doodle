@@ -17,6 +17,7 @@ import com.nectar.doodle.dom.width
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.ImageBrush
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -54,6 +55,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
     override var size                                               by ObservableProperty(Empty, { this }, sizeChanged as PropertyObserversImpl<Display, Size>)
         private set
     override var cursor: Cursor?                                    by ObservableProperty(null, { this }, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
+
+    override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val positionableWrapper = PositionableWrapper()

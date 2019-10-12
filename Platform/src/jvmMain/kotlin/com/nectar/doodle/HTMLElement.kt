@@ -7,6 +7,9 @@ actual abstract class CSSStyleSheet {
     actual fun insertRule(rule: String, index: Int) = 0
 }
 
+actual val CSSStyleSheet.numStyles: Int get() = 0
+
+
 actual abstract class CSSStyleDeclaration {
     actual var top             = ""
     actual var font            = ""

@@ -34,7 +34,6 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
 import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
@@ -137,16 +136,17 @@ class Modules {
         }
 
         val focusModule = Module(allowSilentOverride = true) {
-            bind<FocusManager>() with singleton { FocusManagerImpl() }
+            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true) {
             import(focusModule)
 
-            val keys = mutableMapOf<TraversalType, Set<KeyState>>()
-
-            keys[Forward ] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down))
-            keys[Backward] = setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
+            // TODO: Make this plugable
+            val keys = mapOf(
+                Forward  to setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down)),
+                Backward to setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
+            )
 
             bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                   ) }
             bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl     (instance(), instance(), keys ) }

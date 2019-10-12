@@ -53,6 +53,8 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
 
         lastMousePosition = offset
         lastStart         = slider.value
+
+        event.consume()
     }
 
     override fun mouseReleased(event: MouseEvent) {
@@ -71,6 +73,8 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
         val deltaValue = delta / scaleFactor(slider)
 
         slider.value = lastStart + deltaValue
+
+        event.consume()
     }
 
     private fun scaleFactor(slider: Slider): Float {

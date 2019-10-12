@@ -78,6 +78,8 @@ abstract class AbstractSplitPanelBehavior(private val divider: View, override va
             val newPosition = min(maxPosition, max(minPosition, position))
 
             splitPanel.ratio = ((newPosition - minPosition) / (maxPosition - minPosition)).toFloat()
+
+            event.consume()
         }
     }
 }

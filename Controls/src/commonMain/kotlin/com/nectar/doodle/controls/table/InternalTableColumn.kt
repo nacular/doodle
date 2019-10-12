@@ -171,8 +171,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
             table.internalColumns.forEachIndexed { index, column ->
                 val targetMiddle = column.x + column.transform.translateX + column.width / 2
 
-                if (index > numFixedRows - 1 && (transform.translateX < 0 && myOffset <              targetMiddle) ||
-                        (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
+                if (index > numFixedRows - 1 && (transform.translateX < 0 && myOffset < targetMiddle) || (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
                     myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
                     targetBounds = table.header.children[myNewIndex].bounds
                     return@loop

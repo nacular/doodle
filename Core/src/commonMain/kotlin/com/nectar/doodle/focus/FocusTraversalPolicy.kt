@@ -1,5 +1,6 @@
 package com.nectar.doodle.focus
 
+import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 
 
@@ -56,4 +57,46 @@ interface FocusTraversalPolicy {
      * @return        The item to gain focus by default
      */
     fun default(within: View): View?
+
+    /**
+     * Returns the next item in a [View] based on the given [View].
+     *
+     * @param  display this Display
+     * @param  from    The current View
+     * @return         The next item to gain focus
+     */
+    fun next(display: Display, from: View?): View?
+
+    /**
+     * Returns the previous item in a [View] based on the given [View].
+     *
+     * @param  display this Display
+     * @param  from    The current View
+     * @return         The previous item to gain focus
+     */
+    fun previous(display: Display, from: View?): View?
+
+    /**
+     * Returns the last item in a [View] that should receive focus.
+     *
+     * @param  display this Display
+     * @return         The last item to gain focus
+     */
+    fun last(display: Display): View?
+
+    /**
+     * Returns the first item in a [View] that should receive focus.
+     *
+     * @param  display this Display
+     * @return         The first item to gain focus
+     */
+    fun first(display: Display): View?
+
+    /**
+     * Returns the item in a [View] that should receive focus by default.
+     *
+     * @param  display this Display
+     * @return         The item to gain focus by default
+     */
+    fun default(display: Display): View?
 }

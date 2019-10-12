@@ -49,14 +49,14 @@ abstract class CommonSpinnerBehavior(private val insets: Insets = None, private 
                 center.right  = up.right - up.width
                 center.bottom = center.parent.bottom - insets.bottom
 
-                up.top    = up.parent.top //center.top
-                up.right  = up.parent.right //- insets.right
-                up.bottom = up.parent.centerY
+                up.top        = up.parent.top     //center.top
+                up.right      = up.parent.right   //- insets.right
+                up.bottom     = up.parent.centerY
 
-                down.top    = up.bottom
-                down.left   = up.left
-                down.right  = up.right
-                down.bottom = up.parent.bottom //center.bottom
+                down.top      = up.bottom
+                down.left     = up.left
+                down.right    = up.right
+                down.bottom   = up.parent.bottom //center.bottom
             }
         }
 

@@ -5,14 +5,14 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.add
-import com.nectar.doodle.dom.setHeight
-import com.nectar.doodle.dom.setWidth
+import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.utils.size
 import org.w3c.dom.HTMLElement
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
@@ -89,9 +89,11 @@ class NativeSlider internal constructor(
         sliderElement.tabIndex = if (new) -1 else 0
     }
 
-    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,_ ->
-        sliderElement.style.setWidth (slider.width  - marginSize.width )
-        sliderElement.style.setHeight(slider.height - marginSize.height)
+    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
+        val width  = max(0.0, slider.width  - marginSize.width )
+        val height = max(0.0, slider.height - marginSize.height)
+
+        sliderElement.style.setBounds(Rectangle((new.width - width) / 2, (new.height - height) / 2, width, height))
     }
 
     init {

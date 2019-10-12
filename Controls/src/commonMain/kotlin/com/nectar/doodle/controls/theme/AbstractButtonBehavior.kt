@@ -5,11 +5,12 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
 import com.nectar.doodle.theme.Behavior
 
 
-abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, KeyListener {
+abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, MouseMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)
@@ -17,8 +18,9 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Ke
 
     override fun install(view: T) {
 //        view.addKeyListener(this)
-        view.mouseChanged   += this
-        view.enabledChanged += enabledChanged
+        view.mouseChanged       += this
+        view.enabledChanged     += enabledChanged
+        view.mouseMotionChanged += this
 
         view.rerender()
         // TODO: Handle changes to the model from other places
@@ -26,8 +28,9 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Ke
 
     override fun uninstall(view: T) {
 //        view.removeKeyListener(this)
-        view.mouseChanged   -= this
-        view.enabledChanged -= enabledChanged
+        view.mouseChanged       -= this
+        view.enabledChanged     -= enabledChanged
+        view.mouseMotionChanged -= this
     }
 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}
@@ -91,6 +94,8 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Ke
             model.pressed = true
 
             mouseChanged(button)
+
+            event.consume()
         }
     }
 
@@ -103,6 +108,17 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Ke
             model.armed   = false
 
             mouseChanged(button)
+
+            event.consume()
+        }
+    }
+
+    override fun mouseDragged(event: MouseEvent) {
+        val button = event.source as T
+        val model  = button.model
+
+        if (model.pressed && button.enabled && event.buttons == setOf(Button1)) {
+            event.consume()
         }
     }
 

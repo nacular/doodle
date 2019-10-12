@@ -1,5 +1,6 @@
 package com.nectar.doodle.focus.impl
 
+import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy
@@ -17,9 +18,9 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 3/2/18.
  */
 
-class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null): FocusManager {
+class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy: FocusTraversalPolicy? = null): FocusManager {
 
-    private val defaultFocusTraversalPolicy = defaultFocusTraversalPolicy ?: FocusTraversalPolicyImpl(this)
+    private val defaultFocusTraversalPolicy = defaultFocusTraversalPolicy ?: FocusTraversalPolicyImpl(display, this)
 
     private val ancestors = mutableListOf<View>()
 
@@ -78,14 +79,18 @@ class FocusManagerImpl(defaultFocusTraversalPolicy: FocusTraversalPolicy? = null
     private fun moveFocus(view: View?, traversalType: TraversalType) {
         var focusView      = view ?: focusOwner
         val focusCycleRoot = focusView?.focusCycleRoot_
-        val policy         = focusCycleRoot?.focusTraversalPolicy_ ?: defaultFocusTraversalPolicy
+
+        val policy = when (focusCycleRoot) {
+            null -> display.focusTraversalPolicy
+            else -> focusCycleRoot.focusTraversalPolicy_
+        } ?: defaultFocusTraversalPolicy
 
         when (traversalType) {
-            Forward  -> focusCycleRoot?.let { focusView = policy.next    (focusCycleRoot, focusView) }
-            Backward -> focusCycleRoot?.let { focusView = policy.previous(focusCycleRoot, focusView) }
+            Forward  -> focusView = if (focusCycleRoot != null) policy.next    (focusCycleRoot, focusView) else policy.next    (display, focusView)
+            Backward -> focusView = if (focusCycleRoot != null) policy.previous(focusCycleRoot, focusView) else policy.previous(display, focusView)
             Upward   -> focusCycleRoot?.let { requestFocus(focusCycleRoot) }
             Downward -> focusView?.let {
-                if (it.isFocusCycleRoot_ == true) {
+                if (it.isFocusCycleRoot_) {
                     focusView = policy.default(it)
 
                     requestFocusInternal(view)

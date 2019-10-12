@@ -47,3 +47,7 @@ fun Regex.splitMatches(input: CharSequence, limit: Int = 0): List<Pair<String, S
     result.add(input.subSequence(lastStart, input.length).toString() to "")
     return result
 }
+
+operator fun <E> Collection<E>?.contains(element: E): Boolean {
+    return this?.contains(element) == true
+}

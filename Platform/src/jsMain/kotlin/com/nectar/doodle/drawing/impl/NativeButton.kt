@@ -16,6 +16,7 @@ import com.nectar.doodle.dom.setHeight
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setPosition
+import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
@@ -121,9 +122,10 @@ class NativeButton internal constructor(
     private val nativeEventHandler: NativeEventHandler
 
     private val buttonElement = htmlFactory.createButton().apply {
-        style.setFont         (null )
-        style.setWidthPercent (100.0)
-        style.setHeightPercent(100.0)
+        style.setFont         (null      )
+//        style.setPosition     (Relative())
+        style.setWidthPercent (100.0     )
+        style.setHeightPercent(100.0     )
         style.cursor = "inherit"
         disabled     = !button.enabled
     }
@@ -308,6 +310,8 @@ class NativeButton internal constructor(
             if (button.hasFocus) {
                 buttonElement.focus()
             }
+
+            buttonElement.style.setSize(button.size)
         }
     }
 
