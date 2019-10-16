@@ -1,10 +1,12 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.EditOperation
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.passThrough
 import com.nectar.doodle.core.View
 
 
@@ -14,10 +16,10 @@ interface ListEditor<T> {
 
 open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
-        itemGenerator : ItemVisualizer<T>?    = null,
-        selectionModel: SelectionModel<Int>? = null,
-        fitContent    : Boolean              = true,
-        scrollCache   : Int                  = 10): DynamicList<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
+        itemGenerator : IndexedItemVisualizer<T>? = null,
+        selectionModel: SelectionModel<Int>?      = null,
+        fitContent    : Boolean                   = true,
+        scrollCache   : Int                       = 10): DynamicList<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
 
     val editing get() = editingRow != null
 
@@ -86,6 +88,14 @@ open class MutableList<T, M: MutableListModel<T>>(
     companion object {
         operator fun invoke(
                 progression   : IntProgression,
+                itemGenerator : IndexedItemVisualizer<Int>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10) =
+                MutableList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
+
+        operator fun invoke(
+                progression   : IntProgression,
                 itemGenerator : ItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
@@ -94,10 +104,26 @@ open class MutableList<T, M: MutableListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
+                itemGenerator : IndexedItemVisualizer<T>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
+                MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+
+        operator fun <T> invoke(
+                values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
                 MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+
+
+        operator fun  <T, M: MutableListModel<T>>invoke(model     : M,
+                itemGenerator : ItemVisualizer<T>?   = null,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10) = MutableList(model, itemGenerator?.let { passThrough(it) }, selectionModel, fitContent, scrollCache)
+
     }
 }

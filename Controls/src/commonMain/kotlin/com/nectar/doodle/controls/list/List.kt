@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.list
 
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
@@ -48,10 +48,10 @@ interface ListLike: Selectable<Int> {
 
 open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemGenerator : ItemVisualizer<T>?   = null,
-        protected      val selectionModel: SelectionModel<Int>? = null,
-        private        val fitContent    : Boolean              = true,
-        private        val scrollCache   : Int                  = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+                       val itemVisualizer: IndexedItemVisualizer<T>? = null,
+        protected      val selectionModel: SelectionModel<Int>?      = null,
+        private        val fitContent    : Boolean                   = true,
+        private        val scrollCache   : Int                       = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     val numRows get() = model.size
     val isEmpty get() = model.isEmpty
@@ -139,7 +139,7 @@ open class List<T, out M: ListModel<T>>(
             override fun layout(positionable: Positionable) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
                     model[it]?.let { row ->
-                        layout(children[it % children.size], row, it)
+                        children.getOrNull(it % children.size)?.let { child -> layout(child, row, it) }
                     }
                 }
             }
@@ -261,7 +261,7 @@ open class List<T, out M: ListModel<T>>(
     companion object {
         operator fun invoke(
                 progression   : IntProgression,
-                itemGenerator : ItemVisualizer<Int>,
+                itemGenerator : IndexedItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10) =
@@ -269,7 +269,7 @@ open class List<T, out M: ListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : ItemVisualizer<T>,
+                itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =

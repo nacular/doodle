@@ -1,18 +1,20 @@
 package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.DynamicListModel
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.passThrough
 import com.nectar.doodle.utils.size
 
 open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
-        itemGenerator : ItemVisualizer<T>?   = null,
-        selectionModel: SelectionModel<Int>? = null,
-        fitContent    : Boolean              = true,
-        scrollCache   : Int                  = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
+        itemGenerator : IndexedItemVisualizer<T>? = null,
+        selectionModel: SelectionModel<Int>?      = null,
+        fitContent    : Boolean                   = true,
+        scrollCache   : Int                       = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
 
     private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
         var trueRemoved = removed.filterKeys { it !in added   }
@@ -106,7 +108,7 @@ open class DynamicList<T, M: DynamicListModel<T>>(
     companion object {
         operator fun invoke(
                 progression   : IntProgression,
-                itemGenerator : ItemVisualizer<Int>,
+                itemGenerator : IndexedItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10) =
@@ -114,10 +116,19 @@ open class DynamicList<T, M: DynamicListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : ItemVisualizer<T>,
+                itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): DynamicList<T, SimpleMutableListModel<T>> =
                 DynamicList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+
+        operator fun <T, M: DynamicListModel<T>> invoke(
+                model         : M,
+                itemGenerator : ItemVisualizer<T>?   = null,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10) =
+                DynamicList(model, itemGenerator?.let { passThrough(it) }, selectionModel, fitContent, scrollCache)
+
     }
 }

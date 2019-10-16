@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -24,7 +24,7 @@ import kotlin.math.max
 class ListRow<T>(private var list                : ListLike,
                  private var row                 : T,
                          var index               : Int,
-                 private val itemGenerator       : ItemVisualizer<T>,
+                 private val itemVisualizer      : IndexedItemVisualizer<T>,
                  private val selectionColor      : Color? = green,
                  private val selectionBlurredColor: Color? = selectionColor): View() {
 
@@ -50,7 +50,7 @@ class ListRow<T>(private var list                : ListLike,
     }
 
     init {
-        children += itemGenerator(row)
+        children += itemVisualizer(row, index)
 
         styleChanged += { rerender() }
         mouseChanged += object: MouseListener {
@@ -100,7 +100,7 @@ class ListRow<T>(private var list                : ListLike,
         this.row   = row
         this.index = index
 
-        children[0] = itemGenerator(row, children.getOrNull(0))
+        children[0] = itemVisualizer(row, index, children.getOrNull(0))
 
         layout = constrain(children[0]) {
             positioner(it)

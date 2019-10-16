@@ -344,6 +344,7 @@ class RenderManagerImpl(
         views               -= view
         dirtyViews          -= view
         pendingLayout       -= view
+        pendingRender       -= view
         pendingBoundsChange -= view
 
         view.boundsChanged              -= boundsChanged_

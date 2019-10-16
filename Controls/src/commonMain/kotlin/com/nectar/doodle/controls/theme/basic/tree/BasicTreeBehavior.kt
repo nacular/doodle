@@ -65,7 +65,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
 }
 
 private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
-    override fun invoke(item: T, previous: View?) = when (previous) {
+    override fun invoke(item: T, index: Int, previous: View?) = when (previous) {
         is Label -> { previous.text = item.toString(); previous }
         else     -> labelFactory(item.toString()).apply {
             fitText             = true

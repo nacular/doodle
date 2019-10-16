@@ -374,13 +374,14 @@ interface Constraints: ParentConstraints {
 
 private open class ParentConstraintsImpl(val target: View): ParentConstraints {
     override val top     = VerticalConstraint  (target) { 0.0           }
-    override val left    = HorizontalConstraint(target) { 0.0           }
     override val centerY = VerticalConstraint  (target) { it.height / 2 }
+    override val bottom  = VerticalConstraint  (target) { it.height     }
+    override val height  = MagnitudeConstraint (target) { it.height     }
+
+    override val left    = HorizontalConstraint(target) { 0.0           }
     override val centerX = HorizontalConstraint(target) { it.width  / 2 }
     override val right   = HorizontalConstraint(target) { it.width      }
-    override val bottom  = VerticalConstraint  (target) { it.height     }
     override val width   = MagnitudeConstraint (target) { it.width      }
-    override val height  = MagnitudeConstraint (target) { it.height     }
 
 //    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }

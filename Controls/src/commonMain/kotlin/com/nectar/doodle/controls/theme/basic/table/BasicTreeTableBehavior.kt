@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.table
 
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.ExpansionObserver
@@ -95,16 +95,16 @@ open class BasicTreeTableBehavior<T>(
     private val movingColumns = mutableSetOf<Column<*>>()
 
     override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
-            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, contentGenerator =  object: ContentGenerator<A> {
-                override fun invoke(item: A, previous: View?) = itemGenerator(item, previous)
+            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, contentGenerator = object: ContentGenerator<A> {
+                override fun invoke(item: A, index: Int, previous: View?) = itemGenerator(item, index, previous)
             }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
     }
 
     override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
             else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, selectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }

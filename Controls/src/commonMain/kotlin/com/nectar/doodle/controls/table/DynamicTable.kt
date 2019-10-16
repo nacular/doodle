@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.table
 
 import com.nectar.doodle.controls.DynamicListModel
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
@@ -21,20 +21,21 @@ import com.nectar.doodle.utils.SetPool
 open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
-        block         : ColumnFactory<T>.() -> Unit): Table<T, M>(model, selectionModel, block) {
+        scrollCache   : Int                  = 10,
+        block         : ColumnFactory<T>.() -> Unit): Table<T, M>(model, selectionModel, scrollCache, block) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+            InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
         }
     }
 
     internal inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
-            cellGenerator  : ItemVisualizer<R>,
+            cellGenerator  : CellVisualizer<R>,
             cellAlignment  : (Constraints.() -> Unit)? = null,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
@@ -63,7 +64,9 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), cellGenerator, selectionModel).apply {
+        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
+            override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
+        }, selectionModel).apply {
             acceptsThemes = false
         }
 
@@ -71,7 +74,11 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@DynamicTable, this@InternalListColumn, row, index, cellGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
+                            override fun invoke(item: R, index: Int, previous: View?): View {
+                                return this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, current)
+                            }
+                        }, current)
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
@@ -96,6 +103,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
         operator fun <T> invoke(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
-                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(SimpleMutableListModel(values.toMutableList()), selectionModel, block)
+                scrollCache   : Int                  = 10,
+                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(SimpleMutableListModel(values.toMutableList()), selectionModel, scrollCache, block)
     }
 }

@@ -1,7 +1,6 @@
 package com.nectar.doodle.controls.table
 
 import com.nectar.doodle.controls.EditOperation
-import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
@@ -17,12 +16,13 @@ interface TableEditor<T> {
 class MutableTable<T, M: MutableListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
-        block         : MutableColumnFactory<T>.() -> Unit): DynamicTable<T, M>(model, selectionModel, {}) {
+        scrollCache   : Int                  = 10,
+        block         : MutableColumnFactory<T>.() -> Unit): DynamicTable<T, M>(model, selectionModel, scrollCache, {}) {
 
     private val editors = mutableMapOf<Column<*>, ((T) -> T)?>()
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: CellVisualizer<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also {

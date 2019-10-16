@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.table
 
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ListModel
 import com.nectar.doodle.controls.ListSelectionManager
 import com.nectar.doodle.controls.Selectable
@@ -29,13 +29,14 @@ import kotlin.math.max
 open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
+        private   val scrollCache   : Int                  = 10,
                       block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: ItemVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+            InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
         }
     }
 
@@ -80,12 +81,12 @@ open class Table<T, M: ListModel<T>>(
     internal inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
-            cellGenerator  : ItemVisualizer<R>,
+            itemVisualizer : CellVisualizer<R>,
             cellAlignment  : (Constraints.() -> Unit)? = null,
-            preferredWidth : Double? = null,
-            minWidth       : Double  = 0.0,
-            maxWidth       : Double? = null,
-            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            preferredWidth : Double?                   = null,
+            minWidth       : Double                    = 0.0,
+            maxWidth       : Double?                   = null,
+            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
             override val size get() = model.size
@@ -99,7 +100,9 @@ open class Table<T, M: ListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        override val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), cellGenerator, selectionModel).apply {
+        override val view: com.nectar.doodle.controls.list.List<R, *> = com.nectar.doodle.controls.list.List(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
+            override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
+        }, selectionModel, scrollCache = scrollCache).apply {
             acceptsThemes = false
         }
 
@@ -107,7 +110,9 @@ open class Table<T, M: ListModel<T>>(
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator.invoke(this@Table, this@InternalListColumn, row, index, cellGenerator, current)
+                        override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
+                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous)
+                        }, current)
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
@@ -156,9 +161,9 @@ open class Table<T, M: ListModel<T>>(
                     factory.apply(it)
 
                     // Last, unusable column
-                    internalColumns += InternalListColumn(header = null, cellGenerator = object : ItemVisualizer<String> {
-                        override fun invoke(item: String, previous: View?) = object : View() {}
-                    }) { "" } // FIXME: Use a more robust method to avoid any rendering of the cell contents
+                    internalColumns += InternalListColumn(header = null, itemVisualizer = object: CellVisualizer<Unit> {
+                        override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = object: View() {}
+                    }) {} // FIXME: Use a more robust method to avoid any rendering of the cell contents
 
                     children += listOf(header, panel)
 
@@ -250,8 +255,8 @@ open class Table<T, M: ListModel<T>>(
 
                 layout = object : Layout() {
                     override fun layout(positionable: Positionable) {
-                        var x = 0.0
-                        var height = 0.0
+                        var x          = 0.0
+                        var height     = 0.0
                         var totalWidth = 0.0
 
                         positionable.children.forEachIndexed { index, view ->
@@ -328,6 +333,7 @@ open class Table<T, M: ListModel<T>>(
         operator fun <T> invoke(
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
-                       block         : ColumnFactory<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, block)
+                       scrollCache   : Int                  = 10,
+                       block         : ColumnFactory<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, scrollCache, block)
     }
 }

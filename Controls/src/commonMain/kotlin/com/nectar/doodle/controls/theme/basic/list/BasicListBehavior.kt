@@ -1,10 +1,11 @@
 package com.nectar.doodle.controls.theme.basic.list
 
-import com.nectar.doodle.controls.ToStringItemGenerator
+import com.nectar.doodle.controls.ToStringItemVisualizer
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
+import com.nectar.doodle.controls.passThrough
 import com.nectar.doodle.controls.theme.basic.ListPositioner
 import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
@@ -32,7 +33,7 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
                                  private val selectionBlurredColor: Color? = lightgray): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(list, row, index, list.itemGenerator ?: ToStringItemGenerator(textMetrics), selectionColor, selectionBlurredColor).apply {
+        else          -> ListRow(list, row, index, list.itemVisualizer ?: passThrough(ToStringItemVisualizer(textMetrics)), selectionColor, selectionBlurredColor).apply {
             mouseChanged += object: MouseListener {
                 override fun mouseReleased(event: MouseEvent) {
                     focusManager?.requestFocus(list)

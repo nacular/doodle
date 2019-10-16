@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme.basic
 
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -35,7 +35,7 @@ private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraint
 
 private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
-interface ContentGenerator<T>: ItemVisualizer<T> {
+interface ContentGenerator<T>: IndexedItemVisualizer<T> {
     fun position(tree: TreeLike, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
         left    = parent.left
         centerY = parent.centerY
@@ -77,7 +77,7 @@ class TreeRow<T>(tree                : TreeLike, node: T,
 
     private  var icon      = null as TreeRowIcon?
     private  var depth     = -1
-    internal var content   = contentGenerator(node)
+    internal var content   = contentGenerator(node, index)
     private  val iconWidth = 20.0
     private  var mouseOver = false
 
@@ -140,7 +140,7 @@ class TreeRow<T>(tree                : TreeLike, node: T,
         this.path  = path
         this.index = index
 
-        content = contentGenerator(node, content).also {
+        content = contentGenerator(node, index, content).also {
             if (it != content) {
                 children.batch {
                     remove(content)

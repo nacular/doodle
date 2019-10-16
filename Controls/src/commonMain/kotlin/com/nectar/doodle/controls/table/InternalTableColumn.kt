@@ -1,6 +1,5 @@
 package com.nectar.doodle.controls.table
 
-import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.View
@@ -39,7 +38,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         private   val behavior       : B?,
         override  val header         : View?,
         override  var headerAlignment: (Constraints.() -> Unit)? = null,
-        protected val cellGenerator  : ItemVisualizer<R>,
+        protected val cellGenerator  : CellVisualizer<R>,
         override  var cellAlignment  : (Constraints.() -> Unit)? = null,
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
@@ -166,13 +165,16 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         val myOffset     = view.x + transform.translateX
         var myNewIndex   = if (myOffset >= table.internalColumns.last().view.x ) table.internalColumns.size - 2 else index
         var targetBounds = view.bounds
+        val numColumns   = table.columns.size
 
         run loop@ {
             table.internalColumns.forEachIndexed { index, column ->
                 val targetMiddle = column.x + column.transform.translateX + column.width / 2
 
-                if (index > numFixedRows - 1 && (transform.translateX < 0 && myOffset < targetMiddle) || (transform.translateX > 0 && myOffset + view.width < targetMiddle)) {
-                    myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
+                if (index > numFixedRows - 1 &&
+                        (transform.translateX < 0 && myOffset < targetMiddle) ||
+                        (transform.translateX > 0 && ((myOffset + view.width < targetMiddle) || index == numColumns - 1))) {
+                    myNewIndex   = index - if (this.index < index && index < numColumns - 1) 1 else 0 // Since column will be removed and added to index
                     targetBounds = table.header.children[myNewIndex].bounds
                     return@loop
                 }
