@@ -1,5 +1,6 @@
 package com.nectar.doodle.system.impl
 
+import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_ALT
@@ -24,7 +25,6 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifTrue
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 

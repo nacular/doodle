@@ -1,9 +1,9 @@
 package com.nectar.doodle.system.impl
 
+import com.nectar.doodle.HTMLButtonElement
+import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.HTMLInputElement
 import com.nectar.doodle.dom.hasAutoOverflow
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.EventTarget
 
 

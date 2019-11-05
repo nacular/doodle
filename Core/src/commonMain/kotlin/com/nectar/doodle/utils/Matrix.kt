@@ -10,11 +10,11 @@ interface Matrix<out T: Number> {
     operator fun get(row: Int, col: Int): T
 }
 
-class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): MatrixImpl<T>(values) {
+open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): MatrixImpl<T>(values) {
     var isIdentity = true
         private set
 
-    init {
+        init {
         require(numRows == numColumns) { "row and column count must be equal" }
 
         for (row in values.indices) {
@@ -79,6 +79,18 @@ class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): Matri
     }
 }
 
+class AffineMatrix3D(
+        scaleX    : Double,
+        shearX    : Double,
+        translateX: Double,
+        shearY    : Double,
+        scaleY    : Double,
+        translateY: Double): SquareMatrix<Double>(listOf(
+            listOf(scaleX, shearX, translateX),
+            listOf(shearY, scaleY, translateY),
+            listOf(   0.0,    0.0,        1.0))) {
+}
+
 fun <T: Number> squareMatrixOf(size: Int, init: (Int, Int) -> T) = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
 
 fun <T: Number> matrixOf(rows: Int, cols: Int, init: (Int, Int) -> T): Matrix<T> = when {
@@ -122,6 +134,34 @@ operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): SquareMatr
     return SquareMatrix(values)
 }
 
+operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
+    AffineMatrix3D(
+            this[0, 0] * it, this[0, 1] * it, this[0, 2] * it,
+            this[1, 0] * it, this[1, 1] * it, this[1, 2] * it)
+}
+
+operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
+    if (other.isIdentity) {
+        return this
+    }
+
+    if (this.isIdentity) {
+        return other
+    }
+
+    val values = mutableListOf<Double>()//MutableList(numRows - 1) { MutableList(other.numColumns) { 0.0 } }
+
+    for (r1 in 0 until numRows - 1) {
+        for (c2 in 0 until other.numColumns) {
+            values += (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+        }
+    }
+
+    return AffineMatrix3D(
+            values[0], values[1], values[2],
+            values[3], values[4], values[5])
+}
+
 operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Double> {
     if (other.isIdentity) {
         return this
@@ -135,11 +175,9 @@ operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
 
     val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
 
-    for (c2 in 0 until other.numColumns) {
-        for (r1 in 0 until numRows) {
-            val sum = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
-
-            values[r1][c2] = sum
+    for (r1 in 0 until numRows) {
+        for (c2 in 0 until other.numColumns) {
+            values[r1][c2] = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
         }
     }
 

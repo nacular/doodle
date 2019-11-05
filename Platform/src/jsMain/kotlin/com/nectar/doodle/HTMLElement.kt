@@ -31,6 +31,9 @@ actual typealias CSSStyleDeclaration = CSSStyleDeclaration
 actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"]
     set(new) { this.asDynamic()["clip-path"] = new }
 
+actual var CSSStyleDeclaration.willChange: String get() = this.asDynamic()["will-change"]
+    set(new) { this.asDynamic()["will-change"] = new }
+
 actual typealias ElementCSSInlineStyle = ElementCSSInlineStyle
 
 actual typealias DOMRect   = DOMRect

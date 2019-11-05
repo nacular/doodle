@@ -1,5 +1,7 @@
 package com.nectar.doodle.datatransport.dragdrop.impl
 
+import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.HTMLInputElement
 import com.nectar.doodle.core.View
 import com.nectar.doodle.datatransport.DataBundle
 import com.nectar.doodle.datatransport.MimeType
@@ -27,8 +29,6 @@ import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
 import org.w3c.dom.DataTransfer
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
 import kotlin.math.abs
 import org.w3c.dom.events.MouseEvent as DomMouseEvent
 

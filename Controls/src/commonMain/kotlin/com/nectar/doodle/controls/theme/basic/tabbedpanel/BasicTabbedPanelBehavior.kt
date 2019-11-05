@@ -5,7 +5,7 @@ import com.nectar.doodle.controls.theme.TabbedPanelBehavior
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -174,15 +174,15 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout() {
-    override fun layout(positionable: Positionable) {
-        val maxLineWidth = max(0.0, positionable.width - positionable.insets.left - positionable.insets.right - (positionable.children.size - 1) * spacing)
+    override fun layout(container: PositionableContainer) {
+        val maxLineWidth = max(0.0, container.width - container.insets.left - container.insets.right - (container.children.size - 1) * spacing)
 
-        var x     = positionable.insets.left
-        val width = max(minWidth, min(defaultWidth, maxLineWidth / positionable.children.size))
+        var x     = container.insets.left
+        val width = max(minWidth, min(defaultWidth, maxLineWidth / container.children.size))
 
-        positionable.children.filter { it.visible }.forEach { child ->
+        container.children.filter { it.visible }.forEach { child ->
             child.width    = width
-            child.position = Point(x, positionable.insets.top)
+            child.position = Point(x, container.insets.top)
 
             x += width + spacing
         }
@@ -202,11 +202,11 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
             }) }
 
             layout = object: Layout() {
-                override fun layout(positionable: Positionable) {
-                    positionable.children.forEachIndexed { index, view ->
+                override fun layout(container: PositionableContainer) {
+                    container.children.forEachIndexed { index, view ->
                         view.bounds = when (index) {
-                            0    -> Rectangle(positionable.width, tabProducer.tabHeight + 10)
-                            else -> Rectangle(size = positionable.size).inset(Insets(top = tabProducer.tabHeight + 10))
+                            0    -> Rectangle(container.width, tabProducer.tabHeight + 10)
+                            else -> Rectangle(size = container.size).inset(Insets(top = tabProducer.tabHeight + 10))
                         }
                     }
                 }

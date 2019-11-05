@@ -1,5 +1,6 @@
 package com.nectar.doodle.application
 
+import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.impl.DragManager
@@ -11,12 +12,12 @@ import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
 import com.nectar.doodle.dom.ElementRuler
-import com.nectar.doodle.dom.ElementRulerImpl
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.SvgFactoryImpl
 import com.nectar.doodle.dom.SystemStyler
 import com.nectar.doodle.dom.SystemStylerImpl
+import com.nectar.doodle.dom.impl.ElementRulerImpl
 import com.nectar.doodle.dom.impl.HtmlFactoryImpl
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.GraphicsDevice
@@ -63,7 +64,6 @@ import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.singleton
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.Window
 import kotlin.browser.document
 import kotlin.browser.window
@@ -82,8 +82,8 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                              ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl(instance()) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl(instance(), instance(), instance(), instance()) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                      ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }

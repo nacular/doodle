@@ -7,6 +7,7 @@ import com.nectar.doodle.dom.scrollTo
 import com.nectar.doodle.dom.setOverflow
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.willChange
 
 /**
  * Created by Nicholas Eddy on 2/5/18.
@@ -34,6 +35,7 @@ class NativeScrollPanel internal constructor(
     init {
         rootElement.apply {
             style.setOverflow(Auto())
+            style.willChange = "transform"
 
             scrollTo(panel.scroll)
         }

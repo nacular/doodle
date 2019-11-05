@@ -11,6 +11,7 @@ import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -136,7 +137,7 @@ open class List<T, out M: ListModel<T>>(
         selectionModel?.let { it.changed += selectionChanged_ }
 
         layout = object: Layout() {
-            override fun layout(positionable: Positionable) {
+            override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
                     model[it]?.let { row ->
                         children.getOrNull(it % children.size)?.let { child -> layout(child, row, it) }
@@ -184,20 +185,20 @@ open class List<T, out M: ListModel<T>>(
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
             model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
 
-            if (oldFirst > firstVisibleRow) {
+//            if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
 
-                (firstVisibleRow until end).asSequence().forEach { insert(children, it) }
-            }
+                (firstVisibleRow until end).forEach { insert(children, it) }
+//            }
 
-            if (oldLast < lastVisibleRow) {
+//            if (oldLast < lastVisibleRow) {
                 val start = when {
                     oldLast > firstVisibleRow -> oldLast + 1
                     else                      -> firstVisibleRow
                 }
 
-                (start..lastVisibleRow).asSequence().forEach { insert(children, it) }
-            }
+                (start..lastVisibleRow).forEach { insert(children, it) }
+//            }
         }
     }
 

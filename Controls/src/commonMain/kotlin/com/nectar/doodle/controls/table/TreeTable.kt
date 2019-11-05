@@ -13,7 +13,7 @@ import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
@@ -229,7 +229,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
+            extractor     : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
         override val view = Tree(model.map(extractor), selectionModel, scrollCache = scrollCache).apply {
             acceptsThemes = false
@@ -250,7 +250,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
                 view.behavior = object: TreeBehavior<R> {
                     override val generator get() = object: TreeBehavior.RowGenerator<R> {
                         override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, current)
+                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous)
                         }, current)
                     }
 
@@ -293,7 +293,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedRows = 1) {
+            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
             init {
@@ -451,7 +451,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
         ColumnFactoryImpl().apply(block)
 
         internalColumns += InternalListColumn(header = null, cellGenerator = object: CellVisualizer<Unit> {
-            override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = object: View() {}
+            override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = previous ?: object: View() {}
         }) {} // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
 
@@ -460,18 +460,18 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
     private val header: Box = object: Box() {
         init {
             layout = object : Layout() {
-                override fun layout(positionable: Positionable) {
+                override fun layout(container: PositionableContainer) {
                     var x = 0.0
                     var totalWidth = 0.0
 
-                    positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, positionable.height))
+                    container.children.forEachIndexed { index, view ->
+                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, container.height))
 
                         x += view.width
                         totalWidth += view.width
                     }
 
-                    positionable.width = totalWidth + internalColumns[internalColumns.size - 1].width
+                    container.width = totalWidth + internalColumns[internalColumns.size - 1].width
                 }
             }
         }
@@ -486,12 +486,12 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
             children += internalColumns.map { it.view }
 
             layout = object : Layout() {
-                override fun layout(positionable: Positionable) {
+                override fun layout(container: PositionableContainer) {
                     var x          = 0.0
                     var height     = 0.0
                     var totalWidth = 0.0
 
-                    positionable.children.forEachIndexed { index, view ->
+                    container.children.forEachIndexed { index, view ->
                         view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
                         x          += view.width
@@ -499,10 +499,10 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
                         totalWidth += view.width
                     }
 
-                    positionable.height = max(positionable.parent!!.height, height)
+                    container.height = max(container.parent!!.height, height)
 
-                    positionable.children.forEach {
-                        it.height = positionable.height
+                    container.children.forEach {
+                        it.height = container.height
                     }
                 }
             }

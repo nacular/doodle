@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.panels
 
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
@@ -170,10 +170,10 @@ open class ScrollPanel(content: View? = null): View() {
     }
 
     private inner class ViewLayout: Layout() {
-        override fun layout(positionable: Positionable) {
-            positionable.children.forEach  {
-                var width  = it.width
-                var height = it.height
+        override fun layout(container: PositionableContainer) {
+            container.children.forEach  {
+                val width  = if (scrollsHorizontally) it.idealSize?.width  ?: it.width  else this@ScrollPanel.width
+                val height = if (scrollsVertically  ) it.idealSize?.height ?: it.height else this@ScrollPanel.height
 
                 it.bounds = Rectangle(-scroll.x, -scroll.y, width, height)
             }

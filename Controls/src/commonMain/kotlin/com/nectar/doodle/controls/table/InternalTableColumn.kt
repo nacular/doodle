@@ -43,7 +43,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
                       maxWidth       : Double? = null,
-        private   val numFixedRows   : Int     = 0): Column<R>, ColumnSizePolicy.Column {
+        private   val numFixedColumns: Int     = 0): Column<R>, ColumnSizePolicy.Column {
 
     override var preferredWidth = preferredWidth
         set(new) {
@@ -132,7 +132,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         behavior?.columnMoved(table, this)
 
         table.internalColumns.dropLast(1).forEachIndexed { index, column ->
-            if (column != this && index > numFixedRows - 1) {
+            if (column != this && index > numFixedColumns - 1) {
                 val targetMiddle = column.x + column.transform.translateX + column.width / 2
 
                 val value = when (targetMiddle) {
@@ -165,16 +165,16 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         val myOffset     = view.x + transform.translateX
         var myNewIndex   = if (myOffset >= table.internalColumns.last().view.x ) table.internalColumns.size - 2 else index
         var targetBounds = view.bounds
-        val numColumns   = table.columns.size
+        val numColumns   = table.internalColumns.size
 
         run loop@ {
             table.internalColumns.forEachIndexed { index, column ->
                 val targetMiddle = column.x + column.transform.translateX + column.width / 2
 
-                if (index > numFixedRows - 1 &&
+                if (index > numFixedColumns - 1 &&
                         (transform.translateX < 0 && myOffset < targetMiddle) ||
                         (transform.translateX > 0 && ((myOffset + view.width < targetMiddle) || index == numColumns - 1))) {
-                    myNewIndex   = index - if (this.index < index && index < numColumns - 1) 1 else 0 // Since column will be removed and added to index
+                    myNewIndex   = index - if (this.index < index) 1 else 0 // Since column will be removed and added to index
                     targetBounds = table.header.children[myNewIndex].bounds
                     return@loop
                 }

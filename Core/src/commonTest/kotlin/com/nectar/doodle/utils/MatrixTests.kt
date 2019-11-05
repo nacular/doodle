@@ -2,7 +2,6 @@
 
 package com.nectar.doodle.utils
 
-import com.nectar.doodle.JsName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
@@ -17,8 +16,7 @@ private typealias m<T> = MatrixImpl<T>
 private typealias s<T> = SquareMatrix<T>
 
 class MatrixTests {
-    @Test @JsName("identityWorks")
-    fun `identity works`() {
+    @Test fun `identity works`() {
         setOf(
             s(this[
               this[ 1.0            ]]) to true,
@@ -98,8 +96,7 @@ class MatrixTests {
         }
     }
 
-    @Test @JsName("dimensionsWorks")
-    fun `dimensions works`() {
+    @Test fun `dimensions works`() {
         setOf(
             m(this[
               this[1.0                ]]) to (1 to 1),
@@ -125,8 +122,7 @@ class MatrixTests {
         }
     }
 
-    @Test @JsName("getWorks")
-    fun `get works`() {
+    @Test fun `get works`() {
         setOf(
             m(this[
               this[1.0                ]]) to (0 to 0) to 1.0,
@@ -156,8 +152,7 @@ class MatrixTests {
         }
     }
 
-    @Test @JsName("jaggedThrows")
-    fun `jagged throws`() {
+    @Test fun `jagged throws`() {
         setOf(this[
                 this[1.0, 0.0, 0.0],
                 this[0.0, 1.0     ],
@@ -171,13 +166,11 @@ class MatrixTests {
         }
     }
 
-    @Test @JsName("emptyThrows")
-    fun `empty throws`() {
+    @Test fun `empty throws`() {
         assertFailsWith(IllegalArgumentException::class) { m(listOf()) }
     }
 
-    @Test @JsName("equalsWorks")
-    fun `equals works`() {
+    @Test fun `equals works`() {
         setOf(
             m(this[this[1.0]]) to
             m(this[this[1.0]]) to true,
@@ -206,8 +199,7 @@ class MatrixTests {
         }
     }
 
-    @Test @JsName("multiplyWorks")
-    fun `multiply works`() {
+    @Test fun `multiply works`() {
         setOf(
             m(this[this[ 1.0     ]]) to
             m(this[this[ 1.0, 2.0]]) to
@@ -269,8 +261,7 @@ class MatrixTests {
     }
 
 
-    @Test @JsName("multiplyUnmatchedThrows")
-    fun `multiply unmatched throws`() {
+    @Test fun `multiply unmatched throws`() {
         setOf(
             m(this[
               this[ 1.0, 0.0, 0.0],

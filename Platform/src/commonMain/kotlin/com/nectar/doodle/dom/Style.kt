@@ -22,12 +22,12 @@ private typealias Style = CSSStyleDeclaration
 
 val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
-internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it > 0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
+internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value, true) }
 
-internal inline fun Style.setTop   (value: Double) { top    = em(value, true) }
-internal inline fun Style.setLeft  (value: Double) { left   = em(value, true) }
+internal inline fun Style.setTop   (value: Double) { top    = em(value) }
+internal inline fun Style.setLeft  (value: Double) { left   = em(value) }
 internal inline fun Style.setWidth (value: Double) { width  = em(max(0.0, value)) }
 internal inline fun Style.setHeight(value: Double) { height = em(max(0.0, value)) }
 
@@ -39,6 +39,13 @@ internal fun Style.setBounds(value: Rectangle) {
         setLeft  (x     )
         setWidth (width )
         setHeight(height)
+    }
+}
+
+internal fun Style.setPosition(point: Point) {
+    point.run {
+        setTop (y)
+        setLeft(x)
     }
 }
 

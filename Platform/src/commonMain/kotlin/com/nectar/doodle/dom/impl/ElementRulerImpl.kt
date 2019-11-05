@@ -1,7 +1,14 @@
-package com.nectar.doodle.dom
+package com.nectar.doodle.dom.impl
 
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.dom.ElementRuler
+import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.height
+import com.nectar.doodle.dom.insert
+import com.nectar.doodle.dom.parent
+import com.nectar.doodle.dom.width
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.willChange
 
 class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
 
@@ -9,16 +16,26 @@ class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
     override fun height(element: HTMLElement) = measure(element) { height              }
     override fun size  (element: HTMLElement) = measure(element) { Size(width, height) }
 
+    private val ruler = htmlFactory.create<HTMLElement>().apply {
+        style.willChange = "transform"
+        htmlFactory.root.insert(this, 0)
+    }
+
     private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
-        val parent = element.parent
-        val index  = parent?.index(element) ?: -1
+        val old = element.style.willChange
 
-        htmlFactory.root.insert(element, 0)
+        element.style.willChange = "transform"
 
-        return element.run(block).also {
-            htmlFactory.root.removeChild(element)
+        return if (element.parent == null) {
+            ruler.insert(element, 0)
 
-            parent?.insert(element, index)
+            element.run(block).also {
+                ruler.removeChild(element)
+            }
+        } else {
+            element.run(block)
+        }.also {
+            element.style.willChange = old
         }
     }
 }

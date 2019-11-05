@@ -17,7 +17,7 @@ import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.ifTrue
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.seconds
 import com.nectar.measured.units.times
 
 private object AncestorComparator: Comparator<View> {
@@ -28,7 +28,7 @@ private object AncestorComparator: Comparator<View> {
     }
 }
 
-private val frameDuration = 1000 * milliseconds / 60
+private val frameDuration = 1 * seconds / 60
 
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
@@ -74,7 +74,7 @@ class RenderManagerImpl(
             }
         }
 
-        display.children.forEach {
+        display.forEach {
             childAdded(null, it)
         }
 
@@ -83,8 +83,6 @@ class RenderManagerImpl(
 
             display.forEach { checkDisplayRectChange(it) }
         }
-
-        display.forEach { record(it) }
     }
 
     override fun render(view: View) {
@@ -108,6 +106,17 @@ class RenderManagerImpl(
                     pendingRender -= view
                 }
             }
+        }
+    }
+
+    override fun layout(view: View) {
+        scheduleLayout(view)
+    }
+
+    override fun layoutNow(view: View) {
+        if (view in views && !view.bounds.empty && display ancestorOf view) {
+            pendingLayout += view
+            performLayout(view)
         }
     }
 
@@ -167,7 +176,7 @@ class RenderManagerImpl(
 
             view.children_.forEach { childAdded(view, it) }
 
-            scheduleLayout(view)
+            pendingLayout += view
 
             if (view.monitorsDisplayRect) {
                 registerDisplayRectMonitoring(view)
@@ -212,7 +221,12 @@ class RenderManagerImpl(
 //    }
 
     private fun checkFrameTime(start: Measure<Time>) = (timer.now - start).let {
-        (it >= frameDuration).ifTrue { schedulePaint() }
+        return false
+
+        (it >= frameDuration).ifTrue {
+            paintTask?.cancel()
+            schedulePaint()
+        }
     }
 
     private fun onPaint() {
@@ -228,7 +242,9 @@ class RenderManagerImpl(
 
         pendingRender.iterator().let {
             while(it.hasNext()) {
-                if (performRender(it.next())) {
+                val item = it.next()
+
+                if (performRender(item) || item !in views) {
                     it.remove()
                 }
 
@@ -251,6 +267,7 @@ class RenderManagerImpl(
         // Only take reference identity into account
         if (layingOut !== view) {
             pendingLayout += view
+            schedulePaint()
         }
     }
 
@@ -303,7 +320,7 @@ class RenderManagerImpl(
                 val viewList = pendingCleanup[view]
 
                 viewList?.forEach {
-                    releaseResources(it)
+                    releaseResources(null, it)
 
                     graphicsDevice.release(it)
                 }
@@ -334,18 +351,19 @@ class RenderManagerImpl(
         }
     }
 
-    private fun releaseResources(view: View) {
+    private fun releaseResources(parent: View?, view: View) {
         view.removedFromDisplay_()
 
         view.children_.forEach {
-            releaseResources(it)
+            releaseResources(it.parent, it)
         }
 
         views               -= view
         dirtyViews          -= view
         pendingLayout       -= view
-        pendingRender       -= view
         pendingBoundsChange -= view
+
+        pendingCleanup[parent]?.remove(view)
 
         view.boundsChanged              -= boundsChanged_
         view.zOrderChanged              -= zOrderChanged_
@@ -374,7 +392,7 @@ class RenderManagerImpl(
 
                 if (oldParent != parent) {
                     // The child is being moved to a different parent, so we force clean-up
-                    releaseResources(child)
+                    releaseResources(it.key, child)
                     graphicsDevice.release(child)
                 }
 
@@ -407,7 +425,7 @@ class RenderManagerImpl(
             parent.revalidate_()
         } else {
             pendingCleanup[parent]?.forEach {
-                releaseResources(it)
+                releaseResources(parent, it)
 
                 graphicsDevice.release(it)
             }
@@ -431,7 +449,7 @@ class RenderManagerImpl(
         if (parent != null) {
             addToCleanupList(parent, child)
         } else {
-            releaseResources(child)
+            releaseResources(parent, child)
 
             graphicsDevice.release(child)
         }
@@ -439,16 +457,17 @@ class RenderManagerImpl(
 
     @Suppress("UNUSED_PARAMETER")
     private fun visibilityChangedFunc(view: View, old: Boolean, new: Boolean) {
-        val parent = view.parent
+        val parent            = view.parent
+        val wasAddedInvisible = view in addedInvisible
 
-        if (view in addedInvisible) {
+        if (wasAddedInvisible) {
             record(view)
 
             addedInvisible -= view
         }
 
         if (!(parent == null || view in display)) {
-            scheduleLayout(parent)
+            pendingLayout += parent
 
             // Views that change bounds while invisible are never scheduled
             // for bounds sync, so catch them here
@@ -465,7 +484,9 @@ class RenderManagerImpl(
                 visibilityChanged   += view
                 pendingBoundsChange += view // See above
 
-                render(view)
+                if (!wasAddedInvisible) {
+                    render(view)
+                }
             } else {
                 graphicsDevice[view].visible = false
             }
@@ -505,13 +526,13 @@ class RenderManagerImpl(
 
         if (old.size != new.size) {
             reRender = true
-            scheduleLayout(view)
+            pendingLayout += view
         }
 
         when (parent) {
             null -> display.doLayout()
 //            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
-            else -> scheduleLayout(parent)
+            else -> pendingLayout += parent
         }
 
         if (reRender) {

@@ -11,6 +11,7 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
@@ -76,10 +77,12 @@ class RealGraphicsSurface private constructor(
         set (new) {
             field = new
 
-            updateTransform(position)
+            updateTransform(position, position)
         }
 
-    override var size: Size by observable(Empty) { _,_,new ->
+    override var size: Size by observable(Empty) { _,old,new ->
+        if (old == new) { return@observable }
+
         rootElement.parent?.let {
             rootElement.style.setSize(new)
 
@@ -131,7 +134,7 @@ class RealGraphicsSurface private constructor(
 //            }
 //        }
 
-            updateTransform(new)
+            updateTransform(new, old)
         }
     }
 
@@ -175,9 +178,23 @@ class RealGraphicsSurface private constructor(
         augmentedTransform = (Identity.translate(point) * transform).translate(-point)
     }
 
-    private fun updateTransform(position: Point) {
+    private fun updateTransform(new: Point, old: Point) {
         rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
-            rootElement.style.setTransform(augmentedTransform.translate(position))
+//            val (parent, index) = rootElement.parent?.let { parent ->
+//                parent to parent.index(rootElement).also { parent.removeChild(rootElement) }
+//            } ?: null to null
+
+            if (augmentedTransform.isIdentity) {
+                rootElement.style.setPosition(new)
+
+//                rootElement.style.translate(new)
+            } else {
+                rootElement.style.setTransform(augmentedTransform.translate(new))
+            }
+
+//            if (index != null && parent != null) {
+//                parent.insert(rootElement, index)
+//            }
         } }
     }
 

@@ -25,7 +25,7 @@ class MutableTable<T, M: MutableListModel<T>>(
         override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: CellVisualizer<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor).also {
+            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also {
                 internalColumns += it
 
                 editors[it] = editor

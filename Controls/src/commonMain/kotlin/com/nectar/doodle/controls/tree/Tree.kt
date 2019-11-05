@@ -11,6 +11,7 @@ import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -162,7 +163,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
 
         layout = object: Layout() {
-            override fun layout(positionable: Positionable) {
+            override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                     model[path]?.let { value ->
                         layout(children[index % children.size], value, path, index)

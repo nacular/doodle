@@ -1,5 +1,6 @@
 package com.nectar.doodle.system.impl
 
+import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
@@ -23,7 +24,6 @@ import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
 
@@ -162,7 +162,8 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.also { e ->
-        e.onwheel     = { mouseScroll(it) }
+//        e.onwheel     = { mouseScroll(it) }
+
         e.onmouseup   = { mouseUp    (it) }
         e.onmouseout  = { mouseExit  (it) }
         e.ondblclick  = { doubleClick(it) }

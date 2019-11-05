@@ -2,7 +2,7 @@ package com.nectar.doodle.layout
 
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.Positionable
-import com.nectar.doodle.core.View
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Center
@@ -18,20 +18,20 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
                            private val horizontalSpacing: Double              = 1.0): Layout() {
 
 
-    override fun layout(positionable: Positionable) {
-        var y            = positionable.insets.top
+    override fun layout(container: PositionableContainer) {
+        var y            = container.insets.top
         var height       = 0.0
-        val itemList     = mutableListOf<View>()
+        val itemList     = mutableListOf<Positionable>()
         var lineWidth    = 0.0
-        val maxLineWidth = positionable.width - positionable.insets.left - positionable.insets.right
+        val maxLineWidth = container.width - container.insets.left - container.insets.right
 
-        positionable.children.filter { it.visible }.forEach { child ->
+        container.children.filter { it.visible }.forEach { child ->
             child.idealSize?.let { child.size = it }
 
             val temp = lineWidth + child.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
 
             if (temp > maxLineWidth) {
-                layoutLine(itemList, positionable, lineWidth, y)
+                layoutLine(itemList, container, lineWidth, y)
 
                 itemList.clear()
 
@@ -52,15 +52,15 @@ class HorizontalFlowLayout(private val justification    : HorizontalAlignment = 
         }
 
         if (itemList.isNotEmpty()) {
-            layoutLine(itemList, positionable, lineWidth, y)
+            layoutLine(itemList, container, lineWidth, y)
         }
     }
 
-    private fun layoutLine(itemList: List<View>, positionable: Positionable, lineWidth: Double, y: Double) {
+    private fun layoutLine(itemList: List<Positionable>, parent: PositionableContainer, lineWidth: Double, y: Double) {
         var startX = when (justification) {
-            Right  ->  positionable.width - lineWidth - positionable.insets.right
-            Center -> (positionable.width - lineWidth) / 2
-            Left   ->  positionable.insets.left
+            Right  ->  parent.width - lineWidth - parent.insets.right
+            Center -> (parent.width - lineWidth) / 2
+            Left   ->  parent.insets.left
         }
 
         itemList.forEach {

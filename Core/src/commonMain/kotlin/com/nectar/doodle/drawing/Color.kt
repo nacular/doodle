@@ -35,7 +35,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
 
     fun with(opacity: Float) = Color(red, green, blue, opacity)
 
-    val inverted by lazy { Color(0xffffffu xor decimal) }
+    val inverted get() = Color(0xffffffu xor decimal)
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 

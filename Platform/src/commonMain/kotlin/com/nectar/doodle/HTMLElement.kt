@@ -50,7 +50,8 @@ expect abstract class CSSStyleDeclaration {
     var backgroundColor: String
 }
 
-expect var CSSStyleDeclaration.clipPath: String
+expect var CSSStyleDeclaration.clipPath  : String
+expect var CSSStyleDeclaration.willChange: String
 
 expect class DOMRect {
     var x     : Double

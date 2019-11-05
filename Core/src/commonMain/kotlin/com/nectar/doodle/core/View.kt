@@ -100,11 +100,11 @@ abstract class View protected constructor() {
 
     /** The size that would best display this [View], or null if no preference */
     var idealSize: Size? = null
-        get() = layout?.idealSize(this, field) ?: field
+        get() = layout?.idealSize(positionableWrapper, field) ?: field
 
     /** The minimum size preferred by the [View] */
     var minimumSize: Size = Size.Empty
-        get() = layout?.idealSize(this, field) ?: field
+        get() = layout?.idealSize(positionableWrapper, field) ?: field
 
     /**
      * The current visible [Rectangle] for this [View] within it's coordinate space.  This accounts for clipping by ancestors,
@@ -237,7 +237,7 @@ abstract class View protected constructor() {
         if (renderManager!= null) doLayout()
     }
 
-    internal val childrenChanged_: Pool<ChildObserver> by lazy { ChildObserversImpl() }
+    internal val childrenChanged_ get() = childrenChanged
 
     internal val children_ get() = children
 
@@ -261,6 +261,8 @@ abstract class View protected constructor() {
             }
         }
     }
+
+    protected val childrenChanged: Pool<ChildObserver> by lazy { ChildObserversImpl() }
 
     internal infix fun ancestorOf_(view: View) = this ancestorOf view
 
@@ -359,8 +361,11 @@ abstract class View protected constructor() {
     /**
      * Causes [View] to layout its children if it has a Layout installed.
      */
-    internal fun doLayout_() = doLayout()
-    protected open fun doLayout() = layout?.layout(this)
+
+    private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
+
+    internal fun doLayout_() = layout?.layout(positionableWrapper)
+    protected open fun doLayout() = renderManager?.layout(this)
 
     /**
      * Gets the [View] at the given point.
@@ -369,7 +374,7 @@ abstract class View protected constructor() {
      * @return The child (null if no child contains the given point)
      */
     internal fun child_(at: Point) = child(at)
-    protected open fun child(at: Point): View? = layout?.child(this, at) ?: {
+    protected open fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? PositionableWrapper?)?.view ?: {
         var result    = null as View?
         var topZOrder = 0
 

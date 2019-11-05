@@ -34,32 +34,32 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         return "[${ iterator().asSequence().joinToString(", ")}]"
     }
 
-    protected open fun add(element: E): Boolean {
-        return if (root == null) {
+    protected open fun add(element: E): Boolean = when (root) {
+        null -> {
             root = BstNode(element)
             ++size_
             true
-        } else {
-            add(root!!, element).ifTrue { ++size_ }
         }
+        else -> add(root!!, element).ifTrue { ++size_ }
     }
 
     protected open fun remove_(element: E): Boolean {
         return (root?.let {
-            if (it.value == element) {
+            when (element) {
+                it.value -> {
 
-                val auxRoot = BstNode(it.value)
+                    val auxRoot = BstNode(it.value)
 
-                auxRoot.left = root
+                    auxRoot.left = root
 
-                val result = remove(it, auxRoot, element)
+                    val result = remove(it, auxRoot, element)
 
-                root = auxRoot.left
+                    root = auxRoot.left
 
-                result
+                    result
 
-            } else {
-                remove(it, null, element)
+                }
+                else     -> remove(it, null, element)
             }
 
         } ?: false).ifTrue { --size_; if (size < 0) { throw Exception("BROKEN!!!!") } }
@@ -115,7 +115,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         else                          -> false
     }
 
-    protected inner class BstIterator: kotlin.collections.MutableIterator<E> {
+    protected inner class BstIterator: MutableIterator<E> {
         private val stack by lazy {
             mutableListOf<BstNode<E>>().also {
                 populateStack(root, it)

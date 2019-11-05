@@ -18,6 +18,51 @@ import com.nectar.doodle.utils.SetPool
  * Created by Nicholas Eddy on 9/29/19.
  */
 
+private class SelectionModelWrapper(private val delegate: SelectionModel<Int>): SelectionModel<Int> by delegate {
+    var allowMutations = true
+
+    override fun add(item: Int) = when {
+        allowMutations -> delegate.add(item)
+        else           -> false
+    }
+
+    override fun clear() {
+        if (allowMutations) {
+            delegate.clear()
+        }
+    }
+
+    override fun addAll(items: Collection<Int>) = when {
+        allowMutations -> delegate.addAll(items)
+        else           -> false
+    }
+
+    override fun remove(item: Int) = when {
+        allowMutations -> delegate.remove(item)
+        else           -> false
+    }
+
+    override fun removeAll(items: Collection<Int>) = when {
+        allowMutations -> delegate.removeAll(items)
+        else           -> false
+    }
+
+    override fun retainAll(items: Collection<Int>) = when {
+        allowMutations -> delegate.retainAll(items)
+        else           -> false
+    }
+
+    override fun replaceAll(items: Collection<Int>) = when {
+        allowMutations -> delegate.replaceAll(items)
+        else           -> false
+    }
+
+    override fun toggle(items: Collection<Int>) = when {
+        allowMutations -> delegate.toggle(items)
+        else           -> false
+    }
+}
+
 open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
@@ -28,7 +73,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
         override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+            InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also { internalColumns += it }
         }
     }
 
@@ -40,13 +85,23 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            extractor      : T.() -> R,
+            private val firstColumn: Boolean): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
             init {
-                model.changed += { source: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
+                model.changed += { _: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
+
+                    if (!firstColumn) {
+                        selectionModelWrapper?.allowMutations = false
+                    }
+
                     changed.forEach {
                         it(this,removed.mapValues { extractor(it.value) }, added.mapValues { extractor(it.value) }, moved.mapValues { it.value.first to extractor(it.value.second) })
+                    }
+
+                    if (!firstColumn) {
+                        selectionModelWrapper?.allowMutations = true
                     }
                 }
             }
@@ -64,9 +119,11 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
+        private val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
+
         override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
-        }, selectionModel).apply {
+        }, selectionModelWrapper).apply {
             acceptsThemes = false
         }
 
@@ -75,9 +132,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?): View {
-                                return this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, current)
-                            }
+                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous)
                         }, current)
                     }
 

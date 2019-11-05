@@ -51,10 +51,14 @@ actual abstract class CSSStyleDeclaration {
     actual var backgroundColor = ""
 
     var clipPath_              = ""
+    var willChange_            = ""
 }
 
 actual var CSSStyleDeclaration.clipPath get() = clipPath_
     set(new) { clipPath_ = new }
+
+actual var CSSStyleDeclaration.willChange get() = willChange_
+    set(new) { willChange_ = new }
 
 actual class DOMRect {
     actual var x      = 0.0

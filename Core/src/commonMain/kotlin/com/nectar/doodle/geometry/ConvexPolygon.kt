@@ -34,7 +34,7 @@ private data class Line(val start: Point, val end: Point)
 
 abstract class ConvexPolygon: Polygon() {
     // https://en.wikipedia.org/wiki/Shoelace_formula
-    override val area : Double by lazy {
+    override val area: Double by lazy {
         var area = 0.0         // Accumulates area in the loop
         var j    = points.size - 1  // The last vertex is the 'previous' one to the first
         var i    = 0
@@ -50,9 +50,8 @@ abstract class ConvexPolygon: Polygon() {
 
         abs(area / 2)
     }
-    override val empty: Boolean by lazy { area == 0.0 }
 
-    private fun isLeft(line: Line, point: Point): Int = ((line.end.x - line.start.x) * (point.y - line.start.y) - (point.x - line.start.x) * (line.end.y - line.start.y)).toInt()
+    override val empty: Boolean by lazy { area == 0.0 }
 
     /**
      * Uses winding-number approach
@@ -77,6 +76,8 @@ abstract class ConvexPolygon: Polygon() {
 
         return result == 0
     }
+
+    private fun isLeft(line: Line, point: Point): Int = ((line.end.x - line.start.x) * (point.y - line.start.y) - (point.x - line.start.x) * (line.end.y - line.start.y)).toInt()
 
     companion object {
         operator fun invoke(first: Point, second: Point, third: Point, vararg remaining: Point): ConvexPolygon {

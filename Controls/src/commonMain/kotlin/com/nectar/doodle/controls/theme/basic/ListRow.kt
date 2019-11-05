@@ -50,6 +50,12 @@ class ListRow<T>(private var list                : ListLike,
     }
 
     init {
+        childrenChanged += { _,_,_,_ ->
+            layout = constrain(children[0]) {
+                positioner(it)
+            }
+        }
+
         children += itemVisualizer(row, index)
 
         styleChanged += { rerender() }
@@ -73,7 +79,7 @@ class ListRow<T>(private var list                : ListLike,
                     setOf(index).also {
                         list.apply {
                             when {
-                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
+                                Ctrl  in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
                                 Shift in event.modifiers && lastSelection != null  -> {
                                     selectionAnchor?.let { anchor ->
                                         val current = index
@@ -101,10 +107,6 @@ class ListRow<T>(private var list                : ListLike,
         this.index = index
 
         children[0] = itemVisualizer(row, index, children.getOrNull(0))
-
-        layout = constrain(children[0]) {
-            positioner(it)
-        }
 
         backgroundColor = when {
             list.selected(index) -> {

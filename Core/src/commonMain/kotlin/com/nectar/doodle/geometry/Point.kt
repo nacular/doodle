@@ -26,10 +26,7 @@ class Point(val x: Double = 0.0, val y: Double = 0.0) {
         if (this === other) return true
         if (other !is Point) return false
 
-        if (x != other.x) return false
-        if (y != other.y) return false
-
-        return true
+        return x == other.x && y == other.y
     }
 
     @Suppress("PrivatePropertyName")

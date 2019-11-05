@@ -11,15 +11,18 @@ import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.system.SystemInputEvent
 import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -131,6 +134,65 @@ open class Table<T, M: ListModel<T>>(
         }
     }
 
+    internal inner class LastColumn: InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, Unit>(TableLikeWrapper(), TableLikeBehaviorWrapper(), null, null, object: CellVisualizer<Unit> {
+        override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = previous ?: object: View() {}
+    }, null, null, 0.0, null) {
+        override val view = object: View() {
+
+            init {
+                mouseChanged += object: MouseListener {
+                    private var mouseOver    = false
+                    private var mousePressed = false
+
+                    override fun mouseEntered(event: MouseEvent) {
+                        mouseOver = true
+                    }
+
+                    override fun mouseExited(event: MouseEvent) {
+                        mouseOver = false
+                    }
+
+                    override fun mousePressed(event: MouseEvent) {
+                        mousePressed = true
+                    }
+
+                    override fun mouseReleased(event: MouseEvent) {
+                        if (mouseOver && mousePressed) {
+                            behavior?.delegate?.let {
+                                val index = it.rowPositioner.rowFor(this@Table, event.location.y)
+
+                                if (index < this@Table.numRows) {
+                                    setOf(index).also {
+                                        this@Table.apply {
+                                            when {
+                                                SystemInputEvent.Modifier.Ctrl in event.modifiers || SystemInputEvent.Modifier.Meta in event.modifiers -> toggleSelection(it)
+                                                SystemInputEvent.Modifier.Shift in event.modifiers && lastSelection != null                            -> {
+                                                    selectionAnchor?.let { anchor ->
+                                                        val current = index
+                                                        when {
+                                                            current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
+                                                            anchor  < current -> setSelection((anchor  .. current).           toSet())
+                                                        }
+                                                    }
+                                                }
+                                                else                                               -> setSelection(it)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        mousePressed = false
+                    }
+                }
+            }
+        }
+
+        private var behavior: TableLikeBehaviorWrapper? = null
+
+        override fun behavior(behavior: TableLikeBehaviorWrapper?) { this.behavior = behavior }
+    }
+
     val numRows get() = model.size
     val isEmpty get() = model.isEmpty
 
@@ -161,9 +223,7 @@ open class Table<T, M: ListModel<T>>(
                     factory.apply(it)
 
                     // Last, unusable column
-                    internalColumns += InternalListColumn(header = null, itemVisualizer = object: CellVisualizer<Unit> {
-                        override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = object: View() {}
-                    }) {} // FIXME: Use a more robust method to avoid any rendering of the cell contents
+                    internalColumns += LastColumn()
 
                     children += listOf(header, panel)
 
@@ -227,18 +287,18 @@ open class Table<T, M: ListModel<T>>(
     private val header: Box by lazy { object: Box() {
         init {
             layout = object : Layout() {
-                override fun layout(positionable: Positionable) {
+                override fun layout(container: PositionableContainer) {
                     var x = 0.0
                     var totalWidth = 0.0
 
-                    positionable.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, positionable.height))
+                    container.children.forEachIndexed { index, view ->
+                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, container.height))
 
                         x += view.width
                         totalWidth += view.width
                     }
 
-                    positionable.width = totalWidth + internalColumns[internalColumns.size - 1].width
+                    container.width = totalWidth + internalColumns[internalColumns.size - 1].width
                 }
             }
         }
@@ -254,12 +314,12 @@ open class Table<T, M: ListModel<T>>(
                 children += internalColumns.map { it.view }
 
                 layout = object : Layout() {
-                    override fun layout(positionable: Positionable) {
+                    override fun layout(container: PositionableContainer) {
                         var x          = 0.0
                         var height     = 0.0
                         var totalWidth = 0.0
 
-                        positionable.children.forEachIndexed { index, view ->
+                        container.children.forEachIndexed { index, view ->
                             view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
                             x += view.width
@@ -267,10 +327,10 @@ open class Table<T, M: ListModel<T>>(
                             totalWidth += view.width
                         }
 
-                        positionable.size = Size(max(positionable.parent!!.width, totalWidth), max(positionable.parent!!.height, height))
+                        container.size = Size(max(container.parent!!.width, totalWidth), max(container.parent!!.height, height))
 
-                        positionable.children.forEach {
-                            it.height = positionable.height
+                        container.children.forEach {
+                            it.height = container.height
                         }
                     }
                 }

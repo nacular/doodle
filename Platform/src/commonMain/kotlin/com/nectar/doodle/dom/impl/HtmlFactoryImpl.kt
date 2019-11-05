@@ -14,30 +14,20 @@ internal class HtmlFactoryImpl(override val root: HTMLElement, private val docum
     override fun <T: HTMLElement> create() = create("DIV") as T
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T: HTMLElement> create(tag: String) = prototypes.getOrPut(tag) {
-        document.createElement(tag) as T
-    }.cloneNode(false) as T
+    override fun <T: HTMLElement> create(tag: String) = document.createElement(tag) as T
 
     override fun createText(text: String) = document.createTextNode(text)
 
     override fun createImage(source: String) = create<HTMLImageElement>("IMG").apply { src = source; draggable = false }
 
-    override fun createOrUse(tag: String, possible: Node?): HTMLElement {
-        var result = possible
-
-        if (result == null || result !is HTMLElement || result.parentNode != null && !result.nodeName.equals(tag, ignoreCase = true)) {
-            result = create(tag)
-        } else {
-            result.clearBoundStyles ()
-            result.clearVisualStyles()
+    override fun createOrUse(tag: String, possible: Node?): HTMLElement = when {
+        possible == null || possible !is HTMLElement || possible.parentNode != null && !possible.nodeName.equals(tag, ignoreCase = true) -> create(tag)
+        else -> possible.apply {
+            clearBoundStyles ()
+            clearVisualStyles()
         }
-
-        return result
     }
 
-    override fun createInput(): HTMLInputElement = create("INPUT")
-
+    override fun createInput (): HTMLInputElement  = create("INPUT" )
     override fun createButton(): HTMLButtonElement = create("BUTTON")
-
-    private val prototypes = mutableMapOf<String, HTMLElement>()
 }

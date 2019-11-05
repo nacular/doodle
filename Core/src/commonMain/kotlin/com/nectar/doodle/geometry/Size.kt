@@ -26,10 +26,7 @@ class Size(val width: Double = 0.0, val height: Double = width) {
         if (this === other) return true
         if (other !is Size) return false
 
-        if (width  != other.width ) return false
-        if (height != other.height) return false
-
-        return true
+        return width == other.width && height == other.height
     }
 
     override fun hashCode() = hashCode_

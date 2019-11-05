@@ -24,7 +24,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
     val right  get() = x + width
 
     override val points by lazy {
-        listOf(Point(x, y), Point(x+width, y), Point(x+width, y+height), Point(x, y+height))
+        listOf(position, Point(x+width, y), Point(x+width, y+height), Point(x, y+height))
     }
 
     @Suppress("PrivatePropertyName")
@@ -118,7 +118,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
     override fun toString() = "[$x,$y,$width,$height]"
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
+        if (this === other     ) return true
         if (other !is Rectangle) return false
 
         if (position != other.position) return false

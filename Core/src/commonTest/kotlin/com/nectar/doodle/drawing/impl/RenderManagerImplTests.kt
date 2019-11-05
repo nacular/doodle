@@ -43,7 +43,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("rendersAreBatched")
     fun `renders are batched`() {
-        val view      = spyk(view())
+        val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
 
         view.visible = false
@@ -258,7 +258,7 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display(view))
 
-        verify(exactly = 1) { view.addedToDisplay(renderManager) }
+        verify(exactly = 0) { view.addedToDisplay(renderManager) }
         verify(exactly = 0) { view.render        (any()        ) }
 
         view.visible = true

@@ -21,6 +21,10 @@ interface RenderManager {
      */
     fun renderNow(view: View)
 
+    fun layout(view: View)
+
+    fun layoutNow(view: View)
+
     /**
      * @param of
      * @return the [View]'s current display rectangle (in its coordinate system) based on clipping with ancestor display rectangles.

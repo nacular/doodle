@@ -4,7 +4,7 @@ import com.nectar.doodle.Event
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
+import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.height
@@ -107,7 +107,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         child in children
     } else false
 
-    override fun child(at: Point): View? = layout?.child(positionableWrapper, at) ?: {
+    override fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? com.nectar.doodle.core.PositionableWrapper)?.view ?: {
         var result    = null as View?
         var topZOrder = 0
 
@@ -131,19 +131,16 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         size = Size(rootElement.width, rootElement.height)
     }
 
-    private inner class PositionableWrapper: Positionable {
-        override var size        get() = this@DisplayImpl.size
-            set(_) {}
-        override var width       get() = this@DisplayImpl.width
-            set(_) {}
-        override var height      get() = this@DisplayImpl.height
-            set(_) {}
+    private inner class PositionableWrapper: PositionableContainer {
+        override var size        get() = this@DisplayImpl.size;   set(_) {}
+        override var width       get() = this@DisplayImpl.width;  set(_) {}
+        override var height      get() = this@DisplayImpl.height; set(_) {}
+        override var idealSize   get() = null as Size?;           set(_) {}
+        override var minimumSize get() = Empty;                   set(_) {}
+
         override val insets      get() = this@DisplayImpl.insets
-        override val parent            = null as View?
-        override val children          = this@DisplayImpl.children
-        override var idealSize   get() = null as Size?
-            set(_) {}
-        override var minimumSize get() = Empty
-            set(_) {}
+        override val layout      get() = this@DisplayImpl.layout
+        override val parent      get() = null as PositionableContainer?
+        override val children    get() = this@DisplayImpl.children.map { com.nectar.doodle.core.PositionableWrapper(it) }
     }
 }
