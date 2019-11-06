@@ -17,6 +17,7 @@ import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
 import com.nectar.doodle.system.Cursor.Companion.Grabbing
 import com.nectar.doodle.system.Cursor.Companion.WResize
+import kotlin.Double.Companion.MAX_VALUE
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
@@ -24,8 +25,7 @@ import com.nectar.doodle.system.Cursor.Companion.WResize
 class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View() {
 
     var positioner: Constraints.() -> Unit = {
-        centerX = parent.centerX
-        centerY = parent.centerY
+        center = parent.center
     }
         set(new) {
             field = new
@@ -36,28 +36,27 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         }
 
     init {
-        var resizing                = false
-        var mouseDown               = false
-        var initialWidth            = column.width
-        var initialPosition: Point? = null
+        var resizing        = false
+        var mouseDown       = false
+        var initialWidth    = column.width
+        var initialPosition = null as Point?
 
         styleChanged += {
             rerender()
         }
 
         fun newCursor() = when {
-            column.width > column.minWidth && column.width < column.maxWidth ?: Double.MAX_VALUE -> EWResize
-            column.width < column.maxWidth ?: Double.MAX_VALUE                                   -> EResize
-            else                                                                                 -> WResize
+            column.width > column.minWidth && column.width < column.maxWidth ?: MAX_VALUE -> EWResize
+            column.width < column.maxWidth ?: MAX_VALUE                                   -> EResize
+            else                                                                          -> WResize
         }
 
         fun overHandle(mouseLocation: Point) = mouseLocation.x in width - 5.0..width
 
         fun updateCursor(event: MouseEvent) {
-            if (overHandle(toLocal(event.location, event.target))) {
-                cursor = newCursor()
-            } else {
-                cursor = null
+            cursor = when {
+                overHandle(toLocal(event.location, event.target)) -> newCursor()
+                else                                              -> null
             }
         }
 

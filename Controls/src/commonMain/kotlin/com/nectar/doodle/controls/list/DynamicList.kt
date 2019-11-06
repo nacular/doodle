@@ -4,8 +4,9 @@ import com.nectar.doodle.controls.DynamicListModel
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.mutableListModelOf
 import com.nectar.doodle.controls.passThrough
 import com.nectar.doodle.utils.size
 
@@ -119,8 +120,8 @@ open class DynamicList<T, M: DynamicListModel<T>>(
                 itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): DynamicList<T, SimpleMutableListModel<T>> =
-                DynamicList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                  = 10): DynamicList<T, MutableListModel<T>> =
+                DynamicList(mutableListModelOf(*values.toTypedArray()), itemGenerator, selectionModel, fitContent, scrollCache)
 
         operator fun <T, M: DynamicListModel<T>> invoke(
                 model         : M,

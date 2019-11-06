@@ -5,9 +5,9 @@ import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.SimpleMutableListModel
 import com.nectar.doodle.controls.list.DynamicList
 import com.nectar.doodle.controls.list.ListBehavior
+import com.nectar.doodle.controls.mutableListModelOf
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
@@ -159,6 +159,6 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 scrollCache   : Int                  = 10,
-                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(SimpleMutableListModel(values.toMutableList()), selectionModel, scrollCache, block)
+                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
     }
 }

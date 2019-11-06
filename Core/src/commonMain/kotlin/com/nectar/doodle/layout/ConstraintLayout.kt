@@ -357,6 +357,8 @@ interface ParentConstraints {
     val centerX: HorizontalConstraint
     val right  : HorizontalConstraint
     val width  : MagnitudeConstraint
+
+    val center: Pair<HorizontalConstraint, VerticalConstraint> get() = centerX to centerY
 }
 
 interface Constraints: ParentConstraints {
@@ -369,6 +371,12 @@ interface Constraints: ParentConstraints {
     override var centerX: HorizontalConstraint
     override var right  : HorizontalConstraint
     override var width  : MagnitudeConstraint
+
+    override var center: Pair<HorizontalConstraint, VerticalConstraint> get() = centerX to centerY
+        set(value) {
+            centerX = value.first
+            centerY = value.second
+        }
 
     val parent: ParentConstraints
 }

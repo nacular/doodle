@@ -5,6 +5,8 @@ import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
 
+val centerAligned: (Constraints.() -> Unit) = { center = parent.center }
+
 interface ColumnBuilder {
     var width          : Double?
     var minWidth       : Double

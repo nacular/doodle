@@ -80,3 +80,5 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
 
     override val changed = SetPool<ModelObserver<T>>()
 }
+
+fun <T> mutableListModelOf(vararg elements: T): MutableListModel<T> = SimpleMutableListModel(mutableListOf(*elements))

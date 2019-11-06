@@ -5,7 +5,7 @@ import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
-import com.nectar.doodle.controls.SimpleMutableListModel
+import com.nectar.doodle.controls.mutableListModelOf
 import com.nectar.doodle.controls.passThrough
 import com.nectar.doodle.core.View
 
@@ -107,16 +107,16 @@ open class MutableList<T, M: MutableListModel<T>>(
                 itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
-                MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
+                MutableList(mutableListModelOf(*values.toTypedArray()), itemGenerator, selectionModel, fitContent, scrollCache)
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
-                MutableList(SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
+                MutableList(mutableListModelOf(*values.toTypedArray()), itemGenerator, selectionModel, fitContent, scrollCache)
 
 
         operator fun  <T, M: MutableListModel<T>>invoke(model     : M,
