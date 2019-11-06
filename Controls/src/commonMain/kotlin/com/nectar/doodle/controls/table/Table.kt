@@ -50,7 +50,7 @@ open class Table<T, M: ListModel<T>>(
         override val columns          get() = this@Table.columns
         override val internalColumns  get() = this@Table.internalColumns
         override val columnSizePolicy get() = this@Table.columnSizePolicy
-        override val header           get() = this@Table.header
+        override val header           get() = this@Table.header as Box
         override val panel            get() = this@Table.panel
 
         override var resizingCol get() = this@Table.resizingCol
@@ -58,8 +58,8 @@ open class Table<T, M: ListModel<T>>(
                 this@Table.resizingCol = new
             }
 
-        override fun doLayout() {
-            this@Table.doLayout()
+        override fun relayout() {
+            this@Table.relayout()
         }
     }
 
@@ -284,11 +284,11 @@ open class Table<T, M: ListModel<T>>(
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*>>()
 
-    private val header: Box by lazy { object: Box() {
+    private inner class Header: Box() {
         init {
-            layout = object : Layout() {
+            layout = object: Layout() {
                 override fun layout(container: PositionableContainer) {
-                    var x = 0.0
+                    var x          = 0.0
                     var totalWidth = 0.0
 
                     container.children.forEachIndexed { index, view ->
@@ -306,40 +306,48 @@ open class Table<T, M: ListModel<T>>(
         override fun render(canvas: Canvas) {
             behavior?.renderHeader(this@Table, canvas)
         }
-    } }
 
-    private val panel by lazy {
-        ScrollPanel(object : Box() {
-            init {
-                children += internalColumns.map { it.view }
+        public override fun doLayout() = super.doLayout()
+    }
 
-                layout = object : Layout() {
-                    override fun layout(container: PositionableContainer) {
-                        var x          = 0.0
-                        var height     = 0.0
-                        var totalWidth = 0.0
+    private val header by lazy { Header() }
 
-                        container.children.forEachIndexed { index, view ->
-                            view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
+    private inner class PanelContainer: Box() {
+        init {
+            children += internalColumns.map { it.view }
 
-                            x += view.width
-                            height = max(height, view.height)
-                            totalWidth += view.width
-                        }
+            layout = object : Layout() {
+                override fun layout(container: PositionableContainer) {
+                    var x          = 0.0
+                    var height     = 0.0
+                    var totalWidth = 0.0
 
-                        container.size = Size(max(container.parent!!.width, totalWidth), max(container.parent!!.height, height))
+                    container.children.forEachIndexed { index, view ->
+                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
 
-                        container.children.forEach {
-                            it.height = container.height
-                        }
+                        x          += view.width
+                        height      = max(height, view.height)
+                        totalWidth += view.width
+                    }
+
+                    container.size = Size(max(container.parent!!.width, totalWidth), max(container.parent!!.height, height))
+
+                    container.children.forEach {
+                        it.height = container.height
                     }
                 }
             }
+        }
 
-            override fun render(canvas: Canvas) {
-                behavior?.renderBody(this@Table, canvas)
-            }
-        }.apply {
+        override fun render(canvas: Canvas) {
+            behavior?.renderBody(this@Table, canvas)
+        }
+
+        public override fun doLayout() = super.doLayout()
+    }
+
+    private val panel by lazy {
+        ScrollPanel(PanelContainer().apply {
             // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
@@ -380,13 +388,13 @@ open class Table<T, M: ListModel<T>>(
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
+        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
         resizingCol = null
 
         super.doLayout()
 
         header.doLayout()
-        (panel.content as? Box)?.doLayout()
+        (panel.content as? Table<*, *>.PanelContainer)?.doLayout()
     }
 
     companion object {

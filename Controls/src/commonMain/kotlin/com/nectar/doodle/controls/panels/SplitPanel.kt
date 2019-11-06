@@ -73,7 +73,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         set(new) { if (new != field) { field = new; fireChanged() } }
 
     var ratio = ratio
-        set(new) { if (new != field) { field = new; doLayout(); changed_() } }
+        set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
     private var divider      = null as View?
     private var panelSpacing = 0.0
@@ -85,7 +85,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
 
     public override var insets
         get(   ) = super.insets
-        set(new) { if (new != super.insets) { super.insets = new; doLayout() } }
+        set(new) { if (new != super.insets) { super.insets = new; relayout() } }
 
     init {
         require(ratio in 0.0f .. 1.0f) { "ratio must be in 0 .. 1" }

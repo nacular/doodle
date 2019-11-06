@@ -6,19 +6,19 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
 
 interface ColumnBuilder {
-    var headerAlignment: (Constraints.() -> Unit)?
     var width          : Double?
     var minWidth       : Double
     var maxWidth       : Double?
     var cellAlignment  : (Constraints.() -> Unit)?
+    var headerAlignment: (Constraints.() -> Unit)?
 }
 
 internal class ColumnBuilderImpl: ColumnBuilder {
-    override var headerAlignment: (Constraints.() -> Unit)? = null
     override var width          : Double?                   = null
     override var minWidth       : Double                    = 0.0
     override var maxWidth       : Double?                   = null
     override var cellAlignment  : (Constraints.() -> Unit)? = null
+    override var headerAlignment: (Constraints.() -> Unit)? = null
 }
 
 interface CellVisualizer<T> {

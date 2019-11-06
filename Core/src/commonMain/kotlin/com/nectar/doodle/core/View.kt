@@ -234,7 +234,7 @@ abstract class View protected constructor() {
     /** The [Layout] managing the position of this View's children */
     protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
         // TODO: Have RenderManager manage the layout?
-        if (renderManager!= null) doLayout()
+        relayout()
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -346,7 +346,7 @@ abstract class View protected constructor() {
     internal fun revalidate_() = revalidate()
 
     protected fun revalidate() {
-        doLayout()
+        relayout()
         rerender()
     }
 
@@ -361,11 +361,10 @@ abstract class View protected constructor() {
     /**
      * Causes [View] to layout its children if it has a Layout installed.
      */
+    protected open fun relayout() = renderManager?.layout(this)
 
-    private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
-
-    internal fun doLayout_() = layout?.layout(positionableWrapper)
-    protected open fun doLayout() = renderManager?.layout(this)
+    internal fun doLayout_() = doLayout()
+    protected open fun doLayout() = layout?.layout(positionableWrapper)
 
     /**
      * Gets the [View] at the given point.
@@ -373,7 +372,6 @@ abstract class View protected constructor() {
      * @param at The point
      * @return The child (null if no child contains the given point)
      */
-    internal fun child_(at: Point) = child(at)
     protected open fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? PositionableWrapper?)?.view ?: {
         var result    = null as View?
         var topZOrder = 0
@@ -388,7 +386,7 @@ abstract class View protected constructor() {
         result
     }()
 
-//    var inputVerifier: InputVerifier<*>? = null
+    internal fun child_(at: Point) = child(at)
 
     /**
      * Gives the [View] an opportunity to render itself to the given Canvas.
@@ -621,6 +619,8 @@ abstract class View protected constructor() {
     private fun setBounds(x: Double, y: Double, width: Double, height: Double) {
         bounds = Rectangle(x, y, width, height)
     }
+
+    private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 
 //    operator fun plus (listener: MouseWheelListener ): View = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): View = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }

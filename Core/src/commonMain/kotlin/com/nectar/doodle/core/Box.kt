@@ -30,5 +30,5 @@ open class Box: View(), Container {
 
     public override fun child(at: Point) = super.child(at)
 
-    public override fun doLayout() { super.doLayout() }
+    public override fun relayout() { super.relayout() }
 }

@@ -114,7 +114,7 @@ class RenderManagerImpl(
     }
 
     override fun layoutNow(view: View) {
-        if (view in views && !view.bounds.empty && display ancestorOf view) {
+        if (layingOut !== view && view.children_.isNotEmpty() && view in views && !view.bounds.empty && display ancestorOf view) {
             pendingLayout += view
             performLayout(view)
         }
@@ -176,7 +176,9 @@ class RenderManagerImpl(
 
             view.children_.forEach { childAdded(view, it) }
 
-            pendingLayout += view
+            if (view.children_.isNotEmpty()) {
+                pendingLayout += view
+            }
 
             if (view.monitorsDisplayRect) {
                 registerDisplayRectMonitoring(view)
@@ -236,19 +238,25 @@ class RenderManagerImpl(
             pendingLayout.firstOrNull()?.let {
                 performLayout(it)
 
-                if (checkFrameTime(start)) { return }
+                if (checkFrameTime(start)) {
+                    return
+                }
             }
-        } while (!pendingLayout.isEmpty())
+        } while (pendingLayout.isNotEmpty())
+
+        paintTask = null // Explicitly allow additional paints to queue via schedulePaint
 
         pendingRender.iterator().let {
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 val item = it.next()
 
                 if (performRender(item) || item !in views) {
                     it.remove()
                 }
 
-                if (checkFrameTime(start)) { return }
+                if (checkFrameTime(start)) {
+                    return
+                }
             }
         }
 
@@ -256,11 +264,11 @@ class RenderManagerImpl(
             if (it !in neverRendered) {
                 updateGraphicsSurface(it, graphicsDevice[it])
 
-                if (checkFrameTime(start)) { return }
+                if (checkFrameTime(start)) {
+                    return
+                }
             }
         }
-
-        paintTask = null
     }
 
     private fun scheduleLayout(view: View) {
@@ -340,6 +348,7 @@ class RenderManagerImpl(
             }
         }
 
+        println("${view::class.simpleName} rendered: $rendered")
         return rendered
     }
 
@@ -526,7 +535,9 @@ class RenderManagerImpl(
 
         if (old.size != new.size) {
             reRender = true
-            pendingLayout += view
+            if (view.children_.isNotEmpty()) {
+                pendingLayout += view
+            }
         }
 
         when (parent) {

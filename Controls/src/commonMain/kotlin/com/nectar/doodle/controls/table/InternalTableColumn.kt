@@ -30,7 +30,7 @@ internal interface TableLike {
 
     val panel: ScrollPanel
 
-    fun doLayout()
+    fun relayout()
 }
 
 internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>(
@@ -52,7 +52,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
             field?.let {
                 table.resizingCol = index
                 table.columnSizePolicy.widthChanged(table.width, table.internalColumns, index, it)
-                table.doLayout()
+                table.relayout()
                 table.resizingCol = null
             }
         }
@@ -65,13 +65,13 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         }
 
     override var minWidth = minWidth
-        protected set(new) {
+        set(new) {
             field = maxWidth?.let { max(new, it) } ?: new
         }
 
     override var maxWidth = maxWidth
-        protected set(new) {
-            field = new?.let { min(new, minWidth) }
+        set(new) {
+            field = new?.let { min(it, minWidth) }
         }
 
     private val x get() = view.x

@@ -74,6 +74,11 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 }
 
+fun Color.grayScale(): Color {
+    val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toByte().toUByte()
+    return Color(gray, gray, gray)
+}
+
 class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
 
     val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees

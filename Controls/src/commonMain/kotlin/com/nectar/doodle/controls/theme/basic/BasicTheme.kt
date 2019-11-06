@@ -28,6 +28,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Theme
@@ -39,7 +40,7 @@ typealias ListModel<T>        = com.nectar.doodle.controls.ListModel<T>
 typealias SpinnerModel<T>     = com.nectar.doodle.controls.spinner.Model<T>
 typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableTreeModel<T>
 
-@Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
+@Suppress("UNCHECKED_CAST")
 open class BasicTheme(private val labelFactory: LabelFactory, private val textMetrics: TextMetrics, private val focusManager: FocusManager?): Theme {
 
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
@@ -72,11 +73,6 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
 
     private val eventRowColor get() = lightBackgroundColor
     private val oddRowColor   get() = foregroundColor.inverted
-
-    private fun Color.grayScale(): Color {
-        val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toByte().toUByte()
-        return Color(gray, gray, gray)
-    }
 
     private val listBehavior        by lazy { BasicListBehavior<Any>       (focusManager, textMetrics, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
     private val treeBehavior        by lazy { BasicTreeBehavior<Any>       (labelFactory, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, focusManager) }

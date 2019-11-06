@@ -11,10 +11,10 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setHeightPercent
-import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
+import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.CanvasFactory
@@ -77,7 +77,7 @@ class RealGraphicsSurface private constructor(
         set (new) {
             field = new
 
-            updateTransform(position, position)
+            updateTransform(position)
         }
 
     override var size: Size by observable(Empty) { _,old,new ->
@@ -126,15 +126,7 @@ class RealGraphicsSurface private constructor(
 
     override var position: Point by observable(Origin) { _,old,new ->
         if (new != old) {
-
-//        rootElement.parent?.let {
-//            when {
-//                (it as HTMLElement).hasAutoOverflow -> {} //rootElement.style.apply { setTop(new.y); setLeft(new.x) }
-//                else                                -> rootElement.style.translate(new)
-//            }
-//        }
-
-            updateTransform(new, old)
+            updateTransform(new)
         }
     }
 
@@ -178,23 +170,12 @@ class RealGraphicsSurface private constructor(
         augmentedTransform = (Identity.translate(point) * transform).translate(-point)
     }
 
-    private fun updateTransform(new: Point, old: Point) {
+    private fun updateTransform(new: Point) {
         rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
-//            val (parent, index) = rootElement.parent?.let { parent ->
-//                parent to parent.index(rootElement).also { parent.removeChild(rootElement) }
-//            } ?: null to null
-
-            if (augmentedTransform.isIdentity) {
-                rootElement.style.setPosition(new)
-
-//                rootElement.style.translate(new)
-            } else {
-                rootElement.style.setTransform(augmentedTransform.translate(new))
+            when {
+                augmentedTransform.isIdentity -> rootElement.style.translate(new)
+                else                          -> rootElement.style.setTransform(augmentedTransform.translate(new))
             }
-
-//            if (index != null && parent != null) {
-//                parent.insert(rootElement, index)
-//            }
         } }
     }
 

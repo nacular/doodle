@@ -37,28 +37,27 @@ inline val HTMLElement.height get() = offsetHeight.toDouble()
 inline val HTMLElement.hasAutoOverflow get() = style.run { overflowX.isNotEmpty() || overflowY.isNotEmpty() }
 
 fun HTMLElement.clearVisualStyles() {
-//   style.color      = ""
-//   style.filter     = ""
-//   style.border     = ""
-//   style.background = ""
+//    style.color      = ""
+//    style.filter     = ""
+//    style.border     = ""
+//    style.background = ""
 //
-//   style.overflowX  = ""
-//   style.overflowY  = ""
-//   style.boxShadow  = ""
-//   removeAttribute("scrollbar")
+//    style.overflowX  = ""
+//    style.overflowY  = ""
+//    style.boxShadow  = ""
 }
 
 fun HTMLElement.clearBoundStyles() {
-//   style.top          = ""
-//   style.left         = ""
-//   style.right        = ""
-//   style.width        = ""
-//   style.height       = ""
-//   style.bottom       = ""
-//   style.marginTop    = ""
-//   style.marginLeft   = ""
-//   style.marginRight  = ""
-//   style.marginBottom = ""
+//    style.top          = ""
+//    style.left         = ""
+//    style.right        = ""
+//    style.width        = ""
+//    style.height       = ""
+//    style.bottom       = ""
+//    style.marginTop    = ""
+//    style.marginLeft   = ""
+//    style.marginRight  = ""
+//    style.marginBottom = ""
 }
 
 fun HTMLElement.scrollTo(point: Point) {

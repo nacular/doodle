@@ -198,8 +198,8 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
                 this@TreeTable.resizingCol = new
             }
 
-        override fun doLayout() {
-            this@TreeTable.doLayout()
+        override fun relayout() {
+            this@TreeTable.relayout()
         }
     }
 
@@ -383,7 +383,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
         set(new) {
             field = new
 
-            doLayout()
+            relayout()
         }
 
     var behavior = null as TreeTableBehavior<T>?
@@ -553,13 +553,13 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
+        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
         resizingCol = null
 
         super.doLayout()
 
         // Needed b/c width of header isn't constrained
-        header.doLayout()
-        (panel.content as? Box)?.doLayout() // FIXME
+        header.relayout()
+        (panel.content as? Box)?.relayout() // FIXME
     }
 }
