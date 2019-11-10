@@ -70,14 +70,14 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
         block         : ColumnFactory<T>.() -> Unit): Table<T, M>(model, selectionModel, scrollCache, block) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also { internalColumns += it }
         }
     }
 
-    internal inner class InternalListColumn<R>(
+    internal open inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
             cellGenerator  : CellVisualizer<R>,
@@ -85,10 +85,10 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : T.() -> R,
+            extractor      : Extractor<T, R>,
             private val firstColumn: Boolean): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
+        private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
                 model.changed += { _: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
 
@@ -132,7 +132,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous)
+                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous) { list.selected(index) }
                         }, current)
                     }
 

@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.table
 
+import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
 
@@ -15,4 +16,8 @@ interface Column<T> {
 
     fun moveBy(x: Double)
     fun resetPosition()
+}
+
+interface MutableColumn<T, R>: Column<R> {
+    fun sort(list: MutableListModel<T>)
 }

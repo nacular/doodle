@@ -53,7 +53,6 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
                 table.resizingCol = index
                 table.columnSizePolicy.widthChanged(table.width, table.internalColumns, index, it)
                 table.relayout()
-                table.resizingCol = null
             }
         }
 

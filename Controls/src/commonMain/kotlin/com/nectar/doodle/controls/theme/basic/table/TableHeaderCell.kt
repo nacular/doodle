@@ -17,7 +17,9 @@ import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
 import com.nectar.doodle.system.Cursor.Companion.Grabbing
 import com.nectar.doodle.system.Cursor.Companion.WResize
-import kotlin.Double.Companion.MAX_VALUE
+import com.nectar.doodle.utils.ChangeObserver
+import com.nectar.doodle.utils.ChangeObserversImpl
+import com.nectar.doodle.utils.Pool
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
@@ -40,15 +42,16 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         var mouseDown       = false
         var initialWidth    = column.width
         var initialPosition = null as Point?
+        var moved           = false
 
         styleChanged += {
             rerender()
         }
 
         fun newCursor() = when {
-            column.width > column.minWidth && column.width < column.maxWidth ?: MAX_VALUE -> EWResize
-            column.width < column.maxWidth ?: MAX_VALUE                                   -> EResize
-            else                                                                          -> WResize
+            column.width > column.minWidth && column.width < column.maxWidth ?: Double.MAX_VALUE -> EWResize
+            column.width < column.maxWidth ?: Double.MAX_VALUE                                   -> EResize
+            else                                                                                 -> WResize
         }
 
         fun overHandle(mouseLocation: Point) = mouseLocation.x in width - 5.0..width
@@ -80,18 +83,23 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
             }
 
             override fun mouseReleased(event: MouseEvent) {
-                mouseDown       = false
                 initialPosition = null
 
                 updateCursor(event)
 
                 backgroundColor = null
 
-                if (!resizing) {
+                if (mouseDown && !resizing) {
                     column.resetPosition()
                 }
 
-                resizing = false
+                if (mouseDown && !(resizing || moved)) {
+                    (toggled as ChangeObserversImpl).forEach { it(this@TableHeaderCell) }
+                }
+
+                moved     = false
+                resizing  = false
+                mouseDown = false
             }
         }
 
@@ -102,6 +110,7 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
 
             override fun mouseDragged(event: MouseEvent) {
                 initialPosition?.let {
+                    moved     = true
                     val delta = (toLocal(event.location, event.target) - it).x
 
                     cursor = if (resizing) {
@@ -127,6 +136,8 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
             }
         }
     }
+
+    val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
 
     override fun render(canvas: Canvas) {
         val thickness = 1.0

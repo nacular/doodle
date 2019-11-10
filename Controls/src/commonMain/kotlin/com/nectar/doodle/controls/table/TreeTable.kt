@@ -161,7 +161,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
     }
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             if (!::tree.isInitialized) {
@@ -229,7 +229,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
         override val view = Tree(model.map(extractor), selectionModel, scrollCache = scrollCache).apply {
             acceptsThemes = false
@@ -293,9 +293,9 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): DynamicListModel<A> {
+        private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
                 // FIXME: Centralize to avoid calling rowsBelow more than once per changed path
                 expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
@@ -451,7 +451,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
         ColumnFactoryImpl().apply(block)
 
         internalColumns += InternalListColumn(header = null, cellGenerator = object: CellVisualizer<Unit> {
-            override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = previous ?: object: View() {}
+            override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
         }) {} // FIXME: Use a more robust method to avoid any rendering of the cell contents
     }
 

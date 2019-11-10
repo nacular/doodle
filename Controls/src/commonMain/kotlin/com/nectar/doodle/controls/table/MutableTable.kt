@@ -3,7 +3,9 @@ package com.nectar.doodle.controls.table
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
+import com.nectar.doodle.controls.sortWith
 import com.nectar.doodle.core.View
+import com.nectar.doodle.layout.Constraints
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -21,11 +23,29 @@ class MutableTable<T, M: MutableListModel<T>>(
 
     private val editors = mutableMapOf<Column<*>, ((T) -> T)?>()
 
+    private inner class MutableInternalListColumn<R, S: Comparable<S>>(
+            header         : View?,
+            headerAlignment: (Constraints.() -> Unit)? = null,
+            cellGenerator  : CellVisualizer<R>,
+            cellAlignment  : (Constraints.() -> Unit)? = null,
+            preferredWidth : Double? = null,
+            minWidth       : Double  = 0.0,
+            maxWidth       : Double? = null,
+            extractor      : Extractor<T, R>,
+            firstColumn    : Boolean,
+            val sorter: Sorter<T, S>?): InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
+        override fun sort(list: MutableListModel<T>) {
+            sorter?.let {
+                list.sortWith(Comparator { a, b -> it(a).compareTo(it(b)) })
+            }
+        }
+    }
+
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellGenerator: CellVisualizer<R>, editor: ((T) -> T)?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, editor: ((T) -> T)?, sorter: Sorter<T, S>?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellGenerator, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also {
+            MutableInternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter).also {
                 internalColumns += it
 
                 editors[it] = editor
@@ -61,7 +81,15 @@ class MutableTable<T, M: MutableListModel<T>>(
 
     fun clear() = model.clear()
 
-    fun <R> startEditing(index: Int, column: Column<R>) {
+    fun sort(by: MutableColumn<T, *>) {
+        by.sort(model)
+    }
+
+    fun sortDescending(by: MutableColumn<T, *>) {
+
+    }
+
+    fun startEditing(index: Int, column: MutableColumn<T, *>) {
         editor?.let {
             model[index]?.let { row ->
                 val i = index % children.size

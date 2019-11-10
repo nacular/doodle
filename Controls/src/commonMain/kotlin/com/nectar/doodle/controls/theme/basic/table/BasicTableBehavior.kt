@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.theme.basic.table
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.HeaderGeometry
+import com.nectar.doodle.controls.table.MutableColumn
 import com.nectar.doodle.controls.table.MutableTable
 import com.nectar.doodle.controls.table.Table
 import com.nectar.doodle.controls.table.TableBehavior
@@ -63,10 +64,8 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private val patternBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
-
-    private val movingColumns = mutableSetOf<Column<*>>()
-
+    private  val patternBrush  = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private  val movingColumns = mutableSetOf<Column<*>>()
     override val cellGenerator = BasicCellGenerator<T>()
 
     override val headerPositioner = object: HeaderPositioner<T> {
@@ -165,6 +164,18 @@ class BasicMutableTableBehavior<T>(
         selectionColor       : Color? = green.lighter(),
         selectionBlurredColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
+    override val headerCellGenerator = object: HeaderCellGenerator<T> {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
+            column.headerAlignment?.let { positioner = it }
+
+            toggled += {
+                if (table is MutableTable && column is MutableColumn<*,*>) {
+                    table.sort(by = column as MutableColumn<T, *>)
+                }
+            }
+        }
+    }
+
     override val cellGenerator = object: BasicCellGenerator<T>() {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
             if (current !is ListRow<*>) {
@@ -172,8 +183,8 @@ class BasicMutableTableBehavior<T>(
 
                 it.mouseChanged += object: MouseListener {
                     override fun mouseReleased(event: MouseEvent) {
-                        if (event.clickCount == 2) {
-                            (table as? MutableTable)?.startEditing(result.index, column)
+                        if (event.clickCount == 2 && table is MutableTable && column is MutableColumn<*,*>) {
+                            table.startEditing(result.index, column as MutableColumn<T, *>)
                         }
                     }
                 }

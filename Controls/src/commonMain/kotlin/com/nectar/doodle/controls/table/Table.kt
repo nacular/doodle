@@ -36,7 +36,7 @@ open class Table<T, M: ListModel<T>>(
                       block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: T.() -> R, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
@@ -89,9 +89,9 @@ open class Table<T, M: ListModel<T>>(
             preferredWidth : Double?                   = null,
             minWidth       : Double                    = 0.0,
             maxWidth       : Double?                   = null,
-            extractor      : T.() -> R): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: T.() -> A): ListModel<A> {
+        private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
 
             override fun get(index: Int) = model[index]?.let(extractor)
@@ -114,7 +114,7 @@ open class Table<T, M: ListModel<T>>(
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous)
+                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous) { list.selected(index) }
                         }, current)
                     }
 
@@ -135,7 +135,7 @@ open class Table<T, M: ListModel<T>>(
     }
 
     internal inner class LastColumn: InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, Unit>(TableLikeWrapper(), TableLikeBehaviorWrapper(), null, null, object: CellVisualizer<Unit> {
-        override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?) = previous ?: object: View() {}
+        override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
     }, null, null, 0.0, null) {
         override val view = object: View() {
 
@@ -395,6 +395,8 @@ open class Table<T, M: ListModel<T>>(
 
         header.doLayout()
         (panel.content as? Table<*, *>.PanelContainer)?.doLayout()
+
+        resizingCol = null
     }
 
     companion object {

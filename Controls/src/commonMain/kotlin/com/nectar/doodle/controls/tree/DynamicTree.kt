@@ -7,14 +7,15 @@ import com.nectar.doodle.utils.Path
  * Created by Nicholas Eddy on 9/29/19.
  */
 open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
-    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
+    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }
 
+        // Handle selection move
         itemsRemoved(trueRemoved)
         itemsAdded  (trueAdded  )
 
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
             refreshAll()
         }
 
@@ -31,7 +32,7 @@ open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Sele
             }
         }
 
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
             // FIXME: Make this more efficient
             (firstVisibleRow..lastVisibleRow).forEach { update(children, pathFromRow(it)!!) }
         } else {

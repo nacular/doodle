@@ -348,7 +348,6 @@ class RenderManagerImpl(
             }
         }
 
-        println("${view::class.simpleName} rendered: $rendered")
         return rendered
     }
 

@@ -17,18 +17,17 @@ open class DynamicList<T, M: DynamicListModel<T>>(
         fitContent    : Boolean                   = true,
         scrollCache   : Int                       = 10): List<T, M>(model, itemGenerator, selectionModel, fitContent, scrollCache) {
 
-    private val modelChanged: ModelObserver<T> = { _,removed,added,_ ->
+    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }
 
-        itemsRemoved(trueRemoved)
-        itemsAdded  (trueAdded  )
+        itemsChanged(added = trueAdded, removed = trueRemoved, moved = moved)
 
         val oldVisibleRange = firstVisibleRow..lastVisibleRow
 
         trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
             updateVisibleHeight()
         }
 
@@ -42,7 +41,7 @@ open class DynamicList<T, M: DynamicListModel<T>>(
             }
         }
 
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
             // FIXME: Make this more efficient
             (firstVisibleRow..lastVisibleRow).forEach { update(children, it) }
         } else {
@@ -61,35 +60,24 @@ open class DynamicList<T, M: DynamicListModel<T>>(
         super.removedFromDisplay()
     }
 
-    private fun itemsAdded(values: Map<Int, T>) {
-        if (selectionModel != null && values.isNotEmpty()) {
+    private fun itemsChanged(added: Map<Int, T>, removed: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+        if (selectionModel != null) {
+
+            val effectiveAdded  : Map<Int, T> = added   + moved.values.associate { it.first to it.second }
+            val effectiveRemoved: Map<Int, T> = removed + moved.mapValues { it.value.second }
+
             val updatedSelection = mutableSetOf<Int>()
 
             for (selectionItem in selectionModel) {
                 var delta = 0
 
-                for (index in values.keys) {
+                for (index in effectiveAdded.keys) {
                     if (selectionItem >= index) {
                         ++delta
                     }
                 }
 
-                updatedSelection.add(selectionItem + delta)
-            }
-
-            setSelection(updatedSelection)
-        }
-    }
-
-    private fun itemsRemoved(values: Map<Int, T>) {
-        if (selectionModel != null && values.isNotEmpty()) {
-
-            val updatedSelection = mutableSetOf<Int>()
-
-            for (selectionItem in selectionModel) {
-                var delta = 0
-
-                for (index in values.keys) {
+                for (index in effectiveRemoved.keys) {
                     if (selectionItem > index) {
                         delta--
                     }
@@ -100,9 +88,11 @@ open class DynamicList<T, M: DynamicListModel<T>>(
                 }
             }
 
-            removeSelection(values.keys)
+            removeSelection(removed.keys)
 
-            setSelection(updatedSelection)
+            if (updatedSelection.isNotEmpty()) {
+                setSelection(updatedSelection)
+            }
         }
     }
 

@@ -2,7 +2,7 @@ package com.nectar.doodle.controls.theme.basic.list
 
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.list.List
-import com.nectar.doodle.controls.list.ListBehavior
+import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
@@ -45,7 +45,7 @@ open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
     }
 }
 
-open class BasicMutableListBehavior<T>(generator   : ListBehavior.RowGenerator<T>,
+open class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
                                        evenRowColor: Color? = Color.white,
                                        oddRowColor : Color? = lightgray.lighter().lighter(),
                                        rowHeight   : Double = 20.0): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {

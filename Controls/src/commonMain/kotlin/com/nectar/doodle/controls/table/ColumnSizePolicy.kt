@@ -26,25 +26,18 @@ class ConstrainedSizePolicy: ColumnSizePolicy {
             remainingWidth -= it.width
         }
 
-        if (remainingWidth > 0) {
-            columns.drop(startIndex).filter { it.preferredWidth == null }.let {
-                var size = it.size
-
-                it.forEach {
-                    val old = it.width
-                    it.width += remainingWidth / size--
-                    remainingWidth -= it.width - old
-                }
+        columns.drop(startIndex).filter {
+            when {
+                remainingWidth > 0 -> it.preferredWidth == null
+                else               -> it.preferredWidth != null
             }
-        } else if (remainingWidth < 0) {
-            columns.drop(startIndex).filter { it.preferredWidth != null }.let {
-                var size = it.size
+        }.run {
+            var size = size
 
-                it.forEach {
-                    val old = it.width
-                    it.width += remainingWidth / size--
-                    remainingWidth -= it.width - old
-                }
+            forEach {
+                val old = it.width
+                it.width += remainingWidth / size--
+                remainingWidth -= it.width - old
             }
         }
 

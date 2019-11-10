@@ -180,10 +180,10 @@ class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): Mut
         }
     }
 
-    override operator fun set(index: Int, element: E) = list.set(index, element).also { new ->
-        if (new !== element) {
+    override operator fun set(index: Int, element: E) = list.set(index, element).also { old ->
+        if (old !== element) {
             changed_.forEach {
-                it(this, mapOf(index to new), mapOf(index to element), mapOf())
+                it(this, mapOf(index to old), mapOf(index to element), mapOf())
             }
         }
     }
@@ -201,6 +201,10 @@ class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): Mut
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
+}
+
+fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
+    batch { sortWith(comparator) }
 }
 
 // FIXME: Expose factory methods instead to avoid the case where the given set is modified
