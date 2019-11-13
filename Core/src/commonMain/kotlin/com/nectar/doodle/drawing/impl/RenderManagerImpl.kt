@@ -234,41 +234,56 @@ class RenderManagerImpl(
     private fun onPaint() {
         val start = timer.now
 
-        do {
-            pendingLayout.firstOrNull()?.let {
-                performLayout(it)
+        // This loop is here because the process of laying out, rendering etc can generate new objects that need to be
+        // handled.  Therefore, the loop runs until these items are exhausted.
+        // TODO: Should this loop be limited to avoid infinite spinning?  That way we could defer things that happen beyond a point to run on the next animation frame
+        while (true) {
+            do {
+                pendingLayout.firstOrNull()?.let {
+                    performLayout(it)
 
-                if (checkFrameTime(start)) {
-                    return
+                    if (checkFrameTime(start)) {
+                        return
+                    }
+                }
+            } while (pendingLayout.isNotEmpty())
+
+            pendingRender.iterator().let {
+                while (it.hasNext()) {
+                    val item = it.next()
+
+                    if (performRender(item) || item !in views) {
+                        it.remove()
+                    }
+
+                    if (checkFrameTime(start)) {
+                        return
+                    }
                 }
             }
-        } while (pendingLayout.isNotEmpty())
 
-        paintTask = null // Explicitly allow additional paints to queue via schedulePaint
+            pendingBoundsChange.iterator().let {
+                while (it.hasNext()) {
+                    val item = it.next()
 
-        pendingRender.iterator().let {
-            while (it.hasNext()) {
-                val item = it.next()
+                    if (item !in neverRendered ) {
+                        updateGraphicsSurface(item, graphicsDevice[item])
 
-                if (performRender(item) || item !in views) {
-                    it.remove()
+                        it.remove()
+                    }
+
+                    if (checkFrameTime(start)) {
+                        return
+                    }
                 }
+            }
 
-                if (checkFrameTime(start)) {
-                    return
-                }
+            if (pendingLayout.isEmpty() && pendingRender.none { it !in neverRendered } && pendingBoundsChange.isEmpty()) {
+                break
             }
         }
 
-        pendingBoundsChange.forEach {
-            if (it !in neverRendered) {
-                updateGraphicsSurface(it, graphicsDevice[it])
-
-                if (checkFrameTime(start)) {
-                    return
-                }
-            }
-        }
+        paintTask = null
     }
 
     private fun scheduleLayout(view: View) {
