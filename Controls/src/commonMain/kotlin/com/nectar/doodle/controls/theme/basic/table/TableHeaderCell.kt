@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme.basic.table
 
 import com.nectar.doodle.controls.table.Column
+import com.nectar.doodle.controls.table.center
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -24,18 +25,24 @@ import com.nectar.doodle.utils.Pool
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View() {
+class TableHeaderCell(private val column: Column<*>, private val headerColor: Color?): View() {
 
-    var positioner: Constraints.() -> Unit = {
-        center = parent.center
-    }
+    private var positioner: Constraints.() -> Unit = column.headerAlignment ?: center
         set(new) {
+            if (field == new) {
+                return
+            }
+
             field = new
 
             layout = constrain(children[0]) {
                 positioner(it)
             }
         }
+
+    private val alignmentChanged: (Column<*>) -> Unit = {
+        it.headerAlignment?.let { positioner = it }
+    }
 
     init {
         var resizing        = false
@@ -131,7 +138,7 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
         column.header?.let { header ->
             children += header
 
-            layout = constrain(header) {
+            layout = constrain(children[0]) {
                 positioner(it)
             }
         }
@@ -139,9 +146,21 @@ class TableHeaderCell(column: Column<*>, private val headerColor: Color?): View(
 
     val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
 
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
+        column.alignmentChanged += alignmentChanged
+    }
+
+    override fun removedFromDisplay() {
+        super.removedFromDisplay()
+
+        column.alignmentChanged -= alignmentChanged
+    }
+
     override fun render(canvas: Canvas) {
         val thickness = 1.0
-        val x         = width - thickness
+        val x         = width - thickness / 2
 
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
         canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.inverted ?: gray, thickness))

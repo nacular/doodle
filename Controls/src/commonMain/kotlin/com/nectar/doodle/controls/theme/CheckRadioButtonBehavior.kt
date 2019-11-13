@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.theme
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
@@ -23,6 +24,10 @@ open class CheckRadioButtonBehavior protected constructor(
         private val spacing    : Double = 2.0): AbstractTextButtonBehavior<ToggleButton>(textMetrics) {
 
     protected val insets = Insets()
+
+    private val styleChanged: (View) -> Unit = {
+        it.rerender()
+    }
 
     private val selectionChanged: (ToggleButton, Boolean, Boolean) -> Unit = { button,_,_ ->
         button.rerender()
@@ -49,6 +54,7 @@ open class CheckRadioButtonBehavior protected constructor(
         view.iconTextSpacing     = spacing
         view.horizontalAlignment = Left
 
+        view.styleChanged    += styleChanged
         view.selectedChanged += selectionChanged
 
         Size(idealWidth, max(icon.height, if (!textSize.empty) textSize.height else 0.0)).let {
@@ -60,6 +66,7 @@ open class CheckRadioButtonBehavior protected constructor(
     override fun uninstall(view: ToggleButton) {
         super.uninstall(view)
 
+        view.styleChanged    -= styleChanged
         view.selectedChanged -= selectionChanged
     }
 }

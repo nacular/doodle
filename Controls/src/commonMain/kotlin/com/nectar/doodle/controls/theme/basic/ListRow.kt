@@ -21,12 +21,14 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-class ListRow<T>(private var list                : ListLike,
-                 private var row                 : T,
-                         var index               : Int,
-                 private val itemVisualizer      : IndexedItemVisualizer<T>,
-                 private val selectionColor      : Color? = green,
-                 private val selectionBlurredColor: Color? = selectionColor): View() {
+open class ListRow<T>(private var list                           : ListLike,
+                      private var row                            : T,
+                              var index                          : Int,
+                      private val itemVisualizer                 : IndexedItemVisualizer<T>,
+//                      private val foregroundSelectionColor       : Color? = black,
+//                      private val foregroundSelectionBlurredColor: Color? = foregroundSelectionColor,
+                      private val backgroundSelectionColor       : Color? = green,
+                      private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
@@ -45,7 +47,7 @@ class ListRow<T>(private var list                : ListLike,
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
-            backgroundColor = if (new) selectionColor else selectionBlurredColor
+            backgroundColor = if (new) backgroundSelectionColor else backgroundSelectionBlurredColor
         }
     }
 
@@ -106,13 +108,13 @@ class ListRow<T>(private var list                : ListLike,
         this.row   = row
         this.index = index
 
-        children[0] = itemVisualizer(row, index, children.getOrNull(0))
+        children[0] = itemVisualizer(row, index, children.getOrNull(0)) //.apply { foregroundColor = if (list.selected(index)) foregroundSelectionColor else black }
 
         backgroundColor = when {
             list.selected(index) -> {
                 list.focusChanged += listFocusChanged
 
-                if (list.hasFocus) selectionColor else selectionBlurredColor
+                if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
             }
             else                 -> {
                 list.focusChanged -= listFocusChanged

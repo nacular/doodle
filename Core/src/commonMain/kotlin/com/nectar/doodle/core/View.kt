@@ -625,3 +625,5 @@ abstract class View protected constructor() {
 //    operator fun plus (listener: MouseWheelListener ): View = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
 //    operator fun minus(listener: MouseWheelListener ): View = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
 }
+
+val View.center get() = Point(width/2, height/2)

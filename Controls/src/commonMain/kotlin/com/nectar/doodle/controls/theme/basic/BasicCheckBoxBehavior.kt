@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme.basic
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.theme.CheckRadioButtonBehavior
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
@@ -41,8 +42,9 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
                 canvas.rect(rect.inset(2.0), Pen(sHoverColor, 2.0))
             }
 
-            if (view.model.selected) {
-                canvas.poly(ConvexPolygon(
+            when {
+                (view as CheckBox).indeterminate -> canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, width - 6, 2.0), ColorBrush(fillColor))
+                view.model.selected              -> canvas.poly(ConvexPolygon(
                         Point(at.x + 3, at.y + 5),
                         Point(at.x + 5, at.y + 7),
                         Point(at.x + 9, at.y + 3),

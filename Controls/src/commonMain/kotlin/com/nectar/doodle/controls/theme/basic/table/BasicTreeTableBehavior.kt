@@ -106,7 +106,7 @@ open class BasicTreeTableBehavior<T>(
     override val cellGenerator = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, selectionColor = null)
+            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
@@ -122,7 +122,7 @@ open class BasicTreeTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerAlignment?.let { positioner = it } }
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {

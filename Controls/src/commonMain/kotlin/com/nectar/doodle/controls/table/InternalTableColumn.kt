@@ -6,6 +6,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.layout.Constraints
+import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.Completable
 import kotlin.math.max
 import kotlin.math.min
@@ -37,13 +38,27 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
         private   val table          : T,
         private   val behavior       : B?,
         override  val header         : View?,
-        override  var headerAlignment: (Constraints.() -> Unit)? = null,
+                      headerAlignment: (Constraints.() -> Unit)? = null,
         protected val cellGenerator  : CellVisualizer<R>,
-        override  var cellAlignment  : (Constraints.() -> Unit)? = null,
+                      cellAlignment  : (Constraints.() -> Unit)? = null,
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
                       maxWidth       : Double? = null,
         private   val numFixedColumns: Int     = 0): Column<R>, ColumnSizePolicy.Column {
+
+    override val alignmentChanged = ChangeObserversImpl(this)
+
+    override  var headerAlignment: (Constraints.() -> Unit)? = headerAlignment
+        set(value) {
+            field = value
+            alignmentChanged.forEach { it(this) }
+        }
+
+    override  var cellAlignment  : (Constraints.() -> Unit)? = cellAlignment
+        set(value) {
+            field = value
+            alignmentChanged.forEach { it(this) }
+        }
 
     override var preferredWidth = preferredWidth
         set(new) {

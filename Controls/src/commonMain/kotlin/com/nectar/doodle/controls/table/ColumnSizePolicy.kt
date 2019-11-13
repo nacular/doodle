@@ -26,7 +26,8 @@ class ConstrainedSizePolicy: ColumnSizePolicy {
             remainingWidth -= it.width
         }
 
-        columns.drop(startIndex).filter {
+        // Can this special knowledge of a dummy last column be avoided?
+        columns.drop(startIndex).dropLast(1).filter {
             when {
                 remainingWidth > 0 -> it.preferredWidth == null
                 else               -> it.preferredWidth != null
@@ -41,24 +42,16 @@ class ConstrainedSizePolicy: ColumnSizePolicy {
             }
         }
 
+        columns.last().let {
+            val old = it.width
+            it.width += remainingWidth
+            remainingWidth -= it.width - old
+        }
+
         return width - remainingWidth
     }
 
     override fun widthChanged(width: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
-        var old = columns[index].width
-
         columns[index].width = to
-
-        var remainingWidth = old - columns[index].width
-
-        var remainingCols = columns.size - 1 - index
-
-        (index + 1 until columns.size).map { columns[it] }.forEach { column ->
-            old = column.width
-
-            column.width += remainingWidth / remainingCols--
-
-            remainingWidth -= column.width - old
-        }
     }
 }

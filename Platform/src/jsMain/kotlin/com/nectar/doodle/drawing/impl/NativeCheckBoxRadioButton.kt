@@ -2,6 +2,7 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ButtonModel
+import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
@@ -23,6 +24,7 @@ import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.Anchor
 import org.w3c.dom.HTMLElement
 import kotlin.math.max
@@ -64,8 +66,8 @@ internal class NativeCheckBoxRadioButton(
                     htmlFactory   : HtmlFactory,
                     type          : Type): NativeEventListener {
 
-    private var textSize  = Size.Empty
-    private var inputSize = Size.Empty
+    private var textSize  = Empty
+    private var inputSize = Empty
 
     val idealSize: Size? get() {
         return Size(inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0, max(inputSize.height, textSize.height))
@@ -79,6 +81,10 @@ internal class NativeCheckBoxRadioButton(
         checked   = button.selected
         tabIndex  = if (button.selected) 0 else -1
         disabled  = !button.enabled
+
+        if (button is CheckBox) {
+            indeterminate = button.indeterminate
+        }
 
         style.setPosition(Static()) // remove absolute positioning due to global style
 
@@ -106,6 +112,7 @@ internal class NativeCheckBoxRadioButton(
 
         rootEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
             registerFocusListener         ()
+            registerClickListener         ()
             startConsumingMousePressEvents()
         }
 
@@ -119,6 +126,10 @@ internal class NativeCheckBoxRadioButton(
     }
 
     private val styleChanged: (View) -> Unit = {
+        if (button is CheckBox) {
+            inputElement.indeterminate = button.indeterminate
+        }
+
         it.rerender()
     }
 
@@ -158,6 +169,7 @@ internal class NativeCheckBoxRadioButton(
         rootEventHandler.unregisterFocusListener       ()
         rootEventHandler.stopConsumingMousePressEvents ()
         inputEventHandler.unregisterFocusListener      ()
+        inputEventHandler.unregisterClickListener      ()
         inputEventHandler.stopConsumingMousePressEvents()
     }
 

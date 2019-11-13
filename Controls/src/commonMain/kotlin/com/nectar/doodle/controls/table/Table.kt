@@ -137,6 +137,7 @@ open class Table<T, M: ListModel<T>>(
     internal inner class LastColumn: InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, Unit>(TableLikeWrapper(), TableLikeBehaviorWrapper(), null, null, object: CellVisualizer<Unit> {
         override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
     }, null, null, 0.0, null) {
+        // FIXME: Can this be done by the Table Behavior?
         override val view = object: View() {
 
             init {
@@ -388,7 +389,7 @@ open class Table<T, M: ListModel<T>>(
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
+        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol?.let { it + 1 } ?: 0)
         resizingCol = null
 
         super.doLayout()

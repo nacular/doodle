@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme.basic.table
 
 import com.nectar.doodle.controls.IndexedItemVisualizer
+import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.HeaderGeometry
 import com.nectar.doodle.controls.table.MutableColumn
@@ -36,11 +37,41 @@ import com.nectar.doodle.utils.SetObserver
  * Created by Nicholas Eddy on 4/8/19.
  */
 
+private class TableListRow<T>(
+        private val column              : Column<T>,
+                    list                : ListLike,
+                    row                 : T,
+                    index               : Int,
+                    itemVisualizer      : IndexedItemVisualizer<T>,
+                    selectionColor      : Color? = green,
+                    selectionBlurredColor: Color? = selectionColor): ListRow<T>(list, row, index, itemVisualizer, selectionColor, selectionBlurredColor) {
+
+    private val alignmentChanged: (Column<*>) -> Unit = {
+        it.cellAlignment?.let { positioner = it }
+    }
+
+    init {
+        column.cellAlignment?.let { positioner = it }
+    }
+
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
+        column.alignmentChanged += alignmentChanged
+    }
+
+    override fun removedFromDisplay() {
+        super.removedFromDisplay()
+
+        column.alignmentChanged -= alignmentChanged
+    }
+}
+
 open class BasicCellGenerator<T>: CellGenerator<T> {
     override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
-        is ListRow<*> -> (current as ListRow<A>).apply { update(table, cell, row) }
-        else          -> ListRow(table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
-    }.apply { column.cellAlignment?.let { positioner = it } }
+        is ListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
+        else          -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
+    }
 }
 
 open class BasicTableBehavior<T>(
@@ -80,7 +111,7 @@ open class BasicTableBehavior<T>(
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply { column.headerAlignment?.let { positioner = it } }
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
@@ -166,8 +197,6 @@ class BasicMutableTableBehavior<T>(
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
-            column.headerAlignment?.let { positioner = it }
-
             toggled += {
                 if (table is MutableTable && column is MutableColumn<*,*>) {
                     table.sort(by = column as MutableColumn<T, *>)
