@@ -13,3 +13,7 @@ class PassThroughEncoder<T>: Encoder<T, T> {
 abstract class ToStringEncoder<T>: Encoder<T, String> {
     override fun encode(a: T) = a.toString()
 }
+
+object ToStringIntEncoder: ToStringEncoder<Int>() {
+    override fun decode(b: String) = b.toIntOrNull()
+}

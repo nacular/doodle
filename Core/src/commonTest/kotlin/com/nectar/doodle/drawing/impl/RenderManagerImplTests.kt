@@ -312,7 +312,7 @@ class RenderManagerImplTests {
     }
 
     @Test @JsName("doesNotRerenderOnSizeZeroed")
-    fun `does not rerender on size zeroed`() {
+    fun `does not re-render on size zeroed`() {
         val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
         val renderManager = renderManager(display(view))
@@ -324,7 +324,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
-    @Test
+    @Test @JsName("rendersPreExistingNestedViews")
     fun `renders pre-existing nested views`() {
         val container = container()
         val child     = spyk(view())
@@ -338,7 +338,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, child)
     }
 
-    @Test
+    @Test @JsName("rendersReAddedNestedViews")
     fun `renders re-added nested views`() {
         val container = container()
         val child     = spyk(view())

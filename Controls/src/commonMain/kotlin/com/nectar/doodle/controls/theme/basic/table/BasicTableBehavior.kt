@@ -1,5 +1,7 @@
 package com.nectar.doodle.controls.theme.basic.table
 
+import com.nectar.doodle.controls.ColorPicker
+import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.table.Column
@@ -12,9 +14,11 @@ import com.nectar.doodle.controls.table.TableBehavior.CellGenerator
 import com.nectar.doodle.controls.table.TableBehavior.HeaderCellGenerator
 import com.nectar.doodle.controls.table.TableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TableBehavior.RowPositioner
+import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.theme.basic.ListPositioner
 import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
+import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -28,8 +32,14 @@ import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.utils.Encoder
+import com.nectar.doodle.utils.HorizontalAlignment
+import com.nectar.doodle.utils.ObservableSet
+import com.nectar.doodle.utils.PassThroughEncoder
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
 
@@ -218,6 +228,123 @@ class BasicMutableTableBehavior<T>(
                     }
                 }
             }
+        }
+    }
+}
+
+open class TextEditOperation<T>(
+        private val focusManager: FocusManager?,
+        private val encoder     : Encoder<T, String>,
+        private val table       : MutableTable<*, *>,
+        row         : T,
+        private var index       : Int,
+        current     : View): TextField(), EditOperation<T> {
+
+    private val tableSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+        table.cancelEditing()
+    }
+
+    init {
+        text                = encoder.encode(row) ?: ""
+        fitText             = setOf(TextFit.Width, TextFit.Height)
+        borderVisible       = false
+        backgroundColor     = current.backgroundColor
+        horizontalAlignment = HorizontalAlignment.Left
+
+        styleChanged += { rerender() }
+
+        focusChanged += { _,_,_ ->
+            if (!hasFocus) {
+                table.cancelEditing()
+            }
+        }
+
+        keyChanged += object: KeyListener {
+            override fun keyReleased(event: KeyEvent) {
+                when (event.code) {
+                    KeyEvent.VK_RETURN -> { table.completeEditing(); focusManager?.requestFocus(table) }
+                    KeyEvent.VK_ESCAPE -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
+                }
+            }
+        }
+
+        table.selectionChanged += tableSelectionChanged
+    }
+
+    override fun addedToDisplay() {
+        focusManager?.requestFocus(this)
+        selectAll()
+    }
+
+    override fun invoke() = object: View() {
+        init {
+            children += this@TextEditOperation
+
+            layout = constrain(this@TextEditOperation) {
+                it.centerY = it.parent.centerY
+            }
+        }
+
+        override fun render(canvas: Canvas) {
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+        }
+    }
+
+    override fun complete() = encoder.decode(text)
+
+    override fun cancel() {
+        table.selectionChanged -= tableSelectionChanged
+    }
+
+    companion object {
+        operator fun invoke(focusManager: FocusManager?,
+                            table       : MutableTable<*, *>,
+                            row         : String,
+                            index       : Int,
+                            current     : View) = TextEditOperation(focusManager, PassThroughEncoder(), table, row, index, current)
+    }
+}
+
+open class ColorEditOperation<T>(
+        private val display     : Display,
+        private val focusManager: FocusManager,
+        private val table       : MutableTable<T, *>,
+        private val index       : Int,
+                    value       : Color,
+        private val colorPicker : ColorPicker): EditOperation<Color>, KeyListener {
+
+    private val listener = { _: ColorPicker, _: Color, new: Color ->
+//        table[index] = new
+    }
+
+    init {
+        colorPicker.color      = value
+        colorPicker.changed    += listener
+        colorPicker.keyChanged += this
+    }
+
+    override fun invoke(): View? = null.also {
+        display.children += colorPicker
+
+        colorPicker.position = Point((display.size.width - colorPicker.width)/ 2.0, (display.size.height - colorPicker.height)/ 2.0)
+
+        focusManager.requestFocus(colorPicker)
+    }
+
+    override fun complete() = colorPicker.color.also {
+        cancel()
+    }
+
+    override fun cancel() {
+        colorPicker.keyChanged -= this
+        colorPicker.changed    -= listener
+        display.children       -= colorPicker
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+        when (event.code) {
+            KeyEvent.VK_RETURN -> table.completeEditing()
+            KeyEvent.VK_ESCAPE -> table.cancelEditing  ()
         }
     }
 }

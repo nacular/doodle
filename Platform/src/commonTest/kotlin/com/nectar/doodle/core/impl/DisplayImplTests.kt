@@ -5,6 +5,7 @@ import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.PositionableWrapper
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.geometry.Point
@@ -128,7 +129,7 @@ class DisplayImplTests {
         val at     = Point(11.0, 13.0)
         val result = mockk<View>(relaxed = true)
         val layout = mockk<Layout>(relaxed = true).apply {
-            every { child(any(), at = at) } returns result
+            every { child(any(), at = at) } returns PositionableWrapper(result)
         }
 
         display().apply {

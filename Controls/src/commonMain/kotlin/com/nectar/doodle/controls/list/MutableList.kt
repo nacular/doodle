@@ -32,6 +32,8 @@ open class MutableList<T, M: MutableListModel<T>>(
 
     private var editOperation = null as EditOperation<T>?
 
+    operator fun set(index: Int, value: T) { model[index] = value }
+
     fun add      (value : T                         ) = model.add      (value        )
     fun add      (index : Int, values: T            ) = model.add      (index, values)
     fun remove   (value : T                         ) = model.remove   (value        )
@@ -73,6 +75,7 @@ open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
+    // FIXME: Cancel editing on selection/focus change
     fun cancelEditing() {
         cleanupEditing()?.let { update(children, it) }
     }
@@ -102,7 +105,7 @@ open class MutableList<T, M: MutableListModel<T>>(
                 scrollCache   : Int                  = 10) =
                 MutableList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
 
-        operator fun <T> invoke(
+        inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
@@ -110,7 +113,7 @@ open class MutableList<T, M: MutableListModel<T>>(
                 scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
                 MutableList(mutableListModelOf(*values.toTypedArray()), itemGenerator, selectionModel, fitContent, scrollCache)
 
-        operator fun <T> invoke(
+        inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : ItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,

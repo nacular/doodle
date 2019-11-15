@@ -102,7 +102,7 @@ class RenderManagerImpl(
             if (parent != null && (parent in neverRendered || parent in dirtyViews)) {
                 renderNow(parent)
             } else {
-                performRender(view).ifTrue {
+                performRender(view).rendered.ifTrue {
                     pendingRender -= view
                 }
             }
@@ -158,7 +158,7 @@ class RenderManagerImpl(
                 pendingRender       += view
                 pendingBoundsChange += view
 
-                if (!recursivelyVisible(view)) { //.visible) {
+                if (!recursivelyVisible(view)) {
                     addedInvisible += view
                 }
 
@@ -234,6 +234,8 @@ class RenderManagerImpl(
     private fun onPaint() {
         val start = timer.now
 
+        val newRenders = mutableListOf<View>()
+
         // This loop is here because the process of laying out, rendering etc can generate new objects that need to be
         // handled.  Therefore, the loop runs until these items are exhausted.
         // TODO: Should this loop be limited to avoid infinite spinning?  That way we could defer things that happen beyond a point to run on the next animation frame
@@ -251,9 +253,12 @@ class RenderManagerImpl(
             pendingRender.iterator().let {
                 while (it.hasNext()) {
                     val item = it.next()
+                    val renderResult = performRender(item)
 
-                    if (performRender(item) || item !in views) {
+                    if (renderResult.rendered || item !in views) {
                         it.remove()
+                    } else if (renderResult.renderable && !item.bounds.empty && item in dirtyViews) {
+                        newRenders += item
                     }
 
                     if (checkFrameTime(start)) {
@@ -278,9 +283,11 @@ class RenderManagerImpl(
                 }
             }
 
-            if (pendingLayout.isEmpty() && pendingRender.none { it !in neverRendered } && pendingBoundsChange.isEmpty()) {
+            if (pendingLayout.isEmpty() && newRenders.none { it !in neverRendered } && pendingBoundsChange.isEmpty()) {
                 break
             }
+
+            newRenders.clear()
         }
 
         paintTask = null
@@ -318,13 +325,15 @@ class RenderManagerImpl(
         return true
     }
 
-    private fun performRender(view: View): Boolean {
-        var rendered          = false
-        val visibilityChanged = view in visibilityChanged
+    data class RenderResult(val rendered: Boolean, val renderable: Boolean)
 
+    private fun performRender(view: View): RenderResult {
+        var rendered           = false
+        val visibilityChanged  = view in visibilityChanged
         val recursivelyVisible = recursivelyVisible(view)
 
-        val graphicsSurface = if ((recursivelyVisible || visibilityChanged) && display ancestorOf view) graphicsDevice[view] else null
+        val renderable      = (recursivelyVisible || visibilityChanged) && display ancestorOf view
+        val graphicsSurface = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
             if (view in pendingBoundsChange) {
@@ -363,7 +372,7 @@ class RenderManagerImpl(
             }
         }
 
-        return rendered
+        return RenderResult(rendered = rendered, renderable = renderable)
     }
 
     private fun updateGraphicsSurface(view: View, surface: GraphicsSurface) {

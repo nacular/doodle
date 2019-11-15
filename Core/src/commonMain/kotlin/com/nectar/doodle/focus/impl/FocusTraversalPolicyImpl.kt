@@ -26,7 +26,7 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
     override fun next    (display: Display, from: View?) = from?.let { first(it) ?: next    (displayView, it.parent, it) }
     override fun previous(display: Display, from: View?) = from?.let {              previous(displayView, it.parent, it) }
 
-    private val displayView = object: View() {
+    private val displayView: View = object: View() {
         override val children: ObservableList<View>
             get() = display.children
     }

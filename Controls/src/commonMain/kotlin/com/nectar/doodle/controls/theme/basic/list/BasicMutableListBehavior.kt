@@ -71,9 +71,9 @@ open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
         private val encoder     : Encoder<T, String>,
         private val list        : MutableList<T, *>,
-        row         : T,
+                    row         : T,
         private var index       : Int,
-        current     : View): TextField(), EditOperation<T> {
+                    current     : View): TextField(), EditOperation<T> {
 
     private val listSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
         list.cancelEditing()

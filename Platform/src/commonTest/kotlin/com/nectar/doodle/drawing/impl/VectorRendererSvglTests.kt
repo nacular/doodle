@@ -7,6 +7,7 @@ import com.nectar.doodle.SVGElement
 import com.nectar.doodle.SVGEllipseElement
 import com.nectar.doodle.SVGPolygonElement
 import com.nectar.doodle.SVGRectElement
+import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setCircle
@@ -22,6 +23,7 @@ import com.nectar.doodle.drawing.Color.Companion.pink
 import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
@@ -567,5 +569,9 @@ class VectorRendererSvglTests {
         verify(exactly = 0) { region.appendChild(any()) }
     }
 
-    private fun renderer(context: CanvasContext = mockk(relaxed = true), svgFactory: SvgFactory = mockk(relaxed = true)) = VectorRendererSvg(context, svgFactory)
+    private fun renderer(
+            context     : CanvasContext = mockk(relaxed = true),
+            svgFactory  : SvgFactory = mockk(relaxed = true),
+            htmleFactory: HtmlFactory = mockk(relaxed = true),
+            textMetrics : TextMetrics = mockk(relaxed = true)) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics)
 }

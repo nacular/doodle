@@ -17,7 +17,6 @@ import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
-import com.nectar.doodle.drawing.Renderer.Optimization.Quality
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
@@ -44,8 +43,7 @@ import kotlin.test.expect
 class CanvasImplTests {
     @Test fun `defaults valid`() {
         mapOf(
-                CanvasImpl::size to Size.Empty,
-                CanvasImpl::optimization to Quality
+                CanvasImpl::size to Size.Empty
         ).forEach { validateDefault(it.key, it.value) }
     }
 

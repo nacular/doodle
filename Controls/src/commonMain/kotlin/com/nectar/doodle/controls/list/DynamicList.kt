@@ -105,7 +105,7 @@ open class DynamicList<T, M: DynamicListModel<T>>(
                 scrollCache   : Int                  = 10) =
                 DynamicList(progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
 
-        operator fun <T> invoke(
+        inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemGenerator : IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,

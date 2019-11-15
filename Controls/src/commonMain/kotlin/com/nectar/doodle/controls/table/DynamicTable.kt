@@ -18,7 +18,7 @@ import com.nectar.doodle.utils.SetPool
  * Created by Nicholas Eddy on 9/29/19.
  */
 
-private class SelectionModelWrapper(private val delegate: SelectionModel<Int>): SelectionModel<Int> by delegate {
+internal class SelectionModelWrapper(private val delegate: SelectionModel<Int>): SelectionModel<Int> by delegate {
     var allowMutations = true
 
     override fun add(item: Int) = when {
@@ -88,7 +88,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             extractor      : Extractor<T, R>,
             private val firstColumn: Boolean): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
-        private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
+        protected open inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
                 model.changed += { _: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
 
@@ -119,9 +119,9 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        private val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
+        protected val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
 
-        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
+        override val view: View = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
         }, selectionModelWrapper).apply {
             acceptsThemes = false
@@ -129,7 +129,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
-                view.behavior = object: ListBehavior<R> {
+                (view as DynamicList<R, *>).behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
                             override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous) { list.selected(index) }
@@ -155,10 +155,10 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
     override val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
     companion object {
-        operator fun <T> invoke(
+        inline operator fun <reified T> invoke(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 scrollCache   : Int                  = 10,
-                block         : ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
+                noinline block: ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
     }
 }

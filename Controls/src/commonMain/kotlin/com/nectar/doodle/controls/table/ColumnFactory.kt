@@ -93,7 +93,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             cellVisualizer: CellVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sorter        : Sorter<T, S>? = null,
             builder       : ColumnBuilder.() -> Unit): MutableColumn<T, R>
 
@@ -113,7 +113,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             cellVisualizer: CellVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sortable      : Boolean = false,
             builder       : ColumnBuilder.() -> Unit): MutableColumn<T, R> = column(header, extractor, cellVisualizer, editor, if (sortable) extractor else null, builder)
 
@@ -121,7 +121,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             itemVisualizer: ItemVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sorter        : Sorter<T, S>? = null,
             builder       : ColumnBuilder.() -> Unit) = column(header, extractor, passThroughCellVisualizer(itemVisualizer), editor, sorter, builder)
 
@@ -129,7 +129,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             itemVisualizer: ItemVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sortable      : Boolean = false,
             builder       : ColumnBuilder.() -> Unit) = column(header, extractor, passThroughCellVisualizer(itemVisualizer), editor, if (sortable) extractor else null, builder)
 
@@ -137,7 +137,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             itemVisualizer: IndexedItemVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sorter        : Sorter<T, S>? = null,
             builder       : ColumnBuilder.() -> Unit) = column(header, extractor, passThroughCellVisualizer(itemVisualizer), editor, sorter, builder)
 
@@ -145,7 +145,7 @@ interface MutableColumnFactory<T> {
             header        : View?,
             extractor     : Extractor<T, R>,
             itemVisualizer: IndexedItemVisualizer<R>,
-            editor        : ((T) -> T)? = null,
+            editor        : TableEditor<T>? = null,
             sortable      : Boolean = false,
             builder       : ColumnBuilder.() -> Unit) = column(header, extractor, passThroughCellVisualizer(itemVisualizer), editor, if (sortable) extractor else null, builder)
 
