@@ -61,23 +61,4 @@ kotlin {
             implementation dep.mockk
         }
     }
-
-    dokka {
-        impliedPlatforms = ["Common"] // This will force platform tags for all non-common sources e.g. "JVM"
-        kotlinTasks {
-            // dokka fails to retrieve sources from MPP-tasks so they must be set empty to avoid exception
-            // use sourceRoot instead (see below)
-            []
-        }
-        sourceRoot {
-            // assuming there is only a single source dir...
-            path = sourceSets.commonMain.kotlin.srcDirs[0]
-            platforms = ["Common"]
-        }
-        sourceRoot {
-            // assuming there is only a single source dir...
-            path = sourceSets.jsMain.kotlin.srcDirs[0]
-            platforms = ["JS"]
-        }
-    }
 }

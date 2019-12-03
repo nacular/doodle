@@ -159,10 +159,14 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
     }
 
     override fun render(canvas: Canvas) {
-        val thickness = 1.0
-        val x         = width - thickness / 2
+        val x = width - lineThickness / 2
 
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-        canvas.line(Point(x, 0.0), Point(x, height), Pen(headerColor?.inverted ?: gray, thickness))
+        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Pen(headerColor?.inverted ?: gray, lineThickness))
+    }
+
+    companion object {
+        private const val lineIndent    = 3.0
+        private const val lineThickness = 1.0
     }
 }

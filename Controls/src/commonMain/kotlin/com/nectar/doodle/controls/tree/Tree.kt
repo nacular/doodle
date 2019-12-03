@@ -377,7 +377,7 @@ open class Tree<T, out M: TreeModel<T>>(
 //    @JvmName("addSelectionRows")
 //    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun addSelection(items: Set<Path<Int>>) {
-        selectionModel?.addAll(items)
+        selectionModel?.addAll(items.filter { visible(it) })
 
         scrollToSelection()
     }
@@ -385,7 +385,7 @@ open class Tree<T, out M: TreeModel<T>>(
 //    @JvmName("toggleSelectionRows")
 //    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun toggleSelection(items: Set<Path<Int>>) {
-        selectionModel?.toggle(items)
+        selectionModel?.toggle(items.filter { visible(it) })
 
         scrollToSelection()
     }
@@ -393,7 +393,7 @@ open class Tree<T, out M: TreeModel<T>>(
 //    @JvmName("setSelectionRows")
 //    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun setSelection(items: Set<Path<Int>>) {
-        selectionModel?.replaceAll(items)
+        selectionModel?.replaceAll(items.filter { visible(it) })
 
         scrollToSelection()
     }

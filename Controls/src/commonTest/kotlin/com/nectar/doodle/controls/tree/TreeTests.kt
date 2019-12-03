@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JsName
+import com.nectar.doodle.controls.SingleItemSelectionModel
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.utils.Path
@@ -183,6 +184,20 @@ class TreeTests {
         tree.expand(Path(0) + 0 + 1)
 
         verify { observer(tree, setOf(Path(0) + 0 + 1)) }
+    }
+
+    @Test @JsName("cannotSelectInvisible")
+    fun `cannot select invisible`() {
+        val tree = Tree(SimpleTreeModel(rootNode("root") {
+            node("child1") {
+                node("child1_1")
+            }
+            node("child2")
+        }), SingleItemSelectionModel())
+
+        tree.setSelection(setOf(Path(0) + 0))
+
+        expect(true) { tree.selection.isEmpty() }
     }
 
     private fun <T> rowGenerator(): RowGenerator<T> = mockk(relaxed = true)

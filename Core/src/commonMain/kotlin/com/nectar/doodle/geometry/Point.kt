@@ -1,10 +1,22 @@
 package com.nectar.doodle.geometry
 
 
+/**
+ * A two-dimensional position with an x and y component.
+ *
+ * @author Nicholas Eddy
+ *
+ * @property x x component
+ * @property y y component
+ *
+ * @constructor
+ * @param x x component
+ * @param y y component
+ */
 class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
-    constructor(x: Int   = 0,  y: Int   = 0 ) : this(x.toDouble(), y.toDouble())
-    constructor(x: Float = 0f, y: Float = 0f) : this(x.toDouble(), y.toDouble())
+    constructor(x: Int   = 0,  y: Int   = 0 ): this(x.toDouble(), y.toDouble())
+    constructor(x: Float = 0f, y: Float = 0f): this(x.toDouble(), y.toDouble())
 
     operator fun plus (other: Point) = Point(x + other.x, y + other.y)
     operator fun minus(other: Point) = Point(x - other.x, y - other.y)
@@ -33,6 +45,7 @@ class Point(val x: Double = 0.0, val y: Double = 0.0) {
     private val hashCode_ by lazy { arrayOf(x, y).contentHashCode() }
 
     companion object {
+        /** Point at 0,0 */
         val Origin = Point(0, 0)
     }
 }

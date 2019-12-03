@@ -100,7 +100,7 @@ expect abstract class StyleSheet
 expect inline operator fun StyleSheetList.get(index: Int): StyleSheet?
 
 expect abstract class StyleSheetList {
-    val length: Int
+    abstract val length: Int
 
     fun item(index: Int): StyleSheet?
 }

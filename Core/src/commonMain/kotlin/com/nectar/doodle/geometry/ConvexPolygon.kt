@@ -3,7 +3,12 @@ package com.nectar.doodle.geometry
 import kotlin.math.abs
 
 
+/**
+ * A [Shape] defined by a set of line segments that connect to enclose a region.
+ */
 abstract class Polygon: Shape {
+
+    /** Points representing the verticies */
     abstract val points: List<Point>
 
     override fun equals(other: Any?): Boolean {
@@ -17,6 +22,25 @@ abstract class Polygon: Shape {
 
     override fun hashCode() = points.hashCode()
 
+    /**
+     * Gives the smallest [Rectangle] that fully contains this Polygon.
+     *
+     * ```
+     * +---------------------+
+     * |     **********      |
+     * |   ************      |
+     * | **************      |
+     * |*********************|
+     * |*********************|
+     * |******************** |
+     * |*******************  |
+     * |       ************  |
+     * |        ***********  |
+     * |         **********  |
+     * +---------------------+
+     *
+     * ```
+     */
     override val boundingRectangle: Rectangle by lazy {
         val minX = points.minBy { it.x }!!.x
         val minY = points.minBy { it.y }!!.y
@@ -26,13 +50,16 @@ abstract class Polygon: Shape {
         Rectangle(Point(minX, minY), Size(maxX - minX, maxY - minY))
     }
 
-    override fun contains  (rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
+    /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
+    override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
+
+    /** @return ```true``` IFF the given rectangle intersects this Polygon */
     override fun intersects(rectangle: Rectangle): Boolean { TODO("not implemented") }
 }
 
-private data class Line(val start: Point, val end: Point)
-
 abstract class ConvexPolygon: Polygon() {
+    private data class Line(val start: Point, val end: Point)
+
     // https://en.wikipedia.org/wiki/Shoelace_formula
     override val area: Double by lazy {
         var area = 0.0         // Accumulates area in the loop

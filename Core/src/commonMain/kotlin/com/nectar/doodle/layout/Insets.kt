@@ -36,7 +36,7 @@ class Insets
 
     /**
      * Creates a Insets with equal offset from all edges.
-     * This is equivalent to calling [.create]
+     * This is equivalent to calling `Insets(all, all, all, all)`
      *
      * @param all The offset to use for top, left, bottom, and right
      * @return a Insets with equal offset from all edges

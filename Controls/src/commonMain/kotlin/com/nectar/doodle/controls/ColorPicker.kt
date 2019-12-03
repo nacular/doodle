@@ -246,12 +246,12 @@ class ColorPicker(color: Color): View() {
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val checkerBrush = PatternBrush(Size(32.0, 15.0)) {
-            val w         = 32.0 / 2
-            val h         = 15.0 / 2
-            val white     = ColorBrush(white    )
-            val lightGray = ColorBrush(lightgray)
+        private val w         = 32.0 / 2
+        private val h         = 15.0 / 2
+        private val white     = ColorBrush(Color.white)
+        private val lightGray = ColorBrush(lightgray)
 
+        private val checkerBrush = PatternBrush(Size(32, 15)) {
             rect(Rectangle(0.0, 0.0, w, h), white    )
             rect(Rectangle(0.0,   h, w, h), lightGray)
             rect(Rectangle(w,   0.0, w, h), lightGray)
@@ -316,10 +316,10 @@ class ColorPicker(color: Color): View() {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
                     val brushSize = Size(width * 2 / 3, height * 2 / 3)
-                    val checkerBrush = PatternBrush(brushSize) {
-                        val w = brushSize.width  / 2
-                        val h = brushSize.height / 2
+                    val w         = brushSize.width  / 2
+                    val h         = brushSize.height / 2
 
+                    val checkerBrush = PatternBrush(brushSize) {
                         rect(Rectangle(0.0, 0.0, w, h), ColorBrush(lightgray))
                         rect(Rectangle(0.0, h,   w, h), ColorBrush(white    ))
                         rect(Rectangle(w,   0.0, w, h), ColorBrush(white    ))
@@ -375,14 +375,14 @@ class ColorPicker(color: Color): View() {
         children += colorSquare
 
         layout = constrain(colorRect, hueStrip, opacityStrip, colorSquare) { colorRect, hueStrip, opacityStrip, colorSquare ->
-            colorRect.top    = colorRect.parent.top    + inset
-            colorRect.left   = colorRect.parent.left   + inset
-            colorRect.right  = colorRect.parent.right  - inset
-            colorRect.bottom = hueStrip.top            - inset
+            colorRect.top        = colorRect.parent.top    + inset
+            colorRect.left       = colorRect.parent.left   + inset
+            colorRect.right      = colorRect.parent.right  - inset
+            colorRect.bottom     = hueStrip.top            - inset
 
-            hueStrip.left    = hueStrip.parent.left   + inset
-            hueStrip.right   = colorSquare.left       - inset
-            hueStrip.bottom  = opacityStrip.top       - inset
+            hueStrip.left        = hueStrip.parent.left   + inset
+            hueStrip.right       = colorSquare.left       - inset
+            hueStrip.bottom      = opacityStrip.top       - inset
 
             opacityStrip.left    = hueStrip.parent.left   + inset
             opacityStrip.right   = colorSquare.left       - inset

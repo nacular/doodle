@@ -29,5 +29,5 @@ interface RenderManager {
      * @param of
      * @return the [View]'s current display rectangle (in its coordinate system) based on clipping with ancestor display rectangles.
      */
-    fun displayRect(of: View): Rectangle?
+    fun displayRect(of: View): Rectangle
 }

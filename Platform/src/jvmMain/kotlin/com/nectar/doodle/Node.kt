@@ -9,9 +9,9 @@ package com.nectar.doodle
 actual inline operator fun NodeList.get(index: Int): Node? = item(index)
 
 actual abstract class NodeList actual constructor() {
-    private val values: List<Node> = mutableListOf()
+    protected val values: List<Node> = mutableListOf()
 
-    actual open val length = values.size
+    actual abstract val length: Int
 
     actual open fun item(index: Int) = try {
         values[index]
@@ -29,7 +29,9 @@ actual abstract class Node {
     actual val nodeName         = ""
     actual val firstChild get() = childNodes.item(0)
     actual val parentNode: Node? = null
-    actual val childNodes = object: NodeList() {}
+    actual val childNodes = object: NodeList() {
+        override val length get() = values.size
+    }
     actual fun replaceChild(node: Node, child: Node) = child
 
     actual val nextSibling: Node? = null

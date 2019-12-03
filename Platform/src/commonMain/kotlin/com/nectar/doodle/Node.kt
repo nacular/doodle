@@ -7,7 +7,7 @@ package com.nectar.doodle
 expect inline operator fun NodeList.get(index: Int): Node?
 
 expect abstract class NodeList() {
-    open val length: Int
+    abstract val length: Int
 
     open fun item(index: Int): Node?
 }

@@ -16,10 +16,7 @@ class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
     override fun height(element: HTMLElement) = measure(element) { height              }
     override fun size  (element: HTMLElement) = measure(element) { Size(width, height) }
 
-    private val ruler = htmlFactory.create<HTMLElement>().apply {
-        style.willChange = "transform"
-        htmlFactory.root.insert(this, 0)
-    }
+    private val ruler = htmlFactory.root
 
     private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
         val old = element.style.willChange

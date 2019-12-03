@@ -110,9 +110,10 @@ actual class Document {
     actual fun createElement(localName: String, options: ElementCreationOptions) = object: Element() {}
     actual fun createTextNode(data: String) = Text()
     actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions) = object: Element() {}
-    actual val styleSheets = object: StyleSheetList() {}
+    actual val styleSheets = object: StyleSheetList() {
+        override val length get() = values.size
+    }
 }
-
 
 actual abstract class CharacterData   : Node()
 actual          class Text            : CharacterData()
@@ -132,9 +133,9 @@ actual abstract class StyleSheet
 actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
 actual abstract class StyleSheetList {
-    private val values: List<StyleSheet> = mutableListOf()
+    protected val values: List<StyleSheet> = mutableListOf()
 
-    actual val length = values.size
+    actual abstract val length: Int
 
     actual fun item(index: Int) = try {
         values[index]

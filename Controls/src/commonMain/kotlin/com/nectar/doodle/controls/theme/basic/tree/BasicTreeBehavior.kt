@@ -22,7 +22,7 @@ import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
-import com.nectar.doodle.drawing.stripedBrush
+import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
@@ -123,7 +123,7 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
                 iconColor            : Color  = black,
                 focusManager         : FocusManager?): this(BasicTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory), selectionColor, selectionBlurredColor, iconColor), evenRowColor, oddRowColor)
 
-    private val patternBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private val patternBrush = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(rowHeight)
 

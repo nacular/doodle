@@ -17,7 +17,7 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.drawing.stripedBrush
+import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
@@ -61,7 +61,7 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
                 selectionColor       : Color? = Color.green.lighter(),
                 selectionBlurredColor: Color? = lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
-    private val patternBrush = if (evenRowColor != null || oddRowColor != null) stripedBrush(rowHeight, evenRowColor, oddRowColor) else null
+    private val patternBrush = if (evenRowColor != null || oddRowColor != null) horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor) else null
 
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 

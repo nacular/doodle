@@ -53,10 +53,8 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
 internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) -> Unit
 
 /**
- * The smallest unit of displayable, interactive content within the framework.
- * [View]s are the visual entities used to display components for an application.
- * User input events are sent to all [View]s that are configured to receive them.
- * This allows them to response to user interaction or convey such events to
+ * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
+ * User input events are sent to all Views that are configured to receive them. This allows them to response to user interaction or convey such events to
  * other parts of an application.
  *
  * @author Nicholas Eddy
@@ -67,70 +65,153 @@ abstract class View protected constructor() {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
 
-    /** Notifies changes to [hasFocus] */
-    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    /** Left edge of [bounds] */
+    var x: Double
+        get( ) = bounds.x
+        set(x) = setBounds(x, y, width, height)
 
-    /** Whether the [View] has focus or not */
-    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
-        private set
+    /** Top edge of [bounds] */
+    var y: Double
+        get( ) = bounds.y
+        set(y) = setBounds(x, y, width, height)
 
-    /** Notifies changes to [enabled] */
-    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    /** Top-left corner of [bounds] */
+    var position: Point
+        get(        ) = bounds.position
+        set(position) = setBounds(position.x, position.y, width, height)
 
-    /** Whether this [View] is enabled */
-    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
+    /** Horizontal extent of [bounds] */
+    var width: Double
+        get(     ) = bounds.width
+        set(width) = setBounds(x, y, width, height)
 
-    /** Notifies changes to [visible] */
-    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    /** Vertical extent of [bounds] */
+    var height: Double
+        get(      ) = bounds.height
+        set(height) = setBounds(x, y, width, height)
 
-    /** Whether this [View] is visible */
-    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+    /** Width-height of [bounds]*/
+    var size: Size
+        get(    ) = bounds.size
+        set(size) = setBounds(x, y, size.width, size.height)
 
-    /** Notifies changes to [focusable] */
-    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    /** Notifies changes to [bounds]: [x], [y], [width], [height] */
+    val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl<View, Rectangle>(this) }
+
+    /**
+     * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
+     * by any applied [transform].
+     */
+    var bounds: Rectangle by object: ObservableProperty<View, Rectangle>(Empty, { this }, boundsChanged as PropertyObserversImpl) {
+        override fun afterChange(property: KProperty<*>, oldValue: Rectangle, newValue: Rectangle) {
+            boundingBox = transform(newValue).boundingRectangle
+
+            super.afterChange(property, oldValue, newValue)
+        }
+    }
+
+    // TODO: Add layoutBounds to allow for cases where Layouts should have a smaller/larger region to work with than the paint region
+    // this would allow for cases like shadows not being included in size for laying out
+
+    /** Notifies changes to [transform] */
+    val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
+
+    /**
+     * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [layout].
+     * It does affect the [boundingBox], and how the View looks when rendered.  Hit-detection is handled correctly such that the mouse
+     * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
+     * The default is [Identity]
+     */
+    open var transform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
+        override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
+            boundingBox = newValue(bounds).boundingRectangle
+
+            super.afterChange(property, oldValue, newValue)
+        }
+    }
+
+    /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
+    var boundingBox = bounds; private set
+
+    /** Size that would best display this View, or ```null``` if no preference */
+    var idealSize: Size? = null
+        get() = layout?.idealSize(positionableWrapper, field) ?: field
+
+    /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
+    var minimumSize = Size.Empty
+        get() = layout?.idealSize(positionableWrapper, field) ?: field
+
+    /**
+     * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,
+     * but **NOT** cousins (siblings, anywhere in the hierarchy)
+     */
+    val displayRect get() = renderManager?.displayRect(this) ?: Empty
 
     /** Notifies changes to [zOrder] */
     internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl<View, Int>(this) }
 
-    /** The rendering order of this [View] */
+    /** Rendering order of this View within it's [parent], or [Display] if top-level.  The default is ```0```. */
     var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
 
-    /** Whether this [View] is focusable */
+    /** Notifies changes to [visible] */
+    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Whether this View is visible.  The default is ```true```. */
+    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+
+    /** Notifies changes to [enabled] */
+    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Whether this View is enabled  The default is ```true```.  */
+    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
+
+    /** Notifies changes to [focusable] */
+    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Whether this View is focusable  The default is ```true```.  */
     open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
-    /** The size that would best display this [View], or null if no preference */
-    var idealSize: Size? = null
-        get() = layout?.idealSize(positionableWrapper, field) ?: field
+    /** Notifies changes to [hasFocus] */
+    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** The minimum size preferred by the [View] */
-    var minimumSize: Size = Size.Empty
-        get() = layout?.idealSize(positionableWrapper, field) ?: field
+    /** Whether the View has focus or not  The default is ```false```.  */
+    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
+        private set
 
     /**
-     * The current visible [Rectangle] for this [View] within it's coordinate space.  This accounts for clipping by ancestors,
-     * but NOT cousins (siblings, anywhere in the hierarchy)
+     * View that contains this one as a child, or ```null```.  A top-level Views will also return ```null```.  But they will also have
+     * [displayed] ```== true```; so parent alone isn't sufficient to determine whether a View is in the display heirarchy.
      */
-    val displayRect get() = renderManager?.displayRect(this) ?: Empty
+    var parent: View? = null
+        // [Performance]
+        // No check to prevent setting self as parent since View is the only place where this method is called from and it already
+        // prevents this by preventing a View from being added to itself.
+        private set(new) {
+            if (field === new) {
+                return
+            }
 
-    /** The current text to display for tool-tips. */
+            field?.children?.remove(this)
+
+            val old = field
+            field   = new
+
+            (parentChange as PropertyObserversImpl)(old, new)
+        }
+
+    /** Notifies changes to [parent] */
+    val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
+
+    /** Notifies changes to [displayed] */
+    val displayChange: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    /** Is ```true``` if the View is currently within the [Display] */
+    val displayed get() = renderManager != null
+
+    /** The current text to display for tool-tips.  The default is the empty string.  */
     var toolTipText = ""
 
-    val mouseFilter  by lazy { SetPool<MouseListener>() }
-    val mouseChanged by lazy { SetPool<MouseListener>() }
-
-    val keyChanged by lazy { SetPool<KeyListener>() }
-
-
-    val mouseMotionFilter  by lazy { SetPool<MouseMotionListener>() }
-    val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
-
-    val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
-
-
-    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
-
-    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
-
+    /** Cursor that is displayed whenever the mouse is over this View. */
     var cursor: Cursor? = null
         get() = field ?: parent?.cursor
         set(new) {
@@ -145,73 +226,46 @@ abstract class View protected constructor() {
             (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
         }
 
+    /** Notifies changes to [cursor] */
     val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl<View, Cursor?>(this) }
 
-    var font: Font? = null
-        set(new) { field = new; styleChanged() }
+    /** Optional font that the View could use for rendering */
+    var font: Font? = null; set(new) { field = new; styleChanged() }
 
-    var foregroundColor: Color? = null
-        set(new) { field = new; styleChanged() }
+    /** Optional color that the View could use for its foreground (i.e. text) */
+    var foregroundColor: Color? = null; set(new) { field = new; styleChanged() }
 
-    var backgroundColor: Color? = null
-        set(new) { field = new; styleChanged() }
+    /** Optional color that the View could use for its background */
+    var backgroundColor: Color? = null; set(new) { field = new; styleChanged() }
 
+    /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
+
+    /** Determines whether the View will be affected by [Theme][com.nectar.doodle.theme.Theme]s set in [ThemeManager][com.nectar.doodle.theme.ThemeManager].  Defaults to ```true``` */
+    var acceptsThemes = true
+
+    val mouseFilter  by lazy { SetPool<MouseListener>() }
+    val mouseChanged by lazy { SetPool<MouseListener>() }
+
+    val keyChanged by lazy { SetPool<KeyListener>() }
+
+    val mouseMotionFilter  by lazy { SetPool<MouseMotionListener>() }
+    val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
+
+    val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
+
+    /** Recognizer used to determine whether a [MouseEvent] should result in a [DragOperation] */
+    var dragRecognizer = null as DragRecognizer?
+
+    /** Receiver that determines what drop operations are supported by the View */
+    var dropReceiver = null as DropReceiver?
+
+    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+
+    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
     @JsName("fireStyleChanged")
     protected fun styleChanged() = (styleChanged as ChangeObserversImpl)()
-
-    var x: Double
-        get( ) = bounds.x
-        set(x) = setBounds(x, y, width, height)
-
-    var y: Double
-        get( ) = bounds.y
-        set(y) = setBounds(x, y, width, height)
-
-    var position: Point
-        get(        ) = bounds.position
-        set(position) = setBounds(position.x, position.y, width, height)
-
-    var width: Double
-        get(     ) = bounds.width
-        set(width) = setBounds(x, y, width, height)
-
-    var height: Double
-        get(      ) = bounds.height
-        set(height) = setBounds(x, y, width, height)
-
-    var size: Size
-        get(    ) = bounds.size
-        set(size) = setBounds(x, y, size.width, size.height)
-
-    val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl<View, Rectangle>(this) }
-
-    var bounds: Rectangle by object: ObservableProperty<View, Rectangle>(Empty, { this }, boundsChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: Rectangle, newValue: Rectangle) {
-            boundingBox = transform(newValue).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
-    }
-
-    // TODO: Add layoutBounds to allow for cases where Layouts should have a smaller/larger region to work with than the paint region
-    // this would allow for cases like shadows not being included in size for laying out
-
-    val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
-
-    open var transform: AffineTransform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
-            boundingBox = newValue(bounds).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
-    }
-
-    var boundingBox = bounds
-        private set
-
-    var acceptsThemes = true
 
     fun mostRecentAncestor(filter: (View) -> Boolean): View? {
         var result = parent
@@ -231,7 +285,7 @@ abstract class View protected constructor() {
 
     internal val layout_ get() = layout
 
-    /** The [Layout] managing the position of this View's children */
+    /** Layout responsible for positioning of this View's children */
     protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
         // TODO: Have RenderManager manage the layout?
         relayout()
@@ -267,10 +321,10 @@ abstract class View protected constructor() {
     internal infix fun ancestorOf_(view: View) = this ancestorOf view
 
     /**
-     * Tells whether this [View] is an ancestor of the [View].
+     * Tells whether this View is an ancestor of the given View.
      *
      * @param view The View
-     * @return ```true``` if the View is a descendant of the View
+     * @return ```true``` if the given View is a descendant of this one
      */
     protected open infix fun ancestorOf(view: View): Boolean {
         if (children.isNotEmpty()) {
@@ -307,36 +361,6 @@ abstract class View protected constructor() {
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
-    // [Performance]
-    // No check to prevent setting self as parent since View is the only place where this method is called from and it already
-    // prevents this by preventing a View from being added to itself.
-    var parent: View? = null
-        private set(new) {
-            if (field === new) {
-                return
-            }
-
-            field?.children?.remove(this)
-
-            val old = field
-            field   = new
-
-            (parentChange as PropertyObserversImpl)(old, new)
-        }
-
-    val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
-
-    val displayChange: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
-
-    /** Is ```true``` if the [View] is currently within the [Display] */
-    val displayed get() = renderManager != null
-
-    /** Recognizer used to determine whether a [MouseEvent] should result in a [DragOperation] */
-    var dragRecognizer = null as DragRecognizer?
-
-    /** Receiver that determines what drop operations are supported by the View */
-    var dropReceiver = null as DropReceiver?
-
     private var renderManager: RenderManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
@@ -351,15 +375,15 @@ abstract class View protected constructor() {
     }
 
     /**
-     * Tells whether this [View] contains the given child.
+     * Tells whether this View is child's parent.  Unlike [ancestorOf], this checks only a parent-child relationship.
      *
-     * @param child The View
-     * @return true if the View is a child of the View
+     * @param child The View being tested
+     * @return ```true``` IFF the View is a child of the View
      */
     protected operator fun contains(child: View) = child.parent == this
 
     /**
-     * Causes [View] to layout its children if it has a Layout installed.
+     * Prompts the View to layout its children if it has a Layout installed.
      */
     protected open fun relayout() = renderManager?.layout(this)
 
@@ -367,10 +391,10 @@ abstract class View protected constructor() {
     protected open fun doLayout() = layout?.layout(positionableWrapper)
 
     /**
-     * Gets the [View] at the given point.
+     * Gets the View at the given point.
      *
-     * @param at The point
-     * @return The child (null if no child contains the given point)
+     * @param at The point being tested
+     * @return The child (```null``` if no child contains the given point)
      */
     protected open fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? PositionableWrapper?)?.view ?: {
         var result    = null as View?
@@ -389,31 +413,24 @@ abstract class View protected constructor() {
     internal fun child_(at: Point) = child(at)
 
     /**
-     * Gives the [View] an opportunity to render itself to the given Canvas.
+     * Gives the View an opportunity to render itself to the given Canvas.
      *
      * @param canvas The canvas upon which drawing will be done
      */
     open fun render(canvas: Canvas) {}
 
     /**
-     * A way of prompting a [View] to redraw itself. This results
-     * in a render request to the rendering subsystem that will
-     * result in a call to [View.render] if needed
-     * repainting.
+     * Request the rendering subsystem to trigger a [render] call if needed.
      */
     fun rerender() = renderManager?.render(this)
 
     /**
-     * A way of prompting a [View] to redraw itself immediately. This results in
-     * a render request to the rendering subsystem that will result in a call to
-     * [View.render] with no delay. Only use this method for time-sensitive
-     * drawing as is the case for animations.
+     * Request the rendering subsystem to trigger a [render] call with no delay. Only use this method for time-sensitive drawing as is the case for animations.
      */
     fun rerenderNow() = renderManager?.renderNow(this) // TODO: Remove?
 
     /**
-     * Gets the tool-tip text based on the given mouse event. Override this method to provide
-     * multiple tool-tip text values for a single [View].
+     * Gets the tool-tip text based on the given [MouseEvent].  Override this method to provide multiple tool-tip text values for a single View.
      *
      * @param for The mouse event to generate a tool-tip for
      * @return The text
@@ -421,10 +438,10 @@ abstract class View protected constructor() {
     open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
 
     /**
-     * Checks whether a point is within the boundaries of a [View]. Returns true if the point is within the [View]'s bounding rectangle.
+     * Checks whether a point is within the boundaries of a View.
      *
      * @param point The point to check
-     * @return true if the point falls within the View
+     * @return ```true``` IFF the point falls within the View
      */
     open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false
 
@@ -464,7 +481,7 @@ abstract class View protected constructor() {
     internal fun handleDisplayRectEvent_(old: Rectangle, new: Rectangle) = handleDisplayRectEvent(old, new)
 
     /**
-     * This is an event invoked on a [View] in response to a change in the display rectangle.
+     * This is an event invoked on a View in response to a change in the display rectangle.
      *
      * @param old the old display rectangle
      * @param new the new display rectangle
@@ -475,7 +492,7 @@ abstract class View protected constructor() {
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 
     /**
-     * This is an event invoked on a [View] in response to a key event triggered in the subsystem.
+     * This is an event invoked on a View in response to a key event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -490,7 +507,7 @@ abstract class View protected constructor() {
     internal fun filterMouseEvent_(event: MouseEvent) = filterMouseEvent(event)
 
     /**
-     * This is an event invoked on a [View] during the filter phase of a mouse event.
+     * This is an event invoked on a View during the filter phase of a mouse event.
      *
      * @param event The event
      */
@@ -507,7 +524,7 @@ abstract class View protected constructor() {
     internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
 
     /**
-     * This is an event invoked on a [View] in response to a mouse event triggered in the subsystem.
+     * This is an event invoked on a View in response to a mouse event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -524,7 +541,7 @@ abstract class View protected constructor() {
     internal fun filterMouseMotionEvent_(event: MouseEvent) = filterMouseMotionEvent(event)
 
     /**
-     * This is an event invoked on a [View] during the filter phase of a mouse-motion event.
+     * This is an event invoked on a View during the filter phase of a mouse-motion event.
      *
      * @param event The event
      */
@@ -539,7 +556,7 @@ abstract class View protected constructor() {
     internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
 
     /**
-     * This is an event invoked on a [View] in response to a mouse-motion event triggered in the subsystem.
+     * This is an event invoked on a View in response to a mouse-motion event triggered in the subsystem.
      *
      * @param event The event
      */
@@ -554,35 +571,38 @@ abstract class View protected constructor() {
     internal fun handleMouseScrollEvent_(event: MouseScrollEvent) = handleMouseScrollEvent(event)
 
     /**
-     * This is an event invoked on a [View] in response to a mouse scroll event triggered in the subsystem.
+     * This is an event invoked on a View in response to a mouse scroll event triggered in the subsystem.
      *
      * @param event The event
      */
     protected open fun handleMouseScrollEvent(event: MouseScrollEvent) {}
 
     /**
-     * This is invoked on a [View] in response to a focus event triggered in the subsystem.
+     * This is invoked on a View in response to a focus event triggered in the subsystem.
      *
-     * @param previous The previous [View]--if any--that had focus
+     * @param previous The previous View--if any--that had focus
      */
     internal fun focusGained(@Suppress("UNUSED_PARAMETER") previous: View?) {
         hasFocus = true
     }
 
     /**
-     * This is invoked on a [View] in response to a focus event triggered in the subsystem.
+     * This is invoked on a View in response to a focus event triggered in the subsystem.
      *
-     * @param new The new [View]--if any--that will have focus
+     * @param new The new View--if any--that will have focus
      */
     internal fun focusLost(@Suppress("UNUSED_PARAMETER") new: View?) {
         hasFocus = false
     }
 
+    /**
+     * This method is invoked by the render system when the View is first added to the [Display] hierarchy.  This happens when the View itself--
+     * or one of it's ancestors--is added to the [Display].
+     */
     protected open fun addedToDisplay() {}
 
     /**
-     * This method is invoked by the Render system when the [View] is first added
-     * to the [Display] hierarchy.  This happens when the [View] itself--
+     * This method is invoked by the render system when the View is first added to the [Display] hierarchy.  This happens when the View itself--
      * or one of it's ancestors--is added to the [Display].
      *
      * @param renderManager The RenderManager that will handle all renders for the view
@@ -594,11 +614,14 @@ abstract class View protected constructor() {
         (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
     }
 
+    /**
+     * This method is invoked by the Render system when the View is no longer included in the [Display] hierarchy.  This happens when the View itself--
+     * or one of it's ancestors--is removed from the [Display].
+     */
     protected open fun removedFromDisplay() {}
 
     /**
-     * This method is invoked by the Render system when the [View] is no longer
-     * included in the [Display] hierarchy.  This happens when the [View] itself--
+     * This method is invoked by the Render system when the View is no longer included in the [Display] hierarchy.  This happens when the View itself--
      * or one of it's ancestors--is removed from the [Display].
      */
     internal fun removedFromDisplay_() {

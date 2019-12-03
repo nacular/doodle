@@ -138,7 +138,7 @@ class RectangleTests {
                 (10 by 10).at(-10.0, 10.0) to ( 10 by  10).at(-10.0, 10.0) to true,
                 (10 by 10).at(-10.0, 10.0) to ( 10 by  11).at(-10.0, 10.0) to true,
                 (10 by 10)                 to ( 10 by  10).at(x = -10.0  ) to false,
-                (10 by 10)                 to ( 10 by  10).at(x = -0.001 ) to true
+                (10 by 10)                 to ( 10 by  10).at(x = - 0.001) to true
         ).forEach {
             validateIntersects(it.first.first, it.first.second, it.second)
         }
@@ -148,6 +148,7 @@ class RectangleTests {
     fun intersect() {
         listOf(
                 Empty                      to Empty                        to Empty,
+                (10 by 10).at( 11.0, 11.0) to ( 10 by  10)                 to Empty,
                 10 by 5                    to (  1 by   1)                 to ( 1     by  1),
                 (10 by 10).at( 10.0, 10.0) to (100 by 100)                 to (10     by 10).at( 10.0, 10.0),
                 (10 by 10).at( 10.0, 10.0) to ( 10 by  11).at( 10.0, 10.0) to (10     by 10).at( 10.0, 10.0),

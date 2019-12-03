@@ -25,7 +25,7 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.stripedBrush
+import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
@@ -90,7 +90,7 @@ open class BasicTreeTableBehavior<T>(
         }
     }
 
-    private val canvasBrush = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private val canvasBrush = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
 
     private val movingColumns = mutableSetOf<Column<*>>()
 

@@ -240,7 +240,6 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
 }
 
 private fun Double.toUByte() = toInt().toUByte()
-private fun UByte.toFloat () = toInt().toFloat()
 
 private fun UInt.toHex(): String {
 

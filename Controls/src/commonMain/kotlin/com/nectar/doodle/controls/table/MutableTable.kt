@@ -55,7 +55,7 @@ class MutableTable<T, M: MutableListModel<T>>(
             override fun edit(list: MutableList<R, *>, row: R, index: Int, current: View) = editor(this@MutableTable, model[index]!!, this@MutableInternalListColumn, index, current).let {
                 object: EditOperation<R> {
                     override fun invoke  () = it.invoke()
-                    override fun complete() = it.complete()?.also { model[index] = it }?.let(extractor)
+                    override fun complete() = it.complete()?.also { model[index] = it; editingColumn = null }?.let(extractor)
                     override fun cancel  () = it.cancel()
                 }
             }

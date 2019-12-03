@@ -26,7 +26,7 @@ import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.stripedBrush
+import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
@@ -105,7 +105,7 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private  val patternBrush  = stripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private  val patternBrush  = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
     private  val movingColumns = mutableSetOf<Column<*>>()
     override val cellGenerator = BasicCellGenerator<T>()
 
@@ -317,6 +317,10 @@ open class ColorEditOperation<T>(
 //        table[index] = new
     }
 
+    private val focusChanged = { _: View, _: Boolean, new: Boolean ->
+        table.cancelEditing()
+    }
+
     init {
         colorPicker.color      = value
         colorPicker.changed    += listener
@@ -329,6 +333,8 @@ open class ColorEditOperation<T>(
         colorPicker.position = Point((display.size.width - colorPicker.width)/ 2.0, (display.size.height - colorPicker.height)/ 2.0)
 
         focusManager.requestFocus(colorPicker)
+
+        colorPicker.focusChanged += focusChanged
     }
 
     override fun complete() = colorPicker.color.also {
@@ -336,9 +342,10 @@ open class ColorEditOperation<T>(
     }
 
     override fun cancel() {
-        colorPicker.keyChanged -= this
-        colorPicker.changed    -= listener
-        display.children       -= colorPicker
+        colorPicker.keyChanged   -= this
+        colorPicker.changed      -= listener
+        display.children         -= colorPicker
+        colorPicker.focusChanged -= focusChanged
     }
 
     override fun keyPressed(event: KeyEvent) {
