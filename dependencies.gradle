@@ -17,7 +17,7 @@ ext {
             kotlin_reflect                : "org.jetbrains.kotlin:kotlin-reflect",
             kotlin_test_common            : "org.jetbrains.kotlin:kotlin-test-common",
             kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common",
-            mockk_common                  :  "io.mockk:mockk-common:$mockk",
+            mockk_common                  : "io.mockk:mockk-common:$mockk",
 
             // JS
             kotlin_test_js      : "org.jetbrains.kotlin:kotlin-test-js",

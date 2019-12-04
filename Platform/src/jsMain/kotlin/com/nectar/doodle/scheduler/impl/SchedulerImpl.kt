@@ -78,7 +78,6 @@ internal class SchedulerImpl(private val timer: Timer): Scheduler {
         }
     }
 
-    // TODO: Separate animation scheduler into different interface
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
 }
@@ -86,10 +85,6 @@ internal class SchedulerImpl(private val timer: Timer): Scheduler {
 internal class AnimationSchedulerImpl: AnimationScheduler {
     override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(job)
 }
-
-
-// TODO: Move to a better location
-private val frameDuration = 1000 * milliseconds / 60
 
 private open class DistributedAnimationTask(private val scheduler: AnimationScheduler, private val timer: Timer, private val jobs: Iterator<() -> Unit>): Task {
 
@@ -123,6 +118,10 @@ private open class DistributedAnimationTask(private val scheduler: AnimationSche
 
             if (frameExpired(start)) { scheduleJob(); return }
         }
+    }
+
+    companion object {
+        private val frameDuration = 1000 * milliseconds / 60
     }
 }
 

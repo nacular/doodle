@@ -49,12 +49,6 @@ abstract class Polygon: Shape {
 
         Rectangle(Point(minX, minY), Size(maxX - minX, maxY - minY))
     }
-
-    /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
-    override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
-
-    /** @return ```true``` IFF the given rectangle intersects this Polygon */
-    override fun intersects(rectangle: Rectangle): Boolean { TODO("not implemented") }
 }
 
 abstract class ConvexPolygon: Polygon() {
@@ -103,6 +97,11 @@ abstract class ConvexPolygon: Polygon() {
 
         return result == 0
     }
+
+    /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
+    override fun contains(rectangle: Rectangle) = rectangle.points.all { contains(it) }
+
+    override fun intersects(rectangle: Rectangle): Boolean = TODO("not implemented")
 
     private fun isLeft(line: Line, point: Point): Int = ((line.end.x - line.start.x) * (point.y - line.start.y) - (point.x - line.start.x) * (line.end.y - line.start.y)).toInt()
 

@@ -199,6 +199,9 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      */
     override operator fun contains(point: Point) = area > 0 && point.x in x..x + width && point.y in y..y + height
 
+    /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
+    override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
+
     /**
      * Checks whether the given rectangle intersects this one
      *

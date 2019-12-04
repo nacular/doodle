@@ -6,16 +6,16 @@ import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
-import kotlin.browser.window
+import org.w3c.performance.Performance
 import kotlin.js.Date
 
 /**
  * Created by Nicholas Eddy on 10/19/17.
  */
 class SystemClock: Clock {
-    override val epoch: Measure<Time> get() = Date().getTime() * milliseconds
+    override val epoch: Measure<Time> get() = Date.now() * milliseconds
 }
 
-class PerformanceTimer: Timer {
-    override val now get() = window.performance.now() * milliseconds // TODO: What if performance api not available?
+class PerformanceTimer(private val performance: Performance?): Timer {
+    override val now get() = (performance?.now() ?: Date.now()) * milliseconds
 }

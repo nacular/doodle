@@ -2,6 +2,7 @@ package com.nectar.doodle.geometry
 
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import kotlin.math.PI
+import kotlin.math.pow
 
 
 open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double): Shape {
@@ -19,11 +20,11 @@ open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double):
 
     override val empty get() = area == 0.0
 
-    override fun contains(point: Point) = false // TODO: IMPLEMENT
+    override fun contains(point: Point) = (point.x - center.x).pow(2) / xRadius.pow(2) + (point.y - center.y) / yRadius.pow(2) <= 1
 
-    override fun contains(rectangle: Rectangle) = false // TODO: IMPLEMENT
+    override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
 
-    override fun intersects(rectangle: Rectangle) = false // TODO: IMPLEMENT
+    override fun intersects(rectangle: Rectangle): Boolean = TODO("not implemented")
 
     companion object {
         val Unit  = Ellipse(1.0, 1.0)

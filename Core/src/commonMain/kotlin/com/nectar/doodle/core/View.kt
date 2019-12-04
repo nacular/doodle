@@ -111,7 +111,7 @@ abstract class View protected constructor() {
     }
 
     // TODO: Add layoutBounds to allow for cases where Layouts should have a smaller/larger region to work with than the paint region
-    // this would allow for cases like shadows not being included in size for laying out
+    //  this would allow for cases like shadows not being included in size for laying out
 
     /** Notifies changes to [transform] */
     val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }

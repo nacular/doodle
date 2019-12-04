@@ -75,16 +75,16 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
     protected var injector = Kodein.direct {
         bind<Window>                   () with instance  ( window )
 
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                      ) }
-        bind<Timer>                    () with singleton { PerformanceTimer          (                                                                ) }
+        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                              ) }
         bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
         bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl(instance()) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl(instance(), instance(), instance(), instance()) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance()                  ) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                      ) }
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                      ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
@@ -94,8 +94,7 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
         modules.forEach {
             import(it, allowOverride = true)
         }
-    }
-        private set
+    }; private set
 
     init {
         injector.instance<SystemStyler> ()
@@ -163,5 +162,17 @@ class Modules {
 
             bind<DragManager>() with singleton { DragManagerImpl (instance(), instance(), instance(), instance(), instance()) }
         }
+    }
+}
+
+class SimpleApplication(root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet(), private val run: (Display) -> Unit): Application(root, allowDefaultDarkMode, modules) {
+    private val block = run
+
+    override fun run(display: Display) {
+        block(display)
+    }
+
+    override fun onShutdown() {
+        // NO-OP
     }
 }
