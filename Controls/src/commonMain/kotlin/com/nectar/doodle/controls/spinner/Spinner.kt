@@ -21,17 +21,10 @@ interface MutableModel<T>: Model<T> {
     override var value: T
 }
 
-open class Spinner<T, M: Model<T>>(model: M): View() {
+open class Spinner<T, M: Model<T>>(val model: M): View() {
 
     fun next    () = model.next()
     fun previous() = model.previous()
-
-    var model = model
-        set(new) {
-            field.changed -= modelChanged
-            field = new
-            field.changed += modelChanged
-        }
 
     open val value       get() = model.value
          val hasNext     get() = model.hasNext

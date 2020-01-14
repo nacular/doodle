@@ -25,9 +25,9 @@ abstract class AbstractTextButtonBehavior<T: Button>(
         private val defaultFont: Font?  = null,
         private val insets     : Insets = Insets.None): AbstractButtonBehavior<T>() {
 
-    protected fun textPosition(button: Button, icon: Icon<Button>? = null, bounds: Rectangle = button.bounds): Point {
+    protected fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
         var minX       = insets.left
-        val stringSize = textMetrics.size(button.text, font(button))
+        val stringSize = textMetrics.size(text, font(button))
         var maxX       = bounds.width - stringSize.width - insets.right
 
         icon?.let {
@@ -49,10 +49,10 @@ abstract class AbstractTextButtonBehavior<T: Button>(
             Top    -> insets.top
         }
 
-        return Point(x, y)
+        return Point(x, y) + bounds.position
     }
 
-    protected fun iconPosition(button: Button, icon: Icon<Button>, stringPosition: Point = textPosition(button, icon), bounds: Rectangle = button.bounds): Point {
+    protected fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds): Point {
         val y = when (button.verticalAlignment) {
             Bottom -> bounds.height - insets.bottom
             Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.height) / 2))
@@ -61,7 +61,7 @@ abstract class AbstractTextButtonBehavior<T: Button>(
 
         val minX        = insets.left
         val maxX        = bounds.width - icon.width - insets.right
-        val stringWidth = textMetrics.width(button.text, font(button))
+        val stringWidth = textMetrics.width(text, font(button))
 
         val x = when (button.iconAnchor) {
             Anchor.Leading ->
@@ -87,7 +87,7 @@ abstract class AbstractTextButtonBehavior<T: Button>(
             else -> insets.left
         }
 
-        return Point(x, y)
+        return Point(x, y) + bounds.position
     }
 
     protected fun font(button: Button) = button.font ?: defaultFont

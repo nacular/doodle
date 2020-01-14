@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.None
 import com.nectar.doodle.dom.add
@@ -27,6 +28,8 @@ import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.observable
 import kotlin.math.max
 
+// TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
+private fun canvasElement(view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
 
 class RealGraphicsSurface private constructor(
         private val htmlFactory        : HtmlFactory,
@@ -36,8 +39,9 @@ class RealGraphicsSurface private constructor(
                     canvasElement      : HTMLElement,
                     addToRootIfNoParent: Boolean): GraphicsSurface {
 
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory,canvasFactory, null, false, element, false)
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, isContainer: Boolean = false): this(htmlFactory, canvasFactory, parent, isContainer, htmlFactory.create(), true)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement = htmlFactory.create()): this(htmlFactory,canvasFactory, null, false, element, false)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false): this(
+            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), true)
 
     override var visible = true
         set(new) {

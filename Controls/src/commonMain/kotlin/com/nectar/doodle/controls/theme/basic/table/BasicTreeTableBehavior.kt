@@ -146,7 +146,7 @@ open class BasicTreeTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.with(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.opacity(0.2f)))
         }
     }
 

@@ -18,10 +18,6 @@ import com.nectar.doodle.image.Image
  * @param size Size to draw the image when repeating
  * @param opacity The opacity to draw the image with when repeating
  */
-class ImageBrush(
-        val image  : Image,
-        val size   : Size = image.size,
-        val opacity: Float = 1f): Brush() {
-
+class ImageBrush(val image: Image, val size: Size = image.size, val opacity: Float = 1f): Brush() {
     override val visible = opacity > 0 && !size.empty && !image.size.empty
 }

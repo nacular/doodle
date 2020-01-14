@@ -32,7 +32,13 @@ open class MutableList<T, M: MutableListModel<T>>(
 
     private var editOperation = null as EditOperation<T>?
 
-    operator fun set(index: Int, value: T) { model[index] = value }
+    operator fun set(index: Int, value: T) {
+        if (value == model.set(index, value)) {
+            // This is the case that the "new" value is the same as what was there
+            // so need to explicitly update since the model won't fire a change
+            update(children, index)
+        }
+    }
 
     fun add      (value : T                         ) = model.add      (value        )
     fun add      (index : Int, values: T            ) = model.add      (index, values)
@@ -66,11 +72,7 @@ open class MutableList<T, M: MutableListModel<T>>(
 
                 cleanupEditing()
 
-                if (result == model.set(index, result)) {
-                    // This is the case that the "new" value is the same as what was there
-                    // so need to explicitly update since the model won't fire a change
-                    update(children, index)
-                }
+                this[index] = result
             }
         }
     }

@@ -7,6 +7,7 @@ import com.nectar.doodle.datatransport.DataBundle
 import com.nectar.doodle.datatransport.MimeType
 import com.nectar.doodle.datatransport.PlainText
 import com.nectar.doodle.datatransport.UriList
+import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action
 import com.nectar.doodle.datatransport.dragdrop.DropEvent
@@ -33,15 +34,13 @@ import kotlin.math.abs
 import org.w3c.dom.events.MouseEvent as DomMouseEvent
 
 
-interface DragManager
-
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
                       private val viewFinder       : ViewFinder,
                       private val scheduler        : Scheduler,
                       private val mouseInputService: MouseInputService,
                       private val graphicsDevice   : GraphicsDevice<RealGraphicsSurface>,
-                      private val htmlFactory      : HtmlFactory): DragManager {
+                                  htmlFactory      : HtmlFactory): DragManager {
     private val isIE                 = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var mouseDown            = null as MouseEvent?
     private var rootElement          = htmlFactory.root
@@ -116,6 +115,11 @@ internal class DragManagerImpl(
                 event.stopPropagation()
             }
         }
+    }
+
+    override fun shutdown() {
+        rootElement.ondragover = null
+        rootElement.ondrop     = null
     }
 
     private fun mouseEvent(event: SystemMouseEvent, view: View) = MouseEvent(

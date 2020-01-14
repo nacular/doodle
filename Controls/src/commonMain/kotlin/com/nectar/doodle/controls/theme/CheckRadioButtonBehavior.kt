@@ -37,9 +37,9 @@ open class CheckRadioButtonBehavior protected constructor(
         val icon      = icon(view)
         val textColor = if (view.enabled) black else Color(0xccccccu)
 
-        canvas.text(view.text, font(view), textPosition(view, icon), ColorBrush(textColor))
+        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorBrush(textColor))
 
-        icon?.render(view, canvas, iconPosition(view, this.icon))
+        icon?.render(view, canvas, iconPosition(view, icon = this.icon))
     }
 
     override fun install(view: ToggleButton) {

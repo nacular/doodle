@@ -4,9 +4,8 @@ import com.nectar.doodle.controls.theme.SplitPanelBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.layout.Constraints
-import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.layout.fill
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.Orientation
@@ -15,8 +14,7 @@ import com.nectar.doodle.utils.Orientation.Vertical
 
 class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
-    var behavior: SplitPanelBehavior? = null
-        set(new) {
+    var behavior: SplitPanelBehavior? = null; set(new) {
 
             divider?.let { children -= it }
 
@@ -43,8 +41,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
             }
         }
 
-    var firstItem: View? = null
-        set(new) {
+    var firstItem: View? = null; set(new) {
             if (new == field) { return }
 
             field?.let { children -= it }
@@ -56,24 +53,21 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
             fireChanged()
         }
 
-    var lastItem: View? = null
-        set(new) {
-            if (new == field) { return }
+    var lastItem: View? = null; set(new) {
+        if (new == field) { return }
 
-            field?.let { children -= it }
+        field?.let { children -= it }
 
-            field  = new
+        field  = new
 
-            field?.let { children += it }
+        field?.let { children += it }
 
-            fireChanged()
-        }
+        fireChanged()
+    }
 
-    var orientation = orientation
-        set(new) { if (new != field) { field = new; fireChanged() } }
+    var orientation = orientation; set(new) { if (new != field) { field = new; fireChanged() } }
 
-    var ratio = ratio
-        set(new) { if (new != field) { field = new; relayout(); changed_() } }
+    var ratio = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
     private var divider      = null as View?
     private var panelSpacing = 0.0
@@ -94,7 +88,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
-
     override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     private fun fireChanged() {
@@ -108,21 +101,12 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         val last    = lastItem
         val divider = divider
 
-        // TODO: Handle Orientation
-        val fill: (Constraints, Insets) -> Unit = { view, insets ->
-            view.top    = view.parent.top    + { insets.top    }
-            view.left   = view.parent.left   + { insets.left   }
-            view.bottom = view.parent.bottom + { insets.bottom }
-            view.right  = view.parent.right  + { insets.right  }
-        }
-
         val layout = when {
             first != null && last != null -> {
                 constrain(first, last) { first, last ->
                     first.top    = first.parent.top    + { insets.top    }
                     first.left   = first.parent.left   + { insets.left   }
                     first.bottom = first.parent.bottom - { insets.bottom }
-//                    first.width  = (first.parent.width - panelSpacing - insets.left - insets.right) * ratio
                     first.right  = first.left + (first.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
                     last.top     = first.top
                     last.left    = first.right + { panelSpacing }
@@ -131,8 +115,8 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                 }
             }
 
-            first != null -> constrain(first) { fill(it, insets) }
-            last  != null -> constrain(last ) { fill(it, insets) }
+            first != null -> constrain(first, fill)
+            last  != null -> constrain(last , fill)
             else -> null
         }
 
@@ -141,7 +125,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                 it.constrain(divider, first) { divider, first ->
                     divider.top     = first.top
                     divider.bottom  = first.bottom
-                    divider.centerX = divider.parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio } //first.right
+                    divider.centerX = divider.parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
                 }
             }
         }

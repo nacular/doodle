@@ -47,4 +47,6 @@ interface Display: Iterable<View> {
     infix fun ancestorOf(view: View): Boolean
 
     fun doLayout()
+
+    fun shutdown()
 }

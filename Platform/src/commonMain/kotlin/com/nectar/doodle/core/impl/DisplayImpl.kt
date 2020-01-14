@@ -2,23 +2,29 @@ package com.nectar.doodle.core.impl
 
 import com.nectar.doodle.Event
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.clear
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.addIfNotPresent
+import com.nectar.doodle.dom.clearVisualStyles
 import com.nectar.doodle.dom.height
-import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBackgroundImage
+import com.nectar.doodle.dom.setBackgroundSize
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.width
 import com.nectar.doodle.drawing.Brush
+import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.ImageBrush
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.layout.Insets.Companion.None
@@ -31,7 +37,7 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.observable
 
 
-internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HTMLElement): Display {
+internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, private val rootElement: HTMLElement): Display {
 
     val width  get() = size.width
     val height get() = size.height
@@ -59,7 +65,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
     private val canvasElement       = htmlFactory.create<HTMLElement>()
+    private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
+    private var brush               = null as Brush?
 
     init {
         rootElement.onresize = ::onResize
@@ -78,7 +86,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
 //            ROOT_CONTAINER.setFocusTraversalPolicy(aPolicy)
 //        }
 
-    // FIXME: Make this work w/ actual rendering
     override fun fill(brush: Brush) {
         when (brush) {
             is ColorBrush -> {
@@ -87,12 +94,27 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
                 rootElement.style.setBackgroundColor(brush.color)
             }
             is ImageBrush -> {
-                canvasElement.parentNode?.removeChild(canvasElement)
+                when (brush.opacity) {
+                    1.0f -> {
+                        canvasElement.parentNode?.removeChild(canvasElement)
+                        rootElement.style.setBackgroundSize (brush.size )
+                        rootElement.style.setBackgroundImage(brush.image)
+                    }
+                    else -> {
+                        rootElement.addIfNotPresent(canvasElement, 0)
 
-                rootElement.style.setBackgroundImage(brush.image)
+                        canvasElement.clear()
+                        canvasElement.style.setOpacity        (brush.opacity)
+                        canvasElement.style.setBackgroundSize (brush.size   )
+                        canvasElement.style.setBackgroundImage(brush.image  )
+                    }
+                }
             }
             else          -> {
-                rootElement.insert(canvasElement, 0)
+                this.brush = brush
+                rootElement.addIfNotPresent(canvasElement, 0)
+
+                repaint()
             }
         }
     }
@@ -127,8 +149,29 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, private val rootElement: HT
         layout?.layout(positionableWrapper)
     }
 
+    override fun shutdown() {
+        children.clear()
+
+        brush = null
+
+        rootElement.apply {
+            clearVisualStyles()
+            clear()
+        }
+    }
+
     private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         size = Size(rootElement.width, rootElement.height)
+
+        repaint()
+    }
+
+    private fun repaint() {
+        brush?.let {
+            canvas.clear()
+            canvas.rect(Rectangle(width = width, height = height), it)
+            canvas.flush()
+        }
     }
 
     private inner class PositionableWrapper: PositionableContainer {

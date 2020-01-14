@@ -40,26 +40,25 @@ inline fun SVGGradientElement.setX2(value: Double) = setAttribute("x2", "$value"
 inline fun SVGGradientElement.setY1(value: Double) = setAttribute("y1", "$value")
 inline fun SVGGradientElement.setY2(value: Double) = setAttribute("y2", "$value")
 
-inline fun SVGEllipseElement.setRX     (value : Double ) = setAttribute("rx", "$value")
-inline fun SVGEllipseElement.setRY     (value : Double ) = setAttribute("ry", "$value")
-inline fun SVGEllipseElement.setCX     (value : Double ) = setAttribute("cx", "$value")
-inline fun SVGEllipseElement.setCY     (value : Double ) = setAttribute("cy", "$value")
-inline fun SVGEllipseElement.setEllipse(value : Ellipse) {
+inline fun SVGEllipseElement.setRX     (value: Double ) = setAttribute("rx", "$value")
+inline fun SVGEllipseElement.setRY     (value: Double ) = setAttribute("ry", "$value")
+inline fun SVGEllipseElement.setCX     (value: Double ) = setAttribute("cx", "$value")
+inline fun SVGEllipseElement.setCY     (value: Double ) = setAttribute("cy", "$value")
+inline fun SVGEllipseElement.setEllipse(value: Ellipse) {
     setCX(value.center.x)
     setCY(value.center.y)
     setRX(value.xRadius)
     setRY(value.yRadius)
 }
 
-inline fun SVGCircleElement.setCX    (value : Double) = setAttribute  ("cx",               "$value"       )
-inline fun SVGCircleElement.setCY    (value : Double) = setAttribute  ("cy",               "$value"       )
-inline fun SVGCircleElement.setR     (value : Double) = setAttribute  ("r",                "$value"       )
-inline fun SVGCircleElement.setCircle(value : Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
+inline fun SVGCircleElement.setCX    (value: Double) = setAttribute  ("cx", "$value")
+inline fun SVGCircleElement.setCY    (value: Double) = setAttribute  ("cy", "$value")
+inline fun SVGCircleElement.setR     (value: Double) = setAttribute  ("r",  "$value")
+inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
 
-
-inline fun SVGElement.setPathData   (value : String      ) = setAttribute  ("d",                  value        )
-inline fun SVGElement.setStrokeWidth(value : Double      ) = setAttribute  ("stroke-width",     "$value"       )
-inline fun SVGElement.setStrokeDash (value : String      ) = setAttribute  ("stroke-dasharray",   value        )
+inline fun SVGElement.setPathData   (value: String      ) = setAttribute  ("d",                  value        )
+inline fun SVGElement.setStrokeWidth(value: Double      ) = setAttribute  ("stroke-width",     "$value"       )
+inline fun SVGElement.setStrokeDash (value: String      ) = setAttribute  ("stroke-dasharray",   value        )
 //inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
 //inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
 

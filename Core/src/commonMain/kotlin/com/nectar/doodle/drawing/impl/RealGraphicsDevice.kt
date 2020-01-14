@@ -10,21 +10,12 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
     private val viewSurfaceMap = mutableMapOf<View, GraphicsSurface>()
     private val surfaceViewMap = mutableMapOf<GraphicsSurface, View>()
 
-    override operator fun get(view: View): GraphicsSurface {
-        var surface: GraphicsSurface? = viewSurfaceMap[view]
+    override operator fun get(view: View): GraphicsSurface = viewSurfaceMap.getOrPut(view) {
+        val surface = surfaceFactory(view.parent?.let { this[it] }, view).apply { zOrder = view.zOrder }
 
-        if (surface == null) {
-            val parent = view.parent
+        surfaceViewMap[surface] = view
 
-            surface = surfaceFactory(parent?.let { this[it] }, view.children_.isNotEmpty())
-
-            surface.zOrder = view.zOrder
-
-            viewSurfaceMap[view  ] = surface
-            surfaceViewMap[surface] = view
-        }
-
-        return surface
+        surface
     }
 
     override fun create() = surfaceFactory().apply { index = 0 }

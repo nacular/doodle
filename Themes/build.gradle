@@ -1,0 +1,67 @@
+apply from  : '../jacoco.gradle'
+apply plugin: 'org.jetbrains.dokka'
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'maven-publish'
+
+kotlin {
+    targets {
+        fromPreset(presets.jvm, 'jvm')
+        fromPreset(presets.js,  'js' ) {
+            compilations.all {
+                tasks[compileKotlinTaskName].kotlinOptions {
+                    sourceMap             = true
+                    sourceMapEmbedSources = 'always'
+                    moduleKind            = 'commonjs'
+                }
+            }
+        }
+
+        all {
+            compilations.all {
+                tasks[compileKotlinTaskName].kotlinOptions {
+                    freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+//                    allWarningsAsErrors = true
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation project(':controls' )
+            implementation project(':animation')
+
+            implementation dep.kotlin_stdlib_common
+            implementation dep.kotlinx_coroutines_core_common
+        }
+
+        commonTest.dependencies {
+            implementation dep.kotlin_test_common
+            implementation dep.kotlin_test_annotations_common
+            implementation dep.mockk_common
+        }
+
+        jvmMain.dependencies {
+            implementation dep.kotlin_stdlib_jdk8
+        }
+
+        jvmTest.dependencies {
+            implementation dep.junit
+            implementation dep.kotlin_test_junit
+
+            implementation dep.log4j
+            implementation dep.logback
+            implementation dep.mockk
+        }
+
+        jsMain.dependencies {
+            implementation dep.kotlin_stdlib_js
+            implementation dep.kotlinx_coroutines_core_js
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
+        }
+    }
+}

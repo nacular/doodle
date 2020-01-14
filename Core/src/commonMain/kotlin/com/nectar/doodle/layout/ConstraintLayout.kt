@@ -15,6 +15,15 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 11/1/17.
  */
 
+val center              : (Constraints.() -> Unit) = { center = parent.center                                                             }
+val fill                : (Constraints.() -> Unit) = { top = parent.top; left = parent.left; width = parent.width; height = parent.height }
+fun fill(insets: Insets): (Constraints.() -> Unit) = {
+    top    = parent.top    + insets.top
+    left   = parent.left   + insets.left
+    right  = parent.right  - insets.right
+    bottom = parent.bottom - insets.bottom
+}
+
 abstract class ConstraintLayout: Layout() {
     abstract fun constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout
     abstract fun constrain(a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout

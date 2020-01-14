@@ -11,7 +11,7 @@ class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val schedule
     private val images  = mutableMapOf<String, Image>()
     private val loading = mutableMapOf<String, HTMLImageElement>()
 
-    override suspend fun load(source: String): Image {
+    override suspend fun load(source: String): Image? {
         images[source]?.let { return it }
 
         if (source !in loading) {

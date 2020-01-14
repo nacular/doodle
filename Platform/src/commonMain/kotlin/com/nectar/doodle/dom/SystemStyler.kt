@@ -2,22 +2,24 @@ package com.nectar.doodle.dom
 
 import com.nectar.doodle.CSSStyleSheet
 import com.nectar.doodle.Document
-import com.nectar.doodle.get
+import com.nectar.doodle.HTMLStyleElement
 import com.nectar.doodle.numStyles
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-interface SystemStyler
+interface SystemStyler {
+    fun shutdown()
+}
 
-internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document, allowDefaultDarkMode: Boolean): SystemStyler {
+internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: Document, allowDefaultDarkMode: Boolean): SystemStyler {
+    private val style: HTMLStyleElement = htmlFactory.create("style")
+
     // FIXME: Make these styles local and applicable to the root not instead of assuming document.body
     init {
-        if (document.styleSheets.length == 0) {
-            document.head?.appendChild(htmlFactory.create("style"))
-        }
+        document.head?.insert(style, 0)
 
-        (document.styleSheets[0] as? CSSStyleSheet)?.apply {
+        (style.sheet as? CSSStyleSheet)?.apply {
             if (allowDefaultDarkMode) {
                 insertRule(":root {color-scheme:light dark}", numStyles)
             }
@@ -38,9 +40,16 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, document: Document, al
             insertRule("svg { display:inline-block;width:100%;height:100% }", numStyles)
             insertRule("svg * { position:absolute }", numStyles)
 
+//            insertRule(".custom-button { border:none;outline:none;user-select:none;padding:0 }", numStyles)
+//            insertRule("button * { top:0;left:0 }", numStyles)
+
             try {
                 insertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
             } catch (ignore: Throwable) {}
         }
+    }
+
+    override fun shutdown() {
+        document.head?.remove(style)
     }
 }

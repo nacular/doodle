@@ -25,6 +25,7 @@ import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.Anchor
@@ -108,7 +109,7 @@ class NativeButton internal constructor(
         private val textFactory           : TextFactory,
         private val htmlFactory           : HtmlFactory,
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-        handlerFactory                    : NativeEventHandlerFactory,
+                    handlerFactory        : NativeEventHandlerFactory,
         private val focusManager          : FocusManager?,
         private val button                : Button,
         private val insets                : Insets,
@@ -285,7 +286,7 @@ class NativeButton internal constructor(
 
                         canvas.size = it.size
 
-                        it.render(button, canvas, Point.Origin)
+                        it.render(button, canvas, Origin)
 
                         buttonElement.insert(iconElement, 0)
                     }
@@ -314,12 +315,6 @@ class NativeButton internal constructor(
             buttonElement.style.setSize(button.size)
         }
     }
-
-//    fun propertyChanged(aEvent: PropertyEvent) {
-//        if (aEvent.getProperty() === Button.ICON_ANCHOR) {
-//            button.rerender()
-//        }
-//    }
 
 //    override fun onClick(): Boolean {
 //        button.click()
@@ -368,7 +363,7 @@ class NativeButton internal constructor(
 
                 textElement?.let { buttonElement.remove(it) }
 
-                textElement = if (!field.isEmpty()) {
+                textElement = if (field.isNotEmpty()) {
                     textFactory.create(field, button.font).also {
                         buttonElement.insert(it, 0)
                     }

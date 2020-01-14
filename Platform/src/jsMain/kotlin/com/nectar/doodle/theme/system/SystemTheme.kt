@@ -4,6 +4,7 @@ import com.nectar.doodle.application.Modules.Companion.themeModule
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
+import com.nectar.doodle.controls.buttons.HyperLink
 import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
@@ -18,6 +19,8 @@ import com.nectar.doodle.drawing.impl.NativeCheckBoxRadioButtonFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeEventHandlerFactory
 import com.nectar.doodle.drawing.impl.NativeEventHandlerImpl
 import com.nectar.doodle.drawing.impl.NativeEventListener
+import com.nectar.doodle.drawing.impl.NativeHyperLinkFactory
+import com.nectar.doodle.drawing.impl.NativeHyperLinkFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeScrollPanelFactory
 import com.nectar.doodle.drawing.impl.NativeScrollPanelFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeSliderFactory
@@ -40,6 +43,7 @@ import org.w3c.dom.HTMLElement
 class SystemTheme internal constructor(
         private val textMetrics                     : TextMetrics,
         private val nativeButtonFactory             : NativeButtonFactory,
+        private val nativeHyperLinkFactory          : NativeHyperLinkFactory,
         private val nativeSliderFactory             : NativeSliderFactory,
         private val nativeTextFieldFactory          : NativeTextFieldFactory,
         private val nativeScrollPanelFactory        : NativeScrollPanelFactory,
@@ -49,7 +53,8 @@ class SystemTheme internal constructor(
         when (it) {
             is RadioButton -> it.behavior = SystemRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
             is CheckBox    -> it.behavior = SystemCheckBoxBehavior   (nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
-            is Button      -> it.behavior = SystemButtonBehavior(nativeButtonFactory, textMetrics, it)
+            is HyperLink   -> it.behavior = SystemHyperLinkBehavior  (nativeHyperLinkFactory,           textMetrics, it) as Behavior<Button>
+            is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory, textMetrics, it             )
             is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,              it             )
             is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,           it             )
             is ScrollPanel -> it.behavior = SystemScrollPanelBehavior(nativeScrollPanelFactory,         it             )
@@ -67,9 +72,10 @@ class SystemTheme internal constructor(
             bind<NativeButtonFactory>             () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
             bind<NativeSliderFactory>             () with singleton { NativeSliderFactoryImpl(instance(), instance(), instance(), instanceOrNull()) }
             bind<NativeTextFieldFactory>          () with singleton { NativeTextFieldFactoryImpl  (instance(), instance(), instance(), instanceOrNull(), instance()                        ) }
-            bind<SystemTheme>                     () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance(), instance()                  ) }
+            bind<SystemTheme>                     () with singleton { SystemTheme                 (instance(), instance(), instance(), instance(), instance(), instance(), instance()) }
             bind<NativeEventHandlerFactory>       () with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeHyperLinkFactory>          () with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
 
             import(themeModule, allowOverride = true)
         }

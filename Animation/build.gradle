@@ -36,10 +36,23 @@ kotlin {
             implementation dep.kotlin_test_common
             implementation dep.kotlin_test_annotations_common
             implementation dep.mockk_common
+
+//            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.2'
         }
 
         jvmMain.dependencies {
             implementation dep.kotlin_stdlib_jdk8
+        }
+
+        jvmTest.dependencies {
+            implementation dep.junit
+            implementation dep.kotlin_test_junit
+
+            implementation dep.log4j
+            implementation dep.logback
+            implementation dep.mockk
+
+//            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
         }
 
         jsMain.dependencies {

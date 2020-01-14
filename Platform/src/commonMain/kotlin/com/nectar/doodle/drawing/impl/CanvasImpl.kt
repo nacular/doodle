@@ -338,6 +338,7 @@ open class CanvasImpl(
     private fun getRectElement(): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
         it.clear()
         it.style.setTransform()
+        it.style.filter = ""
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
@@ -373,7 +374,7 @@ open class CanvasImpl(
             val shadow = "${when(it) {
                 is InnerShadow -> "inset "
                 is OuterShadow -> ""
-            }}${it.horizontal}px ${it.vertical}px ${it.blurRadius - 1}px ${it.color.rgbaString}"
+            }}${it.horizontal}px ${it.vertical}px ${it.blurRadius - if (it is InnerShadow) 1 else 0}px ${it.color.rgbaString}"
 
             when (element.firstChild) {
                 is Text -> element.style.textShadow += shadow

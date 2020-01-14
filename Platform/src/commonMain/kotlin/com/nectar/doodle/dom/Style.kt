@@ -90,6 +90,7 @@ internal inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflo
 //internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value }
 //
 internal inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
+internal inline fun Style.setBackgroundSize(size: Size? = null) { backgroundSize = size?.let { "${em(it.width)} ${em(it.height)}" } ?: "" }
 
 internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) } ?: ""     }
 

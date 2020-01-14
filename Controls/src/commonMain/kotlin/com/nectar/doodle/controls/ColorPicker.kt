@@ -131,7 +131,7 @@ class ColorPicker(color: Color): View() {
             override fun render(canvas: Canvas) {
                 val inset = 2.0
 
-                canvas.outerShadow(blurRadius = inset) {
+                canvas.outerShadow(blurRadius = 1.0) {
                     canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(white))
                 }
             }
@@ -303,7 +303,7 @@ class ColorPicker(color: Color): View() {
         }
 
         private fun updateBrush() {
-            brush = LinearGradientBrush(transparent, color.with(1f), Point.Origin, Point(width, 0.0))
+            brush = LinearGradientBrush(transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
         }
     }
 

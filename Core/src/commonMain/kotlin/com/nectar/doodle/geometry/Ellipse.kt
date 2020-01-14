@@ -20,7 +20,10 @@ open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double):
 
     override val empty get() = area == 0.0
 
-    override fun contains(point: Point) = (point.x - center.x).pow(2) / xRadius.pow(2) + (point.y - center.y) / yRadius.pow(2) <= 1
+    private val xRadius2 by lazy { xRadius.pow(2) }
+    private val yRadius2 by lazy { yRadius.pow(2) }
+
+    override fun contains(point: Point) = (point - center).run { x.pow(2) / xRadius2 + y.pow(2) / yRadius2 <= 1 }
 
     override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
 

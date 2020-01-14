@@ -27,11 +27,11 @@ class FontDetectorImpl(
 
     private val fonts = HashMap<Int, State>()
 
-    private fun getHash(family: String, size: Int, style: Set<Style>) = arrayOf(family, size, style).contentHashCode()
+    private fun getHash(family: String, weight: Weight, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
 
     override suspend operator fun invoke(info: FontInfo.() -> Unit): Font {
         FontInfo().apply(info).apply {
-            val hash = getHash(family, size, style)
+            val hash = getHash(family, weight, size, style)
 
             when (fonts[hash]) {
                 Found -> return FontImpl(size, weight, style, family)
@@ -46,7 +46,9 @@ class FontDetectorImpl(
 
                     scheduler.delayUntil { elementRuler.size(text) != defaultSize }
 
-                    fonts[hash] = Found; return FontImpl(size, weight, style, family)
+                    fonts[hash] = Found
+
+                    return FontImpl(size, weight, style, family)
                 }
             }
         }

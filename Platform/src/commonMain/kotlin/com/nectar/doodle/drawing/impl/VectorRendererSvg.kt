@@ -300,19 +300,21 @@ internal open class VectorRendererSvg constructor(
     }
 
     override fun add(shadow: Shadow) {
-        pushClip(Rectangle(size = context.size))
+        // FIXME: Handle case where shadow is opened/closed w/o anything being rendered
 
-        when (shadow) {
-            is InnerShadow -> innerShadow(shadow)
-            is OuterShadow -> outerShadow(shadow)
-        }.let {
-            completeOperation(it)
-            svgElement.style.filter = "url(#${it.id})"
-        }
+//        pushClip(Rectangle(size = context.size))
+//
+//        when (shadow) {
+//            is InnerShadow -> innerShadow(shadow)
+//            is OuterShadow -> outerShadow(shadow)
+//        }.let {
+//            completeOperation(it)
+//            svgElement.style.filter = "url(#${it.id})"
+//        }
     }
 
     override fun remove(shadow: Shadow) {
-        popClip()
+//        popClip()
     }
 
     override fun clear() {

@@ -3,7 +3,7 @@ package com.nectar.doodle.application
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
-import com.nectar.doodle.datatransport.dragdrop.impl.DragManager
+import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
 import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
@@ -77,12 +77,12 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
 
         bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                              ) }
         bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
-        bind<Display>                  () with singleton { DisplayImpl               (instance(), root                                                ) }
+        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                    ) }
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance()                  ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                              ) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                      ) }
         bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                      ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
@@ -110,8 +110,10 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
     }
 
     fun shutdown() {
-        injector.instance<Display>().children.clear()
+        injector.instance<Display>     ().shutdown()
+        injector.instance<SystemStyler>().shutdown()
 
+        injector.instanceOrNull<DragManager>         ()?.shutdown()
         injector.instanceOrNull<MouseInputManager>   ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>()?.shutdown()
 

@@ -22,6 +22,7 @@ actual abstract class CSSStyleDeclaration {
     actual var bottom          = ""
     actual var filter          = ""
     actual var border          = ""
+    actual var padding         = ""
     actual var zIndex          = ""
     actual var display         = ""
     actual var opacity         = ""
@@ -47,6 +48,7 @@ actual abstract class CSSStyleDeclaration {
     actual var borderRadius    = ""
     actual var marginBottom    = ""
     actual var outlineWidth    = ""
+    actual var backgroundSize  = ""
     actual var backgroundImage = ""
     actual var backgroundColor = ""
 
@@ -69,6 +71,7 @@ actual class DOMRect {
 
 actual abstract class Element: Node() {
     actual open var id         = ""
+    actual open var className  = ""
     actual open var innerHTML  = ""
     actual open var scrollTop  = 0.0
     actual open var scrollLeft = 0.0
@@ -146,4 +149,9 @@ actual abstract class StyleSheetList {
 
 actual interface ElementCSSInlineStyle {
     actual val style: CSSStyleDeclaration
+}
+
+actual abstract class HTMLStyleElement : HTMLElement() {
+    actual val sheet: StyleSheet?
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 }

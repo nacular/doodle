@@ -21,6 +21,7 @@ expect abstract class CSSStyleDeclaration {
     var bottom         : String
     var filter         : String
     var border         : String
+    var padding        : String
     var zIndex         : String
     var display        : String
     var opacity        : String
@@ -46,6 +47,7 @@ expect abstract class CSSStyleDeclaration {
     var borderRadius   : String
     var marginBottom   : String
     var outlineWidth   : String
+    var backgroundSize : String
     var backgroundImage: String
     var backgroundColor: String
 }
@@ -66,6 +68,7 @@ expect interface ElementCSSInlineStyle {
 
 expect abstract class Element: Node {
     open var id        : String
+    open var className : String
     open var innerHTML : String
     open var scrollTop : Double
     open var scrollLeft: Double
@@ -103,6 +106,10 @@ expect abstract class StyleSheetList {
     abstract val length: Int
 
     fun item(index: Int): StyleSheet?
+}
+
+expect abstract class HTMLStyleElement: HTMLElement {
+    val sheet: StyleSheet?
 }
 
 expect class Document {

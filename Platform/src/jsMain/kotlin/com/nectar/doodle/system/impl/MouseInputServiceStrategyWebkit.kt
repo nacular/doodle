@@ -106,8 +106,10 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
-        mouseLocation = Point(x = event.clientX - htmlFactory.root.offsetLeft + htmlFactory.root.scrollLeft,
-                y = event.clientY - htmlFactory.root.offsetTop + htmlFactory.root.scrollLeft)
+        mouseLocation = Point(
+                x = event.clientX - htmlFactory.root.offsetLeft + htmlFactory.root.scrollLeft,
+                y = event.clientY - htmlFactory.root.offsetTop  + htmlFactory.root.scrollTop
+        )
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 

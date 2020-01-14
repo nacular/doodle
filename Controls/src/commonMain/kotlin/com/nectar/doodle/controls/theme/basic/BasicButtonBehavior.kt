@@ -46,10 +46,10 @@ class BasicButtonBehavior(
         val text = view.text
 
         if (text.isNotBlank()) {
-            canvas.text(text, font(view), textPosition(view, icon), ColorBrush(textColor))
+            canvas.text(text, font(view), textPosition(view, icon = icon), ColorBrush(textColor))
         }
 
-        icon?.render(view, canvas, iconPosition(view, icon))
+        icon?.render(view, canvas, iconPosition(view, icon = icon))
     }
 
     override fun install(view: Button) {

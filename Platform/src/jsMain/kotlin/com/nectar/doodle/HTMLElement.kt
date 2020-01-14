@@ -11,6 +11,7 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLHeadElement
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLStyleElement
 import org.w3c.dom.Text
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.css.CSSStyleSheet
@@ -64,3 +65,5 @@ actual typealias StyleSheet = StyleSheet
 actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
 actual typealias StyleSheetList = StyleSheetList
+
+actual typealias HTMLStyleElement = HTMLStyleElement

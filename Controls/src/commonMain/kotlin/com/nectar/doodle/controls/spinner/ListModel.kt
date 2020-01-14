@@ -1,6 +1,8 @@
 package com.nectar.doodle.controls.spinner
 
-open class ListModel<T, out L: List<T>>(protected val values: L): AbstractModel<T>() {
+import com.nectar.doodle.utils.ObservableList
+
+open class ListModel<T, out L: List<T>>(protected open val values: L): AbstractModel<T>() {
     protected var index = 0
         private set(new) {
             if (new == field) { return }
@@ -19,7 +21,15 @@ open class ListModel<T, out L: List<T>>(protected val values: L): AbstractModel<
     override val value get() = values[index]
 }
 
-class MutableListModel<T>(values: MutableList<T>): ListModel<T, MutableList<T>>(values), MutableModel<T> {
+class MutableListModel<T>(values: List<T> = emptyList()): ListModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableModel<T> {
+    init {
+        super.values.changed += { _, _, _, _ ->
+            changed_()
+        }
+    }
+
+    public override val values: ObservableList<T> = super.values
+
     override var value
         get(   ) = super.value
         set(new) {

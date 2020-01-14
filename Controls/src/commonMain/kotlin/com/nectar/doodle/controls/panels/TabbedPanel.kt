@@ -90,10 +90,10 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
                 val to = pair.first
 
                 selection = when (selection) {
-                    in (from + 1)..(to   - 1) -> selection - 1
-                    in (to   + 1)..(from - 1) -> selection + 1
-                    from                      -> to
-                    else                      -> selection
+                    in (from + 1) until to   -> selection - 1
+                    in (to   + 1) until from -> selection + 1
+                    from                     -> to
+                    else                     -> selection
                 }
             }
         }

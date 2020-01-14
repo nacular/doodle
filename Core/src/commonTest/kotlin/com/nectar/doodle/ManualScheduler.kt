@@ -7,14 +7,14 @@ import com.nectar.measured.units.Time
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 
-private class ManualScheduler: Scheduler {
+class ManualScheduler: Scheduler {
     private class SimpleTask(override var completed: Boolean = false) : Task {
         override fun cancel() {
             completed = true
         }
     }
 
-    val tasks = mutableListOf<Pair<SimpleTask, (Measure<Time>) -> Unit>>()
+    private val tasks = mutableListOf<Pair<SimpleTask, (Measure<Time>) -> Unit>>()
 
     fun runJobs() = tasks.forEach {
         it.first.completed = true

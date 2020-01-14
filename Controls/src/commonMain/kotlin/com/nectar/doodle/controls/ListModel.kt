@@ -90,8 +90,8 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
         }
     }
 
-    override fun set(index: Int, value: T ) = list.set(index, value)
-    override fun add(value: T             ) = list.add(value).run { Unit }
+    override fun set(index: Int, value: T) = list.set(index, value)
+    override fun add(value: T            ) = list.add(value).run { Unit }
     override fun add(index: Int, value: T) = list.add(index, value)
 
     override fun remove     (value  : T                         ) = list.remove(value).run { Unit }

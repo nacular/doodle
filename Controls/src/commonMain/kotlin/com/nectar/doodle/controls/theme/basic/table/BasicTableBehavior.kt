@@ -3,6 +3,7 @@ package com.nectar.doodle.controls.theme.basic.table
 import com.nectar.doodle.controls.ColorPicker
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.IndexedItemVisualizer
+import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.controls.table.HeaderGeometry
@@ -145,7 +146,7 @@ open class BasicTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.with(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.opacity(0.2f)))
         }
     }
 
@@ -236,9 +237,9 @@ open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
         private val encoder     : Encoder<T, String>,
         private val table       : MutableTable<*, *>,
-        row         : T,
+                    row         : T,
         private var index       : Int,
-        current     : View): TextField(), EditOperation<T> {
+                    current     : View): TextField(), EditOperation<T> {
 
     private val tableSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
         table.cancelEditing()
@@ -290,7 +291,7 @@ open class TextEditOperation<T>(
         }
     }
 
-    override fun complete() = encoder.decode(text)
+    override fun complete() = encoder.decode(text).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged
@@ -311,10 +312,11 @@ open class ColorEditOperation<T>(
         private val table       : MutableTable<T, *>,
         private val index       : Int,
                     value       : Color,
+        private val generator   : (Color) -> T,
         private val colorPicker : ColorPicker): EditOperation<Color>, KeyListener {
 
     private val listener = { _: ColorPicker, _: Color, new: Color ->
-//        table[index] = new
+        table[index] = generator(new)
     }
 
     private val focusChanged = { _: View, _: Boolean, new: Boolean ->
@@ -353,5 +355,50 @@ open class ColorEditOperation<T>(
             KeyEvent.VK_RETURN -> table.completeEditing()
             KeyEvent.VK_ESCAPE -> table.cancelEditing  ()
         }
+    }
+}
+
+open class BooleanEditOperation<T>(
+        private val focusManager: FocusManager,
+        private val table       : MutableTable<T, *>,
+                    column      : Column<*>,
+        private val index       : Int,
+                    value       : Boolean,
+        private val generator   : (Boolean) -> T): View(), EditOperation<Boolean> {
+
+    private val checkBox = CheckBox().apply {
+        selected = value
+
+        selectedChanged += { _,_,new ->
+            table[index] = generator(new)
+        }
+    }
+
+    private val tableSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+        table.completeEditing()
+    }
+
+    init {
+        children += checkBox
+
+        layout = constrain(checkBox) {
+            column.cellAlignment?.let { alignment -> alignment(it) }
+        }
+
+        table.selectionChanged += tableSelectionChanged
+    }
+
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
+        focusManager.requestFocus(checkBox)
+    }
+
+    override fun invoke(): View? = this
+
+    override fun complete() = checkBox.selected.also { cancel() }
+
+    override fun cancel() {
+        table.selectionChanged -= tableSelectionChanged
     }
 }

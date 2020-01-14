@@ -22,7 +22,7 @@ import kotlin.math.max
 private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?)
 private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double                 )
 
-class TextMetricsImpl(private val textFactory: TextFactory, private val elementFactory: HtmlFactory, private val elementRuler: ElementRuler, htmlFactory: HtmlFactory): TextMetrics {
+class TextMetricsImpl(private val textFactory: TextFactory, private val htmlFactory: HtmlFactory, private val elementRuler: ElementRuler): TextMetrics {
     // FIXME: Use Canvas for all text measurements (heights are tricky)
     private interface CSSFontSerializer {
         operator fun invoke(font: Font?): String
@@ -89,7 +89,7 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementF
     }
 
     override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
-        val box = elementFactory.create<HTMLElement>()
+        val box = htmlFactory.create<HTMLElement>()
 
         box.appendChild(textFactory.wrapped(text, font, width, indent))
         box.style.setWidth(width)
@@ -98,7 +98,7 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementF
     }
 
     override fun width(text: StyledText, width: Double, indent: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
-        val box = elementFactory.create<HTMLElement>()
+        val box = htmlFactory.create<HTMLElement>()
 
         box.appendChild(textFactory.wrapped(text, width, indent))
         box.style.setWidth(width)
@@ -126,3 +126,93 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val elementF
 
     override fun height(text: StyledText, width: Double, indent: Double) = elementRuler.height(textFactory.wrapped(text, width, indent))
 }
+
+//class TextMetricsImpl2(private val textFactory: TextFactory, svgFactory: SvgFactory, private val elementRuler: ElementRuler, private val htmlFactory: HtmlFactory): TextMetrics {
+//    private val textElement = svgFactory<SVGTextElement>("text")
+//    private val svg         = svgFactory<SVGElement>("svg" ).apply { appendChild(textElement) }
+//
+//    // FIXME: These should be caches with limited storage
+//    private val widths              = mutableMapOf<Pair<String, Font?>, Double>()
+//    private val fontHeights         = mutableMapOf<Font?, Double>()
+//    private val styledWidths        = mutableMapOf<StyledText, Double>()
+//    private val wrappedWidths       = mutableMapOf<WrappedInfo, Double>()
+//    private val wrappedStyledWidths = mutableMapOf<WrappedStyleInfo, Double>()
+//
+//    private fun measure(text: String, font: Font?): Size {
+////        text.setAttribute('text-anchor', getAlignment(this.textAlign));
+////        text.setAttribute('alignment-baseline', this.textBaseline);
+//        font?.let { textElement.style.setFont(it) }
+//        textElement.textContent = text
+//        htmlFactory.root.appendChild(svg)
+//        val box = textElement.getBBox()
+////        htmlFactory.root.removeChild(svg)
+//
+//        return Size(box.width, box.height)
+//    }
+//
+//    private fun textWidth(text: String, font: Font?) = measure(text, font).width
+//
+//    private fun textWidth(text: StyledText): Double {
+//        var width = 0.0
+//
+//        text.forEach { (string, style) ->
+//            measure(string, style.font).let {
+//                width += it.width
+//            }
+//        }
+//
+//        return width
+//    }
+//
+//    override fun width(text: String, font: Font?) = widths.getOrPut(text to font) {
+//        textWidth(text, font)/*.also {
+//            if (text.isNotEmpty()) {
+//                fontHeights[font] = it.height
+//            }
+//        }.width*/
+//    }
+//
+//    override fun width(text: StyledText) = styledWidths.getOrPut(text) {
+//        textWidth(text).also {
+//            //            fontHeights[font] = it.height
+//        }
+//    }
+//
+//    override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
+//        val box = htmlFactory.create<HTMLElement>()
+//
+//        box.appendChild(textFactory.wrapped(text, font, width, indent))
+//        box.style.setWidth(width)
+//
+//        elementRuler.width(box)
+//    }
+//
+//    override fun width(text: StyledText, width: Double, indent: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
+//        val box = htmlFactory.create<HTMLElement>()
+//
+//        box.appendChild(textFactory.wrapped(text, width, indent))
+//        box.style.setWidth(width)
+//
+//        elementRuler.width(box)
+//    }
+//
+//    override fun height(text: String, font: Font?) = fontHeights.getOrPut(font) {
+//        elementRuler.size(textFactory.create(text, font)).also {
+//            widths[text to font] = it.width
+//        }.height
+//    }
+//
+//    override fun height(text: StyledText): Double  {
+//        var maxHeight = 0.0
+//
+//        text.forEach { (string, style) ->
+//            maxHeight = max(maxHeight, height(string, style.font))
+//        }
+//
+//        return maxHeight
+//    }
+//
+//    override fun height(text: String, width: Double, indent: Double, font: Font?) = elementRuler.height(textFactory.wrapped(text, font, width, indent))
+//
+//    override fun height(text: StyledText, width: Double, indent: Double) = elementRuler.height(textFactory.wrapped(text, width, indent))
+//}

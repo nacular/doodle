@@ -2,6 +2,9 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.View
+import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
+import com.nectar.doodle.event.KeyEvent.Companion.VK_SPACE
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -17,7 +20,7 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
     }
 
     override fun install(view: T) {
-//        view.addKeyListener(this)
+        view.keyChanged         += this
         view.mouseChanged       += this
         view.enabledChanged     += enabledChanged
         view.mouseMotionChanged += this
@@ -27,7 +30,7 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
     }
 
     override fun uninstall(view: T) {
-//        view.removeKeyListener(this)
+        view.keyChanged         -= this
         view.mouseChanged       -= this
         view.enabledChanged     -= enabledChanged
         view.mouseMotionChanged -= this
@@ -35,29 +38,29 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}
 //
-//    fun keyReleased(aKeyEvent: KeyEvent) {
-//        val button = aKeyEvent.source as Button
-//        val aKeyCode = aKeyEvent.getKeyCode()
-//
-//        if (button.enabled && (aKeyCode == KeyEvent.VK_RETURN || aKeyCode == KeyEvent.VK_SPACE)) {
-//            val model = button.model
-//
-//            model.setPressed(false)
-//            model.setArmed(false)
-//        }
-//    }
-//
-//    fun keyPressed(aKeyEvent: KeyEvent) {
-//        val button = aKeyEvent.source as Button
-//        val aKeyCode = aKeyEvent.getKeyCode()
-//
-//        if (button.enabled && (aKeyCode == KeyEvent.VK_RETURN || aKeyCode == KeyEvent.VK_SPACE)) {
-//            val model = button.model
-//
-//            model.setArmed(true)
-//            model.setPressed(true)
-//        }
-//    }
+    override fun keyReleased(event: KeyEvent) {
+        val button  = event.source as Button
+        val keyCode = event.code
+
+        if (button.enabled && (keyCode == VK_RETURN || keyCode == VK_SPACE)) {
+            button.model.apply {
+                pressed = false
+                armed   = false
+            }
+        }
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+        val button  = event.source as Button
+        val keyCode = event.code
+
+        if (button.enabled && (keyCode == VK_RETURN || keyCode == VK_SPACE)) {
+            button.model.apply {
+                armed   = true
+                pressed = true
+            }
+        }
+    }
 
     override fun mouseExited(event: MouseEvent) {
         val button = event.source as T
@@ -90,8 +93,10 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         val model  = button.model
 
         if (button.enabled && event.buttons == setOf(Button1)) {
-            model.armed   = true
-            model.pressed = true
+            model.apply {
+                armed = true
+                pressed = true
+            }
 
             mouseChanged(button)
 
@@ -104,8 +109,10 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         val model  = button.model
 
         if (button.enabled && Button1 !in event.buttons) {
-            model.pressed = false
-            model.armed   = false
+            model.apply {
+                pressed = false
+                armed = false
+            }
 
             mouseChanged(button)
 

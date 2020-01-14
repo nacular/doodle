@@ -8,6 +8,7 @@ import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableWrapper
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -101,7 +102,7 @@ class DisplayImplTests {
 
         verify { cursorObserver(display, null, Cursor.Grab) }
 
-        expect<Cursor?>(Cursor.Grab) { display.cursor }
+        expect(Cursor.Grab) { display.cursor!! }
     }
 
     @Test fun `child at (no layout) works`() {
@@ -178,7 +179,9 @@ class DisplayImplTests {
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
-    private fun display(htmlFactory: HtmlFactory = mockk(relaxed = true), rootElement: HTMLElement = mockk(relaxed = true)) = DisplayImpl(htmlFactory, rootElement)
+    private fun display(htmlFactory  : HtmlFactory   = mockk(relaxed = true),
+                        canvasFactory: CanvasFactory = mockk(relaxed = true),
+                        rootElement  : HTMLElement   = mockk(relaxed = true)) = DisplayImpl(htmlFactory, canvasFactory, rootElement)
 
     private fun <T> validateDefault(p: KProperty1<DisplayImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(display()) }

@@ -9,6 +9,7 @@ import com.nectar.doodle.drawing.impl.NativeCheckBoxRadioButtonFactory
 import com.nectar.doodle.drawing.impl.Type
 import com.nectar.doodle.drawing.impl.Type.Check
 import com.nectar.doodle.drawing.impl.Type.Radio
+import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.system.Cursor
 
 /**
@@ -43,6 +44,10 @@ internal abstract class AbstractSystemCheckBoxRadioButtonBehavior(
 
         view.cursor = null
     }
+
+    override fun keyReleased(event: KeyEvent) {}
+
+    override fun keyPressed(event: KeyEvent) {}
 }
 
 internal class SystemCheckBoxBehavior(

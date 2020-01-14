@@ -19,7 +19,7 @@ class PatternBrush(val size: Size, val fill: Canvas.() -> Unit): Brush() {
 /**
  * Creates a [PatternBrush] that draws an alternating horizontal striped pattern.
  */
-fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color?, oddRowColor: Color?) = PatternBrush(Size(rowHeight, 2 * rowHeight)) {
+fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(rowHeight, 2 * rowHeight)) {
     evenRowColor?.let { rect(Rectangle(                rowHeight, rowHeight), ColorBrush(it)) }
     oddRowColor?.let  { rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(it)) }
 }
@@ -27,7 +27,7 @@ fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color?, oddRowColor:
 /**
  * Creates a [PatternBrush] that draws an alternating vertical striped pattern.
  */
-fun verticalStripedBrush(colWidth: Double, evenRowColor: Color?, oddRowColor: Color?) = PatternBrush(Size(2 * colWidth, colWidth)) {
+fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(2 * colWidth, colWidth)) {
     evenRowColor?.let { rect(Rectangle(               colWidth, colWidth), ColorBrush(it)) }
     oddRowColor?.let  { rect(Rectangle(colWidth, 0.0, colWidth, colWidth), ColorBrush(it)) }
 }

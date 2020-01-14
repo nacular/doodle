@@ -6,15 +6,6 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
 
-val center              : (Constraints.() -> Unit) = { center = parent.center                        }
-val fill                : (Constraints.() -> Unit) = { width  = parent.width; height = parent.height }
-fun fill(insets: Insets): (Constraints.() -> Unit) = {
-    top    = parent.top    + insets.top
-    left   = parent.left   + insets.left
-    right  = parent.right  - insets.right
-    bottom = parent.bottom - insets.bottom
-}
-
 interface ColumnBuilder {
     var width          : Double?
     var minWidth       : Double

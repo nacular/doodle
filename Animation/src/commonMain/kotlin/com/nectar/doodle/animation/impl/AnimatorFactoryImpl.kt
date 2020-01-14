@@ -2,7 +2,6 @@ package com.nectar.doodle.animation.impl
 
 import com.nectar.doodle.animation.AnimatorFactory
 import com.nectar.doodle.scheduler.AnimationScheduler
-import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.time.Timer
 
 /**
@@ -10,8 +9,7 @@ import com.nectar.doodle.time.Timer
  */
 class AnimatorFactoryImpl(
         private val timer             : Timer,
-        private val scheduler         : Scheduler,
         private val animationScheduler: AnimationScheduler): AnimatorFactory {
 
-    override fun <P> invoke() = AnimatorImpl<P>(timer, scheduler, animationScheduler)
+    override fun invoke() = AnimatorImpl(timer, animationScheduler)
 }

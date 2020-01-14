@@ -59,7 +59,7 @@ open class CompletableImpl: Completable {
     override var canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ )
         protected set
 
-    override  fun cancel   () { state = Canceled }
+    override  fun cancel() { state = Canceled }
 
     @JsName("completedFunc")
     protected open fun completed() { state = Completed }

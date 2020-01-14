@@ -1,5 +1,8 @@
 package com.nectar.doodle.geometry
 
+import kotlin.math.pow
+import kotlin.math.sqrt
+
 
 /**
  * A two-dimensional position with an x and y component.
@@ -29,6 +32,8 @@ class Point(val x: Double = 0.0, val y: Double = 0.0) {
     operator fun div  (value: Double) = Point(x / value, y / value)
 
     operator fun unaryMinus() = Point(-x, -y)
+
+    infix fun distanceFrom(other: Point) = sqrt((x - other.x).pow(2) + (y - other.y).pow(2))
 
     override fun hashCode() = hashCode_
 

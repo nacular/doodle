@@ -5,6 +5,7 @@ import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
+import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
 
@@ -19,13 +20,12 @@ internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
     override fun install(view: Button) {
         super.install(view)
 
-        view.cursor = Default
-
+        view.cursor    = Default
         view.idealSize = nativePeer.idealSize
 
-        view.idealSize?.let {
-            view.size = it
-        }
+//        view.idealSize?.let {
+//            view.size = it
+//        }
 
         view.rerender()
     }
@@ -49,4 +49,8 @@ internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
     }
 
     override fun mouseChanged(button: Button) {}
+
+    override fun keyReleased(event: KeyEvent) {}
+
+    override fun keyPressed(event: KeyEvent) {}
 }

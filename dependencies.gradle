@@ -1,6 +1,7 @@
 ext {
     // Common
-    mockk         = '1.9.3'
+    mockk           = '1.9.3'
+    coroutines_core = '1.3.2'
 
     // JVM
     junit_version = '4.12'
@@ -17,12 +18,14 @@ ext {
             kotlin_reflect                : "org.jetbrains.kotlin:kotlin-reflect",
             kotlin_test_common            : "org.jetbrains.kotlin:kotlin-test-common",
             kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common",
+            kotlinx_coroutines_core_common: "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutines_core",
             mockk_common                  : "io.mockk:mockk-common:$mockk",
 
             // JS
-            kotlin_test_js      : "org.jetbrains.kotlin:kotlin-test-js",
-//            kotlin_test         : "org.jetbrains.kotlin:kotlin-test",
-            mockk_js            :  "io.mockk:mockk-js:$mockk_js",
+            kotlin_test_js            : "org.jetbrains.kotlin:kotlin-test-js",
+//            kotlin_test               : "org.jetbrains.kotlin:kotlin-test",
+            mockk_js                  :  "io.mockk:mockk-js:$mockk_js",
+            kotlinx_coroutines_core_js: "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutines_core",
 
             // JVM
             junit               : "junit:junit:$junit_version",

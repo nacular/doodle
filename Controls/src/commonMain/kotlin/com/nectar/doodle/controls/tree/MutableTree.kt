@@ -41,7 +41,7 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: Selection
 
     operator fun set(path: Path<Int>, value: T) { model[path] = value }
 
-    operator fun set(row: Int, value: T) { pathFromRow(row)?.let { model[it] = value } }
+    operator fun set(row: Int, value: T) { pathFromRow(row)?.let { updateModel(it, value) } }
 
     private var editingPath = null as Path<Int>?
         set(new) {

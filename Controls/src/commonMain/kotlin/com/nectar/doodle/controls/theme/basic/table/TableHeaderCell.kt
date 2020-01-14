@@ -1,7 +1,6 @@
 package com.nectar.doodle.controls.theme.basic.table
 
 import com.nectar.doodle.controls.table.Column
-import com.nectar.doodle.controls.table.center
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -13,6 +12,7 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Constraints
+import com.nectar.doodle.layout.center
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.system.Cursor.Companion.EResize
 import com.nectar.doodle.system.Cursor.Companion.EWResize
