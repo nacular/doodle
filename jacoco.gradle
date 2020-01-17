@@ -37,7 +37,7 @@ jacoco {
 //}
 
 project.afterEvaluate {
-    def testTaskName = "jvmTestClasses"
+    def testTaskName = "jvmTest"
 
     // Create gradle task
     task "testCommonUnitTestCoverage" (type:JacocoReport, dependsOn: "$testTaskName") {
@@ -62,7 +62,7 @@ project.afterEvaluate {
         executionData        = files("${project.buildDir}/jacoco/jvmTest.exec")
 
         reports {
-            xml.enabled = true
+            xml.enabled  = true
             html.enabled = true
         }
     }

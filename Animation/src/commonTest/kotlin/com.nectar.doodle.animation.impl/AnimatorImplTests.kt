@@ -1,115 +1,168 @@
 package com.nectar.doodle.animation.impl
 
-import com.nectar.doodle.animation.Animator
-import com.nectar.doodle.animation.Listener
-import com.nectar.doodle.animation.NoneUnit
-import com.nectar.doodle.animation.noneUnits
-import com.nectar.doodle.animation.transition.FixedTimeLinear
+import com.nectar.doodle.animation.Animator.Listener
+import com.nectar.doodle.animation.fixedTimeLinear
+import com.nectar.doodle.animation.fixedTimeLinearM
 import com.nectar.doodle.scheduler.AnimationScheduler
-import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
+import com.nectar.measured.units.hours
 import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.minutes
+import com.nectar.measured.units.seconds
 import com.nectar.measured.units.times
+import io.mockk.mockk
+import io.mockk.verify
 import kotlin.test.Test
+import kotlin.test.expect
 
 /**
  * Created by Nicholas Eddy on 12/15/19.
  */
-private class MonotonicTimer: Timer {
-    override var now = 100 * milliseconds
-        get() = field.also { field += 1 * milliseconds }
-        private set
-}
-
-private class TestAnimationScheduler: AnimationScheduler {
-    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = object: Task {
-        override val completed = true
-
-        override fun cancel() {}
-    }.also {
-//        GlobalScope.launch {
-            job(1 * milliseconds)
-//        }
-    }
-}
-
-private class ManualScheduler: Scheduler {
-    private class SimpleTask(override var completed: Boolean = false) : Task {
-        override fun cancel() {
-            completed = true
-        }
-    }
-
-    private val tasks = mutableListOf<Pair<SimpleTask, (Measure<Time>) -> Unit>>()
-
-    fun runJobs() = tasks.forEach {
-        it.first.completed = true
-        it.second(0 * milliseconds)
-    }
-
-    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
-        val task = SimpleTask()
-
-        tasks += task to job
-
-        return task
-    }
-
-    override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override suspend fun delay(time: Measure<Time>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
 class AnimatorImplTests {
-    @Test fun foo() {
-        val timer              = MonotonicTimer()
-        val scheduler          = ManualScheduler()
-        val animationScheduler = TestAnimationScheduler()
+    private class MonotonicTimer: Timer {
+        override var now = 100 * milliseconds
+            get() = field.also { field += 1 * milliseconds }
+            private set
+    }
 
-        val animate = AnimatorImpl<String>(timer, scheduler, animationScheduler)
+    private class ImmediateAnimationScheduler: AnimationScheduler {
+        override fun onNextFrame(job: (Measure<Time>) -> Unit) = object: Task {
+            override val completed = true
 
-        var progress1 = 0f
-        var progress2 = 0f
-
-        animate("a", progress1 * noneUnits).apply {
-            this using FixedTimeLinear(280 * milliseconds, 1 * noneUnits)
+            override fun cancel() {}
+        }.also {
+            job(1 * milliseconds)
         }
-//        animate("b", progress2 * noneUnits).apply {
-//            this using SpeedUpSlowDown(280 * milliseconds, 1 * noneUnits)
-//        }
-        animate += object: Listener<String> {
-            override fun changed(animator: Animator<String>, properties: Map<String, Listener.ChangeEvent<String, *>>) {
-                properties.forEach { (property, change) ->
-                    println("$property -> ${change.new}")
+    }
 
-                    when (property) {
-                        "a" -> progress1 = (change.new as Measure<NoneUnit> `in` noneUnits).toFloat()
-                        "b" -> progress2 = (change.new as Measure<NoneUnit> `in` noneUnits).toFloat()
-                    }
-                }
+    private class ManualAnimationScheduler: AnimationScheduler {
+        private inner class ManualTask(private val job: (Measure<Time>) -> Unit): Task {
+            override var completed = false
+
+            init {
+                activeTasks += this
+            }
+
+            fun complete() {
+                completed = true
+                job(1 * milliseconds)
+            }
+
+            override fun cancel() {
+                activeTasks -= this
             }
         }
-        animate.start()
 
-        scheduler.runJobs()
+        private val activeTasks = mutableSetOf<ManualTask>()
 
-        animate("a", progress1 * noneUnits).apply {
-            this using FixedTimeLinear(280 * milliseconds, 0 * noneUnits)
+        override fun onNextFrame(job: (Measure<Time>) -> Unit) = ManualTask(job)
+
+        fun runOutstandingTasks() {
+            val tasks = activeTasks.toSet()
+            activeTasks.clear()
+
+            tasks.forEach {
+                it.complete()
+            }
+        }
+    }
+
+    @Test fun `animates number property`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ImmediateAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>(relaxed = true)
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        val animation = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+            outputs += it
         }
 
-        animate.start()
+        expect(listOf(0f, 1/3f, 2/3f, 1f)) { outputs }
 
-        scheduler.runJobs()
+        verify(exactly = 3) { listener.changed  (animate, setOf(animation)) }
+        verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+    }
+
+    @Test fun `animates measure property`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ImmediateAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>(relaxed = true)
+
+        val outputs = mutableListOf<Measure<Time>>()
+
+        animate.listeners += listener
+
+        val animation = (animate (0 * seconds to 1 * hours) using fixedTimeLinearM(3 * milliseconds)) {
+            outputs += it
+        }
+
+        expect(listOf(0 * milliseconds, 60 * minutes / 3, 2 * hours / 3, 1000 * milliseconds * 3600)) { outputs }
+
+        verify(exactly = 3) { listener.changed  (animate, setOf(animation)) }
+        verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+    }
+
+    @Test fun `cancels number animation`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>(relaxed = true)
+
+        val outputs1 = mutableListOf<Float>()
+        val outputs2 = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        val animation1 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) { outputs1 += it }
+        val animation2 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) { outputs2 += it }
+
+        animation1.cancel()
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(true) { outputs1.isEmpty() }
+        expect(listOf(0f, 1/3f)) { outputs2 } // Only the first 2 frames ticks, which begins animation2 and notifies with the first value
+
+        verify(exactly = 1) { listener.changed  (animate, setOf(animation2)         ) }
+        verify(exactly = 0) { listener.changed  (animate, match { animation1 in it }) }
+        verify(exactly = 0) { listener.completed(animate, any()                     ) }
+        verify(exactly = 1) { listener.cancelled(animate, setOf(animation1)         ) }
+    }
+
+    @Test fun `cancels number animation group`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>(relaxed = true)
+
+        val outputs1 = mutableListOf<Float>()
+        val outputs2 = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        val animations = animate {
+            (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs1 += it }
+            (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs2 += it }
+        }
+
+        animations.cancel()
+
+        animationScheduler.runOutstandingTasks()
+
+        expect(true) { outputs1.isEmpty() }
+        expect(true) { outputs2.isEmpty() }
+
+        verify(exactly = 0) { listener.changed  (animate, any()) }
+        verify(exactly = 0) { listener.completed(animate, any()) }
+        verify(exactly = 1) { listener.cancelled(animate, match { it.size == 2 }) }
     }
 }

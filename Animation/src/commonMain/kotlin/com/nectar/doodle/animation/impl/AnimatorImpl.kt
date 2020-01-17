@@ -26,62 +26,62 @@ import com.nectar.measured.units.times
  * Created by Nicholas Eddy on 1/12/20.
  */
 
-private class KeyFrame {
-    var time: Measure<Time> = 0 * milliseconds
-}
+class AnimatorImpl(private val timer: Timer, private val animationScheduler: AnimationScheduler): Animator {
 
-private class InternalProperty<T: com.nectar.measured.units.Unit>(initialValue: Measure<T>) {
-
-    val transitions      = mutableListOf<TransitionNode<T>>()
-    var activeTransition = null as TransitionNode<T>?
-        private set
-
-    var value = Moment(initialValue, 0 * initialValue / (1 * milliseconds))
-
-    fun add(transition: Transition<T>) {
-        val start = if (transitions.isEmpty()) KeyFrame() else transitions.last().endTime
-        val end   = KeyFrame()
-
-        add(transition, start, end)
+    private class KeyFrame {
+        var time = 0 * milliseconds
     }
 
-    fun add(transition: Transition<T>, start: KeyFrame, end: KeyFrame) {
-        transitions += TransitionNode(transition, start, end)
-    }
+    private class InternalProperty<T: com.nectar.measured.units.Unit>(initialValue: Measure<T>) {
 
-    fun nextTransition(initialValue: Moment<T>, elapsedTime: Measure<Time>): TransitionNode<T>? = transitions.firstOrNull()?.let {
-        when (it.shouldStart(elapsedTime)) {
-            true -> {
-                it.calculateEndTime(initialValue)
+        val transitions      = mutableListOf<TransitionNode<T>>()
+        var activeTransition = null as TransitionNode<T>?
+            private set
 
-                transitions      -= it
-                activeTransition  = it
+        var value = Moment(initialValue, 0 * initialValue / (1 * milliseconds))
 
-                it
+        fun add(transition: Transition<T>) {
+            val start = if (transitions.isEmpty()) KeyFrame() else transitions.last().endTime
+            val end   = KeyFrame()
+
+            add(transition, start, end)
+        }
+
+        fun add(transition: Transition<T>, start: KeyFrame, end: KeyFrame) {
+            transitions += TransitionNode(transition, start, end)
+        }
+
+        fun nextTransition(initialValue: Moment<T>, elapsedTime: Measure<Time>): TransitionNode<T>? = transitions.firstOrNull()?.let {
+            when (it.shouldStart(elapsedTime)) {
+                true -> {
+                    it.calculateEndTime(initialValue)
+
+                    transitions      -= it
+                    activeTransition  = it
+
+                    it
+                }
+                else -> null
             }
-            else -> null
         }
     }
-}
 
-private class TransitionNode<T: com.nectar.measured.units.Unit>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
+    private class TransitionNode<T: com.nectar.measured.units.Unit>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
 
-    fun shouldStart(elapsedTime: Measure<Time>) = startTime.time <= elapsedTime
+        fun shouldStart(elapsedTime: Measure<Time>) = startTime.time <= elapsedTime
 
-    fun calculateEndTime(initialState: Moment<T>) {
-        endTime.time = startTime.time + transition.duration(initialState)
+        fun calculateEndTime(initialState: Moment<T>) {
+            endTime.time = startTime.time + transition.duration(initialState)
+        }
     }
-}
 
-private class Result<T: com.nectar.measured.units.Unit>(val active: Boolean, val old: Measure<T>, val new: Measure<T>)
-
-class AnimatorImpl(
-        private val timer             : Timer,
-        private val animationScheduler: AnimationScheduler): Animator {
+    private class Result<T: com.nectar.measured.units.Unit>(val active: Boolean, val old: Measure<T>, val new: Measure<T>)
 
     private inner class AnimationImpl<T: com.nectar.measured.units.Unit>(
             private val property: InternalProperty<T>, private val block: (Measure<T>) -> Unit): Animation, CompletableImpl() {
         private lateinit var startTime: Measure<Time>
+
+        private var previousPosition = property.value.position
 
         fun run(currentTime: Measure<Time>): Result<T> {
             if (!::startTime.isInitialized) {
@@ -89,7 +89,6 @@ class AnimatorImpl(
             }
 
             val totalElapsedTime = currentTime - startTime
-            val oldPosition      = property.value.position
             var momentValue      = property.value
             var activeTransition = property.activeTransition ?: property.nextTransition(momentValue, totalElapsedTime)
 
@@ -104,15 +103,25 @@ class AnimatorImpl(
                 momentValue = activeTransition.transition.value(momentValue, totalElapsedTime - activeTransition.startTime.time)
             }
 
-            return Result(activeTransition != null, oldPosition, momentValue.position).also {
-                if (it.new != it.old) {
+            return Result(activeTransition != null, previousPosition, momentValue.position).also {
+                if (activeTransition != null && (it.new != it.old || totalElapsedTime == 0 * milliseconds)) {
                     block(it.new)
                 }
+
+                previousPosition = momentValue.position
             }
         }
 
         override fun cancel() {
+            cancel(broadcast = true)
+        }
+
+        fun cancel(broadcast: Boolean = true) {
             super.cancel()
+
+            if (broadcast) {
+                listeners.forEach { it.cancelled(this@AnimatorImpl, setOf(this)) }
+            }
 
             animations -= this
         }
@@ -132,24 +141,35 @@ class AnimatorImpl(
         }
     }
 
+    private inner class MeasureTransitionBuilderImpl<T: com.nectar.measured.units.Unit>(
+            start     : Measure<T>,
+            end       : Measure<T>,
+            transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> {
+        private val property = InternalProperty(start).apply { add(transition(start, end)) }
+
+        override fun then(transition: Transition<T>) = this.also { property.add(transition) }
+
+        override fun invoke(block: (Measure<T>) -> Unit): Animation {
+            return AnimationImpl(property) { block(it) }.also { animations += it }
+        }
+    }
+
     private var task       = null as Task?
     private val animations = ObservableSet<AnimationImpl<*>>().apply {
         changed += { _,_,_ ->
             when {
-                isNotEmpty() -> startAnimation()
+                isNotEmpty() -> if (task == null) startAnimation()
                 else         -> task?.cancel()
             }
         }
     }
 
-    override fun <T : Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T> = TransitionBuilderImpl(first, second, transition)
+    override fun <T: Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T> = TransitionBuilderImpl(first, second, transition)
 
-    override fun <T : com.nectar.measured.units.Unit> Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun <T: com.nectar.measured.units.Unit> Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> = MeasureTransitionBuilderImpl(first, second, transition)
 
     override fun invoke(block: Animator.() -> Unit): Completable {
-        val newAnimations = mutableSetOf<Animation>()
+        val newAnimations = mutableSetOf<AnimationImpl<*>>()
 
         val listener: (ObservableSet<AnimationImpl<*>>, Set<AnimationImpl<*>>, Set<AnimationImpl<*>>) -> Unit = { _,_,new ->
             newAnimations += new
@@ -163,7 +183,9 @@ class AnimatorImpl(
 
         return object: CompletableImpl() {
             override fun cancel() {
-                newAnimations.forEach { it.cancel() }
+                newAnimations.forEach { it.cancel(broadcast = false) }
+
+                listeners.forEach { it.cancelled(this@AnimatorImpl, newAnimations) }
 
                 super.cancel()
             }
@@ -182,17 +204,20 @@ class AnimatorImpl(
         val changed   = mutableSetOf<Animation>()
         val completed = mutableSetOf<Animation>()
 
-        animations.forEach {
+        val iterator = animations.iterator()
+
+        while (iterator.hasNext()) {
+            val it = iterator.next()
+
             val result = it.run(timer.now).also { result ->
                 if (!result.active) {
-                    completed  += it
-                    animations -= it
+                    completed += it
+                    iterator.remove()
                 }
             }
 
             if (result.new != result.old) {
                 changed += it
-
             }
         }
 

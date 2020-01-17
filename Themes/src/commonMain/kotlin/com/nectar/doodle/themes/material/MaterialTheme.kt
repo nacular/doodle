@@ -1,6 +1,6 @@
 package com.nectar.doodle.themes.material
 
-import com.nectar.doodle.animation.AnimatorFactory
+import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.theme.basic.BasicTheme
@@ -19,10 +19,10 @@ class MaterialTheme(
                     labelFactory   : LabelFactory,
         private val fontDetector   : FontDetector,
                     focusManager   : FocusManager?,
-        private val animatorFactory: AnimatorFactory): BasicTheme(labelFactory, textMetrics, focusManager) {
+        private val animatorFactory: () -> Animator): BasicTheme(labelFactory, textMetrics, focusManager) {
     override fun install(display: Display, all: Sequence<View>) = all.forEach {
         when (it) {
-            is Button -> it.behavior = MaterialButtonBehavior(textMetrics, animatorFactory, fontDetector, textColor = Color.white, backgroundColor = Color(0x6200EEu), cornerRadius = 4.0)
+            is Button -> it.behavior = MaterialButtonBehavior(textMetrics, animatorFactory(), fontDetector, textColor = Color.white, backgroundColor = Color(0x6200EEu), cornerRadius = 4.0)
             else      -> super.install(display, sequenceOf(it))
         }
     }

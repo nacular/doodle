@@ -1,6 +1,7 @@
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 apply plugin: 'org.jetbrains.dokka'
+apply from  : '../jacoco.gradle'
 
 kotlin {
     targets {

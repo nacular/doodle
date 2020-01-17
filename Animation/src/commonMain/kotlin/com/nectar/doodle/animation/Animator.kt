@@ -23,7 +23,7 @@ class NoneUnit: Unit("")
 val noneUnits = NoneUnit()
 
 @JvmName("fixedSpeedLinearNumber")
-fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnit<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear((1 * noneUnits).times(speed),  end * noneUnits) }
+fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnit<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear(1 * noneUnits * speed, end * noneUnits) }
 
 @JvmName("fixedSpeedLinearUnit")
 fun <T: Unit> fixedSpeedLinear(speed: Measure<UnitRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
@@ -37,7 +37,6 @@ fun <T: Number> speedUpSlowDown(time: Measure<Time>, accelerationFraction: Float
 fun <T: Unit> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float = 0.5f): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> SpeedUpSlowDown(time, end, accelerationFraction) }
 
 interface Animation: Completable
-
 
 interface Animator {
     interface Listener {
@@ -56,6 +55,22 @@ interface Animator {
         infix fun then(transition: Transition<T>): MeasureTransitionBuilder<T>
 
         operator fun invoke(block: (Measure<T>) -> kotlin.Unit): Animation
+    }
+
+    interface NumberUsing<T: Number> {
+        infix fun using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>
+    }
+
+    interface MeasureUsing<T: Unit> {
+        infix fun  using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+    }
+
+    operator fun <T: Number> invoke(range: Pair<T, T>) = object: NumberUsing<T> {
+        override fun using(transition: (start: T, end: T) -> Transition<NoneUnit>) = range.using(transition)
+    }
+
+    operator fun <T: Unit> invoke(range: Pair<Measure<T>, Measure<T>>) = object: MeasureUsing<T> {
+        override fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>) = range.using(transition)
     }
 
     infix fun <T: Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>

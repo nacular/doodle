@@ -11,8 +11,6 @@ import com.nectar.measured.units.Unit
 
 /**
  * Transition that keeps the initial state for a set duration.
- * This transition essentially pins the initial state for the
- * specified duration.
  *
  * @author Nicholas Eddy (neddy@zinoti.com)
  */

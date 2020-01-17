@@ -3,7 +3,6 @@ package com.nectar.doodle.themes.material
 import com.nectar.doodle.animation.Animation
 import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.animation.Animator.Listener
-import com.nectar.doodle.animation.AnimatorFactory
 import com.nectar.doodle.animation.fixedTimeLinear
 import com.nectar.doodle.animation.speedUpSlowDown
 import com.nectar.doodle.animation.transition.NoChange
@@ -47,22 +46,21 @@ fun drawRipple(on: Canvas, at: Point, progress: Float) {
 
 class MaterialButtonBehavior(
                     textMetrics    : TextMetrics,
-                    animatorFactory: AnimatorFactory,
+        private val animate        : Animator,
         private val fontDetector   : FontDetector,
         private val textColor      : Color,
         private val backgroundColor: Color,
         private val cornerRadius   : Double = 0.0): AbstractTextButtonBehavior<Button>(textMetrics), MouseListener {
 
-    private val animate            = animatorFactory()
-    private var fontLoadJob        = null as Job?
+    private var fontLoadJob        = null as Job?; set(new) { field?.cancel(); field = new }
     private var rippleProgress     = 0f
     private var shadowProgress     = 0f
     private var overlayProgress    = 0f
     private var animationListener  = null as Listener?
     private var mousePressLocation = null as Point?
 
-    private var rippleAnimation    = null as Animation?
-    private var mouseOverAnimation = null as Completable?
+    private var rippleAnimation    = null as Animation?;   set(new) { field?.cancel(); field = new }
+    private var mouseOverAnimation = null as Completable?; set(new) { field?.cancel(); field = new }
 
     private val styleChanged: (View) -> Unit =  { it.rerender() }
 
@@ -70,18 +68,14 @@ class MaterialButtonBehavior(
         val time = 180 * milliseconds
         val end  = if (new) 1f else 0f
 
-        mouseOverAnimation?.cancel()
-
         mouseOverAnimation = animate {
-            (0f to end using fixedTimeLinear(time)) { overlayProgress = it }
-            (0f to end using speedUpSlowDown(time)) { shadowProgress  = it }
+            (overlayProgress to end using fixedTimeLinear(time)) { overlayProgress = it }
+            (shadowProgress  to end using speedUpSlowDown(time)) { shadowProgress  = it }
         }
     }
 
     override fun install(view: Button) {
         super.install(view)
-
-        fontLoadJob?.cancel()
 
         fontLoadJob = GlobalScope.launch {
             view.font = fontDetector {
@@ -119,9 +113,7 @@ class MaterialButtonBehavior(
 
         mousePressLocation = event.location
 
-        rippleAnimation?.cancel()
-
-        animate { rippleAnimation = ((0f to 1f using fixedTimeLinear(time)).then(NoChange(time))) { rippleProgress = it } }
+        rippleAnimation = (animate (0f to 1f) using fixedTimeLinear(time) then NoChange(time)) { rippleProgress = it }
     }
 
     override fun uninstall(view: Button) {
