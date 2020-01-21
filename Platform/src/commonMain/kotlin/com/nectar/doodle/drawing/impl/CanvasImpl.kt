@@ -233,8 +233,9 @@ open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) = subFrame({ translate(-rectangle.position, block) }) {
-        it.style.setBounds(rectangle)
+    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) = subFrame({ translate(-rectangle.position, block) }) {
+        it.style.setBounds      (rectangle)
+        it.style.setBorderRadius(radius   )
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

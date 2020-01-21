@@ -5,13 +5,13 @@ import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.animation.Animator.Listener
 import com.nectar.doodle.animation.fixedTimeLinear
 import com.nectar.doodle.animation.speedUpSlowDown
-import com.nectar.doodle.animation.transition.NoChange
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ButtonModel
 import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
@@ -22,7 +22,6 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Insets
-import com.nectar.doodle.utils.Completable
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 import kotlinx.coroutines.GlobalScope
@@ -53,25 +52,27 @@ class MaterialButtonBehavior(
         private val cornerRadius   : Double = 0.0): AbstractTextButtonBehavior<Button>(textMetrics), MouseListener {
 
     private var fontLoadJob        = null as Job?; set(new) { field?.cancel(); field = new }
+    private var shadow1Blur        = 1.0
     private var rippleProgress     = 0f
-    private var shadowProgress     = 0f
-    private var overlayProgress    = 0f
+    private var overlayOpacity     = 0f
     private var animationListener  = null as Listener?
     private var mousePressLocation = null as Point?
 
-    private var rippleAnimation    = null as Animation?;   set(new) { field?.cancel(); field = new }
-    private var mouseOverAnimation = null as Completable?; set(new) { field?.cancel(); field = new }
+    private var shadowAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
+    private var rippleAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
+    private var overlayAnimation = null as Animation?;   set(new) { field?.cancel(); field = new }
+
+    private val hoverAnimationTime = 180 * milliseconds
+    private val pressAnimationTime = hoverAnimationTime / 2
 
     private val styleChanged: (View) -> Unit =  { it.rerender() }
 
     private val mouseOverChanged: (ButtonModel, Boolean, Boolean) -> Unit = { _,_,new ->
-        val time = 180 * milliseconds
-        val end  = if (new) 1f else 0f
+        val overlayEnd     = if (new) 0.075f else 0f
+        val shadow1BlurEnd = if (new) 4.0    else 1.0
 
-        mouseOverAnimation = animate {
-            (overlayProgress to end using fixedTimeLinear(time)) { overlayProgress = it }
-            (shadowProgress  to end using speedUpSlowDown(time)) { shadowProgress  = it }
-        }
+        shadowAnimation  = (animate (shadow1Blur    to shadow1BlurEnd) using speedUpSlowDown(hoverAnimationTime)) { shadow1Blur    = it }
+        overlayAnimation = (animate (overlayOpacity to overlayEnd    ) using fixedTimeLinear(hoverAnimationTime)) { overlayOpacity = it }
     }
 
     override fun install(view: Button) {
@@ -98,22 +99,10 @@ class MaterialButtonBehavior(
 
             override fun completed(animator: Animator, animations: Set<Animation>) {
                 if (rippleAnimation in animations) {
-                    rippleProgress = 0f
-
                     view.rerenderNow()
                 }
             }
         }.also { animationListener = it }
-    }
-
-    override fun mousePressed(event: MouseEvent) {
-        super<AbstractTextButtonBehavior>.mousePressed(event)
-
-        val time = 180 * milliseconds
-
-        mousePressLocation = event.location
-
-        rippleAnimation = (animate (0f to 1f) using fixedTimeLinear(time) then NoChange(time)) { rippleProgress = it }
     }
 
     override fun uninstall(view: Button) {
@@ -128,15 +117,33 @@ class MaterialButtonBehavior(
         animationListener?.let { animate.listeners -= it }
     }
 
+    override fun mousePressed(event: MouseEvent) {
+        super<AbstractTextButtonBehavior>.mousePressed(event)
+
+        mousePressLocation = event.location
+
+        rippleAnimation  = (animate (0.5f           to  1f  ) using fixedTimeLinear(pressAnimationTime)) { rippleProgress = it }
+        shadowAnimation  = (animate (shadow1Blur    to 10.0 ) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur    = it }
+//        overlayAnimation = (animate (overlayOpacity to  0.1f) using fixedTimeLinear(pressAnimationTime)) { overlayOpacity = it }
+    }
+
+    override fun mouseReleased(event: MouseEvent) {
+        super<AbstractTextButtonBehavior>.mouseReleased(event)
+
+        mousePressLocation = null
+
+        shadowAnimation = (animate (shadow1Blur to 4.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
+    }
+
     override fun render(view: Button, canvas: Canvas) {
         val bounds = view.bounds.atOrigin
 
-        canvas.outerShadow(color = Color.black opacity 0.2f, horizontal = 0.0, vertical = 1.0 + 2 * shadowProgress, blurRadius = 1.0 + 3 * shadowProgress) {
+        canvas.outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
             canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, brush = ColorBrush(backgroundColor))
         }
 
-        canvas.outerShadow(color = Color.black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
-            canvas.outerShadow(color = Color.black opacity 0.2f, vertical = 1.0, blurRadius = 5.0) {
+        canvas.outerShadow(color = black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
+            canvas.outerShadow(color = black opacity 0.2f, vertical = 1.0, blurRadius = 5.0) {
                 canvas.rect(bounds, cornerRadius, ColorBrush(backgroundColor))
             }
         }
@@ -145,8 +152,8 @@ class MaterialButtonBehavior(
 
         canvas.text(text, view.font, textPosition(view, text, bounds = bounds), ColorBrush(textColor))
 
-        canvas.rect(bounds, cornerRadius, ColorBrush(white opacity 0.075f * overlayProgress))
+        canvas.rect(bounds, cornerRadius, ColorBrush(white opacity overlayOpacity))
 
-        mousePressLocation?.let { canvas.clip(bounds) { drawRipple(canvas, it, rippleProgress) } }
+        mousePressLocation?.let { canvas.clip(bounds, cornerRadius) { drawRipple(canvas, it, rippleProgress) } }
     }
 }

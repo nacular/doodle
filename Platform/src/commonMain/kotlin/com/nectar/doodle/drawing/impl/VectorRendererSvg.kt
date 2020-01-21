@@ -269,12 +269,14 @@ internal open class VectorRendererSvg constructor(
         return Point(endX, currentPoint.y)
     }
 
-    protected fun pushClip(rectangle: Rectangle) {
+    protected fun pushClip(rectangle: Rectangle, radius: Double = 2.0) {
         val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
             // Here to ensure nested SVG has correct size
             addIfNotPresent(makeRect(rectangle), 0)
+
+            // FIXME: Support rounding
 
             renderPosition = renderPosition?.nextSibling
         }
@@ -792,10 +794,10 @@ internal open class VectorRendererSvg constructor(
             }
         }
 
-        override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
-            pushClip(rectangle)
-            block   (this     )
-            popClip (         )
+        override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {
+            pushClip(rectangle, radius)
+            block   (this             )
+            popClip (                 )
         }
 
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

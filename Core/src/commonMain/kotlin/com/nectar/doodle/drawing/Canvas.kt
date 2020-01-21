@@ -94,7 +94,7 @@ interface Canvas: Renderer {
 
     fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
 
-    fun clip(rectangle: Rectangle, block: Canvas.() -> Unit)
+    fun clip(rectangle: Rectangle, radius: Double = 0.0, block: Canvas.() -> Unit)
 
     fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
     fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)

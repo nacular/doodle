@@ -17,7 +17,6 @@ import kotlin.jvm.JvmName
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
-
 class NoneUnit: Unit("")
 
 val noneUnits = NoneUnit()

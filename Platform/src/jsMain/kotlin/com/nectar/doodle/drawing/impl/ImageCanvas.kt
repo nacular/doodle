@@ -411,10 +411,13 @@ class ImageCanvas(renderParent: HTMLElement, private val htmlFactory: HtmlFactor
         renderingContext.globalAlpha = 1.0
     }
 
-    override fun clip(rectangle: Rectangle, block: Canvas.() -> Unit) {
-        rectangle.apply { renderingContext.rect(x, y, width, height) }
-        renderingContext.save()
+    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {
+        when {
+            radius > 0.0 -> renderingContext.roundedRect(rectangle, radius)
+            else         -> rectangle.apply { renderingContext.rect(x, y, width, height) }
+        }
 
+        renderingContext.save()
         renderingContext.clip()
 
         block(this)

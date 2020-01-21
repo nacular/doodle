@@ -52,7 +52,7 @@ abstract class AbstractTextButtonBehavior<T: Button>(
         return Point(x, y) + bounds.position
     }
 
-    protected fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds): Point {
+    protected fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds.atOrigin): Point {
         val y = when (button.verticalAlignment) {
             Bottom -> bounds.height - insets.bottom
             Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.height) / 2))

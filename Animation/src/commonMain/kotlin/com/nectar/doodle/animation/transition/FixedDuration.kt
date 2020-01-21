@@ -12,7 +12,7 @@ import com.nectar.measured.units.times
  */
 abstract class FixedDuration<T: Unit>(private val duration: Measure<Time>): Transition<T> {
     init {
-        require(duration >= 0 * milliseconds) { "duration must be >= ${0 * milliseconds}" }
+        (0 * milliseconds).let { require(duration >= it) { "duration must be >= $it" } }
     }
 
     override fun duration(initial: Moment<T>) = duration

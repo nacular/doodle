@@ -104,7 +104,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             }
 
             return Result(activeTransition != null, previousPosition, momentValue.position).also {
-                if (activeTransition != null && (it.new != it.old || totalElapsedTime == 0 * milliseconds)) {
+                if (it.new != it.old || totalElapsedTime == 0 * milliseconds) {
                     block(it.new)
                 }
 
@@ -158,7 +158,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
     private val animations = ObservableSet<AnimationImpl<*>>().apply {
         changed += { _,_,_ ->
             when {
-                isNotEmpty() -> if (task == null) startAnimation()
+                isNotEmpty() -> if (task?.completed != false) startAnimation()
                 else         -> task?.cancel()
             }
         }
