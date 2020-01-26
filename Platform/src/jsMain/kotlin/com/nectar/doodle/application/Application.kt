@@ -31,22 +31,21 @@ import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
 import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.TextMetricsImpl
-import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
+import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyState
-import com.nectar.doodle.event.KeyState.Type.Down
 import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
-import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
+import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.impl.FocusManagerImpl
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
+import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.scheduler.impl.StrandImpl
 import com.nectar.doodle.system.KeyInputService
 import com.nectar.doodle.system.MouseInputService
-import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
+import com.nectar.doodle.system.SystemInputEvent
 import com.nectar.doodle.system.impl.KeyInputServiceImpl
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy
 import com.nectar.doodle.system.impl.KeyInputServiceStrategyWebkit
@@ -58,8 +57,10 @@ import com.nectar.doodle.theme.ThemeManager
 import com.nectar.doodle.theme.ThemeManagerImpl
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
+import org.kodein.di.Copy
+import org.kodein.di.DKodein
 import org.kodein.di.Kodein
-import org.kodein.di.Kodein.Module
+import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
@@ -69,10 +70,41 @@ import kotlin.browser.document
 import kotlin.browser.window
 
 /**
- * Created by Nicholas Eddy on 10/31/17.
+ * Created by Nicholas Eddy on 1/22/20.
  */
-abstract class Application(root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()) {
-    protected var injector = Kodein.direct {
+
+interface Application {
+    fun shutdown()
+}
+
+class SimpleApplication: Application {
+    override fun shutdown() {
+        // NO-OP
+    }
+}
+
+interface ApplicationHolder {
+    fun shutdown()
+}
+
+inline fun <reified T: Application> doodle(
+                 root                : HTMLElement        = document.body!!,
+                 allowDefaultDarkMode: Boolean            = false,
+                 modules             : Set<Kodein.Module> = emptySet(),
+        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): ApplicationHolder = createApplication(Kodein.direct {
+    bind<Application>() with singleton(null, creator)
+}, root, allowDefaultDarkMode, modules)
+
+fun createApplication(
+        injector            : DKodein,
+        root                : HTMLElement,
+        allowDefaultDarkMode: Boolean,
+        modules             : Set<Kodein.Module>): ApplicationHolder = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
+
+internal class ApplicationHolderImpl(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Kodein.Module> = emptySet()): ApplicationHolder {
+    private var injector = Kodein.direct {
+        extend(previousInjector, copy = Copy.All)
+
         bind<Window>                   () with instance  ( window )
 
         bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                              ) }
@@ -94,7 +126,10 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
         modules.forEach {
             import(it, allowOverride = true)
         }
-    }; private set
+    }
+
+    private var initTask    : Task
+    private var application = null as Application?
 
     init {
         injector.instance<SystemStyler> ()
@@ -104,12 +139,14 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
         injector.instanceOrNull<KeyboardFocusManager>()
         injector.instanceOrNull<DragManager>         ()
 
-        injector.instance<Scheduler>().now {
-            run(injector.instance())
+        initTask = injector.instance<Scheduler>().now {
+            application = injector.instance()
         }
     }
 
-    fun shutdown() {
+    override fun shutdown() {
+        initTask.cancel()
+
         injector.instance<Display>     ().shutdown()
         injector.instance<SystemStyler>().shutdown()
 
@@ -117,64 +154,48 @@ abstract class Application(root: HTMLElement = document.body!!, allowDefaultDark
         injector.instanceOrNull<MouseInputManager>   ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>()?.shutdown()
 
-        onShutdown()
+        application?.shutdown()
 
         injector = Kodein.direct {}
     }
-
-    protected abstract fun run(display: Display)
-
-    protected abstract fun onShutdown()
 }
 
 class Modules {
     companion object {
-        val mouseModule = Module(allowSilentOverride = true) {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
+        val mouseModule = Kodein.Module(allowSilentOverride = true) {
+            bind<ViewFinder>() with singleton { ViewFinderImpl(instance()) }
+            bind<MouseInputService>() with singleton { MouseInputServiceImpl(instance()) }
+            bind<MouseInputManager>() with singleton { MouseInputManagerImpl(instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()) }
         }
 
-        val focusModule = Module(allowSilentOverride = true) {
+        val focusModule = Kodein.Module(allowSilentOverride = true) {
             bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
-        val keyboardModule = Module(allowSilentOverride = true) {
+        val keyboardModule = Kodein.Module(allowSilentOverride = true) {
             import(focusModule)
 
             // TODO: Make this plugable
             val keys = mapOf(
-                Forward  to setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(),   Down)),
-                Backward to setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf(Shift), Down))
+                    FocusTraversalPolicy.TraversalType.Forward to setOf(KeyState(KeyEvent.VK_TAB, KeyEvent.VK_TAB.toChar(), emptySet(), KeyState.Type.Down)),
+                    FocusTraversalPolicy.TraversalType.Backward to setOf(KeyState(KeyEvent.VK_TAB, KeyEvent.VK_TAB.toChar(), setOf(SystemInputEvent.Modifier.Shift), KeyState.Type.Down))
             )
 
-            bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                   ) }
-            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl     (instance(), instance(), keys ) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                   ) }
+            bind<KeyInputService>() with singleton { KeyInputServiceImpl(instance()) }
+            bind<KeyboardFocusManager>() with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
+            bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()) }
         }
 
-        val themeModule = Module(allowSilentOverride = true) {
-            bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
-            bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
+        val themeModule = Kodein.Module(allowSilentOverride = true) {
+            bind<InternalThemeManager>() with singleton { ThemeManagerImpl(instance()) }
+            bind<ThemeManager>() with singleton { instance<InternalThemeManager>() }
         }
 
-        val dragDropModule = Module(allowSilentOverride = true) {
+        val dragDropModule = Kodein.Module(allowSilentOverride = true) {
             import(mouseModule)
 
-            bind<DragManager>() with singleton { DragManagerImpl (instance(), instance(), instance(), instance(), instance()) }
+            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
         }
-    }
-}
-
-class SimpleApplication(root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet(), private val run: (Display) -> Unit): Application(root, allowDefaultDarkMode, modules) {
-    private val block = run
-
-    override fun run(display: Display) {
-        block(display)
-    }
-
-    override fun onShutdown() {
-        // NO-OP
     }
 }

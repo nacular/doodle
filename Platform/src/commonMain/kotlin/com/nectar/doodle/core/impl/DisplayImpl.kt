@@ -156,7 +156,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         rootElement.apply {
             clearVisualStyles()
-            clear()
+            clear            ()
         }
     }
 
@@ -166,10 +166,10 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         repaint()
     }
 
-    private fun repaint() {
+    override fun repaint() {
         brush?.let {
             canvas.clear()
-            canvas.rect(Rectangle(width = width, height = height), it)
+            canvas.rect (Rectangle(size = size), it)
             canvas.flush()
         }
     }

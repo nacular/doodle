@@ -48,5 +48,7 @@ interface Display: Iterable<View> {
 
     fun doLayout()
 
+    fun repaint()
+
     fun shutdown()
 }

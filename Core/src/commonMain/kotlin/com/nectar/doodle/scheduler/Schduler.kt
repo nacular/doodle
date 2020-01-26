@@ -21,6 +21,8 @@ interface Scheduler {
 
     suspend fun delay     (time     :  Measure<Time>)
     suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean)
+
+    fun shutdown()
 }
 
 interface AnimationScheduler {

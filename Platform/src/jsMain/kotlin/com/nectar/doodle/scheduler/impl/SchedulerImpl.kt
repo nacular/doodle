@@ -59,6 +59,8 @@ private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Ti
 }
 
 internal class SchedulerImpl(private val timer: Timer): Scheduler {
+    private var shutdown = false
+
     override suspend fun delay(time: Measure<Time>) = suspendCoroutine<Unit> { coroutine ->
         after(time) { coroutine.resume(Unit) }
     }
@@ -72,7 +74,7 @@ internal class SchedulerImpl(private val timer: Timer): Scheduler {
     private fun check(predicate: (Measure<Time>) -> Boolean, complete: () -> Unit) {
         now {
             if (predicate(it)) { complete() }
-            else {
+            else if (!shutdown){
                 check(predicate, complete)
             }
         }
@@ -80,6 +82,10 @@ internal class SchedulerImpl(private val timer: Timer): Scheduler {
 
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
+
+    override fun shutdown() {
+        shutdown = true
+    }
 }
 
 internal class AnimationSchedulerImpl: AnimationScheduler {
