@@ -95,15 +95,9 @@ actual abstract class HTMLElement: Element() {
 
     actual abstract val style: CSSStyleDeclaration
 
-    abstract var onresize_   : ((Event) -> Unit)?
-    abstract var ondragstart_: ((DragEvent) -> Boolean)?
+    actual var onresize   : ((Event) -> Unit)? = {}
+    actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
 }
-
-actual var HTMLElement.onresize: ((Event) -> Unit)? get() = onresize_
-    set(value) { onresize_ = value }
-
-actual var HTMLElement.ondragstart: ((DragEvent) -> Boolean)? get() = ondragstart_
-    set(value) { ondragstart_ = value }
 
 actual interface ElementCreationOptions
 

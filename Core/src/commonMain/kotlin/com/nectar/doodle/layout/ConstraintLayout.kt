@@ -34,38 +34,39 @@ abstract class ConstraintLayout: Layout() {
     abstract fun unconstrain(vararg views: View): ConstraintLayout
 }
 
-
 private class ConstraintLayoutImpl(private val display: Display? = null, vararg constraints: ConstraintsImpl): ConstraintLayout() {
     private val constraints by lazy { constraints.fold(mutableMapOf<View, ConstraintsImpl>()) { s, r -> s[r.target] = r; s } }
     private val processed   by lazy { mutableSetOf<View>()                                                                   }
     private val processing  by lazy { mutableSetOf<View>()                                                                   }
 
+    private var displayConstraints: DisplayConstraints? = null
+
     override fun constrain(a: View, block: (Constraints) -> Unit): ConstraintLayout {
-        constraints(display, a).let { (a) -> block(a)
+        constraints(a).let { (a) -> block(a)
             return this
         }
     }
 
     override fun constrain(a: View, b: View, block: (Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(display, a, b).let { (a, b) -> block(a, b)
+        constraints(a, b).let { (a, b) -> block(a, b)
             return this
         }
     }
 
     override fun constrain(a: View, b: View, c: View, block: (Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(display, a, b, c).let { (a, b, c) -> block(a, b, c)
+        constraints(a, b, c).let { (a, b, c) -> block(a, b, c)
             return this
         }
     }
 
     override fun constrain(a: View, b: View, c: View, d: View, block: (Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(display, a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
+        constraints(a, b, c, d).let { (a, b, c, d) -> block(a, b, c, d)
             return this
         }
     }
 
     override fun constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout {
-        constraints(display, a, b, c, d, e).let { (a, b, c, d, e) -> block(a, b, c, d, e)
+        constraints(a, b, c, d, e).let { (a, b, c, d, e) -> block(a, b, c, d, e)
             return this
         }
     }
@@ -156,7 +157,7 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
         }
     }
 
-    private fun constraints(display: Display? = null, child: View, vararg others: View): List<Constraints> {
+    private fun constraints(child: View, vararg others: View): List<Constraints> {
         child.parent?.let {
             val parent = ParentConstraintsImpl(it)
 
@@ -176,7 +177,7 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
 
             val children = arrayOf(child) + others
 
-            val constraints = children.filter { it.displayed } .map {
+            val constraints = children.filter { it.parent == null && it.displayed } .map {
                 it.parentChange += parentChanged_
 
                 constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
@@ -404,8 +405,6 @@ private open class ParentConstraintsImpl(val target: View): ParentConstraints {
 //    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
-private var displayConstraints: DisplayConstraints? = null
-
 private open class DisplayConstraints(private val display: Display): ParentConstraints {
     val target = object: View() {}
 
@@ -461,11 +460,11 @@ fun constrain(a: View, b: View, c: View,                   block: (Constraints, 
 fun constrain(a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,    block) }
 fun constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, e, block) }
 
-fun constrain(display: Display, a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a,             block) }
-fun constrain(display: Display, a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b,          block) }
-fun constrain(display: Display, a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c,       block) }
-fun constrain(display: Display, a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d,    block) }
-fun constrain(display: Display, a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(display).also { it.constrain(a, b, c, d, e, block) }
+fun Display.constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(this).also { it.constrain(a,             block) }
+fun Display.constrain(a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(this).also { it.constrain(a, b,          block) }
+fun Display.constrain(a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(this).also { it.constrain(a, b, c,       block) }
+fun Display.constrain(a: View, b: View, c: View, d: View,          block: (Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl(this).also { it.constrain(a, b, c, d,    block) }
+fun Display.constrain(a: View, b: View, c: View, d: View, e: View, block: (Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(this).also { it.constrain(a, b, c, d, e, block) }
 
 fun max(a: Double, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
 inline fun max(a: HorizontalConstraint, b: Double) = max(b, a)

@@ -99,8 +99,8 @@ fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     else -> "#${color.hexString}"
 })
 
-inline fun SVGElement.setAlignmentBaseline(value: AlignmentBaseline) {
-    setAttribute("alignment-baseline", value.value)
+inline fun SVGElement.setDominantBaseline(value: DominantBaseline) {
+    setAttribute("dominant-baseline", value.value)
 }
 
 fun SVGElement.setFill(color: Color?) = convert(color) {
@@ -143,7 +143,7 @@ inline fun SVGElement.setTransform(transform: String) = setAttribute("transform"
 
 inline fun SVGElement.removeTransform() = removeAttribute("transform")
 
-enum class AlignmentBaseline(val value: String) {
+enum class DominantBaseline(val value: String) {
     TextBeforeEdge("text-before-edge")
 }
 

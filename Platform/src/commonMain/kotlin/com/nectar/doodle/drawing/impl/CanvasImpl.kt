@@ -54,7 +54,6 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.image.impl.ImageImpl
-import com.nectar.doodle.ondragstart
 import com.nectar.doodle.text.StyledText
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure

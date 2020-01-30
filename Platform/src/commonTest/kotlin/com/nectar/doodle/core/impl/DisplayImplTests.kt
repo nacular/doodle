@@ -13,7 +13,6 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
-import com.nectar.doodle.onresize
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.every

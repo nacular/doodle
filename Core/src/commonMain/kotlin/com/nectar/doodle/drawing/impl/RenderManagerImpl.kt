@@ -74,9 +74,6 @@ class RenderManagerImpl(
             }
         }
 
-        display.doLayout()
-        display.repaint ()
-
         display.forEach {
             childAdded(null, it)
         }

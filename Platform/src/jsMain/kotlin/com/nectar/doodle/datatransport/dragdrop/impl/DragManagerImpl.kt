@@ -131,7 +131,6 @@ internal class DragManagerImpl(
             event.clickCount,
             event.modifiers)
 
-
     private fun mouseDrag(event: SystemMouseEvent) {
         mouseDown?.let {
             viewFinder.find(event.location)?.let { view ->

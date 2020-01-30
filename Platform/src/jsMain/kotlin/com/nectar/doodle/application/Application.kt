@@ -66,6 +66,7 @@ import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.singleton
 import org.w3c.dom.Window
+import org.w3c.dom.events.Event
 import kotlin.browser.document
 import kotlin.browser.window
 
@@ -87,7 +88,7 @@ interface ApplicationHolder {
     fun shutdown()
 }
 
-inline fun <reified T: Application> doodle(
+inline fun <reified T: Application> application(
                  root                : HTMLElement        = document.body!!,
                  allowDefaultDarkMode: Boolean            = false,
                  modules             : Set<Kodein.Module> = emptySet(),
@@ -131,7 +132,14 @@ internal class ApplicationHolderImpl(previousInjector: DKodein, root: HTMLElemen
     private var initTask    : Task
     private var application = null as Application?
 
+    private fun onUnload(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
+        shutdown()
+    }
+
     init {
+        window.addEventListener("unload", ::onUnload)
+
+        // Initialize framework components
         injector.instance<SystemStyler> ()
         injector.instance<RenderManager>()
 
@@ -145,6 +153,8 @@ internal class ApplicationHolderImpl(previousInjector: DKodein, root: HTMLElemen
     }
 
     override fun shutdown() {
+        window.removeEventListener("unload", ::onUnload)
+
         initTask.cancel()
 
         injector.instance<Display>     ().shutdown()

@@ -11,7 +11,7 @@ import com.nectar.doodle.SVGPolygonElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.clear
 import com.nectar.doodle.clipPath
-import com.nectar.doodle.dom.AlignmentBaseline.TextBeforeEdge
+import com.nectar.doodle.dom.DominantBaseline.TextBeforeEdge
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
@@ -20,11 +20,11 @@ import com.nectar.doodle.dom.defaultFontSize
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
-import com.nectar.doodle.dom.setAlignmentBaseline
 import com.nectar.doodle.dom.setBorderRadius
 import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setCircle
 import com.nectar.doodle.dom.setDefaultFill
+import com.nectar.doodle.dom.setDominantBaseline
 import com.nectar.doodle.dom.setEllipse
 import com.nectar.doodle.dom.setFill
 import com.nectar.doodle.dom.setFillPattern
@@ -168,7 +168,7 @@ internal open class VectorRendererSvg constructor(
         }
 
         setPosition         (at            )
-        setAlignmentBaseline(TextBeforeEdge)
+        setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
 
@@ -216,7 +216,7 @@ internal open class VectorRendererSvg constructor(
 
         setFill             (null          )
         setStroke           (null          )
-        setAlignmentBaseline(TextBeforeEdge)
+        setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
 

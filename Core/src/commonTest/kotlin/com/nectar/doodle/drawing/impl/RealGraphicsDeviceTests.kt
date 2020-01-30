@@ -38,7 +38,7 @@ class RealGraphicsDeviceTests {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
         val surface        = mockk<GraphicsSurface>(relaxed = true)
 
-        every { surfaceFactory(null, mockk(relaxed = true)) } returns surface
+        every { surfaceFactory(null, any(), false) } returns surface
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -56,7 +56,7 @@ class RealGraphicsDeviceTests {
 
         parent.children_ += child
 
-        every { surfaceFactory(null, child) } returns surface
+        every { surfaceFactory(null, any(), true) } returns surface
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -75,8 +75,8 @@ class RealGraphicsDeviceTests {
 
         parent.children_ += child
 
-        every { surfaceFactory(null,          child                ) } returns parentSurface
-        every { surfaceFactory(parentSurface, mockk(relaxed = true)) } returns childSurface
+        every { surfaceFactory(null,          any(), true ) } returns parentSurface
+        every { surfaceFactory(parentSurface, any(), false) } returns childSurface
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -100,9 +100,9 @@ class RealGraphicsDeviceTests {
         parent.children_ += child
         child.children_  += nested
 
-        every { surfaceFactory(null,          parent               ) } returns parentSurface
-        every { surfaceFactory(parentSurface, child                ) } returns childSurface
-        every { surfaceFactory(childSurface,  mockk(relaxed = true)) } returns nestedSurface
+        every { surfaceFactory(null,          any(), true ) } returns parentSurface
+        every { surfaceFactory(parentSurface, any(), true ) } returns childSurface
+        every { surfaceFactory(childSurface,  any(), false) } returns nestedSurface
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -128,9 +128,9 @@ class RealGraphicsDeviceTests {
         parent.children_ += child
         child.children_  += nested
 
-        every { surfaceFactory(null,          parent               ) } returns parentSurface andThenThrows Exception()
-        every { surfaceFactory(parentSurface, child                ) } returns childSurface  andThenThrows Exception()
-        every { surfaceFactory(childSurface,  mockk(relaxed = true)) } returns nestedSurface andThenThrows Exception()
+        every { surfaceFactory(null,          any(), true ) } returns parentSurface andThenThrows Exception()
+        every { surfaceFactory(parentSurface, any(), true ) } returns childSurface  andThenThrows Exception()
+        every { surfaceFactory(childSurface,  any(), false) } returns nestedSurface andThenThrows Exception()
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -161,12 +161,12 @@ class RealGraphicsDeviceTests {
         parent.children_ += child
         child.children_  += nested
 
-        every { surfaceFactory(null,           parent ) } returns parentSurface1 andThen parentSurface2
-        every { surfaceFactory(parentSurface1, child  ) } returns childSurface1  andThenThrows Exception()
-        every { surfaceFactory(childSurface1,  nested ) } returns nestedSurface1 andThenThrows Exception()
+        every { surfaceFactory(null,           any(), true ) } returns parentSurface1 andThen parentSurface2
+        every { surfaceFactory(parentSurface1, any(), true ) } returns childSurface1  andThenThrows Exception()
+        every { surfaceFactory(childSurface1,  any(), false) } returns nestedSurface1 andThenThrows Exception()
 
-        every { surfaceFactory(parentSurface2, child ) } returns childSurface2  andThenThrows Exception()
-        every { surfaceFactory(childSurface2,  nested) } returns nestedSurface2 andThenThrows Exception()
+        every { surfaceFactory(parentSurface2, any(), true ) } returns childSurface2  andThenThrows Exception()
+        every { surfaceFactory(childSurface2,  any(), false) } returns nestedSurface2 andThenThrows Exception()
 
         val device = RealGraphicsDevice(surfaceFactory)
 
@@ -201,12 +201,12 @@ class RealGraphicsDeviceTests {
         parent.children_ += child
         child.children_  += nested
 
-        every { surfaceFactory(null,           parent) } returns parentSurface1 andThen parentSurface2
-        every { surfaceFactory(parentSurface1, child ) } returns childSurface1  andThenThrows Exception()
-        every { surfaceFactory(childSurface1,  nested) } returns nestedSurface1 andThenThrows Exception()
+        every { surfaceFactory(null,           any(), true ) } returns parentSurface1 andThen parentSurface2
+        every { surfaceFactory(parentSurface1, any(), true ) } returns childSurface1  andThenThrows Exception()
+        every { surfaceFactory(childSurface1,  any(), false) } returns nestedSurface1 andThenThrows Exception()
 
-        every { surfaceFactory(parentSurface2, child ) } returns childSurface2  andThenThrows Exception()
-        every { surfaceFactory(childSurface2,  nested) } returns nestedSurface2 andThenThrows Exception()
+        every { surfaceFactory(parentSurface2, any(), true ) } returns childSurface2  andThenThrows Exception()
+        every { surfaceFactory(childSurface2,  any(), false) } returns nestedSurface2 andThenThrows Exception()
 
         val device = RealGraphicsDevice(surfaceFactory)
 

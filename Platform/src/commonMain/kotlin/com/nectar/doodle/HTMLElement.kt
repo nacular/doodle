@@ -91,10 +91,10 @@ expect abstract class HTMLElement: Element {
     val offsetHeight: Int
 
     abstract val style: CSSStyleDeclaration
-}
 
-expect var HTMLElement.onresize   : ((Event) -> Unit)?
-expect var HTMLElement.ondragstart: ((DragEvent) -> Boolean)?
+    var onresize   : ((Event) -> Unit)?
+    var ondragstart: ((DragEvent) -> Boolean)?
+}
 
 expect interface ElementCreationOptions
 

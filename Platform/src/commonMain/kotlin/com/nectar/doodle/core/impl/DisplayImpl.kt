@@ -28,7 +28,6 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.layout.Insets.Companion.None
-import com.nectar.doodle.onresize
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty

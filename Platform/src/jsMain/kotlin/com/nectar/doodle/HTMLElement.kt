@@ -44,11 +44,6 @@ actual typealias DragEvent = DragEvent
 
 actual typealias HTMLElement = HTMLElement
 
-actual var HTMLElement.onresize: ((Event) -> Unit)? get() = onresize
-    set(new) { onresize = new }
-actual var HTMLElement.ondragstart: ((DragEvent) -> Boolean)? get() = ondrag
-    set(value) { ondragstart = value }
-
 actual typealias ElementCreationOptions = ElementCreationOptions
 
 actual typealias Document = Document
