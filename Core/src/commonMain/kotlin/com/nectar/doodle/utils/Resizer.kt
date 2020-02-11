@@ -81,6 +81,8 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
 
         if (dragMode.isEmpty() && movable) {
             view.position += delta
+
+            event.consume()
         } else if (dragMode.isNotEmpty()) {
             val bounds = view.bounds
 
@@ -107,6 +109,8 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
             }
 
             view.bounds = Rectangle(x, y, width, height)
+
+            event.consume()
         }
     }
 

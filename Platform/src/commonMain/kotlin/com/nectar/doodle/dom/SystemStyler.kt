@@ -37,7 +37,7 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
             insertRule("body div { display:inline }", numStyles)
 
             insertRule("pre { margin:0 }", numStyles)
-            insertRule("svg { display:inline-block;width:100%;height:100% }", numStyles)
+            insertRule("svg { display:inline-block;width:100%;height:100%;overflow:visible }", numStyles)
             insertRule("svg * { position:absolute }", numStyles)
 
 //            insertRule(".custom-button { border:none;outline:none;user-select:none;padding:0 }", numStyles)

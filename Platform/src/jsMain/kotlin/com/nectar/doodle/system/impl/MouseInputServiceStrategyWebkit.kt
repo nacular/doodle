@@ -27,7 +27,7 @@ import com.nectar.doodle.utils.ifTrue
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
 
-internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
+open internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {
@@ -45,7 +45,7 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
     }
 
     override var mouseLocation = Origin
-        private set
+        protected set
 
     private var inputDevice  = null as HTMLElement?
     private var eventHandler = null as EventHandler?
@@ -163,15 +163,15 @@ internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFact
         event.shiftKey.ifTrue { it += Shift }
     }
 
-    private fun registerCallbacks(element: HTMLElement) = element.also { e ->
-//        e.onwheel     = { mouseScroll(it) }
+    private fun registerCallbacks(element: HTMLElement) = element.apply {
+//        onwheel     = { mouseScroll(it) }
 
-        e.onmouseup   = { mouseUp    (it) }
-        e.onmouseout  = { mouseExit  (it) }
-        e.ondblclick  = { doubleClick(it) }
-        e.onmousedown = { mouseDown  (it) }
-        e.onmousemove = { mouseMove  (it) }
-        e.onmouseover = { mouseEnter (it) }
+        onmouseup   = { mouseUp    (it) }
+        onmouseout  = { mouseExit  (it) }
+        ondblclick  = { doubleClick(it) }
+        onmousedown = { mouseDown  (it) }
+        onmousemove = { mouseMove  (it) }
+        onmouseover = { mouseEnter (it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

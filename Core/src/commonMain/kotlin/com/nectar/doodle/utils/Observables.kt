@@ -207,6 +207,10 @@ fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
     batch { sortWith(comparator) }
 }
 
+fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
+    batch { sortWith(comparator.reversed()) }
+}
+
 // FIXME: Expose factory methods instead to avoid the case where the given set is modified
 open class ObservableSet<E>(protected val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<E>>()

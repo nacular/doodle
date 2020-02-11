@@ -6,9 +6,11 @@ import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.MutableList
-import com.nectar.doodle.controls.sortWith
 import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Constraints
+import com.nectar.doodle.utils.ObservableProperty
+import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.PropertyObserversImpl
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -49,6 +51,11 @@ class MutableTable<T, M: MutableListModel<T>>(
             override fun retainAll  (              values: Collection<A>) { /*NO-OP*/ }
             override fun removeAllAt(indexes: Collection<Int>           ) { /*NO-OP*/ }
             override fun clear      (                                   ) { /*NO-OP*/ }
+
+            override fun <R: Comparable<R>> sortBy            (selector  : (A) -> R?       ) { /*NO-OP*/ }
+            override fun <R: Comparable<R>> sortByDescending  (selector  : (A) -> R?       ) { /*NO-OP*/ }
+            override fun                    sortWith          (comparator: Comparator<in A>) { /*NO-OP*/ }
+            override fun                    sortWithDescending(comparator: Comparator<in A>) { /*NO-OP*/ }
         }
 
         private inner class ListEditorAdapter(private val editor: TableEditor<T>): ListEditor<R> {
@@ -83,10 +90,16 @@ class MutableTable<T, M: MutableListModel<T>>(
                 list.sortWith(Comparator { a, b -> it(a).compareTo(it(b)) })
             }
         }
+
+        override fun sortDescending(list: MutableListModel<T>) {
+            sorter?.let {
+                list.sortWith(Comparator { a, b -> it(b).compareTo(it(a)) })
+            }
+        }
     }
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
             builder(this)
 
             MutableInternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {
@@ -98,6 +111,14 @@ class MutableTable<T, M: MutableListModel<T>>(
     init {
         MutableColumnFactoryImpl().apply(block)
     }
+
+    data class Sorting(val column: MutableColumn<*, *>, val ascending: Boolean)
+
+    /** Notifies changes to [sorting] */
+    val sortingChanged: PropertyObservers<View, List<Sorting>> by lazy { PropertyObserversImpl<View, List<Sorting>>(this) }
+
+    /** current sorting for the table default is ```emptyList()```.  */
+    var sorting by ObservableProperty(emptyList(), { this }, sortingChanged as PropertyObserversImpl<View, List<Sorting>>)
 
     val editing get() = editingColumn != null
 
@@ -116,12 +137,27 @@ class MutableTable<T, M: MutableListModel<T>>(
 
     fun clear() = model.clear()
 
+    fun toggleSort(by: MutableColumn<T, *>) {
+        sorting.find { it.column == by }?.let {
+            if (it.ascending) {
+                sortDescending(by)
+                return
+            }
+        }
+
+        sort(by)
+    }
+
     fun sort(by: MutableColumn<T, *>) {
         by.sort(model)
+
+        sorting = listOf(Sorting(by, ascending = true))
     }
 
     fun sortDescending(by: MutableColumn<T, *>) {
+        by.sortDescending(model)
 
+        sorting = listOf(Sorting(by, ascending = false))
     }
 
     fun startEditing(index: Int, column: MutableColumn<T, *>) {

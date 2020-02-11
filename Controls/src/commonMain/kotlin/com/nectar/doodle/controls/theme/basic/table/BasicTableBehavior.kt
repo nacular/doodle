@@ -210,7 +210,7 @@ class BasicMutableTableBehavior<T>(
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
             toggled += {
                 if (table is MutableTable && column is MutableColumn<*,*>) {
-                    table.sort(by = column as MutableColumn<T, *>)
+                    table.toggleSort(by = column as MutableColumn<T, *>)
                 }
             }
         }
@@ -319,7 +319,7 @@ open class ColorEditOperation<T>(
         table[index] = generator(new)
     }
 
-    private val focusChanged = { _: View, _: Boolean, new: Boolean ->
+    private val focusChanged = { _: View, _: Boolean, _: Boolean ->
         table.cancelEditing()
     }
 

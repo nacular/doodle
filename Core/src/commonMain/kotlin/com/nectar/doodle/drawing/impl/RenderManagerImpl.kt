@@ -336,6 +336,10 @@ class RenderManagerImpl(
         val graphicsSurface = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
+            if (view in neverRendered) {
+                graphicsSurface.transform = view.transform
+            }
+
             if (view in pendingBoundsChange) {
                 updateGraphicsSurface(view, graphicsSurface)
 

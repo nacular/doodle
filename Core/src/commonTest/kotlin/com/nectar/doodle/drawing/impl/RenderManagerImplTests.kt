@@ -6,6 +6,7 @@ import com.nectar.doodle.JsName
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.GraphicsSurface
@@ -22,6 +23,7 @@ import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
+import com.nectar.measured.units.degrees
 import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 import io.mockk.Runs
@@ -135,15 +137,23 @@ class RenderManagerImplTests {
     fun `renders new views`() {
         val child = spyk(view())
 
-        val display = display()
+        val display        = display()
+        val surface        = mockk<GraphicsSurface>(relaxed = true)
+        val graphicsDevice = graphicsDevice(mapOf(child to surface))
 
-        val renderManager = renderManager(display)
+        val renderManager = renderManager(display, graphicsDevice = graphicsDevice)
 
         verify(exactly = 0) { child.render(any()) }
 
         display.children += child
 
         verifyChildAddedProperly(renderManager, child)
+
+        val bounds    = child.bounds
+        val transform = child.transform
+
+        verify(exactly = 1) { surface setProperty "bounds"    value bounds    }
+        verify(exactly = 1) { surface setProperty "transform" value transform }
     }
 
     @Test @JsName("removesTopLevelViews")
@@ -476,6 +486,26 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { childSurface.visible = true }
     }
+
+    @Test @JsName("reflectsVisibilityChange")
+    fun `reflects transform change`() {
+        val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+
+        val childSurface   = mockk<GraphicsSurface>  (relaxed = true)
+        val graphicsDevice = graphicsDevice(mapOf(child to childSurface))
+
+
+        renderManager(display(child), graphicsDevice = graphicsDevice)
+
+        child.transform = Identity.rotate(45 * degrees)
+
+        verify(exactly = 1) { childSurface.transform = Identity.rotate(45 * degrees) }
+
+        child.transform = Identity.rotate(57 * degrees)
+
+        verify(exactly = 1) { childSurface.transform = Identity.rotate(57 * degrees) }
+    }
+
 
     @Test @JsName("installsThemeForDisplayedViews")
     fun `installs theme for displayed views`() {

@@ -51,6 +51,7 @@ import com.nectar.doodle.dom.setX2
 import com.nectar.doodle.dom.setY1
 import com.nectar.doodle.dom.setY2
 import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
@@ -320,8 +321,8 @@ internal open class VectorRendererSvg constructor(
     }
 
     override fun clear() {
-        (0 until context.renderRegion.childNodes.length).map { context.renderRegion.childNodes[it] }.firstOrNull { isCompatibleSvgElement(it) }?.let {
-            rootSvgElement = it as SVGElement
+        findSvgDepthFirst(context.renderRegion)?.let {
+            rootSvgElement = it
             renderPosition = it.firstChild
         }
     }
@@ -513,9 +514,9 @@ internal open class VectorRendererSvg constructor(
         setPoints(*points)
     }
 
-    private fun makePath(path: Path): SVGPathElement = makePath(path.data)
+    private fun makePath(path: Path) = makePath(path.data)
 
-    private fun makePath(pathData: String): SVGPathElement = createOrUse<SVGPathElement>("path").apply {
+    private fun makePath(pathData: String) = createOrUse<SVGPathElement>("path").apply {
         setPathData(pathData)
     }
 
@@ -705,6 +706,22 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
+    private fun findSvgDepthFirst(parent: Node): SVGElement? {
+        if (parent is SVGElement) return parent
+
+        var svg = null as SVGElement?
+
+        (0 until parent.childNodes.length).mapNotNull { parent.childNodes[it] }.forEach {
+            svg = findSvgDepthFirst(it)
+
+            if (svg != null) {
+                return svg
+            }
+        }
+
+        return svg
+    }
+
     private class SVGPath: Path("M", "L", "Z")
 
     private interface FillHandler<B: Brush> {
@@ -758,7 +775,8 @@ internal open class VectorRendererSvg constructor(
 
                 pushClip(Rectangle(size = context.size))
 
-                svgElement.setTransform(transform)
+                val point = -Point(size.width / 2, size.height / 2)
+                svgElement.setTransform(((Identity translate point) * transform) translate -point)
 
                 block(this)
 

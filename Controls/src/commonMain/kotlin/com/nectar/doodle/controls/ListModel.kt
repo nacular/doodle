@@ -4,6 +4,7 @@ import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetPool
 import com.nectar.doodle.utils.sortWith
+import com.nectar.doodle.utils.sortWithDescending
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
@@ -41,32 +42,21 @@ interface MutableListModel<T>: DynamicListModel<T> {
     fun removeAllAt(indexes: Collection<Int>           )
 
     fun clear()
+
+    fun sortWith          (comparator: Comparator<in T>)
+    fun sortWithDescending(comparator: Comparator<in T>)
+
+    fun <R: Comparable<R>> sortBy          (selector: (T) -> R?)
+    fun <R: Comparable<R>> sortByDescending(selector: (T) -> R?)
 }
 
 fun <T: Comparable<T>> MutableListModel<T>.sort() {
-    when (this) {
-        is SimpleMutableListModel<*> -> (this as SimpleMutableListModel<T>).sortWith(naturalOrder())
-    }
+    sortWith(naturalOrder())
 }
 
-fun <T> MutableListModel<T>.sortWith(comparator: Comparator<in T>) {
-    when (this) {
-        is SimpleMutableListModel<*> -> (this as SimpleMutableListModel<T>).sortWith(comparator)
-    }
+fun <T: Comparable<T>> MutableListModel<T>.sortDescending() {
+    sortWithDescending(naturalOrder())
 }
-
-fun <T, R: Comparable<R>> MutableListModel<T>.sortBy(selector: (T) -> R?) {
-    when (this) {
-        is SimpleMutableListModel<*> -> (this as SimpleMutableListModel<T>).sortBy(selector)
-    }
-}
-
-fun <T, R: Comparable<R>> MutableListModel<T>.sortByDescending(selector: (T) -> R?) {
-    when (this) {
-        is SimpleMutableListModel<*> -> (this as SimpleMutableListModel<T>).sortByDescending(selector)
-    }
-}
-
 
 open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
@@ -106,15 +96,19 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
 
     override val changed = SetPool<ModelObserver<T>>()
 
-    fun sortWith(comparator: Comparator<in T>) {
+    override fun sortWith(comparator: Comparator<in T>) {
         list.sortWith(comparator)
     }
 
-    internal inline fun <R: Comparable<R>> sortBy(crossinline selector: (T) -> R?) {
+    override fun sortWithDescending(comparator: Comparator<in T>) {
+        list.sortWithDescending(comparator)
+    }
+
+    override fun <R: Comparable<R>> sortBy(selector: (T) -> R?) {
         list.sortBy(selector)
     }
 
-    internal inline fun <R: Comparable<R>> sortByDescending(crossinline selector: (T) -> R?) {
+    override fun <R: Comparable<R>> sortByDescending(selector: (T) -> R?) {
         list.sortByDescending(selector)
     }
 }

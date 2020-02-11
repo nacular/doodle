@@ -14,6 +14,7 @@ import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.LinearGradientBrush.Stop
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
+import com.nectar.doodle.drawing.checkerBrush
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
@@ -246,17 +247,7 @@ class ColorPicker(color: Color): View() {
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val w         = 32.0 / 2
-        private val h         = 15.0 / 2
-        private val white     = ColorBrush(Color.white)
-        private val lightGray = ColorBrush(lightgray)
-
-        private val checkerBrush = PatternBrush(Size(32, 15)) {
-            rect(Rectangle(0.0, 0.0, w, h), white    )
-            rect(Rectangle(0.0,   h, w, h), lightGray)
-            rect(Rectangle(w,   0.0, w, h), lightGray)
-            rect(Rectangle(w,     h, w, h), white    )
-        }
+        private val checkerBrush = checkerBrush(Size(32.0 / 2, 15.0 / 2), white, lightgray)
 
         private lateinit var brush: LinearGradientBrush
 
@@ -315,18 +306,7 @@ class ColorPicker(color: Color): View() {
         override fun render(canvas: Canvas) {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
-                    val brushSize = Size(width * 2 / 3, height * 2 / 3)
-                    val w         = brushSize.width  / 2
-                    val h         = brushSize.height / 2
-
-                    val checkerBrush = PatternBrush(brushSize) {
-                        rect(Rectangle(0.0, 0.0, w, h), ColorBrush(lightgray))
-                        rect(Rectangle(0.0, h,   w, h), ColorBrush(white    ))
-                        rect(Rectangle(w,   0.0, w, h), ColorBrush(white    ))
-                        rect(Rectangle(w,   h,   w, h), ColorBrush(lightgray))
-                    }
-
-                    canvas.rect(bounds.atOrigin, 3.0, checkerBrush)
+                    canvas.rect(bounds.atOrigin, 3.0, checkerBrush(Size(width * 2 / 3, height * 2 / 3) / 2, lightgray, white))
                 }
 
                 backgroundColor?.let {

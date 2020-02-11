@@ -25,5 +25,6 @@ interface Column<T> {
 interface MutableColumn<T, R>: Column<R> {
     var editor: TableEditor<T>?
 
-    fun sort(list: MutableListModel<T>)
+    fun sort          (list: MutableListModel<T>)
+    fun sortDescending(list: MutableListModel<T>)
 }

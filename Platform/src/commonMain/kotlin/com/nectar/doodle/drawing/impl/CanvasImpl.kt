@@ -7,6 +7,7 @@ import com.nectar.doodle.Text
 import com.nectar.doodle.clear
 import com.nectar.doodle.dom.BorderStyle.Solid
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.Overflow.Visible
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.clearBoundStyles
@@ -26,6 +27,7 @@ import com.nectar.doodle.dom.setBounds
 import com.nectar.doodle.dom.setColor
 import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOpacity
+import com.nectar.doodle.dom.setOverflow
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setTransform
@@ -208,7 +210,9 @@ open class CanvasImpl(
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
         true -> block()
         else -> subFrame(block) {
-            it.style.setTransform(transform)
+            val point = -Point(size.width / 2, size.height / 2)
+            it.style.setTransform(((Identity translate point) * transform) translate -point)
+            it.style.setOverflow(Visible())
         }
     }
 

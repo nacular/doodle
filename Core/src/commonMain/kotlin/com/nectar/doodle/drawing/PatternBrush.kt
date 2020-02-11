@@ -31,3 +31,16 @@ fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowCo
     evenRowColor?.let { rect(Rectangle(               colWidth, colWidth), ColorBrush(it)) }
     oddRowColor?.let  { rect(Rectangle(colWidth, 0.0, colWidth, colWidth), ColorBrush(it)) }
 }
+
+fun checkerBrush(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null) = PatternBrush(checkerSize * 2) {
+    val w  = checkerSize.width
+    val h  = checkerSize.height
+    val b1 = firstColor?.let  { ColorBrush(it) }
+    val b2 = secondColor?.let { ColorBrush(it) }
+
+    b1?.let { rect(Rectangle(0.0, 0.0, w, h), it) }
+    b2?.let { rect(Rectangle(0.0,   h, w, h), it) }
+    b2?.let { rect(Rectangle(w,   0.0, w, h), it) }
+    b1?.let { rect(Rectangle(w,     h, w, h), it) }
+}
+

@@ -51,7 +51,7 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
                     0.0,   y, 0.0)
     )
 
-    fun translate(by: Point) = translate(by.x, by.y)
+    infix fun translate(by: Point) = translate(by.x, by.y)
 
     fun translate(x: Double = 0.0, y: Double = 0.0) = AffineTransform(
             matrix * AffineMatrix3D(
@@ -65,7 +65,7 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
                       y, 1.0, 0.0)
     )
 
-    fun rotate(angle: Measure<Angle>): AffineTransform {
+    infix fun rotate(angle: Measure<Angle>): AffineTransform {
         val radians = angle `in` radians
         val sin     = sin(radians)
         val cos     = cos(radians)

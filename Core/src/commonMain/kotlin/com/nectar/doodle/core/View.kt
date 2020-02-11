@@ -438,7 +438,7 @@ abstract class View protected constructor() {
     open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
 
     /**
-     * Checks whether a point is within the boundaries of a View.
+     * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.
      *
      * @param point The point to check
      * @return ```true``` IFF the point falls within the View

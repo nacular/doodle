@@ -170,8 +170,8 @@ class RealGraphicsSurface private constructor(
     }
 
     private fun refreshAugmentedTransform() {
-        val point          = - Point(canvas.size.width / 2, canvas.size.height / 2)
-        augmentedTransform = (Identity.translate(point) * transform).translate(-point)
+        val point          = -Point(canvas.size.width / 2, canvas.size.height / 2)
+        augmentedTransform = ((Identity translate point) * transform) translate -point
     }
 
     private fun updateTransform(new: Point) {

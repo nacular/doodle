@@ -5,6 +5,7 @@ import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
@@ -42,8 +43,8 @@ interface Canvas: Renderer {
     }
 
     fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
-        Point.Origin -> block()
-        else         -> transform(Identity.translate(by), block)
+        Origin -> block()
+        else   -> transform(Identity.translate(by), block)
     }
 
     fun flipVertically(                block: Canvas.() -> Unit) = scale(1.0, -1.0, block = block)
