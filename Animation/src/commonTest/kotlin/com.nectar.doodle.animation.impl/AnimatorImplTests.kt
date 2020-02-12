@@ -100,25 +100,25 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        var animation = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation1 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
             outputs.plusAssign(it)
         }
 
         expect(listOf(0f, 2/3f, 1f)) { outputs }
 
-        verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
-        verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+        verify(exactly = 2) { listener.changed  (animate, setOf(animation1)) }
+        verify(exactly = 1) { listener.completed(animate, setOf(animation1)) }
 
         outputs = mutableListOf()
 
-        animation = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation2 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
             outputs.plusAssign(it)
         }
 
         expect(listOf(0f, 2/3f, 1f)) { outputs }
 
-        verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
-        verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+        verify(exactly = 2) { listener.changed  (animate, setOf(animation2)) }
+        verify(exactly = 1) { listener.completed(animate, setOf(animation2)) }
     }
 
     @Test fun `animates measure property`() {

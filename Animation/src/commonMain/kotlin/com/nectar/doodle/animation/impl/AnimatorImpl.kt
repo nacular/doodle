@@ -136,9 +136,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
 
         override fun then(transition: Transition<NoneUnit>) = this.also { property.add(transition) }
 
-        override fun invoke(block: (T) -> Unit): Animation {
-            return AnimationImpl(property) { block(it.amount as T) }.also { animations += it }
-        }
+        override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { animations += it }
     }
 
     private inner class MeasureTransitionBuilderImpl<T: com.nectar.measured.units.Unit>(

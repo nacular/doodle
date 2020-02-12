@@ -20,7 +20,7 @@ import kotlin.coroutines.suspendCoroutine
 private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private val start = timer.now
-    private val value = window.setTimeout({ job(timer.now - start); completed = true }, (time  `in` milliseconds).toInt())
+    private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time  `in` milliseconds).toInt())
 
     override var completed = false
 
@@ -33,15 +33,15 @@ private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<T
 private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
 
     private val value = window.requestAnimationFrame { time ->
-        job(time * milliseconds)
         completed = true
+        job(time * milliseconds)
     }
 
     override var completed = false
 
     override fun cancel() {
-        window.cancelAnimationFrame(value)
         completed = true
+        window.cancelAnimationFrame(value)
     }
 }
 

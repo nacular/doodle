@@ -8,7 +8,8 @@ import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.system.Cursor.Companion.EResize
-import com.nectar.doodle.system.Cursor.Companion.Move
+import com.nectar.doodle.system.Cursor.Companion.Grab
+import com.nectar.doodle.system.Cursor.Companion.Grabbing
 import com.nectar.doodle.system.Cursor.Companion.NResize
 import com.nectar.doodle.system.Cursor.Companion.NeResize
 import com.nectar.doodle.system.Cursor.Companion.NwResize
@@ -16,6 +17,7 @@ import com.nectar.doodle.system.Cursor.Companion.SResize
 import com.nectar.doodle.system.Cursor.Companion.SeResize
 import com.nectar.doodle.system.Cursor.Companion.SwResize
 import com.nectar.doodle.system.Cursor.Companion.WResize
+import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.utils.Direction.East
 import com.nectar.doodle.utils.Direction.North
 import com.nectar.doodle.utils.Direction.South
@@ -60,6 +62,8 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
             initialPosition.x >= view.width - hotspotSize -> dragMode.plusAssign(East)
             initialPosition.x <= hotspotSize              -> dragMode.plusAssign(West)
         }
+
+        updateCursor(event)
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -164,7 +168,10 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
             }
             East in mask                -> EResize
             West in mask                -> WResize
-            movable && innerX && innerY -> Move
+            movable && innerX && innerY -> when (event.type) {
+                Down -> Grabbing
+                else -> Grab
+            }
             else                        -> oldCursor
         }
 

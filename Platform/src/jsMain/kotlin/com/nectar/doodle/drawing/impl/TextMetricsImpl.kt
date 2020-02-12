@@ -106,7 +106,8 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val htmlFact
         elementRuler.width(box)
     }
 
-    override fun height(text: String, font: Font?) = fontHeights.getOrPut(font) {
+    // Special check for blank added to avoid font black-holing if first text checked is empty string
+    override fun height(text: String, font: Font?) = if (text.isBlank()) 0.0 else fontHeights.getOrPut(font) {
         elementRuler.size(textFactory.create(text, font)).also {
             widths[text to font] = it.width
         }.height
