@@ -197,7 +197,7 @@ open class BasicTableBehavior<T>(
     }
 }
 
-class BasicMutableTableBehavior<T>(
+open class BasicMutableTableBehavior<T>(
         focusManager         : FocusManager?,
         rowHeight            : Double = 20.0,
         headerColor          : Color? = lightgray,
