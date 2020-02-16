@@ -6,6 +6,7 @@ import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.Image
@@ -37,9 +38,7 @@ interface Canvas: Renderer {
 
     fun rotate(by    : Measure<Angle>,                     block: Canvas.() -> Unit) = transform(Identity.rotate(by), block)
     fun rotate(around: Point,          by: Measure<Angle>, block: Canvas.() -> Unit) {
-        val point = around - (size / 2.0).run { Point(width, height) }
-
-        transform(Identity.translate(point).rotate(by).translate(-point), block)
+        transform(Identity.translate(around).rotate(by).translate(-around), block)
     }
 
     fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
@@ -96,6 +95,8 @@ interface Canvas: Renderer {
     fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
 
     fun clip(rectangle: Rectangle, radius: Double = 0.0, block: Canvas.() -> Unit)
+
+    fun clip(polygon: Polygon, block: Canvas.() -> Unit)
 
     fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
     fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)

@@ -4,6 +4,8 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
+    js { browser {} }
+
     targets {
         fromPreset(presets.jvm, 'jvm')
         fromPreset(presets.js,  'js' ) {
@@ -28,7 +30,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api dep.measured
+            api dep.measured_common
 
             implementation dep.kotlin_stdlib_common
             implementation dep.kotlin_reflect
@@ -41,6 +43,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
+            api dep.measured_jvm
+
             implementation dep.kotlin_stdlib_jdk8
         }
 
@@ -54,6 +58,8 @@ kotlin {
         }
 
         jsMain.dependencies {
+            api dep.measured_js
+
             implementation dep.kotlin_stdlib_js
         }
 

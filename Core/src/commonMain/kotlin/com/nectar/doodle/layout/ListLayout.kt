@@ -22,13 +22,13 @@ class ListLayout constructor(private val spacing: Int = 0, private val widthSour
 
         val width = when (widthSource) {
             Parent -> container.run { idealSize?.width ?: width }
-            else   -> container.children.asSequence().filter { it.visible }.map { it.idealSize?.width ?: it.width }.max() ?: 0.0
+            else   -> container.children.filter { it.visible }.map { it.idealSize?.width ?: it.width }.max() ?: 0.0
         }
 
         var i = 0
 
-        container.children.asSequence().filter { it.visible }.forEach {
-            it.bounds = Rectangle(insets.left, y, width, it.height)
+        container.children.filter { it.visible }.forEach {
+            it.bounds = Rectangle(insets.left, y, max(0.0, width - (insets.left + insets.right)), it.height)
 
             y += it.height + if (++i < container.children.size) spacing else 0
         }
@@ -54,14 +54,14 @@ class ListLayout constructor(private val spacing: Int = 0, private val widthSour
 
         var i = 0
 
-        container.children.asSequence().filter { it.visible }.forEach {
+        container.children.filter { it.visible }.forEach {
             if (widthSource == Children) {
-                width = max(width, it.idealSize?.width ?: it.width)
+                width = max(width, it.idealSize?.width ?: it.width + insets.left + insets.right)
             }
 
             y += it.height + if (++i < container.children.size) spacing else 0
         }
 
-        return Size(width + insets.left + insets.right, y + insets.bottom)
+        return Size(width, y + insets.bottom)
     }
 }

@@ -14,8 +14,6 @@ interface TextFieldBehavior: Behavior<TextField> {
 
 open class TextField(text: String = ""): TextInput(text) {
 
-    enum class TextFit { Width, Height }
-
     var fitText = null as Set<TextFit>?
         set(new) {
             field = new

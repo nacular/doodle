@@ -5,6 +5,7 @@ import com.nectar.doodle.HTMLImageElement
 import com.nectar.doodle.Node
 import com.nectar.doodle.Text
 import com.nectar.doodle.clear
+import com.nectar.doodle.clipPath
 import com.nectar.doodle.dom.BorderStyle.Solid
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Overflow.Visible
@@ -51,6 +52,7 @@ import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -239,6 +241,10 @@ open class CanvasImpl(
     override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) = subFrame({ translate(-rectangle.position, block) }) {
         it.style.setBounds      (rectangle)
         it.style.setBorderRadius(radius   )
+    }
+
+    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = subFrame(block) {
+        it.style.clipPath = "polygon(${polygon.points.joinToString { point -> "${point.x / size.width * 100}% ${point.y / size.height * 100}%" }})"
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

@@ -23,7 +23,7 @@ class TextItemVisualizer(private val textMetrics: TextMetrics): ItemVisualizer<S
 class FastTextItemVisualizer(private val textMetrics: TextMetrics): ItemVisualizer<String> {
     override fun invoke(item: String, previous: View?) = when (previous) {
         is Label -> { previous.text = item; previous }
-        else     -> Label(textMetrics, StyledText(item)).apply { fitText = false }
+        else     -> Label(textMetrics, StyledText(item)).apply { fitText = emptySet() }
     }
 }
 

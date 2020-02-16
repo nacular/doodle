@@ -4,6 +4,8 @@ import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.TextField
+import com.nectar.doodle.controls.text.TextFit.Height
+import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
@@ -68,7 +70,7 @@ private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): 
     override fun invoke(item: T, index: Int, previous: View?) = when (previous) {
         is Label -> { previous.text = item.toString(); previous }
         else     -> labelFactory(item.toString()).apply {
-            fitText             = true
+            fitText             = setOf(Width, Height)
             horizontalAlignment = Left
         }
     }
@@ -186,7 +188,7 @@ open class TextEditOperation<T>(
 
     init {
         text                = encoder.encode(node) ?: ""
-        fitText             = setOf(TextFit.Width)
+        fitText             = setOf(Width)
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
         borderVisible       = false
         horizontalAlignment = Left

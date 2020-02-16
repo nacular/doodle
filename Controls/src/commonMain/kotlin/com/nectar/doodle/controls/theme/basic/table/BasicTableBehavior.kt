@@ -16,6 +16,7 @@ import com.nectar.doodle.controls.table.TableBehavior.HeaderCellGenerator
 import com.nectar.doodle.controls.table.TableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TableBehavior.RowPositioner
 import com.nectar.doodle.controls.text.TextField
+import com.nectar.doodle.controls.text.TextFit
 import com.nectar.doodle.controls.theme.basic.ListPositioner
 import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler

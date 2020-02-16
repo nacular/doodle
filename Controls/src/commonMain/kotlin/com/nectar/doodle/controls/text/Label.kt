@@ -1,10 +1,13 @@
 package com.nectar.doodle.controls.text
 
+import com.nectar.doodle.controls.text.TextFit.Height
+import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.text.invoke
 import com.nectar.doodle.theme.Behavior
@@ -42,7 +45,7 @@ open class Label internal constructor(
                     verticalAlignment  : VerticalAlignment   = Middle,
                     horizontalAlignment: HorizontalAlignment = Center): View() {
 
-    var fitText = true
+    var fitText = setOf(Width, Height)
 
     var text: String get() = styledText.text
         set(new) {
@@ -70,10 +73,11 @@ open class Label internal constructor(
     var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
     var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
 
-    var textSize = Size.Empty
+    var textSize = Empty
         private set(new) {
-            field             = new
-            if (fitText) size = new
+            field = new
+            if (Width  in fitText) width  = new.width
+            if (Height in fitText) height = new.height
         }
 
     var behavior: Behavior<Label>? = null
@@ -86,13 +90,13 @@ open class Label internal constructor(
 
     private fun measureText(): Size {
         val height = when {
-            fitText || verticalAlignment != Top -> if (wrapsWords) textMetrics.height(styledText, width) else textMetrics.height(styledText)
-            else                                -> 0.0
+            Height in fitText || verticalAlignment != Top -> if (wrapsWords) textMetrics.height(styledText, width) else textMetrics.height(styledText)
+            else                                          -> 0.0
         }
 
         val width = when {
-            fitText || horizontalAlignment != Left -> if (wrapsWords) textMetrics.width(styledText, width) else textMetrics.width(styledText)
-            else                                   -> 0.0
+            Width in fitText || horizontalAlignment != Left -> if (wrapsWords) textMetrics.width(styledText, width) else textMetrics.width(styledText)
+            else                                            -> 0.0
         }
 
         return Size(width, height).also { textSize = it }

@@ -6,6 +6,7 @@ import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
+import com.nectar.doodle.controls.text.TextFit
 import com.nectar.doodle.controls.theme.basic.ListRow
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas

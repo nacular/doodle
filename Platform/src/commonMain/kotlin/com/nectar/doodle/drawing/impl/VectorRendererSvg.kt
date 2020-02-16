@@ -69,6 +69,7 @@ import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.get
@@ -816,6 +817,10 @@ internal open class VectorRendererSvg constructor(
             pushClip(rectangle, radius)
             block   (this             )
             popClip (                 )
+        }
+
+        override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

@@ -4,6 +4,8 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
+    js { browser {} }
+
     targets {
         fromPreset(presets.jvm, 'jvm')
         fromPreset(presets.js,  'js' ) {
@@ -42,17 +44,18 @@ kotlin {
         jsMain.dependencies {
             api project(':core'    )
             api project(':controls')
+            api 'org.kodein.di:kodein-di-erased-js:6.5.1'
 
             implementation dep.kotlin_stdlib_js
-            implementation 'org.kodein.di:kodein-di-erased-js:5.0.0'
         }
 
         jvmMain.dependencies {
+            api project(':core' )
+
             implementation dep.kotlin_stdlib_jdk8
         }
 
         jvmTest.dependencies {
-            api project(':core' )
             implementation dep.junit
             implementation dep.kotlin_test_junit
 

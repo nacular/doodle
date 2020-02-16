@@ -4,6 +4,8 @@ apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 
 kotlin {
+    js { browser {} }
+
     targets {
         fromPreset(presets.jvm, 'jvm')
         fromPreset(presets.js,  'js' ) {

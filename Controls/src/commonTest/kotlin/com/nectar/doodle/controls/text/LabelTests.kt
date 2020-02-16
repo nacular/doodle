@@ -97,7 +97,7 @@ class LabelTests {
 
         Label(createTextMetrics(textSize, wrappedSize)).let {
             it.styledText = styledText()
-            it.fitText    = false
+            it.fitText    = emptySet()
             it.wrapsWords = true
             it.size       = Empty
 

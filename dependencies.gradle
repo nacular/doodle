@@ -24,17 +24,19 @@ ext {
             // JS
             kotlin_test_js            : "org.jetbrains.kotlin:kotlin-test-js",
 //            kotlin_test               : "org.jetbrains.kotlin:kotlin-test",
-            mockk_js                  :  "io.mockk:mockk-js:$mockk_js",
+            mockk_js                  : "io.mockk:mockk-js:$mockk_js",
             kotlinx_coroutines_core_js: "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutines_core",
 
             // JVM
             junit               : "junit:junit:$junit_version",
 //            kotlin_test         : "org.jetbrains.kotlin:kotlin-test",
             kotlin_test_junit   : "org.jetbrains.kotlin:kotlin-test-junit",
-            mockk               :  "io.mockk:mockk:$mockk",
+            mockk               : "io.mockk:mockk:$mockk",
 
             log4j               : "org.slf4j:slf4j-api:1.7.25",
             logback             : "ch.qos.logback:logback-classic:1.2.3",
-            measured            :"com.nectar.measured:measured:$measured"
+            measured_common     : "com.nectar.measured:measured:$measured",
+            measured_jvm        : "com.nectar.measured:measured-jvm:$measured",
+            measured_js         : "com.nectar.measured:measured-js:$measured"
     ]
 }

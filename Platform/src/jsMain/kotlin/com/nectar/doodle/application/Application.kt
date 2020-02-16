@@ -1,6 +1,7 @@
 package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.DragManager
@@ -11,6 +12,7 @@ import com.nectar.doodle.deviceinput.MouseInputManager
 import com.nectar.doodle.deviceinput.MouseInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
+import com.nectar.doodle.document.impl.DocumentImpl
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
@@ -68,6 +70,7 @@ import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
+import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.Window
 import org.w3c.dom.events.Event
@@ -97,7 +100,7 @@ inline fun <reified T: Application> application(
                  allowDefaultDarkMode: Boolean            = false,
                  modules             : Set<Module> = emptySet(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): ApplicationHolder = createApplication(Kodein.direct {
-    bind<Application>() with singleton(null, creator)
+    bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 inline fun <reified T: Application> nestedApplication(
@@ -106,7 +109,7 @@ inline fun <reified T: Application> nestedApplication(
         allowDefaultDarkMode: Boolean            = false,
         modules             : Set<Module> = emptySet(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): ApplicationHolder = createNestedApplication(view, Kodein.direct {
-    bind<Application>() with singleton(null, creator)
+    bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 fun createApplication(
@@ -275,6 +278,10 @@ class Modules {
             import(mouseModule)
 
             bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+        }
+
+        val documentModule = Module(allowSilentOverride = true) {
+            bind<Document>() with provider { DocumentImpl(instance<TextFactory>(), instance<HtmlFactory>()) }
         }
     }
 }

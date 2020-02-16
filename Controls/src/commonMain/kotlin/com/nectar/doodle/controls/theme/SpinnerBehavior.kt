@@ -22,7 +22,7 @@ interface SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
 
 abstract class CommonSpinnerBehavior(private val insets: Insets = None, private val labelFactory: LabelFactory): SpinnerBehavior<Any, Model<Any>> {
     override fun components(spinner: Spinner<Any, Model<Any>>): Config {
-        val center = labelFactory(spinner.value.toString()).apply { fitText = false }
+        val center = labelFactory(spinner.value.toString()).apply { fitText = emptySet() }
         val up     = PushButton("-").apply { enabled = spinner.hasPrevious }
         val down   = PushButton("+").apply { enabled = spinner.hasNext     }
 

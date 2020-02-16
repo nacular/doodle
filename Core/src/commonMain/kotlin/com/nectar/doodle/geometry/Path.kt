@@ -22,6 +22,8 @@ interface PathBuilder {
 }
 
 private class PathImpl(override val data: String): Path {
+    override fun toString() = data
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Path) return false
@@ -34,8 +36,14 @@ private class PathImpl(override val data: String): Path {
     override fun hashCode() = data.hashCode()
 }
 
-fun path(data: String): Path?       = PathImpl(data)
-fun path(from: Point ): PathBuilder = PathBuilderImpl(from)
+fun path(data: String ): Path?       = PathImpl(data)
+fun path(from: Point  ): PathBuilder = PathBuilderImpl(from)
+
+fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
+    points.subList(1, points.size).forEach {
+        lineTo(it)
+    }
+}.close()
 
 private class PathBuilderImpl(start: Point): PathBuilder {
     private var data = "M${start.x},${start.y}"

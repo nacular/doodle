@@ -48,18 +48,18 @@ project.afterEvaluate {
             '**/*Test*.*'
         ]
 
-        classDirectories = fileTree(
+        getClassDirectories().from(fileTree(
             dir     : "${project.buildDir}/classes/kotlin/jvm/",
             excludes: excludes
-        )
+        ))
 
         def coverageSourceDirs = [
             "src/commonMain/kotlin"
         ]
 
-        additionalSourceDirs = files(coverageSourceDirs)
-        sourceDirectories    = files(coverageSourceDirs)
-        executionData        = files("${project.buildDir}/jacoco/jvmTest.exec")
+        getAdditionalSourceDirs().from(files(coverageSourceDirs))
+        getSourceDirectories().from(files(coverageSourceDirs))
+        getExecutionData().from(files("${project.buildDir}/jacoco/jvmTest.exec"))
 
         reports {
             xml.enabled  = true
