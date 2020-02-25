@@ -64,7 +64,7 @@ class SystemTheme internal constructor(
     override fun toString() = this::class.simpleName ?: ""
 
     companion object {
-        val systemThemeModule = Module(allowSilentOverride = true) {
+        val systemThemeModule = Module(allowSilentOverride = true, name = "SystemTheme") {
             // TODO: Can this be handled better?
             bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
@@ -77,7 +77,7 @@ class SystemTheme internal constructor(
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
             bind<NativeHyperLinkFactory>          () with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
 
-            import(themeModule, allowOverride = true)
+            importOnce(themeModule, allowOverride = true)
         }
     }
 }

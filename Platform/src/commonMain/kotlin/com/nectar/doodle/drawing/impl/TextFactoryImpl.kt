@@ -4,7 +4,7 @@ import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.clear
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.Inline
-import com.nectar.doodle.dom.Relative
+import com.nectar.doodle.dom.Static
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.numChildren
@@ -52,8 +52,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         text.forEach { (text, style) ->
             element.add(create(text, style.font).also { element ->
-                element.style.setDisplay (Inline  ())
-                element.style.setPosition(Relative())
+                element.style.setDisplay (Inline())
+                element.style.setPosition(Static())
 
                 applyStyle(element, style)
             })
@@ -62,17 +62,23 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    override fun wrapped(text: String, font: Font?, width: Double, indent: Double, possible: HTMLElement?) = create(text, font, possible).also {
+    override fun wrapped(text: String, font: Font?, width: Double, indent: Double, possible: HTMLElement?) = wrapped(text, font, indent, possible).also {
+        it.style.setWidth(width)
+    }
+
+    override fun wrapped(text: String, font: Font?, indent: Double, possible: HTMLElement?) = create(text, font, possible).also {
         applyWrap(it, indent)
     }
 
-    override fun wrapped(text: StyledText, width: Double, indent: Double, possible: HTMLElement?) = create(text, possible).also {
+    override fun wrapped(text: StyledText, width: Double, indent: Double, possible: HTMLElement?) = wrapped(text, indent, possible).also {
+        it.style.setWidth(width)
+    }
+
+    override fun wrapped(text: StyledText, indent: Double, possible: HTMLElement?) = create(text, possible).also {
         if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {
             applyWrap(it, indent)
         } else {
             (0 until it.numChildren).map { i -> it.childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, indent) }
-
-            it.style.setWidth(width)
         }
     }
 

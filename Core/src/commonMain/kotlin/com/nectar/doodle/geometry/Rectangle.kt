@@ -183,7 +183,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      * @param inset amount to resize by
      * @return adjusted Rectangle
      */
-    fun inset(inset: Double) = if (inset == 0.0) this else Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
+    infix fun inset(inset: Double) = if (inset == 0.0) this else Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
 
     /**
      * Rectangle that has been adjusted as follows `[x + left, y + top, w - (left + right), h - (top + bottom)]`, where
@@ -192,7 +192,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      * @param inset amount to resize by
      * @return adjusted Rectangle
      */
-    fun inset(inset: Insets) = Rectangle(x + inset.left, y + inset.top, max(0.0, width  - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
+    infix fun inset(inset: Insets) = Rectangle(x + inset.left, y + inset.top, max(0.0, width  - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
 
     /**
      * Checks whether the given point is within the boundaries of this Rectangle

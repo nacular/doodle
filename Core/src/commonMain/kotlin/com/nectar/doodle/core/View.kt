@@ -139,7 +139,7 @@ abstract class View protected constructor() {
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
     var minimumSize = Size.Empty
-        get() = layout?.idealSize(positionableWrapper, field) ?: field
+        get() = layout?.minimumSize(positionableWrapper, field) ?: field
 
     /**
      * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,

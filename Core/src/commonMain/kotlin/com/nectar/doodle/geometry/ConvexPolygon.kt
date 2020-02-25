@@ -56,7 +56,7 @@ abstract class ConvexPolygon: Polygon() {
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
     override val area: Double by lazy {
-        var area = 0.0         // Accumulates area in the loop
+        var area = 0.0              // Accumulates area in the loop
         var j    = points.size - 1  // The last vertex is the 'previous' one to the first
         var i    = 0
 

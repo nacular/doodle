@@ -133,11 +133,11 @@ internal class NestedMouseInputStrategy(private val view: ApplicationView, htmlF
 }
 
 internal class NestedApplicationHolder(
-        view: ApplicationView,
-        previousInjector: DKodein,
-        root: HTMLElement = document.body!!,
+        view                : ApplicationView,
+        previousInjector    : DKodein,
+        root                : HTMLElement = document.body!!,
         allowDefaultDarkMode: Boolean = false,
-        modules: Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules) {
+        modules             : Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules) {
 
     init {
         injector.instanceOrNull<MouseInputServiceStrategy>()?.let {
@@ -244,19 +244,19 @@ internal open class ApplicationHolderImpl protected constructor(previousInjector
 
 class Modules {
     companion object {
-        val mouseModule = Module(allowSilentOverride = true) {
+        val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
             bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
             bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
         }
 
-        val focusModule = Module(allowSilentOverride = true) {
+        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
             bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
-        val keyboardModule = Module(allowSilentOverride = true) {
-            import(focusModule)
+        val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
+            importOnce(focusModule)
 
             // TODO: Make this pluggable
             val keys = mapOf(
@@ -269,19 +269,19 @@ class Modules {
             bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                  ) }
         }
 
-        val themeModule = Module(allowSilentOverride = true) {
+        val themeModule = Module(allowSilentOverride = true, name = "Theme") {
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
             bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
         }
 
-        val dragDropModule = Module(allowSilentOverride = true) {
-            import(mouseModule)
+        val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
+            importOnce(mouseModule)
 
             bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
         }
 
-        val documentModule = Module(allowSilentOverride = true) {
-            bind<Document>() with provider { DocumentImpl(instance<TextFactory>(), instance<HtmlFactory>()) }
+        val documentModule = Module(allowSilentOverride = true, name = "Document") {
+            bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
         }
     }
 }

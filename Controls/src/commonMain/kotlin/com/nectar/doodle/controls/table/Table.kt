@@ -389,7 +389,7 @@ open class Table<T, M: ListModel<T>>(
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol?.let { it + 1 } ?: 0)
+        width       = columnSizePolicy.layout(width, internalColumns, resizingCol?.let { it + 1 } ?: 0)
         resizingCol = null
 
         super.doLayout()

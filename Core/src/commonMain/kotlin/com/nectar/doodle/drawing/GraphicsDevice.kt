@@ -10,6 +10,8 @@ interface GraphicsDevice<T: GraphicsSurface> {
      */
     operator fun get(view: View): T
 
+    fun create(view: View): T
+
     /**
      * @return a top-level graphics surface
      */

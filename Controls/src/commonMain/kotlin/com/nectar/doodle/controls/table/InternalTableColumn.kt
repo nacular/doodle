@@ -3,7 +3,6 @@ package com.nectar.doodle.controls.table
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.View
-import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.utils.ChangeObserversImpl
@@ -141,7 +140,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
             behavior?.columnMoveStart(table, this)
         }
 
-        transform *= AffineTransform.Identity.translate(delta)
+        transform *= Identity.translate(delta)
 
         behavior?.columnMoved(table, this)
 

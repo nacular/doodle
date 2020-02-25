@@ -7,6 +7,7 @@ import com.nectar.doodle.animation.fixedTimeLinearM
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
+import com.nectar.doodle.utils.Completable
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.hours
@@ -68,13 +69,20 @@ class AnimatorImplTests {
                 it.complete()
             }
         }
+
+        fun runToCompletion() {
+            while (activeTasks.isNotEmpty()) {
+                runOutstandingTasks()
+            }
+        }
     }
 
     @Test fun `animates number property`() {
         val timer              = MonotonicTimer()
-        val animationScheduler = ImmediateAnimationScheduler()
+        val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
         val listener           = mockk<Listener>(relaxed = true)
+        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
 
         val outputs = mutableListOf<Float>()
 
@@ -82,12 +90,17 @@ class AnimatorImplTests {
 
         val animation = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
             outputs += it
+        }.apply {
+            completed += onCompleted
         }
+
+        animationScheduler.runToCompletion()
 
         expect(listOf(0f, 2/3f, 1f)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+        verify(exactly = 1) { onCompleted(animation) }
     }
 
     @Test fun `animates second batch of number properties`() {
@@ -95,6 +108,7 @@ class AnimatorImplTests {
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
         val listener           = mockk<Listener>(relaxed = true)
+        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
 
         var outputs = mutableListOf<Float>()
 
@@ -102,12 +116,15 @@ class AnimatorImplTests {
 
         val animation1 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
             outputs.plusAssign(it)
+        }.apply {
+            completed += onCompleted
         }
 
         expect(listOf(0f, 2/3f, 1f)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation1)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation1)) }
+        verify(exactly = 1) { onCompleted(animation1) }
 
         outputs = mutableListOf()
 
@@ -126,6 +143,7 @@ class AnimatorImplTests {
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
         val listener           = mockk<Listener>(relaxed = true)
+        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
 
         val outputs = mutableListOf<Measure<Time>>()
 
@@ -133,12 +151,15 @@ class AnimatorImplTests {
 
         val animation = (animate (0 * seconds to 1 * hours) using fixedTimeLinearM(3 * milliseconds)) {
             outputs += it
+        }.apply {
+            completed += onCompleted
         }
 
         expect(listOf(0 * milliseconds, 2 * hours / 3, 1000 * milliseconds * 3600)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+        verify(exactly = 1) { onCompleted(animation) }
     }
 
     @Test fun `cancels number animation`() {

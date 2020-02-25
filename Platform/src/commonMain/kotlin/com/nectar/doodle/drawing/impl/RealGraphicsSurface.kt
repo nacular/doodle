@@ -40,8 +40,8 @@ class RealGraphicsSurface private constructor(
                     addToRootIfNoParent: Boolean): GraphicsSurface {
 
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement = htmlFactory.create()): this(htmlFactory, canvasFactory, null, false, element, true)
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false): this(
-            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), true)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
+            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent)
 
     override var visible = true
         set(new) {
@@ -175,19 +175,25 @@ class RealGraphicsSurface private constructor(
     }
 
     private fun updateTransform(new: Point) {
-        rootElement.parent?.let { it.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
+        if (rootElement.style.position.isNotBlank()) {
+            return
+        }
+
+        rootElement.parent?.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
             when {
                 augmentedTransform.isIdentity -> rootElement.style.translate(new)
                 else                          -> rootElement.style.setTransform(augmentedTransform.translate(new))
             }
-        } }
+        }
     }
 
     override fun release() {
         if (parent != null) {
             parent?.remove(this)
         } else {
-            htmlFactory.root.remove(rootElement)
+            try {
+                htmlFactory.root.remove(rootElement)
+            } catch (ignore: Throwable) {}
         }
     }
 
@@ -199,7 +205,10 @@ class RealGraphicsSurface private constructor(
 
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
-            rootElement.remove(child.rootElement)
+            try {
+                rootElement.remove(child.rootElement)
+            } catch (ignore: Throwable) {}
+
             indexSet.remove(child.index)
 
             child.parent = null

@@ -15,5 +15,5 @@ internal class RealGraphicsSurfaceFactory(
 
     override operator fun invoke(): RealGraphicsSurface = RealGraphicsSurface(htmlFactory, canvasFactory)
 
-    override operator fun invoke(parent: RealGraphicsSurface?, view: View, isContainer: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, parent, view, isContainer)
+    override operator fun invoke(parent: RealGraphicsSurface?, view: View, isContainer: Boolean, addToRootIfNoParent: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, parent, view, isContainer, addToRootIfNoParent)
 }

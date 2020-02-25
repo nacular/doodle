@@ -35,7 +35,7 @@ ext {
 
             log4j               : "org.slf4j:slf4j-api:1.7.25",
             logback             : "ch.qos.logback:logback-classic:1.2.3",
-            measured_common     : "com.nectar.measured:measured:$measured",
+            measured_common     : "com.nectar.measured:measured-metadata:$measured", // FIXME: shouldn't need to explicitly say metadata here
             measured_jvm        : "com.nectar.measured:measured-jvm:$measured",
             measured_js         : "com.nectar.measured:measured-js:$measured"
     ]

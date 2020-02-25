@@ -136,7 +136,7 @@ class MaterialButtonBehavior(
     }
 
     override fun render(view: Button, canvas: Canvas) {
-        val bounds = view.bounds.atOrigin
+        val bounds = view.bounds.atOrigin.inset(Insets(left = 10.0, right = 10.0, bottom = 10.0))
 
         canvas.outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
             canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, brush = ColorBrush(backgroundColor))

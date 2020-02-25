@@ -18,6 +18,14 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         surface
     }
 
+    override fun create(view: View): GraphicsSurface = viewSurfaceMap.getOrPut(view) {
+        val surface = surfaceFactory(null, view, addToRootIfNoParent = false).apply { zOrder = view.zOrder }
+
+        surfaceViewMap[surface] = view
+
+        surface
+    }
+
     override fun create() = surfaceFactory().apply { index = 0 }
 
     override fun release(view: View) {

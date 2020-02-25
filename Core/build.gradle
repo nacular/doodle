@@ -4,6 +4,7 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
+    jvm ()
     js { browser {} }
 
     targets {

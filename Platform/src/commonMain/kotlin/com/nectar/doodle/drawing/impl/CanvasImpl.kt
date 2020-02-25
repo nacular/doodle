@@ -47,7 +47,6 @@ import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.geometry.Circle
-import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
@@ -64,7 +63,7 @@ import com.nectar.measured.units.Measure
 import kotlin.math.max
 
 
-open class CanvasImpl(
+internal open class CanvasImpl(
         private val renderParent   : HTMLElement,
         private val htmlFactory    : HtmlFactory,
         private val textFactory    : TextFactory,
@@ -112,8 +111,8 @@ open class CanvasImpl(
     override fun path(path: Path,           brush: Brush, fillRule: FillRule?) = vectorRenderer.path(path,      brush, fillRule)
     override fun path(path: Path, pen: Pen, brush: Brush, fillRule: FillRule?) = vectorRenderer.path(path, pen, brush, fillRule)
 
-    override fun poly(polygon: ConvexPolygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
-    override fun poly(polygon: ConvexPolygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
+    override fun poly(polygon: Polygon,           brush: Brush ) = vectorRenderer.poly(polygon,      brush)
+    override fun poly(polygon: Polygon, pen: Pen, brush: Brush?) = vectorRenderer.poly(polygon, pen, brush)
 
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           brush: Brush ) = vectorRenderer.arc(center, radius, sweep, rotation,      brush)
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush?) = vectorRenderer.arc(center, radius, sweep, rotation, pen, brush)
