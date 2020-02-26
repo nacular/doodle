@@ -25,6 +25,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.layout.max
 import com.nectar.doodle.layout.min
+import com.nectar.doodle.system.Cursor.Companion.None
 import com.nectar.doodle.system.Cursor.Companion.Crosshair
 import com.nectar.doodle.system.Cursor.Companion.Grab
 import com.nectar.doodle.system.Cursor.Companion.Grabbing
@@ -81,6 +82,14 @@ class ColorPicker(color: Color): View() {
             }
 
         private var mousePressed = false
+            set(new) {
+                field = new
+
+                when (new) {
+                    true -> cursor = None
+                    else -> cursor = Crosshair
+                }
+            }
 
         init {
             cursor = Crosshair

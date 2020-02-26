@@ -10,6 +10,7 @@ class Cursor private constructor(private val type: String) {
             Cursor(type)
         }
 
+        val None      = Cursor("none"      )
         val Text      = Cursor("text"      )
         val Wait      = Cursor("wait"      )
         val Help      = Cursor("help"      )
@@ -40,6 +41,7 @@ class Cursor private constructor(private val type: String) {
         private val cursors = mutableMapOf<String, Cursor>()
 
         init {
+            add(None     )
             add(Text     )
             add(Wait     )
             add(Help     )
