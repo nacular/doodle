@@ -122,7 +122,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
         protected val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
 
         override val view: View = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
+            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
         }, selectionModelWrapper).apply {
             acceptsThemes = false
         }
@@ -132,7 +132,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
                 (view as DynamicList<R, *>).behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous) { list.selected(index) }
+                            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous, isSelected)
                         }, current)
                     }
 

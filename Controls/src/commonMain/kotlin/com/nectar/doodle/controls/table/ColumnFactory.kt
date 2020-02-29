@@ -35,15 +35,15 @@ interface CellVisualizer<T> {
 }
 
 class PassThroughCellVisualizer<T>(private val itemVisualizer: ItemVisualizer<T>): CellVisualizer<T> {
-    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, previous)
+    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, previous, isSelected)
 }
 
 fun <T> passThroughCellVisualizer(itemVisualizer: ItemVisualizer<T>) = object: CellVisualizer<T> {
-    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, previous)
+    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, previous, isSelected)
 }
 
 fun <T> passThroughCellVisualizer(itemVisualizer: IndexedItemVisualizer<T>) = object: CellVisualizer<T> {
-    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, row, previous)
+    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, row, previous, isSelected)
 }
 
 typealias Extractor<T, R>  = T.() -> R

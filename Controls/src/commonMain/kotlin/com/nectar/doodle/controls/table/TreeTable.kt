@@ -250,7 +250,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
                 view.behavior = object: TreeBehavior<R> {
                     override val generator get() = object: TreeBehavior.RowGenerator<R> {
                         override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous)
+                            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous, isSelected)
                         }, current)
                     }
 
@@ -336,7 +336,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
         }
 
         override val view = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?) = object: View() {}
+            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
         }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache).apply {
             acceptsThemes = false
         }
@@ -346,7 +346,7 @@ class TreeTable<T, M: TreeModel<T>>(model        : M,
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: com.nectar.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, row, pathFromRow(index)!!, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous)
+                            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous, isSelected)
                         }, current)
                     }
 

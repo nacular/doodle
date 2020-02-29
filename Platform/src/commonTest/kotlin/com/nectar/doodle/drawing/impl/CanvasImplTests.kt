@@ -31,6 +31,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -41,13 +42,13 @@ import kotlin.test.expect
 
 @Suppress("FunctionName")
 class CanvasImplTests {
-    @Test fun `defaults valid`() {
+    @Test @JsName("defaultsValid") fun `defaults valid`() {
         mapOf(
                 CanvasImpl::size to Size.Empty
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test fun `invisible tools no-op`() {
+    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
         val rect = Rectangle(100, 100)
         val circle = Circle(100.0)
 
@@ -96,7 +97,7 @@ class CanvasImplTests {
 //        }
 //    }
 
-    @Test fun `renders simple rect`() {
+    @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
         val brush = ColorBrush(red)
         val rect  = Rectangle(100, 100)
 
@@ -116,7 +117,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple rounded-rect`() {
+    @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
         val brush  = ColorBrush(red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
@@ -138,7 +139,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple circle`() {
+    @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
         val brush  = ColorBrush(red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
@@ -159,7 +160,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple ellipse`() {
+    @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
         val brush   = ColorBrush(red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
@@ -180,7 +181,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple text`() {
+    @Test @JsName("rendersSimpleText") fun `renders simple text`() {
         val brush = ColorBrush(red)
         val text  = "some text"
         val font  = mockk<Font>(relaxed = true)
@@ -202,7 +203,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple styled text`() {
+    @Test @JsName("rendersSimpleStyledText") fun `renders simple styled text`() {
         val text = StyledText("some text")
         val at   = Point(34, 89)
 
@@ -220,7 +221,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple wrapped text`() {
+    @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
         val brush = ColorBrush(red)
         val text  = "some text"
         val font  = mockk<Font>(relaxed = true)
@@ -242,7 +243,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders simple wrapped styled text`() {
+    @Test @JsName("rendersSimpleWrappedStyledText") fun `renders simple wrapped styled text`() {
         val text  = StyledText("some text")
         val at    = Point(150, 89)
 
@@ -260,7 +261,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `renders image`() {
+    @Test @JsName("rendersImage") fun `renders image`() {
         val image = mockk<ImageImpl>(relaxed = true).apply {
             every { size } returns Size(130.0, 46.0)
         }
@@ -287,7 +288,7 @@ class CanvasImplTests {
         }
     }
 
-    @Test fun `transforms work`() {
+    @Test @JsName("transformsWork") fun `transforms work`() {
         listOf<CanvasImpl.() -> AffineTransform>(
             // TODO: Verify other forms for these APIs
             { scale           (      10.0, 4.5 )         {}; Identity.scale    (10.0, 4.5   ) },

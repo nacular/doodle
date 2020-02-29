@@ -98,7 +98,7 @@ open class BasicTreeTableBehavior<T>(
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, contentGenerator = object: ContentGenerator<A> {
-                override fun invoke(item: A, index: Int, previous: View?) = itemGenerator(item, index, previous)
+                override fun invoke(item: A, index: Int, previous: View?, isSelected: () -> Boolean) = itemGenerator(item, index, previous, isSelected)
             }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
     }
@@ -106,7 +106,7 @@ open class BasicTreeTableBehavior<T>(
     override val cellGenerator = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
+            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, foregroundSelectionColor = null, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 

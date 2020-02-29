@@ -117,6 +117,8 @@ class MaterialButtonBehavior(
         animationListener?.let { animate.listeners -= it }
     }
 
+    override fun contains(view: Button, point: Point) = point in view.bounds.inset(insets)
+
     override fun mousePressed(event: MouseEvent) {
         super<AbstractTextButtonBehavior>.mousePressed(event)
 
@@ -135,8 +137,10 @@ class MaterialButtonBehavior(
         shadowAnimation = (animate (shadow1Blur to 4.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
     }
 
+    private val insets = Insets(top = 10.0, left = 20.0, right = 20.0, bottom = 40.0)
+
     override fun render(view: Button, canvas: Canvas) {
-        val bounds = view.bounds.atOrigin.inset(Insets(left = 10.0, right = 10.0, bottom = 10.0))
+        val bounds = view.bounds.atOrigin.inset(insets)
 
         canvas.outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
             canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, brush = ColorBrush(backgroundColor))

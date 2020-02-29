@@ -94,14 +94,19 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             } else {
                 // TODO: Implement
             }
-        }
+        } ?: {
+            element.style.setColor(null)
+        }()
+
         style.background?.let {
             if (it is ColorBrush) {
                 element.style.setBackgroundColor(it.color)
             } else {
                 // TODO: Implement
             }
-        }
+        } ?: {
+            element.style.setBackgroundColor(null)
+        }()
     }
 
     private companion object {

@@ -16,7 +16,7 @@ import kotlin.math.sqrt
  * @param x x component
  * @param y y component
  */
-class Point(val x: Double = 0.0, val y: Double = 0.0) {
+open class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
     constructor(x: Int   = 0,  y: Int   = 0 ): this(x.toDouble(), y.toDouble())
     constructor(x: Float = 0f, y: Float = 0f): this(x.toDouble(), y.toDouble())

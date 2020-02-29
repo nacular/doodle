@@ -4,19 +4,26 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
-    js { browser {} }
+    jvm ()
+    js { browser {} }.compilations.all {
+        kotlinOptions {
+            sourceMap             = true
+            moduleKind            = "commonjs"
+            sourceMapEmbedSources = 'always'
+        }
+    }
 
     targets {
-        fromPreset(presets.jvm, 'jvm')
-        fromPreset(presets.js,  'js' ) {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    sourceMap             = true
-                    sourceMapEmbedSources = 'always'
-                    moduleKind            = 'commonjs'
-                }
-            }
-        }
+//        fromPreset(presets.jvm, 'jvm')
+//        fromPreset(presets.js,  'js' ) {
+//            compilations.all {
+//                tasks[compileKotlinTaskName].kotlinOptions {
+//                    sourceMap             = true
+//                    sourceMapEmbedSources = 'always'
+//                    moduleKind            = 'commonjs'
+//                }
+//            }
+//        }
 
         all {
             compilations.all {
@@ -39,8 +46,6 @@ kotlin {
             implementation dep.kotlin_test_common
             implementation dep.kotlin_test_annotations_common
             implementation dep.mockk_common
-
-//            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.2'
         }
 
         jvmMain.dependencies {
@@ -54,12 +59,15 @@ kotlin {
             implementation dep.log4j
             implementation dep.logback
             implementation dep.mockk
-
-//            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
         }
 
         jsMain.dependencies {
             implementation dep.kotlin_stdlib_js
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
         }
     }
 }

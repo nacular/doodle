@@ -5,7 +5,8 @@ import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.green
+import com.nectar.doodle.drawing.Color.Companion.blue
+import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
@@ -25,9 +26,9 @@ open class ListRow<T>(private var list                           : ListLike,
                       private var row                            : T,
                               var index                          : Int,
                       private val itemVisualizer                 : IndexedItemVisualizer<T>,
-//                      private val foregroundSelectionColor       : Color? = black,
-//                      private val foregroundSelectionBlurredColor: Color? = foregroundSelectionColor,
-                      private val backgroundSelectionColor       : Color? = green,
+                      private val foregroundSelectionColor       : Color? = white,
+                      private val foregroundSelectionBlurredColor: Color? = foregroundSelectionColor,
+                      private val backgroundSelectionColor       : Color? = blue,
                       private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
@@ -47,7 +48,8 @@ open class ListRow<T>(private var list                           : ListLike,
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
-            backgroundColor = if (new) backgroundSelectionColor else backgroundSelectionBlurredColor
+            backgroundColor                         = if (new) backgroundSelectionColor else backgroundSelectionBlurredColor
+            children.firstOrNull()?.foregroundColor = if (new) foregroundSelectionColor else foregroundSelectionBlurredColor
         }
     }
 
@@ -108,17 +110,22 @@ open class ListRow<T>(private var list                           : ListLike,
         this.row   = row
         this.index = index
 
-        children[0] = itemVisualizer(row, index, children.getOrNull(0)) //.apply { foregroundColor = if (list.selected(index)) foregroundSelectionColor else black }
+        val listSelected = list.selected(index)
 
-        backgroundColor = when {
-            list.selected(index) -> {
+        children[0] = itemVisualizer(row, index, children.firstOrNull()) { listSelected }
+
+        when {
+            listSelected -> {
                 list.focusChanged += listFocusChanged
 
-                if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
+                backgroundColor                         = if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
+                children.firstOrNull()?.foregroundColor = if (list.hasFocus) foregroundSelectionColor else foregroundSelectionBlurredColor
             }
-            else                 -> {
+            else         -> {
                 list.focusChanged -= listFocusChanged
-                null
+
+                backgroundColor                         = null
+                children.firstOrNull()?.foregroundColor = null
             }
         }
     }

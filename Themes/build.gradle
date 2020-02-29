@@ -4,6 +4,7 @@ apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 
 kotlin {
+    jvm ()
     js { browser {} }
 
     targets {

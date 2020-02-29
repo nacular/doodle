@@ -4,6 +4,7 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
+    jvm ()
     js { browser {} }
 
     targets {
@@ -41,17 +42,7 @@ kotlin {
             implementation dep.mockk_common
         }
 
-        jsMain.dependencies {
-            api project(':core'    )
-            api project(':controls')
-            api 'org.kodein.di:kodein-di-erased-js:6.5.1'
-
-            implementation dep.kotlin_stdlib_js
-        }
-
         jvmMain.dependencies {
-            api project(':core' )
-
             implementation dep.kotlin_stdlib_jdk8
         }
 
@@ -62,6 +53,16 @@ kotlin {
             implementation dep.log4j
             implementation dep.logback
             implementation dep.mockk
+        }
+
+        jsMain.dependencies {
+            api dep.kodein
+            implementation dep.kotlin_stdlib_js
+        }
+
+        jsTest.dependencies {
+            implementation dep.mockk_js
+            implementation dep.kotlin_test_js
         }
     }
 }

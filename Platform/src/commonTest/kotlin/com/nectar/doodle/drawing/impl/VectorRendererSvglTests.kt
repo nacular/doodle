@@ -32,9 +32,9 @@ import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -42,13 +42,16 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 8/11/19.
  */
 
+// FIXME: Remove once Mockk updates js library to support this function
+expect inline fun mockkStatic(vararg classes: String)
+
 @Suppress("FunctionName")
 class VectorRendererSvglTests {
     init {
         mockkStatic("com.nectar.doodle.dom.SvgElementKt")
     }
 
-    @Test fun `invisible tools no-op`() {
+    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
         val rect   = Rectangle(100, 100)
         val poly   = ConvexPolygon(Origin, Origin + Point(100, 100), Origin + Point(-100, 100))
         val circle = Circle(100.0)
@@ -74,7 +77,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `empty shapes no-op`() {
+    @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
         val pen    = Pen()
         val brush  = ColorBrush(red)
         val rect   = Rectangle.Empty
@@ -103,7 +106,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `renders simple rect`() {
+    @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
         validateRender { context, svgFactory ->
             val brush = ColorBrush(red)
             val rect  = Rectangle(100, 100)
@@ -125,7 +128,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `renders simple rounded-rect`() {
+    @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
         val brush  = ColorBrush(red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
@@ -150,7 +153,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `renders simple circle`() {
+    @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
         val brush  = ColorBrush(red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
@@ -174,7 +177,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `renders simple ellipse`() {
+    @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
         val brush   = ColorBrush(red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
@@ -198,7 +201,7 @@ class VectorRendererSvglTests {
         }
     }
 
-    @Test fun `reuses svg element`() {
+    @Test @JsName("reusesSvgElement") fun `reuses svg element`() {
         val svg        = slot<SVGElement>()
         val context    = mockk<CanvasContext>(relaxed = true)
         val element    = slot<Node>()
@@ -222,7 +225,7 @@ class VectorRendererSvglTests {
         verify (exactly = 1) { region.appendChild      (svg.captured ) }
     }
 
-    @Test fun `reuses all elements`() {
+    @Test @JsName("reusesAllElments") fun `reuses all elements`() {
         val svgElements = mutableListOf<SVGElement>()
         val context     = mockk<CanvasContext>(relaxed = true)
         val element     = slot<Node>()
@@ -257,7 +260,7 @@ class VectorRendererSvglTests {
         verify (exactly = 1) { region.appendChild    (svg      ) }
     }
 
-    @Test fun `picks correct svg`() {
+    @Test @JsName("picksCorrectSvg") fun `picks correct svg`() {
         val svgElements = mutableListOf<SVGElement>()
         val context     = mockk<CanvasContext>(relaxed = true)
         val element     = slot<Node>()
@@ -292,7 +295,7 @@ class VectorRendererSvglTests {
         verify (exactly = 1) { region.appendChild    (svgs[1]  ) }
     }
 
-    @Test fun `picks correct svg repeated`() {
+    @Test @JsName("picksCorrectSvgRepeated") fun `picks correct svg repeated`() {
         val svgElements = mutableListOf<SVGElement>()
         val context     = mockk<CanvasContext>(relaxed = true)
         val element     = slot<Node>()

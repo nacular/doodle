@@ -16,6 +16,7 @@ import com.nectar.measured.units.seconds
 import com.nectar.measured.units.times
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -77,7 +78,7 @@ class AnimatorImplTests {
         }
     }
 
-    @Test fun `animates number property`() {
+    @Test @JsName("animatesNumberProperty") fun `animates number property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -103,7 +104,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { onCompleted(animation) }
     }
 
-    @Test fun `animates second batch of number properties`() {
+    @Test @JsName("animatesSecondBatchOfNumberProperties") fun `animates second batch of number properties`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -138,7 +139,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.completed(animate, setOf(animation2)) }
     }
 
-    @Test fun `animates measure property`() {
+    @Test @JsName("animatesMeasureProperty") fun `animates measure property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -162,7 +163,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { onCompleted(animation) }
     }
 
-    @Test fun `cancels number animation`() {
+    @Test @JsName("cancelsNumberAnimation") fun `cancels number animation`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -190,7 +191,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.cancelled(animate, setOf(animation1)         ) }
     }
 
-    @Test fun `animation block cancels nested`() {
+    @Test @JsName("animationBlockCancelsNested") fun `animation block cancels nested`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -225,7 +226,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.cancelled(animate, setOf(animation1!!, animation2!!)) }
     }
 
-    @Test fun `cancels number animation group`() {
+    @Test @JsName("cancelsNumberAnimationGroup") fun `cancels number animation group`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)

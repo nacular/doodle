@@ -487,7 +487,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { childSurface.visible = true }
     }
 
-    @Test @JsName("reflectsVisibilityChange")
+    @Test @JsName("reflectsTransformChange")
     fun `reflects transform change`() {
         val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
@@ -523,7 +523,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(child    ) }
     }
 
-    @Test
+    @Test @JsName("removesWhenReAddedTopLevel")
     fun `renders removed when re-added (top-level)`() {
         val child     = spyk(view())
         val display   = display(child)
@@ -544,7 +544,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, child, 2)
     }
 
-    @Test
+    @Test @JsName("noOpRemovedReAddedSameParent")
     fun `no-op removed re-added same parent`() {
         val child     = spyk(view())
         val container = container()
@@ -571,7 +571,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, child)
     }
 
-    @Test
+    @Test @JsName("rendersRemovedReAddedDifferentParent")
     fun `renders removed re-added different parent`() {
         val child      = spyk(view())
         val container1 = container()
@@ -600,7 +600,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, child, 2)
     }
 
-    @Test
+    @Test @JsName("rendersRemovedReAddedNestedDifferentParent")
     fun `renders removed re-added nested different parent`() {
         val child      = spyk(view())
         val container1 = container()

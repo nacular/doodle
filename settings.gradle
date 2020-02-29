@@ -44,6 +44,6 @@ project(':TestApp'   ).name = 'testapp'
 project(':ImageSite' ).name = 'imagesite'
 //project(':GetterFixer').name = 'getterfixer'
 
-include 'JsDce'
-project(':JsDce').name = 'jsdce'
+//include 'JsDce'
+//project(':JsDce').name = 'jsdce'
 

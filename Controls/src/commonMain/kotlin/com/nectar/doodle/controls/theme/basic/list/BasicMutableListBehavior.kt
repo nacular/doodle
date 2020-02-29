@@ -20,6 +20,7 @@ import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment
@@ -84,6 +85,7 @@ open class TextEditOperation<T>(
         text                = encoder.encode(row) ?: ""
         fitText             = setOf(TextFit.Width, TextFit.Height)
         borderVisible       = false
+        foregroundColor     = current.foregroundColor
         backgroundColor     = current.backgroundColor
         horizontalAlignment = HorizontalAlignment.Left
 
@@ -122,7 +124,7 @@ open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorBrush(it)) }
         }
     }
 

@@ -20,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -31,7 +32,7 @@ import kotlin.test.expect
 
 @Suppress("FunctionName")
 class DisplayImplTests {
-    @Test fun `defaults valid`() {
+    @Test @JsName("defaultsValid") fun `defaults valid`() {
         expect(true, "DisplayImpl::children.isEmpty()") { display().children.isEmpty() }
 
         mapOf(
@@ -44,7 +45,7 @@ class DisplayImplTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test fun `registers onresize`() {
+    @Test @JsName("registersOnResize") fun `registers onresize`() {
         val rootElement = spyk<HTMLElement>()
 
         display(rootElement = rootElement)
@@ -52,7 +53,7 @@ class DisplayImplTests {
         verify(exactly = 1) { rootElement.onresize = any() }
     }
 
-    @Test fun `has initial window size`() {
+    @Test @JsName("hasInitialWindowSize") fun `has initial window size`() {
         val rootElement = spyk<HTMLElement>().apply {
             every { offsetWidth  } returns 100
             every { offsetHeight } returns 150
@@ -61,7 +62,7 @@ class DisplayImplTests {
         expect(Size(100, 150)) { display(rootElement = rootElement).size }
     }
 
-    @Test fun `handles window resize`() {
+    @Test @JsName("handlesWindowResize") fun `handles window resize`() {
         var slot = slot<(Event) -> Unit>()
 
         val rootElement = spyk<HTMLElement>().apply {
@@ -90,7 +91,7 @@ class DisplayImplTests {
         expect(newSize) { display.size }
     }
 
-    @Test fun `notifies cursor change`() {
+    @Test @JsName("notifiesCursorChange") fun `notifies cursor change`() {
         val cursorObserver = mockk<PropertyObserver<Display, Cursor?>>(relaxed = true)
 
         val display = display().apply {
@@ -104,7 +105,7 @@ class DisplayImplTests {
         expect(Cursor.Grab) { display.cursor!! }
     }
 
-    @Test fun `child at (no layout) works`() {
+    @Test @JsName("childAtNoLayoutWorks") fun `child at (no layout) works`() {
         val display = display()
         val child0  = view().apply { x += 10.0; y += 12.0 }
         val child1  = view().apply { x += 10.0; y += 12.0 }
@@ -125,7 +126,7 @@ class DisplayImplTests {
         expect(child0) { display.child(at = Point(11.0, 13.0)) }
     }
 
-    @Test fun `child at works`() {
+    @Test @JsName("childAtWorks") fun `child at works`() {
         val at     = Point(11.0, 13.0)
         val result = mockk<View>(relaxed = true)
         val layout = mockk<Layout>(relaxed = true).apply {
@@ -145,7 +146,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test fun `is-ancestor works`() {
+    @Test @JsName("isAncestorWorks") fun `is-ancestor works`() {
         val display = display()
         val parent  = object: Box() {}
         val child   = object: View() {}
@@ -160,7 +161,7 @@ class DisplayImplTests {
         expect(true) { display ancestorOf child  }
     }
 
-    @Test fun `layout works`() {
+    @Test @JsName("layoutWorks") fun `layout works`() {
         val layout = mockk<Layout>(relaxed = true)
 
         display().apply {

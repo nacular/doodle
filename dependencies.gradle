@@ -26,6 +26,7 @@ ext {
 //            kotlin_test               : "org.jetbrains.kotlin:kotlin-test",
             mockk_js                  : "io.mockk:mockk-js:$mockk_js",
             kotlinx_coroutines_core_js: "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutines_core",
+            kodein                    : "org.kodein.di:kodein-di-erased-js:6.5.1",
 
             // JVM
             junit               : "junit:junit:$junit_version",
