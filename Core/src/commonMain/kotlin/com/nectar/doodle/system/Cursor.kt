@@ -33,5 +33,7 @@ class Cursor private constructor(private val type: String) {
         val Crosshair = Cursor("crosshair" )
         val ColResize = Cursor("col-resize")
         val RowResize = Cursor("row-resize")
+
+        fun custom(url: String, or: Cursor) = Cursor("url('$url'), $or")
     }
 }

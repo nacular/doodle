@@ -1,11 +1,13 @@
 package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.UrlView
 import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.LabelFactoryImpl
 import com.nectar.doodle.controls.theme.basic.BasicTheme
 import com.nectar.doodle.core.Display
+import com.nectar.doodle.core.View
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
@@ -73,6 +75,7 @@ import org.kodein.di.Kodein
 import org.kodein.di.Kodein.Module
 import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
+import org.kodein.di.erased.factory
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.provider
@@ -280,6 +283,10 @@ class Modules {
 
         val documentModule = Module(allowSilentOverride = true, name = "Document") {
             bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
+        }
+
+        val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
+            bind<View>(tag = "urlView") with factory { url: String -> UrlView(instance(), url) }
         }
 
         // FIXME: Move to Themes library

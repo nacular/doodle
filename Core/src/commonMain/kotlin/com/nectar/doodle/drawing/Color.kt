@@ -80,8 +80,6 @@ fun Color.grayScale(): Color {
     return Color(gray, gray, gray)
 }
 
-val Color?.visible: Boolean get() = this == null || this.visible
-
 class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
 
     val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
@@ -97,6 +95,8 @@ class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float,
 
         return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
     }
+
+    val visible = opacity > 0
 
     fun toRgb(): Color {
         val c = (1.0 - abs(2 * lightness - 1)) * saturation
@@ -171,6 +171,8 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
 
     val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
+    val visible = opacity > 0
+
     fun toRgb(): Color {
         val c = (value * saturation).toDouble()
         val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
@@ -241,6 +243,10 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
         }
     }
 }
+
+val Color?.visible   : Boolean get() = this == null || this.visible
+val HslColor?.visible: Boolean get() = this == null || this.visible
+val HsvColor?.visible: Boolean get() = this == null || this.visible
 
 private fun Double.toUByte() = toInt().toUByte()
 
