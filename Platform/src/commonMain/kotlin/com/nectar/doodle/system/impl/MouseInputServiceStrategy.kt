@@ -15,7 +15,7 @@ interface MouseInputServiceStrategy {
     fun shutdown()
 
     interface EventHandler {
-        fun handle(event: SystemMouseEvent)
+        fun handle(event: SystemMouseEvent      )
         fun handle(event: SystemMouseScrollEvent)
     }
 }

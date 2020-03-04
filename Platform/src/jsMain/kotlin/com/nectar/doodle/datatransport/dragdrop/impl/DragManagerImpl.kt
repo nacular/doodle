@@ -126,7 +126,7 @@ internal class DragManagerImpl(
             view,
             view,
             event.type,
-            event.location - view.toAbsolute(Origin),
+            event.location - view.toAbsolute(Origin), // FIXME: Handle transforms
             event.buttons,
             event.clickCount,
             event.modifiers)

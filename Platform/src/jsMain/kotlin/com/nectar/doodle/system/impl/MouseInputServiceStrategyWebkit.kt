@@ -54,6 +54,7 @@ open internal class MouseInputServiceStrategyWebkit(private val htmlFactory: Htm
         eventHandler = handler
 
         if (inputDevice == null) {
+            // TODO: Should we listen to the document here to enable better integration with nested applications?
             inputDevice = htmlFactory.root.also {
                 registerCallbacks(it)
             }

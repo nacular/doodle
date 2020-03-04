@@ -51,6 +51,8 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
                     0.0,   y, 0.0)
     )
 
+    fun scale(around: Point, x: Double = 1.0, y: Double = x) = (this translate around).scale(x, y) translate -around
+
     infix fun translate(by: Point) = translate(by.x, by.y)
 
     fun translate(x: Double = 0.0, y: Double = 0.0) = AffineTransform(
@@ -65,8 +67,8 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
                       y, 1.0, 0.0)
     )
 
-    infix fun rotate(angle: Measure<Angle>): AffineTransform {
-        val radians = angle `in` radians
+    infix fun rotate(by: Measure<Angle>): AffineTransform {
+        val radians = by `in` radians
         val sin     = sin(radians)
         val cos     = cos(radians)
 
@@ -77,8 +79,14 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
         )
     }
 
+    fun rotate(around: Point, by: Measure<Angle>) = this translate around rotate by translate -around
+
     fun flipVertically  () = scale (1.0, -1.0)
     fun flipHorizontally() = scale(-1.0,  1.0)
+
+
+    fun flipVertically  (at: Double) = this.translate(y = at).flipVertically  ().translate(y = -at)
+    fun flipHorizontally(at: Double) = this.translate(x = at).flipHorizontally().translate(x = -at)
 
     val inverse: AffineTransform? by lazy {
         when {
@@ -98,7 +106,7 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
      * @return a list of points transformed by this object
      */
     operator fun invoke(points: List<Point>) = points.map {
-        val point   = listOf(listOf(it.x), listOf(it.y), listOf(1.0)).let { matrixOf(3, 1) { col, row -> it[row][col] } }
+        val point   = matrixOf(3, 1) { col, row -> listOf(listOf(it.x), listOf(it.y), listOf(1.0))[row][col] }
         val product = matrix * point
 
         Point(product[0, 0], product[1, 0])

@@ -101,9 +101,3 @@ class BasicDarkTheme(labelFactory: LabelFactory, textMetrics: TextMetrics, focus
     override val lightBackgroundColor   = Color(0x282928u)
     override val defaultBackgroundColor = super.defaultBackgroundColor.inverted
 }
-
-//val basicThemeModule = Module(allowSilentOverride = true) {
-//    bind<BasicTheme>  () with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
-//    bind<TextMetrics> () with singleton { TextMetricsImpl(instance(), instance(), instance()) }
-//    bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
-//}

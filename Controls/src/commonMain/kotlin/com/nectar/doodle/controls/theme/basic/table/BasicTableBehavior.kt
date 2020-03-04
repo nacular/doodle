@@ -87,13 +87,13 @@ open class BasicCellGenerator<T>: CellGenerator<T> {
 }
 
 open class BasicTableBehavior<T>(
-        private val focusManager         : FocusManager?,
-        private val rowHeight            : Double = 20.0,
-        private val headerColor          : Color? = lightgray,
-                    evenRowColor         : Color? = white,
-                    oddRowColor          : Color? = lightgray.lighter().lighter(),
-        private val selectionColor       : Color? = blue,
-        private val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
+        private   val focusManager         : FocusManager?,
+        protected val rowHeight            : Double = 20.0,
+        protected val headerColor          : Color? = lightgray,
+                      evenRowColor         : Color? = white,
+                      oddRowColor          : Color? = lightgray.lighter().lighter(),
+        protected val selectionColor       : Color? = blue,
+        protected val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
 
     override var bodyDirty  : ((         ) -> Unit)? = null
     override var headerDirty: ((         ) -> Unit)? = null

@@ -2,6 +2,9 @@ package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.controls.document.Document
+import com.nectar.doodle.controls.text.LabelFactory
+import com.nectar.doodle.controls.text.LabelFactoryImpl
+import com.nectar.doodle.controls.theme.basic.BasicTheme
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.DragManager
@@ -40,7 +43,6 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.impl.FocusManagerImpl
-import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
@@ -51,11 +53,14 @@ import com.nectar.doodle.scheduler.impl.StrandImpl
 import com.nectar.doodle.system.KeyInputService
 import com.nectar.doodle.system.MouseInputService
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
+import com.nectar.doodle.system.SystemMouseEvent
+import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.KeyInputServiceImpl
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy
 import com.nectar.doodle.system.impl.KeyInputServiceStrategyWebkit
 import com.nectar.doodle.system.impl.MouseInputServiceImpl
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy
+import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
 import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.theme.ThemeManager
@@ -85,30 +90,20 @@ interface Application {
     fun shutdown()
 }
 
-class SimpleApplication: Application {
-    override fun shutdown() {
-        // NO-OP
-    }
-}
-
-interface ApplicationHolder {
-    fun shutdown()
-}
-
 inline fun <reified T: Application> application(
-                 root                : HTMLElement        = document.body!!,
-                 allowDefaultDarkMode: Boolean            = false,
+                 root                : HTMLElement = document.body!!,
+                 allowDefaultDarkMode: Boolean     = false,
                  modules             : Set<Module> = emptySet(),
-        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): ApplicationHolder = createApplication(Kodein.direct {
+        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 inline fun <reified T: Application> nestedApplication(
-        view: ApplicationView,
-        root                : HTMLElement        = document.body!!,
-        allowDefaultDarkMode: Boolean            = false,
-        modules             : Set<Module> = emptySet(),
-        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): ApplicationHolder = createNestedApplication(view, Kodein.direct {
+                 view                : ApplicationView,
+                 root                : HTMLElement = document.body!!,
+                 allowDefaultDarkMode: Boolean     = false,
+                 modules             : Set<Module> = emptySet(),
+        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createNestedApplication(view, Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
@@ -116,23 +111,42 @@ fun createApplication(
         injector            : DKodein,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
-        modules             : Set<Module>): ApplicationHolder = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
+        modules             : Set<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
 fun createNestedApplication(
-        view: ApplicationView,
+        view                : ApplicationView,
         injector            : DKodein,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
-        modules             : Set<Module>): ApplicationHolder = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
+        modules             : Set<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
 
-internal class NestedMouseInputStrategy(private val view: ApplicationView, htmlFactory: HtmlFactory): MouseInputServiceStrategyWebkit(htmlFactory) {
-    override var mouseLocation = super.mouseLocation
-        set(value) {
-            field = (value - view.toAbsolute(Point.Origin)).let { view.transform.inverse?.invoke(it) ?: it }
-        }
+private class NestedMouseInputStrategy(private val view: ApplicationView, private val delegate: MouseInputServiceStrategy): MouseInputServiceStrategy by(delegate) {
+    override fun startUp(handler: EventHandler) {
+        // Provide an adapter to handle mapping mouse location correctly based on ApplicationView's orientation
+        delegate.startUp(object: EventHandler {
+            override fun handle(event: SystemMouseEvent) {
+                handler.handle(SystemMouseEvent(
+                        event.type,
+                        view.fromAbsolute(mouseLocation),
+                        event.buttons,
+                        event.clickCount,
+                        event.modifiers,
+                        event.nativeScrollPanel))
+            }
+
+            override fun handle(event: SystemMouseScrollEvent) {
+                handler.handle(SystemMouseScrollEvent(
+                        view.fromAbsolute(mouseLocation),
+                        event.xRotation,
+                        event.yRotation,
+                        event.modifiers,
+                        event.nativeScrollPanel))
+            }
+        })
+    }
 }
 
-internal class NestedApplicationHolder(
+private class NestedApplicationHolder(
         view                : ApplicationView,
         previousInjector    : DKodein,
         root                : HTMLElement = document.body!!,
@@ -144,7 +158,7 @@ internal class NestedApplicationHolder(
             injector = Kodein.direct {
                 extend(injector, copy = Copy.All)
 
-                bind<MouseInputServiceStrategy>(overrides = true) with singleton { NestedMouseInputStrategy(view, instance()) }
+                bind<MouseInputServiceStrategy>(overrides = true) with singleton { NestedMouseInputStrategy(view, it) }
             }
         }
 
@@ -152,7 +166,7 @@ internal class NestedApplicationHolder(
     }
 }
 
-internal open class ApplicationHolderImpl protected constructor(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): ApplicationHolder {
+private open class ApplicationHolderImpl protected constructor(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): Application {
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
@@ -185,22 +199,6 @@ internal open class ApplicationHolderImpl protected constructor(previousInjector
     private fun onUnload(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         shutdown()
     }
-
-//    init {
-//        window.addEventListener("unload", ::onUnload)
-//
-//        // Initialize framework components
-//        injector.instance<SystemStyler> ()
-//        injector.instance<RenderManager>()
-//
-//        injector.instanceOrNull<MouseInputManager>   ()
-//        injector.instanceOrNull<KeyboardFocusManager>()
-//        injector.instanceOrNull<DragManager>         ()
-//
-//        initTask = injector.instance<Scheduler>().now {
-//            application = injector.instance()
-//        }
-//    }
 
     protected fun run() {
         window.addEventListener("unload", ::onUnload)
@@ -244,15 +242,15 @@ internal open class ApplicationHolderImpl protected constructor(previousInjector
 
 class Modules {
     companion object {
+        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
+            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
+        }
+
         val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
             bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
             bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
-        }
-
-        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
@@ -282,6 +280,15 @@ class Modules {
 
         val documentModule = Module(allowSilentOverride = true, name = "Document") {
             bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
+        }
+
+        // FIXME: Move to Themes library
+        val basicThemeModule = Module(allowSilentOverride = true, name = "BasicTheme") {
+            importOnce(themeModule)
+
+            bind<BasicTheme>  () with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
+            bind<TextMetrics> () with singleton { TextMetricsImpl(instance(), instance(), instance()) }
+            bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
         }
     }
 }

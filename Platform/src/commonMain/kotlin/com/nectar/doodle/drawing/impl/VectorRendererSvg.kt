@@ -65,7 +65,6 @@ import com.nectar.doodle.drawing.Renderer.FillRule
 import com.nectar.doodle.drawing.Shadow
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Circle
-import com.nectar.doodle.geometry.ConvexPolygon
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
@@ -322,9 +321,15 @@ internal open class VectorRendererSvg constructor(
     }
 
     override fun clear() {
-        findSvgDepthFirst(context.renderRegion)?.let {
-            rootSvgElement = it
-            renderPosition = it.firstChild
+        val renderPosition = context.renderPosition
+
+        if (renderPosition != null) {
+            findSvgDepthFirst(context.renderRegion)?.let {
+                rootSvgElement = it
+                this.renderPosition = it.firstChild
+            }
+        } else {
+            this.renderPosition = null
         }
     }
 

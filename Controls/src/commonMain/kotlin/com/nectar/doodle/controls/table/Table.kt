@@ -22,7 +22,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.SystemInputEvent
+import com.nectar.doodle.system.SystemInputEvent.Modifier.*
 import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -166,13 +166,12 @@ open class Table<T, M: ListModel<T>>(
                                     setOf(index).also {
                                         this@Table.apply {
                                             when {
-                                                SystemInputEvent.Modifier.Ctrl in event.modifiers || SystemInputEvent.Modifier.Meta in event.modifiers -> toggleSelection(it)
-                                                SystemInputEvent.Modifier.Shift in event.modifiers && lastSelection != null                            -> {
+                                                Ctrl in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
+                                                Shift in event.modifiers && lastSelection != null  -> {
                                                     selectionAnchor?.let { anchor ->
-                                                        val current = index
                                                         when {
-                                                            current < anchor  -> setSelection((current .. anchor ).reversed().toSet())
-                                                            anchor  < current -> setSelection((anchor  .. current).           toSet())
+                                                            index < anchor  -> setSelection((index.. anchor ).reversed().toSet())
+                                                            anchor  < index -> setSelection((anchor  ..index).           toSet())
                                                         }
                                                     }
                                                 }

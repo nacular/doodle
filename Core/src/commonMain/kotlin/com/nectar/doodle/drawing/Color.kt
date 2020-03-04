@@ -80,6 +80,8 @@ fun Color.grayScale(): Color {
     return Color(gray, gray, gray)
 }
 
+val Color?.visible: Boolean get() = this == null || this.visible
+
 class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
 
     val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees

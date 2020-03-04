@@ -2,6 +2,7 @@ package com.nectar.doodle.drawing
 
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
 
 
 /**
@@ -23,7 +24,7 @@ class PatternBrush(val size: Size, val fill: Canvas.() -> Unit): Brush() {
  * @param evenRowColor Color used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor Color used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(rowHeight, 2 * rowHeight)) {
+fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) rowHeight else 0.0, 2 * rowHeight)) {
     evenRowColor?.let { rect(Rectangle(                rowHeight, rowHeight), ColorBrush(it)) }
     oddRowColor?.let  { rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(it)) }
 }
@@ -35,7 +36,7 @@ fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRo
  * @param evenRowColor Color used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor Color used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(2 * colWidth, colWidth)) {
+fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(2 * colWidth, if (evenRowColor.visible || oddRowColor.visible) colWidth else 0.0)) {
     evenRowColor?.let { rect(Rectangle(               colWidth, colWidth), ColorBrush(it)) }
     oddRowColor?.let  { rect(Rectangle(colWidth, 0.0, colWidth, colWidth), ColorBrush(it)) }
 }
@@ -47,7 +48,7 @@ fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowCo
  * @param firstColor  Color of the first rectangle, left-to-right
  * @param secondColor Color of the second rectangle, left-to-right
  */
-fun checkerBrush(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null) = PatternBrush(checkerSize * 2) {
+fun checkerBrush(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null) = PatternBrush(if (firstColor.visible || secondColor.visible) checkerSize * 2 else Empty) {
     val w  = checkerSize.width
     val h  = checkerSize.height
     val b1 = firstColor?.let  { ColorBrush(it) }

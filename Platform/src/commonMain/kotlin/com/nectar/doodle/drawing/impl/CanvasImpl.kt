@@ -280,6 +280,8 @@ internal open class CanvasImpl(
         } else {
             renderRegion.add(element)
         }
+    }.also {
+        vectorRenderer.clear() // FIXME: THIS IS A HACK.  Should communicate this better to the VectorRenderer
     }
 
     protected open fun isSimple(brush: Brush) = when {

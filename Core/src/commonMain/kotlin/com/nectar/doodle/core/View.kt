@@ -472,10 +472,10 @@ abstract class View protected constructor() {
         from ==  null        -> fromAbsolute(point)
         from === this        -> point
         from === this.parent -> (transform.inverse?.invoke(point) ?: point) - position
-        else                 -> from.toAbsolute(point) - this.toAbsolute(Origin)
+        else                 -> fromAbsolute(from.toAbsolute(point))
     }
 
-    fun toAbsolute  (point: Point): Point = (parent?.toAbsolute  (point) ?: point).let { transform.inverse?.invoke(it) ?: it } + position
+    fun toAbsolute  (point: Point): Point = (parent?.toAbsolute  (point) ?: point).let { transform(it)                       } + position
     fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: point).let { transform.inverse?.invoke(it) ?: it } - position
 
     internal fun handleDisplayRectEvent_(old: Rectangle, new: Rectangle) = handleDisplayRectEvent(old, new)

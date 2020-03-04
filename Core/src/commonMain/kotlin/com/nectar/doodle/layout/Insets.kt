@@ -1,11 +1,10 @@
 package com.nectar.doodle.layout
 
+import com.nectar.doodle.geometry.Rectangle
+
 /**
- * Represents the region within a [View][com.nectar.doodle.core.View]'s boundary that
- * should be used to bound it's contents.  Each of the 4 sides
- * are specified independently as follows:
+ * Represents offsets from a [Rectangle]'s boundary.  Each of the 4 sides are specified independently as follows:
  *
- * [View][com.nectar.doodle.core.View]
  * +-------------------+
  * |       t           |
  * |   +---------+     |
@@ -14,14 +13,12 @@ package com.nectar.doodle.layout
  * |       b           |
  * +-------------------+
  *
- * The values l,t,r, and b represent the Left, Top, Right, and Bottom
- * values for the Insets respectively.
+ * The values l,t,r, and b represent the Left, Top, Right, and Bottom values for the Insets respectively.
  *
  * @author Nicholas Eddy
  */
 
 class Insets
-
     /**
      * Creates a Insets with the specified value for each side.
      *
@@ -33,7 +30,6 @@ class Insets
      */
     constructor(val top: Double = 0.0, val left: Double = 0.0, val bottom: Double = 0.0, val right: Double = 0.0) {
 
-
     /**
      * Creates a Insets with equal offset from all edges.
      * This is equivalent to calling `Insets(all, all, all, all)`
@@ -42,13 +38,6 @@ class Insets
      * @return a Insets with equal offset from all edges
      */
     constructor(all: Double): this(all, all, all, all)
-
-    init {
-        require(top    >= 0) { "top cannot be negative"    }
-        require(left   >= 0) { "left cannot be negative"   }
-        require(bottom >= 0) { "bottom cannot be negative" }
-        require(right  >= 0) { "right cannot be negative"  }
-    }
 
     override fun hashCode(): Int = arrayOf(top, left, right, bottom).contentHashCode()
 
