@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.tree
+package com.nectar.doodle.themes.basic.tree
 
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.text.Label
@@ -9,10 +9,10 @@ import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
-import com.nectar.doodle.controls.theme.basic.ContentGenerator
-import com.nectar.doodle.controls.theme.basic.SelectableTreeKeyHandler
-import com.nectar.doodle.controls.theme.basic.SimpleTreeRowIcon
-import com.nectar.doodle.controls.theme.basic.TreeRow
+import com.nectar.doodle.themes.basic.ContentGenerator
+import com.nectar.doodle.themes.basic.SelectableTreeKeyHandler
+import com.nectar.doodle.themes.basic.SimpleTreeRowIcon
+import com.nectar.doodle.themes.basic.TreeRow
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor

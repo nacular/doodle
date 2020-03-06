@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.ProgressBar
@@ -16,12 +16,6 @@ import com.nectar.doodle.controls.table.Table
 import com.nectar.doodle.controls.text.Label
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.theme.LabelBehavior
-import com.nectar.doodle.controls.theme.basic.list.BasicListBehavior
-import com.nectar.doodle.controls.theme.basic.list.BasicMutableListBehavior
-import com.nectar.doodle.controls.theme.basic.table.BasicMutableTableBehavior
-import com.nectar.doodle.controls.theme.basic.table.BasicTableBehavior
-import com.nectar.doodle.controls.theme.basic.tree.BasicMutableTreeBehavior
-import com.nectar.doodle.controls.theme.basic.tree.BasicTreeBehavior
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeModel
@@ -34,6 +28,12 @@ import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Theme
+import com.nectar.doodle.themes.basic.list.BasicListBehavior
+import com.nectar.doodle.themes.basic.list.BasicMutableListBehavior
+import com.nectar.doodle.themes.basic.table.BasicMutableTableBehavior
+import com.nectar.doodle.themes.basic.table.BasicTableBehavior
+import com.nectar.doodle.themes.basic.tree.BasicMutableTreeBehavior
+import com.nectar.doodle.themes.basic.tree.BasicTreeBehavior
 
 /**
  * Created by Nicholas Eddy on 2/12/18.
@@ -91,6 +91,15 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
     private val progressBarBehavior  by lazy { BasicProgressBarBehavior      (defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
     private val mutableTreeBehavior  by lazy { BasicMutableTreeBehavior<Any> (labelFactory, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, focusManager) }
     private val mutableTableBehavior by lazy { BasicMutableTableBehavior<Any>(focusManager, 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+
+    companion object {
+//        val basicThemeModule = Module(allowSilentOverride = true, name = "BasicTheme") {
+//            importOnce(themeModule)
+//
+//            bind<BasicTheme>() with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
+//            bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
+//        }
+    }
 }
 
 class BasicDarkTheme(labelFactory: LabelFactory, textMetrics: TextMetrics, focusManager: FocusManager?): BasicTheme(labelFactory, textMetrics, focusManager) {

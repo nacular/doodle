@@ -28,7 +28,7 @@ internal class InstantPool<T>(private val source: T): Pool<(source: T) -> Unit> 
 open class CompletableImpl: Completable {
     enum class State { Active, Completed, Canceled }
 
-    private var state: State = Active
+    protected var state: State = Active
         private set(new) {
             if (field != Active) { return }
 

@@ -60,6 +60,8 @@ open class ScrollPanel(content: View? = null): View() {
                 it.onScroll = {
                     scrollTo(it, force = true)
                 }
+
+                it.install(this)
             }
         }
 

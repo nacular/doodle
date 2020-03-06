@@ -6,15 +6,19 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.utils.HorizontalAlignment
-import com.nectar.doodle.utils.VerticalAlignment
+import com.nectar.doodle.utils.HorizontalAlignment.Center
+import com.nectar.doodle.utils.HorizontalAlignment.Left
+import com.nectar.doodle.utils.HorizontalAlignment.Right
+import com.nectar.doodle.utils.VerticalAlignment.Bottom
+import com.nectar.doodle.utils.VerticalAlignment.Middle
+import com.nectar.doodle.utils.VerticalAlignment.Top
 
 /**
  * Created by Nicholas Eddy on 9/25/19.
  */
 class LabelBehavior(private val foregroundColor: Color? = null, private val backgroundColor: Color? = null): Behavior<Label> {
     override fun install(view: Label) {
-        foregroundColor?.let { if (it != Color.black) view.foregroundColor = it } // TODO: Check default color instead
+        foregroundColor?.let { if (it != Color.black) view.foregroundColor = it } // FIXME: Check default color instead
         backgroundColor?.let {                        view.backgroundColor = it }
     }
 
@@ -25,15 +29,15 @@ class LabelBehavior(private val foregroundColor: Color? = null, private val back
     override fun render(view: Label, canvas: Canvas) {
         view.apply {
             val y = when (verticalAlignment) {
-                VerticalAlignment.Top    -> 0.0
-                VerticalAlignment.Middle -> (height - textSize.height) / 2
-                VerticalAlignment.Bottom ->  height - textSize.height
+                Top    -> 0.0
+                Middle -> (height - textSize.height) / 2
+                Bottom ->  height - textSize.height
             }
 
             val x = when (horizontalAlignment) {
-                HorizontalAlignment.Left   -> 0.0
-                HorizontalAlignment.Center -> (width - textSize.width) / 2
-                HorizontalAlignment.Right  ->  width - textSize.width
+                Left   -> 0.0
+                Center -> (width - textSize.width) / 2
+                Right  ->  width - textSize.width
             }
 
             backgroundColor?.let {

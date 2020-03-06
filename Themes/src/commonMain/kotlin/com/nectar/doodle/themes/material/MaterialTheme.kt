@@ -3,7 +3,7 @@ package com.nectar.doodle.themes.material
 import com.nectar.doodle.animation.Animator
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.theme.basic.BasicTheme
+import com.nectar.doodle.themes.basic.BasicTheme
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color

@@ -3,7 +3,7 @@ package com.nectar.doodle.scheduler
 import com.nectar.doodle.utils.Cancelable
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
 
 /**

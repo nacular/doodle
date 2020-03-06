@@ -11,6 +11,8 @@ ext {
 
     measured      ='1.0'
 
+    kodein        = '6.5.1'
+
     dep = [
             kotlin_stdlib_common          : "org.jetbrains.kotlin:kotlin-stdlib-common",
             kotlin_stdlib_jdk8            : "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
@@ -20,13 +22,14 @@ ext {
             kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common",
             kotlinx_coroutines_core_common: "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutines_core",
             mockk_common                  : "io.mockk:mockk-common:$mockk",
+            kodein_common                 : "org.kodein.di:kodein-di-erased-common:5.3.0",
 
             // JS
             kotlin_test_js            : "org.jetbrains.kotlin:kotlin-test-js",
 //            kotlin_test               : "org.jetbrains.kotlin:kotlin-test",
             mockk_js                  : "io.mockk:mockk-js:$mockk_js",
             kotlinx_coroutines_core_js: "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutines_core",
-            kodein                    : "org.kodein.di:kodein-di-erased-js:6.5.1",
+            kodein_js                 : "org.kodein.di:kodein-di-erased-js:$kodein",
 
             // JVM
             junit               : "junit:junit:$junit_version",

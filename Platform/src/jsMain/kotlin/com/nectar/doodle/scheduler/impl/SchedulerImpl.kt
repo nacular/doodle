@@ -7,9 +7,9 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
-import kotlin.browser.window
+import org.w3c.dom.Window
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -17,7 +17,7 @@ import kotlin.coroutines.suspendCoroutine
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+private open class SimpleTask(private val window: Window, timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private val start = timer.now
     private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time  `in` milliseconds).toInt())
@@ -30,7 +30,7 @@ private open class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<T
     }
 }
 
-private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
+private open class AnimationTask(private val window: Window, job: (Measure<Time>) -> Unit): Task {
 
     private val value = window.requestAnimationFrame { time ->
         completed = true
@@ -45,7 +45,7 @@ private open class AnimationTask(job: (Measure<Time>) -> Unit): Task {
     }
 }
 
-private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+private class RecurringTask(private val window: Window, timer: Timer, time : Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private var last = timer.now
     private val value: Int = window.setInterval({ timer.now.let { job(it - last); last = it } },  (time `in` milliseconds).toInt())
@@ -58,7 +58,7 @@ private class RecurringTask(timer: Timer, time : Measure<Time>, job: (Measure<Ti
     }
 }
 
-internal class SchedulerImpl(private val timer: Timer): Scheduler {
+internal class SchedulerImpl(private val window: Window, private val timer: Timer): Scheduler {
     private var shutdown = false
 
     override suspend fun delay(time: Measure<Time>) = suspendCoroutine<Unit> { coroutine ->
@@ -80,16 +80,16 @@ internal class SchedulerImpl(private val timer: Timer): Scheduler {
         }
     }
 
-    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(job) else SimpleTask(timer, time, job)
-    override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
+    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(window, job) else SimpleTask(window, timer, time, job)
+    override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(window, timer, time, job)
 
     override fun shutdown() {
         shutdown = true
     }
 }
 
-internal class AnimationSchedulerImpl: AnimationScheduler {
-    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(job)
+internal class AnimationSchedulerImpl(private val window: Window): AnimationScheduler {
+    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(window, job)
 }
 
 private open class DistributedAnimationTask(private val scheduler: AnimationScheduler, private val timer: Timer, private val jobs: Iterator<() -> Unit>): Task {

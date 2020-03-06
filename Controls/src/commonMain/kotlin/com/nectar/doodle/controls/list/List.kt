@@ -14,6 +14,7 @@ import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Pool
@@ -97,16 +98,14 @@ open class List<T, out M: ListModel<T>>(
             field?.uninstall(this)
 
             field = new?.also {
-                this.rowGenerator  = it.generator
-                this.rowPositioner = it.positioner
+                rowGenerator  = it.generator
+                rowPositioner = it.positioner
 
-                children.batch {
-                    clear()
-
-                    updateVisibleHeight()
-                }
+                children.clear()
 
                 it.install(this)
+
+                updateVisibleHeight()
             }
         }
 
@@ -123,7 +122,7 @@ open class List<T, out M: ListModel<T>>(
             lastVisibleRow  = -1
         }
 
-        handleDisplayRectEvent(Rectangle.Empty, displayRect)
+        handleDisplayRectEvent(Empty, displayRect)
     }
 
     public override var insets
@@ -184,20 +183,20 @@ open class List<T, out M: ListModel<T>>(
             model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
             model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
 
-//            if (oldFirst > firstVisibleRow) {
+            if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
 
                 (firstVisibleRow until end).forEach { insert(children, it) }
-//            }
+            }
 
-//            if (oldLast < lastVisibleRow) {
+            if (oldLast < lastVisibleRow) {
                 val start = when {
                     oldLast > firstVisibleRow -> oldLast + 1
                     else                      -> firstVisibleRow
                 }
 
                 (start..lastVisibleRow).forEach { insert(children, it) }
-//            }
+            }
         }
     }
 

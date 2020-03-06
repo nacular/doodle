@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.ProgressIndicator
 import com.nectar.doodle.controls.theme.ProgressIndicatorBehavior
@@ -8,7 +8,7 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
-import com.nectar.measured.units.degrees
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.times
 import kotlin.math.min
 

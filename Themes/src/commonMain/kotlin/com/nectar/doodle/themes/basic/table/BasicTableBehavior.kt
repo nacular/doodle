@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.table
+package com.nectar.doodle.themes.basic.table
 
 import com.nectar.doodle.controls.ColorPicker
 import com.nectar.doodle.controls.EditOperation
@@ -17,9 +17,10 @@ import com.nectar.doodle.controls.table.TableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TableBehavior.RowPositioner
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextFit
-import com.nectar.doodle.controls.theme.basic.ListPositioner
-import com.nectar.doodle.controls.theme.basic.ListRow
-import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
+import com.nectar.doodle.themes.basic.ListPositioner
+import com.nectar.doodle.themes.basic.ListRow
+import com.nectar.doodle.themes.basic.SelectableListKeyHandler
+import com.nectar.doodle.themes.basic.table.TableHeaderCell
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas

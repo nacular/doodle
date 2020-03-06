@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.tabbedpanel
+package com.nectar.doodle.themes.basic.tabbedpanel
 
 import com.nectar.doodle.controls.panels.TabbedPanel
 import com.nectar.doodle.controls.theme.TabbedPanelBehavior

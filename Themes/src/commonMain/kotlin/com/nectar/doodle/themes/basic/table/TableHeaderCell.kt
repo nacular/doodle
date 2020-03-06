@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.table
+package com.nectar.doodle.themes.basic.table
 
 import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.core.View

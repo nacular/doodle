@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.list.ListLike

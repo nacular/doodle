@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.list
+package com.nectar.doodle.themes.basic.list
 
 import com.nectar.doodle.controls.TextItemVisualizer
 import com.nectar.doodle.controls.ToStringItemVisualizer
@@ -7,9 +7,9 @@ import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.passThrough
-import com.nectar.doodle.controls.theme.basic.ListPositioner
-import com.nectar.doodle.controls.theme.basic.ListRow
-import com.nectar.doodle.controls.theme.basic.SelectableListKeyHandler
+import com.nectar.doodle.themes.basic.ListPositioner
+import com.nectar.doodle.themes.basic.ListRow
+import com.nectar.doodle.themes.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color

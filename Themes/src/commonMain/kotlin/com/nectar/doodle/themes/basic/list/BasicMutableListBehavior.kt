@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.list
+package com.nectar.doodle.themes.basic.list
 
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.list.List
@@ -7,7 +7,7 @@ import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextFit
-import com.nectar.doodle.controls.theme.basic.ListRow
+import com.nectar.doodle.themes.basic.ListRow
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color

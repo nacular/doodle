@@ -39,8 +39,8 @@ import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.splitMatches
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.degrees
-import com.nectar.measured.units.radians
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.Angle.Companion.radians
 import com.nectar.measured.units.times
 import org.w3c.dom.CanvasFillRule
 import org.w3c.dom.CanvasPattern

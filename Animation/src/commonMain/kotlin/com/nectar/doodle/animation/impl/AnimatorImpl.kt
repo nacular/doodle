@@ -14,12 +14,13 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.CompletableImpl
+import com.nectar.doodle.utils.CompletableImpl.State.Active
 import com.nectar.doodle.utils.ObservableSet
 import com.nectar.doodle.utils.SetPool
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
+import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.div
-import com.nectar.measured.units.milliseconds
 import com.nectar.measured.units.times
 
 /**
@@ -121,6 +122,10 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         }
 
         fun cancel(broadcast: Boolean = true) {
+            if (state != Active) {
+                return
+            }
+
             super.cancel()
 
             if (broadcast) {

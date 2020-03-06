@@ -79,10 +79,10 @@ import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.utils.isEven
 import com.nectar.doodle.utils.splitMatches
 import com.nectar.measured.units.Angle
+import com.nectar.measured.units.Angle.Companion.cos
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.Angle.Companion.sin
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.cos
-import com.nectar.measured.units.degrees
-import com.nectar.measured.units.sin
 import com.nectar.measured.units.times
 import kotlin.math.max
 

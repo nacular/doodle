@@ -11,7 +11,7 @@ import com.nectar.doodle.system.Cursor.Companion.Default
 
 internal class SystemButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): AbstractTextButtonBehavior<Button>(textMetrics) {
 
-    private val nativePeer by lazy{ nativeButtonFactory(button) }
+    private val nativePeer by lazy { nativeButtonFactory(button) }
 
     override fun render(view: Button, canvas: Canvas) {
         nativePeer.render(canvas)

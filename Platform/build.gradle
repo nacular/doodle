@@ -33,6 +33,8 @@ kotlin {
         commonMain.dependencies {
             api project(':core'    )
             api project(':controls')
+            api project(':themes'  )
+
             implementation dep.kotlin_stdlib_common
         }
 
@@ -56,7 +58,7 @@ kotlin {
         }
 
         jsMain.dependencies {
-            api dep.kodein
+            api dep.kodein_js
             implementation dep.kotlin_stdlib_js
         }
 

@@ -12,12 +12,11 @@ import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager
-import com.nectar.doodle.time.Timer
 import com.nectar.doodle.utils.MutableTreeSet
 import com.nectar.doodle.utils.ifTrue
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.seconds
+import com.nectar.measured.units.Time.Companion.seconds
 import com.nectar.measured.units.times
 
 private object AncestorComparator: Comparator<View> {
@@ -32,7 +31,7 @@ private val frameDuration = 1 * seconds / 60
 
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
-        private val timer         : Timer,
+//        private val timer         : Timer,
         private val display       : Display,
         private val scheduler     : AnimationScheduler,
         private val themeManager  : InternalThemeManager?,
@@ -222,17 +221,17 @@ class RenderManagerImpl(
 //        )
 //    }
 
-    private fun checkFrameTime(start: Measure<Time>) = (timer.now - start).let {
+    private fun checkFrameTime(start: Measure<Time>) = false /*(timer.now - start).let {
         return false
 
         (it >= frameDuration).ifTrue {
             paintTask?.cancel()
             schedulePaint()
         }
-    }
+    }*/
 
     private fun onPaint() {
-        val start = timer.now
+//        val start = timer.now
 
         val newRenders = mutableListOf<View>()
 
@@ -244,9 +243,9 @@ class RenderManagerImpl(
                 pendingLayout.firstOrNull()?.let {
                     performLayout(it)
 
-                    if (checkFrameTime(start)) {
-                        return
-                    }
+//                    if (checkFrameTime(start)) {
+//                        return
+//                    }
                 }
             } while (pendingLayout.isNotEmpty())
 
@@ -261,9 +260,9 @@ class RenderManagerImpl(
                         newRenders += item
                     }
 
-                    if (checkFrameTime(start)) {
-                        return
-                    }
+//                    if (checkFrameTime(start)) {
+//                        return
+//                    }
                 }
             }
 
@@ -277,9 +276,9 @@ class RenderManagerImpl(
                         it.remove()
                     }
 
-                    if (checkFrameTime(start)) {
-                        return
-                    }
+//                    if (checkFrameTime(start)) {
+//                        return
+//                    }
                 }
             }
 

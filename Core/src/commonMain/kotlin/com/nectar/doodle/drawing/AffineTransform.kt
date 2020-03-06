@@ -8,7 +8,7 @@ import com.nectar.doodle.utils.matrixOf
 import com.nectar.doodle.utils.times
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.radians
+import com.nectar.measured.units.Angle.Companion.radians
 import kotlin.math.cos
 import kotlin.math.sin
 

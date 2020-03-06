@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic.table
+package com.nectar.doodle.themes.basic.table
 
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.list.ListLike
@@ -11,12 +11,13 @@ import com.nectar.doodle.controls.table.TreeTableBehavior.CellGenerator
 import com.nectar.doodle.controls.table.TreeTableBehavior.HeaderCellGenerator
 import com.nectar.doodle.controls.table.TreeTableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TreeTableBehavior.RowPositioner
-import com.nectar.doodle.controls.theme.basic.ContentGenerator
-import com.nectar.doodle.controls.theme.basic.ListPositioner
-import com.nectar.doodle.controls.theme.basic.ListRow
-import com.nectar.doodle.controls.theme.basic.SelectableTreeKeyHandler
-import com.nectar.doodle.controls.theme.basic.SimpleTreeRowIcon
-import com.nectar.doodle.controls.theme.basic.TreeRow
+import com.nectar.doodle.themes.basic.ContentGenerator
+import com.nectar.doodle.themes.basic.ListPositioner
+import com.nectar.doodle.themes.basic.ListRow
+import com.nectar.doodle.themes.basic.SelectableTreeKeyHandler
+import com.nectar.doodle.themes.basic.SimpleTreeRowIcon
+import com.nectar.doodle.themes.basic.TreeRow
+import com.nectar.doodle.themes.basic.table.TableHeaderCell
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas

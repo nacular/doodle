@@ -2,7 +2,6 @@ package com.nectar.doodle.theme.system
 
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.panels.ScrollPanelBehavior
-import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeScrollPanelFactory
 import com.nectar.doodle.geometry.Point
 
@@ -22,7 +21,7 @@ class SystemScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFacto
         }
     }
 
-    override fun render(view: ScrollPanel, canvas: Canvas) {
+    override fun install(view: ScrollPanel) {
         nativePeer // Load
     }
 

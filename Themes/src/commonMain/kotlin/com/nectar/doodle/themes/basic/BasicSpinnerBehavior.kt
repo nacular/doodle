@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.spinner.Model
 import com.nectar.doodle.controls.spinner.Spinner

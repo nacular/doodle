@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.event.KeyEvent

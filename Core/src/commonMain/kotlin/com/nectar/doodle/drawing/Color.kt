@@ -2,7 +2,7 @@ package com.nectar.doodle.drawing
 
 import com.nectar.measured.units.Angle
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.degrees
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.div
 import com.nectar.measured.units.times
 import kotlin.math.abs

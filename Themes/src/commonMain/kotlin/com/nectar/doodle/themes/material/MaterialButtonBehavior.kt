@@ -14,7 +14,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Font
+import com.nectar.doodle.drawing.Font.Weight.Thick
 import com.nectar.doodle.drawing.FontDetector
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.MouseEvent
@@ -22,7 +22,7 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Insets
-import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -34,13 +34,13 @@ import kotlin.math.sqrt
 /**
  * Created by Nicholas Eddy on 12/10/19.
  */
-fun drawRipple(on: Canvas, at: Point, progress: Float) {
+fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
     val x = max(at.x, on.size.width  - at.x)
     val y = max(at.y, on.size.height - at.y)
 
     val maxRadius = sqrt(x.pow(2) + y.pow(2))
 
-    on.circle(Circle(radius = maxRadius * progress, center = at), ColorBrush(white opacity 0.24f))
+    on.circle(Circle(radius = maxRadius * progress, center = at), ColorBrush(white opacity opacity))
 }
 
 class MaterialButtonBehavior(
@@ -54,8 +54,10 @@ class MaterialButtonBehavior(
     private var fontLoadJob        = null as Job?; set(new) { field?.cancel(); field = new }
     private var shadow1Blur        = 1.0
     private var rippleProgress     = 0f
+    private var rippleOpacity      = 0.24f
     private var overlayOpacity     = 0f
     private var animationListener  = null as Listener?
+    private var mousePressed       = false
     private var mousePressLocation = null as Point?
 
     private var shadowAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
@@ -82,7 +84,7 @@ class MaterialButtonBehavior(
             view.font = fontDetector {
                 family = "Roboto"
                 size   = 14
-                weight = Font.Weight.Thick
+                weight = Thick
             }
         }
 
@@ -119,20 +121,47 @@ class MaterialButtonBehavior(
 
     override fun contains(view: Button, point: Point) = point in view.bounds.inset(insets)
 
+    private fun fadeRipple() {
+        rippleAnimation = (animate(0.24f to 0f) using fixedTimeLinear(pressAnimationTime * 2)) { rippleOpacity = it }.apply {
+            completed += {
+                if (!mousePressed) {
+                    mousePressLocation = null
+                }
+
+                rippleOpacity   = 0.24f
+                rippleAnimation = null
+            }
+        }
+    }
+
     override fun mousePressed(event: MouseEvent) {
         super<AbstractTextButtonBehavior>.mousePressed(event)
 
+        mousePressed       = true
         mousePressLocation = event.location
 
-        rippleAnimation  = (animate (0.5f           to  1f  ) using fixedTimeLinear(pressAnimationTime)) { rippleProgress = it }
-        shadowAnimation  = (animate (shadow1Blur    to 10.0 ) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur    = it }
+        rippleAnimation = (animate (0.2f to 1f) using fixedTimeLinear(pressAnimationTime * 2)) { rippleProgress = it }.apply {
+            completed += {
+                if (!mousePressed) {
+                    fadeRipple()
+                } else {
+                    rippleAnimation = null
+                }
+            }
+        }
+        shadowAnimation = (animate (shadow1Blur to 10.0 ) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur    = it }
 //        overlayAnimation = (animate (overlayOpacity to  0.1f) using fixedTimeLinear(pressAnimationTime)) { overlayOpacity = it }
     }
 
     override fun mouseReleased(event: MouseEvent) {
         super<AbstractTextButtonBehavior>.mouseReleased(event)
 
-        mousePressLocation = null
+        mousePressed = false
+
+        if (rippleAnimation == null) {
+            fadeRipple()
+//            mousePressLocation = null
+        }
 
         shadowAnimation = (animate (shadow1Blur to 4.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
     }
@@ -158,6 +187,6 @@ class MaterialButtonBehavior(
 
         canvas.rect(bounds, cornerRadius, ColorBrush(white opacity overlayOpacity))
 
-        mousePressLocation?.let { canvas.clip(bounds, cornerRadius) { drawRipple(canvas, it, rippleProgress) } }
+        mousePressLocation?.let { canvas.clip(bounds, cornerRadius) { drawRipple(canvas, it, rippleOpacity, rippleProgress) } }
     }
 }

@@ -1,4 +1,4 @@
-package com.nectar.doodle.controls.theme.basic
+package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.theme.ProgressIndicatorBehavior

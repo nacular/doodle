@@ -5,7 +5,6 @@ import com.nectar.doodle.UrlView
 import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.LabelFactoryImpl
-import com.nectar.doodle.controls.theme.basic.BasicTheme
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.core.impl.DisplayImpl
@@ -67,6 +66,7 @@ import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
 import com.nectar.doodle.theme.InternalThemeManager
 import com.nectar.doodle.theme.ThemeManager
 import com.nectar.doodle.theme.ThemeManagerImpl
+import com.nectar.doodle.themes.basic.BasicTheme
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
 import org.kodein.di.Copy
@@ -175,21 +175,21 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
 
         bind<Window>                   () with instance  ( window )
 
-        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                              ) }
-        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                          ) }
-        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                    ) }
-        bind<Scheduler>                () with singleton { SchedulerImpl             (instance()                                                      ) }
-        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                  ) }
-        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                  ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                      ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                              ) }
-        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                      ) }
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                      ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                  ) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instance(), instanceOrNull(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                      ) }
-        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (                                                                ) } // FIXME: Provide fallback in case not supported
-        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                          ) }
+        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                  ) }
+        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                              ) }
+        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                        ) }
+        bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                              ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                      ) }
+        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                      ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                          ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                  ) }
+        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                          ) }
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode          ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()      ) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                          ) }
+        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (instance()                                          ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                              ) }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -293,9 +293,8 @@ class Modules {
         val basicThemeModule = Module(allowSilentOverride = true, name = "BasicTheme") {
             importOnce(themeModule)
 
-            bind<BasicTheme>  () with singleton { BasicTheme(instance(), instance(), instanceOrNull()) }
-            bind<TextMetrics> () with singleton { TextMetricsImpl(instance(), instance(), instance()) }
-            bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()) }
+            bind<BasicTheme>  () with singleton { BasicTheme      (instance(), instance(), instanceOrNull()) }
+            bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()                              ) }
         }
     }
 }

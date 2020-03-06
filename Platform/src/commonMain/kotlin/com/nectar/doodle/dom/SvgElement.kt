@@ -15,8 +15,8 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.measured.units.Angle
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.Measure
-import com.nectar.measured.units.degrees
 import kotlin.math.max
 import kotlin.math.min
 

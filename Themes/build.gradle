@@ -34,6 +34,7 @@ kotlin {
             implementation project(':controls' )
             implementation project(':animation')
 
+            implementation dep.kodein_common
             implementation dep.kotlin_stdlib_common
             implementation dep.kotlinx_coroutines_core_common
         }
@@ -58,6 +59,7 @@ kotlin {
         }
 
         jsMain.dependencies {
+            implementation dep.kodein_js
             implementation dep.kotlin_stdlib_js
             implementation dep.kotlinx_coroutines_core_js
         }
