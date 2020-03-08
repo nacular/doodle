@@ -26,7 +26,9 @@ abstract class Button protected constructor(
 
     private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
 
-    init {
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
         model.fired += modelFired
     }
 
@@ -44,8 +46,13 @@ abstract class Button protected constructor(
         set(new) {
             if (field == new) { return }
 
+            clipCanvasToBounds = true
             field?.uninstall(this)
-            field = new?.apply { install(this@Button) }
+
+            field = new?.also {
+                it.install(this)
+                clipCanvasToBounds = it.clipCanvasToBounds
+            }
         }
 
     var iconTextSpacing = 4.0

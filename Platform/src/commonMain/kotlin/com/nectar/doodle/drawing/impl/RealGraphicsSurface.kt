@@ -4,7 +4,9 @@ import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.None
+import com.nectar.doodle.dom.Overflow.Visible
 import com.nectar.doodle.dom.add
+import com.nectar.doodle.dom.childAt
 import com.nectar.doodle.dom.hasAutoOverflow
 import com.nectar.doodle.dom.insert
 import com.nectar.doodle.dom.numChildren
@@ -12,6 +14,7 @@ import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.setDisplay
 import com.nectar.doodle.dom.setHeightPercent
+import com.nectar.doodle.dom.setOverflow
 import com.nectar.doodle.dom.setSize
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
@@ -77,6 +80,52 @@ class RealGraphicsSurface private constructor(
             refreshAugmentedTransform()
         }
 
+    override var clipToBounds = true
+        set(new) {
+            if (field == new) {
+                return
+            }
+
+            field = new
+
+            when (field) {
+                false -> {
+                    rootElement.style.setOverflow    (Visible())
+                    canvasElement?.style?.setOverflow(Visible())
+
+                    if (isContainer) {
+                        childrenElement = htmlFactory.create<HTMLElement>().apply {
+                            style.setWidthPercent (100.0)
+                            style.setHeightPercent(100.0)
+
+                            while(rootElement.numChildren > indexStart) {
+                                rootElement.childAt(indexStart)?.let { rootElement.remove(it); add(it) }
+                            }
+
+                            rootElement.appendChild(this)
+
+                            indexStart = 0
+                        }
+                    }
+                }
+                else  -> {
+                    rootElement.style.setOverflow    (null)
+                    canvasElement?.style?.setOverflow(null)
+
+                    if (isContainer && childrenElement != rootElement) {
+                        // Move all children into rootNode
+                        while(childrenElement.numChildren > 0) {
+                            childrenElement.firstChild?.let { childrenElement.remove(it); rootElement.add(it) }
+                        }
+
+                        rootElement.remove(childrenElement)
+                        childrenElement = rootElement
+                        indexStart = 1
+                    }
+                }
+            }
+        }
+
     private var augmentedTransform = Identity
         set (new) {
             field = new
@@ -102,6 +151,10 @@ class RealGraphicsSurface private constructor(
 
             field = new
 
+            val oldClipping = clipToBounds
+
+            clipToBounds = true
+
             canvasElement = if (field) {
                 htmlFactory.create<HTMLElement>().apply {
                     style.setWidthPercent (100.0)
@@ -113,20 +166,23 @@ class RealGraphicsSurface private constructor(
 
                     rootElement.insert(this, 0)
 
-                    canvas     = canvasFactory(this).also { it.size = size }
-                    indexStart = 1
+                    canvas = canvasFactory(this).also { it.size = size }
                 }
             } else {
                 canvasElement?.let { it.parent?.remove(it) }
-                canvas     = canvasFactory(rootElement) // TODO: Import contents from old canvas
-                indexStart = 0
+                canvas          = canvasFactory(rootElement) // TODO: Import contents from old canvas
+                indexStart      = 0
+                childrenElement = rootElement
                 null
             }
+
+            clipToBounds = oldClipping
         }
 
-    private  var indexSet    = MutableTreeSet<Int>()
-    private  var indexStart  = 0
-    internal val rootElement = canvasElement
+    private  var indexSet        = MutableTreeSet<Int>()
+    private  var indexStart      = 0
+    internal val rootElement     = canvasElement
+    private  var childrenElement = rootElement
 
     override var position: Point by observable(Origin) { _,old,new ->
         if (new != old) {
@@ -143,7 +199,7 @@ class RealGraphicsSurface private constructor(
 
         if (parent != null) {
             parent?.add(this)
-            parent?.rootElement?.add(rootElement)
+            parent?.childrenElement?.add(rootElement)
         } else if (addToRootIfNoParent) {
             htmlFactory.root.add(rootElement)
         }
@@ -206,7 +262,7 @@ class RealGraphicsSurface private constructor(
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
             try {
-                rootElement.remove(child.rootElement)
+                childrenElement.remove(child.rootElement)
             } catch (ignore: Throwable) {}
 
             indexSet.remove(child.index)
@@ -218,12 +274,12 @@ class RealGraphicsSurface private constructor(
     }
 
     private fun setIndex(child: RealGraphicsSurface, index: Int) {
-        val numChildren = rootElement.numChildren
+        val numChildren = childrenElement.numChildren
 
-        if (child.rootElement.parentNode == rootElement) rootElement.remove(child.rootElement)
+        if (child.rootElement.parentNode == rootElement) childrenElement.remove(child.rootElement)
 
         indexSet.add(index)
 
-        rootElement.insert(child.rootElement, max(indexStart, numChildren - indexSet.indexOf(index) - 1))
+        childrenElement.insert(child.rootElement, max(indexStart, numChildren - indexSet.indexOf(index) - 1))
     }
 }

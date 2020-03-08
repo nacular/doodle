@@ -110,8 +110,24 @@ abstract class View protected constructor() {
         }
     }
 
-    // TODO: Add layoutBounds to allow for cases where Layouts should have a smaller/larger region to work with than the paint region
-    //  this would allow for cases like shadows not being included in size for laying out
+    internal val clipCanvasToBounds_ get() = clipCanvasToBounds
+
+    /**
+     * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to ```false``` to support
+     * things like shadows or glows that aren't intended to be included in the normal bounding box.
+     *
+     * This property does not affect the clipping of child Views and their descendants; these are always clipped to the parent bounds.
+     *
+     * The default is ```true```
+     */
+    protected var clipCanvasToBounds = true
+        set(new) {
+            if (field != new) {
+                field = new
+
+                rerender() // TODO: Should this notify instead?
+            }
+        }
 
     /** Notifies changes to [transform] */
     val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }

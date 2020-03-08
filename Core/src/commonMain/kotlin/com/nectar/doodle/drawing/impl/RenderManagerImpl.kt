@@ -366,6 +366,8 @@ class RenderManagerImpl(
                     dirtyViews    -= view
                     neverRendered -= view
 
+                    graphicsSurface.clipToBounds = view.clipCanvasToBounds_
+
                     graphicsSurface.render { canvas ->
                         view.render(canvas)
                     }

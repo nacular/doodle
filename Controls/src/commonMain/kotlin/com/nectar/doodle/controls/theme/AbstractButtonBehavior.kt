@@ -111,7 +111,7 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         if (button.enabled && Button1 !in event.buttons) {
             model.apply {
                 pressed = false
-                armed = false
+                armed   = false
             }
 
             mouseChanged(button)

@@ -32,6 +32,13 @@ interface Theme {
  */
 interface Behavior<in T: View> {
     /**
+     * Allows the Behavior to override the View's [View.clipCanvasToBounds] property.
+     *
+     * @see View.clipCanvasToBounds
+     */
+    val clipCanvasToBounds: Boolean get() = true
+
+    /**
      * Invoked to render the given [View].
      *
      * @param view  the View being rendered

@@ -6,9 +6,9 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.get
 
 
-fun Node.childAt(index: Int): Node? = when (index) {
-    in 0 until childNodes.length -> childNodes[index]
-    else                         -> null
+fun Node.childAt(index: Int): Node? = when {
+    index >= 0 && index < childNodes.length -> childNodes[index]
+    else                                    -> null
 }
 
 inline val Node.parent get() = parentNode

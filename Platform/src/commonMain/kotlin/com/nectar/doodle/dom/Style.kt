@@ -83,9 +83,9 @@ internal inline fun Style.setFontFamily(value: String) { fontFamily = value     
 internal inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
 internal inline fun Style.setPosition(value: Position? = null) { position = value?.value ?: "" }
 
-internal inline fun Style.setOverflow (overflow: Overflow) { overflow.also { setOverflowX(it); setOverflowY(it) } }
-internal inline fun Style.setOverflowX(overflow: Overflow) { overflowX = overflow.value }
-internal inline fun Style.setOverflowY(overflow: Overflow) { overflowY = overflow.value }
+internal inline fun Style.setOverflow (overflow: Overflow? = null) { overflow.also { setOverflowX(it); setOverflowY(it) } }
+internal inline fun Style.setOverflowX(overflow: Overflow? = null) { overflowX = overflow?.value ?: "" }
+internal inline fun Style.setOverflowY(overflow: Overflow? = null) { overflowY = overflow?.value ?: "" }
 
 //internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value }
 //
