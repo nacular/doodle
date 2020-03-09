@@ -11,7 +11,7 @@ import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.Color.Companion.transparent
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.Color.Companion.yellow
-import com.nectar.measured.units.degrees
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.times
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

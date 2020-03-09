@@ -113,12 +113,12 @@ abstract class View protected constructor() {
     internal val clipCanvasToBounds_ get() = clipCanvasToBounds
 
     /**
-     * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to ```false``` to support
+     * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to `false` to support
      * things like shadows or glows that aren't intended to be included in the normal bounding box.
      *
      * This property does not affect the clipping of child Views and their descendants; these are always clipped to the parent bounds.
      *
-     * The default is ```true```
+     * The default is `true`
      */
     protected var clipCanvasToBounds = true
         set(new) {
@@ -149,7 +149,7 @@ abstract class View protected constructor() {
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     var boundingBox = bounds; private set
 
-    /** Size that would best display this View, or ```null``` if no preference */
+    /** Size that would best display this View, or `null` if no preference */
     var idealSize: Size? = null
         get() = layout?.idealSize(positionableWrapper, field) ?: field
 
@@ -166,42 +166,42 @@ abstract class View protected constructor() {
     /** Notifies changes to [zOrder] */
     internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl<View, Int>(this) }
 
-    /** Rendering order of this View within it's [parent], or [Display] if top-level.  The default is ```0```. */
+    /** Rendering order of this View within it's [parent], or [Display] if top-level.  The default is `0`. */
     var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Notifies changes to [visible] */
     val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this View is visible.  The default is ```true```. */
+    /** Whether this View is visible.  The default is `true`. */
     var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [enabled] */
     val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this View is enabled  The default is ```true```.  */
+    /** Whether this View is enabled  The default is `true`.  */
     var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
     val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this View is focusable  The default is ```true```.  */
+    /** Whether this View is focusable  The default is `true`.  */
     open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether the View has focus or not  The default is ```false```.  */
+    /** Whether the View has focus or not  The default is `false`.  */
     var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
     /**
-     * View that contains this one as a child, or ```null```.  A top-level Views will also return ```null```.  But they will also have
-     * [displayed] ```== true```; so parent alone isn't sufficient to determine whether a View is in the display heirarchy.
+     * View that contains this one as a child, or `null`.  A top-level Views will also return `null`; but they will also have
+     * [displayed] `== true`; so parent alone isn't sufficient to determine whether a View is in the display hierarchy.
      */
     var parent: View? = null
         // [Performance]
-        // No check to prevent setting self as parent since View is the only place where this method is called from and it already
-        // prevents this by preventing a View from being added to itself.
+        // No check to prevent setting self as parent since View is the only place where this method is called and this is already
+        // prevented by checks when adding to children.
         private set(new) {
             if (field === new) {
                 return
@@ -221,15 +221,15 @@ abstract class View protected constructor() {
     /** Notifies changes to [displayed] */
     val displayChange: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Is ```true``` if the View is currently within the [Display] */
+    /** Is `true` if the View is currently within the [Display] */
     val displayed get() = renderManager != null
 
     /** The current text to display for tool-tips.  The default is the empty string.  */
     var toolTipText = ""
 
-    /** Cursor that is displayed whenever the mouse is over this View. */
+    /** Cursor that is displayed whenever the mouse is over this View. This falls back to the [parent]'s Cursor if not set. */
     var cursor: Cursor? = null
-        get() = field ?: parent?.cursor
+        get(   ) = field ?: parent?.cursor
         set(new) {
             if (new == field) {
                 return
@@ -245,8 +245,10 @@ abstract class View protected constructor() {
     /** Notifies changes to [cursor] */
     val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl<View, Cursor?>(this) }
 
-    /** Optional font that the View could use for rendering */
-    var font: Font? = null; set(new) { field = new; styleChanged() }
+    /** Optional font that the View could use for rendering.  This falls back to [parent]'s font if not set. */
+    var font: Font? = null
+        get(   ) = field ?: parent?.font;
+        set(new) { field = new; styleChanged() }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
     var foregroundColor: Color? = null; set(new) { field = new; styleChanged() }
@@ -257,7 +259,10 @@ abstract class View protected constructor() {
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
 
-    /** Determines whether the View will be affected by [Theme][com.nectar.doodle.theme.Theme]s set in [ThemeManager][com.nectar.doodle.theme.ThemeManager].  Defaults to ```true``` */
+    /**
+     * Determines whether the View will be affected by [Theme][com.nectar.doodle.theme.Theme]s set in [ThemeManager][com.nectar.doodle.theme.ThemeManager].
+     * Defaults to `true`
+     */
     var acceptsThemes = true
 
     val mouseFilter  by lazy { SetPool<MouseListener>() }
@@ -321,7 +326,7 @@ abstract class View protected constructor() {
                     it.position = Origin
                 }
                 added.values.forEach {
-                    require(it !== this@View) { "cannot add to self"                }
+                    require(it !== this@View         ) { "cannot add to self"                }
                     require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
 
                     it.parent = this@View
@@ -332,15 +337,14 @@ abstract class View protected constructor() {
         }
     }
 
+    /** Notifies changes to [children] */
     protected val childrenChanged: Pool<ChildObserver> by lazy { ChildObserversImpl() }
 
-    internal infix fun ancestorOf_(view: View) = this ancestorOf view
-
     /**
-     * Tells whether this View is an ancestor of the given View.
+     * Tells whether this View is an ancestor of the given View.  A View is not considered an ancestor of itself.
      *
      * @param view The View
-     * @return ```true``` if the given View is a descendant of this one
+     * @return `true` if the given View is a descendant of this one
      */
     protected open infix fun ancestorOf(view: View): Boolean {
         if (children.isNotEmpty()) {
@@ -357,6 +361,8 @@ abstract class View protected constructor() {
 
         return false
     }
+
+    internal infix fun ancestorOf_(view: View) = this ancestorOf view
 
     internal open var isFocusCycleRoot_ get() = isFocusCycleRoot
         set(new) { isFocusCycleRoot = new }
@@ -394,23 +400,23 @@ abstract class View protected constructor() {
      * Tells whether this View is child's parent.  Unlike [ancestorOf], this checks only a parent-child relationship.
      *
      * @param child The View being tested
-     * @return ```true``` IFF the View is a child of the View
+     * @return `true` IFF the View is a child of the View
      */
     protected operator fun contains(child: View) = child.parent == this
 
-    /**
-     * Prompts the View to layout its children if it has a Layout installed.
-     */
+    /** Prompts the View to layout its children if it has a Layout installed. */
     protected open fun relayout() = renderManager?.layout(this)
 
     internal fun doLayout_() = doLayout()
+
+    /** Causes the [layout] (if any) to re-layout the View's [children] */
     protected open fun doLayout() = layout?.layout(positionableWrapper)
 
     /**
      * Gets the View at the given point.
      *
      * @param at The point being tested
-     * @return The child (```null``` if no child contains the given point)
+     * @return The child (`null` if no child contains the given point)
      */
     protected open fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? PositionableWrapper?)?.view ?: {
         var result    = null as View?
@@ -454,10 +460,11 @@ abstract class View protected constructor() {
     open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
 
     /**
-     * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.
+     * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.  This check accounts for [transforms][AffineTransform]
+     * within the View's hierarchy as well.
      *
      * @param point The point to check
-     * @return ```true``` IFF the point falls within the View
+     * @return `true` IFF the point falls within the View
      */
     open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false
 
@@ -484,6 +491,13 @@ abstract class View protected constructor() {
         }
     }
 
+    /**
+     * Maps a [Point] within from View into this View's coordinate-space.
+     *
+     * @param   point within [from]
+     * @param   from The View being mapped from
+     * @returns a Point relative to this View's [position]
+     */
     fun toLocal(point: Point, from: View?): Point = when {
         from ==  null        -> fromAbsolute(point)
         from === this        -> point
@@ -491,9 +505,28 @@ abstract class View protected constructor() {
         else                 -> fromAbsolute(from.toAbsolute(point))
     }
 
-    fun toAbsolute  (point: Point): Point = (parent?.toAbsolute  (point) ?: point).let { transform(it)                       } + position
+    /**
+     * Maps a [Point] within the View to absolute coordinate-space.
+     *
+     * @param point to be mapped
+     * @returns a Point relative to the [Display]
+     */
+    fun toAbsolute(point: Point): Point = transform((parent?.toAbsolute(point) ?: point)) + position
+
+    /**
+     * Maps a [Point] from absolute coordinate-space: relative to the [Display], into this View's coordinate-space.
+     *
+     * @param point to be mapped
+     * @returns a Point relative to this View's [position]
+     */
     fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: point).let { transform.inverse?.invoke(it) ?: it } - position
 
+    /**
+     * Called by render system whenever [monitorsDisplayRect] == `true` and the View's display rect changes.
+     *
+     * @param old display rect
+     * @param new display rect
+     */
     internal fun handleDisplayRectEvent_(old: Rectangle, new: Rectangle) = handleDisplayRectEvent(old, new)
 
     /**

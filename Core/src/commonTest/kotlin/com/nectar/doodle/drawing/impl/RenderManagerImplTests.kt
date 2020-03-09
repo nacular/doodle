@@ -21,10 +21,10 @@ import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObserver
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.degrees
-import com.nectar.measured.units.milliseconds
+import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
 import io.mockk.Runs
 import io.mockk.every
@@ -678,10 +678,10 @@ class RenderManagerImplTests {
 
     private fun renderManager(
             display       : Display              = mockk(relaxed = true),
-            timer         : Timer                = timer(),
+//            timer         : Timer                = timer(),
             themeManager  : InternalThemeManager = mockk(relaxed = true),
             scheduler     : AnimationScheduler   = instantScheduler,
-            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(timer, display, scheduler, themeManager, graphicsDevice)
+            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, graphicsDevice)
 
     private val defaultGraphicsDevice by lazy {
         graphicsDevice()

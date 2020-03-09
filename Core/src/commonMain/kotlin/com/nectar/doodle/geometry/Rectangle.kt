@@ -10,9 +10,6 @@ import kotlin.math.max
  *
  * @author Nicholas Eddy
  *
- * @property position The top-left corner (x,y)
- * @property size The width-height
- *
  * ```
  *        x
  *(0,0) +-->|
@@ -31,23 +28,25 @@ import kotlin.math.max
  *```
  *
  * @constructor
- * @param position Top-left point of the rectangle
- * @param size Width-height of the rectangle
+ * @property position The top-left corner (x,y)
+ * @property size The width-height
  */
 class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): ConvexPolygon() {
+
+    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
+    constructor(width: Int, height: Int = width): this(Origin, Size(width, height))
+
+    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
+    constructor(width: Float, height: Float = width): this(Origin, Size(width, height))
 
     /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
     constructor(width: Double, height: Double = width): this(Origin, Size(width, height))
 
     /** Creates a Rectangle */
-    constructor(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): this(Point(x, y), Size(width, height))
-
-    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
-    constructor(width: Int, height: Int = width): this(Origin, Size(width, height))
     constructor(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): this(Point(x, y), Size(width, height))
 
-    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
-    constructor(width: Float, height: Float = width): this(Origin, Size(width, height))
+    /** Creates a Rectangle */
+    constructor(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): this(Point(x, y), Size(width, height))
 
     /** Creates a Rectangle */
     constructor(x: Float = 0f, y: Float = 0f, width: Float = 0f, height: Float = 0f): this(Point(x, y), Size(width, height))
@@ -103,8 +102,6 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      *```
      */
     val right get() = x + width
-
-    val center get() = Point(x + width / 2, y + height / 2)
 
     override val points by lazy {
         listOf(position, Point(x+width, y), Point(x+width, y+height), Point(x, y+height))
@@ -235,3 +232,23 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
         val Empty = Rectangle()
     }
 }
+
+/**
+ * Point at the center of the rectangle
+ *
+ * ```
+ *                      cx
+ *(0,0) ---------------->|
+ *      |
+ *      |    +--------------------------+
+ *      |    |                          |
+ *      |    |                          |
+ *      V    |                          |
+ *   cy -    |            C             |
+ *           |                          |
+ *           |                          |
+ *           |                          |
+ *           +--------------------------+
+ *```
+ */
+val Rectangle.center get() = Point(x + width / 2, y + height / 2)

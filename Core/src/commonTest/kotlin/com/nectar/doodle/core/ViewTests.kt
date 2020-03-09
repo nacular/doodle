@@ -23,6 +23,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.PropertyObservers
 import io.mockk.every
@@ -31,6 +32,7 @@ import io.mockk.verify
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
 /**
@@ -256,7 +258,7 @@ class ViewTests {
     }
 
     @Test @JsName("containsPointWorks")
-    fun `contains point`() {
+    fun `contains point works`() {
         val view = object: View() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
@@ -367,6 +369,36 @@ class ViewTests {
         child1.visible = false
 
         expect(child0) { root.child_(Point(11.0, 13.0)) }
+    }
+
+    @Test @JsName("cannotBeParentToSelf")
+    fun `cannot be parent to self`() {
+        val view = object: View() {
+            public override val children: ObservableList<View>
+                get() = super.children
+        }
+
+        assertFailsWith<IllegalArgumentException> { view.children += view }
+    }
+
+    @Test @JsName("cannotAddAncestorToChildren")
+    fun `cannot add ancestor to children`() {
+        val grandParent = object: View() {
+            public override val children get() = super.children
+        }
+
+        val parent = object: View() {
+            public override val children get() = super.children
+        }
+
+        val child = object: View() {
+            public override val children get() = super.children
+        }
+
+        grandParent.children += parent
+        parent.children      += child
+
+        assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
