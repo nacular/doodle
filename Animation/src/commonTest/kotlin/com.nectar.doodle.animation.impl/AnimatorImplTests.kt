@@ -10,9 +10,9 @@ import com.nectar.doodle.time.Timer
 import com.nectar.doodle.utils.Completable
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
-import com.nectar.measured.units.hours
-import com.nectar.measured.units.milliseconds
-import com.nectar.measured.units.seconds
+import com.nectar.measured.units.Time.Companion.hours
+import com.nectar.measured.units.Time.Companion.milliseconds
+import com.nectar.measured.units.Time.Companion.seconds
 import com.nectar.measured.units.times
 import io.mockk.mockk
 import io.mockk.verify

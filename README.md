@@ -30,9 +30,7 @@ class HelloWorld(display: Display): Application {
 
     override fun shutdown() {}
 }
-```
 
-```kotlin
 fun main() {
     application {
         HelloWorld(display = instance())

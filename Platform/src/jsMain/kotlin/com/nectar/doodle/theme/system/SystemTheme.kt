@@ -66,7 +66,7 @@ class SystemTheme internal constructor(
     companion object {
         val systemThemeModule = Module(allowSilentOverride = true, name = "SystemTheme") {
             // TODO: Can this be handled better?
-            bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
+            bind<RealGraphicsSurfaceFactory>      () with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
             bind<NativeScrollPanelFactory>        () with singleton { NativeScrollPanelFactoryImpl(instance(), instance()) }
             bind<NativeButtonFactory>             () with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }

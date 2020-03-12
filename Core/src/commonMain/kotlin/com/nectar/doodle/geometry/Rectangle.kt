@@ -103,6 +103,26 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      */
     val right get() = x + width
 
+    /**
+     * Point at the center of the rectangle
+     *
+     * ```
+     *                      cx
+     *(0,0) ---------------->|
+     *      |
+     *      |    +--------------------------+
+     *      |    |                          |
+     *      |    |                          |
+     *      V    |                          |
+     *   cy -    |            C             |
+     *           |                          |
+     *           |                          |
+     *           |                          |
+     *           +--------------------------+
+     *```
+     */
+    val center get() = Point(right / 2, bottom / 2)
+
     override val points by lazy {
         listOf(position, Point(x+width, y), Point(x+width, y+height), Point(x, y+height))
     }
@@ -125,10 +145,10 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
             return this
         }
 
-        val vertical        = y..y+height
-        val horizontal      = x..x+width
-        val otherVertical   = rectangle.y..rectangle.y + rectangle.height
-        val otherHorizontal = rectangle.x..rectangle.x + rectangle.width
+        val vertical        = y..bottom
+        val horizontal      = x..right
+        val otherVertical   = rectangle.y..rectangle.bottom
+        val otherHorizontal = rectangle.x..rectangle.right
 
         val x1 = when {
             x in otherHorizontal      -> x
@@ -143,15 +163,15 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
         }
 
         val x2 = when {
-            x + width in otherHorizontal                -> x + width
-            rectangle.x + rectangle.width in horizontal -> rectangle.x + rectangle.width
-            else                                        -> 0.0
+            right in otherHorizontal      -> right
+            rectangle.right in horizontal -> rectangle.right
+            else                          -> 0.0
         }
 
         val y2 = when {
-            y + height in otherVertical                -> y + height
-            rectangle.y + rectangle.height in vertical -> rectangle.y + rectangle.height
-            else                                       -> 0.0
+            bottom in otherVertical      -> bottom
+            rectangle.bottom in vertical -> rectangle.bottom
+            else                         -> 0.0
         }
 
         return Rectangle(x1, y1, x2 - x1, y2 - y1)
@@ -196,7 +216,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      *
      * @return `true` IFF the given point falls within the boundaries of this Rectangle
      */
-    override operator fun contains(point: Point) = area > 0 && point.x in x..x + width && point.y in y..y + height
+    override operator fun contains(point: Point) = area > 0 && point.x in x..right && point.y in y..bottom
 
     /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
     override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
@@ -206,12 +226,12 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      *
      * @return `true` IFF the given rectangle intersects this Rectangle
      */
-    override fun intersects(rectangle: Rectangle) = !(x          >= rectangle.x + rectangle.width  ||
-                                                      y          >= rectangle.y + rectangle.height ||
-                                                      x + width  <= rectangle.x                    ||
-                                                      y + height <= rectangle.y                    ||
-                                                      empty                                        ||
-                                                      rectangle.empty)
+    override fun intersects(rectangle: Rectangle) = !(empty                      ||
+                                                      rectangle.empty            ||
+                                                      x      >= rectangle.right  ||
+                                                      y      >= rectangle.bottom ||
+                                                      right  <= rectangle.x      ||
+                                                      bottom <= rectangle.y)
 
     override fun toString() = "[$x,$y,$width,$height]"
 
@@ -232,23 +252,3 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
         val Empty = Rectangle()
     }
 }
-
-/**
- * Point at the center of the rectangle
- *
- * ```
- *                      cx
- *(0,0) ---------------->|
- *      |
- *      |    +--------------------------+
- *      |    |                          |
- *      |    |                          |
- *      V    |                          |
- *   cy -    |            C             |
- *           |                          |
- *           |                          |
- *           |                          |
- *           +--------------------------+
- *```
- */
-val Rectangle.center get() = Point(x + width / 2, y + height / 2)

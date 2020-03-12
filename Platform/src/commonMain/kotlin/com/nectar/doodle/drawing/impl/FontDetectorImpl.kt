@@ -8,7 +8,11 @@ import com.nectar.doodle.drawing.FontDetector
 import com.nectar.doodle.drawing.FontInfo
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.impl.State.Found
+import com.nectar.doodle.drawing.impl.State.Pending
 import com.nectar.doodle.scheduler.Scheduler
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by Nicholas Eddy on 10/4/18.
@@ -26,6 +30,7 @@ class FontDetectorImpl(
         private val scheduler   : Scheduler): FontDetector {
 
     private val fonts = HashMap<Int, State>()
+    private val suspended = HashMap<Int, MutableList<Continuation<Font>>>()
 
     private fun getHash(family: String, weight: Weight, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
 
@@ -34,12 +39,17 @@ class FontDetectorImpl(
             val hash = getHash(family, weight, size, style)
 
             when (fonts[hash]) {
-                Found -> return FontImpl(size, weight, style, family)
-                else  -> {
+                Found   -> return FontImpl(size, weight, style, family)
+                Pending -> return suspendCoroutine {
+                    suspended.getOrPut(hash) { mutableListOf() }.add(it)
+                }
+                else    -> {
 
                     if (family == DEFAULT_FAMILY || family.isBlank()) {
                         return FontImpl(size, weight, style, family)
                     }
+
+                    fonts[hash] = Pending
 
                     val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
                     val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
@@ -48,7 +58,9 @@ class FontDetectorImpl(
 
                     fonts[hash] = Found
 
-                    return FontImpl(size, weight, style, family)
+                    return FontImpl(size, weight, style, family).also { font ->
+                        suspended[hash]?.forEach { it.resume(font) }
+                    }
                 }
             }
         }
