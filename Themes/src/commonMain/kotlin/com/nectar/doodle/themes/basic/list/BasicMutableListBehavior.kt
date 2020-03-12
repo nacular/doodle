@@ -7,7 +7,6 @@ import com.nectar.doodle.controls.list.ListEditor
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextFit
-import com.nectar.doodle.themes.basic.ListRow
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -22,6 +21,7 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.themes.basic.ListRow
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.ObservableSet

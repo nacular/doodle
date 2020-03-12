@@ -9,10 +9,6 @@ import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
-import com.nectar.doodle.themes.basic.ContentGenerator
-import com.nectar.doodle.themes.basic.SelectableTreeKeyHandler
-import com.nectar.doodle.themes.basic.SimpleTreeRowIcon
-import com.nectar.doodle.themes.basic.TreeRow
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor
@@ -36,6 +32,10 @@ import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.themes.basic.ContentGenerator
+import com.nectar.doodle.themes.basic.SelectableTreeKeyHandler
+import com.nectar.doodle.themes.basic.SimpleTreeRowIcon
+import com.nectar.doodle.themes.basic.TreeRow
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
