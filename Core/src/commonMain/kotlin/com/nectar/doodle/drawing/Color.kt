@@ -1,8 +1,8 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.Measure
 import com.nectar.measured.units.div
 import com.nectar.measured.units.times
 import kotlin.math.abs
@@ -244,9 +244,9 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
     }
 }
 
-val Color?.visible   : Boolean get() = this == null || this.visible
-val HslColor?.visible: Boolean get() = this == null || this.visible
-val HsvColor?.visible: Boolean get() = this == null || this.visible
+val Color?.visible   : Boolean get() = this?.visible ?: false
+val HslColor?.visible: Boolean get() = this?.visible ?: false
+val HsvColor?.visible: Boolean get() = this?.visible ?: false
 
 private fun Double.toUByte() = toInt().toUByte()
 

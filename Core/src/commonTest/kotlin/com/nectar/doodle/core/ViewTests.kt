@@ -6,9 +6,13 @@ import com.nectar.doodle.JsName
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.Color.Companion.red
 import com.nectar.doodle.drawing.RenderManager
+import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyListener
+import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.MouseScrollEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
@@ -23,11 +27,13 @@ import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.PropertyObservers
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -61,10 +67,12 @@ class ViewTests {
                 View::layout_             to null,
                 View::position            to Origin,
                 View::hasFocus            to false,
+                View::displayed           to false,
                 View::focusable           to true,
                 View::idealSize           to null,
                 View::displayRect         to Empty,
                 View::minimumSize         to Size.Empty,
+                View::acceptsThemes       to true,
                 View::foregroundColor     to null,
                 View::backgroundColor     to null,
                 View::monitorsDisplayRect to false
@@ -159,6 +167,78 @@ class ViewTests {
         verify(exactly = 1) { observer(view, true, false) }
     }
 
+    private class SubView: View() {
+        public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
+        public override fun handleMouseEvent(event: MouseEvent) { super.handleMouseEvent(event) }
+        public override fun handleKeyEvent(event: KeyEvent) { super.handleKeyEvent(event) }
+        public override fun handleMouseMotionEvent(event: MouseEvent) { super.handleMouseMotionEvent(event) }
+        public override fun handleMouseScrollEvent(event: MouseScrollEvent) { super.handleMouseScrollEvent(event) }
+    }
+
+    @Test @JsName("forwardsDisplayRectToSubclass")
+    fun `forwards display-rect to subclass`() {
+        val view = spyk(SubView())
+        val old  = Rectangle(100)
+        val new  = Rectangle( 30)
+
+        view.handleDisplayRectEvent_(old, new)
+
+        verify(exactly = 1) { view.handleDisplayRectEvent(old, new) }
+    }
+
+    @Test @JsName("forwardsMouseEventToSubclass")
+    fun `forwards mouse event to subclass`() {
+        val view  = spyk(SubView())
+        val event = mockk<MouseEvent>(relaxed = true)
+
+        view.handleMouseEvent_(event)
+
+        verify(exactly = 1) { view.handleMouseEvent(event) }
+    }
+
+    @Test @JsName("forwardsKeyEventToSubclass")
+    fun `forwards key event to subclass`() {
+        val view  = spyk(SubView())
+        val event = mockk<KeyEvent>(relaxed = true)
+
+        view.handleKeyEvent_(event)
+
+        verify(exactly = 1) { view.handleKeyEvent(event) }
+    }
+
+    @Test @JsName("forwardsMouseMotionEventToSubclass")
+    fun `forwards mouse motion event to subclass`() {
+        val view  = spyk(SubView())
+        val event = mockk<MouseEvent>(relaxed = true)
+
+        view.handleMouseMotionEvent_(event)
+
+        verify(exactly = 1) { view.handleMouseMotionEvent(event) }
+    }
+
+    @Test @JsName("forwardsMouseScrollEventToSubclass")
+    fun `forwards mouse scroll event to subclass`() {
+        val view  = spyk(SubView())
+        val event = mockk<MouseScrollEvent>(relaxed = true)
+
+        view.handleMouseScrollEvent_(event)
+
+        verify(exactly = 1) { view.handleMouseScrollEvent(event) }
+    }
+
+    @Test @JsName("centerWorks")
+    fun `center works`() {
+        val view = view()
+
+        listOf(
+            Rectangle(        100, 100),
+            Rectangle(12, 38,  10, 100)
+        ).forEach {
+            view.bounds = it
+            expect(view.center) { it.center }
+        }
+    }
+
     @Test @JsName("changeEventsWork")
     fun `change events work`() {
         listOf(
@@ -170,6 +250,28 @@ class ViewTests {
         ).forEach {
             validateChanged(it.first, it.second)
         }
+    }
+
+    @Test @JsName("styleChangeEventsWork")
+    fun `style change events work`() {
+        validateStyleChanged(View::font,            mockk(relaxed = true))
+        validateStyleChanged(View::foregroundColor, mockk(relaxed = true))
+        validateStyleChanged(View::backgroundColor, mockk(relaxed = true))
+    }
+
+    @Test @JsName("keyDownEventsWorks")
+    fun `key down events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Down }) { listener, event ->
+        verify(exactly = 1) { listener.keyPressed(event) }
+    }
+
+    @Test @JsName("keyUpEventsWorks")
+    fun `key up events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Up }) { listener, event ->
+        verify(exactly = 1) { listener.keyReleased(event) }
+    }
+
+    @Test @JsName("keyPressedEventsWorks")
+    fun `key pressed events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Press }) { listener, event ->
+        verify(exactly = 1) { listener.keyTyped(event) }
     }
 
     @Test @JsName("mouseEventsWorks")
@@ -199,6 +301,36 @@ class ViewTests {
 
     @Test @JsName("mouseDragWorks")
     fun `mouse drag works`() = validateMouseMotionChanged(mockk<MouseEvent>().apply { every { type } returns Drag }) { listener, event ->
+        verify(exactly = 1) { listener.mouseDragged(event) }
+    }
+
+    @Test @JsName("filterMouseReleasedWorks")
+    fun `filter mouse released works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Up }) { listener, event ->
+        verify(exactly = 1) { listener.mouseReleased(event) }
+    }
+
+    @Test @JsName("filterMouseMoveWorks")
+    fun `filter mouse move works`() = validateMouseMotionFilter(mockk<MouseEvent>().apply { every { type } returns Move }) { listener, event ->
+        verify(exactly = 1) { listener.mouseMoved(event) }
+    }
+
+    @Test @JsName("filterMouseEventsWorks")
+    fun `filter mouse events works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Enter }) { listener, event ->
+        verify(exactly = 1) { listener.mouseEntered(event) }
+    }
+
+    @Test @JsName("filterMouseExitWorks")
+    fun `filter mouse exit works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Exit }) { listener, event ->
+        verify(exactly = 1) { listener.mouseExited(event) }
+    }
+
+    @Test @JsName("filterMousePressedWorks")
+    fun `filter mouse pressed works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Down }) { listener, event ->
+        verify(exactly = 1) { listener.mousePressed(event) }
+    }
+
+    @Test @JsName("filterMouseDragWorks")
+    fun `filter mouse drag works`() = validateMouseMotionFilter(mockk<MouseEvent>().apply { every { type } returns Drag }) { listener, event ->
         verify(exactly = 1) { listener.mouseDragged(event) }
     }
 
@@ -421,6 +553,17 @@ class ViewTests {
         block(view, observer)
     }
 
+    private fun validateKeyChanged(event: KeyEvent, block: (KeyListener, KeyEvent) -> Unit) {
+        val view     = object: View() {}
+        val listener = mockk<KeyListener>(relaxed = true)
+
+        view.keyChanged += listener
+
+        view.handleKeyEvent_(event)
+
+        block(listener, event)
+    }
+
     private fun validateMouseChanged(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
         val view     = object: View() {}
         val listener = mockk<MouseListener>(relaxed = true)
@@ -428,6 +571,17 @@ class ViewTests {
         view.mouseChanged += listener
 
         view.handleMouseEvent_(event)
+
+        block(listener, event)
+    }
+
+    private fun validateMouseFilter(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
+        val view     = object: View() {}
+        val listener = mockk<MouseListener>(relaxed = true)
+
+        view.mouseFilter += listener
+
+        view.filterMouseEvent_(event)
 
         block(listener, event)
     }
@@ -443,6 +597,17 @@ class ViewTests {
         block(listener, event)
     }
 
+    private fun validateMouseMotionFilter(event: MouseEvent, block: (MouseMotionListener, MouseEvent) -> Unit) {
+        val view     = object: View() {}
+        val listener = mockk<MouseMotionListener>(relaxed = true)
+
+        view.mouseMotionFilter += listener
+
+        view.filterMouseMotionEvent_(event)
+
+        block(listener, event)
+    }
+
     private fun validateChanged(property: KMutableProperty1<View, Boolean>, changed: KProperty1<View, PropertyObservers<View, Boolean>>) {
         val view     = object: View() {}
         val old      = property.get(view)
@@ -453,6 +618,17 @@ class ViewTests {
         property.set(view, !property.get(view))
 
         verify(exactly = 1) { observer(view, old, property.get(view)) }
+    }
+
+    private fun <T: Any?> validateStyleChanged(property: KMutableProperty1<View, T>, value: T) {
+        val view     = object: View() {}
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        view.styleChanged += observer
+
+        property.set(view, value)
+
+        verify(exactly = 1) { observer(view) }
     }
 
     private fun <T> validateDefault(p: KProperty1<View, T>, default: T?) {

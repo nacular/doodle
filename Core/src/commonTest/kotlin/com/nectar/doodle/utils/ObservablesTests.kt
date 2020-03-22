@@ -3,6 +3,7 @@ package com.nectar.doodle.utils
 import com.nectar.doodle.JsName
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -300,7 +301,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("moveNotifies")
+    @Test @Ignore @JsName("moveNotifies")
     fun `move notifies`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.batch {

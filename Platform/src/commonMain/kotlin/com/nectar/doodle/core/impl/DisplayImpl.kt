@@ -1,12 +1,14 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.Event
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.clear
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
+import com.nectar.doodle.core.height
+import com.nectar.doodle.core.width
+import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.addIfNotPresent
 import com.nectar.doodle.dom.clearVisualStyles
@@ -37,9 +39,6 @@ import com.nectar.doodle.utils.observable
 
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, private val rootElement: HTMLElement): Display {
-
-    val width  get() = size.width
-    val height get() = size.height
 
     override var insets = None
 

@@ -5,10 +5,9 @@ package com.nectar.doodle.controls.buttons
  */
 
 class ButtonGroup {
-
     val size: Int get() = buttons.size
 
-    private val buttons      : MutableSet<Button> by lazy { mutableSetOf<Button>() }
+    private val buttons by lazy { mutableSetOf<Button>() }
     private var selectedModel: ButtonModel? = null
 
     operator fun plusAssign(button: Button) {
@@ -23,7 +22,6 @@ class ButtonGroup {
                 button.model.selected = false
             }
         }
-
     }
 
     operator fun minusAssign(button: Button) {

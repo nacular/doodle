@@ -58,7 +58,7 @@ import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.KeyInputServiceImpl
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy
-import com.nectar.doodle.system.impl.KeyInputServiceStrategyWebkit
+import com.nectar.doodle.system.impl.KeyInputStrategyWebkit
 import com.nectar.doodle.system.impl.MouseInputServiceImpl
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
@@ -88,10 +88,6 @@ import kotlin.browser.window
 /**
  * Created by Nicholas Eddy on 1/22/20.
  */
-
-interface Application {
-    fun shutdown()
-}
 
 inline fun <reified T: Application> application(
                  root                : HTMLElement = document.body!!,
@@ -175,10 +171,10 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
 
         bind<Window>                   () with instance  ( window )
 
-        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                  ) }
-        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                              ) }
+        bind<Timer>                    () with singleton { PerformanceTimer(window.performance) }
+        bind<Strand>                   () with singleton { StrandImpl(instance(), instance()) }
         bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                        ) }
-        bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                              ) }
+        bind<Scheduler>                () with singleton { SchedulerImpl(instance(), instance()) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                      ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                      ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                          ) }
@@ -188,7 +184,7 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()      ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                          ) }
-        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (instance()                                          ) } // FIXME: Provide fallback in case not supported
+        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl(instance()) } // FIXME: Provide fallback in case not supported
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                              ) }
 
         modules.forEach {
@@ -253,7 +249,7 @@ class Modules {
             bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()            ) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
@@ -267,7 +263,7 @@ class Modules {
 
             bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                  ) }
             bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl     (instance(), instance(), keys) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputServiceStrategyWebkit(instance()                  ) }
+            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit(instance()) }
         }
 
         val themeModule = Module(allowSilentOverride = true, name = "Theme") {

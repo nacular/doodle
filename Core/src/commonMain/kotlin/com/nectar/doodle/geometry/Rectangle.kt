@@ -121,7 +121,7 @@ class Rectangle(val position: Point = Origin, val size: Size = Size.Empty): Conv
      *           +--------------------------+
      *```
      */
-    val center get() = Point(right / 2, bottom / 2)
+    val center get() = position + Point(width / 2, height / 2)
 
     override val points by lazy {
         listOf(position, Point(x+width, y), Point(x+width, y+height), Point(x, y+height))

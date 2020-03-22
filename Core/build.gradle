@@ -7,28 +7,6 @@ kotlin {
     jvm ()
     js { browser {} }
 
-    targets {
-        fromPreset(presets.jvm, 'jvm')
-        fromPreset(presets.js,  'js' ) {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    sourceMap             = true
-                    sourceMapEmbedSources = 'always'
-                    moduleKind            = 'commonjs'
-                }
-            }
-        }
-
-        all {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
-//                    allWarningsAsErrors = true
-                }
-            }
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             api dep.measured_common
@@ -68,5 +46,25 @@ kotlin {
             implementation dep.mockk_js
             implementation dep.kotlin_test_js
         }
+    }
+}
+
+dokka {
+    outputFormat = 'html'
+
+    configuration {
+        moduleName = 'core'
+
+        // Use to include or exclude non public members.
+        includeNonPublic = false
+
+        // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+        skipDeprecated = true
+
+        // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+        reportUndocumented = true
+
+        // Do not create index pages for empty packages
+        skipEmptyPackages = true
     }
 }

@@ -1,6 +1,5 @@
 package com.nectar.doodle
 
-import org.w3c.dom.NodeList
 import org.w3c.dom.get
 import kotlin.dom.clear
 
@@ -10,7 +9,7 @@ import kotlin.dom.clear
 
 actual inline operator fun NodeList.get(index: Int): Node? = get(index)
 
-actual typealias NodeList = NodeList
+actual typealias NodeList = org.w3c.dom.NodeList
 
 actual typealias Node = org.w3c.dom.Node
 

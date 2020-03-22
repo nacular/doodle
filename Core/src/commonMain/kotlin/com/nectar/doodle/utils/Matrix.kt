@@ -57,6 +57,7 @@ open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): 
 
     val determinant: Double by lazy {
         when (numRows) {
+            1    -> this[0,0].toDouble()
             2    -> this[0,0].toDouble() * this[1,1].toDouble() - this[0,1].toDouble() * this[1,0].toDouble()
             else -> {
                 var sign   = 1
@@ -111,6 +112,7 @@ fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
 }
 
 operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
+operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { it.toDouble() * toDouble() }
 
 operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): SquareMatrix<Double> {
     if (other.isIdentity) {
@@ -157,9 +159,8 @@ operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
         }
     }
 
-    return AffineMatrix3D(
-            values[0], values[1], values[2],
-            values[3], values[4], values[5])
+    return AffineMatrix3D(values[0], values[1], values[2],
+                          values[3], values[4], values[5])
 }
 
 operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Double> {
@@ -231,7 +232,7 @@ open class MatrixImpl<T: Number> internal constructor(internal val values: List<
 
         for (row in 0 until numRows) {
             for (col in 0 until numColumns) {
-                if (this[row, col] != other[row, col]) {
+                if (this[row, col].toDouble() != other[row, col].toDouble()) {
                     return false
                 }
             }

@@ -54,7 +54,7 @@ class SystemTheme internal constructor(
             is RadioButton -> it.behavior = SystemRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
             is CheckBox    -> it.behavior = SystemCheckBoxBehavior   (nativeCheckBoxRadioButtonFactory, textMetrics, it) as Behavior<Button>
             is HyperLink   -> it.behavior = SystemHyperLinkBehavior  (nativeHyperLinkFactory,           textMetrics, it) as Behavior<Button>
-            is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory, textMetrics, it             )
+            is Button      -> it.behavior = SystemButtonBehavior     (nativeButtonFactory,              textMetrics, it)
             is Slider      -> it.behavior = SystemSliderBehavior     (nativeSliderFactory,              it             )
             is TextField   -> it.behavior = SystemTextFieldBehavior  (nativeTextFieldFactory,           it             )
             is ScrollPanel -> it.behavior = SystemScrollPanelBehavior(nativeScrollPanelFactory,         it             )

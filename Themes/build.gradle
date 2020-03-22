@@ -47,6 +47,7 @@ kotlin {
 
         jvmMain.dependencies {
             implementation dep.kotlin_stdlib_jdk8
+            implementation dep.kotlinx_coroutines_core_jvm
         }
 
         jvmTest.dependencies {

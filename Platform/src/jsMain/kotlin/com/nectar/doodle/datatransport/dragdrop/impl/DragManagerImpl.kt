@@ -13,6 +13,7 @@ import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action
 import com.nectar.doodle.datatransport.dragdrop.DropEvent
 import com.nectar.doodle.datatransport.dragdrop.DropReceiver
 import com.nectar.doodle.deviceinput.ViewFinder
+import com.nectar.doodle.dom.DataTransfer
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.drawing.GraphicsDevice
@@ -29,9 +30,8 @@ import com.nectar.doodle.system.MouseInputService.Preprocessor
 import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
 import com.nectar.doodle.system.SystemMouseEvent.Type.Up
-import org.w3c.dom.DataTransfer
 import kotlin.math.abs
-import org.w3c.dom.events.MouseEvent as DomMouseEvent
+import com.nectar.doodle.dom.MouseEvent as DomMouseEvent
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")

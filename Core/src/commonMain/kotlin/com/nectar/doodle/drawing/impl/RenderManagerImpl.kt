@@ -1,6 +1,5 @@
 package com.nectar.doodle.drawing.impl
 
-
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform

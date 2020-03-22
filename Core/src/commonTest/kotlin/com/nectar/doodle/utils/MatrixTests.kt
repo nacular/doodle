@@ -16,9 +16,13 @@ import kotlin.test.expect
 private typealias m<T> = MatrixImpl<T>
 private typealias s<T> = SquareMatrix<T>
 
+private fun parse(text: String): Matrix<Double> = MatrixImpl(text.lines().map {
+    it.trim().split(" ").map { it.toDouble() }
+})
+
 class MatrixTests {
     @Test @JsName("identityWorks") fun `identity works`() {
-        setOf(
+        listOf(
             s(this[
               this[ 1.0            ]]) to true,
 
@@ -97,8 +101,50 @@ class MatrixTests {
         }
     }
 
+    @Test @JsName("inverseWorks") fun `inverse works`() {
+        listOf(
+            s(this[
+              this[1.0          ]]) to
+            s(this[
+              this[1.0          ]]),
+
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]) to
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]),
+
+            s(this[
+              this[2.0, 0.0],
+              this[0.0, 2.0]]) to
+            s(this[
+              this[0.5, 0.0],
+              this[0.0, 0.5]])
+        ).forEach {
+            expect(it.second, "\n${it.first} \ninverse") { it.first.inverse }
+        }
+    }
+
+    @Test @JsName("nonInvertibleReturnsNull") fun `non-invertible returns null`() {
+        listOf(
+            s(this[
+              this[1.0, 1.0, 1.0],
+              this[1.0, 1.0, 1.0],
+              this[1.0, 1.0, 1.0]]) to null,
+
+            s(this[
+              this[1, 1],
+              this[1, 1]]) to null
+        ).forEach {
+            expect(it.second, "\n${it.first} \ninverse") { it.first.inverse }
+        }
+    }
+
     @Test @JsName("dimensionsWorks") fun `dimensions works`() {
-        setOf(
+        listOf(
             m(this[
               this[1.0                ]]) to (1 to 1),
 
@@ -172,18 +218,29 @@ class MatrixTests {
     }
 
     @Test @JsName("equalsWorks") fun `equals works`() {
-        setOf(
+        expect(false) { m(this[this[1.0, 3.4, 69.4, 0.0]]).equals(59.0) }
+
+        listOf(
+            s(this[
+              this[0.5, 0.0],
+              this[0.0, 0.5]]) to
+            s(this[
+              this[0.5, -0.0],
+              this[-0.0, 0.5]]) to true,
+
             m(this[this[1.0]]) to
-            m(this[this[1.0]]) to true,
+            m(this[this[1  ]]) to true,
+
+            m(this[this[1.0]]).let { it to it to true },
 
             m(this[this[1.0, 3.4, 69.4, 0.0]]) to
             m(this[this[1.0, 3.4, 69.4, 0.0]]) to true,
 
-            m(this[
+            s(this[
               this[1.0, 0.0, 0.0],
               this[0.0, 1.0, 0.0],
               this[0.0, 0.0, 1.0]]) to
-            m(this[
+            s(this[
               this[1.0, 0.0, 0.0],
               this[0.0, 1.0, 0.0],
               this[0.0, 0.0, 1.0]]) to true,
@@ -194,14 +251,21 @@ class MatrixTests {
             m(this[
               this[1.0, 0.0, 0.0],
               this[0.0, 1.0, 0.0],
-              this[0.0, 0.0, 1.0]]) to false
+              this[0.0, 0.0, 1.0]]) to false,
+
+            m(this[
+              this[1.0, 0.0],
+              this[0.0, 1.0]]) to
+            m(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0]]) to false
         ).forEach {
             expect(it.second, "\n${it.first.first} == \n\n${it.first.second}") { it.first.first == it.first.second }
         }
     }
 
-    @Test @JsName("multiplyWorks") fun `multiply works`() {
-        setOf(
+    @Test @JsName("matrixMultiplyWorks") fun `matrix multiply works`() {
+        listOf(
             m(this[this[ 1.0     ]]) to
             m(this[this[ 1.0, 2.0]]) to
             m(this[this[ 1.0, 2.0]]),
@@ -254,16 +318,71 @@ class MatrixTests {
               this[-22.0,  49.0,  46.0],
               this[-41.0,   7.0,   3.0],
               this[135.0,  96.0, 121.0],
-              this[347.0, 134.0, 201.0]])
+              this[347.0, 134.0, 201.0]]),
 
+            s(this[
+              this[ 2.0,  0.0,  0.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 0.0,  4.0,  1.0]]) to
+            s(this[
+              this[ 1.0,  0.0,  0.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 0.0,  0.0,  1.0]]) to
+            s(this[
+              this[ 2.0,  0.0,  0.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 0.0,  4.0,  1.0]])
+
+        ).forEach {
+            expect(it.second, "\n${it.first.first} * \n\n${it.first.second} == \n\n${it.second}") { it.first.first * it.first.second }
+        }
+
+        listOf(
+            s(this[
+              this[2.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 4.0, 1.0]]) to
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]) to
+            s(this[
+              this[2.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 4.0, 1.0]]),
+
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]) to
+            s(this[
+              this[2.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 4.0, 1.0]]) to
+            s(this[
+              this[2.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 4.0, 1.0]]),
+
+            s(this[
+             this[1.0, 2.0, 3.0],
+             this[4.0, 5.0, 6.0],
+             this[7.0, 8.0, 9.0]]) to
+            s(this[
+             this[9.0, 8.0, 7.0],
+             this[6.0, 5.0, 4.0],
+             this[3.0, 2.0, 1.0]]) to
+            s(this[
+             this[ 30.0,  24.0, 18.0],
+             this[ 84.0,  69.0, 54.0],
+             this[138.0, 114.0, 90.0]])
         ).forEach {
             expect(it.second, "\n${it.first.first} * \n\n${it.first.second} == \n\n${it.second}") { it.first.first * it.first.second }
         }
     }
 
-
     @Test @JsName("multiplyUnmatchedThrows") fun `multiply unmatched throws`() {
-        setOf(
+        listOf(
             m(this[
               this[ 1.0, 0.0, 0.0],
               this[ 0.0, 1.0, 0.0],

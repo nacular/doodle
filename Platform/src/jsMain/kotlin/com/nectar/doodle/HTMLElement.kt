@@ -1,64 +1,43 @@
 package com.nectar.doodle
 
-import org.w3c.dom.CharacterData
-import org.w3c.dom.DOMRect
-import org.w3c.dom.Document
-import org.w3c.dom.DragEvent
-import org.w3c.dom.Element
-import org.w3c.dom.ElementCreationOptions
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLHeadElement
-import org.w3c.dom.HTMLImageElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLStyleElement
-import org.w3c.dom.Text
-import org.w3c.dom.css.CSSStyleDeclaration
-import org.w3c.dom.css.CSSStyleSheet
-import org.w3c.dom.css.ElementCSSInlineStyle
-import org.w3c.dom.css.StyleSheet
-import org.w3c.dom.css.StyleSheetList
-import org.w3c.dom.events.Event
-
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual typealias CSSStyleSheet = CSSStyleSheet
+actual typealias CSSStyleSheet = org.w3c.dom.css.CSSStyleSheet
 
-actual val com.nectar.doodle.CSSStyleSheet.numStyles: Int get() = this.cssRules.length
+actual val CSSStyleSheet.numStyles: Int get() = this.cssRules.length
 
-actual typealias CSSStyleDeclaration = CSSStyleDeclaration
+actual typealias CSSStyleDeclaration = org.w3c.dom.css.CSSStyleDeclaration
 
-actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"]
+actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"] as String
     set(new) { this.asDynamic()["clip-path"] = new }
 
-actual var CSSStyleDeclaration.willChange: String get() = this.asDynamic()["will-change"]
+actual var CSSStyleDeclaration.willChange: String get() = this.asDynamic()["will-change"] as String
     set(new) { this.asDynamic()["will-change"] = new }
 
-actual typealias ElementCSSInlineStyle = ElementCSSInlineStyle
+actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle
 
-actual typealias DOMRect   = DOMRect
-actual typealias Element   = Element
-actual typealias Event     = Event
-actual typealias DragEvent = DragEvent
+actual typealias DOMRect   = org.w3c.dom.DOMRect
+actual typealias Element   = org.w3c.dom.Element
+actual typealias DragEvent = org.w3c.dom.DragEvent
 
-actual typealias HTMLElement = HTMLElement
+actual typealias HTMLElement = org.w3c.dom.HTMLElement
 
-actual typealias ElementCreationOptions = ElementCreationOptions
+actual typealias ElementCreationOptions = org.w3c.dom.ElementCreationOptions
 
-actual typealias Document = Document
+actual typealias Document = org.w3c.dom.Document
 
-actual typealias Text              = Text
-actual typealias CharacterData     = CharacterData
-actual typealias HTMLHeadElement   = HTMLHeadElement
-actual typealias HTMLImageElement  = HTMLImageElement
-actual typealias HTMLInputElement  = HTMLInputElement
-actual typealias HTMLButtonElement = HTMLButtonElement
+actual typealias Text              = org.w3c.dom.Text
+actual typealias CharacterData     = org.w3c.dom.CharacterData
+actual typealias HTMLHeadElement   = org.w3c.dom.HTMLHeadElement
+actual typealias HTMLImageElement  = org.w3c.dom.HTMLImageElement
+actual typealias HTMLInputElement  = org.w3c.dom.HTMLInputElement
+actual typealias HTMLButtonElement = org.w3c.dom.HTMLButtonElement
 
-actual typealias StyleSheet = StyleSheet
+actual typealias StyleSheet = org.w3c.dom.css.StyleSheet
 
 actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
-actual typealias StyleSheetList = StyleSheetList
+actual typealias StyleSheetList = org.w3c.dom.css.StyleSheetList
 
-actual typealias HTMLStyleElement = HTMLStyleElement
+actual typealias HTMLStyleElement = org.w3c.dom.HTMLStyleElement

@@ -12,7 +12,7 @@ class BstNode<E>(var value: E) {
 open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
     constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
-    protected var root = null as BstNode<E>?
+    private var root = null as BstNode<E>?
 
     init {
         elements.forEach { add(it) }
@@ -43,26 +43,29 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         else -> add(root!!, element).ifTrue { ++size_ }
     }
 
-    protected open fun remove_(element: E): Boolean {
-        return (root?.let {
-            when (element) {
-                it.value -> {
+    protected open fun remove_(element: E): Boolean = (root?.let {
+        when (element) {
+            it.value -> {
 
-                    val auxRoot = BstNode(it.value)
+                val auxRoot = BstNode(it.value)
 
-                    auxRoot.left = root
+                auxRoot.left = root
 
-                    val result = remove(it, auxRoot, element)
+                val result = remove(it, auxRoot, element)
 
-                    root = auxRoot.left
+                root = auxRoot.left
 
-                    result
+                result
 
-                }
-                else     -> remove(it, null, element)
             }
+            else     -> remove(it, null, element)
+        }
 
-        } ?: false).ifTrue { --size_; if (size < 0) { throw Exception("BROKEN!!!!") } }
+    } ?: false).ifTrue { --size_; if (size < 0) { throw Exception("BROKEN!!!!") } }
+
+    protected fun clear_() {
+        root  = null
+        size_ = 0
     }
 
     private fun add(node: BstNode<E>, element: E): Boolean = when {
@@ -159,7 +162,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
     }
 
     companion object {
-        operator fun <T: Comparable<T>> invoke(): TreeSet<T> = TreeSet(Comparator { a, b -> a.compareTo(b) })
-        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSet<T> = TreeSet(Comparator { a, b -> a.compareTo(b) }, elements)
+        operator fun <T: Comparable<T>> invoke(): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) })
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
     }
 }

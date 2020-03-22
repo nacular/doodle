@@ -1,13 +1,13 @@
 package com.nectar.doodle.time.impl
 
+import com.nectar.doodle.dom.Date
+import com.nectar.doodle.dom.Performance
 import com.nectar.doodle.time.Clock
 import com.nectar.doodle.time.Timer
 import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
-import org.w3c.performance.Performance
-import kotlin.js.Date
 
 /**
  * Created by Nicholas Eddy on 10/19/17.

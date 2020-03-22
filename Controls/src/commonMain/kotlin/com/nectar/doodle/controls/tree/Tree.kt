@@ -10,7 +10,6 @@ import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
 import com.nectar.doodle.core.Layout
-import com.nectar.doodle.core.Positionable
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -77,6 +76,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
             children.batch {
                 clear     ()
+                rowToPath.clear()
                 refreshAll()
             }
         }
@@ -412,10 +412,10 @@ open class Tree<T, out M: TreeModel<T>>(
 
     override fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
-    override tailrec fun visible(path: Path<Int>): Boolean = when {
-        path.depth == 0 -> rootVisible
-        path.depth == 1 -> true
-        else            -> {
+    override tailrec fun visible(path: Path<Int>): Boolean = when (path.depth) {
+        0    -> rootVisible
+        1    -> true
+        else -> {
             val parent = path.parent
 
             when {

@@ -1,5 +1,6 @@
 package com.nectar.doodle.scheduler.impl
 
+import com.nectar.doodle.dom.Window
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
@@ -9,7 +10,6 @@ import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
-import org.w3c.dom.Window
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

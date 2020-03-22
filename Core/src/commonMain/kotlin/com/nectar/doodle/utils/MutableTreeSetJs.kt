@@ -9,9 +9,9 @@ class MutableTreeSetJs<E> constructor(comparator: Comparator<E>, elements: Colle
 
     override fun remove(element: E): Boolean = super.remove_(element)
 
-    override fun addAll(elements: Collection<E>) = elements.all { add(it) }
+    override fun addAll(elements: Collection<E>) = if (elements.isEmpty()) false else elements.all { add(it) }
 
-    override fun removeAll(elements: Collection<E>) = elements.all { remove(it) }
+    override fun removeAll(elements: Collection<E>) = if (elements.isEmpty()) false else elements.all { remove(it) }
 
     override fun retainAll(elements: Collection<E>): Boolean {
         val set    = elements.toSet()
@@ -22,10 +22,10 @@ class MutableTreeSetJs<E> constructor(comparator: Comparator<E>, elements: Colle
         return result
     }
 
-    override fun clear() { root = null }
+    override fun clear() = super.clear_()
 
     companion object {
-        operator fun <T: Comparable<T>> invoke(                       ): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) })
-        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T> = MutableTreeSet(Comparator { a, b -> a.compareTo(b) }, elements)
+        operator fun <T: Comparable<T>> invoke(                       ): MutableTreeSetJs<T> = MutableTreeSetJs(Comparator { a, b -> a.compareTo(b) })
+        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSetJs<T> = MutableTreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
     }
 }

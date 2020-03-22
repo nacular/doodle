@@ -10,16 +10,98 @@ import kotlin.test.expect
 class MutableTreeSetJsTests {
     @Test @JsName("isSorted")
     fun `is sorted`() {
-        val set      = MutableTreeSetJs<Int>()
-        val expected = listOf(-5, 1, 2, 5, 8, 101)
-
-        expected.forEach { set += it }
-
-        set.forEachIndexed { index, i ->
-            expect(true) { i == expected[index] }
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 0, 8, 101, -5)
+        ).forEach {
+            expect(true) { isSorted(MutableTreeSetJs(it)) }
         }
+    }
 
-        expect(6) { set.size }
+    @Test @JsName("addAllWorks")
+    fun `add all works`() {
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 8, 101, -5)
+        ).forEach {
+            val set = MutableTreeSetJs<Int>()
+
+            expect(it.isNotEmpty(), "$it") { set.addAll(it) }
+            expect(it.size        ) { set.size }
+            expect(it.isNotEmpty()) { set.containsAll(it) }
+            it.forEach {
+                expect(true) { it in set }
+            }
+        }
+    }
+
+    @Test @JsName("removeAllWorks")
+    fun `remove all works`() {
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 8, 101, -5)
+        ).forEach {
+            val set = MutableTreeSetJs(it)
+
+            expect(it.isNotEmpty(), "$it") { set.removeAll(it) }
+            expect(0) { set.size }
+            expect(false) { set.containsAll(it) }
+            it.forEach {
+                expect(false) { it in set }
+            }
+        }
+    }
+
+    @Test @JsName("clearWorks")
+    fun `clear works`() {
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 8, 101, -5)
+        ).forEach {
+            val set = MutableTreeSetJs(it)
+
+            set.clear()
+            expect(0) { set.size }
+            expect(false) { set.containsAll(it) }
+            it.forEach {
+                expect(false) { it in set }
+            }
+        }
+    }
+
+    @Test @JsName("retainAllWorks")
+    fun `retain all works`() {
+        listOf(
+                listOf(                     ),
+                listOf(1                    ),
+                listOf(2, 1, 5,   8, 101, -5),
+                listOf(2, 0, 8, 101,  -5    )
+        ).forEach {
+            val set = MutableTreeSetJs(it).apply {
+                this.firstOrNull()?.let {
+                    this += it - 1
+                }
+
+                this.lastOrNull()?.let {
+                    this += it + 1
+                }
+            }
+
+            expect(it.isNotEmpty()) { set.retainAll(it) }
+            expect(it.size        ) { set.size }
+            expect(it.isNotEmpty()) { set.containsAll(it) }
+            it.forEach {
+                expect(true) { it in set }
+            }
+        }
     }
 
     @Test
@@ -63,7 +145,7 @@ class MutableTreeSetJsTests {
         expect(true) { set.remove( 9) }
         expect(0   ) { set.size       }
 
-        (0..10).forEach {
+        repeat(10) {
             expect(false) { set.remove(9) }
         }
 
@@ -80,7 +162,7 @@ class MutableTreeSetJsTests {
         expect(true) { set.remove(11) }
         expect(0   ) { set.size       }
 
-        (0..10).forEach {
+        repeat(10) {
             expect(false) { set.remove(9) }
         }
 
@@ -97,11 +179,27 @@ class MutableTreeSetJsTests {
         expect(true) { set.remove( 9) }
         expect(0   ) { set.size       }
 
-        (0..10).forEach {
+        repeat(10) {
             expect(false) { set.remove(9) }
         }
 
         expect(0   ) { set.size      }
         expect(true) { set.isEmpty() }
+    }
+
+    private fun <T: Comparable<T>> isSorted(set: Set<T>): Boolean {
+        set.iterator().let { iterator ->
+            while (iterator.hasNext()) {
+                val current = iterator.next()
+
+                if (iterator.hasNext()) {
+                    if (current > iterator.next()) {
+                        return false
+                    }
+                }
+            }
+        }
+
+        return true
     }
 }

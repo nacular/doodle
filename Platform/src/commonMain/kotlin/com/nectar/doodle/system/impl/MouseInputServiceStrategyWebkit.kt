@@ -2,6 +2,8 @@ package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.MouseEvent
+import com.nectar.doodle.dom.WheelEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.system.Cursor
@@ -24,10 +26,8 @@ import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
-import org.w3c.dom.events.MouseEvent
-import org.w3c.dom.events.WheelEvent
 
-open internal class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
+internal open class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {

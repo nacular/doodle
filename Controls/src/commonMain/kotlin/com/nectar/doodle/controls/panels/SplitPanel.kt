@@ -42,16 +42,16 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         }
 
     var firstItem: View? = null; set(new) {
-            if (new == field) { return }
+        if (new == field) { return }
 
-            field?.let { children -= it }
+        field?.let { children -= it }
 
-            field  = new
+        field  = new
 
-            field?.let { children += it }
+        field?.let { children += it }
 
-            fireChanged()
-        }
+        fireChanged()
+    }
 
     var lastItem: View? = null; set(new) {
         if (new == field) { return }
@@ -88,6 +88,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
+
     override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
 
     private fun fireChanged() {

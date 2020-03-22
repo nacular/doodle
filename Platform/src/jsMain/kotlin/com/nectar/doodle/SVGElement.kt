@@ -1,35 +1,19 @@
 package com.nectar.doodle
 
-import org.w3c.dom.svg.SVGBoundingBoxOptions
-import org.w3c.dom.svg.SVGCircleElement
-import org.w3c.dom.svg.SVGElement
-import org.w3c.dom.svg.SVGEllipseElement
-import org.w3c.dom.svg.SVGGeometryElement
-import org.w3c.dom.svg.SVGGradientElement
-import org.w3c.dom.svg.SVGGraphicsElement
-import org.w3c.dom.svg.SVGPathElement
-import org.w3c.dom.svg.SVGPatternElement
-import org.w3c.dom.svg.SVGPolygonElement
-import org.w3c.dom.svg.SVGRectElement
-import org.w3c.dom.svg.SVGTextContentElement
-import org.w3c.dom.svg.SVGTextElement
-import org.w3c.dom.svg.SVGTextPositioningElement
-
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual typealias SVGElement            = SVGElement
-actual typealias SVGPathElement        = SVGPathElement
-actual typealias SVGRectElement        = SVGRectElement
-actual typealias SVGTextElement        = SVGTextElement
-actual typealias SVGCircleElement      = SVGCircleElement
-actual typealias SVGEllipseElement     = SVGEllipseElement
-actual typealias SVGPolygonElement     = SVGPolygonElement
-actual typealias SVGPatternElement     = SVGPatternElement
-actual typealias SVGGradientElement    = SVGGradientElement
-actual typealias SVGGraphicsElement    = SVGGraphicsElement
-actual typealias SVGGeometryElement    = SVGGeometryElement
-actual typealias SVGBoundingBoxOptions = SVGBoundingBoxOptions
-
-actual typealias SVGTextContentElement     = SVGTextContentElement
-actual typealias SVGTextPositioningElement = SVGTextPositioningElement
+actual typealias SVGElement                = org.w3c.dom.svg.SVGElement
+actual typealias SVGPathElement            = org.w3c.dom.svg.SVGPathElement
+actual typealias SVGRectElement            = org.w3c.dom.svg.SVGRectElement
+actual typealias SVGTextElement            = org.w3c.dom.svg.SVGTextElement
+actual typealias SVGCircleElement          = org.w3c.dom.svg.SVGCircleElement
+actual typealias SVGEllipseElement         = org.w3c.dom.svg.SVGEllipseElement
+actual typealias SVGPolygonElement         = org.w3c.dom.svg.SVGPolygonElement
+actual typealias SVGPatternElement         = org.w3c.dom.svg.SVGPatternElement
+actual typealias SVGGradientElement        = org.w3c.dom.svg.SVGGradientElement
+actual typealias SVGGraphicsElement        = org.w3c.dom.svg.SVGGraphicsElement
+actual typealias SVGGeometryElement        = org.w3c.dom.svg.SVGGeometryElement
+actual typealias SVGBoundingBoxOptions     = org.w3c.dom.svg.SVGBoundingBoxOptions
+actual typealias SVGTextContentElement     = org.w3c.dom.svg.SVGTextContentElement
+actual typealias SVGTextPositioningElement = org.w3c.dom.svg.SVGTextPositioningElement

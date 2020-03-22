@@ -1,18 +1,21 @@
 package com.nectar.doodle.core.impl
 
-import com.nectar.doodle.Event
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableWrapper
 import com.nectar.doodle.core.View
+import com.nectar.doodle.core.height
+import com.nectar.doodle.core.width
+import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.every
@@ -36,11 +39,11 @@ class DisplayImplTests {
         expect(true, "DisplayImpl::children.isEmpty()") { display().children.isEmpty() }
 
         mapOf(
-            DisplayImpl::size               to Size.Empty,
+            DisplayImpl::size               to Empty,
             DisplayImpl::width              to 0.0,
             DisplayImpl::height             to 0.0,
             DisplayImpl::cursor             to null,
-            DisplayImpl::insets             to Insets.None,
+            DisplayImpl::insets             to None,
             DisplayImpl::layout             to null
         ).forEach { validateDefault(it.key, it.value) }
     }
@@ -86,7 +89,7 @@ class DisplayImplTests {
 
         slot.captured(mockk())
 
-        verify { sizeObserver(display, Size.Empty, newSize) }
+        verify { sizeObserver(display, Empty, newSize) }
 
         expect(newSize) { display.size }
     }

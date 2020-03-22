@@ -52,3 +52,6 @@ interface Display: Iterable<View> {
 
     fun shutdown()
 }
+
+inline val Display.width  get() = size.width
+inline val Display.height get() = size.height

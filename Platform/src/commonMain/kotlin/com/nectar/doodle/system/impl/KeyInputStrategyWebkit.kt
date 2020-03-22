@@ -1,7 +1,9 @@
 package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.KeyboardEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_ALT
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
@@ -25,13 +27,11 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifTrue
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.KeyboardEvent
 
 /**
  * Created by Nicholas Eddy on 3/10/18.
  */
-class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServiceStrategy {
+class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServiceStrategy {
 
     private var lastKeyDown  = null as KeyboardEvent?
     private var eventHandler = null as EventHandler?
@@ -142,9 +142,9 @@ class KeyInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): KeyIn
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup    = { this@KeyInputServiceStrategyWebkit.keyUp   (it) }
-        onkeydown  = { this@KeyInputServiceStrategyWebkit.keyDown (it) }
-        onkeypress = { this@KeyInputServiceStrategyWebkit.keyPress(it) }
+        onkeyup    = { this@KeyInputStrategyWebkit.keyUp   (it) }
+        onkeydown  = { this@KeyInputStrategyWebkit.keyDown (it) }
+        onkeypress = { this@KeyInputStrategyWebkit.keyPress(it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

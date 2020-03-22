@@ -5,7 +5,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.utils.Anchor
+import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.HorizontalAlignment.Center
@@ -23,7 +23,6 @@ abstract class Button protected constructor(
         var icon: Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): View() {
 
-
     private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
 
     override fun addedToDisplay() {
@@ -38,9 +37,13 @@ abstract class Button protected constructor(
         model.fired -= modelFired
     }
 
-    val textChanged: PropertyObservers<View, String> by lazy { PropertyObserversImpl<View, String>(this) }
+    val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl<Button, String>(this) }
 
-    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<View, String>)
+    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Button, String>)
+
+    private val fired_ by lazy { ChangeObserversImpl(this) }
+
+    val fired: ChangeObservers<Button> = fired_
 
     var behavior: Behavior<Button>? = null
         set(new) {
@@ -55,30 +58,20 @@ abstract class Button protected constructor(
             }
         }
 
-    var iconTextSpacing = 4.0
-        set(new) { field = new; styleChanged() }
+    var iconTextSpacing = 4.0; set(new) { field = new; styleChanged() }
 
-    var verticalAlignment = Middle
-        set(new) { field = new; styleChanged() }
+    var verticalAlignment = Middle; set(new) { field = new; styleChanged() }
 
-    var horizontalAlignment = Center
-        set(new) { field = new; styleChanged() }
+    var horizontalAlignment = Center; set(new) { field = new; styleChanged() }
 
-    var iconAnchor = Anchor.Left
-        set(new) { field = new; styleChanged() }
+    var iconAnchor = Left; set(new) { field = new; styleChanged() }
 
-    var pressedIcon: Icon<Button>? = null
-        get() = field ?: icon
-    var disabledIcon: Icon<Button>? = null
-        get() = field ?: icon
-    var selectedIcon: Icon<Button>? = null
-        get() = field ?: icon
-    var mouseOverIcon: Icon<Button>? = null
-        get() = field ?: icon
-    var disabledSelectedIcon: Icon<Button>? = null
-        get() = field ?: disabledIcon
-    var mouseOverSelectedIcon: Icon<Button>? = null
-        get() = field ?: selectedIcon
+    var pressedIcon: Icon<Button>? = null; get() = field ?: icon
+    var disabledIcon: Icon<Button>? = null; get() = field ?: icon
+    var selectedIcon: Icon<Button>? = null; get() = field ?: icon
+    var mouseOverIcon: Icon<Button>? = null; get() = field ?: icon
+    var disabledSelectedIcon: Icon<Button>? = null; get() = field ?: disabledIcon
+    var mouseOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon
 
     var selected: Boolean
         get(   ) = model.selected
@@ -88,14 +81,12 @@ abstract class Button protected constructor(
 
     open var model: ButtonModel = model
         set(new) {
-            field.apply {
-                fired -= modelFired
-            }
+            field.fired -= modelFired
 
             field = new
 
-            field.apply {
-                fired += modelFired
+            if (displayed) {
+                field.fired += modelFired
             }
         }
 
@@ -104,10 +95,6 @@ abstract class Button protected constructor(
     }
 
     override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
-
-    private val fired_ by lazy { ChangeObserversImpl(this) }
-
-    val fired: ChangeObservers<Button> = fired_
 
     abstract fun click()
 }

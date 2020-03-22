@@ -10,13 +10,68 @@ import kotlin.test.expect
 class TreeSetJsTests {
     @Test @JsName("isSorted")
     fun `is sorted`() {
-        val set      = TreeSetJs(listOf(2, 1, 5, 8, 101, -5))
-        val expected = listOf(-5, 1, 2, 5, 8, 101)
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 0, 8, 101, -5)
+        ).forEach {
+            expect(true) { isSorted(TreeSetJs(it)) }
+        }
+    }
 
-        set.forEachIndexed { index, i ->
-            expect(true) { i == expected[index] }
+    @Test @JsName("sizeWorks")
+    fun `size works`() {
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 8, 101, -5)
+        ).forEach {
+            val set = TreeSetJs(it)
+
+            expect(it.size) { set.size }
+
+            expect(it.isNotEmpty()) { set.isNotEmpty() }
+        }
+    }
+
+    @Test @JsName("containsWorks")
+    fun `contains works`() {
+        listOf(
+                listOf(),
+                listOf(1),
+                listOf(2, 1, 5, 8, 101, -5),
+                listOf(2, 0, 8, 101, -5)
+        ).forEach {
+            val set = TreeSetJs(it)
+
+            it.forEach {
+                expect(true) { it in set }
+            }
+
+            expect(it.isNotEmpty()) { set.containsAll(it) }
+        }
+    }
+
+    @Test @JsName("defaultsToEmpty")
+    fun `defaults to empty`() {
+        expect(true) { TreeSetJs<Int>().isEmpty() }
+    }
+
+    private fun <T: Comparable<T>> isSorted(set: Set<T>): Boolean {
+        set.iterator().let { iterator ->
+            while (iterator.hasNext()) {
+                val current = iterator.next()
+
+                if (iterator.hasNext()) {
+                    if (current > iterator.next()) {
+                        return false
+                    }
+                }
+            }
         }
 
-        expect(6) { set.size }
+        return true
     }
 }

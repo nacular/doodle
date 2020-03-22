@@ -14,6 +14,7 @@ import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState
+import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.event.MouseEvent
 import com.nectar.doodle.event.MouseListener
 import com.nectar.doodle.event.MouseMotionListener
@@ -547,9 +548,9 @@ abstract class View protected constructor() {
      */
     protected open fun handleKeyEvent(event: KeyEvent) = keyChanged.forEach {
         when(event.type) {
-            KeyState.Type.Up    -> it.keyReleased(event)
-            KeyState.Type.Down  -> it.keyPressed (event)
-            KeyState.Type.Press -> it.keyTyped   (event)
+            Type.Up    -> it.keyReleased(event)
+            Type.Down  -> it.keyPressed (event)
+            Type.Press -> it.keyTyped   (event)
         }
     }
 

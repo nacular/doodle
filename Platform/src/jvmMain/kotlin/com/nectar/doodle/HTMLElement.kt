@@ -1,5 +1,11 @@
 package com.nectar.doodle
 
+import com.nectar.doodle.dom.DataTransfer
+import com.nectar.doodle.dom.Event
+import com.nectar.doodle.dom.KeyboardEvent
+import com.nectar.doodle.dom.MouseEvent
+import com.nectar.doodle.dom.WheelEvent
+
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
@@ -22,6 +28,7 @@ actual abstract class CSSStyleDeclaration {
     actual var bottom          = ""
     actual var filter          = ""
     actual var border          = ""
+    actual var cursor          = ""
     actual var padding         = ""
     actual var zIndex          = ""
     actual var display         = ""
@@ -83,15 +90,28 @@ actual abstract class Element: Node() {
     actual fun removeAttribute(                    qualifiedName: String               ) {}
 }
 
-actual class Event
-actual class DragEvent
+actual class DragEvent {
+    actual val dataTransfer = null as DataTransfer?
+}
 
 actual abstract class HTMLElement: Element() {
+    actual var title        = ""
     actual var draggable    = false
     actual val offsetTop    = 0
     actual val offsetLeft   = 0
     actual val offsetWidth  = 0
     actual val offsetHeight = 0
+
+    actual var onkeyup      = null as ((KeyboardEvent) -> Boolean)?
+    actual var onkeydown    = null as ((KeyboardEvent) -> Boolean)?
+    actual var onkeypress   = null as ((KeyboardEvent) -> Boolean)?
+    actual var onwheel      = null as ((WheelEvent) -> Any)?
+    actual var onmouseup    = null as ((MouseEvent) -> Any)?
+    actual var onmouseout   = null as ((MouseEvent) -> Any)?
+    actual var ondblclick   = null as ((MouseEvent) -> Any)?
+    actual var onmousedown  = null as ((MouseEvent) -> Any)?
+    actual var onmousemove  = null as ((MouseEvent) -> Any)?
+    actual var onmouseover  = null as ((MouseEvent) -> Any)?
 
     actual abstract val style: CSSStyleDeclaration
 

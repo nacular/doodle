@@ -25,7 +25,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.image.impl.ImageImpl
 import com.nectar.doodle.text.StyledText
-import com.nectar.measured.units.degrees
+import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.times
 import io.mockk.every
 import io.mockk.mockk

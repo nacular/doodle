@@ -1,5 +1,11 @@
 package com.nectar.doodle
 
+import com.nectar.doodle.dom.DataTransfer
+import com.nectar.doodle.dom.Event
+import com.nectar.doodle.dom.KeyboardEvent
+import com.nectar.doodle.dom.MouseEvent
+import com.nectar.doodle.dom.WheelEvent
+
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
@@ -16,6 +22,7 @@ expect abstract class CSSStyleDeclaration {
     var right          : String
     var width          : String
     var color          : String
+    var cursor         : String
     var height         : String
     var margin         : String
     var bottom         : String
@@ -80,17 +87,30 @@ expect abstract class Element: Node {
     fun removeAttribute(                    qualifiedName: String               )
 }
 
-expect class Event
-expect class DragEvent
+expect class DragEvent {
+    val dataTransfer: DataTransfer?
+}
 
 expect abstract class HTMLElement: Element {
+    var title       : String
     var draggable   : Boolean
     val offsetTop   : Int
     val offsetLeft  : Int
     val offsetWidth : Int
     val offsetHeight: Int
-
     abstract val style: CSSStyleDeclaration
+
+    var onkeyup     : ((KeyboardEvent) -> Boolean)?
+    var onkeydown   : ((KeyboardEvent) -> Boolean)?
+    var onkeypress  : ((KeyboardEvent) -> Boolean)?
+
+    var onwheel     : ((WheelEvent) -> Any)?
+    var onmouseup   : ((MouseEvent) -> Any)?
+    var onmouseout  : ((MouseEvent) -> Any)?
+    var ondblclick  : ((MouseEvent) -> Any)?
+    var onmousedown : ((MouseEvent) -> Any)?
+    var onmousemove : ((MouseEvent) -> Any)?
+    var onmouseover : ((MouseEvent) -> Any)?
 
     var onresize   : ((Event) -> Unit)?
     var ondragstart: ((DragEvent) -> Boolean)?
