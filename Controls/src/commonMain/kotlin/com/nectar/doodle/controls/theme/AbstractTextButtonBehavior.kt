@@ -2,6 +2,8 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.height
+import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Point

@@ -7,8 +7,7 @@ import com.nectar.doodle.image.ImageLoader
 import com.nectar.doodle.scheduler.Scheduler
 
 
-class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler): ImageLoader {
-    private val images  = mutableMapOf<String, Image>()
+class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
     private val loading = mutableMapOf<String, HTMLImageElement>()
 
     override suspend fun load(source: String): Image? {
@@ -22,6 +21,8 @@ class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val schedule
             scheduler.delayUntil { img.complete }
 
             images[source] = ImageImpl(img)
+
+            loading -= source
         }
 
         scheduler.delayUntil { source in images }

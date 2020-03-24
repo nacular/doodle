@@ -18,9 +18,6 @@ interface Icon<in T: View> {
     /** The icon's size */
     val size: Size
 
-    val width  get() = size.width
-    val height get() = size.height
-
     /**
      * Renders the icon onto the surface of the given [View],
      * with the icon's top-left at the point indicated.  The top-left
@@ -33,3 +30,6 @@ interface Icon<in T: View> {
 
     fun render(view: T, canvas: Canvas, at: Point)
 }
+
+inline val Icon<*>.width  get() = size.width
+inline val Icon<*>.height get() = size.height

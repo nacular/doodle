@@ -66,17 +66,19 @@ abstract class Button protected constructor(
 
     var iconAnchor = Left; set(new) { field = new; styleChanged() }
 
-    var pressedIcon: Icon<Button>? = null; get() = field ?: icon
-    var disabledIcon: Icon<Button>? = null; get() = field ?: icon
-    var selectedIcon: Icon<Button>? = null; get() = field ?: icon
-    var mouseOverIcon: Icon<Button>? = null; get() = field ?: icon
-    var disabledSelectedIcon: Icon<Button>? = null; get() = field ?: disabledIcon
+    var pressedIcon          : Icon<Button>? = null; get() = field ?: icon
+    var disabledIcon         : Icon<Button>? = null; get() = field ?: icon
+    var selectedIcon         : Icon<Button>? = null; get() = field ?: icon
+    var mouseOverIcon        : Icon<Button>? = null; get() = field ?: icon
+    var disabledSelectedIcon : Icon<Button>? = null; get() = field ?: disabledIcon
     var mouseOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon
 
     var selected: Boolean
         get(   ) = model.selected
         set(new) {
-            model.selected = new
+            if (enabled) {
+                model.selected = new
+            }
         }
 
     open var model: ButtonModel = model

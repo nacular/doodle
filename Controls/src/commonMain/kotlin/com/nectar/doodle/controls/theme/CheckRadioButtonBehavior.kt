@@ -4,6 +4,8 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
+import com.nectar.doodle.core.height
+import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black

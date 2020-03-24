@@ -3,6 +3,7 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
+import com.nectar.doodle.core.width
 import com.nectar.doodle.dom.BorderStyle.None
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
@@ -27,6 +28,7 @@ import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.div
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.Anchor
 import com.nectar.doodle.utils.HorizontalAlignment.Center

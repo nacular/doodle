@@ -9,6 +9,7 @@ import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Polygon
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.div
 import com.nectar.doodle.image.Image
 import com.nectar.doodle.text.StyledText
 import com.nectar.measured.units.Angle

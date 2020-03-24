@@ -13,6 +13,7 @@ import com.nectar.doodle.drawing.GraphicsSurface
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.times
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.theme.InternalThemeManager

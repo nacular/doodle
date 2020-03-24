@@ -3,6 +3,7 @@ package com.nectar.doodle.drawing
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.geometry.times
 
 
 /**

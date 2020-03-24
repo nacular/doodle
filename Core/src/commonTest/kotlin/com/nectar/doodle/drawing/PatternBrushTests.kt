@@ -8,6 +8,7 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.geometry.times
 import io.mockk.mockk
 import io.mockk.verify
 import kotlin.test.Test

@@ -23,31 +23,13 @@ class Size(val width: Double = 0.0, val height: Double = width) {
     }
 
     /** The area represented: [width] * [height] */
-    val area  = width * height
+    val area = width * height
 
     /** `true` IFF [area] == `0` */
     val empty = area == 0.0
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { arrayOf(width, height).contentHashCode() }
-
-    /**
-     * Returns a Size with [width] * value and [height] * value
-     *
-     * @param value to multiply by
-     */
-    operator fun times(value: Int   ) = Size(width * value, height * value)
-    operator fun times(value: Float ) = Size(width * value, height * value)
-    operator fun times(value: Double) = Size(width * value, height * value)
-
-    /**
-     * Returns a Size with [width] / value and [height] / value
-     *
-     * @param value to divide by
-     */
-    operator fun div(value: Int   ) = Size(width / value, height / value)
-    operator fun div(value: Float ) = Size(width / value, height / value)
-    operator fun div(value: Double) = Size(width / value, height / value)
 
     override fun toString() = "[$width,$height]"
 
@@ -65,3 +47,21 @@ class Size(val width: Double = 0.0, val height: Double = width) {
         val Empty = Size(0.0)
     }
 }
+
+/**
+ * Returns a [Size] with [width][Size.width] * value and [height][Size.height] * value
+ *
+ * @param value to multiply by
+ */
+operator fun Size.times(value: Int   ) = Size(width * value, height * value)
+operator fun Size.times(value: Float ) = Size(width * value, height * value)
+operator fun Size.times(value: Double) = Size(width * value, height * value)
+
+/**
+ * Returns a [Size] with [width][Size.width] / value and [height][Size.height] / value
+ *
+ * @param value to divide by
+ */
+operator fun Size.div(value: Int   ) = Size(width / value, height / value)
+operator fun Size.div(value: Double) = Size(width / value, height / value)
+operator fun Size.div(value: Float ) = Size(width / value, height / value)

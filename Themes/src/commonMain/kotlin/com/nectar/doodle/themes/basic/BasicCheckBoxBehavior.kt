@@ -4,6 +4,7 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.theme.CheckRadioButtonBehavior
 import com.nectar.doodle.core.Icon
+import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.white

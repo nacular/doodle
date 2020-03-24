@@ -2,6 +2,7 @@ apply from  : '../jacoco.gradle'
 apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
+apply plugin: 'java-test-fixtures'
 
 kotlin {
     jvm ()

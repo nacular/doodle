@@ -20,6 +20,7 @@ import com.nectar.doodle.event.MouseMotionListener
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.div
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.layout.max
 import com.nectar.doodle.layout.min

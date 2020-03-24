@@ -1,0 +1,58 @@
+package com.nectar.doodle.controls.icons
+
+import com.nectar.doodle.JsName
+import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.Canvas
+import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Size.Companion.Empty
+import com.nectar.doodle.image.Image
+import io.mockk.mockk
+import io.mockk.verify
+import kotlin.test.Test
+import kotlin.test.expect
+
+/**
+ * Created by Nicholas Eddy on 3/23/20.
+ */
+class ImageIconTests {
+    @Test @JsName("rendersCorrectly")
+    fun `renders correctly`() {
+        val image = object: Image {
+            override val size   = Size(34)
+            override val source = "foo"
+        }
+
+        val canvas = mockk<Canvas>(relaxed = true)
+
+        val icon = ImageIcon<View>(image)
+
+        listOf(
+                mockk<View>(relaxed = true) to Point(6, 19),
+                mockk<View>(relaxed = true) to Origin
+        ).forEach {
+
+            icon.render(it.first, canvas, it.second)
+
+            verify(exactly = 1) { canvas.image(image = image, destination = Rectangle(position = it.second, size = image.size)) }
+        }
+    }
+
+    @Test @JsName("sizeMatchesImage")
+    fun `size matches image`() {
+        listOf(
+                Size(34),
+                Size(1, 3),
+                Empty
+        ).forEach {
+            ImageIcon<View>(object: Image {
+                override val size   = it
+                override val source = "foo"
+            }).apply {
+                expect(it) { size }
+            }
+        }
+    }
+}

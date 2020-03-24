@@ -10,9 +10,12 @@ import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.HorizontalAlignment.Center
+import com.nectar.doodle.utils.HorizontalAlignment.Right
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.PropertyObservers
+import com.nectar.doodle.utils.VerticalAlignment.Bottom
 import com.nectar.doodle.utils.VerticalAlignment.Middle
+import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -53,6 +56,23 @@ class ButtonTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
+    @Test @JsName("settersWork")
+    fun `setters work`() {
+        validateSetter(Button::text,                  "foo"                )
+        validateSetter(Button::icon,                  mockk(relaxed = true))
+        validateSetter(Button::behavior,              null                 )
+        validateSetter(Button::iconAnchor,            Left                 )
+        validateSetter(Button::pressedIcon,           mockk(relaxed = true))
+        validateSetter(Button::disabledIcon,          mockk(relaxed = true))
+        validateSetter(Button::selectedIcon,          mockk(relaxed = true))
+        validateSetter(Button::mouseOverIcon,         mockk(relaxed = true))
+        validateSetter(Button::iconTextSpacing,       5.6                  )
+        validateSetter(Button::verticalAlignment,     Bottom               )
+        validateSetter(Button::horizontalAlignment,   Right                )
+        validateSetter(Button::disabledSelectedIcon,  mockk(relaxed = true))
+        validateSetter(Button::mouseOverSelectedIcon, mockk(relaxed = true))
+    }
+
     @Test @JsName("iconsFallback")
     fun `icons fallback`() {
         TestButton(icon = mockk(relaxed = true), model = mockk(relaxed = true)).apply {
@@ -69,16 +89,28 @@ class ButtonTests {
     fun `selection notifies model`() {
         val model = mockk<ButtonModel>(relaxed = true)
 
-        val button = TestButton(model = model)
+        TestButton(model = model).apply {
+            selected = true
 
-        button.selected = true
+            verify(exactly = 1) { model.selected = true }
+        }
+    }
 
-        verify(exactly = 1) { model.selected = true }
+    @Test @JsName("cannotSelectDisabled")
+    fun `cannot select disabled`() {
+        val model = mockk<ButtonModel>(relaxed = true)
+
+        TestButton(model = model).apply {
+            enabled  = false
+            selected = true
+
+            verify { model wasNot Called }
+        }
     }
 
     @Test @JsName("installsUninstallsBehaviors")
     fun `installs and uninstalls behaviors`() {
-        val button    = TestButton(model = mockk())
+        val button    = TestButton(model = mockk(relaxed = true))
         val behavior1 = mockk<Behavior<Button>>(relaxed = true)
         val behavior2 = mockk<Behavior<Button>>(relaxed = true)
 
@@ -93,9 +125,21 @@ class ButtonTests {
         verify(exactly = 1) { behavior2.install  (button) }
     }
 
+    @Test @JsName("modelChangeWorks")
+    fun `model change works`() {
+        val button = TestButton(model = mockk(relaxed = true))
+        val model1 = mockk<ButtonModel>(relaxed = true)
+        val model2 = mockk<ButtonModel>(relaxed = true)
+
+        button.model = model1
+        button.model = model2
+
+        verify(exactly = 1) { model1.fired -= any() }
+    }
+
     @Test @JsName("notifiesOfTextChange")
     fun `notifies of text change`() {
-        val button    = TestButton(model = mockk())
+        val button    = TestButton(model = mockk(relaxed = true))
         val listener = mockk<PropertyObserver<Button, String>>(relaxed = true)
 
         button.textChanged += listener
@@ -193,6 +237,14 @@ class ButtonTests {
         property.set(view, !property.get(view))
 
         verify(exactly = 1) { observer(view, old, property.get(view)) }
+    }
+
+    private fun <T> validateSetter(p: KMutableProperty1<Button, T>, value: T) {
+        TestButton(model = mockk(relaxed = true)).also {
+            p.set(it, value)
+
+            expect(value, "$p set to $value") { p.get(it) }
+        }
     }
 
     private fun <T: Any?> validateStyleChanged(property: KMutableProperty1<Button, T>, value: T) {

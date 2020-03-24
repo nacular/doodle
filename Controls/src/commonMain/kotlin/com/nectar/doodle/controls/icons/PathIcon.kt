@@ -33,11 +33,12 @@ open class PathIcon<in T: View>(
     override fun render(view: T, canvas: Canvas, at: Point) {
         val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
 
-        if (brush != null) {
-            canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
-                translate(at) {
-                    when (pen) {
-                        null -> path(path,      brush, fillRule)
+        canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
+            translate(at) {
+                when (pen) {
+                    null -> path(path,      brush!!, fillRule)
+                    else -> when (brush) {
+                        null -> path(path, pen                 )
                         else -> path(path, pen, brush, fillRule)
                     }
                 }
