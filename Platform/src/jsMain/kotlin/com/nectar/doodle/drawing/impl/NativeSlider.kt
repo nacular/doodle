@@ -130,7 +130,7 @@ class NativeSlider internal constructor(
     }
 
     fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
 
             canvas.addData(listOf(sliderElement))
 

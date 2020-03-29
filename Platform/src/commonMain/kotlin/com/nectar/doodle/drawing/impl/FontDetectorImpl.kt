@@ -27,7 +27,7 @@ class FontDetectorImpl(
     private enum class State { Pending, Found }
 
     private val fonts     = mutableMapOf<Int, State>()
-    private val suspended = mutableMapOf<Int, MutableList<Continuation<Font>>>()
+    private val suspended = mutableMapOf<Int, MutableList<Continuation<FontImpl>>>()
 
     private fun getHash(family: String, weight: Weight, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
 

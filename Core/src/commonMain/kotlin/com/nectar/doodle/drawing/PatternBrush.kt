@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing
 
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -7,14 +8,14 @@ import com.nectar.doodle.geometry.times
 
 
 /**
- * A [Brush] that repeats the contents drawn to a [Canvas].
+ * A [Brush] that repeats the contents of its [Canvas] horizontally and vertically within a shape.
  *
  * @author Nicholas Eddy
  *
  * @property size The size of the Canvas that will be repeated
  * @property fill Specifies the render operations for the Canvas
  */
-class PatternBrush(val size: Size, val fill: Canvas.() -> Unit): Brush() {
+class PatternBrush(val size: Size, val transform: AffineTransform = Identity, val fill: Canvas.() -> Unit): Brush() {
     override val visible = !size.empty
 }
 

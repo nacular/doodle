@@ -187,7 +187,7 @@ class NativeTextField(
     }
 
     fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             if (textField.borderVisible) {
                 inputElement.style.setWidth (textField.width  - borderSize.width )
                 inputElement.style.setHeight(textField.height - borderSize.height)

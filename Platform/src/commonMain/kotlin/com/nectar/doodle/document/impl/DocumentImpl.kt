@@ -19,7 +19,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.TextFactory
-import com.nectar.doodle.drawing.impl.CanvasImpl
+import com.nectar.doodle.drawing.impl.NativeCanvas
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.scheduler.Scheduler
@@ -63,7 +63,7 @@ internal class DocumentImpl(
     }
 
     override fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
 
             height = root.offsetHeight.toDouble()

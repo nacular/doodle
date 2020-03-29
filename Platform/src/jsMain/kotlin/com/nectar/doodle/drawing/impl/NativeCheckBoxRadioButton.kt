@@ -174,7 +174,7 @@ internal class NativeCheckBoxRadioButton(
     }
 
     fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             canvas.addData(listOf(rootElement), Point.Origin)
 
             positionElements()

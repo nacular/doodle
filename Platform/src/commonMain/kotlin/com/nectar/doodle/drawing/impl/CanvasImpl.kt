@@ -67,7 +67,7 @@ internal open class CanvasImpl(
         private val renderParent   : HTMLElement,
         private val htmlFactory    : HtmlFactory,
         private val textFactory    : TextFactory,
-                    rendererFactory: VectorRendererFactory): Canvas {
+                    rendererFactory: VectorRendererFactory): NativeCanvas {
 
     private inner class Context: CanvasContext {
         override var size
@@ -262,7 +262,7 @@ internal open class CanvasImpl(
         shadows -= shadow
     }
 
-    internal fun addData(elements: List<HTMLElement>, at: Point = Origin) = elements.forEach { element ->
+    override fun addData(elements: List<HTMLElement>, at: Point) = elements.forEach { element ->
 
         if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
         if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)

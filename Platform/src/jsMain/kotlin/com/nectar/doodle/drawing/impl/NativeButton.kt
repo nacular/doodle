@@ -301,7 +301,7 @@ class NativeButton internal constructor(
         }
 
     fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             if (lastIcon !== icon || text != button.text) {
                 setIconText()
             }

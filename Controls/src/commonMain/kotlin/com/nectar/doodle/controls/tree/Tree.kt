@@ -412,7 +412,7 @@ open class Tree<T, out M: TreeModel<T>>(
 
     override fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
 
-    override tailrec fun visible(path: Path<Int>): Boolean = when (path.depth) {
+    override fun visible(path: Path<Int>): Boolean = when (path.depth) {
         0    -> rootVisible
         1    -> true
         else -> {

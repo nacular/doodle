@@ -5,6 +5,7 @@ import com.nectar.doodle.SVGElement
 import com.nectar.doodle.SVGEllipseElement
 import com.nectar.doodle.SVGGeometryElement
 import com.nectar.doodle.SVGGradientElement
+import com.nectar.doodle.SVGPatternElement
 import com.nectar.doodle.SVGRectElement
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Color
@@ -134,9 +135,16 @@ fun SVGElement.setStroke(color: Color?) = convert(color) {
     color?.let { setAttribute("stroke-opacity", "${it.opacity}") }
 }
 
+fun SVGPatternElement.setPatternTransform(transform: AffineTransform?) = when(transform) {
+    null -> removeAttribute("patternTransform")
+    else -> setAttribute("patternTransform", transform.matrixString)
+}
+
+private val AffineTransform.matrixString get() = run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+
 fun SVGElement.setTransform(transform: AffineTransform?) = when(transform) {
     null -> removeTransform()
-    else -> setTransform(transform.run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" })
+    else -> setTransform(transform.matrixString)
 }
 
 inline fun SVGElement.setTransform(transform: String) = setAttribute("transform", transform)

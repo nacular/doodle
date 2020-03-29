@@ -96,7 +96,7 @@ class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy): KeyInp
 
     private fun startUp() {
         if (!started) {
-            strategy.startUp(object : KeyInputServiceStrategy.EventHandler {
+            strategy.startUp(object: KeyInputServiceStrategy.EventHandler {
                 override fun invoke(event: KeyState): Boolean {
                     return this@KeyInputServiceImpl.notifyKeyEvent(event)
                 }

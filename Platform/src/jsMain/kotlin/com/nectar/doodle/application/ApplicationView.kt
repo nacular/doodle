@@ -7,6 +7,7 @@ import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.CanvasImpl
+import com.nectar.doodle.drawing.impl.NativeCanvas
 import org.kodein.di.Kodein.Module
 import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
@@ -39,7 +40,7 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
     }
 
     override fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
         }
     }

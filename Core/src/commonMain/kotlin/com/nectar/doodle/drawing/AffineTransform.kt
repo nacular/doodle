@@ -7,8 +7,8 @@ import com.nectar.doodle.utils.AffineMatrix3D
 import com.nectar.doodle.utils.matrixOf
 import com.nectar.doodle.utils.times
 import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Angle.Companion.radians
+import com.nectar.measured.units.Measure
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -83,7 +83,6 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
 
     fun flipVertically  () = scale (1.0, -1.0)
     fun flipHorizontally() = scale(-1.0,  1.0)
-
 
     fun flipVertically  (at: Double) = this.translate(y = at).flipVertically  ().translate(y = -at)
     fun flipHorizontally(at: Double) = this.translate(x = at).flipHorizontally().translate(x = -at)

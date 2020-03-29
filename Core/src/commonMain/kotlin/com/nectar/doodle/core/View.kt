@@ -11,6 +11,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.RenderManager
+import com.nectar.doodle.drawing.Renderable
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState
@@ -61,7 +62,7 @@ internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added
  * @author Nicholas Eddy
  * @constructor
  */
-abstract class View protected constructor() {
+abstract class View protected constructor(): Renderable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
@@ -92,7 +93,7 @@ abstract class View protected constructor() {
         set(height) = setBounds(x, y, width, height)
 
     /** Width-height of [bounds]*/
-    var size: Size
+    override var size: Size
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
@@ -440,7 +441,7 @@ abstract class View protected constructor() {
      *
      * @param canvas The canvas upon which drawing will be done
      */
-    open fun render(canvas: Canvas) {}
+    override fun render(canvas: Canvas) {}
 
     /**
      * Request the rendering subsystem to trigger a [render] call if needed.

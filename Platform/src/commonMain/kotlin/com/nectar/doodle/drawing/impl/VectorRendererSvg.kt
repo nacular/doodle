@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
+import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.Node
 import com.nectar.doodle.SVGCircleElement
 import com.nectar.doodle.SVGElement
@@ -17,6 +18,7 @@ import com.nectar.doodle.dom.SvgFactory
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.addIfNotPresent
 import com.nectar.doodle.dom.defaultFontSize
+import com.nectar.doodle.dom.left
 import com.nectar.doodle.dom.parent
 import com.nectar.doodle.dom.remove
 import com.nectar.doodle.dom.removeTransform
@@ -33,8 +35,10 @@ import com.nectar.doodle.dom.setFloodColor
 import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setGradientUnits
 import com.nectar.doodle.dom.setId
+import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOpacity
 import com.nectar.doodle.dom.setPathData
+import com.nectar.doodle.dom.setPatternTransform
 import com.nectar.doodle.dom.setPoints
 import com.nectar.doodle.dom.setPosition
 import com.nectar.doodle.dom.setRX
@@ -45,13 +49,14 @@ import com.nectar.doodle.dom.setStopOffset
 import com.nectar.doodle.dom.setStroke
 import com.nectar.doodle.dom.setStrokeDash
 import com.nectar.doodle.dom.setStrokeWidth
+import com.nectar.doodle.dom.setTop
 import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setX1
 import com.nectar.doodle.dom.setX2
 import com.nectar.doodle.dom.setY1
 import com.nectar.doodle.dom.setY2
+import com.nectar.doodle.dom.top
 import com.nectar.doodle.drawing.AffineTransform
-import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
@@ -90,7 +95,8 @@ internal open class VectorRendererSvg constructor(
         private val context    : CanvasContext,
         private val svgFactory : SvgFactory,
         private val htmlFactory: HtmlFactory,
-        private val textMetrics: TextMetrics): VectorRenderer {
+        private val textMetrics: TextMetrics,
+                    rootSvgElement: SVGElement? = null): VectorRenderer {
 
     protected lateinit var svgElement    : SVGElement
     private lateinit var rootSvgElement: SVGElement
@@ -100,6 +106,14 @@ internal open class VectorRendererSvg constructor(
     private var renderPosition: Node? = null
 
     protected fun nextId() = "${id++}"
+
+    init {
+        rootSvgElement?.let {
+            svgElement          = it
+            this.rootSvgElement = svgElement
+            renderPosition      = svgElement.firstChild
+        }
+    }
 
     override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, null, null, point1, point2)
 
@@ -270,7 +284,7 @@ internal open class VectorRendererSvg constructor(
         return Point(endX, currentPoint.y)
     }
 
-    protected fun pushClip(rectangle: Rectangle, radius: Double = 2.0) {
+    protected fun pushClip(rectangle: Rectangle, radius: Double = 0.0) {
         val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
@@ -300,6 +314,20 @@ internal open class VectorRendererSvg constructor(
         svgElement.parentNode?.let {
             svgElement = it as SVGElement
         }
+    }
+
+    protected fun pushGroup() {
+        createOrUse<SVGElement>("g").apply {
+            renderPosition = this.firstChild
+        }.also {
+            completeOperation(it)
+            svgElement = it
+        }
+    }
+
+    protected fun popGroup() {
+        popClip()
+        //renderPosition = renderPosition?.parent?.nextSibling
     }
 
     override fun add(shadow: Shadow) {
@@ -577,8 +605,6 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun isCompatibleSvgElement(node: Node?) = node is SVGElement && svgTag == node.nodeName
-
     private fun textBackground(brush: ColorBrush) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
 
@@ -691,8 +717,8 @@ internal open class VectorRendererSvg constructor(
         // Put shadow over original object
         addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute("operator", "over"         )
-            setAttribute("in",       "shadow"       )
-            setAttribute("in2",      "SourceGraphic")
+            setAttribute(`in`,       "shadow"       )
+            setAttribute(in2,        "SourceGraphic")
         }, index)
 
         renderPosition = renderPosition?.nextSibling
@@ -749,44 +775,42 @@ internal open class VectorRendererSvg constructor(
                     if (id.isBlank()) { setId(nextId()) }
 
                     setAttribute("patternUnits", "userSpaceOnUse")
-                    setSize(brush.size       )
-                    clear  (                 )
 
-                    brush.fill(PatternCanvas(object: CanvasContext {
-                        override var size: Size
-                            get() = brush.size
-                            set(value) {}
-                        override val renderRegion = this@apply
-                        override var renderPosition: Node? = null
-                        override val shadows get() = context.shadows
-                    }, svgFactory, htmlFactory, textMetrics))
+                    if (!brush.transform.isIdentity) {
+                        setPatternTransform(brush.transform)
+                    }
+
+                    setSize(brush.size)
+                    clear  (          )
                 }
 
                 renderer.completeOperation(pattern)
+
+                brush.fill(PatternCanvas(object: CanvasContext {
+                    override var size get() = brush.size; set(value) {}
+                    override val renderRegion = pattern
+                    override var renderPosition: Node? = null
+                    override val shadows get() = context.shadows
+                }, svgFactory, htmlFactory, textMetrics, pattern))
 
                 element.setFillPattern(pattern)
             }
         }
     }
 
-    private class PatternCanvas(private val context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics), Canvas {
-        override var size: Size
-            get() = context.size
-            set(value) {}
+    private class PatternCanvas(private val context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics, patternElement: SVGElement): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, patternElement), NativeCanvas {
+        override var size get() = context.size; set(value) {}
 
         override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
             true -> block(this)
             else -> {
-                updateRootSvg()
+                pushGroup()
 
-                pushClip(Rectangle(size = context.size))
-
-                val point = -Point(size.width / 2, size.height / 2)
-                svgElement.setTransform(((Identity translate point) * transform) translate -point)
+                svgElement.setTransform(transform)
 
                 block(this)
 
-                popClip()
+                popGroup()
             }
         }
 
@@ -832,6 +856,23 @@ internal open class VectorRendererSvg constructor(
             add   (shadow)
             block (this  )
             remove(shadow)
+        }
+
+        override fun addData(elements: List<HTMLElement>, at: Point) {
+            // FIXME: foreignObject doesn't seem to work when nested in pattern element
+
+            createOrUse<SVGElement>("foreignObject").apply {
+                setSize(size)
+
+                elements.asReversed().forEach {
+                    if (at.y != 0.0 ) it.style.setTop (it.top  + at.y)
+                    if (at.x != 0.0 ) it.style.setLeft(it.left + at.x)
+
+                    addIfNotPresent(it.cloneNode(true), 0)
+                }
+
+                completeOperation(this)
+            }
         }
 
         private fun createClip(rectangle: Rectangle) = createOrUse<SVGElement>("clipPath").apply {

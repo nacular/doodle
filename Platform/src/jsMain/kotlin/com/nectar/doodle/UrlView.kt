@@ -5,7 +5,7 @@ import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.impl.CanvasImpl
+import com.nectar.doodle.drawing.impl.NativeCanvas
 import org.w3c.dom.HTMLIFrameElement
 
 /**
@@ -19,7 +19,7 @@ internal class UrlView(htmlFactory: HtmlFactory, url: String): View() {
     }
 
     override fun render(canvas: Canvas) {
-        if (canvas is CanvasImpl) {
+        if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
         }
     }

@@ -94,7 +94,7 @@ class MatrixTests {
 
             s(this[
               this[ 1,  0,   0],
-              this[ 1,  0.1, 0],
+              this[ 1.0,  0.1, 0.0], // FIXME: After https://youtrack.jetbrains.com/issue/KT-37715 fixed
               this[ 1,  0,   0]]) to false
         ).forEach {
             expect(it.second, "\n${it.first} \nis identity") { it.first.isIdentity }
