@@ -12,6 +12,7 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.utils.size
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 /**
@@ -140,7 +141,7 @@ class NativeSlider internal constructor(
         }
     }
 
-    override fun onFocusGained(): Boolean {
+    override fun onFocusGained(target: EventTarget?): Boolean {
         if (!slider.focusable) {
             return false
         }
@@ -150,7 +151,7 @@ class NativeSlider internal constructor(
         return true
     }
 
-    override fun onFocusLost(): Boolean {
+    override fun onFocusLost(target: EventTarget?): Boolean {
         if (slider === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }
@@ -158,7 +159,7 @@ class NativeSlider internal constructor(
         return true
     }
 
-    override fun onInput(): Boolean {
+    override fun onInput(target: EventTarget?): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
             slider.value = slider.model.limits.start + (it / 100 * slider.model.limits.size)
         }

@@ -16,6 +16,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.EventTarget
 
 /**
  * Created by Nicholas Eddy on 12/7/19.
@@ -305,7 +306,7 @@ class NativeHyperLink internal constructor(
 //        return true
 //    }
 
-    override fun onFocusGained(): Boolean {
+    override fun onFocusGained(target: EventTarget?): Boolean {
         if (!hyperLink.focusable) {
             return false
         }
@@ -315,7 +316,7 @@ class NativeHyperLink internal constructor(
         return true
     }
 
-    override fun onFocusLost(): Boolean {
+    override fun onFocusLost(target: EventTarget?): Boolean {
         if (hyperLink === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }

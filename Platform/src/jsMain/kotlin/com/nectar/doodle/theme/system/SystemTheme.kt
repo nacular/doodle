@@ -1,6 +1,5 @@
 package com.nectar.doodle.theme.system
 
-import com.nectar.doodle.application.Modules.Companion.themeModule
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
@@ -29,6 +28,7 @@ import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.themes.Modules.Companion.themeModule
 import com.nectar.doodle.theme.Theme
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind

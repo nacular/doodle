@@ -11,7 +11,7 @@ ext {
 
     measured      = '1.0'
 
-    kodein        = '6.5.1'
+    kodein        = '6.5.4'
 
     dep = [
             kotlin_stdlib_common          : "org.jetbrains.kotlin:kotlin-stdlib-common",
@@ -22,7 +22,7 @@ ext {
             kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common",
             kotlinx_coroutines_core_common: "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutines_core",
             mockk_common                  : "io.mockk:mockk-common:$mockk",
-            kodein_common                 : "org.kodein.di:kodein-di-erased-common:5.3.0",
+            kodein_common                 : "org.kodein.di:kodein-di-erased:$kodein",
 
             // JS
             kotlin_test_js                : "org.jetbrains.kotlin:kotlin-test-js",
@@ -38,8 +38,6 @@ ext {
 
             log4j                         : "org.slf4j:slf4j-api:1.7.25",
             logback                       : "ch.qos.logback:logback-classic:1.2.3",
-            measured_common               : "com.nectar.measured:measured-metadata:$measured", // FIXME: shouldn't need to explicitly say metadata here
-            measured_jvm                  : "com.nectar.measured:measured-jvm:$measured",
-            measured_js                   : "com.nectar.measured:measured-js:$measured"
+            measured                      : "com.nectar.measured:measured:$measured",
     ]
 }

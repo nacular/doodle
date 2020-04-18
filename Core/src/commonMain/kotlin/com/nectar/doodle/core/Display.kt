@@ -49,8 +49,6 @@ interface Display: Iterable<View> {
     fun doLayout()
 
     fun repaint()
-
-    fun shutdown()
 }
 
 inline val Display.width  get() = size.width

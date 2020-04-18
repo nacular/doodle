@@ -10,10 +10,9 @@ internal class RealGraphicsSurfaceFactory(
         private val htmlFactory  : HtmlFactory,
         private val canvasFactory: CanvasFactory): GraphicsSurfaceFactory<RealGraphicsSurface> {
 
-    fun surface(element: HTMLElement?) =
-            element?.let { RealGraphicsSurface(htmlFactory, canvasFactory, it) } ?: RealGraphicsSurface(htmlFactory, canvasFactory)
+    operator fun invoke(element: HTMLElement) = RealGraphicsSurface(htmlFactory, canvasFactory, element)
 
-    override operator fun invoke(): RealGraphicsSurface = RealGraphicsSurface(htmlFactory, canvasFactory)
+    override operator fun invoke(): RealGraphicsSurface = RealGraphicsSurface(htmlFactory, canvasFactory, htmlFactory.create())
 
     override operator fun invoke(parent: RealGraphicsSurface?, view: View, isContainer: Boolean, addToRootIfNoParent: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, parent, view, isContainer, addToRootIfNoParent)
 }

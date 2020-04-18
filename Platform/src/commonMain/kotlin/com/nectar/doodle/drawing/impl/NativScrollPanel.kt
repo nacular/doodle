@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.controls.panels.ScrollPanel
+import com.nectar.doodle.dom.EventTarget
 import com.nectar.doodle.dom.Overflow.Auto
 import com.nectar.doodle.dom.Overflow.Hidden
 import com.nectar.doodle.dom.scrollTo
@@ -53,7 +54,7 @@ class NativeScrollPanel internal constructor(
         }
     }
 
-    override fun onScroll() = true.also {
+    override fun onScroll(target: EventTarget?) = true.also {
         scrolled(Point(x = rootElement.scrollLeft, y = rootElement.scrollTop))
     }
 

@@ -95,6 +95,7 @@ actual class DragEvent {
 }
 
 actual abstract class HTMLElement: Element() {
+    var role_               = "" as String?
     actual var title        = ""
     actual var draggable    = false
     actual val offsetTop    = 0
@@ -118,6 +119,9 @@ actual abstract class HTMLElement: Element() {
     actual var onresize   : ((Event) -> Unit)? = {}
     actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
 }
+
+actual var HTMLElement.role get() = role_
+    set(new) { role_ = new }
 
 actual interface ElementCreationOptions
 

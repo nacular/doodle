@@ -1,10 +1,12 @@
 package com.nectar.doodle.controls
 
+import com.nectar.doodle.accessibility.slider
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Orientation
+import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.size
@@ -14,8 +16,12 @@ import kotlin.math.round
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Orientation.Horizontal): View() {
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Orientation.Horizontal): this(BasicConfinedValueModel(range, value), orientation)
+open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Horizontal): View(accessibilityRole = slider().apply {
+    valueMin = model.limits.start.toInt()
+    valueMax = model.limits.endInclusive.toInt()
+    valueNow = model.value.toInt()
+}) {
+    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
     var behavior: Behavior<Slider>? = null
         set(new) {
@@ -36,10 +42,12 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     var model =  model
         set(new) {
-            field.valueChanged -= modelChanged
+            field.valueChanged  -= modelChanged
+            field.limitsChanged -= modelLimitsChanged
 
             field = new.also {
-                it.valueChanged += modelChanged
+                it.valueChanged  += modelChanged
+                it.limitsChanged += modelLimitsChanged
             }
         }
 
@@ -59,7 +67,19 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
     val changed: PropertyObservers<Slider, Double> = changed_
 
     private val modelChanged: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
+        (accessibilityRole as? slider)?.let {
+            it.valueNow = (((new - range.start) / range.size) * 100).toInt()
+        }
+
         changed_(old, new)
+    }
+
+    private val modelLimitsChanged: (ConfinedValueModel<Double>, ClosedRange<Double>, ClosedRange<Double>) -> Unit = { _,old,new ->
+        (accessibilityRole as? slider)?.let {
+            it.valueMin = range.start.toInt()
+            it.valueMax = range.endInclusive.toInt()
+        }
+
     }
 
     private var snapSize = 0.0

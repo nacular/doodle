@@ -42,7 +42,7 @@ class RealGraphicsSurface private constructor(
                     canvasElement      : HTMLElement,
                     addToRootIfNoParent: Boolean): GraphicsSurface {
 
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement = htmlFactory.create()): this(htmlFactory, canvasFactory, null, false, element, true)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory, canvasFactory, null, false, element, true)
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
             htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent)
 

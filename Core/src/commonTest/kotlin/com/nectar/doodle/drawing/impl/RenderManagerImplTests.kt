@@ -3,6 +3,7 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.JsName
+import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
@@ -269,8 +270,8 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display(view))
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager) }
-        verify(exactly = 0) { view.render        (any()        ) }
+        verify(exactly = 0) { view.addedToDisplay(renderManager, null) }
+        verify(exactly = 0) { view.render        (any()              ) }
 
         view.visible = true
 
@@ -286,8 +287,8 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display(parent))
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager) }
-        verify(exactly = 0) { view.render        (any()        ) }
+        verify(exactly = 0) { view.addedToDisplay(renderManager, null) }
+        verify(exactly = 0) { view.render        (any()              ) }
 
         parent.children_ += view
 
@@ -648,8 +649,8 @@ class RenderManagerImplTests {
     }
 
     private fun verifyChildAddedProperly(renderManager: RenderManager, view: View, times: Int = 1) {
-        verify(exactly = times) { view.addedToDisplay(renderManager) }
-        verify(exactly = times) { view.render        (any()        ) }
+        verify(exactly = times) { view.addedToDisplay(renderManager, null) }
+        verify(exactly = times) { view.render        (any()              ) }
     }
 
     private fun verifyChildRemovedProperly(view: View) {
@@ -682,7 +683,8 @@ class RenderManagerImplTests {
 //            timer         : Timer                = timer(),
             themeManager  : InternalThemeManager = mockk(relaxed = true),
             scheduler     : AnimationScheduler   = instantScheduler,
-            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, graphicsDevice)
+            accessibilityManager: AccessibilityManager = mockk(relaxed = true),
+            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, accessibilityManager, graphicsDevice)
 
     private val defaultGraphicsDevice by lazy {
         graphicsDevice()

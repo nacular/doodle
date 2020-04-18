@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.buttons
 
+import com.nectar.doodle.accessibility.button
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -17,11 +18,12 @@ import com.nectar.doodle.utils.VerticalAlignment.Middle
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
+
 @Suppress("PrivatePropertyName")
 abstract class Button protected constructor(
             text: String        = "",
         var icon: Icon<Button>? = null,
-            model: ButtonModel  = ButtonModelImpl()): View() {
+            model: ButtonModel  = ButtonModelImpl()): View(accessibilityRole = button()) {
 
     private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
 

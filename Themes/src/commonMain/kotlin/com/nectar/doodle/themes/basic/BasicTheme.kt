@@ -28,12 +28,16 @@ import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Theme
+import com.nectar.doodle.themes.Modules.Companion.bindBehavior
 import com.nectar.doodle.themes.basic.list.BasicListBehavior
 import com.nectar.doodle.themes.basic.list.BasicMutableListBehavior
 import com.nectar.doodle.themes.basic.table.BasicMutableTableBehavior
 import com.nectar.doodle.themes.basic.table.BasicTableBehavior
 import com.nectar.doodle.themes.basic.tree.BasicMutableTreeBehavior
 import com.nectar.doodle.themes.basic.tree.BasicTreeBehavior
+import org.kodein.di.Kodein
+import org.kodein.di.Kodein.Module
+import org.kodein.di.erased.instance
 
 /**
  * Created by Nicholas Eddy on 2/12/18.
@@ -93,6 +97,16 @@ open class BasicTheme(private val labelFactory: LabelFactory, private val textMe
     private val mutableTableBehavior by lazy { BasicMutableTableBehavior<Any>(focusManager, 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
 
     companion object {
+        val basicSpinnerBehavior = Module(name = "BasicSpinnerBehavior") {
+            bindBehavior<Spinner<*,*>> {
+                (it as Spinner<Any, SpinnerModel<Any>>).behavior = BasicSpinnerBehavior(borderColor = Color(0x888888u), backgroundColor = Color(0xccccccu), labelFactory = instance())
+            }
+        }
+
+        val basicLabelBehavior = Module(name = "BasicLabelBehavior") {
+            bindBehavior<Label> { it.behavior = LabelBehavior(black) }
+        }
+
 //        val basicThemeModule = Module(allowSilentOverride = true, name = "BasicTheme") {
 //            importOnce(themeModule)
 //

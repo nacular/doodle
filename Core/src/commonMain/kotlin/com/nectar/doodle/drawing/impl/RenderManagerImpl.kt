@@ -1,5 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
+import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform
@@ -30,11 +31,12 @@ private val frameDuration = 1 * seconds / 60
 
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
-//        private val timer         : Timer,
-        private val display       : Display,
-        private val scheduler     : AnimationScheduler,
-        private val themeManager  : InternalThemeManager?,
-        private val graphicsDevice: GraphicsDevice<*>): RenderManager {
+//        private val timer               : Timer,
+        private val display             : Display,
+        private val scheduler           : AnimationScheduler,
+        private val themeManager        : InternalThemeManager?,
+        private val accessibilityManager: AccessibilityManager?,
+        private val graphicsDevice      : GraphicsDevice<*>): RenderManager {
 
     private val views                       = mutableSetOf <View>()
     private var layingOut                   = null as View?
@@ -149,7 +151,7 @@ class RenderManagerImpl(
             }
 
             if (display ancestorOf view) {
-                view.addedToDisplay(this)
+                view.addedToDisplay(this, accessibilityManager)
 
                 dirtyViews          += view
                 neverRendered       += view

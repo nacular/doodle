@@ -36,6 +36,8 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
             insertRule("body pre { overflow:visible }", numStyles)
             insertRule("body div { display:inline }", numStyles)
 
+            insertRule("body div:focus { outline:none }", numStyles)
+
             insertRule("pre { margin:0 }", numStyles)
             insertRule("svg { display:inline-block;width:100%;height:100%;overflow:visible }", numStyles)
             insertRule("svg * { position:absolute }", numStyles)

@@ -18,6 +18,9 @@ interface NativeEventHandler {
     fun registerFocusListener  ()
     fun unregisterFocusListener()
 
+    fun registerFocusInListener  ()
+    fun unregisterFocusInListener()
+
     fun registerClickListener  ()
     fun unregisterClickListener()
 

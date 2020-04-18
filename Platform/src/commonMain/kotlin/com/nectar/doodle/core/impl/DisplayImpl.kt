@@ -147,7 +147,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         layout?.layout(positionableWrapper)
     }
 
-    override fun shutdown() {
+    fun shutdown() {
         children.clear()
 
         brush = null

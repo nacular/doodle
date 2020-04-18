@@ -2,6 +2,8 @@ package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.UrlView
+import com.nectar.doodle.accessibility.AccessibilityManager
+import com.nectar.doodle.accessibility.AccessibilityManagerImpl
 import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.LabelFactoryImpl
@@ -32,6 +34,9 @@ import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
+import com.nectar.doodle.drawing.impl.NativeEventHandlerFactory
+import com.nectar.doodle.drawing.impl.NativeEventHandlerImpl
+import com.nectar.doodle.drawing.impl.NativeEventListener
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
@@ -63,9 +68,7 @@ import com.nectar.doodle.system.impl.MouseInputServiceImpl
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
-import com.nectar.doodle.theme.InternalThemeManager
-import com.nectar.doodle.theme.ThemeManager
-import com.nectar.doodle.theme.ThemeManagerImpl
+import com.nectar.doodle.themes.Modules.Companion.themeModule
 import com.nectar.doodle.themes.basic.BasicTheme
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
@@ -171,21 +174,24 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
 
         bind<Window>                   () with instance  ( window )
 
-        bind<Timer>                    () with singleton { PerformanceTimer(window.performance) }
-        bind<Strand>                   () with singleton { StrandImpl(instance(), instance()) }
-        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                        ) }
-        bind<Scheduler>                () with singleton { SchedulerImpl(instance(), instance()) }
-        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                      ) }
-        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                      ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                          ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                  ) }
-        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                          ) }
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode          ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()      ) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                          ) }
-        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl(instance()) } // FIXME: Provide fallback in case not supported
-        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                              ) }
+        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                                    ) }
+        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                                ) }
+        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
+        bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
+        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                        ) }
+        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
+        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                                    ) }
+        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                            ) }
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                            ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                        ) }
+        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
+        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
+
+        // TODO: Can this be handled better?
+        bind<DisplayImpl> () with singleton { instance<Display>() as DisplayImpl }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -220,12 +226,13 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
 
         initTask?.cancel()
 
-        injector.instance<Display>     ().shutdown()
+        injector.instance<DisplayImpl> ().shutdown()
         injector.instance<SystemStyler>().shutdown()
 
-        injector.instanceOrNull<DragManager>         ()?.shutdown()
-        injector.instanceOrNull<MouseInputManager>   ()?.shutdown()
-        injector.instanceOrNull<KeyboardFocusManager>()?.shutdown()
+        injector.instanceOrNull<DragManager>             ()?.shutdown()
+        injector.instanceOrNull<MouseInputManager>       ()?.shutdown()
+        injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
+        injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
 
         application?.shutdown()
 
@@ -246,7 +253,7 @@ class Modules {
         }
 
         val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()            ) }
+            bind<ViewFinder>               () with singleton { ViewFinderImpl(instance()) }
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
             bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()) }
@@ -257,19 +264,19 @@ class Modules {
 
             // TODO: Make this pluggable
             val keys = mapOf(
-                Forward  to setOf(KeyState(VK_TAB, VK_TAB.toChar(), emptySet(     ), Down)),
-                Backward to setOf(KeyState(VK_TAB, VK_TAB.toChar(), setOf   (Shift), Down))
+                Forward  to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), emptySet(     ), Down)),
+                Backward to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), setOf   (Shift), Down))
             )
 
-            bind<KeyInputService>        () with singleton { KeyInputServiceImpl          (instance()                  ) }
-            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl     (instance(), instance(), keys) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit(instance()) }
+            bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
+            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
+            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit  (instance()                  ) }
         }
 
-        val themeModule = Module(allowSilentOverride = true, name = "Theme") {
-            bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
-            bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
-        }
+//        val themeModule = Module(allowSilentOverride = true, name = "Theme") {
+//            bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
+//            bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
+//        }
 
         val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
             importOnce(mouseModule)
@@ -283,6 +290,21 @@ class Modules {
 
         val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
             bind<View>(tag = "urlView") with factory { url: String -> UrlView(instance(), url) }
+        }
+
+        val accessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
+            importOnce(keyboardModule)
+
+            // TODO: Can this be handled better?
+            bind<KeyInputServiceImpl> () with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
+
+            // FIXME: Centralize
+            bind<NativeEventHandlerFactory>() with singleton { { element: org.w3c.dom.HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+
+            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+
+            // TODO: Can this be handled better?
+            bind<AccessibilityManagerImpl> () with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
         }
 
         // FIXME: Move to Themes library

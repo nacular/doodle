@@ -1,5 +1,6 @@
 package com.nectar.doodle.core
 
+import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.MouseEvent
@@ -28,7 +29,7 @@ class DoodleTest {
 
     fun View.focusLost(@Suppress("UNUSED_PARAMETER") new: View?) = this.focusLost(new)
 
-    fun View.addedToDisplay(renderManager: RenderManager) = this.addedToDisplay(renderManager)
+    fun View.addedToDisplay(renderManager: RenderManager, accessibilityManager: AccessibilityManager) = this.addedToDisplay(renderManager, accessibilityManager)
 
     fun View.removedFromDisplay() = this.removedFromDisplay_()
 }

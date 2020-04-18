@@ -2,6 +2,7 @@ package com.nectar.doodle.drawing.impl
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
+import org.w3c.dom.events.EventTarget
 
 
 class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
@@ -24,8 +25,8 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
     override fun stopConsumingSelectionEvents () { element.onselect = null              }
 
     override fun registerFocusListener  () {
-        element.onblur  = { onBlur()  }
-        element.onfocus = { onFocus() }
+        element.onblur  = { onBlur (it.target) }
+        element.onfocus = { onFocus(it.target) }
     }
 
     override fun unregisterFocusListener() {
@@ -33,10 +34,28 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
         element.onfocus = null
     }
 
+    private fun focusIn(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
+        onFocusIn(event?.target)
+    }
+
+    private fun focusOut(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
+        onFocusOut(event?.target)
+    }
+
+    override fun registerFocusInListener() {
+        element.addEventListener("focusin",  ::focusIn )
+        element.addEventListener("focusout", ::focusOut)
+    }
+
+    override fun unregisterFocusInListener() {
+        element.removeEventListener("focusin",  ::focusIn )
+        element.removeEventListener("focusout", ::focusOut)
+    }
+
     override fun registerKeyListener  () {
-        element.onkeyup    = { onKeyUp   () }
-        element.onkeydown  = { onKeyDown () }
-        element.onkeypress = { onKeyPress() }
+        element.onkeyup    = { onKeyUp   (it.target) }
+        element.onkeydown  = { onKeyDown (it.target) }
+        element.onkeypress = { onKeyPress(it.target) }
     }
 
     override fun unregisterKeyListener() {
@@ -45,16 +64,16 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
         element.onkeypress = null
     }
 
-    override fun registerClickListener   () { element.onclick  = { onClick() } }
+    override fun registerClickListener   () { element.onclick  = { onClick(it.target) } }
     override fun unregisterClickListener () { element.onclick  = null          }
 
-    override fun registerScrollListener  () { element.onscroll = { onScroll() } }
+    override fun registerScrollListener  () { element.onscroll = { onScroll(it.target) } }
     override fun unregisterScrollListener() { element.onscroll = null           }
 
-    override fun registerChangeListener  () { element.onchange = { onChange() } }
+    override fun registerChangeListener  () { element.onchange = { onChange(it.target) } }
     override fun unregisterChangeListener() { element.onchange = null          }
 
-    override fun registerInputListener   () { element.oninput  = { onInput() } }
+    override fun registerInputListener   () { element.oninput  = { onInput(it.target) } }
     override fun unregisterInputListener () { element.oninput  = null          }
 
     private fun muteEvent(event: Event, onlySelf: Boolean = false): Boolean {
@@ -67,13 +86,17 @@ class NativeEventHandlerImpl(private val element: HTMLElement, private val liste
         return false
     }
 
-    private fun onBlur    () = true.also { listener.onFocusLost  () }
-    private fun onFocus   () = true.also { listener.onFocusGained() }
-    private fun onKeyUp   () = true.also { listener.onKeyUp      () }
-    private fun onKeyDown () = true.also { listener.onKeyDown    () }
-    private fun onKeyPress() = true.also { listener.onKeyPress   () }
-    private fun onClick   () = true.also { listener.onClick      () }
-    private fun onScroll  () = true.also { listener.onScroll     () }
-    private fun onChange  () = true.also { listener.onChange     () }
-    private fun onInput   () = true.also { listener.onInput      () }
+    private fun onBlur    (target: EventTarget?) = true.also { listener.onFocusLost  (target) }
+    private fun onFocus   (target: EventTarget?) = true.also { listener.onFocusGained(target) }
+    private fun onKeyUp   (target: EventTarget?) = true.also { listener.onKeyUp      (target) }
+    private fun onKeyDown (target: EventTarget?) = true.also { listener.onKeyDown    (target) }
+    private fun onKeyPress(target: EventTarget?) = true.also { listener.onKeyPress   (target) }
+    private fun onClick   (target: EventTarget?) = true.also { listener.onClick      (target) }
+    private fun onScroll  (target: EventTarget?) = true.also { listener.onScroll     (target) }
+    private fun onChange  (target: EventTarget?) = true.also { listener.onChange     (target) }
+    private fun onInput   (target: EventTarget?) = true.also { listener.onInput      (target) }
+
+    private fun onFocusIn (target: EventTarget?) = true.also { listener.onFocusGained(target) }
+    private fun onFocusOut(target: EventTarget?) = true.also { listener.onFocusLost  (target) }
+
 }

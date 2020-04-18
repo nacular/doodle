@@ -10,6 +10,7 @@ import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import com.nectar.doodle.system.KeyInputService
+import com.nectar.doodle.system.KeyInputService.Listener
 import com.nectar.doodle.utils.contains
 
 /**
@@ -35,7 +36,7 @@ interface KeyboardFocusManager {
 class KeyboardFocusManagerImpl(
         private val keyInputService     : KeyInputService,
         private val focusManager        : FocusManager,
-        private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyboardFocusManager, KeyInputService.Listener {
+        private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyboardFocusManager, Listener {
 
     private var preprocessors  = mutableListOf<Preprocessor >()
     private var postprocessors = mutableListOf<Postprocessor>()

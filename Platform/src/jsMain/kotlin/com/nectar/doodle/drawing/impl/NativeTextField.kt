@@ -23,6 +23,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Right
+import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 
@@ -207,16 +208,16 @@ class NativeTextField(
         Size(max(8.0, width) + 1.6 + if (textField.borderVisible) borderSize.width * 2 else 0.0, height + if (textField.borderVisible) borderSize.height * 2 else 0.0)
     }
 
-    override fun onKeyUp() = true.also { syncTextField() }
-    override fun onInput() = true.also { syncTextField() }
+    override fun onKeyUp(target: EventTarget?) = true.also { syncTextField() }
+    override fun onInput(target: EventTarget?) = true.also { syncTextField() }
 
-    override fun onFocusGained() = true.also {
+    override fun onFocusGained(target: EventTarget?) = true.also {
         if (!ignoreSync) {
             focusManager?.requestFocus(textField)
         }
     }
 
-    override fun onFocusLost() = true.also {
+    override fun onFocusLost(target: EventTarget?) = true.also {
         if (!ignoreSync && focusManager?.focusOwner == textField) {
             focusManager.clearFocus()
         }

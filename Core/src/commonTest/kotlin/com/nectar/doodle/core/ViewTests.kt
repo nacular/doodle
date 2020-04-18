@@ -113,7 +113,7 @@ class ViewTests {
         val renderManager = mockk<RenderManager>(relaxed = true)
         val view         = object: View() {}
 
-        view.addedToDisplay(renderManager)
+        view.addedToDisplay(renderManager, null)
 
         view.rerender()
 
@@ -125,7 +125,7 @@ class ViewTests {
         val renderManager = mockk<RenderManager>(relaxed = true)
         val view         = object: View() {}
 
-        view.addedToDisplay(renderManager)
+        view.addedToDisplay(renderManager, null)
 
         view.rerenderNow()
 
@@ -158,7 +158,7 @@ class ViewTests {
 
         view.displayChange += observer
 
-        view.addedToDisplay(mockk())
+        view.addedToDisplay(mockk(), null)
 
         verify(exactly = 1) { observer(view, false, true) }
 

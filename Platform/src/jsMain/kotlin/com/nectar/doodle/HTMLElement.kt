@@ -23,6 +23,9 @@ actual typealias DragEvent = org.w3c.dom.DragEvent
 
 actual typealias HTMLElement = org.w3c.dom.HTMLElement
 
+actual var HTMLElement.role: String? get() = this.getAttribute("role")
+    set(new) { this.setAttribute("role", new ?: "") }
+
 actual typealias ElementCreationOptions = org.w3c.dom.ElementCreationOptions
 
 actual typealias Document = org.w3c.dom.Document

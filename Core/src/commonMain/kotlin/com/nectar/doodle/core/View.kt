@@ -2,6 +2,8 @@
 
 package com.nectar.doodle.core
 
+import com.nectar.doodle.accessibility.AccessibilityManager
+import com.nectar.doodle.accessibility.AccessibilityRole
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragRecognizer
 import com.nectar.doodle.datatransport.dragdrop.DropReceiver
@@ -62,7 +64,7 @@ internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added
  * @author Nicholas Eddy
  * @constructor
  */
-abstract class View protected constructor(): Renderable {
+abstract class View protected constructor(val accessibilityRole: AccessibilityRole? = null): Renderable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
@@ -180,7 +182,7 @@ abstract class View protected constructor(): Renderable {
     /** Notifies changes to [enabled] */
     val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether this View is enabled  The default is `true`.  */
+    /** Whether this View is enabled.  The default is `true`.  */
     var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
@@ -192,7 +194,7 @@ abstract class View protected constructor(): Renderable {
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
-    /** Whether the View has focus or not  The default is `false`.  */
+    /** Whether the View has focus or not.  The default is `false`.  */
     var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
@@ -385,7 +387,8 @@ abstract class View protected constructor(): Renderable {
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
-    private var renderManager: RenderManager? = null
+    private var renderManager       : RenderManager? = null
+    private var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
 
@@ -658,8 +661,14 @@ abstract class View protected constructor(): Renderable {
      *
      * @param renderManager The RenderManager that will handle all renders for the view
      */
-    internal fun addedToDisplay(renderManager: RenderManager) {
-        this.renderManager = renderManager
+    internal fun addedToDisplay(renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
+        this.renderManager        = renderManager
+        this.accessibilityManager = accessibilityManager
+
+        accessibilityRole?.let {
+            accessibilityManager?.roleAdopted(this)
+        }
+
         addedToDisplay()
 
         (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
@@ -676,7 +685,12 @@ abstract class View protected constructor(): Renderable {
      * or one of it's ancestors--is removed from the [Display].
      */
     internal fun removedFromDisplay_() {
-        renderManager = null
+        accessibilityRole?.let {
+            accessibilityManager?.roleAdopted(this)
+        }
+
+        renderManager        = null
+        accessibilityManager = null
         removedFromDisplay()
 
         (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }

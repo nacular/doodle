@@ -10,7 +10,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api dep.measured_common
+            api dep.measured
 
             implementation dep.kotlin_stdlib_common
             implementation dep.kotlin_reflect
@@ -23,8 +23,6 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            api dep.measured_jvm
-
             implementation dep.kotlin_stdlib_jdk8
         }
 
@@ -38,8 +36,6 @@ kotlin {
         }
 
         jsMain.dependencies {
-            api dep.measured_js
-
             implementation dep.kotlin_stdlib_js
         }
 

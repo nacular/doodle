@@ -27,6 +27,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.utils.Anchor
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 /**
@@ -185,11 +186,11 @@ internal class NativeCheckBoxRadioButton(
         }
     }
 
-    override fun onClick() = true.also {
+    override fun onClick(target: EventTarget?) = true.also {
         button.click()
     }
 
-    override fun onFocusGained(): Boolean {
+    override fun onFocusGained(target: EventTarget?): Boolean {
         button.let {
             if (!it.focusable) {
                 return false
@@ -201,7 +202,7 @@ internal class NativeCheckBoxRadioButton(
         return true
     }
 
-    override fun onFocusLost() = true.also {
+    override fun onFocusLost(target: EventTarget?) = true.also {
         if (button === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }

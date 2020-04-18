@@ -116,6 +116,8 @@ expect abstract class HTMLElement: Element {
     var ondragstart: ((DragEvent) -> Boolean)?
 }
 
+expect var HTMLElement.role: String?
+
 expect interface ElementCreationOptions
 
 expect abstract class StyleSheet

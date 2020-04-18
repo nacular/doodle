@@ -4,8 +4,11 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 
+
+inline class KeyCode(val value: Int)
+
 class KeyState private constructor(
-        val code     : Int,
+        val code     : KeyCode,
         val char     : Char,
         val modifiers: Set<Modifier>,
         val type     : Type) {
@@ -15,7 +18,7 @@ class KeyState private constructor(
     }
 
     override fun hashCode(): Int {
-        return code + char.toInt() + modifiers.hashCode() + type.ordinal
+        return code.value + char.toInt() + modifiers.hashCode() + type.ordinal
     }
 
     override fun equals(other: Any?): Boolean {
@@ -32,11 +35,11 @@ class KeyState private constructor(
 
     companion object {
         operator fun invoke(
-                keyCode  : Int,
+                keyCode  : KeyCode,
                 keyChar  : Char,
                 modifiers: Set<Modifier>,
                 type     : Type): KeyState {
-            val hashKey = keyCode + keyChar.toInt() + modifiers.hashCode() + type.ordinal
+            val hashKey = keyCode.value + keyChar.toInt() + modifiers.hashCode() + type.ordinal
 
             return sHashValues.getOrPut(hashKey) {
                 KeyState(keyCode, keyChar, modifiers, type)
@@ -47,8 +50,7 @@ class KeyState private constructor(
     }
 }
 
-
-class KeyEvent(source: View, val code: Int, val char: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
+class KeyEvent(source: View, val code: KeyCode, val char: Char, modifiers: Set<Modifier>, val type: Type): InputEvent(source, modifiers) {
 
     constructor(source: View, keyState: KeyState): this(source, keyState.code, keyState.char, keyState.modifiers, keyState.type)
 
@@ -56,112 +58,112 @@ class KeyEvent(source: View, val code: Int, val char: Char, modifiers: Set<Modif
 
         // Key Codes
 
-        const val VK_BACKSPACE    : Int =   8
-        const val VK_TAB          : Int =   9
+        val VK_BACKSPACE    = KeyCode(  8)
+        val VK_TAB          = KeyCode(  9)
 
-        const val VK_RETURN       : Int =  13
-        const val VK_SHIFT        : Int =  16
-        const val VK_CONTROL      : Int =  17
-        const val VK_ALT          : Int =  18
+        val VK_RETURN       = KeyCode( 13)
+        val VK_SHIFT        = KeyCode( 16)
+        val VK_CONTROL      = KeyCode( 17)
+        val VK_ALT          = KeyCode( 18)
 
-        const val VK_CAPSLOCK     : Int =  20
+        val VK_CAPSLOCK     = KeyCode( 20)
 
-        const val VK_ESCAPE       : Int =  27
-        const val VK_SPACE        : Int =  32
-        const val VK_PAGEUP       : Int =  33
-        const val VK_PAGEDOWN     : Int =  34
-        const val VK_END          : Int =  35
-        const val VK_HOME         : Int =  36
-        const val VK_LEFT         : Int =  37
-        const val VK_UP           : Int =  38
-        const val VK_RIGHT        : Int =  39
-        const val VK_DOWN         : Int =  40
+        val VK_ESCAPE       = KeyCode( 27)
+        val VK_SPACE        = KeyCode( 32)
+        val VK_PAGEUP       = KeyCode( 33)
+        val VK_PAGEDOWN     = KeyCode( 34)
+        val VK_END          = KeyCode( 35)
+        val VK_HOME         = KeyCode( 36)
+        val VK_LEFT         = KeyCode( 37)
+        val VK_UP           = KeyCode( 38)
+        val VK_RIGHT        = KeyCode( 39)
+        val VK_DOWN         = KeyCode( 40)
 
-        const val VK_INSERT       : Int =  45
-        const val VK_DELETE       : Int =  46
+        val VK_INSERT       = KeyCode( 45)
+        val VK_DELETE       = KeyCode( 46)
 
-        const val VK_0            : Int =  48
-        const val VK_1            : Int =  49
-        const val VK_2            : Int =  50
-        const val VK_3            : Int =  51
-        const val VK_4            : Int =  52
-        const val VK_5            : Int =  53
-        const val VK_6            : Int =  54
-        const val VK_7            : Int =  55
-        const val VK_8            : Int =  56
-        const val VK_9            : Int =  57
+        val VK_0            = KeyCode( 48)
+        val VK_1            = KeyCode( 49)
+        val VK_2            = KeyCode( 50)
+        val VK_3            = KeyCode( 51)
+        val VK_4            = KeyCode( 52)
+        val VK_5            = KeyCode( 53)
+        val VK_6            = KeyCode( 54)
+        val VK_7            = KeyCode( 55)
+        val VK_8            = KeyCode( 56)
+        val VK_9            = KeyCode( 57)
 
-        const val VK_SEMICOLAN    : Int =  59
+        val VK_SEMICOLAN    = KeyCode( 59)
 
-        const val VK_EQUAL        : Int =  61
+        val VK_EQUAL        = KeyCode( 61)
 
-        const val VK_A            : Int =  65
-        const val VK_B            : Int =  66
-        const val VK_C            : Int =  67
-        const val VK_D            : Int =  68
-        const val VK_E            : Int =  69
-        const val VK_F            : Int =  70
-        const val VK_G            : Int =  71
-        const val VK_H            : Int =  72
-        const val VK_I            : Int =  73
-        const val VK_J            : Int =  74
-        const val VK_K            : Int =  75
-        const val VK_L            : Int =  76
-        const val VK_M            : Int =  77
-        const val VK_N            : Int =  78
-        const val VK_O            : Int =  79
-        const val VK_P            : Int =  80
-        const val VK_Q            : Int =  81
-        const val VK_R            : Int =  82
-        const val VK_S            : Int =  83
-        const val VK_T            : Int =  84
-        const val VK_U            : Int =  85
-        const val VK_V            : Int =  86
-        const val VK_W            : Int =  87
-        const val VK_X            : Int =  88
-        const val VK_Y            : Int =  89
-        const val VK_Z            : Int =  90
-        const val VK_WINDOWS      : Int =  91
-        const val VK_CONTEXT      : Int =  93
+        val VK_A            = KeyCode( 65)
+        val VK_B            = KeyCode( 66)
+        val VK_C            = KeyCode( 67)
+        val VK_D            = KeyCode( 68)
+        val VK_E            = KeyCode( 69)
+        val VK_F            = KeyCode( 70)
+        val VK_G            = KeyCode( 71)
+        val VK_H            = KeyCode( 72)
+        val VK_I            = KeyCode( 73)
+        val VK_J            = KeyCode( 74)
+        val VK_K            = KeyCode( 75)
+        val VK_L            = KeyCode( 76)
+        val VK_M            = KeyCode( 77)
+        val VK_N            = KeyCode( 78)
+        val VK_O            = KeyCode( 79)
+        val VK_P            = KeyCode( 80)
+        val VK_Q            = KeyCode( 81)
+        val VK_R            = KeyCode( 82)
+        val VK_S            = KeyCode( 83)
+        val VK_T            = KeyCode( 84)
+        val VK_U            = KeyCode( 85)
+        val VK_V            = KeyCode( 86)
+        val VK_W            = KeyCode( 87)
+        val VK_X            = KeyCode( 88)
+        val VK_Y            = KeyCode( 89)
+        val VK_Z            = KeyCode( 90)
+        val VK_WINDOWS      = KeyCode( 91)
+        val VK_CONTEXT      = KeyCode( 93)
 
-        const val VK_NUM_0        : Int =  96
-        const val VK_NUM_1        : Int =  97
-        const val VK_NUM_2        : Int =  98
-        const val VK_NUM_3        : Int =  99
-        const val VK_NUM_4        : Int = 100
-        const val VK_NUM_5        : Int = 101
-        const val VK_NUM_6        : Int = 102
-        const val VK_NUM_7        : Int = 103
-        const val VK_NUM_8        : Int = 104
-        const val VK_NUM_9        : Int = 105
-        const val VK_MULTIPLY     : Int = 106
-        const val VK_PLUS         : Int = 107
-        const val VK_MINUS        : Int = 109
-        const val VK_DECIMAL      : Int = 110
-        const val VK_DIVIDE       : Int = 111
-        const val VK_F1           : Int = 112
-        const val VK_F2           : Int = 113
-        const val VK_F3           : Int = 114
-        const val VK_F4           : Int = 115
-        const val VK_F5           : Int = 116
-        const val VK_F6           : Int = 117
-        const val VK_F7           : Int = 118
-        const val VK_F8           : Int = 119
-        const val VK_F9           : Int = 120
-        const val VK_F10          : Int = 121
-        const val VK_F11          : Int = 122
-        const val VK_F12          : Int = 123
-        const val VK_NUMLOCK      : Int = 144
+        val VK_NUM_0        = KeyCode( 96)
+        val VK_NUM_1        = KeyCode( 97)
+        val VK_NUM_2        = KeyCode( 98)
+        val VK_NUM_3        = KeyCode( 99)
+        val VK_NUM_4        = KeyCode(100)
+        val VK_NUM_5        = KeyCode(101)
+        val VK_NUM_6        = KeyCode(102)
+        val VK_NUM_7        = KeyCode(103)
+        val VK_NUM_8        = KeyCode(104)
+        val VK_NUM_9        = KeyCode(105)
+        val VK_MULTIPLY     = KeyCode(106)
+        val VK_PLUS         = KeyCode(107)
+        val VK_MINUS        = KeyCode(109)
+        val VK_DECIMAL      = KeyCode(110)
+        val VK_DIVIDE       = KeyCode(111)
+        val VK_F1           = KeyCode(112)
+        val VK_F2           = KeyCode(113)
+        val VK_F3           = KeyCode(114)
+        val VK_F4           = KeyCode(115)
+        val VK_F5           = KeyCode(116)
+        val VK_F6           = KeyCode(117)
+        val VK_F7           = KeyCode(118)
+        val VK_F8           = KeyCode(119)
+        val VK_F9           = KeyCode(120)
+        val VK_F10          = KeyCode(121)
+        val VK_F11          = KeyCode(122)
+        val VK_F12          = KeyCode(123)
+        val VK_NUMLOCK      = KeyCode(144)
 
-        const val VK_COMMA        : Int = 188
+        val VK_COMMA        = KeyCode(188)
 
-        const val VK_PERIOD       : Int = 190
-        const val VK_FORWARD_SLASH: Int = 191
-        const val VK_ACUTE        : Int = 192
+        val VK_PERIOD       = KeyCode(190)
+        val VK_FORWARD_SLASH= KeyCode(191)
+        val VK_ACUTE        = KeyCode(192)
 
-        const val VK_LEFT_BRACKET : Int = 219
-        const val VK_BACK_SLASH   : Int = 220
-        const val VK_RIGHT_BRACKET: Int = 221
-        const val VK_APOSTROPHE   : Int = 222
+        val VK_LEFT_BRACKET = KeyCode(219)
+        val VK_BACK_SLASH   = KeyCode(220)
+        val VK_RIGHT_BRACKET= KeyCode(221)
+        val VK_APOSTROPHE   = KeyCode(222)
     }
 }

@@ -4,6 +4,7 @@ import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.KeyboardEvent
+import com.nectar.doodle.event.KeyCode
 import com.nectar.doodle.event.KeyEvent.Companion.VK_A
 import com.nectar.doodle.event.KeyEvent.Companion.VK_ALT
 import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
@@ -64,7 +65,7 @@ class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServ
 
         val result = dispatchKeyEvent(event, Up)
 
-        if (event.keyCode == VK_TAB) {
+        if (KeyCode(event.keyCode) == VK_TAB) {
             return suppressEvent(event)
         }
 
@@ -82,7 +83,7 @@ class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServ
 
         val returnValue = dispatchKeyEvent(event, Down)
 
-        if (event.keyCode == VK_TAB) {
+        if (KeyCode(event.keyCode) == VK_TAB) {
             return suppressEvent(event)
         }
 
@@ -96,7 +97,7 @@ class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServ
     private fun keyPress(event: KeyboardEvent): Boolean {
         var result = false
 
-        if (!event.altKey && !event.ctrlKey && event.keyCode != VK_TAB) {
+        if (!event.altKey && !event.ctrlKey && KeyCode(event.keyCode) != VK_TAB) {
             result = dispatchKeyEvent(event, Press)
         }
 
@@ -109,24 +110,26 @@ class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServ
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.let {
         val keyEvent = KeyState(
-                event.keyCode,
+                KeyCode(event.keyCode),
                 event.keyCode.toChar(),
                 createModifiers(event),
                 type)
 
-        return it(keyEvent)
+        return it(keyEvent, event.target)
     } ?: true
 
-    private fun isClipboardOperation(event: KeyboardEvent) = event.ctrlKey && event.keyCode.let { it == VK_V || it == VK_C || it == VK_X }
+    private fun isClipboardOperation(event: KeyboardEvent) = event.ctrlKey && KeyCode(event.keyCode).let { it == VK_V || it == VK_C || it == VK_X }
 
     private fun shouldSuppressKeyEvent(event: KeyboardEvent) = event.run {
-        keyCode == VK_ALT          ||
-        keyCode == VK_TAB          ||
-        keyCode == VK_BACKSPACE    ||
-        keyCode in VK_F1..VK_F12   ||
-        keyCode == VK_A && ctrlKey ||
-        keyCode == VK_F && ctrlKey ||
-        keyCode == VK_R && ctrlKey
+        val code = KeyCode(keyCode)
+
+        code == VK_ALT          ||
+        code == VK_TAB          ||
+        code == VK_BACKSPACE    ||
+        keyCode in VK_F1.value..VK_F12.value ||
+        code == VK_A && ctrlKey ||
+        code == VK_F && ctrlKey ||
+        code == VK_R && ctrlKey
     }
 
     private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {

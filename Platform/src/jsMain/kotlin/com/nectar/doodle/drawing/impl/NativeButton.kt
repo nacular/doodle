@@ -38,6 +38,7 @@ import com.nectar.doodle.utils.VerticalAlignment.Bottom
 import com.nectar.doodle.utils.VerticalAlignment.Middle
 import com.nectar.doodle.utils.VerticalAlignment.Top
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 import kotlin.math.min
 
@@ -152,32 +153,6 @@ class NativeButton internal constructor(
         buttonElement.tabIndex = if (new) 0 else -1
     }
 
-    init {
-        nativeEventHandler = handlerFactory(buttonElement, this).apply {
-            registerFocusListener         ()
-            registerClickListener         ()
-//            startConsumingMousePressEvents()
-        }
-
-        button.apply {
-            textChanged         += this@NativeButton.textChanged
-            focusChanged        += this@NativeButton.focusChanged
-            enabledChanged      += this@NativeButton.enabledChanged
-            focusabilityChanged += this@NativeButton.focusableChanged
-        }
-
-        setIconText()
-    }
-
-    fun discard() {
-        button.apply {
-            textChanged         -= this@NativeButton.textChanged
-            focusChanged        -= this@NativeButton.focusChanged
-            enabledChanged      -= this@NativeButton.enabledChanged
-            focusabilityChanged -= this@NativeButton.focusableChanged
-        }
-    }
-
     private val textPosition: Point get() {
         val bounds     = button.bounds
         val stringSize = stringSize // cache
@@ -271,7 +246,7 @@ class NativeButton internal constructor(
         }
     }
 
-    private var lastIcon = icon
+    private var lastIcon: Icon<Button>? = null
         set(value) {
             if (value !== field) {
                 field = value
@@ -284,7 +259,7 @@ class NativeButton internal constructor(
                         iconElement.style.setWidth (it.size.width )
                         iconElement.style.setHeight(it.size.height)
 
-                        val canvas = graphicsSurfaceFactory.surface(iconElement).canvas
+                        val canvas = graphicsSurfaceFactory(iconElement).canvas
 
                         canvas.size = it.size
 
@@ -299,6 +274,25 @@ class NativeButton internal constructor(
                 iconElement = null
             }
         }
+
+    init {
+        nativeEventHandler = handlerFactory(buttonElement, this).apply {
+            registerFocusListener         ()
+            registerClickListener         ()
+//            startConsumingMousePressEvents()
+        }
+
+        button.apply {
+            textChanged         += this@NativeButton.textChanged
+            focusChanged        += this@NativeButton.focusChanged
+            enabledChanged      += this@NativeButton.enabledChanged
+            focusabilityChanged += this@NativeButton.focusableChanged
+        }
+
+        lastIcon = icon
+
+        setIconText()
+    }
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
@@ -323,7 +317,7 @@ class NativeButton internal constructor(
 //        return true
 //    }
 
-    override fun onFocusGained(): Boolean {
+    override fun onFocusGained(target: EventTarget?): Boolean {
         if (!button.focusable) {
             return false
         }
@@ -333,12 +327,21 @@ class NativeButton internal constructor(
         return true
     }
 
-    override fun onFocusLost(): Boolean {
+    override fun onFocusLost(target: EventTarget?): Boolean {
         if (button === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }
 
         return true
+    }
+
+    fun discard() {
+        button.apply {
+            textChanged         -= this@NativeButton.textChanged
+            focusChanged        -= this@NativeButton.focusChanged
+            enabledChanged      -= this@NativeButton.enabledChanged
+            focusabilityChanged -= this@NativeButton.focusableChanged
+        }
     }
 
     private fun measureIdealSize(): Size {
