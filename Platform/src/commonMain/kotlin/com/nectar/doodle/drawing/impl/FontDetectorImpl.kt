@@ -38,9 +38,9 @@ class FontDetectorImpl(
             return when (fonts[hash]) {
                 Found   -> FontImpl(size, weight, style, family)
                 Pending -> suspendCoroutine {
-                    suspended.getOrPut(hash) { mutableListOf() }.add(it)
+                    suspended.getOrPut(hash) { mutableListOf() }.add(it) // FIXME: Handle case where pending coroutine is canceled
                 }
-                else          -> {
+                else    -> {
                     if (family == DEFAULT_FAMILY || family.isBlank()) {
                         return FontImpl(size, weight, style, family)
                     }
@@ -50,7 +50,14 @@ class FontDetectorImpl(
                     val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
                     val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
 
-                    scheduler.delayUntil { elementRuler.size(text) != defaultSize }
+                    var loadedSize  = defaultSize
+
+                    text.onresize = {
+                        loadedSize = elementRuler.size(text)
+                        Unit
+                    }
+
+                    scheduler.delayUntil { loadedSize != defaultSize }
 
                     fonts[hash] = Found
 

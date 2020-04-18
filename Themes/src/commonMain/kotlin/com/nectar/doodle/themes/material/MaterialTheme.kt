@@ -23,7 +23,7 @@ import org.kodein.di.erasedSet
 /**
  * Created by Nicholas Eddy on 1/8/20.
  */
-class MatTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.filter { it.tag == MatTheme::class }) {
+class MatTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == MatTheme::class }) {
     override fun toString() = this::class.simpleName ?: ""
 }
 
