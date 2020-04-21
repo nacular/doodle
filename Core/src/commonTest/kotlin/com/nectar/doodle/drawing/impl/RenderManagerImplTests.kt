@@ -119,7 +119,7 @@ class RenderManagerImplTests {
     fun `render ignores unknown views`() {
         val view = spyk(view())
 
-        renderManager().render(view)
+        renderManager().first.render(view)
 
         verify(exactly = 0) { view.render(any()) }
     }
@@ -140,7 +140,7 @@ class RenderManagerImplTests {
         val child = spyk(view())
 
         val display        = display()
-        val surface        = mockk<GraphicsSurface>(relaxed = true)
+        val surface        = mockk<GraphicsSurface>()
         val graphicsDevice = graphicsDevice(mapOf(child to surface))
 
         val renderManager = renderManager(display, graphicsDevice = graphicsDevice)
@@ -183,8 +183,8 @@ class RenderManagerImplTests {
         val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
-        val surface1   = mockk<GraphicsSurface>(relaxed = true)
-        val surface2   = mockk<GraphicsSurface>(relaxed = true)
+        val surface1   = mockk<GraphicsSurface>()
+        val surface2   = mockk<GraphicsSurface>()
 
         val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
 
@@ -208,8 +208,8 @@ class RenderManagerImplTests {
         val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
-        val surface1   = mockk<GraphicsSurface>(relaxed = true)
-        val surface2   = mockk<GraphicsSurface>(relaxed = true)
+        val surface1   = mockk<GraphicsSurface>()
+        val surface2   = mockk<GraphicsSurface>()
 
         val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
 
@@ -270,8 +270,8 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display(view))
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager, null) }
-        verify(exactly = 0) { view.render        (any()              ) }
+        verify(exactly = 0) { view.addedToDisplay(renderManager.first, any()) }
+        verify(exactly = 0) { view.render        (any()                     ) }
 
         view.visible = true
 
@@ -287,8 +287,8 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display(parent))
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager, null) }
-        verify(exactly = 0) { view.render        (any()              ) }
+        verify(exactly = 0) { view.addedToDisplay(renderManager.first, any()) }
+        verify(exactly = 0) { view.render        (any()                     ) }
 
         parent.children_ += view
 
@@ -392,7 +392,7 @@ class RenderManagerImplTests {
         val container = container()
         val child     = spyk(view())
         val display   = display(container)
-        val surface   = mockk<GraphicsSurface>(relaxed = true)
+        val surface   = mockk<GraphicsSurface>()
         val device    = graphicsDevice(mapOf(child to surface))
 
         val renderManager = renderManager(display, graphicsDevice = device)
@@ -420,7 +420,7 @@ class RenderManagerImplTests {
     fun `renderNow ignores unknown views`() {
         val view = spyk(view())
 
-        renderManager().renderNow(view)
+        renderManager().first.renderNow(view)
 
         verify(exactly = 0) { view.render(any()) }
     }
@@ -429,10 +429,10 @@ class RenderManagerImplTests {
     fun `renderNow works`() {
         val view = spyk(view())
 
-        renderManager(display(view)).also {
+        renderManager(display(view)).also { (renderManager, _) ->
             verify(exactly = 1) { view.render(any()) }
 
-            it.renderNow(view)
+            renderManager.renderNow(view)
 
             verify(exactly = 2) { view.render(any()) }
         }
@@ -470,9 +470,9 @@ class RenderManagerImplTests {
 
         container.children += child
 
-        val parentSurface  = mockk<GraphicsSurface>  (relaxed = true)
-        val childSurface   = mockk<GraphicsSurface>  (relaxed = true)
-        val graphicsDevice = mockk<GraphicsDevice<*>>(relaxed = true).apply {
+        val parentSurface  = mockk<GraphicsSurface>  ()
+        val childSurface   = mockk<GraphicsSurface>  ()
+        val graphicsDevice = mockk<GraphicsDevice<*>>().apply {
             every { get(container) } returns parentSurface
             every { get(child    ) } returns childSurface
         }
@@ -493,7 +493,7 @@ class RenderManagerImplTests {
     fun `reflects transform change`() {
         val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
-        val childSurface   = mockk<GraphicsSurface>  (relaxed = true)
+        val childSurface   = mockk<GraphicsSurface>  ()
         val graphicsDevice = graphicsDevice(mapOf(child to childSurface))
 
 
@@ -517,7 +517,7 @@ class RenderManagerImplTests {
         container.children += child
 
         val display      = display(container)
-        val themeManager = mockk<InternalThemeManager>(relaxed = true)
+        val themeManager = mockk<InternalThemeManager>()
 
         renderManager(display, themeManager = themeManager)
 
@@ -636,7 +636,7 @@ class RenderManagerImplTests {
         val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.layout    = mockk(relaxed = true)
+        container.layout    = mockk()
         container.children += child
 
         renderManager(display(container))
@@ -648,9 +648,9 @@ class RenderManagerImplTests {
         verify(exactly = 2) { container.doLayout_() }
     }
 
-    private fun verifyChildAddedProperly(renderManager: RenderManager, view: View, times: Int = 1) {
-        verify(exactly = times) { view.addedToDisplay(renderManager, null) }
-        verify(exactly = times) { view.render        (any()              ) }
+    private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, view: View, times: Int = 1) {
+        verify(exactly = times) { view.addedToDisplay(renderManager.first, renderManager.second) }
+        verify(exactly = times) { view.render        (any()                                    ) }
     }
 
     private fun verifyChildRemovedProperly(view: View) {
@@ -679,25 +679,25 @@ class RenderManagerImplTests {
     }
 
     private fun renderManager(
-            display       : Display              = mockk(relaxed = true),
-//            timer         : Timer                = timer(),
-            themeManager  : InternalThemeManager = mockk(relaxed = true),
-            scheduler     : AnimationScheduler   = instantScheduler,
-            accessibilityManager: AccessibilityManager = mockk(relaxed = true),
-            graphicsDevice: GraphicsDevice<*>    = defaultGraphicsDevice) = RenderManagerImpl(display, scheduler, themeManager, accessibilityManager, graphicsDevice)
+            display             : Display              = mockk(),
+//            timer               : Timer                = timer(),
+            themeManager        : InternalThemeManager = mockk(),
+            scheduler           : AnimationScheduler   = instantScheduler,
+            accessibilityManager: AccessibilityManager = mockk(),
+            graphicsDevice      : GraphicsDevice<*>    = defaultGraphicsDevice): Pair<RenderManagerImpl, AccessibilityManager> = RenderManagerImpl(display, scheduler, themeManager, accessibilityManager, graphicsDevice) to accessibilityManager
 
     private val defaultGraphicsDevice by lazy {
         graphicsDevice()
     }
 
-    private fun timer(): Timer = mockk<Timer>(relaxed = true).apply {
+    private fun timer(): Timer = mockk<Timer>().apply {
         every { now } returns 0 * milliseconds
     }
 
     private fun graphicsDevice(mapping: Map<View, GraphicsSurface> = mapOf()): GraphicsDevice<*> {
-        val result         = mockk<GraphicsDevice<*>>(relaxed = true)
-        val defaultSurface = mockk<GraphicsSurface>(relaxed = true)
-        val canvas         = mockk<Canvas>(relaxed = true)
+        val result         = mockk<GraphicsDevice<*>>()
+        val defaultSurface = mockk<GraphicsSurface>()
+        val canvas         = mockk<Canvas>()
 
         every { defaultSurface.render(captureLambda()) } answers {
             lambda<(Canvas) -> Unit>().captured(canvas)
@@ -714,7 +714,7 @@ class RenderManagerImplTests {
         return result
     }
 
-    private fun display(vararg children: View): Display = mockk<Display>(relaxed = true).apply {
+    private fun display(vararg children: View): Display = mockk<Display>().apply {
         val displayChildren = ObservableList<View>()
 
         displayChildren.addAll(children)
@@ -725,7 +725,7 @@ class RenderManagerImplTests {
         every { this@apply.iterator() } answers { displayChildren.iterator() }
 
         // FIXME: compiler fails to build w/o hint
-        every { sizeChanged as Pool<PropertyObserver<Display, Size>> } returns mockk(relaxed = true)
+        every { sizeChanged as Pool<PropertyObserver<Display, Size>> } returns mockk()
         every { this@apply.ancestorOf(capture(view)) } answers {
             var result = false
 
@@ -746,7 +746,7 @@ class RenderManagerImplTests {
         }
     }
 
-    private val instantScheduler by lazy { mockk<AnimationScheduler>(relaxed = true).apply {
+    private val instantScheduler by lazy { mockk<AnimationScheduler>().apply {
         every { this@apply.onNextFrame(captureLambda()) } answers {
             lambda<(Measure<Time>) -> Unit>().captured(0 * milliseconds)
 
@@ -758,7 +758,7 @@ class RenderManagerImplTests {
         }
     }}
 
-//    private val instantStrand by lazy { mockk<Strand>(relaxed = true).apply {
+//    private val instantStrand by lazy { mockk<Strand>().apply {
 //        val iterable = slot<Iterable<() -> Unit>>()
 //
 //        every { this@apply.invoke(capture(iterable)) } answers {

@@ -82,8 +82,8 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
-        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
 
         val outputs = mutableListOf<Float>()
 
@@ -108,8 +108,8 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
-        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
 
         var outputs = mutableListOf<Float>()
 
@@ -143,8 +143,8 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
-        val onCompleted        = mockk<(Completable) -> Unit>(relaxed = true)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
 
         val outputs = mutableListOf<Measure<Time>>()
 
@@ -167,7 +167,7 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
+        val listener           = mockk<Listener>()
 
         val outputs1 = mutableListOf<Float>()
         val outputs2 = mutableListOf<Float>()
@@ -195,7 +195,7 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
+        val listener           = mockk<Listener>()
 
         val outputs1 = mutableListOf<Float>()
         val outputs2 = mutableListOf<Float>()
@@ -230,7 +230,7 @@ class AnimatorImplTests {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
-        val listener           = mockk<Listener>(relaxed = true)
+        val listener           = mockk<Listener>()
 
         val outputs1 = mutableListOf<Float>()
         val outputs2 = mutableListOf<Float>()

@@ -74,7 +74,7 @@ class DisplayImplTests {
             }
         }
 
-        val sizeObserver = mockk<PropertyObserver<Display, Size>>(relaxed = true)
+        val sizeObserver = mockk<PropertyObserver<Display, Size>>()
 
         val display = display(rootElement = rootElement).apply {
             sizeChanged += sizeObserver
@@ -95,7 +95,7 @@ class DisplayImplTests {
     }
 
     @Test @JsName("notifiesCursorChange") fun `notifies cursor change`() {
-        val cursorObserver = mockk<PropertyObserver<Display, Cursor?>>(relaxed = true)
+        val cursorObserver = mockk<PropertyObserver<Display, Cursor?>>()
 
         val display = display().apply {
             cursorChanged += cursorObserver
@@ -131,8 +131,8 @@ class DisplayImplTests {
 
     @Test @JsName("childAtWorks") fun `child at works`() {
         val at     = Point(11.0, 13.0)
-        val result = mockk<View>(relaxed = true)
-        val layout = mockk<Layout>(relaxed = true).apply {
+        val result = mockk<View>()
+        val layout = mockk<Layout>().apply {
             every { child(any(), at = at) } returns PositionableWrapper(result)
         }
 
@@ -165,7 +165,7 @@ class DisplayImplTests {
     }
 
     @Test @JsName("layoutWorks") fun `layout works`() {
-        val layout = mockk<Layout>(relaxed = true)
+        val layout = mockk<Layout>()
 
         display().apply {
             doLayout() // should no-op
@@ -182,9 +182,9 @@ class DisplayImplTests {
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
-    private fun display(htmlFactory  : HtmlFactory   = mockk(relaxed = true),
-                        canvasFactory: CanvasFactory = mockk(relaxed = true),
-                        rootElement  : HTMLElement   = mockk(relaxed = true)) = DisplayImpl(htmlFactory, canvasFactory, rootElement)
+    private fun display(htmlFactory  : HtmlFactory   = mockk(),
+                        canvasFactory: CanvasFactory = mockk(),
+                        rootElement  : HTMLElement   = mockk()) = DisplayImpl(htmlFactory, canvasFactory, rootElement)
 
     private fun <T> validateDefault(p: KProperty1<DisplayImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(display()) }

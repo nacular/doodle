@@ -112,8 +112,8 @@ class VectorRendererSvglTests {
             val rect  = Rectangle(100, 100)
 
             val region = context.renderRegion
-            val svg    = mockk<SVGElement>       (relaxed = true).apply { every { parentNode } returns null; every { firstChild } returns null }
-            val poly   = mockk<SVGPolygonElement>(relaxed = true).apply { every { parentNode } returns null }
+            val svg    = mockk<SVGElement>       ().apply { every { parentNode } returns null; every { firstChild } returns null }
+            val poly   = mockk<SVGPolygonElement>().apply { every { parentNode } returns null }
 
             every { context.renderPosition                   } returns null
             every { svgFactory<SVGElement>       ("svg"    ) } returns svg
@@ -135,8 +135,8 @@ class VectorRendererSvglTests {
 
         validateRender { context, svgFactory ->
             val region = context.renderRegion
-            val svg    = mockk<SVGElement>    (relaxed = true).apply { every { parentNode } returns null; every { firstChild } returns null }
-            val r      = mockk<SVGRectElement>(relaxed = true).apply { every { parentNode } returns null }
+            val svg    = mockk<SVGElement>    ().apply { every { parentNode } returns null; every { firstChild } returns null }
+            val r      = mockk<SVGRectElement>().apply { every { parentNode } returns null }
 
             every { context.renderPosition             } returns null
             every { svgFactory<SVGElement>    ("svg" ) } returns svg
@@ -159,8 +159,8 @@ class VectorRendererSvglTests {
 
         validateRender { context, svgFactory ->
             val region = context.renderRegion
-            val svg    = mockk<SVGElement>      (relaxed = true).apply { every { parentNode } returns null; every { firstChild } returns null }
-            val c      = mockk<SVGCircleElement>(relaxed = true).apply { every { parentNode } returns null }
+            val svg    = mockk<SVGElement>      ().apply { every { parentNode } returns null; every { firstChild } returns null }
+            val c      = mockk<SVGCircleElement>().apply { every { parentNode } returns null }
 
             every { context.renderPosition                 } returns null
             every { svgFactory<SVGElement>      ("svg"   ) } returns svg
@@ -183,8 +183,8 @@ class VectorRendererSvglTests {
 
         validateRender { context, svgFactory ->
             val region = context.renderRegion
-            val svg    = mockk<SVGElement>       (relaxed = true).apply { every { parentNode } returns null; every { firstChild } returns null }
-            val e      = mockk<SVGEllipseElement>(relaxed = true).apply { every { parentNode } returns null }
+            val svg    = mockk<SVGElement>       ().apply { every { parentNode } returns null; every { firstChild } returns null }
+            val e      = mockk<SVGEllipseElement>().apply { every { parentNode } returns null }
 
             every { context.renderPosition                   } returns null
             every { svgFactory<SVGElement>       ("svg"    ) } returns svg
@@ -203,7 +203,7 @@ class VectorRendererSvglTests {
 
     @Test @JsName("reusesSvgElement") fun `reuses svg element`() {
         val svg        = slot<SVGElement>()
-        val context    = mockk<CanvasContext>(relaxed = true)
+        val context    = mockk<CanvasContext>()
         val element    = slot<Node>()
         val svgFactory = svgFactory()
         val renderer   = renderer(context, svgFactory)
@@ -227,7 +227,7 @@ class VectorRendererSvglTests {
 
     @Test @JsName("reusesAllElments") fun `reuses all elements`() {
         val svgElements = mutableListOf<SVGElement>()
-        val context     = mockk<CanvasContext>(relaxed = true)
+        val context     = mockk<CanvasContext>()
         val element     = slot<Node>()
         val svgFactory  = svgFactory(svgElements)
         val renderer    = renderer(context, svgFactory)
@@ -262,7 +262,7 @@ class VectorRendererSvglTests {
 
     @Test @JsName("picksCorrectSvg") fun `picks correct svg`() {
         val svgElements = mutableListOf<SVGElement>()
-        val context     = mockk<CanvasContext>(relaxed = true)
+        val context     = mockk<CanvasContext>()
         val element     = slot<Node>()
         val svgFactory  = svgFactory(svgElements)
         val renderer    = renderer(context, svgFactory)
@@ -297,7 +297,7 @@ class VectorRendererSvglTests {
 
     @Test @JsName("picksCorrectSvgRepeated") fun `picks correct svg repeated`() {
         val svgElements = mutableListOf<SVGElement>()
-        val context     = mockk<CanvasContext>(relaxed = true)
+        val context     = mockk<CanvasContext>()
         val element     = slot<Node>()
         val svgFactory  = svgFactory(svgElements)
         val renderer    = renderer(context, svgFactory)
@@ -336,7 +336,7 @@ class VectorRendererSvglTests {
     }
 
     private fun drawNonSvg(context: CanvasContext) {
-        context.renderRegion.appendChild(mockk(relaxed = true))
+        context.renderRegion.appendChild(mockk())
 
         every { context.renderPosition } returns null
     }
@@ -382,11 +382,11 @@ class VectorRendererSvglTests {
         }
     }
 
-    private inline fun <reified T: SVGElement> svg(tag: String): T = mockk<T>(relaxed = true).apply {
+    private inline fun <reified T: SVGElement> svg(tag: String): T = mockk<T>().apply {
         setupNode(this, tag)
     }
 
-    private fun svgFactory(products: MutableList<SVGElement> = mutableListOf()) = mockk<SvgFactory>(relaxed = true).apply {
+    private fun svgFactory(products: MutableList<SVGElement> = mutableListOf()) = mockk<SvgFactory>().apply {
         val slot = slot<String>()
 
         every { invoke<SVGElement>(capture(slot)) } answers {
@@ -402,11 +402,11 @@ class VectorRendererSvglTests {
 //    @Test fun `renders simple text`() {
 //        val brush = ColorBrush(red)
 //        val text  = "some text"
-//        val font  = mockk<Font>(relaxed = true)
+//        val font  = mockk<Font>()
 //        val at    = Point(34, 89)
 //
 //        validateRender { renderParent, _, textFactory, _ ->
-//            val t = mockk<HTMLElement>(relaxed = true)
+//            val t = mockk<HTMLElement>()
 //            every { textFactory.create(text, font, null) } returns t
 //
 //            text(text, font, at, brush)
@@ -426,7 +426,7 @@ class VectorRendererSvglTests {
 //        val at   = Point(34, 89)
 //
 //        validateRender { renderParent, _, textFactory, _ ->
-//            val t = mockk<HTMLElement>(relaxed = true)
+//            val t = mockk<HTMLElement>()
 //            every { textFactory.create(text, null) } returns t
 //
 //            text(text, at)
@@ -442,11 +442,11 @@ class VectorRendererSvglTests {
 //    @Test fun `renders simple wrapped text`() {
 //        val brush = ColorBrush(red)
 //        val text  = "some text"
-//        val font  = mockk<Font>(relaxed = true)
+//        val font  = mockk<Font>()
 //        val at    = Point(150, 89)
 //
 //        validateRender { renderParent, _, textFactory, _ ->
-//            val t = mockk<HTMLElement>(relaxed = true)
+//            val t = mockk<HTMLElement>()
 //            every { textFactory.wrapped(text, font, 100.0, 50.0, null) } returns t
 //
 //            wrapped(text, font, at, 100.0, 200.0, brush)
@@ -466,7 +466,7 @@ class VectorRendererSvglTests {
 //        val at    = Point(150, 89)
 //
 //        validateRender { renderParent, _, textFactory, _ ->
-//            val t = mockk<HTMLElement>(relaxed = true)
+//            val t = mockk<HTMLElement>()
 //            every { textFactory.wrapped(text, 100.0, 50.0, null) } returns t
 //
 //            wrapped(text, at, 100.0, 200.0)
@@ -480,14 +480,14 @@ class VectorRendererSvglTests {
 //    }
 
 //    @Test fun `renders image`() {
-//        val image = mockk<ImageImpl>(relaxed = true).apply {
+//        val image = mockk<ImageImpl>().apply {
 //            every { size } returns Size(130.0, 46.0)
 //        }
 //        val at    = Point(150, 89)
 //
 //        validateRender { renderParent, _, _, _ ->
-//            val clone = mockk<HTMLImageElement>(relaxed = true)
-//            val img   = mockk<HTMLImageElement>(relaxed = true).apply {
+//            val clone = mockk<HTMLImageElement>()
+//            val img   = mockk<HTMLImageElement>().apply {
 //                every { cloneNode(false) } returns clone
 //            }
 //
@@ -521,11 +521,11 @@ class VectorRendererSvglTests {
 //    }
 
 //    private fun validateTransform(block: CanvasImpl.() -> AffineTransform) {
-//        val htmlFactory  = mockk<HtmlFactory>(relaxed = true)
+//        val htmlFactory  = mockk<HtmlFactory>()
 //        val renderParent = spyk<HTMLElement> (              )
 //
 //        renderer(renderParent, htmlFactory).apply {
-//            val frame = mockk<HTMLElement>(relaxed = true).apply { every { parentNode } returns null andThen renderParent }
+//            val frame = mockk<HTMLElement>().apply { every { parentNode } returns null andThen renderParent }
 //
 //            every { htmlFactory.createOrUse("B", any()) } returns frame
 //
@@ -538,8 +538,8 @@ class VectorRendererSvglTests {
 //    }
 
     private fun validateRender(block: VectorRendererSvg.(context: CanvasContext, svgFactory: SvgFactory) -> Unit) {
-        val context = mockk<CanvasContext>(relaxed = true)
-        val factory = mockk<SvgFactory>   (relaxed = true)
+        val context = mockk<CanvasContext>()
+        val factory = mockk<SvgFactory>   ()
 
         renderer(context, factory).apply {
             block(this, context, factory)
@@ -547,11 +547,11 @@ class VectorRendererSvglTests {
     }
 
     private fun nothingRendered(block: VectorRendererSvg.(Pen, Brush) -> Unit) {
-        val context = mockk<CanvasContext>(relaxed = true)
-        val factory = mockk<SvgFactory>   (relaxed = true)
+        val context = mockk<CanvasContext>()
+        val factory = mockk<SvgFactory>   ()
 
         renderer(context, factory).apply {
-            block(this, mockk<Pen>(relaxed = true).apply { every { visible } returns false }, mockk<Brush>(relaxed = true).apply { every { visible } returns false })
+            block(this, mockk<Pen>().apply { every { visible } returns false }, mockk<Brush>().apply { every { visible } returns false })
         }
 
         val region = context.renderRegion
@@ -560,8 +560,8 @@ class VectorRendererSvglTests {
     }
 
     private fun nothingRendered(block: VectorRendererSvg.() -> Unit) {
-        val context = mockk<CanvasContext>(relaxed = true)
-        val factory = mockk<SvgFactory>   (relaxed = true)
+        val context = mockk<CanvasContext>()
+        val factory = mockk<SvgFactory>   ()
 
         renderer(context, factory).apply {
             block(this)
@@ -573,8 +573,8 @@ class VectorRendererSvglTests {
     }
 
     private fun renderer(
-            context     : CanvasContext = mockk(relaxed = true),
-            svgFactory  : SvgFactory = mockk(relaxed = true),
-            htmleFactory: HtmlFactory = mockk(relaxed = true),
-            textMetrics : TextMetrics = mockk(relaxed = true)) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics)
+            context     : CanvasContext = mockk(),
+            svgFactory  : SvgFactory = mockk(),
+            htmleFactory: HtmlFactory = mockk(),
+            textMetrics : TextMetrics = mockk()) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics)
 }

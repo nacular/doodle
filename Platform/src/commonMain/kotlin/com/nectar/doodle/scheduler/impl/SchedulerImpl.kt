@@ -10,7 +10,11 @@ import com.nectar.measured.units.Measure
 import com.nectar.measured.units.Time
 import com.nectar.measured.units.Time.Companion.milliseconds
 import com.nectar.measured.units.times
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /**
@@ -62,20 +66,32 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
     private var shutdown = false
 
     override suspend fun delay(time: Measure<Time>) = suspendCoroutine<Unit> { coroutine ->
-        after(time) { coroutine.resume(Unit) }
-    }
-
-    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
-        check(predicate) {
-            coroutine.resume(Unit)
+        after(time) {
+            try {
+                coroutine.context.ensureActive()
+                coroutine.resume(Unit)
+            } catch (e: CancellationException) {
+                coroutine.resumeWithException(e)
+            }
         }
     }
 
-    private fun check(predicate: (Measure<Time>) -> Boolean, complete: () -> Unit) {
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
+        try {
+            check(predicate, coroutine.context) {
+                coroutine.resume(Unit)
+            }
+        } catch (e: CancellationException) {
+            coroutine.resumeWithException(e)
+        }
+    }
+
+    private fun check(predicate: (Measure<Time>) -> Boolean, coroutineContext: CoroutineContext, complete: () -> Unit) {
         now {
-            if (predicate(it)) { complete() }
-            else if (!shutdown){
-                check(predicate, complete)
+            coroutineContext.ensureActive()
+            when {
+                predicate(it) -> complete()
+                !shutdown     -> check(predicate, coroutineContext, complete)
             }
         }
     }

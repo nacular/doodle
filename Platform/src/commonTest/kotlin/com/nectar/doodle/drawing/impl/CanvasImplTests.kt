@@ -102,7 +102,7 @@ class CanvasImplTests {
         val rect  = Rectangle(100, 100)
 
         validateRender { renderParent, htmlFactory, _, _ ->
-            val b = mockk<HTMLElement>(relaxed = true)
+            val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
             rect(rect, brush)
@@ -123,7 +123,7 @@ class CanvasImplTests {
         val radius = 12.0
 
         validateRender { renderParent, htmlFactory, _, _ ->
-            val b = mockk<HTMLElement>(relaxed = true)
+            val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
             rect(rect, radius, brush)
@@ -144,7 +144,7 @@ class CanvasImplTests {
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
-            val b = mockk<HTMLElement>(relaxed = true)
+            val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
             circle(circle, brush)
@@ -165,7 +165,7 @@ class CanvasImplTests {
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
-            val b = mockk<HTMLElement>(relaxed = true)
+            val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
             ellipse(ellipse, brush)
@@ -184,11 +184,11 @@ class CanvasImplTests {
     @Test @JsName("rendersSimpleText") fun `renders simple text`() {
         val brush = ColorBrush(red)
         val text  = "some text"
-        val font  = mockk<Font>(relaxed = true)
+        val font  = mockk<Font>()
         val at    = Point(34, 89)
 
         validateRender { renderParent, _, textFactory, _ ->
-            val t = mockk<HTMLElement>(relaxed = true)
+            val t = mockk<HTMLElement>()
             every { textFactory.create(text, font, null) } returns t
 
             text(text, font, at, brush)
@@ -208,7 +208,7 @@ class CanvasImplTests {
         val at   = Point(34, 89)
 
         validateRender { renderParent, _, textFactory, _ ->
-            val t = mockk<HTMLElement>(relaxed = true)
+            val t = mockk<HTMLElement>()
             every { textFactory.create(text, null) } returns t
 
             text(text, at)
@@ -224,11 +224,11 @@ class CanvasImplTests {
     @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
         val brush = ColorBrush(red)
         val text  = "some text"
-        val font  = mockk<Font>(relaxed = true)
+        val font  = mockk<Font>()
         val at    = Point(150, 89)
 
         validateRender { renderParent, _, textFactory, _ ->
-            val t = mockk<HTMLElement>(relaxed = true)
+            val t = mockk<HTMLElement>()
             every { textFactory.wrapped(text, font, 100.0, 50.0, null) } returns t
 
             wrapped(text, font, at, 100.0, 200.0, brush)
@@ -248,7 +248,7 @@ class CanvasImplTests {
         val at    = Point(150, 89)
 
         validateRender { renderParent, _, textFactory, _ ->
-            val t = mockk<HTMLElement>(relaxed = true)
+            val t = mockk<HTMLElement>()
             every { textFactory.wrapped(text, 100.0, 50.0, null) } returns t
 
             wrapped(text, at, 100.0, 200.0)
@@ -262,14 +262,14 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersImage") fun `renders image`() {
-        val image = mockk<ImageImpl>(relaxed = true).apply {
+        val image = mockk<ImageImpl>().apply {
             every { size } returns Size(130.0, 46.0)
         }
         val at    = Point(150, 89)
 
         validateRender { renderParent, _, _, _ ->
-            val clone = mockk<HTMLImageElement>(relaxed = true)
-            val img   = mockk<HTMLImageElement>(relaxed = true).apply {
+            val clone = mockk<HTMLImageElement>()
+            val img   = mockk<HTMLImageElement>().apply {
                 every { cloneNode(false) } returns clone
             }
 
@@ -303,11 +303,11 @@ class CanvasImplTests {
     }
 
     private fun validateTransform(block: CanvasImpl.() -> AffineTransform) {
-        val htmlFactory  = mockk<HtmlFactory>(relaxed = true)
+        val htmlFactory  = mockk<HtmlFactory>()
         val renderParent = spyk<HTMLElement> (              )
 
         canvas(renderParent, htmlFactory).apply {
-            val frame = mockk<HTMLElement>(relaxed = true).apply { every { parentNode } returns null andThen renderParent }
+            val frame = mockk<HTMLElement>().apply { every { parentNode } returns null andThen renderParent }
 
             every { htmlFactory.createOrUse("B", any()) } returns frame
 
@@ -320,9 +320,9 @@ class CanvasImplTests {
     }
 
     private fun validateRender(block: CanvasImpl.(renderParent: HTMLElement, htmlFactory: HtmlFactory, textFactory: TextFactory, rendererFactory: VectorRendererFactory) -> Unit) {
-        val renderer        = mockk<VectorRenderer>(relaxed = true)
-        val htmlFactory     = mockk<HtmlFactory>   (relaxed = true)
-        val textFactory     = mockk<TextFactory>   (relaxed = true)
+        val renderer        = mockk<VectorRenderer>()
+        val htmlFactory     = mockk<HtmlFactory>   ()
+        val textFactory     = mockk<TextFactory>   ()
         val renderParent    = spyk<HTMLElement>    (              )
         val rendererFactory = rendererFactory      (renderer      )
 
@@ -333,7 +333,7 @@ class CanvasImplTests {
 
     private fun nothingRendered(block: CanvasImpl.() -> Unit) {
         val renderParent = spyk<HTMLElement>()
-        val renderer     = mockk<VectorRenderer>(relaxed = true)
+        val renderer     = mockk<VectorRenderer>()
 
         canvas(renderParent, rendererFactory = rendererFactory(renderer)).apply {
             block(this)
@@ -345,23 +345,23 @@ class CanvasImplTests {
 
     private fun nothingRendered(block: CanvasImpl.(Pen, Brush) -> Unit) {
         val renderParent = spyk<HTMLElement>()
-        val renderer     = mockk<VectorRenderer>(relaxed = true)
+        val renderer     = mockk<VectorRenderer>()
 
         canvas(renderParent, rendererFactory = rendererFactory(renderer)).apply {
-            block(this, mockk<Pen>(relaxed = true).apply { every { visible } returns false }, mockk<Brush>(relaxed = true).apply { every { visible } returns false })
+            block(this, mockk<Pen>().apply { every { visible } returns false }, mockk<Brush>().apply { every { visible } returns false })
         }
 
 //        verify { renderer wasNot Called }
         verify(exactly = 0) { renderParent.appendChild(any()) }
     }
 
-    private fun rendererFactory(renderer: VectorRenderer = mockk(relaxed = true)) = mockk<VectorRendererFactory>(relaxed = true).apply {
+    private fun rendererFactory(renderer: VectorRenderer = mockk()) = mockk<VectorRendererFactory>().apply {
         every { this@apply.invoke(any()) } returns renderer
     }
 
-    private fun canvas(renderParent   : HTMLElement           = mockk(relaxed = true),
-                       htmlFactory    : HtmlFactory           = mockk(relaxed = true),
-                       textFactory    : TextFactory           = mockk(relaxed = true),
+    private fun canvas(renderParent   : HTMLElement           = mockk(),
+                       htmlFactory    : HtmlFactory           = mockk(),
+                       textFactory    : TextFactory           = mockk(),
                        rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(renderParent, htmlFactory, textFactory, rendererFactory)
 
     private fun <T> validateDefault(p: KProperty1<CanvasImpl, T>, default: T?) {

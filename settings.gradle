@@ -30,7 +30,7 @@ include 'Themes'
 
 include 'HelloWorld'
 include 'TestApp'
-include 'ImageSite'
+//include 'ImageSite'
 //include 'GetterFixer'
 
 project(':Animation' ).name = 'animation'
@@ -41,7 +41,7 @@ project(':Themes'    ).name = 'themes'
 
 project(':HelloWorld').name = 'helloworld'
 project(':TestApp'   ).name = 'testapp'
-project(':ImageSite' ).name = 'imagesite'
+//project(':ImageSite' ).name = 'imagesite'
 //project(':GetterFixer').name = 'getterfixer'
 
 //include 'JsDce'

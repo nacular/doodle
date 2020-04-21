@@ -4,21 +4,24 @@ apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 
 kotlin {
-    jvm ()
-    js { browser {} }
+    jvm ().compilations.all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    js {
+        browser.testTask {
+            enabled = false
+        }
+    }.compilations.all {
+        kotlinOptions {
+            sourceMap             = true
+            moduleKind            = "commonjs"
+            sourceMapEmbedSources = 'always'
+        }
+    }
 
     targets {
-        fromPreset(presets.jvm, 'jvm')
-        fromPreset(presets.js,  'js' ) {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    sourceMap             = true
-                    sourceMapEmbedSources = 'always'
-                    moduleKind            = 'commonjs'
-                }
-            }
-        }
-
         all {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {

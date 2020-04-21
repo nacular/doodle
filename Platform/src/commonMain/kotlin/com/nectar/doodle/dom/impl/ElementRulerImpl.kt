@@ -10,7 +10,7 @@ import com.nectar.doodle.dom.width
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.willChange
 
-class ElementRulerImpl(private val htmlFactory: HtmlFactory): ElementRuler {
+class ElementRulerImpl(htmlFactory: HtmlFactory): ElementRuler {
 
     override fun width (element: HTMLElement) = measure(element) { width               }
     override fun height(element: HTMLElement) = measure(element) { height              }

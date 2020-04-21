@@ -4,21 +4,24 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
-    jvm ()
-    js { browser {} }
+    jvm ().compilations.all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    js {
+        browser.testTask {
+            enabled = false
+        }
+    }.compilations.all {
+        kotlinOptions {
+            sourceMap             = true
+            moduleKind            = "commonjs"
+            sourceMapEmbedSources = 'always'
+        }
+    }
 
     targets {
-        fromPreset(presets.jvm, 'jvm')
-        fromPreset(presets.js,  'js' ) {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    sourceMap             = true
-                    sourceMapEmbedSources = 'always'
-                    moduleKind            = 'commonjs'
-                }
-            }
-        }
-
         all {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {
@@ -36,6 +39,7 @@ kotlin {
             api project(':themes'  )
 
             implementation dep.kotlin_stdlib_common
+            implementation dep.kotlinx_coroutines_core_common
         }
 
         commonTest.dependencies {
@@ -46,6 +50,7 @@ kotlin {
 
         jvmMain.dependencies {
             implementation dep.kotlin_stdlib_jdk8
+            implementation dep.kotlinx_coroutines_core_jvm
         }
 
         jvmTest.dependencies {
@@ -60,6 +65,7 @@ kotlin {
         jsMain.dependencies {
             api dep.kodein_js
             implementation dep.kotlin_stdlib_js
+            implementation dep.kotlinx_coroutines_core_js
         }
 
         jsTest.dependencies {

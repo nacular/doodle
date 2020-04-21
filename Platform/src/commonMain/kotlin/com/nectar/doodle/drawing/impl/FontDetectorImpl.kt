@@ -10,6 +10,8 @@ import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.impl.FontDetectorImpl.State.Found
 import com.nectar.doodle.drawing.impl.FontDetectorImpl.State.Pending
 import com.nectar.doodle.scheduler.Scheduler
+import com.nectar.measured.units.Time.Companion.seconds
+import com.nectar.measured.units.times
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -27,7 +29,7 @@ class FontDetectorImpl(
     private enum class State { Pending, Found }
 
     private val fonts     = mutableMapOf<Int, State>()
-    private val suspended = mutableMapOf<Int, MutableList<Continuation<FontImpl>>>()
+    private val suspended = mutableMapOf<Int, MutableList<Continuation<State?>>>()
 
     private fun getHash(family: String, weight: Weight, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
 
@@ -35,38 +37,63 @@ class FontDetectorImpl(
         FontInfo().apply(info).apply {
             val hash = getHash(family, weight, size, style)
 
-            return when (fonts[hash]) {
-                Found   -> FontImpl(size, weight, style, family)
-                Pending -> suspendCoroutine {
-                    suspended.getOrPut(hash) { mutableListOf() }.add(it) // FIXME: Handle case where pending coroutine is canceled
-                }
-                else    -> {
-                    if (family == DEFAULT_FAMILY || family.isBlank()) {
-                        return FontImpl(size, weight, style, family)
-                    }
+            return when (waitIfLoading(hash)) {
+                // Only one coroutine will get here at a time.  It will either load the Font or be canceled.  On success, all queued
+                // loads will be resolved and return.  Otherwise, the next in line is allowed to take a shot.
+                Found -> FontImpl(size, weight, style, family)
+                else  -> {
+                    try {
+                        if (family == DEFAULT_FAMILY || family.isBlank()) {
+                            return FontImpl(size, weight, style, family)
+                        }
 
-                    fonts[hash] = Pending
+                        fonts[hash] = Pending
 
-                    val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
-                    val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
+                        val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
+                        val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
 
-                    var loadedSize  = defaultSize
+//                        var loadedSize: Size
 
-                    text.onresize = {
-                        loadedSize = elementRuler.size(text)
-                        Unit
-                    }
+//                        text.onresize = {
+//                            println("onresize")
+//                            loadedSize = elementRuler.size(text)
+//                            Unit
+//                        }
 
-                    scheduler.delayUntil { loadedSize != defaultSize }
+                        scheduler.delayUntil { elementRuler.size(text) != defaultSize } // FIXME: Use approach that adds element and observes size/scroll like: https://github.com/bramstein/fontfaceobserver/blob/master/src/ruler.js
 
-                    fonts[hash] = Found
+                        fonts[hash] = Found
 
-                    FontImpl(size, weight, style, family).also { font ->
-                        suspended[hash]?.forEach { it.resume(font) }
-                        suspended -= hash
+                        return FontImpl(size, weight, style, family).also {
+                            suspended[hash]?.forEach { it.resume(Found) }
+                            suspended -= hash
+                        }
+                    } finally {
+                        // Handle case that this coroutine was canceled or errored out
+                        suspended[hash]?.let { items ->
+                            items.firstOrNull()?.let {
+                                it.resume(fonts[hash])
+                                items -= it
+                            }
+
+                            if (items.isEmpty()) {
+                                suspended -= hash
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun waitIfLoading(hash: Int): State? = suspendCoroutine {
+        when (fonts[hash]) {
+            Found   -> it.resume(Found)
+            Pending -> {
+                // Enqueue for resolution later when the current coroutine finds the font, or fails and dequeues the next in line
+                suspended.getOrPut(hash) { mutableListOf() }.add(it)
+            }
+            else    -> it.resume(null) // No attempts yet, so proceed to resolve right away
         }
     }
 

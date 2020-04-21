@@ -17,26 +17,26 @@ class FocusManagerImplTests {
 
     @Test @JsName("noDefaultFocusOwner")
     fun `no default focus owner`() {
-        expect(null) { FocusManagerImpl(mockk(relaxed = true)).focusOwner }
+        expect(null) { FocusManagerImpl(mockk()).focusOwner }
     }
 
     @Test @JsName("noDefaultFocusCycleRoot")
     fun `no default focus-cycle-root`() {
-        expect(null) { FocusManagerImpl(mockk(relaxed = true)).focusCycleRoot }
+        expect(null) { FocusManagerImpl(mockk()).focusCycleRoot }
     }
 
     @Test @JsName("validateFocusability")
     fun `validate focusability`() {
         createFocusablePermutations().forEach { (view, expected) ->
-            expect(expected) { FocusManagerImpl(mockk(relaxed = true)).focusable(view) }
+            expect(expected) { FocusManagerImpl(mockk()).focusable(view) }
         }
     }
 
     @Test @JsName("requestFocusNoOpsIfNotFocusable")
     fun `request focus no-ops if not focusable`() {
         createFocusablePermutations().forEach { (view, expected) ->
-            FocusManagerImpl(mockk(relaxed = true)).apply {
-                val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
+            FocusManagerImpl(mockk()).apply {
+                val listener = mockk<(FocusManager, View?, View?) -> Unit>()
 
                 focusChanged += listener
 
@@ -59,8 +59,8 @@ class FocusManagerImplTests {
         val previous = createFocusableView()
         val view     = createFocusableView()
 
-        FocusManagerImpl(mockk(relaxed = true)).apply {
-            val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
+        FocusManagerImpl(mockk()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
 
             focusChanged += listener
 
@@ -81,8 +81,8 @@ class FocusManagerImplTests {
     fun `request focus to focus owner no-ops`() {
         val view = createFocusableView()
 
-        FocusManagerImpl(mockk(relaxed = true)).apply {
-            val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
+        FocusManagerImpl(mockk()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
 
             focusChanged += listener
 
@@ -103,7 +103,7 @@ class FocusManagerImplTests {
 //        val view = createFocusableView()
 //
 //        FocusManagerImpl().apply {
-//            val listener = mockk<(FocusManager, View?, View?) -> Unit>(relaxed = true)
+//            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
 //
 //            focusChanged += listener
 //
@@ -129,7 +129,7 @@ class FocusManagerImplTests {
 //    }
 
 
-    private fun createFocusableView() = mockk<View>(relaxed = true).apply {
+    private fun createFocusableView() = mockk<View>().apply {
         every { parent                } returns null
         every { enabled               } returns true
         every { visible               } returns true
@@ -149,7 +149,7 @@ class FocusManagerImplTests {
             Focusability(true,  true,  false) to false,
             Focusability(true,  true,  true ) to true
     ).map { (row, expected) ->
-        mockk<View>(relaxed = true).apply {
+        mockk<View>().apply {
             every { enabled               } returns row.enabled
             every { visible               } returns row.visible
             every { focusable             } returns row.focusable

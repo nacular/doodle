@@ -1,25 +1,28 @@
-apply from  : '../jacoco.gradle'
-apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
-apply plugin: 'java-test-fixtures'
+apply plugin: 'org.jetbrains.dokka'
+apply from  : '../jacoco.gradle'
+//apply plugin: 'java-test-fixtures'
 
 kotlin {
-    jvm ()
-    js { browser {} }
+    jvm ().compilations.all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    js {
+        browser.testTask {
+            enabled = false
+        }
+    }.compilations.all {
+        kotlinOptions {
+            sourceMap             = true
+            moduleKind            = "commonjs"
+            sourceMapEmbedSources = 'always'
+        }
+    }
 
     targets {
-        fromPreset(presets.jvm, 'jvm')
-        fromPreset(presets.js,  'js' ) {
-            compilations.all {
-                tasks[compileKotlinTaskName].kotlinOptions {
-                    sourceMap             = true
-                    sourceMapEmbedSources = 'always'
-                    moduleKind            = 'commonjs'
-                }
-            }
-        }
-
         all {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {
@@ -33,6 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api project(':core' )
+
             implementation dep.kotlin_stdlib_common
         }
 
@@ -64,4 +68,10 @@ kotlin {
             implementation dep.kotlin_test_js
         }
     }
+
+//    compileKotlinJs {
+////        kotlinOptions.metaInfo   = true
+//        kotlinOptions.sourceMap  = true
+//        kotlinOptions.moduleKind = 'commonjs'
+//    }
 }

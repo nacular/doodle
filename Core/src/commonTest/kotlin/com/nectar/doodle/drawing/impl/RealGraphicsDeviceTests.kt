@@ -18,9 +18,9 @@ import kotlin.test.expect
 class RealGraphicsDeviceTests {
     @Test @JsName("create")
     fun `create works`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val surface1       = mockk<GraphicsSurface>(relaxed = true)
-        val surface2       = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val surface1       = mockk<GraphicsSurface>()
+        val surface2       = mockk<GraphicsSurface>()
 
         every { surfaceFactory() } returns surface1 andThen surface2
 
@@ -35,8 +35,8 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("getNoParentNoChildrenWorks")
     fun `get no parent, no children works`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val surface        = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val surface        = mockk<GraphicsSurface>()
 
         every { surfaceFactory(null, any(), false) } returns surface
 
@@ -49,8 +49,8 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("getNoParentWithChildrenWorks")
     fun `get no parent, with children works`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val surface        = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val surface        = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
 
@@ -67,9 +67,9 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("getWithParentNoChildrenWorks")
     fun `get with parent, no children works`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val parentSurface  = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface   = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val parentSurface  = mockk<GraphicsSurface>()
+        val childSurface   = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
 
@@ -89,10 +89,10 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("getWithParentWithChildrenWorks")
     fun `get with parent, with children works`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val parentSurface  = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface   = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface  = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val parentSurface  = mockk<GraphicsSurface>()
+        val childSurface   = mockk<GraphicsSurface>()
+        val nestedSurface  = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
         val nested         = object: View() {}
@@ -117,10 +117,10 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("resultsCached")
     fun `results cached`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val parentSurface  = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface   = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface  = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val parentSurface  = mockk<GraphicsSurface>()
+        val childSurface   = mockk<GraphicsSurface>()
+        val nestedSurface  = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
         val nested         = object: View() {}
@@ -147,13 +147,13 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("releaseView")
     fun `release view`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val parentSurface1 = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface1  = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface1 = mockk<GraphicsSurface>(relaxed = true)
-        val parentSurface2 = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface2  = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface2 = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val parentSurface1 = mockk<GraphicsSurface>()
+        val childSurface1  = mockk<GraphicsSurface>()
+        val nestedSurface1 = mockk<GraphicsSurface>()
+        val parentSurface2 = mockk<GraphicsSurface>()
+        val childSurface2  = mockk<GraphicsSurface>()
+        val nestedSurface2 = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
         val nested         = object: View() {}
@@ -187,13 +187,13 @@ class RealGraphicsDeviceTests {
 
     @Test @JsName("releaseSurface")
     fun `release surface`() {
-        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>(relaxed = true)
-        val parentSurface1 = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface1  = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface1 = mockk<GraphicsSurface>(relaxed = true)
-        val parentSurface2 = mockk<GraphicsSurface>(relaxed = true)
-        val childSurface2  = mockk<GraphicsSurface>(relaxed = true)
-        val nestedSurface2 = mockk<GraphicsSurface>(relaxed = true)
+        val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
+        val parentSurface1 = mockk<GraphicsSurface>()
+        val childSurface1  = mockk<GraphicsSurface>()
+        val nestedSurface1 = mockk<GraphicsSurface>()
+        val parentSurface2 = mockk<GraphicsSurface>()
+        val childSurface2  = mockk<GraphicsSurface>()
+        val nestedSurface2 = mockk<GraphicsSurface>()
         val parent         = Box()
         val child          = object: View() {}
         val nested         = object: View() {}

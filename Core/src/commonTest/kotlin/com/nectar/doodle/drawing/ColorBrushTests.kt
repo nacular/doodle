@@ -15,8 +15,8 @@ class ColorBrushTests {
     @Test @JsName("defaultsCorrect")
     fun `defaults correct`() {
         ColorBrush(black).apply {
-            expect(black) { color     }
-            expect(true ) { visible   }
+            expect(black) { color   }
+            expect(true ) { visible }
         }
     }
 

@@ -9,9 +9,11 @@ import com.nectar.doodle.themes.Modules.BehaviorResolver
 import org.kodein.di.DKodein
 import org.kodein.di.erasedSet
 
-open class AdhocTheme internal constructor(private val behaviors: Iterable<BehaviorResolver>): Theme {
+open class AdhocTheme internal constructor(behaviors: Iterable<BehaviorResolver>): Theme {
+    private val behaviors = behaviors.reversed()
+
     override fun install(display: Display, all: Sequence<View>) = all.forEach { view ->
-        behaviors.lastOrNull { it(view) == BehaviorResult.Matched }
+        behaviors.firstOrNull { it(view) == BehaviorResult.Matched }
     }
 
     override fun toString() = this::class.simpleName ?: ""

@@ -16,8 +16,6 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 5/15/18.
  */
-
-
 class ScrollPanelTests {
     @Test @JsName("scrollToPoint")
     fun `scroll to point`() {
@@ -91,7 +89,7 @@ class ScrollPanelTests {
     }
 
     private fun behavior(): ScrollPanelBehavior {
-        val behavior = mockk<ScrollPanelBehavior>(relaxed = true)
+        val behavior = mockk<ScrollPanelBehavior>()
 
         val point    = CapturingSlot<Point>()
         val onScroll = CapturingSlot<(Point) -> Unit>()

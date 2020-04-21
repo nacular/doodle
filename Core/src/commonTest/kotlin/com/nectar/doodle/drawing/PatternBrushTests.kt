@@ -77,7 +77,7 @@ class PatternBrushTests {
                 Attributes( 0.6, null,  red),
                 Attributes( 0.0, red, green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>(relaxed = true)
+            val canvas = mockk<Canvas>()
 
             horizontalStripedBrush(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(fill)
@@ -120,7 +120,7 @@ class PatternBrushTests {
                 Attributes( 0.6, null,  red),
                 Attributes( 0.0, red, green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>(relaxed = true)
+            val canvas = mockk<Canvas>()
 
             verticalStripedBrush(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(fill)
@@ -163,7 +163,7 @@ class PatternBrushTests {
                 Attributes(Size( 0.6), null,  red)//,
 //                Attributes(Size( 0.0), red, green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>(relaxed = true)
+            val canvas = mockk<Canvas>()
 
             checkerBrush(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
                 canvas.apply(fill)

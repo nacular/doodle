@@ -5,8 +5,22 @@ apply from  : '../jacoco.gradle'
 apply plugin: 'java-test-fixtures'
 
 kotlin {
-    jvm ()
-    js { browser {} }
+    jvm ().compilations.all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    js {
+        browser.testTask {
+            enabled = false
+        }
+    }.compilations.all {
+        kotlinOptions {
+            sourceMap             = true
+            moduleKind            = "commonjs"
+            sourceMapEmbedSources = 'always'
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {

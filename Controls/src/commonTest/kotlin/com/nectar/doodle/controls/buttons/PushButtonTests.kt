@@ -39,7 +39,7 @@ class PushButtonTests {
 
     @Test @JsName("cannotClickDisabled")
     fun `cannot click disabled`() {
-        val model = mockk<ButtonModel>(relaxed = true)
+        val model = mockk<ButtonModel>()
 
         PushButton(model = model).apply {
             enabled = false

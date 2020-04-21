@@ -4,8 +4,16 @@ apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
 kotlin {
-    jvm ()
-    js { browser {} }.compilations.all {
+    jvm ().compilations.all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    js {
+        browser.testTask {
+            enabled = false
+        }
+    }.compilations.all {
         kotlinOptions {
             sourceMap             = true
             moduleKind            = "commonjs"
@@ -14,17 +22,6 @@ kotlin {
     }
 
     targets {
-//        fromPreset(presets.jvm, 'jvm')
-//        fromPreset(presets.js,  'js' ) {
-//            compilations.all {
-//                tasks[compileKotlinTaskName].kotlinOptions {
-//                    sourceMap             = true
-//                    sourceMapEmbedSources = 'always'
-//                    moduleKind            = 'commonjs'
-//                }
-//            }
-//        }
-
         all {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {

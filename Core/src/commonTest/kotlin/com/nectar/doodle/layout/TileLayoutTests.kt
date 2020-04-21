@@ -13,12 +13,12 @@ import kotlin.test.Test
  */
 class TileLayoutTests {
     @Ignore() @Test() @JsName("emptyContainerWorks") fun `empty container works`() {
-        val container = mockk<PositionableContainer>(relaxed = true).apply {
+        val container = mockk<PositionableContainer>().apply {
             every { insets   } returns Insets(10.0)
             every { size     } returns Size(1427, 10)
             every { width    } returns size.width
             every { height   } returns size.height
-            every { children } returns listOf(mockk(relaxed = true))
+            every { children } returns listOf(mockk())
         }
 
         TileLayout().layout(container)
