@@ -47,7 +47,13 @@ class Modules {
             bind<AdhocTheme>() with singleton { AdhocTheme(Instance(erasedSet())) }
         }
 
-        inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit) {
+        inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit) = bindConditionalBehavior<T>(theme) {
+            block(this, it)
+            Matched
+        }
+
+        // TODO: Can this be renamed to bindBehavior in 1.4?
+        inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
             importOnce(adhocThemeModule, allowOverride = true)
 
             bind<BehaviorResolver>().inSet() with singleton {
@@ -55,7 +61,7 @@ class Modules {
                     override val theme = theme
 
                     override fun invoke(view: View) = when (view) {
-                        is T -> Matched.also { block(this@singleton, view) }
+                        is T -> block(this@singleton, view)
                         else -> NotMatched
                     }
                 }

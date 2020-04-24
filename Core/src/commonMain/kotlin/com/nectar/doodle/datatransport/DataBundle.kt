@@ -9,16 +9,18 @@ import kotlin.reflect.KClass
 /**
  * Defines a set of known mime-types.
  */
-sealed class MimeType<T>(private val primary: String, private val secondary: String) {
+sealed class MimeType<T>(private val primary: String, private val secondary: String, private val parameters: Map<String, String> = emptyMap()) {
+    override fun toString() = "$primary/$secondary${if (parameters.isNotEmpty()) ";${parameters.entries.joinToString(";")}" else ""}"
 
-    override fun toString() = "$primary/$secondary"
+    open fun assignableTo(other: MimeType<*>) = this.primary == other.primary && this.secondary == other.secondary
 
     override fun equals(other: Any?): Boolean {
         if (this === other       ) return true
         if (other !is MimeType<*>) return false
 
-        if (primary   != other.primary  ) return false
-        if (secondary != other.secondary) return false
+        if (primary    != other.primary   ) return false
+        if (secondary  != other.secondary ) return false
+        if (parameters != other.parameters) return false
 
         return true
     }
@@ -26,13 +28,18 @@ sealed class MimeType<T>(private val primary: String, private val secondary: Str
     override fun hashCode(): Int {
         var result = primary.hashCode()
         result = 31 * result + secondary.hashCode()
+        result = 31 * result + parameters.hashCode()
         return result
     }
 }
 
-object PlainText: MimeType<String>("text",        "plain"   )
-object UriList  : MimeType<String>("text",        "uri-list")
-object Json     : MimeType<String>("application", "json"    )
+open class TextType(type: String, charSet: String? = null): MimeType<String>("text", type, charSet?.let { mapOf("charset" to it) } ?: emptyMap())
+
+object PlainText: TextType("plain") {
+    inline operator fun invoke(charSet: String) = TextType("plain", charSet)
+}
+object UriList  : TextType("uri-list")
+object Json     : MimeType<String>("application", "json")
 
 class ReferenceType<T: Any>(private val type: KClass<out T>): MimeType<T>("application", "reference<${type.simpleName}>") {
     override fun equals(other: Any?): Boolean {
@@ -47,6 +54,10 @@ class ReferenceType<T: Any>(private val type: KClass<out T>): MimeType<T>("appli
         var result = super.hashCode()
         result = 31 * result + type.hashCode()
         return result
+    }
+
+    companion object {
+        inline operator fun <reified T: Any> invoke() = ReferenceType(T::class)
     }
 }
 
@@ -87,8 +98,8 @@ inline fun <reified T: Any> DataBundle.contains(): Boolean = this.contains(Refer
  * Simple bundle holding a single item.
  */
 class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
-    override fun <T> invoke  (type: MimeType<T>) = if (type in this) item as T else null
-    override fun <T> contains(type: MimeType<T>) = this.type == type
+    override fun <T> invoke  (type: MimeType<T>) = if (type in this) item as? T else null
+    override fun <T> contains(type: MimeType<T>) = this.type.assignableTo(type)
 }
 
 /**
@@ -106,4 +117,4 @@ class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
 fun textBundle(text: String) = SingleItemBundle(PlainText, text)
 fun uriBundle (uri : String) = SingleItemBundle(UriList,    uri)
 
-inline fun <reified T: Any> refBundle(item: T) = SingleItemBundle(ReferenceType(T::class), item)
+inline fun <reified T: Any> refBundle(item: T) = SingleItemBundle(ReferenceType(), item)

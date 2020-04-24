@@ -106,7 +106,7 @@ internal class DragManagerImpl(
                 if (dataBundle == null) {
                     createBundle(event.dataTransfer)?.let {
                         currentDropHandler?.let { (view, handler) ->
-                            handler.drop(DropEvent(view, mouseLocation(event), it, action(event.dataTransfer?.dropEffect)))
+                            handler.drop(DropEvent(view, view.fromAbsolute(mouseLocation(event)), it, action(event.dataTransfer?.dropEffect)))
                         }
                     }
                 }
@@ -126,7 +126,7 @@ internal class DragManagerImpl(
             view,
             view,
             event.type,
-            event.location - view.toAbsolute(Origin), // FIXME: Handle transforms
+            view.fromAbsolute(event.location),
             event.buttons,
             event.clickCount,
             event.modifiers)
@@ -176,42 +176,58 @@ internal class DragManagerImpl(
     }
 
     private fun mouseDown(event: SystemMouseEvent) {
-        viewFinder.find(event.location)?.let { view ->
-            if (!view.enabled || !view.visible) {
-                return
-            }
+        viewFinder.find(event.location).let {
+            var view = it
 
-            val mouseEvent = mouseEvent(event, view)
-
-            if (isIE) {
-                mouseDown = mouseEvent
-                return
-            }
-
-            view.dragRecognizer?.dragRecognized(mouseEvent)?.let { dragOperation ->
-
-                dataBundle            = dragOperation.bundle
-                rootElement.draggable = true
-
-                rootElement.ondragstart = {
-                    createVisual(dragOperation.visual)
-
-                    it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
-
-                    it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
-
-                    setOf(PlainText, UriList).forEach { mimeType ->
-                        dragOperation.bundle(mimeType)?.let { text ->
-                            it.dataTransfer?.setData("$mimeType", text)
-                        }
-                    }
-
-                    dragOperation.started()
+            while (view != null) {
+                if (tryDrag(view, event)) {
+                    break
                 }
 
-                registerListeners(dragOperation, rootElement)
+                view = view.parent
             }
         }
+    }
+
+    private fun tryDrag(view: View, event: SystemMouseEvent): Boolean {
+        if (!view.enabled || !view.visible) {
+            return false
+        }
+
+        val mouseEvent = mouseEvent(event, view)
+
+        if (isIE) {
+            mouseDown = mouseEvent
+            return true // IE doesn't start a drag after this.  We just have to hand-off at this point.
+        }
+
+        view.dragRecognizer?.dragRecognized(mouseEvent)?.let { dragOperation ->
+
+            dataBundle            = dragOperation.bundle
+            rootElement.draggable = true
+
+            rootElement.ondragstart = {
+                createVisual(dragOperation.visual)
+
+                it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
+
+                it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
+
+                setOf(PlainText, UriList).forEach { mimeType ->
+                    dragOperation.bundle(mimeType)?.let { text ->
+                        it.dataTransfer?.setData("$mimeType", text)
+                    }
+                }
+
+                dragOperation.started()
+            }
+
+            registerListeners(dragOperation, rootElement)
+
+            return true
+        }
+
+        return false
     }
 
     private fun mouseUp() {
@@ -275,7 +291,7 @@ internal class DragManagerImpl(
                 dragOperation.canceled ()
             } else {
                 currentDropHandler?.let { (view, handler) ->
-                    if (handler.drop(DropEvent(view, mouseLocation(it), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
+                    if (handler.drop(DropEvent(view, view.fromAbsolute(mouseLocation(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
                         dragOperation.completed(action)
                     } else {
                         dragOperation.canceled()
@@ -295,11 +311,11 @@ internal class DragManagerImpl(
 
         if (dropHandler != currentDropHandler) {
             currentDropHandler?.let { (view, handler) ->
-                handler.dropExit(DropEvent(view, location, bundle, desired))
+                handler.dropExit(DropEvent(view, view.fromAbsolute(location), bundle, desired))
             }
 
             if (dropHandler != null) {
-                dropAllowed = dropHandler.second.dropEnter(DropEvent(dropHandler.first, location, bundle, desired))
+                dropAllowed = dropHandler.second.dropEnter(DropEvent(dropHandler.first, dropHandler.first.fromAbsolute(location), bundle, desired))
 
                 when (desired) {
                     null -> currentDropHandler = null
@@ -310,7 +326,7 @@ internal class DragManagerImpl(
             }
         } else {
             currentDropHandler?.let { (view, handler) ->
-                val dropEvent = DropEvent(view, location, bundle, desired)
+                val dropEvent = DropEvent(view, view.fromAbsolute(location), bundle, desired)
 
                 when {
                     desired == null -> {
@@ -326,7 +342,7 @@ internal class DragManagerImpl(
                     currentAction != desired -> {
                         currentAction = desired
 
-                        dropAllowed = handler.dropActionChanged(DropEvent(view, location, bundle, desired))
+                        dropAllowed = handler.dropActionChanged(DropEvent(view, view.fromAbsolute(location), bundle, desired))
                     }
                 }
             }

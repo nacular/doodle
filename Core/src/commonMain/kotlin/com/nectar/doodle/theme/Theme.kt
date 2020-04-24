@@ -24,6 +24,8 @@ interface Theme {
      * @param all the Views (recursively) within the Display
      */
     fun install(display: Display, all: Sequence<View>)
+
+    // FIXME: Add uninstall once there's a clean way to support that given ad hoc behavior registration
 }
 
 /**
@@ -76,7 +78,10 @@ interface ThemeManager {
     /** Convenient set of [Theme]s that an application can manage */
     val themes: ObservableSet<Theme>
 
-    /** The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [View]s therein. */
+    /**
+     * The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [View]s therein.
+     * A theme that is set as selected is also added to the [themes] set.
+     */
     var selected: Theme?
 }
 
