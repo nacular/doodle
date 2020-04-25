@@ -18,6 +18,8 @@ class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
 
     fun inset(inset: Double) = Circle(center, radius - inset)
 
+    fun withRadius(radius: Double) = Circle(center, radius)
+
     companion object {
         val Unit  = Circle(1.0)
         val Empty = Circle(   )
