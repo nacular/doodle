@@ -20,6 +20,8 @@ class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
 
     fun withRadius(radius: Double) = Circle(center, radius)
 
+    override fun toString() = "$center, $radius"
+
     companion object {
         val Unit  = Circle(1.0)
         val Empty = Circle(   )

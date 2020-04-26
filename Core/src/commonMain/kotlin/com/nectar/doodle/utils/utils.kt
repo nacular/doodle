@@ -1,5 +1,8 @@
 package com.nectar.doodle.utils
 
+import kotlin.math.round
+import kotlin.math.roundToInt
+
 /**
  * Created by Nicholas Eddy on 10/20/17.
  */
@@ -50,4 +53,9 @@ fun Regex.splitMatches(input: CharSequence, limit: Int = 0): List<Pair<String, S
 
 operator fun <E> Collection<E>?.contains(element: E): Boolean {
     return this?.contains(element) == true
+}
+
+fun Double.roundToNearest(value: Double): Double = when (value) {
+    0.0  -> this
+    else -> round(this / value) * value
 }
