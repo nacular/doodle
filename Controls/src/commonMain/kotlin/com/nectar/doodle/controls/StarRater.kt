@@ -18,6 +18,7 @@ import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.roundToNearest
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -28,6 +29,12 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
     val max = max(0, max)
 
     var innerRadiusRatio = null as Float?
+        set(new) {
+            field = new
+            updateStar()
+        }
+
+    var numStarPoints = 5
         set(new) {
             field = new
             updateStar()
@@ -80,8 +87,8 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         val circle = Circle(Point(width/(2 * max), height/2), radius)
 
         star = when (val r2 = innerRadiusRatio) {
-            null -> star(circle)
-            else -> star(circle, innerCircle = circle.withRadius(radius * r2))
+            null -> star(circle, points = numStarPoints)
+            else -> star(circle, points = numStarPoints, innerCircle = circle.withRadius(radius * r2))
         }!!
     }
 
@@ -96,9 +103,10 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
         if (displayValue > 0) {
             foregroundColor?.let { foregroundColor ->
-//                val rectWidth = displayValue * width / max
+                val starWidth = star.boundingRectangle.width
+                val rectWidth = displayValue * starWidth + (width / max - starWidth) * (floor(displayValue) + 0.5)
 
-                canvas.rect(bounds.atOrigin.inset(Insets(right = (max - displayValue) * width / max)), PatternBrush(size = Size(width / max, height)) {
+                canvas.rect(bounds.atOrigin.inset(Insets(right = width - rectWidth)), PatternBrush(size = Size(width / max, height)) {
                     if (displayValue.toInt() == max) {
                         outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                             poly(star, ColorBrush(foregroundColor))
