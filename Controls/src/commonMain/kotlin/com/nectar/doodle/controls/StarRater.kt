@@ -12,7 +12,7 @@ import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Polygon
-import com.nectar.doodle.geometry.Size
+import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.star
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.utils.PropertyObservers
@@ -82,19 +82,37 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         updateStar()
     }
 
+    private lateinit var brushBounds: Rectangle
+
     private fun updateStar() {
         val radius = min(width / (2 * max), height / 2)
-        val circle = Circle(Point(width/(2 * max), height/2), radius)
+        val circle = Circle(Point(0.0, height / 2), radius)
 
-        star = when (val r2 = innerRadiusRatio) {
+        val tempStart = when (val r2 = innerRadiusRatio) {
             null -> star(circle, points = numStarPoints)
             else -> star(circle, points = numStarPoints, innerCircle = circle.withRadius(radius * r2))
         }!!
+
+        val brushWidth = when(max) {
+            1    -> width
+            else -> (width - tempStart.boundingRectangle.width * max) / (2 * (max - 1)) * 2 + tempStart.boundingRectangle.width
+        }
+
+        val brushX = when (max) {
+            1    -> 0.0
+            else -> -(brushWidth - tempStart.boundingRectangle.width) / 2
+        }
+
+        brushBounds = Rectangle(brushX, 0.0, brushWidth, height)
+
+        star = tempStart.translateBy(x = brushBounds.width / 2)
     }
 
     override fun render(canvas: Canvas) {
+        val rect = bounds.atOrigin
+
         if (displayValue < max) {
-            canvas.rect(bounds.atOrigin, PatternBrush(size = Size(width / max, height)) {
+            canvas.rect(rect, PatternBrush(bounds = brushBounds) {
                 outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                     poly(star, Pen(lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
                 }
@@ -104,9 +122,12 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         if (displayValue > 0) {
             foregroundColor?.let { foregroundColor ->
                 val starWidth = star.boundingRectangle.width
-                val rectWidth = displayValue * starWidth + (width / max - starWidth) * (floor(displayValue) + 0.5)
+                val rectWidth = displayValue * starWidth + (brushBounds.width - starWidth) * when (max) {
+                    1    -> 0.5
+                    else -> floor(displayValue)
+                }
 
-                canvas.rect(bounds.atOrigin.inset(Insets(right = width - rectWidth)), PatternBrush(size = Size(width / max, height)) {
+                canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternBrush(bounds = brushBounds) {
                     if (displayValue.toInt() == max) {
                         outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                             poly(star, ColorBrush(foregroundColor))
@@ -118,4 +139,16 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             }
         }
     }
+}
+
+private fun Polygon.translateBy(x: Double = 0.0, y: Double = 0.0): Polygon = object: Polygon() {
+    override val points = this@translateBy.points.map { it + Point(x, y) }
+    override val area   = this@translateBy.area
+    override val empty  = this@translateBy.empty
+
+    override fun contains(point: Point) = point + Point(x, y) in this@translateBy
+
+    override fun contains(rectangle: Rectangle) = rectangle.at(rectangle.x + x, rectangle.y + y) in this@translateBy
+
+    override fun intersects(rectangle: Rectangle) = this@translateBy intersects rectangle.at(rectangle.x + x, rectangle.y + y)
 }

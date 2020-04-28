@@ -12,11 +12,14 @@ import com.nectar.doodle.geometry.times
  *
  * @author Nicholas Eddy
  *
- * @property size The size of the Canvas that will be repeated
- * @property fill Specifies the render operations for the Canvas
+ * @property bounds    The bounds of the Canvas that will be repeated
+ * @property transform The transform applied to the brush
+ * @property fill      Specifies the render operations for the Canvas
  */
-class PatternBrush(val size: Size, val transform: AffineTransform = Identity, val fill: Canvas.() -> Unit): Brush() {
-    override val visible = !size.empty
+class PatternBrush(val bounds: Rectangle, val transform: AffineTransform = Identity, val fill: Canvas.() -> Unit): Brush() {
+    constructor(size: Size, transform: AffineTransform = Identity, fill: Canvas.() -> Unit): this(Rectangle(size = size), transform, fill)
+
+    override val visible = !bounds.empty
 }
 
 /**

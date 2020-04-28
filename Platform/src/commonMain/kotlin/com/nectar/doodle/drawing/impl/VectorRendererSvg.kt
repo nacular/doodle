@@ -780,14 +780,14 @@ internal open class VectorRendererSvg constructor(
                         setPatternTransform(brush.transform)
                     }
 
-                    setSize(brush.size)
-                    clear  (          )
+                    setBounds(brush.bounds)
+                    clear    (            )
                 }
 
                 renderer.completeOperation(pattern)
 
                 brush.fill(PatternCanvas(object: CanvasContext {
-                    override var size get() = brush.size; set(value) {}
+                    override var size get() = brush.bounds.size; set(value) {}
                     override val renderRegion = pattern
                     override var renderPosition: Node? = null
                     override val shadows get() = context.shadows
