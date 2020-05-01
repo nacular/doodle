@@ -58,9 +58,3 @@ display.children += PushButton("Submit").apply {
 
 - Please see [issues](https://github.com/pusolito/doodle/issues) to share bugs you find, make feature requests, or just get help with your questions.
 - Don't hesitate to ⭐️ [star](https://github.com/pusolito/doodle) if you find this project useful.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/pusolito/doodle/LICENSE) for details.
-
-Copyright (c) Nicholas Eddy
