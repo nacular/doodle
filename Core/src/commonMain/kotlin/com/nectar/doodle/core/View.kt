@@ -62,7 +62,9 @@ internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added
  * other parts of an application.
  *
  * @author Nicholas Eddy
+ *
  * @constructor
+ * @property accessibilityRole indicates the View's role for screen readers
  */
 abstract class View protected constructor(val accessibilityRole: AccessibilityRole? = null): Renderable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
@@ -137,7 +139,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
 
     /**
-     * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [layout].
+     * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [Layout].
      * It does affect the [boundingBox], and how the View looks when rendered.  Hit-detection is handled correctly such that the mouse
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
@@ -170,7 +172,10 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /** Notifies changes to [zOrder] */
     internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl<View, Int>(this) }
 
-    /** Rendering order of this View within it's [parent], or [Display] if top-level.  The default is `0`. */
+    /**
+     * Rendering order of this View within it's [parent], or [Display] if top-level.
+     * Views with higher values are rendered above those with lower ones. The default is `0`.
+     */
     var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Notifies changes to [visible] */
@@ -269,12 +274,19 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     var acceptsThemes = true
 
-    val mouseFilter  by lazy { SetPool<MouseListener>() }
+    /** [MouseListener]s that are notified during the sinking phase of mouse event handling. */
+    val mouseFilter by lazy { SetPool<MouseListener>() }
+
+    /** [MouseListener]s that are notified during the bubbling phase of mouse event handling. */
     val mouseChanged by lazy { SetPool<MouseListener>() }
 
+    /** [KeyListener]s that are notified during of [KeyEvent]s sent to the View. */
     val keyChanged by lazy { SetPool<KeyListener>() }
 
+    /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
     val mouseMotionFilter  by lazy { SetPool<MouseMotionListener>() }
+
+    /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
     val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
 
     val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
@@ -285,22 +297,23 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /** Receiver that determines what drop operations are supported by the View */
     var dropReceiver = null as DropReceiver?
 
+    /** Notifies changes to [monitorsDisplayRect] */
     val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
+    /**
+     * Indicates whether the framework should notify the View of changes to its visible region as a result of
+     * changes to bounds in its ancestor chain.  The events for this require monitoring potentially large sets
+     * of Views in the hierachy and the events can be frequent during layout changes.  So the default value is
+     * `false`.  But it is useful for things like efficient rendering of sub-portions (i.e. long list-like Views)
+     * where the cost is outweighed.
+     *
+     * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
+     * That means a View can be notified of a display rect change and still not be visible to the user.
+     */
     var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
     @JsName("fireStyleChanged")
     protected fun styleChanged() = (styleChanged as ChangeObserversImpl)()
-
-    fun mostRecentAncestor(filter: (View) -> Boolean): View? {
-        var result = parent
-
-        while (result != null && !filter(result)) {
-            result = result.parent
-        }
-
-        return result
-    }
 
     // ================= Container ================= //
     internal val insets_ get() = insets
@@ -391,8 +404,6 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     private var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
-
-    fun shouldYieldFocus() = true
 
     internal fun revalidate_() = revalidate()
 
@@ -525,6 +536,12 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @returns a Point relative to this View's [position]
      */
     fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: point).let { transform.inverse?.invoke(it) ?: it } - position
+
+    /**
+     * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from
+     * moving.  The default is `true`.
+     */
+    open fun shouldYieldFocus() = true
 
     /**
      * Called by render system whenever [monitorsDisplayRect] == `true` and the View's display rect changes.
@@ -715,3 +732,13 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 }
 
 val View.center get() = position + Point(width/2, height/2)
+
+fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
+    var result = parent
+
+    while (result != null && !filter(result)) {
+        result = result.parent
+    }
+
+    return result
+}

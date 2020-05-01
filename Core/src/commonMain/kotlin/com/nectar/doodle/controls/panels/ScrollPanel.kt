@@ -14,14 +14,32 @@ import kotlin.math.max
 import kotlin.math.min
 
 
+/**
+ * Configures how a [ScrollPanel] behaves.
+ */
 interface ScrollPanelBehavior: Behavior<ScrollPanel> {
+    /**
+     * Listener registered by [ScrollPanel] to listen for scroll events from
+     * the behavior.  Behaviors should be used this instead of [ScrollPanel.scrollTo]
+     * since it bi-passes validation to support things like bouncing.
+     */
     var onScroll: ((Point) -> Unit)?
 
+    /**
+     * Called by the [ScrollPanel] that this behavior is installed in whenever
+     * the panel scrolls.
+     */
     fun scrollTo(point: Point)
 }
 
+/**
+ * A panel that can contain a single [View] that is clips and scrolls.
+ *
+ * @constructor
+ * @param content to host in the panel
+ */
 open class ScrollPanel(content: View? = null): View() {
-
+    /** The content being shown within the panel */
     var content = null as View?
         set(new) {
             if (new == this) {
@@ -44,24 +62,30 @@ open class ScrollPanel(content: View? = null): View() {
             }
         }
 
+    /** Notifies of changes to [content]. */
     val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
-    var scrollsVertically   = true
+    /** Allows vertical scrolling when set to `true`. Defaults to `true`. */
+    var scrollsVertically = true
+
+    /** Allows horizontal scrolling when set to `true`. Defaults to `true`. */
     var scrollsHorizontally = true
 
+    /** The current scroll offset. */
     var scroll = Origin
         private set
 
+    /** Behavior governing how the panel works */
     var behavior: ScrollPanelBehavior? = null
         set(new) {
             field?.onScroll = null
 
-            field = new?.also {
-                it.onScroll = {
+            field = new?.also { behavior ->
+                behavior.onScroll = {
                     scrollTo(it, force = true)
                 }
 
-                it.install(this)
+                behavior.install(this)
             }
         }
 

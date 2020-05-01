@@ -1,8 +1,15 @@
 # doodle
 
+A pure Kotlin UI framework for the Web.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/pusolito/doodle/LICENSE)
 
-Doodle ...
+Doodle lets you focus on building rich web applications without worrying about the nuances of HTML, Javascript or CSS. With doodle, you write
+all parts of your application in Kotlin.
+
+Applications in Doodle are made with View heirarchies that allow for clear encapsulation of rendering and behavior. These Views
+are modular and composable, enabling reuse within or across apps.
+
 
 ## Features
 

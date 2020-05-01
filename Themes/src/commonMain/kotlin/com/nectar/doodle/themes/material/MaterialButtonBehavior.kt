@@ -14,7 +14,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.black
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Font.Weight.Thick
+import com.nectar.doodle.drawing.Font.Companion.Thick
 import com.nectar.doodle.drawing.FontDetector
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.MouseEvent

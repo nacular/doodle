@@ -4,6 +4,8 @@ import com.nectar.doodle.geometry.Point
 
 /**
  * Created by Nicholas Eddy on 3/2/18.
+ *
+ * A simple [Container] View that can have children and a [Layout].
  */
 open class Box: View(), Container {
     init {

@@ -23,7 +23,7 @@ class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
         get() = hashMap.entries.map {
         object: MutableMap.MutableEntry<K, V> {
-            override var key = it.key
+            override var key   = it.key
             override var value = it.value.value
             override fun setValue(newValue: V): V {
                 val result = it.value.value
@@ -58,7 +58,7 @@ class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
             null -> {
                 val newNode = Entry(key = key, value = value)
 
-                // We have reached maxium size so need to make room for new element.
+                // We have reached maximum size so need to make room for new element.
                 if (hashMap.size > maxSize) {
                     hashMap.remove(end!!.key)
                     removeNode(end!!)

@@ -34,6 +34,12 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             updateStar()
         }
 
+    var minSpacing = 0.0
+        set(new) {
+            field = new
+            updateStar()
+        }
+
     var numStarPoints = 5
         set(new) {
             field = new
@@ -85,7 +91,7 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
     private lateinit var brushBounds: Rectangle
 
     private fun updateStar() {
-        val radius = min(width / (2 * max), height / 2)
+        val radius = max(0.0, min(width / (2 * max) - minSpacing / 2, height / 2))
         val circle = Circle(Point(0.0, height / 2), radius)
 
         val tempStart = when (val r2 = innerRadiusRatio) {
@@ -93,17 +99,15 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             else -> star(circle, points = numStarPoints, innerCircle = circle.withRadius(radius * r2))
         }!!
 
-        val brushWidth = when(max) {
-            1    -> width
-            else -> (width - tempStart.boundingRectangle.width * max) / (2 * (max - 1)) * 2 + tempStart.boundingRectangle.width
-        }
+        val starWidth = tempStart.boundingRectangle.width
 
-        val brushX = when (max) {
-            1    -> 0.0
-            else -> -(brushWidth - tempStart.boundingRectangle.width) / 2
+        brushBounds = when(max) {
+            1    -> Rectangle(width, height)
+            else -> {
+                val brushWidth = (width - starWidth * max) / (2 * (max - 1)) * 2 + starWidth
+                Rectangle(-(brushWidth - starWidth) / 2, 0.0, brushWidth, height)
+            }
         }
-
-        brushBounds = Rectangle(brushX, 0.0, brushWidth, height)
 
         star = tempStart.translateBy(x = brushBounds.width / 2)
     }

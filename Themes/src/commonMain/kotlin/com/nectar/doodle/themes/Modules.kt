@@ -44,7 +44,7 @@ class Modules {
 
             bind() from setBinding<BehaviorResolver>()
 
-            bind<AdhocTheme>() with singleton { AdhocTheme(Instance(erasedSet())) }
+            bind<AdhocTheme>() with singleton { object: AdhocTheme(Instance(erasedSet())) {} }
         }
 
         inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit) = bindConditionalBehavior<T>(theme) {

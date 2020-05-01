@@ -6,6 +6,7 @@ import com.nectar.doodle.JsName
 import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
+import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
@@ -679,7 +680,7 @@ class RenderManagerImplTests {
     }
 
     private fun renderManager(
-            display             : Display              = mockk(),
+            display             : InternalDisplay      = mockk(),
 //            timer               : Timer                = timer(),
             themeManager        : InternalThemeManager = mockk(),
             scheduler           : AnimationScheduler   = instantScheduler,
@@ -714,7 +715,7 @@ class RenderManagerImplTests {
         return result
     }
 
-    private fun display(vararg children: View): Display = mockk<Display>().apply {
+    private fun display(vararg children: View): InternalDisplay = mockk<InternalDisplay>().apply {
         val displayChildren = ObservableList<View>()
 
         displayChildren.addAll(children)

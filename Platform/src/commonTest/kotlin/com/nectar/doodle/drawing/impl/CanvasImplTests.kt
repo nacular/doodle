@@ -304,7 +304,7 @@ class CanvasImplTests {
 
     private fun validateTransform(block: CanvasImpl.() -> AffineTransform) {
         val htmlFactory  = mockk<HtmlFactory>()
-        val renderParent = spyk<HTMLElement> (              )
+        val renderParent = spyk<HTMLElement> ()
 
         canvas(renderParent, htmlFactory).apply {
             val frame = mockk<HTMLElement>().apply { every { parentNode } returns null andThen renderParent }

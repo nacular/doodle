@@ -7,7 +7,6 @@ import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Font
-import com.nectar.doodle.drawing.Font.Weight
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -74,8 +73,8 @@ internal fun Style.setFont(value: Font?) {
     }
 }
 
-internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value     }
-internal inline fun Style.setFontWeight(value: Weight   ) { fontWeight = "${value.value}" }
+internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value }
+internal inline fun Style.setFontWeight(value: Int      ) { fontWeight = "$value"    }
 
 internal inline fun Style.setFontSize  (value: Int   ) { fontSize   = em(max(0, value)) }
 internal inline fun Style.setFontFamily(value: String) { fontFamily = value            }

@@ -22,7 +22,7 @@ interface MouseInputService {
     }
 
     interface Preprocessor {
-        fun preprocess(event: SystemMouseEvent     ) {}
+        fun preprocess(event: SystemMouseEvent      ) {}
         fun preprocess(event: SystemMouseScrollEvent) {}
     }
 }

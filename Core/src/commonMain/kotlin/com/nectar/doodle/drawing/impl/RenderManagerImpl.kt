@@ -2,6 +2,7 @@ package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.core.Display
+import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.GraphicsDevice
@@ -32,7 +33,7 @@ private val frameDuration = 1 * seconds / 60
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
 //        private val timer               : Timer,
-        private val display             : Display,
+        private val display             : InternalDisplay,
         private val scheduler           : AnimationScheduler,
         private val themeManager        : InternalThemeManager?,
         private val accessibilityManager: AccessibilityManager?,
@@ -78,7 +79,7 @@ class RenderManagerImpl(
             childAdded(null, it)
         }
 
-        display.sizeChanged += { display, _, _ ->
+        display.sizeChanged += { _,_,_ ->
             display.doLayout()
 
             display.forEach { checkDisplayRectChange(it) }

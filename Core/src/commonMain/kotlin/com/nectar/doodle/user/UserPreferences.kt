@@ -5,7 +5,6 @@ import com.nectar.doodle.utils.PropertyObservers
 /**
  * Created by Nicholas Eddy on 9/22/19.
  */
-
 interface UserPreferences {
     enum class ColorScheme { Light, Dark }
 

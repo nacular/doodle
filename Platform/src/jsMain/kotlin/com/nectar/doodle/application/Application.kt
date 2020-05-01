@@ -8,6 +8,7 @@ import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.controls.text.LabelFactory
 import com.nectar.doodle.controls.text.LabelFactoryImpl
 import com.nectar.doodle.core.Display
+import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.View
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.DragManager
@@ -191,7 +192,8 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bind<DisplayImpl> () with singleton { instance<Display>() as DisplayImpl }
+        bind<DisplayImpl>              () with singleton { instance<Display>    () as DisplayImpl }
+        bind<InternalDisplay>          () with singleton { instance<DisplayImpl>()                }
 
         modules.forEach {
             import(it, allowOverride = true)

@@ -16,17 +16,16 @@ interface Style {
     val background: Brush?
 }
 
-data class MutablePair<A, B>(var first: A, var second: B) {
-    override fun toString() = "($first, $second)"
-}
-
 class StyledText private constructor(val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
-
     constructor(
         text      : String,
         font      : Font?  = null,
         foreground: Brush? = null,
         background: Brush? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
+
+    data class MutablePair<A, B>(var first: A, var second: B) {
+        override fun toString() = "($first, $second)"
+    }
 
     val text  get() = data.joinToString { it.first }
     val count get() = data.size

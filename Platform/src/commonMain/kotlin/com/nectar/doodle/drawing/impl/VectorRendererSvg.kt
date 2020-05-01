@@ -115,7 +115,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun line(point1: Point, point2: Point, pen: Pen) = drawPath(pen, null, null, point1, point2)
+    override fun line(start: Point, end: Point, pen: Pen) = drawPath(pen, null, null, start, end)
 
     override fun path(points: List<Point>,           brush: Brush, fillRule: FillRule?) = drawPath(null, brush, fillRule, *points.toTypedArray())
     override fun path(points: List<Point>, pen: Pen                                   ) = drawPath(pen,  null,  null,     *points.toTypedArray())
@@ -292,7 +292,6 @@ internal open class VectorRendererSvg constructor(
             addIfNotPresent(makeRect(rectangle), 0)
 
             // FIXME: Support rounding
-
             renderPosition = renderPosition?.nextSibling
         }
 

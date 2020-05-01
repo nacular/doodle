@@ -4,6 +4,9 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
 
 
+/**
+ * An internal manger that handles all render operations within an app.
+ */
 interface RenderManager {
     /**
      * Renders the given [View] during the next render cycle.  This has no effect

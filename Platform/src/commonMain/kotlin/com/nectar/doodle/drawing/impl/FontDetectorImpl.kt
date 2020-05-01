@@ -3,15 +3,12 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Font.Style
-import com.nectar.doodle.drawing.Font.Weight
 import com.nectar.doodle.drawing.FontDetector
 import com.nectar.doodle.drawing.FontInfo
 import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.impl.FontDetectorImpl.State.Found
 import com.nectar.doodle.drawing.impl.FontDetectorImpl.State.Pending
 import com.nectar.doodle.scheduler.Scheduler
-import com.nectar.measured.units.Time.Companion.seconds
-import com.nectar.measured.units.times
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -24,14 +21,14 @@ class FontDetectorImpl(
         private val elementRuler: ElementRuler,
         private val scheduler   : Scheduler): FontDetector {
 
-    private class FontImpl(override val size: Int, override val weight: Weight, override val style: Set<Style>, override val family: String): Font
+    private class FontImpl(override val size: Int, override val weight: Int, override val style: Set<Style>, override val family: String): Font
 
     private enum class State { Pending, Found }
 
     private val fonts     = mutableMapOf<Int, State>()
     private val suspended = mutableMapOf<Int, MutableList<Continuation<State?>>>()
 
-    private fun getHash(family: String, weight: Weight, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
+    private fun getHash(family: String, weight: Int, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
 
     override suspend operator fun invoke(info: FontInfo.() -> Unit): Font {
         FontInfo().apply(info).apply {

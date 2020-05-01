@@ -13,6 +13,8 @@ import com.nectar.doodle.utils.PropertyObservers
 /**
  * The top-level surface for presenting [View]s.  An item must be added to the Display (either directly, or
  * as a descendant of the Display) before it can be rendered or interact with the user.
+ *
+ * @author Nicholas Eddy
  */
 interface Display: Iterable<View> {
     override fun iterator() = children.iterator()
@@ -41,15 +43,27 @@ interface Display: Iterable<View> {
 
     var focusTraversalPolicy: FocusTraversalPolicy?
 
+    /** Fills the Display's background with the given brush */
     fun fill (brush: Brush)
-    fun child(at   : Point): View?
 
+    /**
+     * @param at the x,y within the Display's coordinate-space
+     * @return a View if one is found to contain the given point
+     */
+    fun child(at: Point): View?
+
+    /**
+     * @param view in question
+     * @return `true` IFF [view] is a descendant of the Display
+     */
     infix fun ancestorOf(view: View): Boolean
-
-    fun doLayout()
-
-    fun repaint()
 }
 
 inline val Display.width  get() = size.width
 inline val Display.height get() = size.height
+
+interface InternalDisplay: Display {
+    fun doLayout()
+
+    fun repaint()
+}

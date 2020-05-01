@@ -4,9 +4,12 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.text.StyledText
 
 /**
+ * Provides a mechanism to measure the size of various types of text.
+ *
  * Created by Nicholas Eddy on 10/30/17.
+ *
+ * @author Nicholas Eddy
  */
-
 interface TextMetrics {
     fun width (text: String, font: Font? = null                                     ): Double
     fun width (text: String, width: Double, indent: Double = 0.0, font: Font? = null): Double

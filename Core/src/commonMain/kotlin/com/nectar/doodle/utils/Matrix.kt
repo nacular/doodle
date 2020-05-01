@@ -55,7 +55,7 @@ open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): 
         }
     }
 
-    val determinant: Double by lazy {
+    private val determinant: Double by lazy {
         when (numRows) {
             1    -> this[0,0].toDouble()
             2    -> this[0,0].toDouble() * this[1,1].toDouble() - this[0,1].toDouble() * this[1,0].toDouble()
@@ -89,8 +89,7 @@ class AffineMatrix3D(
         translateY: Double): SquareMatrix<Double>(listOf(
             listOf(scaleX, shearX, translateX),
             listOf(shearY, scaleY, translateY),
-            listOf(   0.0,    0.0,        1.0))) {
-}
+            listOf(   0.0,    0.0,        1.0)))
 
 fun <T: Number> squareMatrixOf(size: Int, init: (Int, Int) -> T) = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
 
@@ -185,17 +184,15 @@ operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
     return MatrixImpl(values)
 }
 
-fun <T: Number, R: Number> SquareMatrix<T>.map(transform: (T) -> R): SquareMatrix<R> = values.map { it.map { transform(it) } }.let { SquareMatrix(it) }
+fun <T: Number, R: Number> SquareMatrix<T>.map(transform: (T) -> R): SquareMatrix<R> = SquareMatrix(values.map { it.map { transform(it) } })
 
-fun <T: Number, R: Number> SquareMatrix<T>.mapIndexed(transform: (col: Int, row: Int, T) -> R): SquareMatrix<R> {
-    return values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) } }.let { SquareMatrix(it) }
-}
+fun <T: Number, R: Number> SquareMatrix<T>.mapIndexed(transform: (col: Int, row: Int, T) -> R): SquareMatrix<R> = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) } })
 
 
 open class MatrixImpl<T: Number> internal constructor(internal val values: List<List<T>>): Matrix<T> {
 
-    override val numRows    = values.size
-    override val numColumns = if (numRows > 0) values[0].size else 0
+    final override val numRows    = values.size
+    final override val numColumns = if (numRows > 0) values[0].size else 0
 
     init {
         require(numColumns > 0) { "empty Matrices are invalid" }

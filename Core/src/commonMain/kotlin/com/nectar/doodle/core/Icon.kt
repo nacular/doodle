@@ -6,13 +6,11 @@ import com.nectar.doodle.geometry.Size
 
 
 /**
- * Represents graphical data within the boundaries of
- * a [View].  An example is the icon used by a button to
+ * Represents graphical data within the boundaries of a [View].  An example is the icon used by a button to
  * indicate its function.
  *
  * @author Nicholas Eddy
  */
-
 interface Icon<in T: View> {
 
     /** The icon's size */
@@ -27,7 +25,6 @@ interface Icon<in T: View> {
      * @param canvas The View's Canvas
      * @param at     Where the top-left corner of the icon should be rendered
      */
-
     fun render(view: T, canvas: Canvas, at: Point)
 }
 

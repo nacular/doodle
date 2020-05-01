@@ -1,8 +1,8 @@
 ext {
     // Common
-    mockk           = '1.10.0' //'1.9.3'
+    mockk           = '1.10.0'
     measured        = '1.0'
-    coroutines_core = '1.3.5-1.4-M1' //'1.3.4'
+    coroutines_core = /*'1.3.5-1.4-M1' / */'1.3.4'
 
     // JVM
     junit_version = '4.12'
