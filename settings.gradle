@@ -37,5 +37,4 @@ project(':Core'      ).name = 'core'
 project(':Platform'  ).name = 'platform'
 project(':Themes'    ).name = 'themes'
 
-project(':HelloWorld').name = 'helloworld'
 project(':TestApp'   ).name = 'testapp'
