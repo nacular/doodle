@@ -105,8 +105,6 @@ internal open class VectorRendererSvg constructor(
 
     private var renderPosition: Node? = null
 
-    protected fun nextId() = "${id++}"
-
     init {
         rootSvgElement?.let {
             svgElement          = it
@@ -176,6 +174,152 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
+    override fun add(shadow: Shadow) {
+        // FIXME: Handle case where shadow is opened/closed w/o anything being rendered
+
+        pushClip(Rectangle(size = context.size))
+
+        when (shadow) {
+            is InnerShadow -> innerShadow(shadow)
+            is OuterShadow -> outerShadow(shadow)
+        }.let {
+            completeOperation(it)
+            svgElement.style.filter = "url(#${it.id})"
+        }
+    }
+
+    override fun remove(shadow: Shadow) {
+        popClip()
+    }
+
+    override fun clear() {
+        val renderPosition = context.renderPosition
+
+        if (renderPosition != null) {
+            findSvgDepthFirst(context.renderRegion)?.let {
+                rootSvgElement = it
+                this.renderPosition = it.firstChild
+            }
+        } else {
+            this.renderPosition = null
+        }
+    }
+
+    override fun flush() {
+        var element = renderPosition
+
+        while (element != null) {
+            val next = element.nextSibling
+
+            element.parent?.remove(element)
+
+            element = next
+        }
+
+        renderPosition = null
+    }
+
+    protected fun nextId() = "${id++}"
+
+    protected fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
+        setBounds(rectangle)
+
+        setFill  (null)
+        setStroke(null)
+    }
+
+    protected fun pushClip(rectangle: Rectangle, radius: Double = 0.0) {
+        val svg = createOrUse<SVGElement>("svg").apply {
+            renderPosition = this.firstChild
+
+            // Here to ensure nested SVG has correct size
+            addIfNotPresent(makeRect(rectangle), 0)
+
+            // FIXME: Support rounding
+            renderPosition = renderPosition?.nextSibling
+        }
+
+        if (!::svgElement.isInitialized || svg.parentNode != svgElement) {
+            updateRootSvg()
+
+            completeOperation(svg)
+        }
+
+        svgElement = svg
+    }
+
+    protected fun popClip() {
+        // Clear any remaining items that were previously rendered within the sub-region that won't be rendered anymore
+        flush()
+
+        renderPosition = svgElement.nextSibling
+
+        svgElement.parentNode?.let {
+            svgElement = it as SVGElement
+        }
+    }
+
+    protected fun pushGroup() {
+        createOrUse<SVGElement>("g").apply {
+            renderPosition = this.firstChild
+        }.also {
+            completeOperation(it)
+            svgElement = it
+        }
+    }
+
+    protected fun popGroup() {
+        popClip()
+        //renderPosition = renderPosition?.parent?.nextSibling
+    }
+
+    protected fun updateRootSvg() {
+        if (!::rootSvgElement.isInitialized || (context.renderPosition !== rootSvgElement && context.renderPosition !== rootSvgElement.nextSibling)) {
+            // Initialize new SVG root if
+            // 1) not initialized
+            // 2) it is not longer the active element
+            svgElement     = createOrUse("svg", context.renderPosition)
+            rootSvgElement = svgElement
+            renderPosition = svgElement.firstChild
+        }
+    }
+
+    protected open fun completeOperation(element: SVGElement) {
+        if (context.renderPosition == null && svgElement.parent == null) {
+            region.add(svgElement)
+        } else if (context.renderPosition !== rootSvgElement) {
+            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
+        }
+
+        if (renderPosition == null) {
+            svgElement.add(element)
+        } else {
+            if (renderPosition !== element) {
+                renderPosition?.parent?.replaceChild(element, renderPosition!!)
+            }
+
+            renderPosition = element.nextSibling
+        }
+
+        context.renderPosition = rootSvgElement.nextSibling
+    }
+
+    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
+        val element: Node? = possible ?: renderPosition
+
+        return when {
+            element == null || element.nodeName != tag -> svgFactory(tag)
+            element is SVGElement                      -> {
+                if (tag !in containerElements) { element.clear() }
+                element.style.filter = ""
+                element.removeTransform()
+                @Suppress("UNCHECKED_CAST")
+                element as T
+            }
+            else -> throw Exception("Error") // FIXME: handle better
+        }
+    }
+
     private fun makeText(text: String, font: Font?, at: Point, brush: Brush?) = createOrUse<SVGElement>("text").apply {
         if (innerHTML != text) {
             innerHTML = ""
@@ -220,7 +364,7 @@ internal open class VectorRendererSvg constructor(
 
         flush()
 
-        renderPosition = if (this.parentNode != null) this else oldRenderPosition
+        renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
     private fun makeTextSegment(text: String, style: Style) = createOrUse<SVGElement>("tspan").apply {
@@ -282,116 +426,6 @@ internal open class VectorRendererSvg constructor(
         }
 
         return Point(endX, currentPoint.y)
-    }
-
-    protected fun pushClip(rectangle: Rectangle, radius: Double = 0.0) {
-        val svg = createOrUse<SVGElement>("svg").apply {
-            renderPosition = this.firstChild
-
-            // Here to ensure nested SVG has correct size
-            addIfNotPresent(makeRect(rectangle), 0)
-
-            // FIXME: Support rounding
-            renderPosition = renderPosition?.nextSibling
-        }
-
-        if (!::svgElement.isInitialized || svg.parentNode != svgElement) {
-            updateRootSvg()
-
-            completeOperation(svg)
-        }
-
-        svgElement = svg
-    }
-
-    protected fun popClip() {
-        // Clear any remaining items that were previously rendered within the sub-region that won't be rendered anymore
-        flush()
-
-        renderPosition = svgElement.nextSibling
-
-        svgElement.parentNode?.let {
-            svgElement = it as SVGElement
-        }
-    }
-
-    protected fun pushGroup() {
-        createOrUse<SVGElement>("g").apply {
-            renderPosition = this.firstChild
-        }.also {
-            completeOperation(it)
-            svgElement = it
-        }
-    }
-
-    protected fun popGroup() {
-        popClip()
-        //renderPosition = renderPosition?.parent?.nextSibling
-    }
-
-    override fun add(shadow: Shadow) {
-        // FIXME: Handle case where shadow is opened/closed w/o anything being rendered
-
-        pushClip(Rectangle(size = context.size))
-
-        when (shadow) {
-            is InnerShadow -> innerShadow(shadow)
-            is OuterShadow -> outerShadow(shadow)
-        }.let {
-            completeOperation(it)
-            svgElement.style.filter = "url(#${it.id})"
-        }
-    }
-
-    override fun remove(shadow: Shadow) {
-        popClip()
-    }
-
-    override fun clear() {
-        val renderPosition = context.renderPosition
-
-        if (renderPosition != null) {
-            findSvgDepthFirst(context.renderRegion)?.let {
-                rootSvgElement = it
-                this.renderPosition = it.firstChild
-            }
-        } else {
-            this.renderPosition = null
-        }
-    }
-
-    override fun flush() {
-        var element = renderPosition
-
-        while (element != null) {
-            val next = element.nextSibling
-
-            element.parent?.remove(element)
-
-            element = next
-        }
-
-        renderPosition = null
-    }
-
-    protected open fun completeOperation(element: SVGElement) {
-        if (context.renderPosition == null && svgElement.parent == null) {
-            region.add(svgElement)
-        } else if (context.renderPosition !== rootSvgElement) {
-            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
-        }
-
-        if (renderPosition == null) {
-            svgElement.add(element)
-        } else {
-            if (renderPosition !== element) {
-                renderPosition?.parent?.replaceChild(element, renderPosition!!)
-            }
-
-            renderPosition = element.nextSibling
-        }
-
-        context.renderPosition = rootSvgElement.nextSibling
     }
 
     private fun drawPath(pen: Pen?, brush: Brush? = null, fillRule: FillRule? = null, vararg points: Point) = present(pen, brush) {
@@ -483,13 +517,6 @@ internal open class VectorRendererSvg constructor(
             !ellipse.empty -> makeEllipse(ellipse)
             else           -> null
         }
-    }
-
-    protected fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
-        setBounds(rectangle)
-
-        setFill  (null)
-        setStroke(null)
     }
 
     private fun makeRoundedRect(rectangle: Rectangle, radius: Double): SVGRectElement = makeRect(rectangle).apply {
@@ -586,24 +613,6 @@ internal open class VectorRendererSvg constructor(
         max(0, dash + if (index.isEven) -1 else 1)
     }?.joinToString(",") ?: ""
 
-    private val containerElements = setOf(svgTag, "filter")
-
-    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
-        val element: Node? = possible ?: renderPosition
-
-        return when {
-            element == null || element.nodeName != tag -> svgFactory(tag)
-            element is SVGElement                      -> {
-                if (tag !in containerElements) { element.clear() }
-                element.style.filter = ""
-                element.removeTransform()
-                @Suppress("UNCHECKED_CAST")
-                element as T
-            }
-            else -> throw Exception("Error") // FIXME: handle better
-        }
-    }
-
     private fun textBackground(brush: ColorBrush) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
 
@@ -631,7 +640,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = renderPosition?.nextSibling
 
         flush()
-        renderPosition = if (this.parentNode != null) this else oldRenderPosition
+        renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
     private fun outerShadow(shadow: OuterShadow) = createOrUse<SVGElement>("filter").apply {
@@ -652,7 +661,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = renderPosition?.nextSibling
 
         flush()
-        renderPosition = if (this.parentNode != null) this else oldRenderPosition
+        renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
     private fun innerShadow(shadow: InnerShadow) = createOrUse<SVGElement>("filter").apply {
@@ -723,18 +732,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = renderPosition?.nextSibling
 
         flush()
-        renderPosition = if (this.parentNode != null) this else oldRenderPosition
-    }
-
-    protected fun updateRootSvg() {
-        if (!::rootSvgElement.isInitialized || (context.renderPosition !== rootSvgElement && context.renderPosition !== rootSvgElement.nextSibling)) {
-            // Initialize new SVG root if
-            // 1) not initialized
-            // 2) it is not longer the active element
-            svgElement     = createOrUse("svg", context.renderPosition)
-            rootSvgElement = svgElement
-            renderPosition = svgElement.firstChild
-        }
+        renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
     private fun findSvgDepthFirst(parent: Node): SVGElement? {
@@ -925,7 +923,8 @@ internal open class VectorRendererSvg constructor(
     }
 
     companion object {
-        private       var id     = 0
-        private const val svgTag = "svg"
+        private       var id                = 0
+        private const val svgTag            = "svg"
+        private       val containerElements = setOf(svgTag, "filter")
     }
 }
