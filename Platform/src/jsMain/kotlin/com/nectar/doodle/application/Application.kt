@@ -308,13 +308,5 @@ class Modules {
             // TODO: Can this be handled better?
             bind<AccessibilityManagerImpl> () with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
         }
-
-        // FIXME: Move to Themes library
-        val basicThemeModule = Module(allowSilentOverride = true, name = "BasicTheme") {
-            importOnce(themeModule)
-
-            bind<BasicTheme>  () with singleton { BasicTheme      (instance(), instance(), instanceOrNull()) }
-            bind<LabelFactory>() with singleton { LabelFactoryImpl(instance()                              ) }
-        }
     }
 }
