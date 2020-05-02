@@ -41,6 +41,12 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
 
     private var displayConstraints: DisplayConstraints? = null
 
+    fun constrain(view: View, within: Rectangle, block: (Constraints) -> Unit) {
+        block(constraints(view, within))
+
+        constraints[view]?.let { layoutChild(view, it) }
+    }
+
     override fun constrain(a: View, block: (Constraints) -> Unit): ConstraintLayout {
         constraints(a).let { (a) -> block(a)
             return this
@@ -155,6 +161,12 @@ private class ConstraintLayoutImpl(private val display: Display? = null, vararg 
         constraints.filter { it.key.parent == (container as? PositionableWrapper?)?.view && it.key !in processed }.forEach { (child, constraints) ->
             layoutChild(child, constraints)
         }
+    }
+
+    private fun constraints(view: View, within: Rectangle): Constraints {
+        val parent = RectangleConstraints(within)
+
+        return constraints.getOrPut(view) { ConstraintsImpl(view, parent) }
     }
 
     private fun constraints(child: View, vararg others: View): List<Constraints> {
@@ -401,8 +413,6 @@ private open class ParentConstraintsImpl(val target: View): ParentConstraints {
     override val centerX = HorizontalConstraint(target) { it.width  / 2 }
     override val right   = HorizontalConstraint(target) { it.width      }
     override val width   = MagnitudeConstraint (target) { it.width      }
-
-//    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
 private open class DisplayConstraints(private val display: Display): ParentConstraints {
@@ -424,6 +434,20 @@ private open class DisplayConstraints(private val display: Display): ParentConst
     override val height  = MagnitudeConstraint (target) { display.size.height     }
 
 //    override fun toString() = "D $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
+}
+
+private open class RectangleConstraints(private val rectangle: Rectangle): ParentConstraints {
+    val target = object: View() {}
+
+    override val top     = VerticalConstraint  (target) { rectangle.y        }
+    override val centerY = VerticalConstraint  (target) { rectangle.center.y }
+    override val bottom  = VerticalConstraint  (target) { rectangle.bottom   }
+    override val height  = MagnitudeConstraint (target) { rectangle.height   }
+
+    override val left    = HorizontalConstraint(target) { rectangle.x        }
+    override val centerX = HorizontalConstraint(target) { rectangle.center.x }
+    override val right   = HorizontalConstraint(target) { rectangle.right    }
+    override val width   = MagnitudeConstraint (target) { rectangle.width    }
 }
 
 private class ConstraintsImpl(target: View, override val parent: ParentConstraints): ParentConstraintsImpl(target), Constraints {
@@ -452,6 +476,12 @@ private class ConstraintsImpl(target: View, override val parent: ParentConstrain
         set(new) { field = MagnitudeConstraint(new.target, new.dependencies, false, new.block) }
 
 //    override fun toString() = "C $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
+}
+
+fun constrain(view: View, within: Rectangle, block: (Constraints) -> Unit) {
+    ConstraintLayoutImpl().apply {
+        constrain(view, within, block)
+    }
 }
 
 fun constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,             block) }
