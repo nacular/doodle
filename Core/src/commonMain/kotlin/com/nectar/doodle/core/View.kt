@@ -254,10 +254,19 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /** Notifies changes to [cursor] */
     val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl<View, Cursor?>(this) }
 
+    private var actualFont: Font? = null
+
     /** Optional font that the View could use for rendering.  This falls back to [parent]'s font if not set. */
-    var font: Font? = null
-        get(   ) = field ?: parent?.font;
-        set(new) { field = new; styleChanged() }
+    var font: Font?
+        get(   ) = actualFont ?: parent?.font
+        set(new) {
+            if (actualFont == new) return
+
+            actualFont = new; styleChanged()
+
+            // Notify relevant children that their font has changed
+            children.filter { it.actualFont == null }.forEach { it.styleChanged() }
+        }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
     var foregroundColor: Color? = null; set(new) { field = new; styleChanged() }

@@ -4,6 +4,7 @@ import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constrain
 import com.nectar.doodle.layout.fill
@@ -31,7 +32,7 @@ class GridPanel: View() {
         layout = GridLayout()
     }
 
-    fun add(child: View, row: Int = 0, rowSpan: Int = 1, column: Int = 0, columnSpan: Int = 1) {
+    fun add(child: View, row: Int = 0, column: Int = 0, rowSpan: Int = 1, columnSpan: Int = 1) {
         locations[child] = mutableSetOf<Location>().apply {
             repeat(rowSpan) { r ->
                 repeat(columnSpan) { c ->
@@ -47,12 +48,21 @@ class GridPanel: View() {
     }
 
     private inner class GridLayout: Layout() {
+        private var idealWidth  = 0.0
+        private var idealHeight = 0.0
+
+        override fun idealSize(container: PositionableContainer, default: Size?) = Size(idealWidth, idealHeight)
+
         override fun layout(container: PositionableContainer) {
             // Calculate row and column sizes
             children.forEach { child ->
                 locations[child]?.forEach { (row, col) ->
-                    rowDimensions.getOrPut   (row) { Dimensions() }.apply { size = max(size, (child.idealSize ?: child.size).width  / rowSpans.getValue   (child)) }
-                    columnDimensions.getOrPut(col) { Dimensions() }.apply { size = max(size, (child.idealSize ?: child.size).height / columnSpans.getValue(child)) }
+                    val rowSpan   = rowSpans.getValue   (child)
+                    val colSpan   = columnSpans.getValue(child)
+                    val childSize = child.idealSize ?: child.size
+
+                    rowDimensions.getOrPut   (row) { Dimensions() }.apply { size = max(size, (childSize.height - verticalSpacing   * (rowSpan - 1)) / rowSpan) }
+                    columnDimensions.getOrPut(col) { Dimensions() }.apply { size = max(size, (childSize.width  - horizontalSpacing * (colSpan - 1)) / colSpan) }
                 }
             }
 
@@ -60,12 +70,16 @@ class GridPanel: View() {
             rowDimensions.entries.sortedBy { it.key }.forEach {
                 it.value.offset = offset
                 offset += it.value.size + verticalSpacing
+
+                idealHeight += offset
             }
 
             offset = 0.0
             columnDimensions.entries.sortedBy { it.key }.forEach {
                 it.value.offset = offset
                 offset += it.value.size + horizontalSpacing
+
+                idealWidth += offset
             }
 
             children.forEach { child ->
@@ -86,7 +100,13 @@ class GridPanel: View() {
                     heights.add(rowDim)
                 }
 
-                constrain(child, within = Rectangle(x ?: 0.0, y ?: 0.0, widths.map { it.size }.sum(), heights.map { it.size }.sum()), block = cellAlignment)
+                constrain(child,
+                        within = Rectangle(
+                            x ?: 0.0,
+                            y ?: 0.0,
+                            widths.map  { it.size }.sum() + horizontalSpacing * (widths.size  - 1),
+                            heights.map { it.size }.sum() + verticalSpacing   * (heights.size - 1)),
+                        block = cellAlignment)
             }
         }
     }

@@ -19,9 +19,14 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         enabledChanged(button as T)
     }
 
+    private val stylesChanged: (View) -> Unit = {
+        it.rerender()
+    }
+
     override fun install(view: T) {
         view.keyChanged         += this
         view.mouseChanged       += this
+        view.styleChanged       += stylesChanged
         view.enabledChanged     += enabledChanged
         view.mouseMotionChanged += this
 
@@ -32,6 +37,7 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
     override fun uninstall(view: T) {
         view.keyChanged         -= this
         view.mouseChanged       -= this
+        view.styleChanged       -= stylesChanged
         view.enabledChanged     -= enabledChanged
         view.mouseMotionChanged -= this
     }
