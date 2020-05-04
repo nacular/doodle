@@ -1,5 +1,7 @@
 package com.nectar.doodle
 
+import com.nectar.doodle.dom.Event
+
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
@@ -29,6 +31,9 @@ actual var HTMLElement.role: String? get() = this.getAttribute("role")
 actual typealias ElementCreationOptions = org.w3c.dom.ElementCreationOptions
 
 actual typealias Document = org.w3c.dom.Document
+
+actual fun Document.addEventListener   (to: String, listener: (Event) -> Unit) = this.addEventListener(to, listener)
+actual fun Document.removeEventListener(to: String, listener: (Event) -> Unit) = this.removeEventListener(to, listener)
 
 actual typealias Text              = org.w3c.dom.Text
 actual typealias CharacterData     = org.w3c.dom.CharacterData

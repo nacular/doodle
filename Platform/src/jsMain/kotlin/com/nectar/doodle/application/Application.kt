@@ -5,8 +5,6 @@ import com.nectar.doodle.UrlView
 import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.accessibility.AccessibilityManagerImpl
 import com.nectar.doodle.controls.document.Document
-import com.nectar.doodle.controls.text.LabelFactory
-import com.nectar.doodle.controls.text.LabelFactoryImpl
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.View
@@ -69,8 +67,6 @@ import com.nectar.doodle.system.impl.MouseInputServiceImpl
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
-import com.nectar.doodle.themes.Modules.Companion.themeModule
-import com.nectar.doodle.themes.basic.BasicTheme
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
 import org.kodein.di.Copy
@@ -258,7 +254,7 @@ class Modules {
             bind<ViewFinder>               () with singleton { ViewFinderImpl(instance()) }
             bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
             bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {

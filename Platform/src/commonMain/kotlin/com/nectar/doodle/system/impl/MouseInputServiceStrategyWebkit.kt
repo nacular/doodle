@@ -1,11 +1,15 @@
 package com.nectar.doodle.system.impl
 
+import com.nectar.doodle.Document
 import com.nectar.doodle.HTMLElement
+import com.nectar.doodle.addEventListener
+import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.MouseEvent
 import com.nectar.doodle.dom.WheelEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
+import com.nectar.doodle.removeEventListener
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
@@ -27,7 +31,7 @@ import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
 
-internal open class MouseInputServiceStrategyWebkit(private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
+internal open class MouseInputServiceStrategyWebkit(private val document: Document, private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {
@@ -164,18 +168,37 @@ internal open class MouseInputServiceStrategyWebkit(private val htmlFactory: Htm
         event.shiftKey.ifTrue { it += Shift }
     }
 
-    private fun registerCallbacks(element: HTMLElement) = element.apply {
+    private fun registerCallbacks(element: HTMLElement) = element.run {
 //        onwheel     = { mouseScroll(it) }
 
-        onmouseup   = { mouseUp    (it) }
         onmouseout  = { mouseExit  (it) }
         ondblclick  = { doubleClick(it) }
-        onmousedown = { mouseDown  (it) }
-        onmousemove = { mouseMove  (it) }
+        onmousedown = { mouseDown  (it); followMouse(this) }
         onmouseover = { mouseEnter (it) }
+
+        registerMouseCallbacks(this)
     }
 
-    private fun unregisterCallbacks(element: HTMLElement) = element.apply {
+    private val trackingMouseMove: (Event) -> Unit = { mouseMove(it as MouseEvent) }
+    private val trackingMouseUp  : (Event) -> Unit = { mouseUp  (it as MouseEvent); registerMouseCallbacks(htmlFactory.root) }
+
+    private fun followMouse(element: HTMLElement): Unit = element.run {
+        document.addEventListener(mouseup,   trackingMouseUp  )
+        document.addEventListener(mousemove, trackingMouseMove)
+
+        onmouseup   = null
+        onmousemove = null
+    }
+
+    private fun registerMouseCallbacks(element: HTMLElement) = element.run {
+        onmouseup   = { mouseUp  (it) }
+        onmousemove = { mouseMove(it) }
+
+        document.removeEventListener(mouseup,   trackingMouseUp  )
+        document.removeEventListener(mousemove, trackingMouseMove)
+    }
+
+    private fun unregisterCallbacks(element: HTMLElement) = element.run {
         onwheel     = null
         onmouseup   = null
         onmouseout  = null
@@ -183,5 +206,13 @@ internal open class MouseInputServiceStrategyWebkit(private val htmlFactory: Htm
         onmousedown = null
         onmousemove = null
         onmouseover = null
+
+        document.removeEventListener(mouseup,   trackingMouseUp  )
+        document.removeEventListener(mousemove, trackingMouseMove)
+    }
+
+    companion object {
+        const val mouseup   = "mouseup"
+        const val mousemove = "mousemove"
     }
 }

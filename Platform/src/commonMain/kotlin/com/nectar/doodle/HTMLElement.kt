@@ -143,6 +143,9 @@ expect class Document {
     fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
 }
 
+expect fun Document.addEventListener(to: String, listener: (Event) -> Unit)
+expect fun Document.removeEventListener(to: String, listener: (Event) -> Unit)
+
 expect abstract class CharacterData: Node
 expect          class Text: CharacterData
 expect abstract class HTMLImageElement : HTMLElement {

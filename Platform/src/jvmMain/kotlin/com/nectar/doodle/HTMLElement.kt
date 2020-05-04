@@ -136,6 +136,9 @@ actual class Document {
     }
 }
 
+actual fun Document.addEventListener   (to: String, listener: (Event) -> Unit) {}
+actual fun Document.removeEventListener(to: String, listener: (Event) -> Unit) {}
+
 actual abstract class CharacterData   : Node()
 actual          class Text            : CharacterData()
 actual abstract class HTMLImageElement: HTMLElement() {
