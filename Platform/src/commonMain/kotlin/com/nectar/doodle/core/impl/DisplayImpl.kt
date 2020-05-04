@@ -5,6 +5,9 @@ import com.nectar.doodle.clear
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.Layout
+import com.nectar.doodle.core.LookupResult.Empty
+import com.nectar.doodle.core.LookupResult.Found
+import com.nectar.doodle.core.LookupResult.Ignored
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.core.height
@@ -128,19 +131,23 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? com.nectar.doodle.core.PositionableWrapper)?.view ?: {
-        var result    = null as View?
-        var topZOrder = 0
+    override fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
+        null, Ignored -> {
+            var child     = null as View?
+            var topZOrder = 0
 
-        children.reversed().forEach {
-            if (it.visible && at in it && (result == null || it.zOrder > topZOrder)) {
-                result    = it
-                topZOrder = it.zOrder
+            children.reversed().forEach {
+                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
+                    child = it
+                    topZOrder = it.zOrder
+                }
             }
-        }
 
-        result
-    }()
+            child
+        }
+        is Found      -> (result.child as com.nectar.doodle.core.PositionableWrapper).view
+        is Empty      -> null
+    }
 
     override fun iterator() = children.iterator()
 

@@ -9,7 +9,7 @@ import com.nectar.doodle.geometry.Rectangle
 /**
  * Created by Nicholas Eddy on 3/29/19.
  */
-class ZoomedLayout(private val index: Int, private val targetBounds: Rectangle? = null, private val layout: Layout? = null): Layout() {
+class ZoomedLayout(private val index: Int, private val targetBounds: Rectangle? = null, private val layout: Layout? = null): Layout {
     override fun layout(container: PositionableContainer) {
 
         // Need to first layout the children

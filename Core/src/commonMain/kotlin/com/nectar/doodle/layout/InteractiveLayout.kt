@@ -32,7 +32,7 @@ class LocalPositionableWrapper(private val delegate: PositionableContainer, priv
     }
 }
 
-class InteractiveLayout(private val start: Layout, private val end: Layout): Layout() {
+class InteractiveLayout(private val start: Layout, private val end: Layout): Layout {
     var progress = 0f
 
     override fun layout(container: PositionableContainer) {

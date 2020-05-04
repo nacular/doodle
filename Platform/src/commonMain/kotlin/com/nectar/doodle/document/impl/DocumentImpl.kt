@@ -46,7 +46,7 @@ internal class DocumentImpl(
     init {
         height = 1.0 // FIXME: Remove once a better solution exists to allow first render
 
-        layout = object: Layout() {
+        layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 children.forEach {
                     it.bounds = it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) })

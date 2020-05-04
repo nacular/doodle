@@ -173,7 +173,7 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
     protected open val cancelMove = { _: TabbedPanel<T>, _: Int -> }
 }
 
-private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout() {
+private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
     override fun layout(container: PositionableContainer) {
         val maxLineWidth = max(0.0, container.width - container.insets.left - container.insets.right - (container.children.size - 1) * spacing)
 
@@ -201,7 +201,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
                 visible = it == panel.selectedItem
             }) }
 
-            layout = object: Layout() {
+            layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
                     container.children.forEachIndexed { index, view ->
                         view.bounds = when (index) {

@@ -135,7 +135,7 @@ open class List<T, out M: ListModel<T>>(
 
         selectionModel?.let { it.changed += selectionChanged_ }
 
-        layout = object: Layout() {
+        layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
                     model[it]?.let { row ->

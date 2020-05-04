@@ -1,5 +1,6 @@
 package com.nectar.doodle.core
 
+import com.nectar.doodle.core.LookupResult.Ignored
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -65,6 +66,12 @@ class PositionableContainerWrapper(view: View): PositionableWrapper(view), Posit
     override val children    get() = view.children_.map { PositionableWrapper(it) }
 }
 
+sealed class LookupResult {
+    object Ignored                       : LookupResult()
+    object Empty                         : LookupResult()
+    class  Found(val child: Positionable): LookupResult()
+}
+
 /**
  * Layouts control the positioning of a [PositionableContainer]'s children. They are also responsible for reporting the ideal size for a view given it's contents.
  *
@@ -75,13 +82,13 @@ class PositionableContainerWrapper(view: View): PositionableWrapper(view), Posit
  *
  * @author Nicholas Eddy
  */
-abstract class Layout {
+interface Layout {
     /**
      * Lays out the children of the given [Positionable].
      *
      * @param container to be laid out
      */
-    abstract fun layout(container: PositionableContainer)
+    fun layout(container: PositionableContainer)
 
     /**
      * Returns the minimum size of the Positionable based on its contents.
@@ -90,7 +97,7 @@ abstract class Layout {
      * @param  default The size to use if one can't be calculated
      * @return the minimum size
      */
-    open fun minimumSize(container: PositionableContainer, default: Size = Empty): Size = default
+    fun minimumSize(container: PositionableContainer, default: Size = Empty): Size = default
 
     /**
      * Returns the ideal size of the Positionable based on its contents.
@@ -99,14 +106,16 @@ abstract class Layout {
      * @param  default The size to use if one can't be calculated
      * @return the ideal size
      */
-    open fun idealSize(container: PositionableContainer, default: Size? = null): Size? = default
+    fun idealSize(container: PositionableContainer, default: Size? = null): Size? = default
 
     /**
-     * Gets the child within the Positionable at the given point.
+     * Gets the child within the Positionable at the given point.  The default is to ignore these
+     * calls and let the caller perform their own search for the right child.  But Layouts are
+     * free to return a value here if it can be done more efficiently.
      *
      * @param of the Positionable
      * @param at The point
-     * @return The child (null if no child contains the given point)
+     * @return a result with a child, empty, or [Ignored]
      */
-    open fun child(of: PositionableContainer, at: Point): Positionable? = null
+    fun child(of: PositionableContainer, at: Point): LookupResult = Ignored
 }

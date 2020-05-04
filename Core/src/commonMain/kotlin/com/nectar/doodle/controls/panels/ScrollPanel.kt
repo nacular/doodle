@@ -195,7 +195,7 @@ open class ScrollPanel(content: View? = null): View() {
         }
     }
 
-    private inner class ViewLayout: Layout() {
+    private inner class ViewLayout: Layout {
         override fun layout(container: PositionableContainer) {
             container.children.forEach  {
                 val width  = if (scrollsHorizontally) it.idealSize?.width  ?: it.width  else this@ScrollPanel.width

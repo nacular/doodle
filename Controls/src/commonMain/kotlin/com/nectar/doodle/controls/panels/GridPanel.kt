@@ -47,11 +47,15 @@ class GridPanel: View() {
         children += child
     }
 
-    private inner class GridLayout: Layout() {
-        private var idealWidth  = 0.0
-        private var idealHeight = 0.0
+    private inner class GridLayout: Layout {
+        private var idealWidth  = null as Double?
+        private var idealHeight = null as Double?
 
-        override fun idealSize(container: PositionableContainer, default: Size?) = Size(idealWidth, idealHeight)
+        override fun idealSize(container: PositionableContainer, default: Size?) = idealWidth?.let { w ->
+            idealHeight?.let { h ->
+                Size(w, h)
+            }
+        }
 
         override fun layout(container: PositionableContainer) {
             // Calculate row and column sizes
@@ -70,17 +74,17 @@ class GridPanel: View() {
             rowDimensions.entries.sortedBy { it.key }.forEach {
                 it.value.offset = offset
                 offset += it.value.size + verticalSpacing
-
-                idealHeight += offset
             }
+
+            idealHeight = offset - if (rowDimensions.size > 1) verticalSpacing else 0.0
 
             offset = 0.0
             columnDimensions.entries.sortedBy { it.key }.forEach {
                 it.value.offset = offset
                 offset += it.value.size + horizontalSpacing
-
-                idealWidth += offset
             }
+
+            idealWidth = offset - if (columnDimensions.size > 1) horizontalSpacing else 0.0
 
             children.forEach { child ->
                 var x       = null as Double?
@@ -92,7 +96,7 @@ class GridPanel: View() {
                     val rowDim = rowDimensions.getValue   (row)
                     val colDim = columnDimensions.getValue(col)
 
-                    println("[$row,$col] -> $rowDim, $colDim")
+//                    println("[$row,$col] -> $rowDim, $colDim")
 
                     x = min(x ?: colDim.offset, colDim.offset)
                     y = min(y ?: rowDim.offset, rowDim.offset)
@@ -102,10 +106,10 @@ class GridPanel: View() {
 
                 constrain(child,
                         within = Rectangle(
-                            x ?: 0.0,
-                            y ?: 0.0,
-                            widths.map  { it.size }.sum() + horizontalSpacing * (widths.size  - 1),
-                            heights.map { it.size }.sum() + verticalSpacing   * (heights.size - 1)),
+                                x ?: 0.0,
+                                y ?: 0.0,
+                                widths.map  { it.size }.sum() + horizontalSpacing * (widths.size  - 1),
+                                heights.map { it.size }.sum() + verticalSpacing   * (heights.size - 1)),
                         block = cellAlignment)
             }
         }

@@ -24,7 +24,7 @@ fun fill(insets: Insets): (Constraints.() -> Unit) = {
     bottom = parent.bottom - insets.bottom
 }
 
-abstract class ConstraintLayout: Layout() {
+abstract class ConstraintLayout: Layout {
     abstract fun constrain(a: View,                                     block: (Constraints                                                    ) -> Unit): ConstraintLayout
     abstract fun constrain(a: View, b: View,                            block: (Constraints, Constraints                                       ) -> Unit): ConstraintLayout
     abstract fun constrain(a: View, b: View, c: View,                   block: (Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout
@@ -321,9 +321,19 @@ class HorizontalConstraint(target: View, dependencies: Set<View> = emptySet(), d
 //    override fun toString() = "H ($default) <- $dependencies"
 }
 
-private object ConstantTarget: View()
+private object IgnoreTarget: View()
 
-fun constant(value: Double) = MagnitudeConstraint(ConstantTarget, block = { value })
+fun constant(value: Double) = MagnitudeConstraint(IgnoreTarget, block = { value })
+
+interface Nullable<T: Constraint> {
+    infix fun or(other: T): T = other
+}
+
+private open class NullableMagnitudeConstraint(private val target: View, private val dependencies: Set<View> = emptySet(), private val default: Boolean = true, private val optionalBlock: (View) -> Double?): Nullable<MagnitudeConstraint> {
+    override infix fun or(other: MagnitudeConstraint): MagnitudeConstraint = MagnitudeConstraint(target, dependencies, default) {
+        optionalBlock(it) ?: other()
+    }
+}
 
 open class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
     operator fun plus(value: Number) = plus { value }
@@ -370,15 +380,17 @@ open class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(
 }
 
 interface ParentConstraints {
-    val top    : VerticalConstraint
-    val centerY: VerticalConstraint
-    val bottom : VerticalConstraint
-    val height : MagnitudeConstraint
+    val top        : VerticalConstraint
+    val centerY    : VerticalConstraint
+    val bottom     : VerticalConstraint
+    val height     : MagnitudeConstraint
+    val idealHeight: Nullable<MagnitudeConstraint> get() = object: Nullable<MagnitudeConstraint> {}
 
-    val left   : HorizontalConstraint
-    val centerX: HorizontalConstraint
-    val right  : HorizontalConstraint
-    val width  : MagnitudeConstraint
+    val left      : HorizontalConstraint
+    val centerX   : HorizontalConstraint
+    val right     : HorizontalConstraint
+    val width     : MagnitudeConstraint
+    val idealWidth: Nullable<MagnitudeConstraint> get() = object: Nullable<MagnitudeConstraint> {}
 
     val center: Pair<HorizontalConstraint, VerticalConstraint> get() = centerX to centerY
 }
@@ -474,6 +486,9 @@ private class ConstraintsImpl(target: View, override val parent: ParentConstrain
 
     override var height = MagnitudeConstraint(target) { it.height }
         set(new) { field = MagnitudeConstraint(new.target, new.dependencies, false, new.block) }
+
+    override val idealWidth  = NullableMagnitudeConstraint(IgnoreTarget) { target.idealSize?.width  }
+    override val idealHeight = NullableMagnitudeConstraint(IgnoreTarget) { target.idealSize?.height }
 
 //    override fun toString() = "C $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }

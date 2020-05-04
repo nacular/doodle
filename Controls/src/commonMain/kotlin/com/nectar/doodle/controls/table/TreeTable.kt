@@ -459,7 +459,7 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     private val header: Box = object: Box() {
         init {
-            layout = object : Layout() {
+            layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
                     var x = 0.0
                     var totalWidth = 0.0
@@ -485,7 +485,7 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
         init {
             children += internalColumns.map { it.view }
 
-            layout = object : Layout() {
+            layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
                     var x          = 0.0
                     var height     = 0.0

@@ -13,7 +13,7 @@ enum class WidthSource {
     Parent, Children
 }
 
-class ListLayout constructor(private val spacing: Int = 0, private val widthSource: WidthSource = Children): Layout() {
+class ListLayout constructor(private val spacing: Int = 0, private val widthSource: WidthSource = Children): Layout {
 
     override fun layout(container: PositionableContainer) {
         // TODO: Can this be cleaned up to use idealSize?

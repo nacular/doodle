@@ -22,7 +22,9 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.constant
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.system.SystemInputEvent.Modifier.*
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
+import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.SetObserver
@@ -286,7 +288,7 @@ open class Table<T, M: ListModel<T>>(
 
     private inner class Header: Box() {
         init {
-            layout = object: Layout() {
+            layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
                     var x          = 0.0
                     var totalWidth = 0.0
@@ -316,7 +318,7 @@ open class Table<T, M: ListModel<T>>(
         init {
             children += internalColumns.map { it.view }
 
-            layout = object : Layout() {
+            layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
                     var x          = 0.0
                     var height     = 0.0

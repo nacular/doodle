@@ -163,7 +163,7 @@ open class Tree<T, out M: TreeModel<T>>(
         updateNumRows()
 
 
-        layout = object: Layout() {
+        layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                     model[path]?.let { value ->

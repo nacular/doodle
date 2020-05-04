@@ -4,6 +4,9 @@ package com.nectar.doodle.core
 
 import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.accessibility.AccessibilityRole
+import com.nectar.doodle.core.LookupResult.Empty
+import com.nectar.doodle.core.LookupResult.Found
+import com.nectar.doodle.core.LookupResult.Ignored
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragRecognizer
 import com.nectar.doodle.datatransport.dragdrop.DropReceiver
@@ -443,19 +446,23 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
-    protected open fun child(at: Point): View? = (layout?.child(positionableWrapper, at) as? PositionableWrapper?)?.view ?: {
-        var result    = null as View?
-        var topZOrder = 0
+    protected open fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
+        null, Ignored -> {
+            var child     = null as View?
+            var topZOrder = 0
 
-        children.reversed().forEach {
-            if (it.visible && at in it && (result == null || it.zOrder > topZOrder)) {
-                result    = it
-                topZOrder = it.zOrder
+            children.reversed().forEach {
+                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
+                    child = it
+                    topZOrder = it.zOrder
+                }
             }
-        }
 
-        result
-    }()
+            child
+        }
+        is Found -> (result.child as PositionableWrapper).view
+        is Empty -> null
+    }
 
     internal fun child_(at: Point) = child(at)
 
