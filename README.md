@@ -4,18 +4,19 @@ A pure Kotlin UI framework for the Web.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/pusolito/doodle/LICENSE)
 
-Doodle lets you focus on building rich web applications without worrying about the nuances of HTML, Javascript or CSS. With doodle, you write
-all parts of your application in Kotlin.
+**Expressive:** Creating expressive, intuitive apps is natural with doodle. It handles all complex rendering and layout timing for you. You simply
+define your View heirarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
 
-Applications in Doodle are made with View heirarchies that allow for clear encapsulation of rendering and behavior. These Views
-are modular and composable, enabling reuse within or across apps.
+**Single-language:** Focus on your app and not the nuances of HTML, Javascript or CSS. With doodle, you write all parts of your application in Kotlin.
+This means you get all the power of a sophisticated, strongly-typed language.
 
+**Vector Oriented:** Its easy to build beautifully detailed UIs with doodle. All rendering in doodle is vector-oriented. So ellipses, paths,
+lines, affine transforms, gradients, etc. are simple to use. 
 
-## Features
+**Transparent:** Doodle hides the complexity of HTML and CSS, but it exposes control over all other aspects of UI presentation. This makes it easier
+to make guarantees about what is rendered.
 
-- Pure Kotlin
-- No HTML or CSS
-- 
+**Testable:** Apps written with doodle are dependency-injected.  And there are no global objects that make mocking challenging.
 
 ## Installation
 
@@ -51,6 +52,31 @@ display.children += PushButton("Submit").apply {
     fired += {
         println("$text pressed")
     }
+}
+```
+
+### Layout
+```kotlin
+// All Views are absolutely positioned and layouts are explicit
+// Views can have Layouts that control how their children are positioned
+
+val container = Box() // a simple container
+val panel1    = object: View() {}
+val panel2    = object: View() {}
+
+container.children += listOf(panel1, panel2)
+
+// create a special Layout that follows constraints to position items
+container.layout = constrain(panel1, panel2) { panel1, panel2 ->
+    panel1.top    = parent.top
+    panel1.left   = parent.left
+    panel1.right  = parent.right
+    panel1.height = constant(100.0)
+    
+    panel2.top    = panel1.bottom
+    panel2.left   = panel1.left
+    panel2.right  = panel1.right
+    panel2.bottom = parent.bottom
 }
 ```
 

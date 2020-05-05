@@ -164,8 +164,8 @@ class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    = min(it.parent.right - handle.width, max(0.0, it.parent.left + it.parent.width * { this.ratio } - handle.width / 2))
-                it.centerY = it.parent.centerY
+                it.left    = min(parent.right - handle.width, max(0.0, parent.left + parent.width * { this@Strip.ratio } - handle.width / 2))
+                it.centerY = parent.centerY
                 it.height  = it.parent.height
             }
 

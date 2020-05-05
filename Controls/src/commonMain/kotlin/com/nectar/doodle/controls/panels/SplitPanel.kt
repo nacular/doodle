@@ -116,8 +116,8 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                 }
             }
 
-            first != null -> constrain(first, fill)
-            last  != null -> constrain(last , fill)
+            first != null -> constrain(first) { fill(it) }
+            last  != null -> constrain(last ) { fill(it) }
             else -> null
         }
 
