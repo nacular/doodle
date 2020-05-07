@@ -1,4 +1,4 @@
-<div align="center"><img src="doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
+<div align="center"><img src="docs/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div align="center"><h1>A pure Kotlin UI framework for the Web.</h1></div>
 
 ----
