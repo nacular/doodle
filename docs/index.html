@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="UTF-8">
+    <!--    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">-->
+    <link rel="stylesheet" href="https://unpkg.com/prism-theme-one-dark/prism-onedark.css">
+
+    <style>
+        :root {
+          --code-block-border-radius     : 12px;
+          --code-inline-border-radius    : 4px;
+          --search-input-border-radius   : 4px;
+          --sidebar-border-width         : 0px;
+          --sidebar-background           : unset;
+          --search-margin                : 1.5rem;
+          --search-input-background-image: unset;
+          --search-input-border-width    : 1px;
+          --search-input-margin          : unset;
+          --search-input-padding         : 0.5em;
+          --sidebar-border-color         : unset;
+          --search-input-border-color    : var(--mono-tint1);
+
+          --code-inline-background: #bbeffd4d;
+
+<!--          &#45;&#45;sidebar-nav-link-border-color&#45;&#45;active: #bbeffd;-->
+
+          --notice-before-top : 0.9em;
+          --notice-before-left: -0.85em;
+          --notice-padding    : 0.75em 1.5em
+        }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+    window.$docsify = {
+      homepage: 'README.md',
+        name: '',
+        basePath: '/../',
+        relative: 'true',
+        repo: '/pusolito/doodle',
+//        subMaxLevel: 2,
+        loadSidebar: true
+    }
+
+</script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-kotlin.min.js"></script>
+<script src="https://unpkg.com/docsify-themeable"></script>
+<script src="https://unpkg.com/docsify-copy-code"></script>
+<script src="https://unpkg.com/docsify/lib/plugins/search.js"></script>
+</body>
+</html>

@@ -80,7 +80,10 @@ import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
+import org.w3c.dom.MutationObserver
+import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Window
+import org.w3c.dom.asList
 import org.w3c.dom.events.Event
 import kotlin.browser.document
 import kotlin.browser.window
@@ -88,7 +91,6 @@ import kotlin.browser.window
 /**
  * Created by Nicholas Eddy on 1/22/20.
  */
-
 inline fun <reified T: Application> application(
                  root                : HTMLElement = document.body!!,
                  allowDefaultDarkMode: Boolean     = false,
@@ -165,7 +167,7 @@ private class NestedApplicationHolder(
     }
 }
 
-private open class ApplicationHolderImpl protected constructor(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): Application {
+private open class ApplicationHolderImpl protected constructor(previousInjector: DKodein, private val root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): Application {
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
@@ -197,14 +199,29 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
     }
 
     private var initTask    = null as Task?
+    private var isShutdown  = false
     private var application = null as Application?
 
     private fun onUnload(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         shutdown()
     }
 
+    private var mutations: MutationObserver? = null
+
     protected fun run() {
         window.addEventListener("unload", ::onUnload)
+
+        root.parentNode?.let { parent ->
+            mutations = MutationObserver { mutations, _ ->
+                mutations.flatMap { it.removedNodes.asList() }.firstOrNull { root == it }?.let {
+                    shutdown()
+                }
+            }.apply {
+                observe(parent, object: MutationObserverInit {
+                    override var childList: Boolean? = true
+                })
+            }
+        }
 
         // Initialize framework components
         injector.instance<SystemStyler> ()
@@ -220,7 +237,13 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
     }
 
     override fun shutdown() {
+        if (isShutdown) {
+            return
+        }
+
         window.removeEventListener("unload", ::onUnload)
+
+        mutations?.disconnect()
 
         initTask?.cancel()
 
@@ -235,6 +258,8 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         application?.shutdown()
 
         injector = Kodein.direct {}
+
+        isShutdown = true
     }
 
     companion object {
