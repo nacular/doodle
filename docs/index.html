@@ -6,9 +6,8 @@
     <meta charset="UTF-8">
     <!--    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">-->
+    <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">-->
     <link rel="stylesheet" href="https://unpkg.com/prism-theme-one-dark/prism-onedark.css">
-
     <style>
         :root {
           --code-block-border-radius     : 12px;
@@ -32,26 +31,33 @@
           --notice-before-left: -0.85em;
           --notice-padding    : 0.75em 1.5em
         }
+
     </style>
 </head>
 <body>
 <div id="app"></div>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+
 <script>
     window.$docsify = {
-      homepage: 'README.md',
-        name: '',
-        basePath: '/../',
-        relative: 'true',
-        repo: '/pusolito/doodle',
-//        subMaxLevel: 2,
-        loadSidebar: true
+        homepage   : 'README.md',
+        name       : '',
+        basePath   : '/../',
+        relative   : 'true',
+        repo       : '/pusolito/doodle',
+//      subMaxLevel: 2,
+        loadSidebar: true,
     }
-
 </script>
-<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+
+<script src="//unpkg.com/mermaid/dist/mermaid.js"></script>
+<script src="//unpkg.com/docsify-mermaid@latest/dist/docsify-mermaid.js"></script>
+<script>mermaid.initialize({ startOnLoad: true });</script>
+
 <script src="//unpkg.com/prismjs/components/prism-kotlin.min.js"></script>
 <script src="https://unpkg.com/docsify-themeable"></script>
 <script src="https://unpkg.com/docsify-copy-code"></script>
 <script src="https://unpkg.com/docsify/lib/plugins/search.js"></script>
+
 </body>
 </html>

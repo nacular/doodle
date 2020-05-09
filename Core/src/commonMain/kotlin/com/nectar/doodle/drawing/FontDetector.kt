@@ -3,7 +3,12 @@ package com.nectar.doodle.drawing
 import com.nectar.doodle.drawing.Font.Companion.Normal
 import com.nectar.doodle.drawing.Font.Style
 
-
+/**
+ * @property size of the Font
+ * @property style of the Font
+ * @property weight of the Font
+ * @property family of the Font, NOTE: should only be a single family and NOT a comma-separated list
+ */
 class FontInfo(
         var size  : Int        = -1,
         var style : Set<Style> = setOf(),

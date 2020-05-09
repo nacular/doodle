@@ -3,8 +3,8 @@
 
 ### Doodle is explicit about positioning.
 
-Every View has an `x,y` coordinate relative to its parent.  This position is exactly where the View will
-be rendered.  Doodle ensures that there is never a disconnect between a View's position and screen coordinates.
+Every View has an `x,y` coordinate relative to its parent. This position is exactly where the View will
+be rendered. Doodle ensures that there is never a disconnect between a View's position and screen coordinates.
 
 ?> 0,0 is the default position
 
@@ -42,7 +42,7 @@ Given the above uses one of Doodle's existing Layouts to keep `box`'s children w
 
 ### Create Custom Layouts
 
-Custom Layouts are simple to build.  Just implement the `Layout` interface:
+Custom Layouts are simple to build. Just implement the `Layout` interface:
 
 ```kotlin
 class CustomLayout: Layout {
@@ -54,8 +54,8 @@ class CustomLayout: Layout {
 }
 ```
 
-?> Layouts do not work with View directly because it does not expose its children. `PositionableContainer`
-is a proxy for the View being managed.
+?> Layouts do not work with View directly because it does not expose its children. `PositionableContainer` proxies the
+managed View instead.
 
 ### Constraints Based Layout
 
@@ -69,7 +69,7 @@ val panel2    = object: View() {}
 
 container.children += listOf(panel1, panel2)
 
-// create a special Layout that follows constraints to position items
+// use Layout that follows constraints to position items
 container.layout = constrain(panel1, panel2) { panel1, panel2 ->
     panel1.top    = parent.top
     panel1.left   = parent.left
@@ -83,4 +83,4 @@ container.layout = constrain(panel1, panel2) { panel1, panel2 ->
 }
 ```
 
-!> `constrain` only supports positinoing for siblings within the same View 
+!> `constrain` only supports positioning for siblings within the same parent

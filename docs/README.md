@@ -18,7 +18,7 @@ lines, gradients, affine transforms etc. are as simple to use as images and rect
 **Transparent:** Doodle hides the complexity of HTML and CSS, but exposes control over all other aspects of UI presentation. This makes it easier
 to make guarantees about what is rendered.
 
-**Testable:** Apps written with doodle are dependency-injected.  And there are no global objects or state to make mocking challenging.
+**Testable:** Apps written with doodle are dependency-injected. And there are no global objects or state to make mocking challenging.
 
 ## Installation
 

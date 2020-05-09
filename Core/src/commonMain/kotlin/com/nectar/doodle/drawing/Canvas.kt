@@ -225,6 +225,15 @@ interface Canvas: Renderer {
     fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
 
     /**
+     * Draws unwrapped plain text in the default [Font].
+     *
+     * @param text to draw
+     * @param at this point
+     * @param brush to fill with
+     */
+    fun text(text: String, at: Point, brush: Brush) = text(text, null, at, brush)
+
+    /**
      * Draws unwrapped plain text.
      *
      * @param text to draw
@@ -232,7 +241,7 @@ interface Canvas: Renderer {
      * @param at this point
      * @param brush to fill with
      */
-    fun text(text: String, font: Font? = null, at: Point, brush: Brush)
+    fun text(text: String, font: Font?, at: Point, brush: Brush)
 
     /**
      * Draws styled text.

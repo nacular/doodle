@@ -58,12 +58,12 @@ class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): Mut
         return true
     }
 
-    operator fun plusAssign(elements: Iterable<E>) {
-        list.addAll(elements)
+    operator fun plusAssign(element: E) {
+        add(element)
     }
 
-    operator fun minusAssign(elements: Iterable<E>) {
-        list.removeAll(elements)
+    operator fun minusAssign(element: E) {
+        remove(element)
     }
 
     override fun add(element: E) = list.add(element).ifTrue {

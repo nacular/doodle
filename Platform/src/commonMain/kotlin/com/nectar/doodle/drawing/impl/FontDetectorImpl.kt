@@ -35,7 +35,7 @@ class FontDetectorImpl(
             val hash = getHash(family, weight, size, style)
 
             return when (waitIfLoading(hash)) {
-                // Only one coroutine will get here at a time.  It will either load the Font or be canceled.  On success, all queued
+                // Only one coroutine will get here at a time. It will either load the Font or be canceled.  On success, all queued
                 // loads will be resolved and return.  Otherwise, the next in line is allowed to take a shot.
                 Found -> FontImpl(size, weight, style, family)
                 else  -> {

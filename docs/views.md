@@ -3,7 +3,7 @@
 
 ### Views are the building blocks of Doodle apps.
 
-A View displays content to the screen and enables interactions with the user.  You create a one by extending
+A View displays content to the screen and enables interactions with the user. You create a one by extending
 the [`View`]() base class or instantiating an inline object:
 
 ```kotlin
@@ -64,11 +64,11 @@ The `display` may be associated with the page or element for stand-alone apps, o
 
 ### Views Can Have Children
 
-Apps build hierarchies by nesting Views within one another.  The [`View`]() class keeps its children `protected`.  This helps
+Apps build hierarchies by nesting Views within one another. The [`View`]() class keeps its children `protected`. This helps
 encapsulate state better and avoids misuse for more complex views.
 
 Let's consider a tabbed panel. An implementation might use a list of Views to represent the tab row along with those representing
-each tab's contents.  Doodle naturally handles this by letting you selectively expose the View internals to callers.
+each tab's contents. Doodle naturally handles this by letting you selectively expose the View internals to callers.
 
 ```kotlin
 class MyBasicTabbedPanel: View() {
