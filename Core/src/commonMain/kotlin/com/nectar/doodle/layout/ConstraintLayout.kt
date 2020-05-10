@@ -501,8 +501,8 @@ private class ConstraintsImpl(target: View, override val parent: ParentConstrain
 }
 
 fun constrain(view: View, within: Rectangle, block: (Constraints) -> Unit) {
-    ConstraintLayoutImpl().apply {
-        constrain(view, within, block)
+    ConstraintLayoutImpl().let { layout ->
+        layout.constrain(view, within) { block(it) }
     }
 }
 
