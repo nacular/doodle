@@ -15,7 +15,16 @@ interface SystemStyler {
 internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: Document, allowDefaultDarkMode: Boolean): SystemStyler {
     private val style: HTMLStyleElement = htmlFactory.create("style")
 
-    // FIXME: Make these styles local and applicable to the root not instead of assuming document.body
+    private val id = when(htmlFactory.root) {
+        document.body -> null
+        else          -> "#${when (val i = htmlFactory.root.id) {
+            ""        -> "__doodle__${currentId++}".also { htmlFactory.root.id = it }
+            else      -> i
+        }}"
+    }
+
+    private fun prefix(fallback: String = "") = id ?: fallback
+
     init {
         document.head?.insert(style, 0)
 
@@ -25,22 +34,23 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
             }
 
             // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
-            insertRule("body{ -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", numStyles)
+            insertRule("${prefix("body")} { -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", numStyles)
 
-            insertRule("html { border:0;box-sizing:border-box }", numStyles)
-            insertRule("html,body { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", numStyles)
+            insertRule("${prefix("html")} { border:0;box-sizing:border-box }", numStyles)
+            insertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", numStyles)
+            insertRule("html { height:100%;width:100% }", numStyles)
 
-            insertRule("* { box-sizing:inherit }", numStyles)
+            insertRule("${prefix()} * { box-sizing:inherit }", numStyles)
 
-            insertRule("body * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
-            insertRule("body pre { overflow:visible }", numStyles)
-            insertRule("body div { display:inline }", numStyles)
+            insertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
+            insertRule("${prefix("body")} pre { overflow:visible }", numStyles)
+            insertRule("${prefix("body")} div { display:inline }", numStyles)
 
-            insertRule("body div:focus { outline:none }", numStyles)
+            insertRule("${prefix("body")} div:focus { outline:none }", numStyles)
 
-            insertRule("pre { margin:0 }", numStyles)
-            insertRule("svg { display:inline-block;width:100%;height:100%;overflow:visible }", numStyles)
-            insertRule("svg * { position:absolute }", numStyles)
+            insertRule("${prefix()} pre { margin:0 }", numStyles)
+            insertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible }", numStyles)
+            insertRule("${prefix()} svg * { position:absolute }", numStyles)
 
 //            insertRule(".custom-button { border:none;outline:none;user-select:none;padding:0 }", numStyles)
 //            insertRule("button * { top:0;left:0 }", numStyles)
@@ -53,5 +63,9 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
 
     override fun shutdown() {
         document.head?.remove(style)
+    }
+
+    companion object {
+        var currentId = 0
     }
 }

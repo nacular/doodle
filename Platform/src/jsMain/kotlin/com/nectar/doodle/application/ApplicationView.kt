@@ -2,11 +2,11 @@ package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
 import com.nectar.doodle.core.View
+import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.impl.CanvasImpl
 import com.nectar.doodle.drawing.impl.NativeCanvas
 import org.kodein.di.Kodein.Module
 import org.kodein.di.bindings.NoArgSimpleBindingKodein
@@ -25,11 +25,24 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
     }
 
     private var application = null as Application?
+    private var firstRender = false
+
+    init {
+        boundsChanged += { _,old,new ->
+            if (old.size != new.size) {
+                // Send resize message to nested app since onresize won't be called automatically
+                // in most browsers
+                root.onresize?.let {
+                    it(Event("onresize"))
+                }
+            }
+        }
+    }
 
     override fun addedToDisplay() {
         super.addedToDisplay()
 
-        application = builder(this, root)
+        firstRender = true
     }
 
     override fun removedFromDisplay() {
@@ -42,6 +55,11 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
     override fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
+
+            if (firstRender) {
+                application = builder(this, root)
+                firstRender = false
+            }
         }
     }
 }

@@ -152,7 +152,7 @@ private class NestedApplicationHolder(
         previousInjector    : DKodein,
         root                : HTMLElement = document.body!!,
         allowDefaultDarkMode: Boolean = false,
-        modules             : Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules) {
+        modules             : Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
         injector.instanceOrNull<MouseInputServiceStrategy>()?.let {
@@ -167,7 +167,12 @@ private class NestedApplicationHolder(
     }
 }
 
-private open class ApplicationHolderImpl protected constructor(previousInjector: DKodein, private val root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): Application {
+private open class ApplicationHolderImpl protected constructor(
+                    previousInjector    : DKodein,
+        private val root                : HTMLElement = document.body!!,
+                    allowDefaultDarkMode: Boolean     = false,
+                    modules             : Set<Module> = emptySet(),
+        private val isNested            : Boolean     = false): Application {
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
@@ -182,7 +187,9 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
         bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                                    ) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                            ) }
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, allowDefaultDarkMode                            ) }
+        if (!isNested) {
+            bind<SystemStyler>() with singleton { SystemStylerImpl(instance(), document, allowDefaultDarkMode) }
+        }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                        ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
@@ -224,7 +231,9 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         }
 
         // Initialize framework components
-        injector.instance<SystemStyler> ()
+        if (!isNested) {
+            injector.instance<SystemStyler>()
+        }
         injector.instance<RenderManager>()
 
         injector.instanceOrNull<MouseInputManager>   ()
@@ -248,8 +257,9 @@ private open class ApplicationHolderImpl protected constructor(previousInjector:
         initTask?.cancel()
 
         injector.instance<DisplayImpl> ().shutdown()
-        injector.instance<SystemStyler>().shutdown()
-
+        if (!isNested) {
+            injector.instance<SystemStyler>().shutdown()
+        }
         injector.instanceOrNull<DragManager>             ()?.shutdown()
         injector.instanceOrNull<MouseInputManager>       ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()

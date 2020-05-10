@@ -126,6 +126,7 @@ actual var HTMLElement.role get() = role_
 actual interface ElementCreationOptions
 
 actual class Document {
+    actual var body: HTMLHeadElement? = null
     actual val head: HTMLHeadElement? = null
 
     actual fun createElement(localName: String, options: ElementCreationOptions) = object: Element() {}

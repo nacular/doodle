@@ -9,7 +9,7 @@ import com.nectar.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-expect abstract class CSSStyleSheet {
+expect abstract class CSSStyleSheet: StyleSheet {
     fun insertRule(rule: String, index: Int): Int
 }
 
@@ -136,6 +136,7 @@ expect abstract class HTMLStyleElement: HTMLElement {
 
 expect class Document {
     val head: HTMLHeadElement?
+    var body: HTMLElement?
     val styleSheets: StyleSheetList
 
     fun createElement(localName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element

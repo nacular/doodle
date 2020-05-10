@@ -7,16 +7,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 
 **Expressive:** Creating expressive, intuitive apps is natural with doodle. It handles all complex rendering and layout timing for you. Simply
-define your View heirarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
+define your View hierarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
 
-**Single-language:** Focus on your app and not the nuances of HTML, Javascript or CSS. With doodle, you write all parts of your application in Kotlin.
-This means you get the full power of a sophisticated, strongly-typed language.
+**Single-language:** Focus on your app and not the nuances of HTML, Javascript or CSS. With doodle, you write all parts of your application in
+[Kotlin](http://kotlinlang.org). This means you get the full power of a sophisticated, strongly-typed language.
 
 **Vector Oriented:** Its easy to build beautifully detailed UIs with doodle. All rendering in doodle is vector-oriented. So ellipses, paths,
 lines, gradients, affine transforms etc. are as simple to use as images and rectangles. 
 
 **Transparent:** Doodle hides the complexity of HTML and CSS, but exposes control over all other aspects of UI presentation. This makes it easier
-to make guarantees about what is rendered.
+to finely control rendering.
 
 **Testable:** Apps written with doodle are dependency-injected. And there are no global objects or state to make mocking challenging.
 
