@@ -98,7 +98,7 @@ open class ScrollPanel(content: View? = null): View() {
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
 
     /**
      * Scrolls the viewport so the top-left is at point, or as close as possible.

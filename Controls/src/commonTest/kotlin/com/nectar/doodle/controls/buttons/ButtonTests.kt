@@ -6,6 +6,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObserver
@@ -212,7 +213,7 @@ class ButtonTests {
 
     @Test @JsName("delegatesContainsPointToBehavior")
     fun `delegates contains point to behavior`() {
-        val button   = TestButton(model = mockk(relaxed = true))
+        val button   = TestButton(model = mockk(relaxed = true)).apply { size = Size(100) }
         val behavior = mockk<Behavior<Button>>(relaxed = true)
         val point    = Point(4, 5)
 

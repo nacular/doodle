@@ -9,7 +9,7 @@ import com.nectar.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual abstract class CSSStyleSheet {
+actual abstract class CSSStyleSheet: StyleSheet() {
     actual fun insertRule(rule: String, index: Int) = 0
 }
 
@@ -126,7 +126,7 @@ actual var HTMLElement.role get() = role_
 actual interface ElementCreationOptions
 
 actual class Document {
-    actual var body: HTMLHeadElement? = null
+    actual var body: HTMLElement?     = null
     actual val head: HTMLHeadElement? = null
 
     actual fun createElement(localName: String, options: ElementCreationOptions) = object: Element() {}

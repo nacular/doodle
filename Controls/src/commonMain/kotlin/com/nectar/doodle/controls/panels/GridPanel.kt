@@ -14,23 +14,45 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 5/1/20.
  */
-class GridPanel: View() {
-    private data class Location(val row: Int, val column: Int)
+
+data class LaneInfo(val span: Int, val size: Double, val idealSize: Double?)
+
+interface SizingPolicy {
+    operator fun invoke(panelSize: Double, spacing: Double, lanes: Map<Int, List<LaneInfo>>): Map<Int, Double> = lanes.mapValues { entry ->
+        var size = 0.0
+
+        entry.value.forEach {
+            size = max(size, (it.size - spacing * (it.span - 1)) / it.span)
+        }
+
+        size
+    }
+}
+
+class ProportionalFill: SizingPolicy {
+    override fun invoke(panelSize: Double, spacing: Double, lanes: Map<Int, List<LaneInfo>>) = lanes.mapValues {
+        max(0.0, (panelSize - spacing * (lanes.size - 1)) / lanes.size)
+    }
+}
+
+open class GridPanel: View() {
+    private data class Location  (val row: Int, val column: Int)
     private data class Dimensions(var offset: Double = 0.0, var size: Double = 0.0)
 
     private val locations        = mutableMapOf<View, Set<Location>>()
-    private val rowDimensions    = mutableMapOf<Int, Dimensions>()
     private val rowSpans         = mutableMapOf<View, Int>().withDefault { 1 }
-    private val columnDimensions = mutableMapOf<Int, Dimensions>()
     private val columnSpans      = mutableMapOf<View, Int>().withDefault { 1 }
+    private var rowDimensions    = mapOf<Int, Dimensions>()
+    private var columnDimensions = mapOf<Int, Dimensions>()
 
     var cellAlignment: (Constraints.() -> Unit) = fill //center
     var verticalSpacing   = 0.0
     var horizontalSpacing = 0.0
 
-    init {
-        layout = GridLayout()
-    }
+    var rowSizingPolicy    = defaultSizing
+    var columnSizingPolicy = defaultSizing
+
+    final override var layout: Layout? = GridLayout()
 
     fun add(child: View, row: Int = 0, column: Int = 0, rowSpan: Int = 1, columnSpan: Int = 1) {
         locations[child] = mutableSetOf<Location>().apply {
@@ -58,17 +80,22 @@ class GridPanel: View() {
         }
 
         override fun layout(container: PositionableContainer) {
+            val rowLanes = mutableMapOf<Int, MutableList<LaneInfo>>()
+            val colLanes = mutableMapOf<Int, MutableList<LaneInfo>>()
+
             // Calculate row and column sizes
             children.forEach { child ->
                 locations[child]?.forEach { (row, col) ->
-                    val rowSpan   = rowSpans.getValue   (child)
-                    val colSpan   = columnSpans.getValue(child)
-                    val childSize = child.idealSize ?: child.size
+                    val rowSpan = rowSpans.getValue   (child)
+                    val colSpan = columnSpans.getValue(child)
 
-                    rowDimensions.getOrPut   (row) { Dimensions() }.apply { size = max(size, (childSize.height - verticalSpacing   * (rowSpan - 1)) / rowSpan) }
-                    columnDimensions.getOrPut(col) { Dimensions() }.apply { size = max(size, (childSize.width  - horizontalSpacing * (colSpan - 1)) / colSpan) }
+                    rowLanes.getOrPut(row) { mutableListOf() }.also { it += LaneInfo(rowSpan, child.size.height, child.idealSize?.height) }
+                    colLanes.getOrPut(col) { mutableListOf() }.also { it += LaneInfo(colSpan, child.size.width,  child.idealSize?.width ) }
                 }
             }
+
+            rowDimensions    = rowSizingPolicy   (height, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }
+            columnDimensions = columnSizingPolicy(width,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }
 
             var offset = 0.0
             rowDimensions.entries.sortedBy { it.key }.forEach {
@@ -96,8 +123,6 @@ class GridPanel: View() {
                     val rowDim = rowDimensions.getValue   (row)
                     val colDim = columnDimensions.getValue(col)
 
-//                    println("[$row,$col] -> $rowDim, $colDim")
-
                     x = min(x ?: colDim.offset, colDim.offset)
                     y = min(y ?: rowDim.offset, rowDim.offset)
                     widths.add (colDim)
@@ -113,5 +138,10 @@ class GridPanel: View() {
                         block = cellAlignment)
             }
         }
+    }
+
+    companion object {
+        val defaultSizing    = object: SizingPolicy {}
+        val proportionalFill = ProportionalFill()
     }
 }

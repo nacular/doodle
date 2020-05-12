@@ -98,7 +98,7 @@ abstract class Button protected constructor(
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
 
     abstract fun click()
 }

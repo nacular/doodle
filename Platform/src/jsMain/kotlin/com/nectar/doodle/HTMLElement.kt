@@ -14,8 +14,12 @@ actual typealias CSSStyleDeclaration = org.w3c.dom.css.CSSStyleDeclaration
 actual var CSSStyleDeclaration.clipPath: String get() = this.asDynamic()["clip-path"] as String
     set(new) { this.asDynamic()["clip-path"] = new }
 
-actual var CSSStyleDeclaration.willChange: String get() = this.asDynamic()["will-change"] as String
-    set(new) { this.asDynamic()["will-change"] = new }
+actual var CSSStyleDeclaration.willChange: String get() = try { this.asDynamic()["will-change"] as String } catch (ignore: Exception) { "" }
+    set(new) {
+        try {
+            this.asDynamic()["will-change"] = new
+        } catch (ignore: Exception) {}
+    }
 
 actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle
 

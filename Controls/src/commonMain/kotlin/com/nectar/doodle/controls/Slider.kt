@@ -92,5 +92,5 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = behavior?.contains(this, point) ?: super.contains(point)
+    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
 }

@@ -498,7 +498,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point The point to check
      * @return `true` IFF the point falls within the View
      */
-    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { bounds.contains(it) } ?: false
+    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { it in bounds } ?: false
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.
