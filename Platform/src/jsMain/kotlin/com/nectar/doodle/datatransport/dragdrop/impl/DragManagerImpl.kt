@@ -10,6 +10,9 @@ import com.nectar.doodle.datatransport.UriList
 import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.DragOperation
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action
+import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Copy
+import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Link
+import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Move
 import com.nectar.doodle.datatransport.dragdrop.DropEvent
 import com.nectar.doodle.datatransport.dragdrop.DropReceiver
 import com.nectar.doodle.deviceinput.ViewFinder
