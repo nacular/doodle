@@ -79,9 +79,7 @@ internal class DragManagerImpl(
             if (event.target !is HTMLInputElement) {
                 (dataBundle ?: createBundle(event.dataTransfer))?.let {
                     if (!isIE) {
-                        try {
-                            visualCanvas.release()
-                        } catch (ignored: Throwable) {}
+                        visualCanvas.release()
                     }
 
                     if (currentDropHandler == null) {
@@ -240,9 +238,9 @@ internal class DragManagerImpl(
     private fun allowedActions(actions: Set<Action>): String {
         val builder = StringBuilder()
 
-        if (Action.Copy in actions) builder.append("copy")
-        if (Action.Link in actions) builder.append("Link")
-        if (Action.Move in actions) builder.append("Move")
+        if (Copy in actions) builder.append("copy")
+        if (Link in actions) builder.append("Link")
+        if (Move in actions) builder.append("Move")
 
         return when (val string = builder.toString()) {
             "copyLinkMove" -> "all"
@@ -259,9 +257,10 @@ internal class DragManagerImpl(
 
     private fun action(name: String?) = when {
         name == null            -> null
-        name.startsWith("copy") -> Action.Copy
-        name.startsWith("move") -> Action.Move
-        name.startsWith("link") -> Action.Link
+        name.startsWith("copy") -> Copy
+        name.startsWith("move") -> Move
+        name.startsWith("link") -> Link
+        name.startsWith("all" ) -> Copy
         else                    -> null
     }
 
@@ -317,9 +316,9 @@ internal class DragManagerImpl(
             if (dropHandler != null) {
                 dropAllowed = dropHandler.second.dropEnter(DropEvent(dropHandler.first, dropHandler.first.fromAbsolute(location), bundle, desired))
 
-                when (desired) {
-                    null -> currentDropHandler = null
-                    else -> currentDropHandler = dropHandler
+                currentDropHandler = when (desired) {
+                    null -> null
+                    else -> dropHandler
                 }
             } else {
                 currentDropHandler = null
