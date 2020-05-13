@@ -24,7 +24,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         require(opacity in 0f..1f) { "opacity must be in ${0..1}" }
     }
 
-    private val decimal: UInt by lazy { /*((opacity * 255).toInt() shl 32) +*/ (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
+    private val decimal: UInt by lazy { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
 
     val visible = opacity > 0
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }

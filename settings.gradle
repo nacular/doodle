@@ -23,18 +23,16 @@ enableFeaturePreview('GRADLE_METADATA')
 rootProject.name = 'doodle'
 
 include 'Animation'
+include 'Browser'
 include 'Controls'
 include 'Core'
-include 'Platform'
 include 'Themes'
 
-include 'HelloWorld'
+project(':Animation').name = 'animation'
+project(':Browser'  ).name = 'browser'
+project(':Controls' ).name = 'controls'
+project(':Core'     ).name = 'core'
+project(':Themes'   ).name = 'themes'
+
 include 'TestApp'
-
-project(':Animation' ).name = 'animation'
-project(':Controls'  ).name = 'controls'
-project(':Core'      ).name = 'core'
-project(':Platform'  ).name = 'platform'
-project(':Themes'    ).name = 'themes'
-
-project(':TestApp'   ).name = 'testapp'
+project(':TestApp'  ).name = 'testapp'

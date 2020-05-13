@@ -784,7 +784,7 @@ internal open class VectorRendererSvg constructor(
                 renderer.completeOperation(pattern)
 
                 brush.fill(PatternCanvas(object: CanvasContext {
-                    override var size get() = brush.bounds.size; set(value) {}
+                    override var size get() = brush.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
                     override val renderRegion = pattern
                     override var renderPosition: Node? = null
                     override val shadows get() = context.shadows
@@ -796,7 +796,7 @@ internal open class VectorRendererSvg constructor(
     }
 
     private class PatternCanvas(private val context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics, patternElement: SVGElement): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, patternElement), NativeCanvas {
-        override var size get() = context.size; set(value) {}
+        override var size get() = context.size; set(@Suppress("UNUSED_PARAMETER") value) {}
 
         override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
             true -> block(this)
