@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.panels
 
+import com.nectar.doodle.controls.panels.SizingPolicy.OverlappingView
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
@@ -14,11 +15,14 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 5/1/20.
  */
-
-data class LaneInfo(val span: Int, val size: Double, val idealSize: Double?)
-
 interface SizingPolicy {
-    operator fun invoke(panelSize: Double, spacing: Double, lanes: Map<Int, List<LaneInfo>>): Map<Int, Double> = lanes.mapValues { entry ->
+    data class OverlappingView(val span: Int, val size: Double, val idealSize: Double?)
+
+    operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
+}
+
+class FitContent: SizingPolicy {
+    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
         var size = 0.0
 
         entry.value.forEach {
@@ -29,9 +33,9 @@ interface SizingPolicy {
     }
 }
 
-class ProportionalFill: SizingPolicy {
-    override fun invoke(panelSize: Double, spacing: Double, lanes: Map<Int, List<LaneInfo>>) = lanes.mapValues {
-        max(0.0, (panelSize - spacing * (lanes.size - 1)) / lanes.size)
+class FitPanel: SizingPolicy {
+    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>) = views.mapValues {
+        max(0.0, (panelSize - spacing * (views.size - 1)) / views.size)
     }
 }
 
@@ -45,12 +49,11 @@ open class GridPanel: View() {
     private var rowDimensions    = mapOf<Int, Dimensions>()
     private var columnDimensions = mapOf<Int, Dimensions>()
 
-    var cellAlignment: (Constraints.() -> Unit) = fill //center
-    var verticalSpacing   = 0.0
-    var horizontalSpacing = 0.0
-
-    var rowSizingPolicy    = defaultSizing
-    var columnSizingPolicy = defaultSizing
+    var cellAlignment     : Constraints.() -> Unit = fill //center
+    var verticalSpacing                            = 0.0
+    var horizontalSpacing                          = 0.0
+    var rowSizingPolicy   : SizingPolicy           = fitContent
+    var columnSizingPolicy: SizingPolicy           = fitContent
 
     final override var layout: Layout? = GridLayout()
 
@@ -80,8 +83,8 @@ open class GridPanel: View() {
         }
 
         override fun layout(container: PositionableContainer) {
-            val rowLanes = mutableMapOf<Int, MutableList<LaneInfo>>()
-            val colLanes = mutableMapOf<Int, MutableList<LaneInfo>>()
+            val rowLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
+            val colLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
 
             // Calculate row and column sizes
             children.forEach { child ->
@@ -89,8 +92,8 @@ open class GridPanel: View() {
                     val rowSpan = rowSpans.getValue   (child)
                     val colSpan = columnSpans.getValue(child)
 
-                    rowLanes.getOrPut(row) { mutableListOf() }.also { it += LaneInfo(rowSpan, child.size.height, child.idealSize?.height) }
-                    colLanes.getOrPut(col) { mutableListOf() }.also { it += LaneInfo(colSpan, child.size.width,  child.idealSize?.width ) }
+                    rowLanes.getOrPut(row) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, child.idealSize?.height) }
+                    colLanes.getOrPut(col) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  child.idealSize?.width ) }
                 }
             }
 
@@ -141,7 +144,7 @@ open class GridPanel: View() {
     }
 
     companion object {
-        val defaultSizing    = object: SizingPolicy {}
-        val proportionalFill = ProportionalFill()
+        val fitPanel   = FitPanel  ()
+        val fitContent = FitContent()
     }
 }
