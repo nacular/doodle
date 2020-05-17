@@ -6,7 +6,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 
 
-class SystemTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): TextFieldBehavior {
+internal class SystemTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): TextFieldBehavior {
     private val nativePeer by lazy { nativeTextFieldFactory(textField) }
 
     override fun fitTextSize(textField: TextField) = nativePeer.fitTextSize()

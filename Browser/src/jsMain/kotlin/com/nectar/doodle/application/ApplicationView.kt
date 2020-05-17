@@ -22,6 +22,7 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
     private val root = htmlFactory.create<HTMLElement>().apply {
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
+        tabIndex = 0 // FIXME: Move this functionality into custom KeyInputStrategy?
     }
 
     private var application = null as Application?
@@ -35,6 +36,13 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
                 root.onresize?.let {
                     it(Event("onresize"))
                 }
+            }
+        }
+
+        focusChanged += { _,_,new ->
+            when (new) {
+                true -> root.focus()
+                else -> root.blur ()
             }
         }
     }

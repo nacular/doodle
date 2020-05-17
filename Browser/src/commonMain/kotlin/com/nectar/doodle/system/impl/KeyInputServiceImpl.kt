@@ -11,7 +11,7 @@ import com.nectar.doodle.system.impl.KeyInputServiceStrategy.EventHandler
 /**
  * Created by Nicholas Eddy on 3/10/18.
  */
-class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy): KeyInputService {
+internal class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy): KeyInputService {
     interface RawListener {
         operator fun invoke(keyState: KeyState, target: EventTarget?): Boolean
     }

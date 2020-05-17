@@ -14,17 +14,17 @@ import com.nectar.doodle.willChange
  * Created by Nicholas Eddy on 2/5/18.
  */
 
-interface NativeScrollPanelFactory {
+internal interface NativeScrollPanelFactory {
     operator fun invoke(scrollPanel: ScrollPanel, onScroll: (Point) -> Unit): NativeScrollPanel
 }
 
-class NativeScrollPanelFactoryImpl internal constructor(
+internal class NativeScrollPanelFactoryImpl internal constructor(
         private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
         private val handlerFactory: NativeEventHandlerFactory): NativeScrollPanelFactory {
     override fun invoke(scrollPanel: ScrollPanel, onScroll: (Point) -> Unit) = NativeScrollPanel(handlerFactory, graphicsDevice, scrollPanel, onScroll)
 }
 
-class NativeScrollPanel internal constructor(
+internal class NativeScrollPanel internal constructor(
                     handlerFactory: NativeEventHandlerFactory,
                     graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
         private val panel         : ScrollPanel,

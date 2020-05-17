@@ -5,7 +5,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
 
 
-class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
+internal class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
 
     override fun startConsumingMouseMoveEvents(onlySelf: Boolean) { element.onmousemove = { muteEvent(it, onlySelf) } }
     override fun stopConsumingMouseMoveEvents (                 ) { element.onmousemove = null                        }

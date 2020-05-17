@@ -3,7 +3,7 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.dom.EventTarget
 
 
-interface NativeEventListener {
+internal interface NativeEventListener {
     fun onClick      (target: EventTarget?) = true
     fun onFocusGained(target: EventTarget?) = true
     fun onFocusLost  (target: EventTarget?) = true

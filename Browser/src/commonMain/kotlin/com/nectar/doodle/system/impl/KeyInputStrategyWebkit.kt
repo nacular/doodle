@@ -32,7 +32,7 @@ import com.nectar.doodle.utils.ifTrue
 /**
  * Created by Nicholas Eddy on 3/10/18.
  */
-class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServiceStrategy {
+internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServiceStrategy {
 
     private var lastKeyDown  = null as KeyboardEvent?
     private var eventHandler = null as EventHandler?
@@ -57,8 +57,7 @@ class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): KeyInputServ
     }
 
     private fun keyUp(event: KeyboardEvent): Boolean {
-        // Webkit doesn't send key down events when modifiers are
-        // pressed so we do this manually
+        // Webkit doesn't send key down events when modifiers are pressed so we do this manually
         if (event.ctrlKey && lastKeyDown?.keyCode != event.keyCode) {
             dispatchKeyEvent(event, Down)
         }

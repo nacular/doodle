@@ -170,13 +170,13 @@ class DisplayImplTests {
         val layout = mockk<Layout>()
 
         display().apply {
-            doLayout() // should no-op
+            relayout() // should no-op
 
             this.layout = layout
 
             verify (exactly= 1) { layout.layout(any()) }
 
-            doLayout()
+            relayout()
 
             verify (exactly= 2) { layout.layout(any()) }
         }

@@ -6,7 +6,7 @@ import com.nectar.doodle.event.KeyState
 /**
  * Created by Nicholas Eddy on 3/10/18.
  */
-interface KeyInputServiceStrategy {
+internal interface KeyInputServiceStrategy {
     fun startUp (handler: EventHandler)
     fun shutdown()
 

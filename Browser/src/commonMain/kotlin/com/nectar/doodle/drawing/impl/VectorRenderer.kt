@@ -16,7 +16,7 @@ import com.nectar.doodle.text.StyledText
  * VectorRenderers provide vector rendering implementations.
  */
 
-interface VectorRenderer: Renderer {
+internal interface VectorRenderer: Renderer {
     fun rect(rectangle: Rectangle,           brush: Brush        )
     fun rect(rectangle: Rectangle, pen: Pen, brush: Brush? = null)
 
@@ -53,4 +53,4 @@ interface VectorRenderer: Renderer {
     fun remove(shadow: Shadow)
 }
 
-typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer
+internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

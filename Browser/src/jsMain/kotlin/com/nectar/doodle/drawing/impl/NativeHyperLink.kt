@@ -21,11 +21,11 @@ import org.w3c.dom.events.EventTarget
 /**
  * Created by Nicholas Eddy on 12/7/19.
  */
-interface NativeHyperLinkFactory {
+internal interface NativeHyperLinkFactory {
     operator fun invoke(hyperLink: HyperLink): NativeHyperLink
 }
 
-class NativeHyperLinkFactoryImpl internal constructor(
+internal class NativeHyperLinkFactoryImpl internal constructor(
         private val textMetrics              : TextMetrics,
         private val textFactory              : TextFactory,
         private val htmlFactory              : HtmlFactory,

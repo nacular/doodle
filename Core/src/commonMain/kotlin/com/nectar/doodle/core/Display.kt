@@ -1,5 +1,7 @@
 package com.nectar.doodle.core
 
+import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.geometry.Point
@@ -32,6 +34,13 @@ interface Display: Iterable<View> {
     /** Insets if any */
     var insets: Insets
 
+    /**
+     * Affine transform applied to the View.  This transform does not affect the Display's [size] or how it is handled by [Layout].
+     * Hit-detection is handled correctly such that the mouse intersects with the Display as expected after transformation.
+     * So no additional handling is necessary in general. The default is [Identity]
+     */
+    var transform: AffineTransform
+
     /** The list of top-level items added to the Display */
     val children: ObservableList<View>
 
@@ -57,13 +66,14 @@ interface Display: Iterable<View> {
      * @return `true` IFF [view] is a descendant of the Display
      */
     infix fun ancestorOf(view: View): Boolean
+
+    /** Prompts the Display to layout its children if it has a Layout installed. */
+    fun relayout()
 }
 
 inline val Display.width  get() = size.width
 inline val Display.height get() = size.height
 
 interface InternalDisplay: Display {
-    fun doLayout()
-
     fun repaint()
 }

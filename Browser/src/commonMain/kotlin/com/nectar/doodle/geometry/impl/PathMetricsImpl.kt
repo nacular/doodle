@@ -1,5 +1,6 @@
 package com.nectar.doodle.geometry.impl
 
+import com.nectar.doodle.SVGBoundingBoxOptions
 import com.nectar.doodle.SVGElement
 import com.nectar.doodle.SVGPathElement
 import com.nectar.doodle.dom.SvgFactory
@@ -7,7 +8,6 @@ import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.setPathData
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.PathMetrics
-import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 
 /**
@@ -26,13 +26,13 @@ class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
 
         svgFactory.root.add(svg)
 
-        val rect = element.getBoundingClientRect().run { Rectangle(x, y, width, height) }
+        val size = element.getBBox(object: SVGBoundingBoxOptions {}).run { Size(width, height) }
 
         svgFactory.root.removeChild(svg)
 
         svg.removeChild(element)
 
-        return rect.size
+        return size
     }
 
     private val svg = svgFactory<SVGElement>("svg")

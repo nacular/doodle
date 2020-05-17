@@ -18,11 +18,11 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 11/20/18.
  */
-interface NativeSliderFactory {
+internal interface NativeSliderFactory {
     operator fun invoke(slider: Slider): NativeSlider
 }
 
-class NativeSliderFactoryImpl internal constructor(
+internal class NativeSliderFactoryImpl internal constructor(
         private val htmlFactory              : HtmlFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
@@ -52,7 +52,7 @@ class NativeSliderFactoryImpl internal constructor(
     override fun invoke(slider: Slider) = NativeSlider(htmlFactory, nativeEventHandlerFactory, focusManager, defaultSize, sizeDifference, slider)
 }
 
-class NativeSlider internal constructor(
+internal class NativeSlider internal constructor(
                     htmlFactory   : HtmlFactory,
                     handlerFactory: NativeEventHandlerFactory,
         private val focusManager  : FocusManager?,

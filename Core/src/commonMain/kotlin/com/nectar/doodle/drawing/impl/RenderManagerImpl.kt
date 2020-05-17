@@ -1,7 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
 import com.nectar.doodle.accessibility.AccessibilityManager
-import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.InternalDisplay
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.AffineTransform
@@ -71,7 +70,7 @@ class RenderManagerImpl(
             }
 
             if (removed.isNotEmpty() || added.isNotEmpty()) {
-                display.doLayout()
+                display.relayout()
             }
         }
 
@@ -80,7 +79,7 @@ class RenderManagerImpl(
         }
 
         display.sizeChanged += { _,_,_ ->
-            display.doLayout()
+            display.relayout()
 
             display.forEach { checkDisplayRectChange(it) }
         }
@@ -152,7 +151,7 @@ class RenderManagerImpl(
             }
 
             if (display ancestorOf view) {
-                view.addedToDisplay(this, accessibilityManager)
+                view.addedToDisplay(display, this, accessibilityManager)
 
                 dirtyViews          += view
                 neverRendered       += view
@@ -571,7 +570,7 @@ class RenderManagerImpl(
         }
 
         when (parent) {
-            null -> display.doLayout()
+            null -> display.relayout()
 //            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
             else -> pendingLayout += parent
         }

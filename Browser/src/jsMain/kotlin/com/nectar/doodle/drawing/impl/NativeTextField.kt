@@ -27,11 +27,11 @@ import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 
-interface NativeTextFieldFactory {
+internal interface NativeTextFieldFactory {
     operator fun invoke(textField: TextField): NativeTextField
 }
 
-class NativeTextFieldFactoryImpl internal constructor(
+internal class NativeTextFieldFactoryImpl internal constructor(
         private val htmlFactory        : HtmlFactory,
         private val elementRuler       : ElementRuler,
         private val eventHandlerFactory: NativeEventHandlerFactory,
@@ -62,7 +62,7 @@ class NativeTextFieldFactoryImpl internal constructor(
 }
 
 @Suppress("PrivatePropertyName")
-class NativeTextField(
+internal class NativeTextField(
                     eventHandlerFactory: NativeEventHandlerFactory,
                     htmlFactory        : HtmlFactory,
         private val focusManager       : FocusManager?,

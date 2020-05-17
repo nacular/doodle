@@ -8,7 +8,7 @@ import com.nectar.doodle.geometry.Size
  * Created by Nicholas Eddy on 10/24/17.
  */
 
-interface CanvasContext {
+internal interface CanvasContext {
     var size          : Size
     val shadows       : List<Shadow>
     val renderRegion  : Node

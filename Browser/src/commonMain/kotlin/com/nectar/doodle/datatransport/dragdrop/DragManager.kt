@@ -1,5 +1,5 @@
 package com.nectar.doodle.datatransport.dragdrop
 
-interface DragManager {
+internal interface DragManager {
     fun shutdown()
 }

@@ -3,9 +3,9 @@ package com.nectar.doodle.drawing.impl
 import com.nectar.doodle.HTMLElement
 
 
-typealias NativeEventHandlerFactory = (element: HTMLElement, listener: NativeEventListener) -> NativeEventHandler
+internal typealias NativeEventHandlerFactory = (element: HTMLElement, listener: NativeEventListener) -> NativeEventHandler
 
-interface NativeEventHandler {
+internal interface NativeEventHandler {
     fun startConsumingMouseMoveEvents(onlySelf: Boolean = false)
     fun stopConsumingMouseMoveEvents ()
 

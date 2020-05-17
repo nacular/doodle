@@ -34,7 +34,7 @@ import kotlin.math.max
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
 private fun canvasElement(view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
 
-class RealGraphicsSurface private constructor(
+internal class RealGraphicsSurface private constructor(
         private val htmlFactory        : HtmlFactory,
         private val canvasFactory      : CanvasFactory,
         private var parent             : RealGraphicsSurface?,

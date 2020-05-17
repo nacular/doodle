@@ -69,6 +69,8 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
         inputDevice?.let {
             unregisterCallbacks(it)
 
+            it.style.cursor = ""
+
             inputDevice = null
         }
     }

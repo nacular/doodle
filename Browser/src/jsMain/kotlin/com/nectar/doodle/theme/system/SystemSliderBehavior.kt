@@ -12,7 +12,7 @@ import com.nectar.doodle.theme.Behavior
 /**
  * Created by Nicholas Eddy on 11/20/18.
  */
-class SystemSliderBehavior(nativeSliderFactory: NativeSliderFactory, slider: Slider): Behavior<Slider>, MouseListener, MouseMotionListener {
+internal class SystemSliderBehavior(nativeSliderFactory: NativeSliderFactory, slider: Slider): Behavior<Slider>, MouseListener, MouseMotionListener {
     private val nativePeer by lazy { nativeSliderFactory(slider) }
 
     override fun render(view: Slider, canvas: Canvas) {

@@ -76,11 +76,11 @@ class RenderManagerImplTests {
 
         renderManager(display)
 
-        verify(exactly = 0) { display.doLayout() }
+        verify(exactly = 0) { display.relayout() }
 
         slot.captured(display, display.size, display.size * 2.0)
 
-        verify(exactly = 1) { display.doLayout() }
+        verify(exactly = 1) { display.relayout() }
     }
 
     @Test @JsName("laysOutDisplayOnNewChild")
@@ -94,11 +94,11 @@ class RenderManagerImplTests {
 
         renderManager(display)
 
-        verify(exactly = 0) { display.doLayout() }
+        verify(exactly = 0) { display.relayout() }
 
         slot.captured(display.children, emptyMap(), mapOf(1 to view()), emptyMap())
 
-        verify(exactly = 1) { display.doLayout() }
+        verify(exactly = 1) { display.relayout() }
     }
 
     @Test @JsName("laysOutDisplayOnChildBoundsChange")
@@ -109,11 +109,11 @@ class RenderManagerImplTests {
 
         renderManager(display)
 
-        verify(exactly = 0) { display.doLayout() }
+        verify(exactly = 0) { display.relayout() }
 
         child.width += 10
 
-        verify(exactly = 1) { display.doLayout() }
+        verify(exactly = 1) { display.relayout() }
     }
 
     @Test @JsName("renderIgnoresUnknownViews")

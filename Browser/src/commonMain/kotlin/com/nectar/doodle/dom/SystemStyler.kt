@@ -8,7 +8,7 @@ import com.nectar.doodle.numStyles
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-interface SystemStyler {
+internal interface SystemStyler {
     fun shutdown()
 }
 

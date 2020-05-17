@@ -8,7 +8,7 @@ import com.nectar.doodle.geometry.Point
 /**
  * Created by Nicholas Eddy on 2/5/18.
  */
-class SystemScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
+internal class SystemScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
     override fun scrollTo(point: Point) {
         nativePeer.scrollTo(point)
     }

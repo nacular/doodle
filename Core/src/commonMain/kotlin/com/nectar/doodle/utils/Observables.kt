@@ -58,6 +58,22 @@ class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): Mut
         return true
     }
 
+    override fun iterator() = list.iterator().let {
+        object: MutableIterator<E> by it {
+            private var index = -1
+
+            override fun next() = it.next().also { index++ }
+
+            override fun remove() {
+                val element = list[index--]
+                it.remove()
+                changed_.forEach {
+                    it(this@ObservableList, mapOf(index to element), mapOf(), mapOf())
+                }
+            }
+        }
+    }
+
     operator fun plusAssign(element: E) {
         add(element)
     }

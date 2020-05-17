@@ -22,8 +22,10 @@ import com.nectar.doodle.dom.setBackgroundImage
 import com.nectar.doodle.dom.setBackgroundSize
 import com.nectar.doodle.dom.setHeightPercent
 import com.nectar.doodle.dom.setOpacity
+import com.nectar.doodle.dom.setTransform
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.dom.width
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.drawing.ColorBrush
@@ -47,7 +49,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     override var insets = None
 
     override var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
-        doLayout()
+        relayout()
     }
 
     override val children by lazy { ObservableList<View>().apply {
@@ -70,6 +72,20 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
     private var brush               = null as Brush?
+
+    override var transform = Identity
+        set (new) {
+            field = new
+
+            refreshAugmentedTransform()
+        }
+
+    private var augmentedTransform = Identity
+        set (new) {
+            field = new
+
+            updateTransform()
+        }
 
     init {
         rootElement.onresize = ::onResize
@@ -131,28 +147,38 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
-        null, Ignored -> {
-            var child     = null as View?
-            var topZOrder = 0
+    override fun child(at: Point): View? = (transform.inverse?.invoke(at) ?: at).let { point ->
+        when (val result = layout?.child(positionableWrapper, point)) {
+            null, Ignored -> {
+                var child     = null as View?
+                var topZOrder = 0
 
-            children.reversed().forEach {
-                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
-                    child = it
-                    topZOrder = it.zOrder
+                children.reversed().forEach {
+                    if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
+                        child     = it
+                        topZOrder = it.zOrder
+                    }
                 }
-            }
 
-            child
+                child
+            }
+            is Found      -> (result.child as com.nectar.doodle.core.PositionableWrapper).view
+            is Empty      -> null
         }
-        is Found      -> (result.child as com.nectar.doodle.core.PositionableWrapper).view
-        is Empty      -> null
     }
 
     override fun iterator() = children.iterator()
 
-    override fun doLayout() {
-        layout?.layout(positionableWrapper)
+    private var layingOut = false
+
+    override fun relayout() {
+        if (!layingOut) {
+            layingOut = true
+
+            layout?.layout(positionableWrapper)
+
+            layingOut= false
+        }
     }
 
     fun shutdown() {
@@ -161,6 +187,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         brush = null
 
         rootElement.apply {
+
+            style.setTransform(null)
+
             clearVisualStyles()
             clear            ()
         }
@@ -169,6 +198,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private fun onResize(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         size = Size(rootElement.width, rootElement.height)
 
+        refreshAugmentedTransform()
         repaint()
     }
 
@@ -178,6 +208,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             canvas.rect (Rectangle(size = size), it)
             canvas.flush()
         }
+    }
+
+    private fun refreshAugmentedTransform() {
+        val point          = -Point(size.width / 2, size.height / 2)
+        augmentedTransform = ((Identity translate point) * transform) translate -point
+    }
+
+    private fun updateTransform() {
+        rootElement.style.setTransform(augmentedTransform)
     }
 
     private inner class PositionableWrapper: PositionableContainer {

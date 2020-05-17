@@ -412,7 +412,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
-    private var renderManager       : RenderManager? = null
+    private var display             : Display?              = null
+    private var renderManager       : RenderManager?        = null
     private var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
@@ -446,22 +447,24 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
-    protected open fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
-        null, Ignored -> {
-            var child     = null as View?
-            var topZOrder = 0
+    protected open fun child(at: Point): View? = (transform.inverse?.invoke(at) ?: at).let { point ->
+        when (val result = layout?.child(positionableWrapper, point)) {
+            null, Ignored -> {
+                var child = null as View?
+                var topZOrder = 0
 
-            children.reversed().forEach {
-                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
-                    child = it
-                    topZOrder = it.zOrder
+                children.reversed().forEach {
+                    if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
+                        child = it
+                        topZOrder = it.zOrder
+                    }
                 }
-            }
 
-            child
+                child
+            }
+            is Found      -> (result.child as PositionableWrapper).view
+            is Empty      -> null
         }
-        is Found -> (result.child as PositionableWrapper).view
-        is Empty -> null
     }
 
     internal fun child_(at: Point) = child(at)
@@ -543,7 +546,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point to be mapped
      * @returns a Point relative to the [Display]
      */
-    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: it }
+    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: display?.transform?.invoke(it) ?: it }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the [Display], into this View's coordinate-space.
@@ -551,7 +554,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point to be mapped
      * @returns a Point relative to this View's [position]
      */
-    fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: point).let { transform.inverse?.invoke(it) ?: it } - position
+    fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: display?.transform?.inverse?.invoke(point) ?:
+        point).let { transform.inverse?.invoke(it) ?: it } - position
 
     /**
      * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from
@@ -694,7 +698,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param renderManager The RenderManager that will handle all renders for the view
      */
-    internal fun addedToDisplay(renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
+    internal fun addedToDisplay(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
+        this.display              = display
         this.renderManager        = renderManager
         this.accessibilityManager = accessibilityManager
 
@@ -722,6 +727,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
             accessibilityManager?.roleAdopted(this)
         }
 
+        display              = null
         renderManager        = null
         accessibilityManager = null
         removedFromDisplay()

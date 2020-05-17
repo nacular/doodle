@@ -6,7 +6,7 @@ import com.nectar.doodle.system.SystemMouseEvent
 import com.nectar.doodle.system.SystemMouseScrollEvent
 
 
-interface MouseInputServiceStrategy {
+internal interface MouseInputServiceStrategy {
     var cursor       : Cursor
     var toolTipText  : String
     val mouseLocation: Point

@@ -43,11 +43,11 @@ import kotlin.math.max
 import kotlin.math.min
 
 
-interface NativeButtonFactory {
+internal interface NativeButtonFactory {
     operator fun invoke(button: Button): NativeButton
 }
 
-class NativeButtonFactoryImpl internal constructor(
+internal class NativeButtonFactoryImpl internal constructor(
         private val textMetrics              : TextMetrics,
         private val textFactory              : TextFactory,
         private val htmlFactory              : HtmlFactory,
