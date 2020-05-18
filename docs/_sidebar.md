@@ -2,6 +2,7 @@
 * [Applications](applications.md)
 * [Creating Views](views.md)
 * [Layouts](positioning.md)
+* [Display](display.md)
 * [Rendering](rendering.md)
     * [Text](text.md)
 * [Mouse Handling](mouse.md)

@@ -42,7 +42,7 @@ Doodle apps can also be run within other apps. This is done by placing the neste
 manage. The life-cycle of a nested app is slightly different from a stand-alone one.
 
 ?> [`ApplicationView`]() initializes its
-nested app when added to the [`Display`](), and shuts the app down when removed.
+nested app when added to the [**Display**](display.md?id=the-display-is-an-apps-root-container), and shuts the app down when removed.
 
 ```kotlin
 InnerApp.kt

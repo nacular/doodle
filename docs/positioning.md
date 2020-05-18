@@ -4,7 +4,8 @@
 ### Doodle is explicit about positioning.
 
 Every View has an `x,y` coordinate relative to its parent. This position is exactly where the View will
-be rendered. Doodle ensures that there is never a disconnect between a View's position and screen coordinates.
+be rendered. Doodle ensures that there is never a disconnect between a View's position and
+[**Display**](display.md?id=the-display-is-an-apps-root-container) coordinates.
 
 ?> 0,0 is the default position
 

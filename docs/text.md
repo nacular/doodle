@@ -1,8 +1,8 @@
 # Text Handling
 
-### Recall that Doodle is explicit. This applies to layout and rendering. Which means text rendering is no different.
+### Recall that Doodle is explicit. This applies to layout and rendering, and text rendering is no different.
 
-Consider that all text drawing requires a location for where to place the text.
+Text rendering requires a location for placement.
 
 ```kotlin
 class TextView: View() {
@@ -25,7 +25,7 @@ class MyApp(/*..,*/ textMetrics: TextMetrics): Application {
 }
 ```
 
-Simply inject it into your app--it is included in a default module--and pass it to Views that require it.
+Simply inject it into your app--it is included in a default modules--and pass it to Views that require it.
 Here is an update to the View above that draws _hello_ in its center.
 
 ```kotlin
@@ -58,7 +58,7 @@ class MyApp(fonts: FontDetector): Application {
     init {
         // launch a new coroutine for async font lookup
         val font = GlobalScope.async {
-            fontDetector {
+            fonts {
                 family = "Roboto"
                 size   = 14
                 weight = 400

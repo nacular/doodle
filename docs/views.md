@@ -18,7 +18,7 @@ val view = object: View() {
 
 ### Views encapsulate state and handle rendering updates to the screen.
 
-Here is more useful example of holding some user data
+Here is more useful example of holding and displaying some user data.
 
 ```kotlin
 class UserInfo(
@@ -44,12 +44,12 @@ class UserInfo(
     }
 }
 ```
-?> Don't worry about the `render` method yet; we'll cover that later.
+?> Don't worry about the `render` method yet; we cover that [later](rendering.md).
 
 ### Top-level Views
 
-Doodle apps contain a hierarchy of Views working together; with the [`Display`]() being the root ancestor. You display
-a top-level View like this:
+Doodle apps contain a hierarchy of Views working together; with the [**Display**](display.md?id=the-display-is-an-apps-root-container)
+being the root ancestor. You display a top-level View like this:
 
 ```kotlin
 class MyApp(display: Display): View() {
