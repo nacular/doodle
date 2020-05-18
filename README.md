@@ -1,4 +1,4 @@
-<div align="center"><img src="docs/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
+<div align="center"><img src="doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div align="center"><h1>A pure Kotlin UI framework for the Web.</h1></div>
 
 ----
@@ -7,18 +7,18 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 
 **Expressive:** Creating expressive, intuitive apps is natural with doodle. It handles all complex rendering and layout timing for you. Simply
-define your View heirarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
+define your View hierarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
 
-**Single-language:** Focus on your app and not the nuances of HTML, Javascript or CSS. With doodle, you write all parts of your application in Kotlin.
-This means you get the full power of a sophisticated, strongly-typed language.
+**Single-language:** Doodle apps do not use HTML, Javascript, CSS or wrappers around these concepts. Instead, you write all parts of your
+application in a browser agnostic way using [Kotlin](http://kotlinlang.org). Doodle apps can actually be written entirely as common code in
+multi-platform setups.
 
-**Vector Oriented:** Its easy to build beautifully detailed UIs with doodle. All rendering in doodle is vector-oriented. So ellipses, paths,
+**Vector Oriented:** Its easy to build beautifully detailed UIs with doodle. All rendering in doodle is vector-oriented; so ellipses, paths,
 lines, gradients, affine transforms etc. are as simple to use as images and rectangles. 
 
-**Transparent:** Doodle hides the complexity of HTML and CSS, but exposes control over all other aspects of UI presentation. This makes it easier
-to make guarantees about what is rendered.
+**Transparent:** Doodle gives you control over all aspects of the UI presentation, making it easier to precisely control rendering.
 
-**Testable:** Apps written with doodle are dependency-injected.  And there are no global objects or state to make mocking challenging.
+**Testable:** Apps written with doodle are dependency-injected; and there are no global objects or state to make mocking challenging.
 
 ## Installation
 
