@@ -412,9 +412,9 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy = null as FocusTraversalPolicy?
 
-    private var display             : Display?              = null
-    private var renderManager       : RenderManager?        = null
-    private var accessibilityManager: AccessibilityManager? = null
+    internal var display             : Display?              = null; private set
+    private  var renderManager       : RenderManager?        = null
+    private  var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
 

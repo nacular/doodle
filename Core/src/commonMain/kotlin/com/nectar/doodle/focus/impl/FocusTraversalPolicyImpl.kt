@@ -4,7 +4,6 @@ import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy
-import com.nectar.doodle.utils.ObservableList
 import kotlin.math.max
 
 /**
@@ -27,8 +26,7 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
     override fun previous(display: Display, from: View?) = from?.let {              previous(displayView, it.parent, it) }
 
     private val displayView: View = object: View() {
-        override val children: ObservableList<View>
-            get() = display.children
+        override val children get() = this@FocusTraversalPolicyImpl.display.children
     }
 
     private fun next(cycleRoot: View, parentView: View?, current: View): View? {
