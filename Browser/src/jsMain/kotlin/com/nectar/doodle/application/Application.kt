@@ -286,10 +286,10 @@ class Modules {
         }
 
         val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl(instance()) }
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()            ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()) }
+            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()              ) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {

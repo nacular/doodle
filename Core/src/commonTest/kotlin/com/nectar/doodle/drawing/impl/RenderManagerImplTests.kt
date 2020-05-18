@@ -50,10 +50,11 @@ class RenderManagerImplTests {
     fun `renders are batched`() {
         val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
+        val display   = display(view)
 
         view.visible = false
 
-        val renderManager = renderManager(display(view), scheduler = scheduler)
+        val renderManager = renderManager(display, scheduler = scheduler)
 
         view.visible  = true
         view.size    *= 2.0
@@ -62,7 +63,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
     }
 
     @Test @JsName("laysOutDisplayOnSizeChange")
@@ -127,12 +128,12 @@ class RenderManagerImplTests {
 
     @Test @JsName("rendersDisplayedViews")
     fun `renders displayed views`() {
-        val views = (0 until 2).mapTo(mutableListOf()) { spyk(view()) }
-
-        val renderManager = renderManager(display(*views.toTypedArray()))
+        val views         = (0 until 2).mapTo(mutableListOf()) { spyk(view()) }
+        val display       = display(*views.toTypedArray())
+        val renderManager = renderManager(display)
 
         views.forEach {
-            verifyChildAddedProperly(renderManager, it)
+            verifyChildAddedProperly(renderManager, display, it)
         }
     }
 
@@ -150,7 +151,7 @@ class RenderManagerImplTests {
 
         display.children += child
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
 
         val bounds    = child.bounds
         val transform = child.transform
@@ -170,7 +171,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, container)
+        verifyChildAddedProperly(renderManager, display, container)
 
         display.children.remove(container)
 
@@ -190,7 +191,7 @@ class RenderManagerImplTests {
         val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
 
         listOf(container1, container2).forEach {
-            verifyChildAddedProperly(renderManager, it)
+            verifyChildAddedProperly(renderManager, display, it)
         }
 
         display.children.move(container2, 0)
@@ -215,7 +216,7 @@ class RenderManagerImplTests {
         val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(container1 to surface1, container2 to surface2)))
 
         listOf(container1, container2).forEach {
-            verifyChildAddedProperly(renderManager, it)
+            verifyChildAddedProperly(renderManager, display, it)
         }
 
         container2.zOrder = 3
@@ -240,7 +241,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, container)
+        verifyChildAddedProperly(renderManager, display, container)
 
         val firstChild = container.children.first()
         container.children -= firstChild
@@ -252,11 +253,11 @@ class RenderManagerImplTests {
 
     @Test @JsName("rerendersOnBoundsChanged")
     fun `rerenders on bounds changed`() {
-        val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display       = display(view)
+        val renderManager = renderManager(display)
 
-        val renderManager = renderManager(display(view))
-
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
 
         view.size *= 2.0
 
@@ -265,46 +266,47 @@ class RenderManagerImplTests {
 
     @Test @JsName("rerendersOnBecomingVisible")
     fun `rerenders on becoming visible`() {
-        val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display = display(view)
 
         view.visible = false
 
-        val renderManager = renderManager(display(view))
+        val renderManager = renderManager(display)
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager.first, any()) }
-        verify(exactly = 0) { view.render        (any()                     ) }
+        verifyChildAddedProperly(renderManager, display, view, 0)
 
         view.visible = true
 
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
     }
 
     @Test @JsName("rerendersOnAddedBecomingVisible")
     fun `rerenders on added becoming visible`() {
-        val parent = container()
-        val view  = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val parent  = container()
+        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display = display(parent)
 
         view.visible = false
 
-        val renderManager = renderManager(display(parent))
+        val renderManager = renderManager(display)
 
-        verify(exactly = 0) { view.addedToDisplay(renderManager.first, any()) }
-        verify(exactly = 0) { view.render        (any()                     ) }
+        verify(exactly = 0) { view.addedToDisplay(display, renderManager.first, any()) }
+        verify(exactly = 0) { view.render        (any()                              ) }
 
         parent.children_ += view
 
         view.visible = true
 
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
     }
 
     @Test @JsName("doesNotRerenderOnBoundsZeroed")
     fun `does not rerender on bounds zeroed`() {
-        val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display       = display(view)
+        val renderManager = renderManager(display)
 
-        val renderManager = renderManager(display(view))
-
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
 
         view.size *= 0.0
 
@@ -313,11 +315,11 @@ class RenderManagerImplTests {
 
     @Test @JsName("doesNotRerenderOnPositionChanged")
     fun `does not rerender on position changed`() {
-        val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display       = display(view)
+        val renderManager = renderManager(display)
 
-        val renderManager = renderManager(display(view))
-
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
 
         view.x *= 2.0
 
@@ -326,11 +328,11 @@ class RenderManagerImplTests {
 
     @Test @JsName("doesNotRerenderOnSizeZeroed")
     fun `does not re-render on size zeroed`() {
-        val view = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val display       = display(view)
+        val renderManager = renderManager(display)
 
-        val renderManager = renderManager(display(view))
-
-        verifyChildAddedProperly(renderManager, view)
+        verifyChildAddedProperly(renderManager, display, view)
 
         view.size = Size.Empty
 
@@ -348,7 +350,7 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display)
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
     }
 
     @Test @JsName("rendersReAddedNestedViews")
@@ -366,7 +368,7 @@ class RenderManagerImplTests {
 
         container.children += child
 
-        verifyChildAddedProperly(renderManager, child, 2)
+        verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
     @Test @JsName("rendersNewNestedViews")
@@ -385,7 +387,7 @@ class RenderManagerImplTests {
 
         container.children += child
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
     }
 
     @Test @JsName("rendersNewNestedViewInserted")
@@ -405,7 +407,7 @@ class RenderManagerImplTests {
 
         container.children.add(1, child)
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
     }
 
     @Test @JsName("doesNotRenderInvisibleViews")
@@ -544,7 +546,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child, 2)
+        verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
     @Test @JsName("noOpRemovedReAddedSameParent")
@@ -561,7 +563,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
 
         container.children -= child
 
@@ -571,7 +573,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
     }
 
     @Test @JsName("rendersRemovedReAddedDifferentParent")
@@ -591,7 +593,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
 
         // Add happens before next render
 
@@ -600,7 +602,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child, 2)
+        verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
     @Test @JsName("rendersRemovedReAddedNestedDifferentParent")
@@ -618,7 +620,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child)
+        verifyChildAddedProperly(renderManager, display, child)
 
         container1.children -= child
         container2.children += child
@@ -630,7 +632,7 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        verifyChildAddedProperly(renderManager, child, 2)
+        verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
     private fun verifyLayout(block: (View) -> Unit) {
@@ -649,9 +651,9 @@ class RenderManagerImplTests {
         verify(exactly = 2) { container.doLayout_() }
     }
 
-    private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, view: View, times: Int = 1) {
-        verify(exactly = times) { view.addedToDisplay(renderManager.first, renderManager.second) }
-        verify(exactly = times) { view.render        (any()                                    ) }
+    private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: Display, view: View, times: Int = 1) {
+        verify(exactly = times) { view.addedToDisplay(display, renderManager.first, renderManager.second) }
+        verify(exactly = times) { view.render        (any()                                             ) }
     }
 
     private fun verifyChildRemovedProperly(view: View) {

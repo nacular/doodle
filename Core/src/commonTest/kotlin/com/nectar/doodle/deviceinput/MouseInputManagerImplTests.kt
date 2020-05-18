@@ -1,6 +1,7 @@
 package com.nectar.doodle.deviceinput
 
 import com.nectar.doodle.JsName
+import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.event.MouseEvent
@@ -40,7 +41,7 @@ class MouseInputManagerImplTests {
         val display      = display()
         val inputService = mockk<MouseInputService>()
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService        += manager }
         verify(exactly = 1) { inputService.cursor  = Default }
@@ -51,7 +52,7 @@ class MouseInputManagerImplTests {
         val display      = display(Help)
         val inputService = mockk<MouseInputService>()
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService        += manager }
         verify(exactly = 1) { inputService.cursor  = Help    }
@@ -68,7 +69,7 @@ class MouseInputManagerImplTests {
             cursorChanged = lambda<(Display, Cursor?, Cursor?) -> Unit>().captured
         }
 
-        MouseInputManagerImpl(display, inputService)
+        MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         cursorChanged(display, Help, Move)
 
@@ -86,7 +87,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService.cursor = Default }
 
@@ -110,7 +111,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService.cursor = Default }
 
@@ -142,7 +143,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService.cursor = Progress }
 
@@ -176,7 +177,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
@@ -184,6 +185,53 @@ class MouseInputManagerImplTests {
         verify(atLeast = 2) { inputService.toolTipText = "" }
 
         verify(exactly = 0) { child.handleMouseEvent_(any()) }
+    }
+
+    @Test @JsName("mouseDownDisabled")
+    fun `mouse down, disabled`() {
+        val display      = display()
+        val inputService = mockk<MouseInputService>()
+        val child        = spyk(view())
+
+        child.mouseChanged += mockk()
+
+        every { display.child(any()) } returns child
+        every { child.enabled        } returns false
+
+        display.children += child
+
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
+
+        manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+
+        verify(exactly = 0) { child.handleMouseEvent_(any()) }
+    }
+
+    @Test @JsName("mouseDownDisabledGoesToParent")
+    fun `mouse down, disabled goes to parent`() {
+        val display      = display()
+        val inputService = mockk<MouseInputService>()
+        val parent       = spyk(Box())
+        val child        = spyk(view())
+
+        every { display.child(any()) } returns parent
+        every { parent.child (any()) } returns child
+        every { child.parent         } returns parent
+        every { child.enabled        } returns false
+
+        parent.children  += child
+        display.children += parent
+
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
+
+        manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+
+        verify(exactly = 0) { child.handleMouseEvent_(any()) }
+
+        verify(ORDERED) {
+            parent.handleMouseEvent_(MouseEvent(parent, parent, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
+            parent.handleMouseEvent_(MouseEvent(parent, parent, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
+        }
     }
 
     @Test @JsName("mouseDownInformsHandler")
@@ -200,13 +248,16 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
-        child.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        verify(ORDERED) {
+            child.handleMouseEvent_(MouseEvent(child, child, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        }
     }
 
     @Test @JsName("mouseDownInformsParentHandler")
@@ -218,21 +269,24 @@ class MouseInputManagerImplTests {
 
         parent.position = Point(9.0, 9.0)
 
-        parent.children_    += child
-        parent.mouseChanged += mockk()
+        parent.children_ += child
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns parent
+        every { child.parent                     } returns parent
 
         display.children += parent
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
-        parent.handleMouseEvent_(MouseEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        verify(ORDERED) {
+            parent.handleMouseEvent_(MouseEvent(parent, child, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+            parent.handleMouseEvent_(MouseEvent(parent, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        }
     }
 
     @Test @JsName("mouseDragInformsHandler")
@@ -241,16 +295,14 @@ class MouseInputManagerImplTests {
         val inputService = mockk<MouseInputService>()
         val child        = spyk(view())
 
-        child.position            = Point(9.0, 9.0)
-        child.mouseChanged       += mockk()
-        child.mouseMotionChanged += mockk()
+        child.position   = Point(9.0, 9.0)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
@@ -279,7 +331,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Type.Move, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
@@ -304,7 +356,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
@@ -332,7 +384,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
@@ -360,7 +412,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager.changed(SystemMouseEvent(Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
@@ -387,7 +439,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
@@ -411,7 +463,7 @@ class MouseInputManagerImplTests {
 
         display.children += child
 
-        val manager = MouseInputManagerImpl(display, inputService)
+        val manager = MouseInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemMouseEvent(Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 

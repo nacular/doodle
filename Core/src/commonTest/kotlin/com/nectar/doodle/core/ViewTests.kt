@@ -109,10 +109,11 @@ class ViewTests {
 
     @Test @JsName("rerenderWorks")
     fun `rerender work`() {
+        val display       = mockk<Display>()
         val renderManager = mockk<RenderManager>()
-        val view         = object: View() {}
+        val view          = object: View() {}
 
-        view.addedToDisplay(renderManager, null)
+        view.addedToDisplay(display, renderManager, null)
 
         view.rerender()
 
@@ -121,10 +122,11 @@ class ViewTests {
 
     @Test @JsName("rerenderNowWorks")
     fun `rerenderNow work`() {
+        val display       = mockk<Display>()
         val renderManager = mockk<RenderManager>()
-        val view         = object: View() {}
+        val view          = object: View() {}
 
-        view.addedToDisplay(renderManager, null)
+        view.addedToDisplay(display, renderManager, null)
 
         view.rerenderNow()
 
@@ -157,7 +159,7 @@ class ViewTests {
 
         view.displayChange += observer
 
-        view.addedToDisplay(mockk(), null)
+        view.addedToDisplay(mockk(), mockk(), null)
 
         verify(exactly = 1) { observer(view, false, true) }
 

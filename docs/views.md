@@ -64,28 +64,36 @@ The `display` may be associated with the page or element for stand-alone apps, o
 
 ### Views Can Have Children
 
-Apps build hierarchies by nesting Views within one another. The [`View`]() class keeps its children `protected`. This helps
-encapsulate state better and avoids misuse for more complex views.
+Most apps consist of hierarchies with Views nested inside one another. Dodle apps are no different, and The [`View`]() class supports
+nesting children. However, this list--and other traits related to being a container of Views--is `protected`. This improves
+encapsulate and gives better API control.
 
-Let's consider a tabbed panel. An implementation might use a list of Views to represent the tab row along with those representing
-each tab's contents. Doodle naturally handles this by letting you selectively expose the View internals to callers.
+Consider a split panel. Conceptually, it should have no more than 2 children; but it might make sense to have more: i.e. a handle.
+Doodle makes this easy letting you selectively expose a View's internals to callers.
 
 ```kotlin
-class MyBasicTabbedPanel: View() {
-    private val tabHeader = Box() // simple container
+class VSplitPanel: View() {
+    val left: View? = null
+        set(new) {
+            if (new == field) { return }
 
-    var selectedTab: View? = null
+            field?.let { children -= it }
+            field = new
+            field?.let { children += it }
     
+            // notify of change
+        }
+    
+    val right: View? = null
+        // ..
+
+    private val handle: View // private View for splitter
+
     init {
-        children += tabHeader // children accessible to sub-class
-        
-        // setup layout
+        children += handle // add handle to children
     }
-
-    fun add(tab: View) {/* add to tabHeader, update selection ... */}
-
-    fun remove(tab: View) {/* remove from tabHeader, update selection ... */}
 }
 ```
 
-This class keeps the `children` property internal and exposes a more robust API via `add`, `remove`, and `selectedTab`.
+This design prevents direct access to the panel's `children`, which side-steps many usability issues.  It also presents are more
+intuitive API: left, right are fairly self-documenting, and much better than children[0] and children[1].

@@ -3,4 +3,6 @@
 * [Creating Views](views.md)
 * [Layouts](positioning.md)
 * [Rendering](rendering.md)
-    * [Text Handling](text.md)
+    * [Text](text.md)
+* [Mouse Handling](mouse.md)
+* [Mouse Motion Handling](mousemotion.md)

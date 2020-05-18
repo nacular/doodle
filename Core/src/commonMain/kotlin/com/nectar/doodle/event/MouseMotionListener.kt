@@ -6,7 +6,6 @@ package com.nectar.doodle.event
  * MouseEvents related to mouse motion when they register with a source that fires
  * these events.
  */
-
 interface MouseMotionListener {
     /**
      * Informs listener that the mouse has been moved while over the source.

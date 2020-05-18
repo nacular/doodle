@@ -12,6 +12,7 @@ import com.nectar.doodle.core.height
 import com.nectar.doodle.core.width
 import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.CanvasFactory
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -23,7 +24,6 @@ import com.nectar.doodle.utils.PropertyObserver
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.spyk
 import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.reflect.KProperty1
@@ -46,12 +46,13 @@ class DisplayImplTests {
             DisplayImpl::height             to 0.0,
             DisplayImpl::cursor             to null,
             DisplayImpl::insets             to None,
-            DisplayImpl::layout             to null
+            DisplayImpl::layout             to null,
+            DisplayImpl::transform          to Identity
         ).forEach { validateDefault(it.key, it.value) }
     }
 
     @Test @JsName("registersOnResize") fun `registers onresize`() {
-        val rootElement = spyk<HTMLElement>()
+        val rootElement = mockk<HTMLElement>()
 
         display(rootElement = rootElement)
 
@@ -59,7 +60,7 @@ class DisplayImplTests {
     }
 
     @Test @JsName("hasInitialWindowSize") fun `has initial window size`() {
-        val rootElement = spyk<HTMLElement>().apply {
+        val rootElement = mockk<HTMLElement>().apply {
             every { offsetWidth  } returns 100
             every { offsetHeight } returns 150
         }
@@ -70,7 +71,7 @@ class DisplayImplTests {
     @Test @JsName("handlesWindowResize") fun `handles window resize`() {
         var slot = slot<(Event) -> Unit>()
 
-        val rootElement = spyk<HTMLElement>().apply {
+        val rootElement = mockk<HTMLElement>().apply {
             every { onresize = captureLambda() } answers {
                 slot = lambda()
             }

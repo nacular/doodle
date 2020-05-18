@@ -1,5 +1,5 @@
-# Positioning Views
--------------------
+# Layouts
+---------
 
 ### Doodle is explicit about positioning.
 

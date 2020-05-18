@@ -14,11 +14,11 @@ interface ViewFinder {
 class ViewFinderImpl(private val display: Display): ViewFinder {
     override fun find(at: Point): View? {
         var newPoint = at
-        var view     = display.child(at)
+        var view     = display.child(at)?.takeIf { it.enabled }
 
         while(view != null) {
             newPoint = view.toLocal(newPoint, view.parent)
-            view     = view.child_(at = newPoint) ?: break
+            view     = view.child_(at = newPoint)?.takeIf { it.enabled } ?: break
         }
 
         return view
