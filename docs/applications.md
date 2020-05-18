@@ -1,7 +1,7 @@
 # Applications
 --------------
 
-All doodle code runs within an [`Application`](). It is the entry-point for your business logic, and often the first
+All doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/com/nectar/doodle/application/Application.kt). It is the entry-point for your business logic, and often the first
 class you write. Doodle will fully initialize and make your app ready at constructor time. So there is no additional
 *run* or *start* method to implement. You can provide custom tear-down logic via the `shutdown` method though.
 
