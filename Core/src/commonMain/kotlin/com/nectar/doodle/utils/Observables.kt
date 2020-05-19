@@ -9,8 +9,6 @@ import kotlin.reflect.KProperty
 /**
  * Created by Nicholas Eddy on 10/21/17.
  */
-
-
 typealias SetObserver     <T>    = (source: ObservableSet<T>,  removed: Set<T>,      added: Set<T>                                    ) -> Unit
 typealias ListObserver    <T>    = (source: ObservableList<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 typealias ChangeObserver  <S>    = (source: S                                                                                         ) -> Unit
@@ -37,8 +35,7 @@ class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<
     operator fun invoke(old: T, new: T) = delegate.forEach { it(source, old, new) }
 }
 
-// FIXME: Expose factory methods instead to avoid the case where the given list is modified
-class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): MutableList<E> by list {
+class ObservableList<E> private constructor(private val list: MutableList<E>): MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<E>>()
     val changed: Pool<ListObserver<E>> = changed_
@@ -225,6 +222,11 @@ class ObservableList<E>(private val list: MutableList<E> = mutableListOf()): Mut
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
+
+    companion object {
+        operator fun <E> invoke(             ): ObservableList<E> = ObservableList(mutableListOf     ())
+        operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableList(list.toMutableList())
+    }
 }
 
 fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
@@ -235,8 +237,7 @@ fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
     batch { sortWith(comparator.reversed()) }
 }
 
-// FIXME: Expose factory methods instead to avoid the case where the given set is modified
-open class ObservableSet<E>(protected val set: MutableSet<E> = mutableSetOf()): MutableSet<E> by set {
+open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<E>>()
     val changed: Pool<SetObserver<E>> = changed_
 
@@ -278,6 +279,11 @@ open class ObservableSet<E>(protected val set: MutableSet<E> = mutableSetOf()): 
         changed_.forEach {
             it(this, oldSet, emptySet())
         }
+    }
+
+    companion object {
+        operator fun <E> invoke(           ): ObservableSet<E> = ObservableSet(mutableSetOf())
+        operator fun <E> invoke(set: Set<E>): ObservableSet<E> = ObservableSet(set.toMutableSet())
     }
 }
 

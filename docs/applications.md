@@ -1,9 +1,10 @@
 # Applications
 --------------
 
-All doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/com/nectar/doodle/application/Application.kt). It is the entry-point for your business logic, and often the first
-class you write. Doodle will fully initialize and make your app ready at constructor time. So there is no additional
-*run* or *start* method to implement. You can provide custom tear-down logic via the `shutdown` method though.
+All doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/com/nectar/doodle/application/Application.kt#L6).
+It is the entry-point for your business logic, and often the first class you write. Doodle will fully initialize and make your app ready
+at constructor time. So there is no additional *run* or *start* method to implement. You can provide custom tear-down logic via the `shutdown`
+method though.
 
 ```kotlin
 class UsefulApp: Application {
@@ -17,13 +18,13 @@ class UsefulApp: Application {
 
 ## App Creation
 
-Applications can either be launched as stand-alone, or within another app using an [`ApplicationView`](). Regardless of the launch
-mode, your app class does not change. In this way, apps are written without knowledge of which mode they will be run in. This
-separation of concerns provides flexibility.
+Applications can either be launched as stand-alone, or within another app using an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L75).
+Regardless of the launch mode, your app class does not change. In this way, apps have no knowledge of which mode they will be run in,
+which improves separation of concerns and flexibility.
 
 ### Stand-alone
 
-Most apps will be full-screen, stand-alone experiences. The [`application`]() function is used to launch stand-alone apps.
+Most apps will be full-screen, stand-alone experiences. The [`application`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Application.kt#L94) function is used to launch stand-alone apps.
 Closing the page cleans up stand-alone apps within it. Removing the element hosting an app or explicitly calling `shutdown`
 has the same effect.
 
@@ -38,11 +39,8 @@ fun main() {
 
 ### Nested
 
-Doodle apps can also be run within other apps. This is done by placing the nested app in a [`View`]() that the host app can
-manage. The life-cycle of a nested app is slightly different from a stand-alone one.
-
-?> [`ApplicationView`]() initializes its
-nested app when added to the [**Display**](display.md?id=the-display-is-an-apps-root-container), and shuts the app down when removed.
+Doodle apps can also be run within other apps. This is done by placing the nested app in a [**View**](views.md?id=creating-views)
+that the host app can manage. The life-cycle of a nested app is slightly different from a stand-alone one.
 
 ```kotlin
 InnerApp.kt
@@ -77,7 +75,12 @@ fun main() {
 }
 ```
 
-Nested apps are created using [`ApplicationViewFactory`](). This class is available via the [`appViewModule`]() module.
+Use an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L75)
+to create nested apps. This class is available via the [`appViewModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L82)
+module.
+
+?> Adding a nested app's View to the [**Display**](display.md?id=the-display-is-an-apps-root-container) triggers the app's initialization. Shutdown
+the app by removing the host View from the Display.
 
 ## Dependencies
 

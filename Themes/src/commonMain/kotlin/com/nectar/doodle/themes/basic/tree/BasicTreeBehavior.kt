@@ -174,13 +174,16 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
 open class TextEditOperation<T>(
         private val focusManager   : FocusManager?,
         private val encoder        : Encoder<T, String>,
-        private val display        : Display,
+                    display        : Display,
         private val positionMonitor: RelativePositionMonitor,
         private val tree           : MutableTree<T, *>,
                     node           : T,
         private val path           : Path<Int>,
                     contentBounds  : Rectangle,
         private val current        : View): TextField(), EditOperation<T> {
+
+    // View has an internal display property so have to create new one
+    private val _display = display
 
     private val positionChanged = { _:View, old: Rectangle, new: Rectangle ->
         bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
@@ -220,14 +223,14 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke(): View? = null.also { display.children += this }
+    override fun invoke(): View? = null.also { _display.children += this }
 
     override fun complete() = encoder.decode(text).also {
         cancel()
     }
 
     override fun cancel() {
-        display.children         -= this
+        _display.children        -= this
         positionMonitor[current] -= positionChanged
     }
 }

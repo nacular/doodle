@@ -121,6 +121,64 @@ fun createNestedApplication(
         allowDefaultDarkMode: Boolean,
         modules             : Set<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
 
+class Modules {
+    companion object {
+        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
+            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
+        }
+
+        val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
+            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
+            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
+            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
+            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()              ) }
+        }
+
+        val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
+            importOnce(focusModule)
+
+            // TODO: Make this pluggable
+            val keys = mapOf(
+                    Forward  to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), emptySet(     ), Down)),
+                    Backward to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), setOf   (Shift), Down))
+            )
+
+            bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
+            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
+            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit  (instance()                  ) }
+        }
+
+        val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
+            importOnce(mouseModule)
+
+            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+        }
+
+        val documentModule = Module(allowSilentOverride = true, name = "Document") {
+            bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
+        }
+
+        val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
+            bind<View>(tag = "urlView") with factory { url: String -> UrlView(instance(), url) }
+        }
+
+        val accessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
+            importOnce(keyboardModule)
+
+            // TODO: Can this be handled better?
+            bind<KeyInputServiceImpl> () with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
+
+            // FIXME: Centralize
+            bind<NativeEventHandlerFactory>() with singleton { { element: org.w3c.dom.HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+
+            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+
+            // TODO: Can this be handled better?
+            bind<AccessibilityManagerImpl> () with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
+        }
+    }
+}
+
 private class NestedMouseInputStrategy(private val view: ApplicationView, private val delegate: MouseInputServiceStrategy): MouseInputServiceStrategy by(delegate) {
     override fun startUp(handler: EventHandler) {
         // Provide an adapter to handle mapping mouse location correctly based on ApplicationView's orientation
@@ -275,69 +333,6 @@ private open class ApplicationHolderImpl protected constructor(
     companion object {
         operator fun invoke(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): ApplicationHolderImpl {
             return ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules).apply { run() }
-        }
-    }
-}
-
-class Modules {
-    companion object {
-        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
-        }
-
-        val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()              ) }
-        }
-
-        val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
-            importOnce(focusModule)
-
-            // TODO: Make this pluggable
-            val keys = mapOf(
-                Forward  to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), emptySet(     ), Down)),
-                Backward to setOf(KeyState(VK_TAB, VK_TAB.value.toChar(), setOf   (Shift), Down))
-            )
-
-            bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
-            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit  (instance()                  ) }
-        }
-
-//        val themeModule = Module(allowSilentOverride = true, name = "Theme") {
-//            bind<InternalThemeManager>() with singleton { ThemeManagerImpl              (instance()) }
-//            bind<ThemeManager>        () with singleton { instance<InternalThemeManager>(          ) }
-//        }
-
-        val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
-            importOnce(mouseModule)
-
-            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
-        }
-
-        val documentModule = Module(allowSilentOverride = true, name = "Document") {
-            bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
-        }
-
-        val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
-            bind<View>(tag = "urlView") with factory { url: String -> UrlView(instance(), url) }
-        }
-
-        val accessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
-            importOnce(keyboardModule)
-
-            // TODO: Can this be handled better?
-            bind<KeyInputServiceImpl> () with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
-
-            // FIXME: Centralize
-            bind<NativeEventHandlerFactory>() with singleton { { element: org.w3c.dom.HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
-
-            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
-
-            // TODO: Can this be handled better?
-            bind<AccessibilityManagerImpl> () with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
         }
     }
 }

@@ -1,13 +1,10 @@
-# Layouts
----------
+# Positioning Views
+-------------------
 
 ### Doodle is explicit about positioning.
 
-Every View has an `x,y` coordinate relative to its parent. This position is exactly where the View will
-be rendered. Doodle ensures that there is never a disconnect between a View's position and
-[**Display**](display.md?id=the-display-is-an-apps-root-container) coordinates.
-
-?> 0,0 is the default position
+Every View has an `x,y` position (in pixels) relative to its parent. This is exactly where the View will be rendered--unless it also has
+a `transform`. Doodle ensures that there is never a disconnect between a View's position, transform and render coordinates.
 
 ```kotlin
 val view = object: View() {}.apply { size = Size(100.0) }
@@ -17,20 +14,33 @@ display.children += view // view's position is 0,0
 
 ### Manual Positioning
 
-Set the View's `x`, `y`, or `position` properties to update its location.
+Set the View's [`x`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L77),
+[`y`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L82), or
+[`position`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L87) properties to update
+its location.
 
 ```kotlin
 view.x = 10.0                 // move to 10,0
 view.position = Point(13, -2) // reposition to 13,-2
 ```
 
+These are proxies to the View's [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L110)
+property, which represents its rectangular boundary relative to its parent. Views can also have
+[Affine Transformations](https://en.wikipedia.org/wiki/Affine_transformation) to change how they are displayed. A transformed View still
+retains the same `bounds`, but its [`boundingBox`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L158) property changes, since it reflects the smallest rectangle that encloses the View's
+**transformed** bounds.
+
+?> `boundingBox` == `bounds` when
+[`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L144) ==
+[`Identity`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/AffineTransform.kt#L134) 
+
 ### Layouts
 
-Doodle also supports automatic positioning of Views via [`Layout`](). A Layout monitors a View and
-updates its children's positions whenever the View's `size` changes, or any of the View's children
-have a `bounds` change. 
+Doodle also supports automatic positioning of Views via [`Layout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/Layout.kt#L75).
+A Layout monitors a View and updates its children's positions whenever the View's `size` changes, or any of the View's children have a `bounds`
+change.
 
-The View class also `protects` its `layout` property from callers. But sub-classes are free to expose
+The View class also `protects` its `layout` property from callers, but sub-classes are free to expose
 it.
 
 ```kotlin
@@ -39,7 +49,10 @@ val box = Box()
 box.layout = HorizontalFlowLayout() // Box exposes its layout
 ```
 
-Given the above uses one of Doodle's existing Layouts to keep `box`'s children wrapped from left to right within its bounds.
+[`HorizontalFlowLayout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/layout/HorizontalFlowLayout.kt#L16)
+wraps a View's children from left to right within its bounds.
+
+?> Changes to a View's `transform` will not trigger layout
 
 ### Create Custom Layouts
 

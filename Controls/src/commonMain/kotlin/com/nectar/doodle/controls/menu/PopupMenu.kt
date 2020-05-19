@@ -56,8 +56,10 @@ import com.nectar.doodle.utils.PropertyObserversImpl
 //}
 
 
-class PopupMenu(private val display: Display): MutableList<MenuItem, MutableListModel<MenuItem>>(mutableListModelOf(), selectionModel = SingleItemSelectionModel()), MenuItem {
+class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel<MenuItem>>(mutableListModelOf(), selectionModel = SingleItemSelectionModel()), MenuItem {
 
+    // View has an internal display property so have to create new one
+    private  val _display       = display
     override val subMenus get() = model.iterator()
     override var parentMenu     = null as MenuItem?
     override var menuSelected   = false
@@ -91,6 +93,6 @@ class PopupMenu(private val display: Display): MutableList<MenuItem, MutableList
         // FIXME: IMPLEMENT
         position = owner.toAbsolute(at)
 
-        display.children += this
+        _display.children += this
     }
 }

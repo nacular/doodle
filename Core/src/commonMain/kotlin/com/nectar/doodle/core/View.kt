@@ -286,22 +286,34 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     var acceptsThemes = true
 
+    private val mouseFilter_ by lazy { SetPool<MouseListener>() }
+
     /** [MouseListener]s that are notified during the sinking phase of mouse event handling. */
-    val mouseFilter by lazy { SetPool<MouseListener>() }
+    val mouseFilter: Pool<MouseListener> get() = mouseFilter_
+
+    private val mouseChanged_ by lazy { SetPool<MouseListener>() }
 
     /** [MouseListener]s that are notified during the bubbling phase of mouse event handling. */
-    val mouseChanged by lazy { SetPool<MouseListener>() }
+    val mouseChanged: Pool<MouseListener> get() = mouseChanged_
+
+    private val keyChanged_ by lazy { SetPool<KeyListener>() }
 
     /** [KeyListener]s that are notified during of [KeyEvent]s sent to the View. */
-    val keyChanged by lazy { SetPool<KeyListener>() }
+    val keyChanged: Pool<KeyListener> get() = keyChanged_
+
+    private val mouseMotionFilter_ by lazy { SetPool<MouseMotionListener>() }
 
     /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
-    val mouseMotionFilter  by lazy { SetPool<MouseMotionListener>() }
+    val mouseMotionFilter: Pool<MouseMotionListener> get() = mouseMotionFilter_
+
+    private val mouseMotionChanged_ by lazy { SetPool<MouseMotionListener>() }
 
     /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
-    val mouseMotionChanged by lazy { SetPool<MouseMotionListener>() }
+    val mouseMotionChanged: Pool<MouseMotionListener> get() = mouseMotionChanged_
 
-    val mouseScrollChanged by lazy { SetPool<MouseScrollListener>() }
+    private val mouseScrollChanged_ by lazy { SetPool<MouseScrollListener>() }
+
+    val mouseScrollChanged: Pool<MouseScrollListener> get() = mouseScrollChanged_
 
     /** Recognizer used to determine whether a [MouseEvent] should result in a [DragOperation] */
     var dragRecognizer = null as DragRecognizer?
@@ -587,7 +599,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param event The event
      */
-    protected open fun handleKeyEvent(event: KeyEvent) = keyChanged.forEach {
+    protected open fun handleKeyEvent(event: KeyEvent) = keyChanged_.forEach {
         when(event.type) {
             Type.Up    -> it.keyReleased(event)
             Type.Down  -> it.keyPressed (event)
@@ -602,7 +614,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param event The event
      */
-    protected open fun filterMouseEvent(event: MouseEvent) = mouseFilter.forEach {
+    protected open fun filterMouseEvent(event: MouseEvent) = mouseFilter_.forEach {
         when(event.type) {
             Up    -> it.mouseReleased(event)
             Down  -> it.mousePressed (event)
@@ -619,7 +631,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param event The event
      */
-    protected open fun handleMouseEvent(event: MouseEvent) = mouseChanged.forEach {
+    protected open fun handleMouseEvent(event: MouseEvent) = mouseChanged_.forEach {
         when(event.type) {
             Up    -> it.mouseReleased(event)
             Down  -> it.mousePressed (event)
@@ -636,7 +648,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param event The event
      */
-    protected open fun filterMouseMotionEvent(event: MouseEvent) = mouseMotionFilter.forEach {
+    protected open fun filterMouseMotionEvent(event: MouseEvent) = mouseMotionFilter_.forEach {
         when(event.type) {
             Move -> it.mouseMoved  (event)
             Drag -> it.mouseDragged(event)
@@ -651,7 +663,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * @param event The event
      */
-    protected open fun handleMouseMotionEvent(event: MouseEvent) = mouseMotionChanged.forEach {
+    protected open fun handleMouseMotionEvent(event: MouseEvent) = mouseMotionChanged_.forEach {
         when(event.type) {
             Move -> it.mouseMoved  (event)
             Drag -> it.mouseDragged(event)
