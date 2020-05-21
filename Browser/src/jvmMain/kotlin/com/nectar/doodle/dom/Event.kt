@@ -21,17 +21,20 @@ actual open class KeyboardEvent: UIEvent() {
     actual val keyCode  = 0
 }
 
-actual open class MouseEvent : UIEvent() {
+actual open class MouseEvent: UIEvent() {
     actual open val clientX  = 0
     actual open val clientY  = 0
     actual open val ctrlKey  = false
     actual open val shiftKey = false
     actual open val altKey   = false
     actual open val metaKey  = false
+    actual open val button   = 0.toShort()
     actual open val buttons  = 0.toShort()
 }
 
-actual open class WheelEvent : MouseEvent() {
+actual open class WheelEvent: MouseEvent() {
     actual val deltaY = 0.0
     actual val deltaX = 0.0
 }
+
+actual open class PointerEvent: MouseEvent()

@@ -78,9 +78,7 @@ abstract class Button protected constructor(
     var selected: Boolean
         get(   ) = model.selected
         set(new) {
-            if (enabled) {
-                model.selected = new
-            }
+            model.selected = new
         }
 
     open var model: ButtonModel = model

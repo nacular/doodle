@@ -68,12 +68,9 @@ open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
     override fun iterator(                       ) = list.iterator(                                   )
 }
 
-open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): SimpleListModel<T>(list), MutableListModel<T> {
-
-    private val list by lazy { ObservableList(list) }
-
+open class SimpleMutableListModel<T> private constructor(private val list: ObservableList<T>): SimpleListModel<T>(list), MutableListModel<T> {
     init {
-        this.list.changed += { _,removed,added,moved ->
+        list.changed += { _,removed,added,moved ->
             changed.forEach {
                 it(this, removed, added, moved)
             }
@@ -84,12 +81,12 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
     override fun add(value: T            ) = list.add(value).run { Unit }
     override fun add(index: Int, value: T) = list.add(index, value)
 
-    override fun remove     (value  : T                         ) = list.remove(value).run { Unit }
-    override fun removeAt   (index  : Int                       ) = list.removeAt(index)
-    override fun addAll     (values : Collection<T>             ) = list.addAll(values).run { Unit }
-    override fun addAll     (index  : Int, values: Collection<T>) = list.addAll(index, values).run { Unit }
-    override fun removeAll  (values : Collection<T>             ) = list.removeAll(values).run { Unit }
-    override fun retainAll  (values : Collection<T>             ) = list.retainAll(values).run { Unit }
+    override fun remove     (value  : T                         ) = list.remove   (value        ).run { Unit }
+    override fun removeAt   (index  : Int                       ) = list.removeAt (index        )
+    override fun addAll     (values : Collection<T>             ) = list.addAll   (values       ).run { Unit }
+    override fun addAll     (index  : Int, values: Collection<T>) = list.addAll   (index, values).run { Unit }
+    override fun removeAll  (values : Collection<T>             ) = list.removeAll(values       ).run { Unit }
+    override fun retainAll  (values : Collection<T>             ) = list.retainAll(values       ).run { Unit }
     override fun removeAllAt(indexes: Collection<Int>           ) = list.batch { indexes.sortedDescending().forEach { list.removeAt(it) } }
 
     override fun clear() = list.clear()
@@ -110,6 +107,10 @@ open class SimpleMutableListModel<T>(list: MutableList<T> = mutableListOf()): Si
 
     override fun <R: Comparable<R>> sortByDescending(selector: (T) -> R?) {
         list.sortByDescending(selector)
+    }
+
+    companion object {
+        operator fun <T> invoke(list: List<T> = emptyList()): SimpleMutableListModel<T> = SimpleMutableListModel(ObservableList(list))
     }
 }
 

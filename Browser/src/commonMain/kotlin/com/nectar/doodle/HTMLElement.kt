@@ -4,6 +4,7 @@ import com.nectar.doodle.dom.DataTransfer
 import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.KeyboardEvent
 import com.nectar.doodle.dom.MouseEvent
+import com.nectar.doodle.dom.PointerEvent
 import com.nectar.doodle.dom.WheelEvent
 
 /**
@@ -59,8 +60,8 @@ expect abstract class CSSStyleDeclaration {
     var backgroundColor: String
 }
 
-expect var CSSStyleDeclaration.clipPath  : String
-expect var CSSStyleDeclaration.willChange: String
+expect var CSSStyleDeclaration.clipPath   : String
+expect var CSSStyleDeclaration.willChange : String
 
 expect class DOMRect {
     var x     : Double
@@ -111,6 +112,11 @@ expect abstract class HTMLElement: Element {
     var onmousedown : ((MouseEvent) -> Any)?
     var onmousemove : ((MouseEvent) -> Any)?
     var onmouseover : ((MouseEvent) -> Any)?
+
+    var onpointerup  : ((PointerEvent) -> Any)?
+    var onpointerdown: ((PointerEvent) -> Any)?
+    var onpointermove: ((PointerEvent) -> Any)?
+    var onpointerover: ((PointerEvent) -> Any)?
 
     var onresize   : ((Event) -> Unit)?
     var ondragstart: ((DragEvent) -> Boolean)?

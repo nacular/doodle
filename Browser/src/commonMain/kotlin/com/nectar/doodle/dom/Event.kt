@@ -29,7 +29,11 @@ expect open class MouseEvent: UIEvent {
     open val shiftKey: Boolean
     open val altKey  : Boolean
     open val metaKey : Boolean
+    open val button  : Short
     open val buttons : Short
+}
+
+expect open class PointerEvent: MouseEvent {
 }
 
 expect open class WheelEvent: MouseEvent {

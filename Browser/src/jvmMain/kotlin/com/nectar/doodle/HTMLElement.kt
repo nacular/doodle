@@ -4,6 +4,7 @@ import com.nectar.doodle.dom.DataTransfer
 import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.KeyboardEvent
 import com.nectar.doodle.dom.MouseEvent
+import com.nectar.doodle.dom.PointerEvent
 import com.nectar.doodle.dom.WheelEvent
 
 /**
@@ -118,6 +119,11 @@ actual abstract class HTMLElement: Element() {
 
     actual var onresize   : ((Event) -> Unit)? = {}
     actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
+
+    actual var onpointerup   = null as ((PointerEvent) -> Any)?
+    actual var onpointerdown = null as ((PointerEvent) -> Any)?
+    actual var onpointermove = null as ((PointerEvent) -> Any)?
+    actual var onpointerover = null as ((PointerEvent) -> Any)?
 }
 
 actual var HTMLElement.role get() = role_

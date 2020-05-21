@@ -316,6 +316,22 @@ class ObservableListTests {
         }
     }
 
+    @Test @JsName("sortNotifies")
+    fun `sort notifies`() {
+        validateChanges(ObservableList(mutableListOf(5, 6, 1, 2))) { list, changed ->
+            list.sortWith(Comparator { a, b -> a.compareTo(b) })
+
+            verify(exactly = 1) { changed(
+                    list,
+                    emptyMap(),
+                    emptyMap(),
+                    mapOf(0 to (2 to 5), 1 to (3 to 6))) }
+
+            expect(listOf(1, 2, 5, 6)) { list }
+            expect(false) { list.isEmpty() }
+        }
+    }
+
     private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<T>) -> Unit) {
         val changed = mockk<ListObserver<T>>()
 

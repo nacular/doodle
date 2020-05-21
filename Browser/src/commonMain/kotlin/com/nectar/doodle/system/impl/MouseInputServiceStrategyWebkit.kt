@@ -22,6 +22,7 @@ import com.nectar.doodle.system.SystemMouseEvent.Button.Button2
 import com.nectar.doodle.system.SystemMouseEvent.Button.Button3
 import com.nectar.doodle.system.SystemMouseEvent.Type
 import com.nectar.doodle.system.SystemMouseEvent.Type.Down
+import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
 import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
 import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
 import com.nectar.doodle.system.SystemMouseEvent.Type.Move
@@ -30,6 +31,7 @@ import com.nectar.doodle.system.SystemMouseScrollEvent
 import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
+
 
 internal open class MouseInputServiceStrategyWebkit(private val document: Document, private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
 
@@ -93,13 +95,16 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     }
 
     private fun mouseDown(event: MouseEvent): Boolean {
+        // Need to update location here in case running on a touch-based
+        // device; in which case mouseMove isn't called unless touch is dragged
+        mouseLocation = Point(
+                x = event.clientX - htmlFactory.root.offsetLeft + htmlFactory.root.scrollLeft,
+                y = event.clientY - htmlFactory.root.offsetTop  + htmlFactory.root.scrollTop
+        )
+
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
         return true
-//        return isNativeElement(event.target).ifFalse {
-//            event.preventDefault ()
-//            event.stopPropagation()
-//        }
     }
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
@@ -121,10 +126,6 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 
         return true
-//        return isNativeElement(event.target).ifFalse {
-//            event.preventDefault ()
-//            event.stopPropagation()
-//        }
     }
 
     private fun mouseScroll(event: WheelEvent): Boolean {
@@ -140,22 +141,22 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
 
         eventHandler?.handle(scrollEvent)
 
-        return !scrollEvent.consumed.also {
-//            event.preventDefault ()
-//            event.stopPropagation()
-        }
+        return !scrollEvent.consumed
     }
 
-    private fun createMouseEvent(event: MouseEvent, aType: Type, clickCount: Int): SystemMouseEvent {
+    private fun createMouseEvent(event: MouseEvent, type: Type, clickCount: Int): SystemMouseEvent {
         val buttons    = mutableSetOf<SystemMouseEvent.Button>()
         val buttonsInt = event.buttons.toInt()
+
+        // Work-around for fact that touch sets buttons to 0
+        if ((type == Down || type == Drag) && buttonsInt == 0 && event.button == 0.toShort()) buttons += Button1
 
         if (buttonsInt and 1 == 1) buttons += Button1
         if (buttonsInt and 2 == 2) buttons += Button2
         if (buttonsInt and 4 == 4) buttons += Button3
 
         return SystemMouseEvent(
-                aType,
+                type,
                 mouseLocation,
                 buttons,
                 clickCount,
@@ -173,10 +174,15 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     private fun registerCallbacks(element: HTMLElement) = element.run {
 //        onwheel     = { mouseScroll(it) }
 
+        onpointerdown = { mouseDown  (it); followMouse(this) }
+        onpointerover = { mouseEnter (it) }
+
         onmouseout  = { mouseExit  (it) }
         ondblclick  = { doubleClick(it) }
-        onmousedown = { mouseDown  (it); followMouse(this) }
-        onmouseover = { mouseEnter (it) }
+
+        // TODO: Figure out fallback in case PointerEvent not present
+//        onmousedown = { mouseDown  (it); followMouse(this) }
+//        onmouseover = { mouseEnter (it) }
 
         registerMouseCallbacks(this)
     }
@@ -185,36 +191,54 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     private val trackingMouseUp  : (Event) -> Unit = { mouseUp  (it as MouseEvent); registerMouseCallbacks(htmlFactory.root) }
 
     private fun followMouse(element: HTMLElement): Unit = element.run {
-        document.addEventListener(mouseup,   trackingMouseUp  )
-        document.addEventListener(mousemove, trackingMouseMove)
+        onpointerup   = null
+        onpointermove = null
 
-        onmouseup   = null
-        onmousemove = null
+        document.addEventListener(pointerup,   trackingMouseUp  )
+        document.addEventListener(pointermove, trackingMouseMove)
+
+//        document.addEventListener(mouseup,   trackingMouseUp  )
+//        document.addEventListener(mousemove, trackingMouseMove)
+//        onmouseup   = null
+//        onmousemove = null
     }
 
     private fun registerMouseCallbacks(element: HTMLElement) = element.run {
-        onmouseup   = { mouseUp  (it) }
-        onmousemove = { mouseMove(it) }
+        onpointerup   = { mouseUp  (it) }
+        onpointermove = { mouseMove(it) }
 
-        document.removeEventListener(mouseup,   trackingMouseUp  )
-        document.removeEventListener(mousemove, trackingMouseMove)
+        document.removeEventListener(pointerup,   trackingMouseUp  )
+        document.removeEventListener(pointermove, trackingMouseMove)
+
+//        onmouseup   = { mouseUp  (it) }
+//        onmousemove = { mouseMove(it) }
+//        document.removeEventListener(mouseup,   trackingMouseUp  )
+//        document.removeEventListener(mousemove, trackingMouseMove)
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.run {
-        onwheel     = null
-        onmouseup   = null
-        onmouseout  = null
-        ondblclick  = null
-        onmousedown = null
-        onmousemove = null
-        onmouseover = null
+        onmouseout    = null
+        ondblclick    = null
+        onpointerdown = null
+        onpointerover = null
 
-        document.removeEventListener(mouseup,   trackingMouseUp  )
-        document.removeEventListener(mousemove, trackingMouseMove)
+        document.removeEventListener(pointerup,   trackingMouseUp  )
+        document.removeEventListener(pointermove, trackingMouseMove)
+
+//        onwheel       = null
+//        onmouseup     = null
+//        onmousedown   = null
+//        onmousemove   = null
+//        onmouseover   = null
+//        document.removeEventListener(mouseup,   trackingMouseUp  )
+//        document.removeEventListener(mousemove, trackingMouseMove)
     }
 
     companion object {
-        const val mouseup   = "mouseup"
-        const val mousemove = "mousemove"
+        const val pointerup   = "pointerup"
+        const val pointermove = "pointermove"
+
+//        const val mouseup   = "mouseup"
+//        const val mousemove = "mousemove"
     }
 }
