@@ -23,8 +23,8 @@ expect open class KeyboardEvent: UIEvent {
 }
 
 expect open class MouseEvent: UIEvent {
-    open val clientX : Int
-    open val clientY : Int
+    open val pageX   : Double
+    open val pageY   : Double
     open val ctrlKey : Boolean
     open val shiftKey: Boolean
     open val altKey  : Boolean
@@ -33,8 +33,7 @@ expect open class MouseEvent: UIEvent {
     open val buttons : Short
 }
 
-expect open class PointerEvent: MouseEvent {
-}
+expect open class PointerEvent: MouseEvent
 
 expect open class WheelEvent: MouseEvent {
     val deltaY: Double

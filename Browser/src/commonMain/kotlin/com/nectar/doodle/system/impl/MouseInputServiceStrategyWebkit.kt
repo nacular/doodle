@@ -95,12 +95,9 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     }
 
     private fun mouseDown(event: MouseEvent): Boolean {
-        // Need to update location here in case running on a touch-based
-        // device; in which case mouseMove isn't called unless touch is dragged
-        mouseLocation = Point(
-                x = event.clientX - htmlFactory.root.offsetLeft + htmlFactory.root.scrollLeft,
-                y = event.clientY - htmlFactory.root.offsetTop  + htmlFactory.root.scrollTop
-        )
+        // Need to update location here in case running on a touch-based device; in which case mouseMove isn't called
+        // unless touch is dragged
+        mouseLocation = Point(event.pageX, event.pageY)
 
         eventHandler?.handle(createMouseEvent(event, Down, 1))
 
@@ -118,10 +115,7 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
-        mouseLocation = Point(
-                x = event.clientX - htmlFactory.root.offsetLeft + htmlFactory.root.scrollLeft,
-                y = event.clientY - htmlFactory.root.offsetTop  + htmlFactory.root.scrollTop
-        )
+        mouseLocation = Point(event.pageX, event.pageY)
 
         eventHandler?.handle(createMouseEvent(event, Move, 0))
 

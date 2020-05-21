@@ -254,9 +254,7 @@ internal class DragManagerImpl(
         }
     }
 
-    private fun mouseLocation(event: DomMouseEvent) = Point(
-            x = event.clientX - rootElement.offsetLeft + rootElement.scrollLeft,
-            y = event.clientY - rootElement.offsetTop  + rootElement.scrollLeft)
+    private fun mouseLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
 
     private fun action(name: String?) = when {
         name == null            -> null

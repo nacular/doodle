@@ -22,8 +22,8 @@ actual open class KeyboardEvent: UIEvent() {
 }
 
 actual open class MouseEvent: UIEvent() {
-    actual open val clientX  = 0
-    actual open val clientY  = 0
+    actual open val pageX    = 0.0
+    actual open val pageY    = 0.0
     actual open val ctrlKey  = false
     actual open val shiftKey = false
     actual open val altKey   = false
