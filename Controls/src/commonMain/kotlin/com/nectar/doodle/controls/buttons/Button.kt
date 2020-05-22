@@ -25,7 +25,10 @@ abstract class Button protected constructor(
         var icon: Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): View(accessibilityRole = button()) {
 
-    private val modelFired: (ButtonModel) -> Unit = { fired_.forEach { it(this) } }
+    private val armedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged     as PropertyObserversImpl)(old, new) }
+    private val pressedChanged_   = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged   as PropertyObserversImpl)(old, new) }
+    private val mouseOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (mouseOverChanged as PropertyObserversImpl)(old, new) }
+    private val modelFired        = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
 
     override fun addedToDisplay() {
         super.addedToDisplay()
@@ -43,9 +46,11 @@ abstract class Button protected constructor(
 
     var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Button, String>)
 
-    private val fired_ by lazy { ChangeObserversImpl(this) }
+    val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
 
-    val fired: ChangeObservers<Button> = fired_
+    val armedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    val pressedChanged  : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    val mouseOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
 
     var behavior: Behavior<Button>? = null
         set(new) {

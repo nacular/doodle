@@ -14,7 +14,7 @@ class KeyState private constructor(
         val type     : Type) {
 
     enum class Type {
-        Up, Down, Press
+        Up, Down
     }
 
     override fun hashCode(): Int {

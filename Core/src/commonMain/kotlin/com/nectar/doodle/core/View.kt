@@ -601,9 +601,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     protected open fun handleKeyEvent(event: KeyEvent) = keyChanged_.forEach {
         when(event.type) {
-            Type.Up    -> it.keyReleased(event)
-            Type.Down  -> it.keyPressed (event)
-            Type.Press -> it.keyTyped   (event)
+            Type.Up   -> it.keyReleased(event)
+            Type.Down -> it.keyPressed (event)
         }
     }
 

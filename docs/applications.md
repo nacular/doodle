@@ -1,5 +1,5 @@
-# Applications
---------------
+# Creating Applications
+-----------------------
 
 All doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/com/nectar/doodle/application/Application.kt#L6).
 It is the entry-point for your business logic, and often the first class you write. Doodle will fully initialize and make your app ready
@@ -16,13 +16,13 @@ class UsefulApp: Application {
 }
 ```
 
-## App Creation
+## App Launch
 
 Applications can either be launched as stand-alone, or within another app using an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L75).
 Regardless of the launch mode, your app class does not change. In this way, apps have no knowledge of which mode they will be run in,
 which improves separation of concerns and flexibility.
 
-### Stand-alone
+### Stand-alone Apps
 
 Most apps will be full-screen, stand-alone experiences. The [`application`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Application.kt#L94) function is used to launch stand-alone apps.
 Closing the page cleans up stand-alone apps within it. Removing the element hosting an app or explicitly calling `shutdown`
@@ -37,7 +37,7 @@ fun main() {
 }
 ```
 
-### Nested
+### Nested Apps
 
 Doodle apps can also be run within other apps. This is done by placing the nested app in a [**View**](views.md?id=creating-views)
 that the host app can manage. The life-cycle of a nested app is slightly different from a stand-alone one.
@@ -61,7 +61,7 @@ OuterApp.kt
 class OuterApp(display: Display, appView: ApplicationViewFactory): Application {
     init {
         display.children += appView {
-            InnerApp(display = instance()) // inner app initialized 
+            InnerApp(display = instance()) // inner app initialization 
         }
     }
 
@@ -86,4 +86,4 @@ the app by removing the host View from the Display.
 
 Doodle uses [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) when creating your app. The
 lambda provided when launching an app is actually a [Kodein](https://github.com/Kodein-Framework/Kodein-DI) binding
-context that lets you pull instances from custom modules, or those built into doodle.
+context that lets you inject instances from doodle modules, or your own.

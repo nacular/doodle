@@ -270,11 +270,6 @@ class ViewTests {
         verify(exactly = 1) { listener.keyReleased(event) }
     }
 
-    @Test @JsName("keyPressedEventsWorks")
-    fun `key pressed events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Press }) { listener, event ->
-        verify(exactly = 1) { listener.keyTyped(event) }
-    }
-
     @Test @JsName("mouseEventsWorks")
     fun `mouse events works`() = validateMouseChanged(mockk<MouseEvent>().apply { every { type } returns Enter }) { listener, event ->
         verify(exactly = 1) { listener.mouseEntered(event) }

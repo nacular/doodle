@@ -19,7 +19,6 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_X
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.event.KeyState.Type.Down
-import com.nectar.doodle.event.KeyState.Type.Press
 import com.nectar.doodle.event.KeyState.Type.Up
 import com.nectar.doodle.system.SystemInputEvent.Modifier
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
@@ -93,20 +92,6 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
         return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else returnValue
     }
 
-    private fun keyPress(event: KeyboardEvent): Boolean {
-        var result = false
-
-        if (!event.altKey && !event.ctrlKey && KeyCode(event.keyCode) != VK_TAB) {
-            result = dispatchKeyEvent(event, Press)
-        }
-
-        if (isNativeElement(event.target)) {
-            return true
-        }
-
-        return if (shouldSuppressKeyEvent(event)) suppressEvent(event) else result
-    }
-
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.let {
         val keyEvent = KeyState(
                 KeyCode(event.keyCode),
@@ -144,9 +129,8 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup    = { this@KeyInputStrategyWebkit.keyUp   (it) }
-        onkeydown  = { this@KeyInputStrategyWebkit.keyDown (it) }
-        onkeypress = { this@KeyInputStrategyWebkit.keyPress(it) }
+        onkeyup   = { this@KeyInputStrategyWebkit.keyUp   (it) }
+        onkeydown = { this@KeyInputStrategyWebkit.keyDown (it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

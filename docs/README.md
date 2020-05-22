@@ -20,68 +20,8 @@ lines, gradients, affine transforms etc. are as simple to use as images and rect
 
 **Testable:** Apps written with doodle are dependency-injected; and there are no global objects or state to make mocking challenging.
 
-## Installation
-
 ## Examples
 
-### Hello World
-
-```kotlin
-class HelloWorld(display: Display): Application {
-    init {
-        display.children += object: View() {
-            init { size = display.size }
-
-            override fun render(canvas: Canvas) {
-                canvas.text("Hello World!", at = Origin, brush = ColorBrush(black))
-            }
-        }
-    }
-
-    override fun shutdown() {}
-}
-
-fun main() {
-    // app initialization, with DI via Kodein
-    application {
-        HelloWorld(display = instance())
-    }
-}
-```
-
-### Simple Button
-```kotlin
-display.children += PushButton("Submit").apply {
-    fired += {
-        println("$text pressed")
-    }
-}
-```
-
-### Constraint Layout
-```kotlin
-// All Views are absolutely positioned and layouts are explicit
-// Views can have Layouts that control how their children are positioned
-
-val container = Box() // a simple container
-val panel1    = object: View() {}
-val panel2    = object: View() {}
-
-container.children += listOf(panel1, panel2)
-
-// create a special Layout that follows constraints to position items
-container.layout = constrain(panel1, panel2) { panel1, panel2 ->
-    panel1.top    = parent.top
-    panel1.left   = parent.left
-    panel1.right  = parent.right
-    panel1.height = constant(100.0)
-    
-    panel2.top    = panel1.bottom
-    panel2.left   = panel1.left
-    panel2.right  = panel1.right
-    panel2.bottom = parent.bottom
-}
-```
 
 ## Contact
 

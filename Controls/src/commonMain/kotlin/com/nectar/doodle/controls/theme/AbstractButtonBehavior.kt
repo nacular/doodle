@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
@@ -23,12 +24,18 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         it.rerender()
     }
 
+    private val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button,_,_ ->
+        button.rerender()
+    }
+
     override fun install(view: T) {
         view.keyChanged         += this
         view.mouseChanged       += this
         view.styleChanged       += stylesChanged
         view.enabledChanged     += enabledChanged
         view.mouseMotionChanged += this
+
+        (view as? ToggleButton)?.let { it.selectedChanged += selectionChanged }
 
         view.rerender()
         // TODO: Handle changes to the model from other places
@@ -40,6 +47,8 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         view.styleChanged       -= stylesChanged
         view.enabledChanged     -= enabledChanged
         view.mouseMotionChanged -= this
+
+        (view as? ToggleButton)?.let { it.selectedChanged -= selectionChanged }
     }
 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}

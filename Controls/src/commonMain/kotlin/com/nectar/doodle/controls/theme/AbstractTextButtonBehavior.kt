@@ -27,6 +27,23 @@ abstract class AbstractTextButtonBehavior<T: Button>(
         private val defaultFont: Font?  = null,
         private val insets     : Insets = Insets.None): AbstractButtonBehavior<T>() {
 
+
+    private val textChanged: (Button, String, String) -> Unit = { button,_,_ ->
+        button.rerender()
+    }
+
+    override fun install(view: T) {
+        super.install(view)
+
+        view.textChanged += textChanged
+    }
+
+    override fun uninstall(view: T) {
+        super.uninstall(view)
+
+        view.textChanged -= textChanged
+    }
+
     protected fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
         var minX       = insets.left
         val stringSize = textMetrics.size(text, font(button))
