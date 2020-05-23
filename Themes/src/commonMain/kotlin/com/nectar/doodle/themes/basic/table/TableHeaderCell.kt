@@ -7,9 +7,9 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.gray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.center
@@ -46,7 +46,7 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
 
     init {
         var resizing        = false
-        var mouseDown       = false
+        var pointerDown     = false
         var initialWidth    = column.width
         var initialPosition = null as Point?
         var moved           = false
@@ -61,24 +61,24 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
             else                                                                                 -> WResize
         }
 
-        fun overHandle(mouseLocation: Point) = mouseLocation.x in width - 5.0..width
+        fun overHandle(pointerLocation: Point) = pointerLocation.x in width - 5.0..width
 
-        fun updateCursor(event: MouseEvent) {
+        fun updateCursor(event: PointerEvent) {
             cursor = when {
                 overHandle(toLocal(event.location, event.target)) -> newCursor()
                 else                                              -> null
             }
         }
 
-        mouseChanged += object: MouseListener {
-            override fun mouseEntered(event: MouseEvent) {
-                if (!mouseDown) {
+        pointerChanged += object: PointerListener {
+            override fun entered(event: PointerEvent) {
+                if (!pointerDown) {
                     updateCursor(event)
                 }
             }
 
-            override fun mousePressed(event: MouseEvent) {
-                mouseDown       = true
+            override fun pressed(event: PointerEvent) {
+                pointerDown       = true
                 initialPosition = toLocal(event.location, event.target)
 
                 if (overHandle(initialPosition!!)) {
@@ -89,33 +89,33 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
                 }
             }
 
-            override fun mouseReleased(event: MouseEvent) {
+            override fun released(event: PointerEvent) {
                 initialPosition = null
 
                 updateCursor(event)
 
                 backgroundColor = null
 
-                if (mouseDown && !resizing) {
+                if (pointerDown && !resizing) {
                     column.resetPosition()
                 }
 
-                if (mouseDown && !(resizing || moved)) {
+                if (pointerDown && !(resizing || moved)) {
                     (toggled as ChangeObserversImpl).forEach { it(this@TableHeaderCell) }
                 }
 
                 moved     = false
                 resizing  = false
-                mouseDown = false
+                pointerDown = false
             }
         }
 
-        mouseMotionChanged += object : MouseMotionListener {
-            override fun mouseMoved(event: MouseEvent) {
+        pointerMotionChanged += object : PointerMotionListener {
+            override fun moved(event: PointerEvent) {
                 updateCursor(event)
             }
 
-            override fun mouseDragged(event: MouseEvent) {
+            override fun dragged(event: PointerEvent) {
                 initialPosition?.let {
                     moved     = true
                     val delta = (toLocal(event.location, event.target) - it).x

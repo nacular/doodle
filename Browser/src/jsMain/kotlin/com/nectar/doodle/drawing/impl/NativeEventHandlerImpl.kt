@@ -7,18 +7,18 @@ import org.w3c.dom.events.EventTarget
 
 internal class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
 
-    override fun startConsumingMouseMoveEvents(onlySelf: Boolean) { element.onmousemove = { muteEvent(it, onlySelf) } }
-    override fun stopConsumingMouseMoveEvents (                 ) { element.onmousemove = null                        }
+    override fun startConsumingPointerMoveEvents(onlySelf: Boolean) { element.onpointermove = { muteEvent(it, onlySelf) } }
+    override fun stopConsumingPointerMoveEvents (                 ) { element.onpointermove = null                        }
 
-    override fun startConsumingMousePressEvents() {
-        element.onmouseup   = { muteEvent(it) }
-        element.onmousedown = { muteEvent(it) }
-        element.ondblclick  = { muteEvent(it) }
+    override fun startConsumingPointerPressEvents() {
+        element.onpointerup   = { muteEvent(it) }
+        element.onpointerdown = { muteEvent(it) }
+        element.ondblclick    = { muteEvent(it) }
     }
-    override fun stopConsumingMousePressEvents() {
-        element.onmouseup   = null
-        element.onmousedown = null
-        element.ondblclick  = null
+    override fun stopConsumingPointerPressEvents() {
+        element.onpointerup   = null
+        element.onpointerdown = null
+        element.ondblclick    = null
     }
 
     override fun startConsumingSelectionEvents() { element.onselect = { muteEvent(it) } }

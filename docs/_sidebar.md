@@ -7,6 +7,6 @@
 * [Display](display.md)
 * [Rendering](rendering.md)
     * [Text](text.md)
-* [Mouse Handling](mouse.md)
-* [Mouse Motion Handling](mousemotion.md)
+* [Pointer Handling](pointer.md)
+* [Pointer Motion Handling](pointermotion.md)
 * [Key Input](keyboard.md)

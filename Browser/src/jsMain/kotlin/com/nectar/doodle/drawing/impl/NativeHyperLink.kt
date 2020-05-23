@@ -135,9 +135,8 @@ class NativeHyperLink internal constructor(
 
     init {
         nativeEventHandler = handlerFactory(linkElement, this).apply {
-            registerFocusListener         ()
-            registerClickListener         ()
-//            startConsumingMousePressEvents()
+            registerFocusListener()
+            registerClickListener()
         }
 
         hyperLink.apply {

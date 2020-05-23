@@ -48,12 +48,12 @@ class ButtonTests {
                 Button::pressedIcon            to null,
                 Button::disabledIcon           to null,
                 Button::selectedIcon           to null,
-                Button::mouseOverIcon          to null,
+                Button::pointerOverIcon          to null,
                 Button::iconTextSpacing        to 4.0,
                 Button::verticalAlignment      to Middle,
                 Button::horizontalAlignment    to Center,
                 Button::disabledSelectedIcon   to null,
-                Button::mouseOverSelectedIcon  to null
+                Button::pointerOverSelectedIcon  to null
         ).forEach { validateDefault(it.key, it.value) }
     }
 
@@ -66,12 +66,12 @@ class ButtonTests {
         validateSetter(Button::pressedIcon,           mockk(relaxed = true))
         validateSetter(Button::disabledIcon,          mockk(relaxed = true))
         validateSetter(Button::selectedIcon,          mockk(relaxed = true))
-        validateSetter(Button::mouseOverIcon,         mockk(relaxed = true))
+        validateSetter(Button::pointerOverIcon,         mockk(relaxed = true))
         validateSetter(Button::iconTextSpacing,       5.6                  )
         validateSetter(Button::verticalAlignment,     Bottom               )
         validateSetter(Button::horizontalAlignment,   Right                )
         validateSetter(Button::disabledSelectedIcon,  mockk(relaxed = true))
-        validateSetter(Button::mouseOverSelectedIcon, mockk(relaxed = true))
+        validateSetter(Button::pointerOverSelectedIcon, mockk(relaxed = true))
     }
 
     @Test @JsName("iconsFallback")
@@ -80,9 +80,9 @@ class ButtonTests {
             expect(pressedIcon          ) { icon         }
             expect(disabledIcon         ) { icon         }
             expect(selectedIcon         ) { icon         }
-            expect(mouseOverIcon        ) { icon         }
+            expect(pointerOverIcon        ) { icon         }
             expect(disabledSelectedIcon ) { disabledIcon }
-            expect(mouseOverSelectedIcon) { selectedIcon }
+            expect(pointerOverSelectedIcon) { selectedIcon }
         }
     }
 

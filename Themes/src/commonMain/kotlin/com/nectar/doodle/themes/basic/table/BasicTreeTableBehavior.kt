@@ -17,7 +17,6 @@ import com.nectar.doodle.themes.basic.ListRow
 import com.nectar.doodle.themes.basic.SelectableTreeKeyHandler
 import com.nectar.doodle.themes.basic.SimpleTreeRowIcon
 import com.nectar.doodle.themes.basic.TreeRow
-import com.nectar.doodle.themes.basic.table.TableHeaderCell
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -29,8 +28,8 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
@@ -71,7 +70,7 @@ open class BasicTreeTableBehavior<T>(
                     oddRowColor          : Color? = lightgray.lighter().lighter(),
                     iconColor            : Color  = Color.black,
         private val selectionColor       : Color? = green.lighter(),
-        private val blurredSelectionColor: Color? = lightgray): TreeTableBehavior<T>, MouseListener, KeyListener, SelectableTreeKeyHandler {
+        private val blurredSelectionColor: Color? = lightgray): TreeTableBehavior<T>, PointerListener, KeyListener, SelectableTreeKeyHandler {
 
     override var headerDirty: ((         ) -> Unit)? = null
     override var bodyDirty  : ((         ) -> Unit)? = null
@@ -156,7 +155,7 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         += expansionChanged
         view.collapsed        += expansionChanged
         view.keyChanged       += this
-        view.mouseChanged     += this
+        view.pointerChanged     += this
         view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
 
@@ -168,12 +167,12 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         -= expansionChanged
         view.collapsed        -= expansionChanged
         view.keyChanged       -= this
-        view.mouseChanged     -= this
+        view.pointerChanged     -= this
         view.focusChanged     -= focusChanged
         view.selectionChanged -= selectionChanged
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         focusManager?.requestFocus(event.source)
     }
 

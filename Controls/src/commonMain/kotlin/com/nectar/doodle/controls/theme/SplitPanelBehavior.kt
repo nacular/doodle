@@ -2,9 +2,9 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.panels.SplitPanel
 import com.nectar.doodle.core.View
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.system.Cursor.Companion.ColResize
 import com.nectar.doodle.system.Cursor.Companion.RowResize
 import com.nectar.doodle.theme.Behavior
@@ -19,15 +19,15 @@ interface SplitPanelBehavior: Behavior<SplitPanel> {
     val dividerVisible: Boolean
 }
 
-abstract class AbstractSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, MouseListener, MouseMotionListener {
+abstract class AbstractSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var orientation     = Vertical
     private var pressedLocation = 0.0
 
     init {
-        divider.mouseChanged       += this
-        divider.mouseMotionChanged += this
+        divider.pointerChanged       += this
+        divider.pointerMotionChanged += this
     }
 
     override fun divider(panel: SplitPanel): View? = divider
@@ -46,14 +46,14 @@ abstract class AbstractSplitPanelBehavior(private val divider: View, override va
         splitPanel = null
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         pressedLocation = when (orientation) {
             Vertical   -> event.location.x
             Horizontal -> event.location.y
         }
     }
 
-    override fun mouseDragged(event: MouseEvent) {
+    override fun dragged(event: PointerEvent) {
         splitPanel?.let { splitPanel ->
 
             var minPosition = 0.0

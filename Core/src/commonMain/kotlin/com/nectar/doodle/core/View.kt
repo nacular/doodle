@@ -21,11 +21,9 @@ import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.event.MouseScrollEvent
-import com.nectar.doodle.event.MouseScrollListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.focus.FocusTraversalPolicy
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType
 import com.nectar.doodle.geometry.Point
@@ -35,12 +33,12 @@ import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.system.Cursor
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
-import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
-import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
-import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
-import com.nectar.doodle.system.SystemMouseEvent.Type.Move
-import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.system.SystemPointerEvent.Type.Down
+import com.nectar.doodle.system.SystemPointerEvent.Type.Drag
+import com.nectar.doodle.system.SystemPointerEvent.Type.Enter
+import com.nectar.doodle.system.SystemPointerEvent.Type.Exit
+import com.nectar.doodle.system.SystemPointerEvent.Type.Move
+import com.nectar.doodle.system.SystemPointerEvent.Type.Up
 import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.ChangeObserversImpl
 import com.nectar.doodle.utils.ObservableList
@@ -143,7 +141,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
     /**
      * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [Layout].
-     * It does affect the [boundingBox], and how the View looks when rendered.  Hit-detection is handled correctly such that the mouse
+     * It does affect the [boundingBox], and how the View looks when rendered.  Hit-detection is handled correctly such that the pointer
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
@@ -239,7 +237,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /** The current text to display for tool-tips.  The default is the empty string.  */
     var toolTipText = ""
 
-    /** Cursor that is displayed whenever the mouse is over this View. This falls back to the [parent]'s Cursor if not set. */
+    /** Cursor that is displayed whenever the pointer is over this View. This falls back to the [parent]'s Cursor if not set. */
     var cursor: Cursor? = null
         get(   ) = field ?: parent?.cursor
         set(new) {
@@ -286,36 +284,32 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     var acceptsThemes = true
 
-    private val mouseFilter_ by lazy { SetPool<MouseListener>() }
+    private val pointerFilter_ by lazy { SetPool<PointerListener>() }
 
-    /** [MouseListener]s that are notified during the sinking phase of mouse event handling. */
-    val mouseFilter: Pool<MouseListener> get() = mouseFilter_
+    /** [PointerListener]s that are notified during the sinking phase of pointer event handling. */
+    val pointerFilter: Pool<PointerListener> get() = pointerFilter_
 
-    private val mouseChanged_ by lazy { SetPool<MouseListener>() }
+    private val pointerChanged_ by lazy { SetPool<PointerListener>() }
 
-    /** [MouseListener]s that are notified during the bubbling phase of mouse event handling. */
-    val mouseChanged: Pool<MouseListener> get() = mouseChanged_
+    /** [PointerListener]s that are notified during the bubbling phase of pointer event handling. */
+    val pointerChanged: Pool<PointerListener> get() = pointerChanged_
 
     private val keyChanged_ by lazy { SetPool<KeyListener>() }
 
     /** [KeyListener]s that are notified during of [KeyEvent]s sent to the View. */
     val keyChanged: Pool<KeyListener> get() = keyChanged_
 
-    private val mouseMotionFilter_ by lazy { SetPool<MouseMotionListener>() }
+    private val pointerMotionFilter_ by lazy { SetPool<PointerMotionListener>() }
 
-    /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
-    val mouseMotionFilter: Pool<MouseMotionListener> get() = mouseMotionFilter_
+    /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
+    val pointerMotionFilter: Pool<PointerMotionListener> get() = pointerMotionFilter_
 
-    private val mouseMotionChanged_ by lazy { SetPool<MouseMotionListener>() }
+    private val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
 
-    /** [MouseMotionListener]s that are notified during the sinking phase of mouse-motion event handling. */
-    val mouseMotionChanged: Pool<MouseMotionListener> get() = mouseMotionChanged_
+    /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
+    val pointerMotionChanged: Pool<PointerMotionListener> get() = pointerMotionChanged_
 
-    private val mouseScrollChanged_ by lazy { SetPool<MouseScrollListener>() }
-
-    val mouseScrollChanged: Pool<MouseScrollListener> get() = mouseScrollChanged_
-
-    /** Recognizer used to determine whether a [MouseEvent] should result in a [DragOperation] */
+    /** Recognizer used to determine whether a [PointerEvent] should result in a [DragOperation] */
     var dragRecognizer = null as DragRecognizer?
 
     /** Receiver that determines what drop operations are supported by the View */
@@ -499,12 +493,12 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     fun rerenderNow() = renderManager?.renderNow(this) // TODO: Remove?
 
     /**
-     * Gets the tool-tip text based on the given [MouseEvent].  Override this method to provide multiple tool-tip text values for a single View.
+     * Gets the tool-tip text based on the given [PointerEvent].  Override this method to provide multiple tool-tip text values for a single View.
      *
-     * @param for The mouse event to generate a tool-tip for
+     * @param for The pointer event to generate a tool-tip for
      * @return The text
      */
-    open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: MouseEvent): String = toolTipText
+    open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: PointerEvent): String = toolTipText
 
     /**
      * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.  This check accounts for [transforms][AffineTransform]
@@ -606,78 +600,69 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
     }
 
-    internal fun filterMouseEvent_(event: MouseEvent) = filterMouseEvent(event)
+    internal fun filterPointerEvent_(event: PointerEvent) = filterPointerEvent(event)
 
     /**
-     * This is an event invoked on a View during the filter phase of a mouse event.
+     * This is an event invoked on a View during the filter phase of a pointer event.
      *
      * @param event The event
      */
-    protected open fun filterMouseEvent(event: MouseEvent) = mouseFilter_.forEach {
+    protected open fun filterPointerEvent(event: PointerEvent) = pointerFilter_.forEach {
         when(event.type) {
-            Up    -> it.mouseReleased(event)
-            Down  -> it.mousePressed (event)
-            Exit  -> it.mouseExited  (event)
-            Enter -> it.mouseEntered (event)
+            Up    -> it.released(event)
+            Down  -> it.pressed (event)
+            Exit  -> it.exited  (event)
+            Enter -> it.entered (event)
             else  -> return
         }
     }
 
-    internal fun handleMouseEvent_(event: MouseEvent) = handleMouseEvent(event)
+    internal fun handlePointerEvent_(event: PointerEvent) = handlePointerEvent(event)
 
     /**
-     * This is an event invoked on a View in response to a mouse event triggered in the subsystem.
+     * This is an event invoked on a View in response to a pointer event triggered in the subsystem.
      *
      * @param event The event
      */
-    protected open fun handleMouseEvent(event: MouseEvent) = mouseChanged_.forEach {
+    protected open fun handlePointerEvent(event: PointerEvent) = pointerChanged_.forEach {
         when(event.type) {
-            Up    -> it.mouseReleased(event)
-            Down  -> it.mousePressed (event)
-            Exit  -> it.mouseExited  (event)
-            Enter -> it.mouseEntered (event)
+            Up    -> it.released(event)
+            Down  -> it.pressed (event)
+            Exit  -> it.exited  (event)
+            Enter -> it.entered (event)
             else  -> return
         }
     }
 
-    internal fun filterMouseMotionEvent_(event: MouseEvent) = filterMouseMotionEvent(event)
+    internal fun filterPointerMotionEvent_(event: PointerEvent) = filterPointerMotionEvent(event)
 
     /**
-     * This is an event invoked on a View during the filter phase of a mouse-motion event.
+     * This is an event invoked on a View during the filter phase of a pionter-motion event.
      *
      * @param event The event
      */
-    protected open fun filterMouseMotionEvent(event: MouseEvent) = mouseMotionFilter_.forEach {
+    protected open fun filterPointerMotionEvent(event: PointerEvent) = pointerMotionFilter_.forEach {
         when(event.type) {
-            Move -> it.mouseMoved  (event)
-            Drag -> it.mouseDragged(event)
+            Move -> it.moved  (event)
+            Drag -> it.dragged(event)
             else -> return
         }
     }
 
-    internal fun handleMouseMotionEvent_(event: MouseEvent) = handleMouseMotionEvent(event)
+    internal fun handlePointerMotionEvent_(event: PointerEvent) = handlePointerMotionEvent(event)
 
     /**
-     * This is an event invoked on a View in response to a mouse-motion event triggered in the subsystem.
+     * This is an event invoked on a View in response to a pointer-motion event triggered in the subsystem.
      *
      * @param event The event
      */
-    protected open fun handleMouseMotionEvent(event: MouseEvent) = mouseMotionChanged_.forEach {
+    protected open fun handlePointerMotionEvent(event: PointerEvent) = pointerMotionChanged_.forEach {
         when(event.type) {
-            Move -> it.mouseMoved  (event)
-            Drag -> it.mouseDragged(event)
+            Move -> it.moved  (event)
+            Drag -> it.dragged(event)
             else -> return
         }
     }
-
-    internal fun handleMouseScrollEvent_(event: MouseScrollEvent) = handleMouseScrollEvent(event)
-
-    /**
-     * This is an event invoked on a View in response to a mouse scroll event triggered in the subsystem.
-     *
-     * @param event The event
-     */
-    protected open fun handleMouseScrollEvent(event: MouseScrollEvent) {}
 
     /**
      * This is invoked on a View in response to a focus event triggered in the subsystem.
@@ -759,9 +744,6 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     }
 
     private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
-
-//    operator fun plus (listener: MouseWheelListener ): View = this.also { listeners.add   (listener, MouseWheelListener::class.java ) }
-//    operator fun minus(listener: MouseWheelListener ): View = this.also { listeners.remove(listener, MouseWheelListener::class.java ) }
 }
 
 val View.center get() = position + Point(width/2, height/2)

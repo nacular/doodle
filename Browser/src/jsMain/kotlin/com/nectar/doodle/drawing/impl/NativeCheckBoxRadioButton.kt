@@ -103,7 +103,7 @@ internal class NativeCheckBoxRadioButton(
 
         inputEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
             registerFocusListener         ()
-            startConsumingMousePressEvents()
+            startConsumingPointerPressEvents()
         }
     }
 
@@ -114,7 +114,7 @@ internal class NativeCheckBoxRadioButton(
         rootEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
             registerFocusListener         ()
             registerClickListener         ()
-            startConsumingMousePressEvents()
+            startConsumingPointerPressEvents()
         }
 
         add(inputElement)
@@ -168,10 +168,10 @@ internal class NativeCheckBoxRadioButton(
         }
 
         rootEventHandler.unregisterFocusListener       ()
-        rootEventHandler.stopConsumingMousePressEvents ()
+        rootEventHandler.stopConsumingPointerPressEvents ()
         inputEventHandler.unregisterFocusListener      ()
         inputEventHandler.unregisterClickListener      ()
-        inputEventHandler.stopConsumingMousePressEvents()
+        inputEventHandler.stopConsumingPointerPressEvents()
     }
 
     fun render(canvas: Canvas) {

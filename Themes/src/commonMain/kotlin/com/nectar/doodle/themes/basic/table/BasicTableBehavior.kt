@@ -20,7 +20,6 @@ import com.nectar.doodle.controls.text.TextFit
 import com.nectar.doodle.themes.basic.ListPositioner
 import com.nectar.doodle.themes.basic.ListRow
 import com.nectar.doodle.themes.basic.SelectableListKeyHandler
-import com.nectar.doodle.themes.basic.table.TableHeaderCell
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -32,8 +31,8 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -94,7 +93,7 @@ open class BasicTableBehavior<T>(
                       evenRowColor         : Color? = white,
                       oddRowColor          : Color? = lightgray.lighter().lighter(),
         protected val selectionColor       : Color? = blue,
-        protected val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, MouseListener, KeyListener, SelectableListKeyHandler {
+        protected val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, PointerListener, KeyListener, SelectableListKeyHandler {
 
     override var bodyDirty  : ((         ) -> Unit)? = null
     override var headerDirty: ((         ) -> Unit)? = null
@@ -155,7 +154,7 @@ open class BasicTableBehavior<T>(
     // FIXME: Centralize
     override fun install(view: Table<T, *>) {
         view.keyChanged       += this
-        view.mouseChanged     += this
+        view.pointerChanged     += this
         view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
 
@@ -165,12 +164,12 @@ open class BasicTableBehavior<T>(
 
     override fun uninstall(view: Table<T, *>) {
         view.keyChanged       -= this
-        view.mouseChanged     -= this
+        view.pointerChanged     -= this
         view.focusChanged     -= focusChanged
         view.selectionChanged -= selectionChanged
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         focusManager?.requestFocus(event.source)
     }
 
@@ -223,8 +222,8 @@ open class BasicMutableTableBehavior<T>(
             if (current !is ListRow<*>) {
                 val result = it as ListRow<*>
 
-                it.mouseChanged += object: MouseListener {
-                    override fun mouseReleased(event: MouseEvent) {
+                it.pointerChanged += object: PointerListener {
+                    override fun released(event: PointerEvent) {
                         if (event.clickCount == 2 && table is MutableTable && column is MutableColumn<*,*>) {
                             table.startEditing(result.index, column as MutableColumn<T, *>)
                         }

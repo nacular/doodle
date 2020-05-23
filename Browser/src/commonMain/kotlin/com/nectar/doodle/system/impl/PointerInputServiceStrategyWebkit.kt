@@ -6,7 +6,6 @@ import com.nectar.doodle.addEventListener
 import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.MouseEvent
-import com.nectar.doodle.dom.WheelEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.removeEventListener
@@ -16,24 +15,23 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Alt
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
-import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
-import com.nectar.doodle.system.SystemMouseEvent.Button.Button2
-import com.nectar.doodle.system.SystemMouseEvent.Button.Button3
-import com.nectar.doodle.system.SystemMouseEvent.Type
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
-import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
-import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
-import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
-import com.nectar.doodle.system.SystemMouseEvent.Type.Move
-import com.nectar.doodle.system.SystemMouseEvent.Type.Up
-import com.nectar.doodle.system.SystemMouseScrollEvent
-import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
+import com.nectar.doodle.system.SystemPointerEvent
+import com.nectar.doodle.system.SystemPointerEvent.Button.Button1
+import com.nectar.doodle.system.SystemPointerEvent.Button.Button2
+import com.nectar.doodle.system.SystemPointerEvent.Button.Button3
+import com.nectar.doodle.system.SystemPointerEvent.Type
+import com.nectar.doodle.system.SystemPointerEvent.Type.Down
+import com.nectar.doodle.system.SystemPointerEvent.Type.Drag
+import com.nectar.doodle.system.SystemPointerEvent.Type.Enter
+import com.nectar.doodle.system.SystemPointerEvent.Type.Exit
+import com.nectar.doodle.system.SystemPointerEvent.Type.Move
+import com.nectar.doodle.system.SystemPointerEvent.Type.Up
+import com.nectar.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import com.nectar.doodle.utils.ifFalse
 import com.nectar.doodle.utils.ifTrue
 
 
-internal open class MouseInputServiceStrategyWebkit(private val document: Document, private val htmlFactory: HtmlFactory): MouseInputServiceStrategy {
+internal open class PointerInputServiceStrategyWebkit(private val document: Document, private val htmlFactory: HtmlFactory): PointerInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {
@@ -50,7 +48,7 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
             }
     }
 
-    override var mouseLocation = Origin
+    override var pointerLocation = Origin
         protected set
 
     private var inputDevice  = null as HTMLElement?
@@ -78,15 +76,15 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     }
 
     private fun mouseEnter(event: MouseEvent) {
-        eventHandler?.handle(createMouseEvent(event, Enter, 0))
+        eventHandler?.handle(createPointerEvent(event, Enter, 0))
     }
 
     private fun mouseExit(event: MouseEvent) {
-        eventHandler?.handle(createMouseEvent(event, Exit, 0))
+        eventHandler?.handle(createPointerEvent(event, Exit, 0))
     }
 
     private fun mouseUp(event: MouseEvent): Boolean {
-        eventHandler?.handle(createMouseEvent(event, Up, 1))
+        eventHandler?.handle(createPointerEvent(event, Up, 1))
 
         return isNativeElement(event.target).ifFalse {
             event.preventDefault ()
@@ -97,16 +95,16 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     private fun mouseDown(event: MouseEvent): Boolean {
         // Need to update location here in case running on a touch-based device; in which case mouseMove isn't called
         // unless touch is dragged
-        mouseLocation = Point(event.pageX, event.pageY)
+        pointerLocation = Point(event.pageX, event.pageY)
 
-        eventHandler?.handle(createMouseEvent(event, Down, 1))
+        eventHandler?.handle(createPointerEvent(event, Down, 1))
 
         return true
     }
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
     private fun doubleClick(event: MouseEvent): Boolean {
-        eventHandler?.handle(createMouseEvent(event, Up, 2))
+        eventHandler?.handle(createPointerEvent(event, Up, 2))
 
         return isNativeElement(event.target).ifFalse {
             event.preventDefault ()
@@ -115,31 +113,15 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
-        mouseLocation = Point(event.pageX, event.pageY)
+        pointerLocation = Point(event.pageX, event.pageY)
 
-        eventHandler?.handle(createMouseEvent(event, Move, 0))
+        eventHandler?.handle(createPointerEvent(event, Move, 0))
 
         return true
     }
 
-    private fun mouseScroll(event: WheelEvent): Boolean {
-        val deltaX = 0 - event.deltaX / 28
-        val deltaY = 0 - event.deltaY / 28
-
-        val scrollEvent = SystemMouseScrollEvent(
-                mouseLocation,
-                deltaX,
-                deltaY,
-                createModifiers(event),
-                nativeScrollPanel(event.target))
-
-        eventHandler?.handle(scrollEvent)
-
-        return !scrollEvent.consumed
-    }
-
-    private fun createMouseEvent(event: MouseEvent, type: Type, clickCount: Int): SystemMouseEvent {
-        val buttons    = mutableSetOf<SystemMouseEvent.Button>()
+    private fun createPointerEvent(event: MouseEvent, type: Type, clickCount: Int): SystemPointerEvent {
+        val buttons    = mutableSetOf<SystemPointerEvent.Button>()
         val buttonsInt = event.buttons.toInt()
 
         // Work-around for fact that touch sets buttons to 0
@@ -149,9 +131,9 @@ internal open class MouseInputServiceStrategyWebkit(private val document: Docume
         if (buttonsInt and 2 == 2) buttons += Button2
         if (buttonsInt and 4 == 4) buttons += Button3
 
-        return SystemMouseEvent(
+        return SystemPointerEvent(
                 type,
-                mouseLocation,
+                pointerLocation,
                 buttons,
                 clickCount,
                 createModifiers(event),

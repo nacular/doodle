@@ -20,8 +20,8 @@ import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 
 /**
@@ -35,8 +35,8 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
         else          -> ListRow(list, row, index, list.itemVisualizer ?: passThrough(ToStringItemVisualizer(TextItemVisualizer(textMetrics))), backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor).apply {
-            mouseChanged += object: MouseListener {
-                override fun mouseReleased(event: MouseEvent) {
+            pointerChanged += object: PointerListener {
+                override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(list)
                 }
             }

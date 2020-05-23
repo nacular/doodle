@@ -38,7 +38,7 @@ class BasicButtonBehavior(
             borderColor = borderColor.lighter()
         }
 
-        val penWidth = if (view.enabled && (model.pressed || model.mouseOver)) 2 * borderWidth else borderWidth
+        val penWidth = if (view.enabled && (model.pressed || model.pointerOver)) 2 * borderWidth else borderWidth
 
         canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
 

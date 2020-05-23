@@ -238,11 +238,11 @@ class NativeButton internal constructor(
         val model = button.model
 
         return when {
-            !button.enabled -> if (model.selected) button.disabledSelectedIcon else button.disabledIcon
-            model.pressed   -> button.pressedIcon
-            model.selected  -> button.selectedIcon
-            model.mouseOver -> if (model.selected) button.mouseOverSelectedIcon else button.mouseOverIcon
-            else            -> button.icon
+            !button.enabled   -> if (model.selected) button.disabledSelectedIcon else button.disabledIcon
+            model.pressed     -> button.pressedIcon
+            model.selected    -> button.selectedIcon
+            model.pointerOver -> if (model.selected) button.pointerOverSelectedIcon else button.pointerOverIcon
+            else              -> button.icon
         }
     }
 
@@ -279,7 +279,6 @@ class NativeButton internal constructor(
         nativeEventHandler = handlerFactory(buttonElement, this).apply {
             registerFocusListener         ()
             registerClickListener         ()
-//            startConsumingMousePressEvents()
         }
 
         button.apply {

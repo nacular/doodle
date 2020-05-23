@@ -40,7 +40,7 @@ class FastTextItemVisualizer(private val textMetrics: TextMetrics): ItemVisualiz
 
 open class BooleanItemVisualizer: ItemVisualizer<Boolean> {
     override fun invoke(item: Boolean, previous: View?, isSelected: () -> Boolean): CheckBox = when (previous) {
-        is CheckBox ->                  { previous.selected = item; previous.enabled = false; previous }
+        is CheckBox ->                  { previous.enabled = true; previous.selected = item; previous.enabled = false; previous }
         else        -> CheckBox().apply { this.selected     = item;          enabled = false;          }
     }
 }

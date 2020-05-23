@@ -23,16 +23,16 @@ import com.nectar.doodle.drawing.GraphicsDevice
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Renderable
 import com.nectar.doodle.drawing.impl.RealGraphicsSurface
-import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.scheduler.Scheduler
-import com.nectar.doodle.system.MouseInputService
-import com.nectar.doodle.system.MouseInputService.Preprocessor
-import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
-import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.system.PointerInputService
+import com.nectar.doodle.system.PointerInputService.Preprocessor
+import com.nectar.doodle.system.SystemPointerEvent
+import com.nectar.doodle.system.SystemPointerEvent.Type.Down
+import com.nectar.doodle.system.SystemPointerEvent.Type.Up
 import kotlin.math.abs
 import com.nectar.doodle.dom.MouseEvent as DomMouseEvent
 
@@ -41,18 +41,18 @@ import com.nectar.doodle.dom.MouseEvent as DomMouseEvent
 internal class DragManagerImpl(
                       private val viewFinder       : ViewFinder,
                       private val scheduler        : Scheduler,
-                      private val mouseInputService: MouseInputService,
+                      private val pointerInputService: PointerInputService,
                       private val graphicsDevice   : GraphicsDevice<RealGraphicsSurface>,
                                   htmlFactory      : HtmlFactory): DragManager {
-    private val isIE                 = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
-    private var mouseDown            = null as MouseEvent?
-    private var rootElement          = htmlFactory.root
-    private var dropAllowed          = false
-    private var currentAction        = null as Action?
-    private var allowedActions       = "all"
-    private var currentDropHandler   = null as Pair<View, DropReceiver>?
-    private var currentMouseLocation = Origin
-    private var dataBundle           = null as DataBundle?
+    private val isIE                   = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
+    private var pointerDown            = null as PointerEvent?
+    private var rootElement            = htmlFactory.root
+    private var dropAllowed            = false
+    private var currentAction          = null as Action?
+    private var allowedActions         = "all"
+    private var currentDropHandler     = null as Pair<View, DropReceiver>?
+    private var currentPointerLocation = Origin
+    private var dataBundle             = null as DataBundle?
 
     private lateinit var visualCanvas: RealGraphicsSurface
 
@@ -68,12 +68,12 @@ internal class DragManagerImpl(
     }
 
     init {
-        mouseInputService += object: Preprocessor {
-            override fun preprocess(event: SystemMouseEvent) {
+        pointerInputService += object: Preprocessor {
+            override fun preprocess(event: SystemPointerEvent) {
                 when (event.type) {
-                    Up   -> mouseUp  (     )
-                    Down -> mouseDown(event)
-                    else -> mouseDrag(event)
+                    Up   -> pointerUp  (     )
+                    Down -> pointerDown(event)
+                    else -> pointerDrag(event)
                 }
             }
         }
@@ -89,7 +89,7 @@ internal class DragManagerImpl(
                         dropAllowed = false
                     }
 
-                    dropAllowed = dragUpdate(it, action(event.dataTransfer), mouseLocation(event))
+                    dropAllowed = dragUpdate(it, action(event.dataTransfer), pointerLocation(event))
 
                     if (dropAllowed) {
                         event.preventDefault ()
@@ -107,7 +107,7 @@ internal class DragManagerImpl(
                 if (dataBundle == null) {
                     createBundle(event.dataTransfer)?.let {
                         currentDropHandler?.let { (view, handler) ->
-                            handler.drop(DropEvent(view, view.fromAbsolute(mouseLocation(event)), it, action(event.dataTransfer?.dropEffect)))
+                            handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(event)), it, action(event.dataTransfer?.dropEffect)))
                         }
                     }
                 }
@@ -123,7 +123,7 @@ internal class DragManagerImpl(
         rootElement.ondrop     = null
     }
 
-    private fun mouseEvent(event: SystemMouseEvent, view: View) = MouseEvent(
+    private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(
             view,
             view,
             event.type,
@@ -132,12 +132,12 @@ internal class DragManagerImpl(
             event.clickCount,
             event.modifiers)
 
-    private fun mouseDrag(event: SystemMouseEvent) {
-        mouseDown?.let {
+    private fun pointerDrag(event: SystemPointerEvent) {
+        pointerDown?.let {
             viewFinder.find(event.location)?.let { view ->
 
                 if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
-                    view.dragRecognizer?.dragRecognized(mouseEvent(event, view))?.let { dragOperation ->
+                    view.dragRecognizer?.dragRecognized(pointerEvent(event, view))?.let { dragOperation ->
                         dataBundle = dragOperation.bundle
 
                         createVisual(dragOperation.visual)
@@ -169,14 +169,14 @@ internal class DragManagerImpl(
 
                         visualCanvas.rootElement.asDynamic().dragDrop()
 
-                        mouseDown = null
+                        pointerDown = null
                     }
                 }
             }
         }
     }
 
-    private fun mouseDown(event: SystemMouseEvent) {
+    private fun pointerDown(event: SystemPointerEvent) {
         viewFinder.find(event.location).let {
             var view = it
 
@@ -190,19 +190,19 @@ internal class DragManagerImpl(
         }
     }
 
-    private fun tryDrag(view: View, event: SystemMouseEvent): Boolean {
+    private fun tryDrag(view: View, event: SystemPointerEvent): Boolean {
         if (!view.enabled || !view.visible) {
             return false
         }
 
-        val mouseEvent = mouseEvent(event, view)
+        val pointerEvent = pointerEvent(event, view)
 
         if (isIE) {
-            mouseDown = mouseEvent
+            pointerDown = pointerEvent
             return true // IE doesn't start a drag after this.  We just have to hand-off at this point.
         }
 
-        view.dragRecognizer?.dragRecognized(mouseEvent)?.let { dragOperation ->
+        view.dragRecognizer?.dragRecognized(pointerEvent)?.let { dragOperation ->
 
             dataBundle            = dragOperation.bundle
             rootElement.draggable = true
@@ -231,8 +231,8 @@ internal class DragManagerImpl(
         return false
     }
 
-    private fun mouseUp() {
-        mouseDown               = null
+    private fun pointerUp() {
+        pointerDown               = null
         dataBundle              = null
         rootElement.draggable   = false
         rootElement.ondragstart = null
@@ -254,7 +254,7 @@ internal class DragManagerImpl(
         }
     }
 
-    private fun mouseLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
+    private fun pointerLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
 
     private fun action(name: String?) = when {
         name == null            -> null
@@ -291,7 +291,7 @@ internal class DragManagerImpl(
                 dragOperation.canceled ()
             } else {
                 currentDropHandler?.let { (view, handler) ->
-                    if (handler.drop(DropEvent(view, view.fromAbsolute(mouseLocation(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
+                    if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
                         dragOperation.completed(action)
                     } else {
                         dragOperation.canceled()
@@ -329,17 +329,17 @@ internal class DragManagerImpl(
                 val dropEvent = DropEvent(view, view.fromAbsolute(location), bundle, desired)
 
                 when {
-                    desired == null -> {
+                    desired == null                    -> {
                         handler.dropExit(dropEvent)
 
                         currentDropHandler = null
                     }
-                    currentMouseLocation != location -> {
-                        currentMouseLocation = location
+                    currentPointerLocation != location -> {
+                        currentPointerLocation = location
 
                         dropAllowed = handler.dropOver(dropEvent)
                     }
-                    currentAction != desired -> {
+                    currentAction != desired           -> {
                         currentAction = desired
 
                         dropAllowed = handler.dropActionChanged(DropEvent(view, view.fromAbsolute(location), bundle, desired))

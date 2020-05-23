@@ -2,13 +2,13 @@ package com.nectar.doodle.system
 
 import com.nectar.doodle.geometry.Point
 
-class SystemMouseEvent(
+class SystemPointerEvent(
         val type             : Type,
-            location         : Point,
+        val location         : Point,
         val buttons          : Set<Button>,
         val clickCount       : Int,
-            modifiers            : Set<Modifier>,
-            nativeScrollPanel: Boolean = false): SystemPointerEvent(location, nativeScrollPanel, modifiers) {
+            modifiers        : Set<Modifier>,
+        val nativeScrollPanel: Boolean = false): SystemInputEvent(modifiers) {
 
     constructor(
             type             : Type,

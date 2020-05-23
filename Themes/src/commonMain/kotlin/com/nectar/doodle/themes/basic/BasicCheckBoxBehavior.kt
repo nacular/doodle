@@ -28,7 +28,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
         override fun render(view: Button, canvas: Canvas, at: Point) {
             var fillColor       = sFillColor
             var borderColor     = sBorderColor
-            var backgroundColor = if (view.model.armed && view.model.mouseOver) Color(0xaaaaaau); else sLightBGColor
+            var backgroundColor = if (view.model.armed && view.model.pointerOver) Color(0xaaaaaau); else sLightBGColor
             val rect            = Rectangle(at, size)
 
             if (!view.enabled) {
@@ -39,7 +39,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
 
             canvas.rect(rect.inset(0.5), Pen(borderColor), ColorBrush(backgroundColor))
 
-            if (view.enabled && !view.model.armed && view.model.mouseOver) {
+            if (view.enabled && !view.model.armed && view.model.pointerOver) {
                 canvas.rect(rect.inset(2.0), Pen(sHoverColor, 2.0))
             }
 

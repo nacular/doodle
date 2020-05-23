@@ -15,9 +15,9 @@ import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.geometry.Path
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -43,13 +43,13 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
                        private val selectedColor: Color,
                        private val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
                        private val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): View() {
-    private var mouseOver = false
+    private var pointerOver = false
         set(new) {
             field = new
             if (!selected) backgroundColor = panelColor.lighter()
         }
 
-    private var mouseDown       = false
+    private var pointerDown     = false
     private var initialPosition = null as Point?
 
     private val selected get() = panel.selection == index
@@ -58,20 +58,20 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
 
     private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
         backgroundColor = when {
-            old == index -> if (mouseOver) panelColor.lighter() else null
+            old == index -> if (pointerOver) panelColor.lighter() else null
             new == index -> selectedColor
             else         -> null
         }
     }
 
     init {
-        mouseChanged += object: MouseListener {
-            override fun mousePressed (event: MouseEvent) { mouseDown = true; panel.selection = index; initialPosition = toLocal(event.location, event.target) }
-            override fun mouseEntered (event: MouseEvent) { mouseOver = true  }
-            override fun mouseExited  (event: MouseEvent) { mouseOver = false }
-            override fun mouseReleased(event: MouseEvent) {
-                if (mouseDown) {
-                    mouseDown = false
+        pointerChanged += object: PointerListener {
+            override fun pressed (event: PointerEvent) { pointerDown = true; panel.selection = index; initialPosition = toLocal(event.location, event.target) }
+            override fun entered (event: PointerEvent) { pointerOver = true  }
+            override fun exited  (event: PointerEvent) { pointerOver = false }
+            override fun released(event: PointerEvent) {
+                if (pointerDown) {
+                    pointerDown = false
                     cursor    = null
 
                     cancelMove(panel, index)
@@ -81,8 +81,8 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
             }
         }
 
-        mouseMotionChanged += object: MouseMotionListener {
-            override fun mouseDragged(event: MouseEvent) {
+        pointerMotionChanged += object: PointerMotionListener {
+            override fun dragged(event: PointerEvent) {
                 initialPosition?.let {
                     val delta = (toLocal(event.location, event.target) - it).x
 

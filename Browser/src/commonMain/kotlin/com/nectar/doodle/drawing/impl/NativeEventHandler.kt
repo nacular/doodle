@@ -6,11 +6,11 @@ import com.nectar.doodle.HTMLElement
 internal typealias NativeEventHandlerFactory = (element: HTMLElement, listener: NativeEventListener) -> NativeEventHandler
 
 internal interface NativeEventHandler {
-    fun startConsumingMouseMoveEvents(onlySelf: Boolean = false)
-    fun stopConsumingMouseMoveEvents ()
+    fun startConsumingPointerMoveEvents(onlySelf: Boolean = false)
+    fun stopConsumingPointerMoveEvents ()
 
-    fun startConsumingMousePressEvents()
-    fun stopConsumingMousePressEvents ()
+    fun startConsumingPointerPressEvents()
+    fun stopConsumingPointerPressEvents ()
 
     fun startConsumingSelectionEvents()
     fun stopConsumingSelectionEvents ()

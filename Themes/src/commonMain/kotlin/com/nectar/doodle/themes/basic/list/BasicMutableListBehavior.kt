@@ -16,8 +16,8 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
@@ -35,8 +35,8 @@ open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
 
-            it.mouseFilter += object: MouseListener {
-                override fun mouseReleased(event: MouseEvent) {
+            it.pointerFilter += object: PointerListener {
+                override fun released(event: PointerEvent) {
                     if (list.selected(result.index)) {
                         (list as? MutableList)?.startEditing(result.index)
                         event.consume()

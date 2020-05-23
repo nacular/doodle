@@ -14,8 +14,8 @@ import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -143,24 +143,24 @@ open class Table<T, M: ListModel<T>>(
         override val view = object: View() {
 
             init {
-                mouseChanged += object: MouseListener {
-                    private var mouseOver    = false
-                    private var mousePressed = false
+                pointerChanged += object: PointerListener {
+                    private var pointerOver    = false
+                    private var pointerPressed = false
 
-                    override fun mouseEntered(event: MouseEvent) {
-                        mouseOver = true
+                    override fun entered(event: PointerEvent) {
+                        pointerOver = true
                     }
 
-                    override fun mouseExited(event: MouseEvent) {
-                        mouseOver = false
+                    override fun exited(event: PointerEvent) {
+                        pointerOver = false
                     }
 
-                    override fun mousePressed(event: MouseEvent) {
-                        mousePressed = true
+                    override fun pressed(event: PointerEvent) {
+                        pointerPressed = true
                     }
 
-                    override fun mouseReleased(event: MouseEvent) {
-                        if (mouseOver && mousePressed) {
+                    override fun released(event: PointerEvent) {
+                        if (pointerOver && pointerPressed) {
                             behavior?.delegate?.let {
                                 val index = it.rowPositioner.rowFor(this@Table, event.location.y)
 
@@ -184,7 +184,7 @@ open class Table<T, M: ListModel<T>>(
                                 }
                             }
                         }
-                        mousePressed = false
+                        pointerPressed = false
                     }
                 }
             }

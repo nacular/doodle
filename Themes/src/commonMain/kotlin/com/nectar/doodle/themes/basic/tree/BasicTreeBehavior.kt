@@ -27,8 +27,8 @@ import com.nectar.doodle.event.KeyEvent.Companion.VK_DELETE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_ESCAPE
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
@@ -84,8 +84,8 @@ open class BasicTreeRowGenerator<T>(private val focusManager         : FocusMana
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
         else          -> TreeRow(tree, node, path, index, contentGenerator, selectionColor = selectionColor, selectionBluredColor = selectionBlurredColor, iconFactory = { SimpleTreeRowIcon(iconColor) }).apply {
-            mouseChanged += object: MouseListener {
-                override fun mouseReleased(event: MouseEvent) {
+            pointerChanged += object: PointerListener {
+                override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(tree)
                 }
             }
@@ -102,8 +102,8 @@ class BasicMutableTreeRowGenerator<T>(focusManager         : FocusManager?,
         if (current !is TreeRow<*>) {
             val result = it as TreeRow<*>
 
-            it.mouseChanged += object: MouseListener {
-                override fun mouseReleased(event: MouseEvent) {
+            it.pointerChanged += object: PointerListener {
+                override fun released(event: PointerEvent) {
                     if (event.clickCount == 2) {
                         (tree as MutableTree).startEditing(result.path)
                     }

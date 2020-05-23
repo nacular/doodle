@@ -25,10 +25,10 @@ abstract class Button protected constructor(
         var icon: Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): View(accessibilityRole = button()) {
 
-    private val armedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged     as PropertyObserversImpl)(old, new) }
-    private val pressedChanged_   = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged   as PropertyObserversImpl)(old, new) }
-    private val mouseOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (mouseOverChanged as PropertyObserversImpl)(old, new) }
-    private val modelFired        = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
+    private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
+    private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl)(old, new) }
+    private val pointerOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (pointerOverChanged as PropertyObserversImpl)(old, new) }
+    private val modelFired          = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
 
     override fun addedToDisplay() {
         super.addedToDisplay()
@@ -50,7 +50,7 @@ abstract class Button protected constructor(
 
     val armedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
     val pressedChanged  : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
-    val mouseOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
 
     var behavior: Behavior<Button>? = null
         set(new) {
@@ -73,17 +73,19 @@ abstract class Button protected constructor(
 
     var iconAnchor = Left; set(new) { field = new; styleChanged() }
 
-    var pressedIcon          : Icon<Button>? = null; get() = field ?: icon
-    var disabledIcon         : Icon<Button>? = null; get() = field ?: icon
-    var selectedIcon         : Icon<Button>? = null; get() = field ?: icon
-    var mouseOverIcon        : Icon<Button>? = null; get() = field ?: icon
-    var disabledSelectedIcon : Icon<Button>? = null; get() = field ?: disabledIcon
-    var mouseOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon
+    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon
+    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon
+    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon
+    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon
+    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon
+    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon
 
     var selected: Boolean
         get(   ) = model.selected
         set(new) {
-            model.selected = new
+            if (enabled) {
+                model.selected = new
+            }
         }
 
     open var model: ButtonModel = model

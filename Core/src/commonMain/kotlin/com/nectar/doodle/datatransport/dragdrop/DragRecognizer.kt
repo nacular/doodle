@@ -6,7 +6,7 @@ import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Copy
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Link
 import com.nectar.doodle.datatransport.dragdrop.DragOperation.Action.Move
 import com.nectar.doodle.drawing.Renderable
-import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.geometry.Point
 
 
@@ -30,7 +30,7 @@ interface DragOperation {
     /** The bundle's visual representation */
     val visual: Renderable? get() = null
 
-    /** The offset (relative to the mouse) where the [visual] should be rendered */
+    /** The offset (relative to the pointer) where the [visual] should be rendered */
     val visualOffset: Point get() = Point.Origin
 
     /** The set of allowed drop actions */
@@ -38,7 +38,7 @@ interface DragOperation {
 
     /**
      * Indicates that the operation is started.  This will be called once the user begins
-     * dragging the mouse.
+     * dragging the pointer.
      */
     fun started() {}
 
@@ -62,15 +62,15 @@ interface DragOperation {
 
 /**
  * Defines how drag recognition works for [View]s.  Adding drag support to a [View] requires registering
- * a DragHandler that will determine when to initiate a [DragOperation] in response to a [MouseEvent].
+ * a DragHandler that will determine when to initiate a [DragOperation] in response to a [PointerEvent].
  */
 interface DragRecognizer {
     /**
      * Informs the recognizer that a drag gesture has ben recognized and gives it the opportunity
      * to initiate a [DragOperation].
      *
-     * @param event the [MouseEvent] that initiated the drag
+     * @param event the [PointerEvent] that initiated the drag
      * @return a [DragOperation] to begin drag-drop, or ```null``` to ignore
      */
-    fun dragRecognized(event: MouseEvent): DragOperation?
+    fun dragRecognized(event: PointerEvent): DragOperation?
 }

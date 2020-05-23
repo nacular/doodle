@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 
 **Expressive:** Creating expressive, intuitive apps is natural with doodle. It handles all complex rendering and layout timing for you. Simply
-define your View hierarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
+define your View hierarchy, business logic and go. User interactions (i.e. pointer and keyboard) are consistent and easy to use.
 
 **Single-language:** Doodle apps do not use HTML, Javascript, CSS or wrappers around these concepts. Instead, you write all parts of your
 application in a browser agnostic way using [Kotlin](http://kotlinlang.org). Doodle apps can actually be written entirely as common code in

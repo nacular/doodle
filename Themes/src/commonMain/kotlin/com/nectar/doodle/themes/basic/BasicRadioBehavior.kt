@@ -27,7 +27,7 @@ class BasicRadioBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(tex
             var fillColor = sFillColor
 
             var borderColor = sBorderColor
-            var backgroundColor = if (view.model.armed && view.model.mouseOver) Color(0xaaaaaau) else sLightBGColor
+            var backgroundColor = if (view.model.armed && view.model.pointerOver) Color(0xaaaaaau) else sLightBGColor
 
             if (!view.enabled) {
                 fillColor = sBorderColor
@@ -37,7 +37,7 @@ class BasicRadioBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(tex
 
             canvas.circle(Circle(location, sCircleRadius).inset(0.5), Pen(borderColor), ColorBrush(backgroundColor))
 
-            if (view.enabled && !view.model.armed && view.model.mouseOver) {
+            if (view.enabled && !view.model.armed && view.model.pointerOver) {
                 canvas.circle(Circle(location, sCircleRadius - 1).inset(0.5), Pen(sHoverColor, 2.0))
             }
 

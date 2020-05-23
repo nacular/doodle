@@ -1,17 +1,15 @@
 package com.nectar.doodle.controls.theme
 
-import com.nectar.doodle.accessibility.slider
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
 import com.nectar.doodle.event.KeyEvent.Companion.VK_LEFT
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RIGHT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_U
 import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
@@ -22,10 +20,10 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListener, KeyListener {
+abstract class SliderBehavior: Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
 
-    private   var lastStart         = -1.0
-    protected var lastMousePosition = -1.0
+    private   var lastStart           = -1.0
+    protected var lastPointerPosition = -1.0
         private set
 
 
@@ -34,18 +32,18 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
     override fun install(view: Slider) {
         view.changed            += changed
         view.keyChanged         += this
-        view.mouseChanged       += this
-        view.mouseMotionChanged += this
+        view.pointerChanged       += this
+        view.pointerMotionChanged += this
     }
 
     override fun uninstall(view: Slider) {
         view.changed            -= changed
         view.keyChanged         -= this
-        view.mouseChanged       -= this
-        view.mouseMotionChanged -= this
+        view.pointerChanged       -= this
+        view.pointerMotionChanged -= this
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         val slider      = event.source as Slider
         val scaleFactor = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
 
@@ -61,15 +59,15 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
             slider.value += round(scaleFactor * (offset - (barPosition + barSize / 2)))
         }
 
-        lastMousePosition = offset
+        lastPointerPosition = offset
         lastStart         = slider.value
 
         event.consume()
     }
 
-    override fun mouseReleased(event: MouseEvent) {
+    override fun released(event: PointerEvent) {
         lastStart         = -1.0
-        lastMousePosition = -1.0
+        lastPointerPosition = -1.0
     }
 
     override fun keyPressed(event: KeyEvent) {
@@ -82,12 +80,12 @@ abstract class SliderBehavior: Behavior<Slider>, MouseListener, MouseMotionListe
         }
     }
 
-    override fun mouseDragged(event: MouseEvent) {
+    override fun dragged(event: PointerEvent) {
         val slider = event.source as Slider
 
         val delta = when (slider.orientation) {
-            Horizontal -> event.location.x - lastMousePosition
-            Vertical   -> event.location.y - lastMousePosition
+            Horizontal -> event.location.x - lastPointerPosition
+            Vertical   -> event.location.y - lastPointerPosition
         }
 
         val deltaValue = delta / scaleFactor(slider)

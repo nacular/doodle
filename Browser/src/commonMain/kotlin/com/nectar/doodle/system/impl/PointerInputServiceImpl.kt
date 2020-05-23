@@ -2,17 +2,16 @@ package com.nectar.doodle.system.impl
 
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.Cursor
-import com.nectar.doodle.system.MouseInputService
-import com.nectar.doodle.system.MouseInputService.Listener
-import com.nectar.doodle.system.MouseInputService.Preprocessor
-import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseScrollEvent
+import com.nectar.doodle.system.PointerInputService
+import com.nectar.doodle.system.PointerInputService.Listener
+import com.nectar.doodle.system.PointerInputService.Preprocessor
+import com.nectar.doodle.system.SystemPointerEvent
 
 
-internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStrategy): MouseInputService {
+internal class PointerInputServiceImpl(private val strategy: PointerInputServiceStrategy): PointerInputService {
 
-    override val mouseLocation: Point
-        get() = strategy.mouseLocation
+    override val pointerLocation: Point
+        get() = strategy.pointerLocation
 
     override var cursor: Cursor
         get(     ) = strategy.cursor
@@ -34,13 +33,9 @@ internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStra
 
     private fun startUp() {
         if (!started) {
-            strategy.startUp(object: MouseInputServiceStrategy.EventHandler {
-                override fun handle(event: SystemMouseEvent) {
-                    notifyMouseEvent(event)
-                }
-
-                override fun handle(event: SystemMouseScrollEvent) {
-                    notifyMouseWheelEvent(event)
+            strategy.startUp(object: PointerInputServiceStrategy.EventHandler {
+                override fun handle(event: SystemPointerEvent) {
+                    notifyPointerEvent(event)
                 }
             })
 
@@ -56,12 +51,7 @@ internal class MouseInputServiceImpl(private val strategy: MouseInputServiceStra
         }
     }
 
-    private fun notifyMouseEvent(event: SystemMouseEvent) {
-        preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
-        listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
-    }
-
-    private fun notifyMouseWheelEvent(event: SystemMouseScrollEvent) {
+    private fun notifyPointerEvent(event: SystemPointerEvent) {
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
     }

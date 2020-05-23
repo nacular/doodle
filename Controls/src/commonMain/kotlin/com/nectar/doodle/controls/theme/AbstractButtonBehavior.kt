@@ -7,14 +7,14 @@ import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyEvent.Companion.VK_RETURN
 import com.nectar.doodle.event.KeyEvent.Companion.VK_SPACE
 import com.nectar.doodle.event.KeyListener
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.system.SystemMouseEvent.Button.Button1
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
+import com.nectar.doodle.system.SystemPointerEvent.Button.Button1
 import com.nectar.doodle.theme.Behavior
 
 
-abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, MouseMotionListener, KeyListener {
+abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)
@@ -30,10 +30,10 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
 
     override fun install(view: T) {
         view.keyChanged         += this
-        view.mouseChanged       += this
+        view.pointerChanged       += this
         view.styleChanged       += stylesChanged
         view.enabledChanged     += enabledChanged
-        view.mouseMotionChanged += this
+        view.pointerMotionChanged += this
 
         (view as? ToggleButton)?.let { it.selectedChanged += selectionChanged }
 
@@ -43,10 +43,10 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
 
     override fun uninstall(view: T) {
         view.keyChanged         -= this
-        view.mouseChanged       -= this
+        view.pointerChanged       -= this
         view.styleChanged       -= stylesChanged
         view.enabledChanged     -= enabledChanged
-        view.mouseMotionChanged -= this
+        view.pointerMotionChanged -= this
 
         (view as? ToggleButton)?.let { it.selectedChanged -= selectionChanged }
     }
@@ -77,33 +77,33 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         }
     }
 
-    override fun mouseExited(event: MouseEvent) {
+    override fun exited(event: PointerEvent) {
         val button = event.source as T
         val model  = button.model
 
-        model.mouseOver = false
+        model.pointerOver = false
 
         if (button.enabled) {
             model.armed = false
         }
 
-        mouseChanged(button)
+        pointerChanged(button)
     }
 
-    override fun mouseEntered(event: MouseEvent) {
+    override fun entered(event: PointerEvent) {
         val button = event.source as T
         val model  = button.model
 
-        model.mouseOver = true
+        model.pointerOver = true
 
         if (button.enabled && event.buttons == setOf(Button1) && model.pressed) {
             model.armed = true
         }
 
-        mouseChanged(button)
+        pointerChanged(button)
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         val button = event.source as T
         val model  = button.model
 
@@ -113,13 +113,13 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
                 pressed = true
             }
 
-            mouseChanged(button)
+            pointerChanged(button)
 
             event.consume()
         }
     }
 
-    override fun mouseReleased(event: MouseEvent) {
+    override fun released(event: PointerEvent) {
         val button = event.source as T
         val model  = button.model
 
@@ -129,13 +129,13 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
                 armed   = false
             }
 
-            mouseChanged(button)
+            pointerChanged(button)
 
             event.consume()
         }
     }
 
-    override fun mouseDragged(event: MouseEvent) {
+    override fun dragged(event: PointerEvent) {
         val button = event.source as T
         val model  = button.model
 
@@ -144,6 +144,6 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, MouseListener, Mo
         }
     }
 
-    protected open fun mouseChanged  (button: T) = button.rerender()
+    protected open fun pointerChanged(button: T) = button.rerender()
     protected open fun enabledChanged(button: T) = button.rerender()
 }

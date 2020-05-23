@@ -7,7 +7,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeHyperLinkFactory
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.MouseEvent
+import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
 
 internal class SystemHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFactory, textMetrics: TextMetrics, hyperLink: HyperLink): AbstractTextButtonBehavior<HyperLink>(textMetrics) {
@@ -39,7 +39,7 @@ internal class SystemHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFa
         view.cursor = null
     }
 
-    override fun mouseReleased(event: MouseEvent) {
+    override fun released(event: PointerEvent) {
         val button = event.source as Button
         val model  = button.model
 
@@ -49,7 +49,7 @@ internal class SystemHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFa
         }
     }
 
-    override fun mouseChanged(button: HyperLink) {}
+    override fun pointerChanged(button: HyperLink) {}
 
     override fun keyReleased(event: KeyEvent) {}
 

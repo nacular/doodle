@@ -8,15 +8,15 @@ import com.nectar.doodle.utils.PropertyObservers
  */
 
 interface ButtonModel {
-    val armedChanged    : PropertyObservers<ButtonModel, Boolean>
-    val pressedChanged  : PropertyObservers<ButtonModel, Boolean>
-    val selectedChanged : PropertyObservers<ButtonModel, Boolean>
-    val mouseOverChanged: PropertyObservers<ButtonModel, Boolean>
+    val armedChanged      : PropertyObservers<ButtonModel, Boolean>
+    val pressedChanged    : PropertyObservers<ButtonModel, Boolean>
+    val selectedChanged   : PropertyObservers<ButtonModel, Boolean>
+    val pointerOverChanged: PropertyObservers<ButtonModel, Boolean>
 
     var armed      : Boolean
     var pressed    : Boolean
     var selected   : Boolean
-    var mouseOver  : Boolean
+    var pointerOver: Boolean
     var buttonGroup: ButtonGroup?
 
     val fired      : ChangeObservers<ButtonModel>

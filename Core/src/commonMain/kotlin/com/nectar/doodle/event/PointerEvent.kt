@@ -3,11 +3,11 @@ package com.nectar.doodle.event
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.system.SystemInputEvent.Modifier
-import com.nectar.doodle.system.SystemMouseEvent.Button
-import com.nectar.doodle.system.SystemMouseEvent.Type
+import com.nectar.doodle.system.SystemPointerEvent.Button
+import com.nectar.doodle.system.SystemPointerEvent.Type
 
 
-class MouseEvent(
+class PointerEvent(
         source        : View,
         val target    : View,
         val type      : Type,
@@ -25,13 +25,11 @@ class MouseEvent(
             clickCount: Int,
             modifiers : Set<Modifier>): this(source, target, type, location, setOf(button), clickCount, modifiers)
 
-    fun with(source: View) = MouseEvent(source, target, type, location, buttons, clickCount, modifiers)
-
     override fun toString() = "${this::class.simpleName} -> ${source::class.simpleName}: $type $location $buttons"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is MouseEvent) return false
+        if (other !is PointerEvent) return false
         if (!super.equals(other)) return false
 
         if (type       != other.type      ) return false
@@ -51,3 +49,5 @@ class MouseEvent(
         return result
     }
 }
+
+fun PointerEvent.with(source: View) = PointerEvent(source, target, type, location, buttons, clickCount, modifiers)

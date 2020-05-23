@@ -36,7 +36,7 @@ interface Display: Iterable<View> {
 
     /**
      * Affine transform applied to the View.  This transform does not affect the Display's [size] or how it is handled by [Layout].
-     * Hit-detection is handled correctly such that the mouse intersects with the Display as expected after transformation.
+     * Hit-detection is handled correctly such that the pointer intersects with the Display as expected after transformation.
      * So no additional handling is necessary in general. The default is [Identity]
      */
     var transform: AffineTransform

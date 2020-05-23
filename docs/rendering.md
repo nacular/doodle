@@ -49,14 +49,13 @@ The `Timer` app renders the epoch time every millisecond. The DOM gets minimal u
 
 ## Drawing on Canvas
 
-The `render` method provides a [`Canvas`]() onto which the `View` can draw. Canvas provides a rich set of operations
+The `render` method provides a [`Canvas`]() onto which the `View` can draw. Canvas offers a rich set of operations
 for geometric shapes, paths, images, and text. It also supports different `Brush` types for filling regions.
 
-The Canvas provided to a View has a coordinate system anchored at the View's top-left corner. This point is
-`0,0` on the Canvas. The Canvas itself extends in all directions beyond the bounds of the View; but the contents drawn
-to it will be clipped to the view's bounds by default.
+This Canvas has a coordinate system anchored at the View's top-left corner: `0,0` on the Canvas. The Canvas itself extends in all
+directions beyond the bounds of the View; but the contents drawn to it will be clipped to the view's bounds by default.
 
-?> sub-classes can disable clipping by setting `clipCanvasToBounds` to `false`
+?> sub-classes can disable clipping by setting [`clipCanvasToBounds`]() to `false`
 
 You can also transform a Canvas.
 
@@ -70,5 +69,5 @@ class MyView: View() {
 }
 ```
 
-Here, the view flips the Canvas horizontally around its mid-point and draws some text. You can apply any `AffineTransform`
-to a Canvas. Transforms can also be stacked by nesting their blocks.
+Here, the view flips the Canvas horizontally around its mid-point and draws some text. You can apply any [`AffineTransform`]()
+to a Canvas; these can be nested as well.

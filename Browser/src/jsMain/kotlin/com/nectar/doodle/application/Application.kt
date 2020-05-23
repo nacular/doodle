@@ -13,8 +13,8 @@ import com.nectar.doodle.datatransport.dragdrop.DragManager
 import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
 import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
-import com.nectar.doodle.deviceinput.MouseInputManager
-import com.nectar.doodle.deviceinput.MouseInputManagerImpl
+import com.nectar.doodle.deviceinput.PointerInputManager
+import com.nectar.doodle.deviceinput.PointerInputManagerImpl
 import com.nectar.doodle.deviceinput.ViewFinder
 import com.nectar.doodle.deviceinput.ViewFinderImpl
 import com.nectar.doodle.document.impl.DocumentImpl
@@ -56,17 +56,16 @@ import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.scheduler.impl.StrandImpl
 import com.nectar.doodle.system.KeyInputService
-import com.nectar.doodle.system.MouseInputService
+import com.nectar.doodle.system.PointerInputService
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
-import com.nectar.doodle.system.SystemMouseEvent
-import com.nectar.doodle.system.SystemMouseScrollEvent
+import com.nectar.doodle.system.SystemPointerEvent
 import com.nectar.doodle.system.impl.KeyInputServiceImpl
 import com.nectar.doodle.system.impl.KeyInputServiceStrategy
 import com.nectar.doodle.system.impl.KeyInputStrategyWebkit
-import com.nectar.doodle.system.impl.MouseInputServiceImpl
-import com.nectar.doodle.system.impl.MouseInputServiceStrategy
-import com.nectar.doodle.system.impl.MouseInputServiceStrategy.EventHandler
-import com.nectar.doodle.system.impl.MouseInputServiceStrategyWebkit
+import com.nectar.doodle.system.impl.PointerInputServiceImpl
+import com.nectar.doodle.system.impl.PointerInputServiceStrategy
+import com.nectar.doodle.system.impl.PointerInputServiceStrategy.EventHandler
+import com.nectar.doodle.system.impl.PointerInputServiceStrategyWebkit
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
 import org.kodein.di.Copy
@@ -127,11 +126,11 @@ class Modules {
             bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
-        val mouseModule = Module(allowSilentOverride = true, name = "Mouse") {
-            bind<ViewFinder>               () with singleton { ViewFinderImpl                 (instance()                        ) }
-            bind<MouseInputService>        () with singleton { MouseInputServiceImpl          (instance()                        ) }
-            bind<MouseInputManager>        () with singleton { MouseInputManagerImpl          (instance(), instance(), instance()) }
-            bind<MouseInputServiceStrategy>() with singleton { MouseInputServiceStrategyWebkit(document, instance()              ) }
+        val pointerModule = Module(allowSilentOverride = true, name = "Pointer") {
+            bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
+            bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
+            bind<PointerInputManager>        () with singleton { PointerInputManagerImpl          (instance(), instance(), instance()) }
+            bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document, instance()              ) }
         }
 
         val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
@@ -149,7 +148,7 @@ class Modules {
         }
 
         val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
-            importOnce(mouseModule)
+            importOnce(pointerModule)
 
             bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
         }
@@ -179,25 +178,16 @@ class Modules {
     }
 }
 
-private class NestedMouseInputStrategy(private val view: ApplicationView, private val delegate: MouseInputServiceStrategy): MouseInputServiceStrategy by(delegate) {
+private class NestedPointerInputStrategy(private val view: ApplicationView, private val delegate: PointerInputServiceStrategy): PointerInputServiceStrategy by(delegate) {
     override fun startUp(handler: EventHandler) {
-        // Provide an adapter to handle mapping mouse location correctly based on ApplicationView's orientation
+        // Provide an adapter to handle mapping pointer location correctly based on ApplicationView's orientation
         delegate.startUp(object: EventHandler {
-            override fun handle(event: SystemMouseEvent) {
-                handler.handle(SystemMouseEvent(
+            override fun handle(event: SystemPointerEvent) {
+                handler.handle(SystemPointerEvent(
                         event.type,
-                        view.fromAbsolute(mouseLocation),
+                        view.fromAbsolute(pointerLocation),
                         event.buttons,
                         event.clickCount,
-                        event.modifiers,
-                        event.nativeScrollPanel))
-            }
-
-            override fun handle(event: SystemMouseScrollEvent) {
-                handler.handle(SystemMouseScrollEvent(
-                        view.fromAbsolute(mouseLocation),
-                        event.xRotation,
-                        event.yRotation,
                         event.modifiers,
                         event.nativeScrollPanel))
             }
@@ -213,11 +203,11 @@ private class NestedApplicationHolder(
         modules             : Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
-        injector.instanceOrNull<MouseInputServiceStrategy>()?.let {
+        injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
             injector = Kodein.direct {
                 extend(injector, copy = Copy.All)
 
-                bind<MouseInputServiceStrategy>(overrides = true) with singleton { NestedMouseInputStrategy(view, it) }
+                bind<PointerInputServiceStrategy>(overrides = true) with singleton { NestedPointerInputStrategy(view, it) }
             }
         }
 
@@ -294,7 +284,7 @@ private open class ApplicationHolderImpl protected constructor(
         }
         injector.instance<RenderManager>()
 
-        injector.instanceOrNull<MouseInputManager>   ()
+        injector.instanceOrNull<PointerInputManager>   ()
         injector.instanceOrNull<KeyboardFocusManager>()
         injector.instanceOrNull<DragManager>         ()
 
@@ -319,7 +309,7 @@ private open class ApplicationHolderImpl protected constructor(
             injector.instance<SystemStyler>().shutdown()
         }
         injector.instanceOrNull<DragManager>             ()?.shutdown()
-        injector.instanceOrNull<MouseInputManager>       ()?.shutdown()
+        injector.instanceOrNull<PointerInputManager>       ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
         injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
 

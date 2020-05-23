@@ -1,9 +1,9 @@
 package com.nectar.doodle.utils
 
 import com.nectar.doodle.core.View
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -17,18 +17,18 @@ import com.nectar.doodle.system.Cursor.Companion.SResize
 import com.nectar.doodle.system.Cursor.Companion.SeResize
 import com.nectar.doodle.system.Cursor.Companion.SwResize
 import com.nectar.doodle.system.Cursor.Companion.WResize
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
+import com.nectar.doodle.system.SystemPointerEvent.Type.Down
 import com.nectar.doodle.utils.Direction.East
 import com.nectar.doodle.utils.Direction.North
 import com.nectar.doodle.utils.Direction.South
 import com.nectar.doodle.utils.Direction.West
 import kotlin.math.max
 
-class Resizer(private val view: View): MouseListener, MouseMotionListener {
+class Resizer(private val view: View): PointerListener, PointerMotionListener {
 
     init {
-        view.mouseChanged       += this
-        view.mouseMotionChanged += this
+        view.pointerChanged       += this
+        view.pointerMotionChanged += this
     }
 
     var movable     = true
@@ -41,13 +41,13 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
     private var initialPosition      = Origin
     private var ignorePropertyChange = false
 
-    override fun mouseReleased(event: MouseEvent) {
+    override fun released(event: PointerEvent) {
         dragMode.clear()
 
         updateCursor(event)
     }
 
-    override fun mousePressed(event: MouseEvent) {
+    override fun pressed(event: PointerEvent) {
         dragMode.clear()
 
         initialPosition = view.toLocal(event.location, event.target)
@@ -66,21 +66,21 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
         updateCursor(event)
     }
 
-    override fun mouseEntered(event: MouseEvent) {
+    override fun entered(event: PointerEvent) {
         updateCursor(event)
     }
 
-    override fun mouseExited(event: MouseEvent) {
+    override fun exited(event: PointerEvent) {
         if (dragMode.isEmpty()) {
             view.cursor = oldCursor
         }
     }
 
-    override fun mouseMoved(event: MouseEvent) {
+    override fun moved(event: PointerEvent) {
         updateCursor(event)
     }
 
-    override fun mouseDragged(event: MouseEvent) {
+    override fun dragged(event: PointerEvent) {
         val delta = view.toLocal(event.location, event.target) - initialPosition
 
         if (dragMode.isEmpty() && movable) {
@@ -118,7 +118,7 @@ class Resizer(private val view: View): MouseListener, MouseMotionListener {
         }
     }
 
-    private fun updateCursor(event: MouseEvent) {
+    private fun updateCursor(event: PointerEvent) {
         if (dragMode.isNotEmpty()) {
             return
         }

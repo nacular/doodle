@@ -3,8 +3,7 @@ package com.nectar.doodle.core
 import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseScrollEvent
+import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.geometry.Rectangle
 
 /**
@@ -15,15 +14,13 @@ class DoodleTest {
 
     fun View.handleKeyEvent(event: KeyEvent) = this.handleKeyEvent_(event)
 
-    fun View.filterMouseEvent(event: MouseEvent) = this.filterMouseEvent_(event)
+    fun View.filterPointerEvent(event: PointerEvent) = this.filterPointerEvent_(event)
 
-    fun View.handleMouseEvent(event: MouseEvent) = this.handleMouseEvent_(event)
+    fun View.handlePointerEvent(event: PointerEvent) = this.handlePointerEvent_(event)
 
-    fun View.filterMouseMotionEvent(event: MouseEvent) = this.filterMouseMotionEvent_(event)
+    fun View.filterPointerMotionEvent(event: PointerEvent) = this.filterPointerMotionEvent_(event)
 
-    fun View.handleMouseMotionEvent(event: MouseEvent) = this.handleMouseMotionEvent_(event)
-
-    fun View.handleMouseScrollEvent(event: MouseScrollEvent) = this.handleMouseScrollEvent_(event)
+    fun View.handlePointerMotionEvent(event: PointerEvent) = this.handlePointerMotionEvent_(event)
 
     fun View.focusGained(@Suppress("UNUSED_PARAMETER") previous: View?) = this.focusGained(previous)
 

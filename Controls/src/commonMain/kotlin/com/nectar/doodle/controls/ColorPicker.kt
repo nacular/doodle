@@ -14,9 +14,9 @@ import com.nectar.doodle.drawing.LinearGradientBrush
 import com.nectar.doodle.drawing.LinearGradientBrush.Stop
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.checkerBrush
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
@@ -80,7 +80,7 @@ class ColorPicker(color: Color): View() {
                 color = HsvColor(color.hue, saturation, value, color.opacity)
             }
 
-        private var mousePressed = false
+        private var pointerPressed = false
             set(new) {
                 field = new
 
@@ -93,22 +93,22 @@ class ColorPicker(color: Color): View() {
         init {
             cursor = Crosshair
 
-            mouseChanged += object: MouseListener {
-                override fun mousePressed(event: MouseEvent) {
-                    selection    = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
-                    mousePressed = true
+            pointerChanged += object: PointerListener {
+                override fun pressed(event: PointerEvent) {
+                    selection      = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
+                    pointerPressed = true
 
                     event.consume()
                 }
 
-                override fun mouseReleased(event: MouseEvent) {
-                    mousePressed = false
+                override fun released(event: PointerEvent) {
+                    pointerPressed = false
                 }
             }
 
-            mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(event: MouseEvent) {
-                    if (mousePressed) {
+            pointerMotionChanged += object: PointerMotionListener {
+                override fun dragged(event: PointerEvent) {
+                    if (pointerPressed) {
                         selection = event.location.run { (x / width).toFloat() to (y / height).toFloat() }
 
                         event.consume()
@@ -169,16 +169,16 @@ class ColorPicker(color: Color): View() {
                 it.height  = it.parent.height
             }
 
-            mouseChanged += object: MouseListener {
-                override fun mousePressed(event: MouseEvent) {
-                    mousePressed     = true
+            pointerChanged += object: PointerListener {
+                override fun pressed(event: PointerEvent) {
+                    pointerPressed   = true
                     this@Strip.ratio = (toLocal(event.location, from = event.target).x / width).toFloat()
                     cursor           = Grabbing
                     event.consume()
                 }
 
-                override fun mouseEntered(event: MouseEvent) {
-                    if (mousePressed) {
+                override fun entered(event: PointerEvent) {
+                    if (pointerPressed) {
                         return
                     }
 
@@ -188,8 +188,8 @@ class ColorPicker(color: Color): View() {
                     }
                 }
 
-                override fun mouseReleased(event: MouseEvent) {
-                    mousePressed = false
+                override fun released(event: PointerEvent) {
+                    pointerPressed = false
 
                     cursor = when (event.target) {
                         handle -> Grab
@@ -198,9 +198,9 @@ class ColorPicker(color: Color): View() {
                 }
             }
 
-            mouseMotionChanged += object: MouseMotionListener {
-                override fun mouseDragged(event: MouseEvent) {
-                    if (mousePressed) {
+            pointerMotionChanged += object: PointerMotionListener {
+                override fun dragged(event: PointerEvent) {
+                    if (pointerPressed) {
                         this@Strip.ratio = min(1f, max(0f, (toLocal(event.location, from = event.target).x / width).toFloat()))
                         event.consume()
                     }
@@ -210,7 +210,7 @@ class ColorPicker(color: Color): View() {
 
         protected val changed_: PropertyObserversImpl<Strip, Float> by lazy { PropertyObserversImpl<Strip, Float>(this) }
 
-        private var mousePressed = false
+        private var pointerPressed = false
     }
 
     private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {

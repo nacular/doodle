@@ -17,8 +17,8 @@ import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font.Companion.Thick
 import com.nectar.doodle.drawing.FontDetector
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.layout.Insets
@@ -49,16 +49,16 @@ class MaterialButtonBehavior(
         private val fontDetector   : FontDetector,
         private val textColor      : Color,
         private val backgroundColor: Color,
-        private val cornerRadius   : Double = 0.0): AbstractTextButtonBehavior<Button>(textMetrics), MouseListener {
+        private val cornerRadius   : Double = 0.0): AbstractTextButtonBehavior<Button>(textMetrics), PointerListener {
 
-    private var fontLoadJob        = null as Job?; set(new) { field?.cancel(); field = new }
-    private var shadow1Blur        = 1.0
-    private var rippleOpacity      = 0.24f
-    private var rippleProgress     = 0f
-    private var overlayOpacity     = 0f
-    private var animationListener  = null as Listener?
-    private var mousePressed       = false
-    private var mousePressLocation = null as Point?
+    private var fontLoadJob          = null as Job?; set(new) { field?.cancel(); field = new }
+    private var shadow1Blur          = 1.0
+    private var rippleOpacity        = 0.24f
+    private var rippleProgress       = 0f
+    private var overlayOpacity       = 0f
+    private var animationListener    = null as Listener?
+    private var pointerPressed       = false
+    private var pointerPressLocation = null as Point?
 
     private var shadowAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
     private var rippleAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
@@ -69,7 +69,7 @@ class MaterialButtonBehavior(
 
     private val styleChanged: (View) -> Unit =  { it.rerender() }
 
-    private val mouseOverChanged: (ButtonModel, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val pointerOverChanged: (ButtonModel, Boolean, Boolean) -> Unit = { _,_,new ->
         val overlayEnd     = if (new) 0.2f else 0f
         val shadow1BlurEnd = if (new) 4.0  else 1.0
 
@@ -91,9 +91,9 @@ class MaterialButtonBehavior(
             }
         }
 
-        view.mouseChanged           += this
+        view.pointerChanged           += this
         view.styleChanged           += styleChanged
-        view.model.mouseOverChanged += mouseOverChanged
+        view.model.pointerOverChanged += pointerOverChanged
 
         animationListener?.let { animate.listeners -= it }
 
@@ -115,22 +115,22 @@ class MaterialButtonBehavior(
 
         fontLoadJob?.cancel()
 
-        view.mouseChanged           -= this
+        view.pointerChanged           -= this
         view.styleChanged           -= styleChanged
-        view.model.mouseOverChanged -= mouseOverChanged
+        view.model.pointerOverChanged -= pointerOverChanged
 
         animationListener?.let { animate.listeners -= it }
     }
 
-    override fun mousePressed(event: MouseEvent) {
-        super<AbstractTextButtonBehavior>.mousePressed(event)
+    override fun pressed(event: PointerEvent) {
+        super<AbstractTextButtonBehavior>.pressed(event)
 
-        mousePressed       = true
-        mousePressLocation = event.location
+        pointerPressed       = true
+        pointerPressLocation = event.location
 
         rippleAnimation = (animate (0.4f to 1f) using fixedTimeLinear(pressAnimationTime)) { rippleProgress = it }.apply {
             completed += {
-                if (!mousePressed) {
+                if (!pointerPressed) {
                     fadeRipple()
                 } else {
                     rippleAnimation = null
@@ -140,10 +140,10 @@ class MaterialButtonBehavior(
         shadowAnimation = (animate (shadow1Blur to 10.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
     }
 
-    override fun mouseReleased(event: MouseEvent) {
-        super<AbstractTextButtonBehavior>.mouseReleased(event)
+    override fun released(event: PointerEvent) {
+        super<AbstractTextButtonBehavior>.released(event)
 
-        mousePressed = false
+        pointerPressed = false
 
         if (rippleAnimation == null) {
             fadeRipple()
@@ -172,15 +172,15 @@ class MaterialButtonBehavior(
 
             canvas.rect(bounds, cornerRadius, ColorBrush(white opacity overlayOpacity))
 
-            mousePressLocation?.let { drawRipple(canvas, it, rippleOpacity, rippleProgress) }
+            pointerPressLocation?.let { drawRipple(canvas, it, rippleOpacity, rippleProgress) }
         }
     }
 
     private fun fadeRipple() {
         rippleAnimation = (animate(0.24f to 0f) using fixedTimeLinear(pressAnimationTime * 2)) { rippleOpacity = it }.apply {
             completed += {
-                if (!mousePressed) {
-                    mousePressLocation = null
+                if (!pointerPressed) {
+                    pointerPressLocation = null
                 }
 
                 rippleOpacity   = 0.24f

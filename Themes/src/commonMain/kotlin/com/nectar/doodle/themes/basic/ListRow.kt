@@ -8,8 +8,8 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.blue
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Constraints
 import com.nectar.doodle.layout.Insets
@@ -44,7 +44,7 @@ open class ListRow<T>(private var list                           : ListLike,
             }
         }
 
-    private var mouseOver = false
+    private var pointerOver = false
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
@@ -63,23 +63,23 @@ open class ListRow<T>(private var list                           : ListLike,
         children += itemVisualizer(row, index)
 
         styleChanged += { rerender() }
-        mouseChanged += object: MouseListener {
+        pointerChanged += object: PointerListener {
             private var pressed = false
 
-            override fun mouseEntered(event: MouseEvent) {
-                mouseOver = true
+            override fun entered(event: PointerEvent) {
+                pointerOver = true
             }
 
-            override fun mouseExited(event: MouseEvent) {
-                mouseOver = false
+            override fun exited(event: PointerEvent) {
+                pointerOver = false
             }
 
-            override fun mousePressed(event: MouseEvent) {
+            override fun pressed(event: PointerEvent) {
                 pressed = true
             }
 
-            override fun mouseReleased(event: MouseEvent) {
-                if (mouseOver && pressed) {
+            override fun released(event: PointerEvent) {
+                if (pointerOver && pressed) {
                     setOf(index).also {
                         list.apply {
                             when {

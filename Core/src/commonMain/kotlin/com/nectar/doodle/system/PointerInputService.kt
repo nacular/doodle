@@ -4,11 +4,11 @@ package com.nectar.doodle.system
 import com.nectar.doodle.geometry.Point
 
 
-interface MouseInputService {
+interface PointerInputService {
 
-    var cursor       : Cursor
-    var toolTipText  : String
-    val mouseLocation: Point
+    var cursor         : Cursor
+    var toolTipText    : String
+    val pointerLocation: Point
 
     operator fun plusAssign (listener: Listener)
     operator fun minusAssign(listener: Listener)
@@ -17,12 +17,10 @@ interface MouseInputService {
     operator fun minusAssign(preprocessor: Preprocessor)
 
     interface Listener {
-        fun changed(event: SystemMouseEvent)
-        fun changed(event: SystemMouseScrollEvent)
+        fun changed(event: SystemPointerEvent)
     }
 
     interface Preprocessor {
-        fun preprocess(event: SystemMouseEvent      ) {}
-        fun preprocess(event: SystemMouseScrollEvent) {}
+        fun preprocess(event: SystemPointerEvent) {}
     }
 }

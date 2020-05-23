@@ -9,10 +9,9 @@ import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyState.Type
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
-import com.nectar.doodle.event.MouseMotionListener
-import com.nectar.doodle.event.MouseScrollEvent
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
+import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Point.Companion.Origin
 import com.nectar.doodle.geometry.Rectangle
@@ -21,12 +20,12 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.system.Cursor
 import com.nectar.doodle.system.Cursor.Companion.Crosshair
-import com.nectar.doodle.system.SystemMouseEvent.Type.Down
-import com.nectar.doodle.system.SystemMouseEvent.Type.Drag
-import com.nectar.doodle.system.SystemMouseEvent.Type.Enter
-import com.nectar.doodle.system.SystemMouseEvent.Type.Exit
-import com.nectar.doodle.system.SystemMouseEvent.Type.Move
-import com.nectar.doodle.system.SystemMouseEvent.Type.Up
+import com.nectar.doodle.system.SystemPointerEvent.Type.Down
+import com.nectar.doodle.system.SystemPointerEvent.Type.Drag
+import com.nectar.doodle.system.SystemPointerEvent.Type.Enter
+import com.nectar.doodle.system.SystemPointerEvent.Type.Exit
+import com.nectar.doodle.system.SystemPointerEvent.Type.Move
+import com.nectar.doodle.system.SystemPointerEvent.Type.Up
 import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.PropertyObserver
@@ -170,10 +169,9 @@ class ViewTests {
 
     private class SubView: View() {
         public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
-        public override fun handleMouseEvent(event: MouseEvent) { super.handleMouseEvent(event) }
+        public override fun handlePointerEvent(event: PointerEvent) { super.handlePointerEvent(event) }
         public override fun handleKeyEvent(event: KeyEvent) { super.handleKeyEvent(event) }
-        public override fun handleMouseMotionEvent(event: MouseEvent) { super.handleMouseMotionEvent(event) }
-        public override fun handleMouseScrollEvent(event: MouseScrollEvent) { super.handleMouseScrollEvent(event) }
+        public override fun handlePointerMotionEvent(event: PointerEvent) { super.handlePointerMotionEvent(event) }
     }
 
     @Test @JsName("forwardsDisplayRectToSubclass")
@@ -187,14 +185,14 @@ class ViewTests {
         verify(exactly = 1) { view.handleDisplayRectEvent(old, new) }
     }
 
-    @Test @JsName("forwardsMouseEventToSubclass")
-    fun `forwards mouse event to subclass`() {
+    @Test @JsName("forwardsPointerEventToSubclass")
+    fun `forwards pointer event to subclass`() {
         val view  = spyk(SubView())
-        val event = mockk<MouseEvent>()
+        val event = mockk<PointerEvent>()
 
-        view.handleMouseEvent_(event)
+        view.handlePointerEvent_(event)
 
-        verify(exactly = 1) { view.handleMouseEvent(event) }
+        verify(exactly = 1) { view.handlePointerEvent(event) }
     }
 
     @Test @JsName("forwardsKeyEventToSubclass")
@@ -207,24 +205,14 @@ class ViewTests {
         verify(exactly = 1) { view.handleKeyEvent(event) }
     }
 
-    @Test @JsName("forwardsMouseMotionEventToSubclass")
-    fun `forwards mouse motion event to subclass`() {
+    @Test @JsName("forwardsPointerMotionEventToSubclass")
+    fun `forwards pointer motion event to subclass`() {
         val view  = spyk(SubView())
-        val event = mockk<MouseEvent>()
+        val event = mockk<PointerEvent>()
 
-        view.handleMouseMotionEvent_(event)
+        view.handlePointerMotionEvent_(event)
 
-        verify(exactly = 1) { view.handleMouseMotionEvent(event) }
-    }
-
-    @Test @JsName("forwardsMouseScrollEventToSubclass")
-    fun `forwards mouse scroll event to subclass`() {
-        val view  = spyk(SubView())
-        val event = mockk<MouseScrollEvent>()
-
-        view.handleMouseScrollEvent_(event)
-
-        verify(exactly = 1) { view.handleMouseScrollEvent(event) }
+        verify(exactly = 1) { view.handlePointerMotionEvent(event) }
     }
 
     @Test @JsName("centerWorks")
@@ -270,64 +258,64 @@ class ViewTests {
         verify(exactly = 1) { listener.keyReleased(event) }
     }
 
-    @Test @JsName("mouseEventsWorks")
-    fun `mouse events works`() = validateMouseChanged(mockk<MouseEvent>().apply { every { type } returns Enter }) { listener, event ->
-        verify(exactly = 1) { listener.mouseEntered(event) }
+    @Test @JsName("pointerEventsWorks")
+    fun `pointer events works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
+        verify(exactly = 1) { listener.entered(event) }
     }
 
-    @Test @JsName("mouseExitWorks")
-    fun `mouse exit works`() = validateMouseChanged(mockk<MouseEvent>().apply { every { type } returns Exit }) { listener, event ->
-        verify(exactly = 1) { listener.mouseExited(event) }
+    @Test @JsName("pointerExitWorks")
+    fun `pointer exit works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
+        verify(exactly = 1) { listener.exited(event) }
     }
 
-    @Test @JsName("mousePressedWorks")
-    fun `mouse pressed works`() = validateMouseChanged(mockk<MouseEvent>().apply { every { type } returns Down }) { listener, event ->
-        verify(exactly = 1) { listener.mousePressed(event) }
+    @Test @JsName("pointerPressedWorks")
+    fun `pointer pressed works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
+        verify(exactly = 1) { listener.pressed(event) }
     }
 
-    @Test @JsName("mouseReleasedWorks")
-    fun `mouse released works`() = validateMouseChanged(mockk<MouseEvent>().apply { every { type } returns Up }) { listener, event ->
-        verify(exactly = 1) { listener.mouseReleased(event) }
+    @Test @JsName("pointerReleasedWorks")
+    fun `pointer released works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
+        verify(exactly = 1) { listener.released(event) }
     }
 
-    @Test @JsName("mouseMoveWorks")
-    fun `mouse move works`() = validateMouseMotionChanged(mockk<MouseEvent>().apply { every { type } returns Move }) { listener, event ->
-        verify(exactly = 1) { listener.mouseMoved(event) }
+    @Test @JsName("pointerMoveWorks")
+    fun `pointer move works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
+        verify(exactly = 1) { listener.moved(event) }
     }
 
-    @Test @JsName("mouseDragWorks")
-    fun `mouse drag works`() = validateMouseMotionChanged(mockk<MouseEvent>().apply { every { type } returns Drag }) { listener, event ->
-        verify(exactly = 1) { listener.mouseDragged(event) }
+    @Test @JsName("pointerDragWorks")
+    fun `pointer drag works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
+        verify(exactly = 1) { listener.dragged(event) }
     }
 
-    @Test @JsName("filterMouseReleasedWorks")
-    fun `filter mouse released works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Up }) { listener, event ->
-        verify(exactly = 1) { listener.mouseReleased(event) }
+    @Test @JsName("filterPointerReleasedWorks")
+    fun `filter pointer released works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
+        verify(exactly = 1) { listener.released(event) }
     }
 
-    @Test @JsName("filterMouseMoveWorks")
-    fun `filter mouse move works`() = validateMouseMotionFilter(mockk<MouseEvent>().apply { every { type } returns Move }) { listener, event ->
-        verify(exactly = 1) { listener.mouseMoved(event) }
+    @Test @JsName("filterPointerMoveWorks")
+    fun `filter pointer move works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
+        verify(exactly = 1) { listener.moved(event) }
     }
 
-    @Test @JsName("filterMouseEventsWorks")
-    fun `filter mouse events works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Enter }) { listener, event ->
-        verify(exactly = 1) { listener.mouseEntered(event) }
+    @Test @JsName("filterPointerEventsWorks")
+    fun `filter pointer events works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
+        verify(exactly = 1) { listener.entered(event) }
     }
 
-    @Test @JsName("filterMouseExitWorks")
-    fun `filter mouse exit works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Exit }) { listener, event ->
-        verify(exactly = 1) { listener.mouseExited(event) }
+    @Test @JsName("filterPointerExitWorks")
+    fun `filter pointer exit works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
+        verify(exactly = 1) { listener.exited(event) }
     }
 
-    @Test @JsName("filterMousePressedWorks")
-    fun `filter mouse pressed works`() = validateMouseFilter(mockk<MouseEvent>().apply { every { type } returns Down }) { listener, event ->
-        verify(exactly = 1) { listener.mousePressed(event) }
+    @Test @JsName("filterPointerPressedWorks")
+    fun `filter pointer pressed works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
+        verify(exactly = 1) { listener.pressed(event) }
     }
 
-    @Test @JsName("filterMouseDragWorks")
-    fun `filter mouse drag works`() = validateMouseMotionFilter(mockk<MouseEvent>().apply { every { type } returns Drag }) { listener, event ->
-        verify(exactly = 1) { listener.mouseDragged(event) }
+    @Test @JsName("filterPointerDragWorks")
+    fun `filter pointer drag works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
+        verify(exactly = 1) { listener.dragged(event) }
     }
 
     @Test @JsName("focusGainedWorks")
@@ -404,7 +392,7 @@ class ViewTests {
     @Test @JsName("toolTipTextWorks")
     fun `tool-top text works`() {
         val view = object: View() {}
-        val event = mockk<MouseEvent>()
+        val event = mockk<PointerEvent>()
 
         expect("", "${view.toolTipText} == \"\"") { view.toolTipText(event) }
 
@@ -560,46 +548,46 @@ class ViewTests {
         block(listener, event)
     }
 
-    private fun validateMouseChanged(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
+    private fun validatePointerChanged(event: PointerEvent, block: (PointerListener, PointerEvent) -> Unit) {
         val view     = object: View() {}
-        val listener = mockk<MouseListener>()
+        val listener = mockk<PointerListener>()
 
-        view.mouseChanged += listener
+        view.pointerChanged += listener
 
-        view.handleMouseEvent_(event)
+        view.handlePointerEvent_(event)
 
         block(listener, event)
     }
 
-    private fun validateMouseFilter(event: MouseEvent, block: (MouseListener, MouseEvent) -> Unit) {
+    private fun validatePointerFilter(event: PointerEvent, block: (PointerListener, PointerEvent) -> Unit) {
         val view     = object: View() {}
-        val listener = mockk<MouseListener>()
+        val listener = mockk<PointerListener>()
 
-        view.mouseFilter += listener
+        view.pointerFilter += listener
 
-        view.filterMouseEvent_(event)
+        view.filterPointerEvent_(event)
 
         block(listener, event)
     }
 
-    private fun validateMouseMotionChanged(event: MouseEvent, block: (MouseMotionListener, MouseEvent) -> Unit) {
+    private fun validatePointerMotionChanged(event: PointerEvent, block: (PointerMotionListener, PointerEvent) -> Unit) {
         val view     = object: View() {}
-        val listener = mockk<MouseMotionListener>()
+        val listener = mockk<PointerMotionListener>()
 
-        view.mouseMotionChanged += listener
+        view.pointerMotionChanged += listener
 
-        view.handleMouseMotionEvent_(event)
+        view.handlePointerMotionEvent_(event)
 
         block(listener, event)
     }
 
-    private fun validateMouseMotionFilter(event: MouseEvent, block: (MouseMotionListener, MouseEvent) -> Unit) {
+    private fun validatePointerMotionFilter(event: PointerEvent, block: (PointerMotionListener, PointerEvent) -> Unit) {
         val view     = object: View() {}
-        val listener = mockk<MouseMotionListener>()
+        val listener = mockk<PointerMotionListener>()
 
-        view.mouseMotionFilter += listener
+        view.pointerMotionFilter += listener
 
-        view.filterMouseMotionEvent_(event)
+        view.filterPointerMotionEvent_(event)
 
         block(listener, event)
     }

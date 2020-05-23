@@ -8,8 +8,8 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.green
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
-import com.nectar.doodle.event.MouseEvent
-import com.nectar.doodle.event.MouseListener
+import com.nectar.doodle.event.PointerEvent
+import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.ConstraintLayout
@@ -75,11 +75,11 @@ class TreeRow<T>(tree                : TreeLike, node: T,
      private val selectionBluredColor: Color? = selectionColor,
      private val iconFactory         : () -> TreeRowIcon): View() {
 
-    private  var icon      = null as TreeRowIcon?
-    private  var depth     = -1
-    internal var content   = contentGenerator(node, index)
-    private  val iconWidth = 20.0
-    private  var mouseOver = false
+    private  var icon        = null as TreeRowIcon?
+    private  var depth       = -1
+    internal var content     = contentGenerator(node, index)
+    private  val iconWidth   = 20.0
+    private  var pointerOver = false
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (tree.selected(index)) {
@@ -92,23 +92,23 @@ class TreeRow<T>(tree                : TreeLike, node: T,
     init {
         children     += content
         styleChanged += { rerender() }
-        mouseChanged += object: MouseListener {
+        pointerChanged += object: PointerListener {
             private var pressed   = false
 
-            override fun mouseEntered(event: MouseEvent) {
-                mouseOver = true
+            override fun entered(event: PointerEvent) {
+                pointerOver = true
             }
 
-            override fun mouseExited(event: MouseEvent) {
-                mouseOver = false
+            override fun exited(event: PointerEvent) {
+                pointerOver = false
             }
 
-            override fun mousePressed(event: MouseEvent) {
+            override fun pressed(event: PointerEvent) {
                 pressed = true
             }
 
-            override fun mouseReleased(event: MouseEvent) {
-                if (mouseOver && pressed) {
+            override fun released(event: PointerEvent) {
+                if (pointerOver && pressed) {
                     setOf(path).also {
                         tree.apply {
                             when {
@@ -182,25 +182,25 @@ class TreeRow<T>(tree                : TreeLike, node: T,
 
                 this@TreeRow.children += this
 
-                mouseChanged += object: MouseListener {
-                    private var pressed   = false
-                    private var mouseOver = false
+                pointerChanged += object: PointerListener {
+                    private var pressed     = false
+                    private var pointerOver = false
 
-                    override fun mouseEntered(event: MouseEvent) {
-                        mouseOver = true
+                    override fun entered(event: PointerEvent) {
+                        pointerOver = true
                     }
 
-                    override fun mouseExited(event: MouseEvent) {
-                        mouseOver = false
+                    override fun exited(event: PointerEvent) {
+                        pointerOver = false
                     }
 
-                    override fun mousePressed(event: MouseEvent) {
-                        pressed   = true
-                        mouseOver = true
+                    override fun pressed(event: PointerEvent) {
+                        pressed     = true
+                        pointerOver = true
                     }
 
-                    override fun mouseReleased(event: MouseEvent) {
-                        if (mouseOver && pressed) {
+                    override fun released(event: PointerEvent) {
+                        if (pointerOver && pressed) {
                             when (tree.expanded(this@TreeRow.path)) {
                                 true -> tree.collapse(this@TreeRow.path)
                                 else -> tree.expand  (this@TreeRow.path)
