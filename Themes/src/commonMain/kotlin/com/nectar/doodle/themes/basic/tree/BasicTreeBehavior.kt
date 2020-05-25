@@ -22,11 +22,11 @@ import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyText.Companion.Backspace
 import com.nectar.doodle.event.KeyText.Companion.Delete
 import com.nectar.doodle.event.KeyText.Companion.Enter
 import com.nectar.doodle.event.KeyText.Companion.Escape
-import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
@@ -191,7 +191,7 @@ open class TextEditOperation<T>(
 
     init {
         text                = encoder.encode(node) ?: ""
-        fitText             = setOf(Width)
+        fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
         borderVisible       = false
         horizontalAlignment = Left
@@ -203,8 +203,6 @@ open class TextEditOperation<T>(
                 tree.cancelEditing()
             }
         }
-
-        positionMonitor[current] += positionChanged
 
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
@@ -223,7 +221,19 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke(): View? = null.also { _display.children += this }
+    override fun invoke(): View? = null.also {
+        when (current) {
+            is TreeRow<*> -> {
+                bounds = current.content.bounds
+                current.content = this
+            }
+            else          -> {
+                positionMonitor[current] += positionChanged
+
+                _display.children += this
+            }
+        }
+    }
 
     override fun complete() = encoder.decode(text).also {
         cancel()

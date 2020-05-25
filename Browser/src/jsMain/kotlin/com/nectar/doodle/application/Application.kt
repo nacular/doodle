@@ -94,16 +94,16 @@ import kotlin.browser.window
 inline fun <reified T: Application> application(
                  root                : HTMLElement = document.body!!,
                  allowDefaultDarkMode: Boolean     = false,
-                 modules             : Set<Module> = emptySet(),
+                 modules             : List<Module> = emptyList(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 inline fun <reified T: Application> nestedApplication(
                  view                : ApplicationView,
-                 root                : HTMLElement = document.body!!,
-                 allowDefaultDarkMode: Boolean     = false,
-                 modules             : Set<Module> = emptySet(),
+                 root                : HTMLElement  = document.body!!,
+                 allowDefaultDarkMode: Boolean      = false,
+                 modules             : List<Module> = emptyList(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createNestedApplication(view, Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
@@ -112,14 +112,14 @@ fun createApplication(
         injector            : DKodein,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
-        modules             : Set<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
+        modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
 fun createNestedApplication(
         view                : ApplicationView,
         injector            : DKodein,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
-        modules             : Set<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
+        modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
 
 class Modules {
     companion object {
@@ -201,7 +201,7 @@ private class NestedApplicationHolder(
         previousInjector    : DKodein,
         root                : HTMLElement = document.body!!,
         allowDefaultDarkMode: Boolean = false,
-        modules             : Set<Module> = emptySet()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
+        modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
         injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
@@ -218,10 +218,10 @@ private class NestedApplicationHolder(
 
 private open class ApplicationHolderImpl protected constructor(
                     previousInjector    : DKodein,
-        private val root                : HTMLElement = document.body!!,
-                    allowDefaultDarkMode: Boolean     = false,
-                    modules             : Set<Module> = emptySet(),
-        private val isNested            : Boolean     = false): Application {
+        private val root                : HTMLElement  = document.body!!,
+                    allowDefaultDarkMode: Boolean      = false,
+                    modules             : List<Module> = emptyList(),
+        private val isNested            : Boolean      = false): Application {
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
@@ -322,7 +322,10 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     companion object {
-        operator fun invoke(previousInjector: DKodein, root: HTMLElement = document.body!!, allowDefaultDarkMode: Boolean = false, modules: Set<Module> = emptySet()): ApplicationHolderImpl {
+        operator fun invoke(previousInjector    : DKodein,
+                            root                : HTMLElement  = document.body!!,
+                            allowDefaultDarkMode: Boolean      = false,
+                            modules             : List<Module> = emptyList()): ApplicationHolderImpl {
             return ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules).apply { run() }
         }
     }

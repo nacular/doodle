@@ -78,6 +78,17 @@ class TreeRow<T>(tree                : TreeLike, node: T,
     private  var icon        = null as TreeRowIcon?
     private  var depth       = -1
     internal var content     = contentGenerator(node, index)
+        set(new) {
+            if (field != new) {
+                children.batch {
+                    remove(field)
+                    field = new
+                    add(field)
+                }
+                depth = -1 // force layout
+            }
+        }
+
     private  val iconWidth   = 20.0
     private  var pointerOver = false
 
@@ -140,26 +151,21 @@ class TreeRow<T>(tree                : TreeLike, node: T,
         this.path  = path
         this.index = index
 
-        content = contentGenerator(node, index, content).also {
-            if (it != content) {
-                children.batch {
-                    remove(content)
-                    add   (it     )
-                }
-                depth = -1 // force layout
-            }
-        }
+        content = contentGenerator(node, index, content)
 
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
         if (newDepth != depth) {
-            constraintLayout = constrain(content) {
-                contentGenerator.position(tree, node, path, index)(ConstraintWrapper(it) { parent ->
-                    object: ParentConstraintWrapper(parent) {
-                        override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + newDepth) }
-                        override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + newDepth) }
+            constraintLayout = constrain(content) { content ->
+                contentGenerator.position(tree, node, path, index).invoke(
+                    // Override the parent for content to confine it within a smaller region
+                    ConstraintWrapper(content) { parent ->
+                        object: ParentConstraintWrapper(parent) {
+                            override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + newDepth) }
+                            override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + newDepth) }
+                        }
                     }
-                })
+                )
             }
 
             constrainIcon(icon)

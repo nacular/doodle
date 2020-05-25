@@ -19,8 +19,8 @@ import org.kodein.di.erased.provider
  */
 class ApplicationViewFactory private constructor(val htmlFactory: HtmlFactory) {
     inline operator fun <reified T: Application> invoke(
-            allowDefaultDarkMode: Boolean     = false,
-            modules             : Set<Kodein.Module> = emptySet(),
+            allowDefaultDarkMode: Boolean             = false,
+            modules             : List<Kodein.Module> = emptyList(),
             noinline creator    : NoArgSimpleBindingKodein<*>.() -> T): View = ApplicationView(htmlFactory) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
 
     companion object {
