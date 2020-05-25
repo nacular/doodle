@@ -20,6 +20,8 @@ expect open class KeyboardEvent: UIEvent {
     val altKey  : Boolean
     val metaKey : Boolean
     val keyCode : Int
+    val key     : String
+    val code    : String
 }
 
 expect open class MouseEvent: UIEvent {

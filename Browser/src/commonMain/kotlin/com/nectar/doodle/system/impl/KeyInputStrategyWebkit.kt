@@ -5,17 +5,28 @@ import com.nectar.doodle.dom.Event
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.KeyboardEvent
 import com.nectar.doodle.event.KeyCode
-import com.nectar.doodle.event.KeyEvent.Companion.VK_A
-import com.nectar.doodle.event.KeyEvent.Companion.VK_ALT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_BACKSPACE
-import com.nectar.doodle.event.KeyEvent.Companion.VK_C
-import com.nectar.doodle.event.KeyEvent.Companion.VK_F
-import com.nectar.doodle.event.KeyEvent.Companion.VK_F1
-import com.nectar.doodle.event.KeyEvent.Companion.VK_F12
-import com.nectar.doodle.event.KeyEvent.Companion.VK_R
-import com.nectar.doodle.event.KeyEvent.Companion.VK_TAB
-import com.nectar.doodle.event.KeyEvent.Companion.VK_V
-import com.nectar.doodle.event.KeyEvent.Companion.VK_X
+import com.nectar.doodle.event.KeyEvent.Companion.AltLeft
+import com.nectar.doodle.event.KeyEvent.Companion.AltRight
+import com.nectar.doodle.event.KeyEvent.Companion.Backspace
+import com.nectar.doodle.event.KeyEvent.Companion.F1
+import com.nectar.doodle.event.KeyEvent.Companion.F10
+import com.nectar.doodle.event.KeyEvent.Companion.F11
+import com.nectar.doodle.event.KeyEvent.Companion.F12
+import com.nectar.doodle.event.KeyEvent.Companion.F2
+import com.nectar.doodle.event.KeyEvent.Companion.F3
+import com.nectar.doodle.event.KeyEvent.Companion.F4
+import com.nectar.doodle.event.KeyEvent.Companion.F5
+import com.nectar.doodle.event.KeyEvent.Companion.F6
+import com.nectar.doodle.event.KeyEvent.Companion.F7
+import com.nectar.doodle.event.KeyEvent.Companion.F8
+import com.nectar.doodle.event.KeyEvent.Companion.F9
+import com.nectar.doodle.event.KeyEvent.Companion.KeyA
+import com.nectar.doodle.event.KeyEvent.Companion.KeyC
+import com.nectar.doodle.event.KeyEvent.Companion.KeyF
+import com.nectar.doodle.event.KeyEvent.Companion.KeyR
+import com.nectar.doodle.event.KeyEvent.Companion.KeyV
+import com.nectar.doodle.event.KeyEvent.Companion.KeyX
+import com.nectar.doodle.event.KeyEvent.Companion.Tab
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type
 import com.nectar.doodle.event.KeyState.Type.Down
@@ -63,7 +74,7 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
         val result = dispatchKeyEvent(event, Up)
 
-        if (KeyCode(event.keyCode) == VK_TAB) {
+        if (event.key == Tab.key) {
             return suppressEvent(event)
         }
 
@@ -81,7 +92,7 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
         val returnValue = dispatchKeyEvent(event, Down)
 
-        if (KeyCode(event.keyCode) == VK_TAB) {
+        if (event.key == Tab.key) {
             return suppressEvent(event)
         }
 
@@ -94,26 +105,28 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.let {
         val keyEvent = KeyState(
-                KeyCode(event.keyCode),
-                event.keyCode.toChar(),
+                KeyCode(event.code),
+                event.key,
                 createModifiers(event),
                 type)
 
         return it(keyEvent, event.target)
     } ?: true
 
-    private fun isClipboardOperation(event: KeyboardEvent) = event.ctrlKey && KeyCode(event.keyCode).let { it == VK_V || it == VK_C || it == VK_X }
+    private fun isClipboardOperation(event: KeyboardEvent) = event.ctrlKey && KeyCode(event.code).let { it == KeyV || it == KeyC || it == KeyX }
 
+    // FIXME: Can this be removed?
     private fun shouldSuppressKeyEvent(event: KeyboardEvent) = event.run {
-        val code = KeyCode(keyCode)
+        val code = KeyCode(code)
 
-        code == VK_ALT          ||
-        code == VK_TAB          ||
-        code == VK_BACKSPACE    ||
-        keyCode in VK_F1.value..VK_F12.value ||
-        code == VK_A && ctrlKey ||
-        code == VK_F && ctrlKey ||
-        code == VK_R && ctrlKey
+        code == AltLeft         ||
+        code == AltRight        ||
+        code == Tab             ||
+        code == Backspace       ||
+        code == KeyA && ctrlKey ||
+        code == KeyF && ctrlKey ||
+        code == KeyR && ctrlKey ||
+        code in setOf(F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12)
     }
 
     private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {
@@ -129,13 +142,12 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup   = { this@KeyInputStrategyWebkit.keyUp   (it) }
-        onkeydown = { this@KeyInputStrategyWebkit.keyDown (it) }
+        onkeyup   = { this@KeyInputStrategyWebkit.keyUp  (it) }
+        onkeydown = { this@KeyInputStrategyWebkit.keyDown(it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {
-        onkeyup    = null
-        onkeydown  = null
-        onkeypress = null
+        onkeyup   = null
+        onkeydown = null
     }
 }

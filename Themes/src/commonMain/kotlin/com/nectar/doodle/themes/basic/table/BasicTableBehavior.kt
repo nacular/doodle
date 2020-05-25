@@ -17,9 +17,6 @@ import com.nectar.doodle.controls.table.TableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TableBehavior.RowPositioner
 import com.nectar.doodle.controls.text.TextField
 import com.nectar.doodle.controls.text.TextFit
-import com.nectar.doodle.themes.basic.ListPositioner
-import com.nectar.doodle.themes.basic.ListRow
-import com.nectar.doodle.themes.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -30,6 +27,8 @@ import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyEvent.Companion.Enter
+import com.nectar.doodle.event.KeyEvent.Companion.Escape
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -38,6 +37,9 @@ import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.constrain
+import com.nectar.doodle.themes.basic.ListPositioner
+import com.nectar.doodle.themes.basic.ListRow
+import com.nectar.doodle.themes.basic.SelectableListKeyHandler
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.ObservableSet
@@ -264,8 +266,8 @@ open class TextEditOperation<T>(
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
                 when (event.code) {
-                    KeyEvent.VK_RETURN -> { table.completeEditing(); focusManager?.requestFocus(table) }
-                    KeyEvent.VK_ESCAPE -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
+                    Enter  -> { table.completeEditing(); focusManager?.requestFocus(table) }
+                    Escape -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
                 }
             }
         }
@@ -353,8 +355,8 @@ open class ColorEditOperation<T>(
 
     override fun keyPressed(event: KeyEvent) {
         when (event.code) {
-            KeyEvent.VK_RETURN -> table.completeEditing()
-            KeyEvent.VK_ESCAPE -> table.cancelEditing  ()
+            Enter  -> table.completeEditing()
+            Escape -> table.cancelEditing  ()
         }
     }
 }

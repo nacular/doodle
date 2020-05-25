@@ -19,6 +19,8 @@ actual open class KeyboardEvent: UIEvent() {
     actual val altKey   = false
     actual val metaKey  = false
     actual val keyCode  = 0
+    actual val key      = ""
+    actual val code     = ""
 }
 
 actual open class MouseEvent: UIEvent() {

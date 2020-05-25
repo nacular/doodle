@@ -76,7 +76,7 @@ class KeyboardFocusManagerImpl(
     operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
     private fun handleKeyEvent(view: View, keyEvent: KeyEvent) {
-        val keyState = keyEvent.run { KeyState(code, char, modifiers, type) }
+        val keyState = keyEvent.run { KeyState(code, key, modifiers, type) }
 
         val upwardKeyEvents   = view[Upward  ] ?: defaultTraversalKeys[Upward  ]
         val forwardKeyEvents  = view[Forward ] ?: defaultTraversalKeys[Forward ]

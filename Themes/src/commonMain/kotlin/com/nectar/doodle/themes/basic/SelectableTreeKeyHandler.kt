@@ -2,11 +2,11 @@ package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.VK_A
-import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
-import com.nectar.doodle.event.KeyEvent.Companion.VK_LEFT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_RIGHT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowDown
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowLeft
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowRight
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowUp
+import com.nectar.doodle.event.KeyEvent.Companion.KeyA
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
@@ -18,11 +18,11 @@ interface SelectableTreeKeyHandler {
     fun keyPressed(event: KeyEvent) {
         (event.source as TreeLike).let { tree ->
             when (event.code) {
-                VK_UP, VK_DOWN -> {
+                ArrowUp, ArrowDown -> {
                     when (Shift) {
                         in event -> {
                             tree.selectionAnchor?.let { anchor ->
-                                tree.lastSelection?.let { if (event.code == VK_UP) tree.previous(it) else tree.next(it) }?.let { current ->
+                                tree.lastSelection?.let { if (event.code == ArrowUp) tree.previous(it) else tree.next(it) }?.let { current ->
                                     val currentRow = tree.rowFromPath(current)
                                     val anchorRow  = tree.rowFromPath(anchor )
 
@@ -36,12 +36,12 @@ interface SelectableTreeKeyHandler {
                                 }
                             }
                         }
-                        else -> tree.lastSelection?.let { if (event.code == VK_UP) tree.previous(it) else tree.next(it) }?.let { tree.setSelection(setOf(it)) }
+                        else -> tree.lastSelection?.let { if (event.code == ArrowUp) tree.previous(it) else tree.next(it) }?.let { tree.setSelection(setOf(it)) }
                     }?.let { Unit } ?: Unit
                 }
-                VK_LEFT        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
-                VK_RIGHT       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
-                VK_A           -> {
+                ArrowLeft        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
+                ArrowRight       -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                KeyA             -> {
                     if (Ctrl in event || Meta in event) {
                         tree.selectAll()
                     }

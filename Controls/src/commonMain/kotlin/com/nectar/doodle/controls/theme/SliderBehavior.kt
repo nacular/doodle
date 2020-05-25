@@ -2,10 +2,10 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.VK_DOWN
-import com.nectar.doodle.event.KeyEvent.Companion.VK_LEFT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_RIGHT
-import com.nectar.doodle.event.KeyEvent.Companion.VK_UP
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowDown
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowLeft
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowRight
+import com.nectar.doodle.event.KeyEvent.Companion.ArrowUp
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -75,8 +75,8 @@ abstract class SliderBehavior: Behavior<Slider>, PointerListener, PointerMotionL
         val increment = slider.range.size / 100
 
         when (event.code) {
-            VK_LEFT,  VK_DOWN -> slider.value -= increment
-            VK_RIGHT, VK_UP   -> slider.value += increment
+            ArrowLeft,  ArrowDown -> slider.value -= increment
+            ArrowRight, ArrowUp   -> slider.value += increment
         }
     }
 
