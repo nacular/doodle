@@ -27,8 +27,8 @@ import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.Enter
-import com.nectar.doodle.event.KeyEvent.Companion.Escape
+import com.nectar.doodle.event.KeyText.Companion.Enter
+import com.nectar.doodle.event.KeyText.Companion.Escape
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -265,7 +265,7 @@ open class TextEditOperation<T>(
 
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
-                when (event.code) {
+                when (event.key) {
                     Enter  -> { table.completeEditing(); focusManager?.requestFocus(table) }
                     Escape -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
                 }
@@ -354,7 +354,7 @@ open class ColorEditOperation<T>(
     }
 
     override fun keyPressed(event: KeyEvent) {
-        when (event.code) {
+        when (event.key) {
             Enter  -> table.completeEditing()
             Escape -> table.cancelEditing  ()
         }

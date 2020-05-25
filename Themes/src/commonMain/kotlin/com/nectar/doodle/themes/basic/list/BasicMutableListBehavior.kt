@@ -15,10 +15,10 @@ import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.Backspace
-import com.nectar.doodle.event.KeyEvent.Companion.Delete
-import com.nectar.doodle.event.KeyEvent.Companion.Enter
-import com.nectar.doodle.event.KeyEvent.Companion.Escape
+import com.nectar.doodle.event.KeyText.Companion.Backspace
+import com.nectar.doodle.event.KeyText.Companion.Delete
+import com.nectar.doodle.event.KeyText.Companion.Enter
+import com.nectar.doodle.event.KeyText.Companion.Escape
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -60,11 +60,11 @@ open class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
                 textMetrics          : TextMetrics,
                 evenRowColor         : Color? = Color.white,
                 oddRowColor          : Color? = lightgray.lighter().lighter(),
-                selectionColor       : Color? = Color.green.lighter(),
+                selectionColor       : Color? = green.lighter(),
                 selectionBlurredColor: Color? = lightgray): this(MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
     override fun keyPressed(event: KeyEvent) {
-        when (event.code) {
+        when (event.key) {
             Delete, Backspace -> (event.source as MutableList<*, *>).let { list ->
                 list.selection.sortedByDescending { it }.forEach { list.removeAt(it) }
             }
@@ -103,7 +103,7 @@ open class TextEditOperation<T>(
 
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
-                when (event.code) {
+                when (event.key) {
                     Enter  -> { list.completeEditing(); focusManager?.requestFocus(list) }
                     Escape -> { list.cancelEditing  (); focusManager?.requestFocus(list) }
                 }

@@ -22,10 +22,10 @@ import com.nectar.doodle.drawing.Color.Companion.lightgray
 import com.nectar.doodle.drawing.Color.Companion.white
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.Backspace
-import com.nectar.doodle.event.KeyEvent.Companion.Delete
-import com.nectar.doodle.event.KeyEvent.Companion.Enter
-import com.nectar.doodle.event.KeyEvent.Companion.Escape
+import com.nectar.doodle.event.KeyText.Companion.Backspace
+import com.nectar.doodle.event.KeyText.Companion.Delete
+import com.nectar.doodle.event.KeyText.Companion.Enter
+import com.nectar.doodle.event.KeyText.Companion.Escape
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -162,7 +162,7 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
 
     override fun keyPressed(event: KeyEvent) {
         (event.source as MutableTree<*, *>).let { tree ->
-            when (event.code) {
+            when (event.key) {
                 Delete, Backspace -> tree.selection.forEach { tree.removeAt(it) }
                 else              -> super.keyPressed(event)
             }
@@ -208,7 +208,7 @@ open class TextEditOperation<T>(
 
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
-                when (event.code) {
+                when (event.key) {
                     Enter  -> { tree.completeEditing(); focusManager?.requestFocus(tree) }
                     Escape -> { tree.cancelEditing  (); focusManager?.requestFocus(tree) }
                 }

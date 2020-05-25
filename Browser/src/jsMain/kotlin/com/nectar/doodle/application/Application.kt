@@ -41,9 +41,10 @@ import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
 import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.TextMetricsImpl
-import com.nectar.doodle.event.KeyEvent.Companion.Tab
+import com.nectar.doodle.event.KeyCode.Companion.Tab
 import com.nectar.doodle.event.KeyState
 import com.nectar.doodle.event.KeyState.Type.Down
+import com.nectar.doodle.event.KeyText
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
@@ -138,8 +139,8 @@ class Modules {
 
             // TODO: Make this pluggable
             val keys = mapOf(
-                    Forward  to setOf(KeyState(Tab, Tab.key, emptySet(     ), Down)),
-                    Backward to setOf(KeyState(Tab, Tab.key, setOf   (Shift), Down))
+                    Forward  to setOf(KeyState(Tab, KeyText.Tab, emptySet(     ), Down)),
+                    Backward to setOf(KeyState(Tab, KeyText.Tab, setOf   (Shift), Down))
             )
 
             bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }

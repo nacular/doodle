@@ -4,9 +4,9 @@ import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton
 import com.nectar.doodle.core.View
 import com.nectar.doodle.event.KeyEvent
-import com.nectar.doodle.event.KeyEvent.Companion.Enter
-import com.nectar.doodle.event.KeyEvent.Companion.Space
+import com.nectar.doodle.event.KeyCode.Companion.Space
 import com.nectar.doodle.event.KeyListener
+import com.nectar.doodle.event.KeyText.Companion.Enter
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
@@ -54,10 +54,9 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, PointerListener, 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}
 //
     override fun keyReleased(event: KeyEvent) {
-        val button  = event.source as Button
-        val keyCode = event.code
+        val button = event.source as Button
 
-        if (button.enabled && (keyCode == Enter || keyCode == Space)) {
+        if (button.enabled && (event.key == Enter || event.code == Space)) {
             button.model.apply {
                 pressed = false
                 armed   = false
@@ -66,10 +65,9 @@ abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, PointerListener, 
     }
 
     override fun keyPressed(event: KeyEvent) {
-        val button  = event.source as Button
-        val keyCode = event.code
+        val button = event.source as Button
 
-        if (button.enabled && (keyCode == Enter || keyCode == Space)) {
+        if (button.enabled && (event.key == Enter || event.code == Space)) {
             button.model.apply {
                 armed   = true
                 pressed = true
