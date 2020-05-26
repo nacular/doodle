@@ -1,4 +1,4 @@
-package com.nectar.doodle.theme.system
+package com.nectar.doodle.theme.native
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton

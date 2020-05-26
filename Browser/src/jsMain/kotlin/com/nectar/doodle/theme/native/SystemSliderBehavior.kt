@@ -1,4 +1,4 @@
-package com.nectar.doodle.theme.system
+package com.nectar.doodle.theme.native
 
 import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.drawing.Canvas
