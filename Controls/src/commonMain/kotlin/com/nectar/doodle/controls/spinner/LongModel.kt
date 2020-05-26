@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.spinner
 
-class LongModel(private val progression: LongProgression): AbstractModel<Long>() {
+class LongModel(private val progression: LongProgression): CommonSpinnerModel<Long>() {
 
     override val hasNext     get() = value + progression.step <= progression.last
     override val hasPrevious get() = value - progression.step >= progression.first

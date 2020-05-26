@@ -2,7 +2,7 @@ package com.nectar.doodle.theme.native
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton
-import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
+import com.nectar.doodle.controls.theme.CommonTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.NativeCheckBoxRadioButtonFactory
@@ -15,11 +15,11 @@ import com.nectar.doodle.system.Cursor
 /**
  * Created by Nicholas Eddy on 4/26/19.
  */
-internal abstract class AbstractSystemCheckBoxRadioButtonBehavior(
+internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
         private val nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
                     textMetrics                     : TextMetrics,
         private val button                          : Button,
-        private val type                            : Type): AbstractTextButtonBehavior<ToggleButton>(textMetrics) {
+        private val type                            : Type): CommonTextButtonBehavior<ToggleButton>(textMetrics) {
 
     private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
 
@@ -50,13 +50,13 @@ internal abstract class AbstractSystemCheckBoxRadioButtonBehavior(
     override fun keyPressed(event: KeyEvent) {}
 }
 
-internal class SystemCheckBoxBehavior(
+internal class NativeCheckBoxBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
-        button                          : Button): AbstractSystemCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Check)
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Check)
 
 
-internal class SystemRadioButtonBehavior(
+internal class NativeRadioButtonBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
-        button                          : Button): AbstractSystemCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Radio)
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Radio)

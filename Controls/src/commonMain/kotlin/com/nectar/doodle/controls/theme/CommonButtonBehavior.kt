@@ -14,7 +14,7 @@ import com.nectar.doodle.system.SystemPointerEvent.Button.Button1
 import com.nectar.doodle.theme.Behavior
 
 
-abstract class AbstractButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
+abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)

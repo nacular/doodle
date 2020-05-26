@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.spinner
 
-class IntModel(private val progression: IntProgression): AbstractModel<Int>() {
+class IntModel(private val progression: IntProgression): CommonSpinnerModel<Int>() {
 
     override val hasNext     get() = value + progression.step <= progression.last
     override val hasPrevious get() = value - progression.step >= progression.first

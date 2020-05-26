@@ -25,7 +25,7 @@ import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.themes.Modules
+import com.nectar.doodle.themes.Modules.BehaviorResolver
 import com.nectar.doodle.themes.Modules.Companion.bindBehavior
 import com.nectar.doodle.themes.adhoc.AdhocTheme
 import org.kodein.di.Kodein.Module
@@ -40,15 +40,15 @@ import org.w3c.dom.HTMLElement
 /**
  * Created by Nicholas Eddy on 1/28/18.
  */
-class SystemTheme(behaviors: Iterable<Modules.BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == SystemTheme::class }) {
+class NativeTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == NativeTheme::class }) {
     override fun toString() = this::class.simpleName ?: ""
 
     companion object {
-        val systemTheme = Module(name = "SystemTheme") {
-            bind<SystemTheme>() with singleton { SystemTheme(Instance(erasedSet())) }
+        val nativeTheme = Module(name = "NativeTheme") {
+            bind<NativeTheme>() with singleton { NativeTheme(Instance(erasedSet())) }
         }
 
-        private val commonSystemModule = Module(allowSilentOverride = true, name = "CommonSystemModule") {
+        private val commonNativeModule = Module(allowSilentOverride = true, name = "CommonNativeModule") {
 
             // TODO: Can this be handled better?
             bind<RealGraphicsSurfaceFactory>() with singleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
@@ -57,71 +57,71 @@ class SystemTheme(behaviors: Iterable<Modules.BehaviorResolver>): AdhocTheme(beh
         }
 
         private val nativeCheckBoxRadioButtonBehavior = Module(name = "NativeCheckBoxRadioButtonBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
         }
 
-        val systemThemeBehaviors = Module(name = "SystemThemeBehaviors") {
-            importOnce(systemButtonBehavior,      allowOverride = true)
-            importOnce(systemSliderBehavior,      allowOverride = true)
-            importOnce(systemCheckBoxBehavior,    allowOverride = true)
-            importOnce(systemTextFieldBehavior,   allowOverride = true)
-            importOnce(systemHyperLinkBehavior,   allowOverride = true)
-            importOnce(systemScrollPanelBehavior, allowOverride = true)
-            importOnce(systemRadioButtonBehavior, allowOverride = true)
+        val nativeThemeBehaviors = Module(name = "NativeThemeBehaviors") {
+            importOnce(nativeButtonBehavior,      allowOverride = true)
+            importOnce(nativeSliderBehavior,      allowOverride = true)
+            importOnce(nativeCheckBoxBehavior,    allowOverride = true)
+            importOnce(nativeTextFieldBehavior,   allowOverride = true)
+            importOnce(nativeHyperLinkBehavior,   allowOverride = true)
+            importOnce(nativeScrollPanelBehavior, allowOverride = true)
+            importOnce(nativeRadioButtonBehavior, allowOverride = true)
         }
 
-        val systemButtonBehavior = Module(name = "SystemButtonBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+        val nativeButtonBehavior = Module(name = "NativeButtonBehavior") {
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeButtonFactory>() with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
 
-            bindBehavior<Button>(SystemTheme::class) { it.behavior = SystemButtonBehavior(instance(), instance(), it) }
+            bindBehavior<Button>(NativeTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), it) }
         }
 
-        val systemScrollPanelBehavior = Module(name = "SystemScrollPanelBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+        val nativeScrollPanelBehavior = Module(name = "NativeScrollPanelBehavior") {
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeScrollPanelFactory>() with singleton { NativeScrollPanelFactoryImpl(instance(), instance()) }
 
-            bindBehavior<ScrollPanel>(SystemTheme::class) { it.behavior = SystemScrollPanelBehavior(instance(), it) }
+            bindBehavior<ScrollPanel>(NativeTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it) }
         }
 
-        val systemSliderBehavior = Module(name = "SystemSliderBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+        val nativeSliderBehavior = Module(name = "NativeSliderBehavior") {
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeSliderFactory>() with singleton { NativeSliderFactoryImpl(instance(), instance(), instance(), instanceOrNull()) }
 
-            bindBehavior<Slider>(SystemTheme::class) { it.behavior = SystemSliderBehavior(instance(), it) }
+            bindBehavior<Slider>(NativeTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
 
-        val systemTextFieldBehavior = Module(name = "SystemTextFieldBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+        val nativeTextFieldBehavior = Module(name = "NativeTextFieldBehavior") {
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instanceOrNull(), instance()) }
 
-            bindBehavior<TextField>(SystemTheme::class) { it.behavior = SystemTextFieldBehavior(instance(), it) }
+            bindBehavior<TextField>(NativeTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }
 
-        val systemHyperLinkBehavior = Module(name = "SystemHyperLinkBehavior") {
-            importOnce(commonSystemModule, allowOverride = true)
+        val nativeHyperLinkBehavior = Module(name = "NativeHyperLinkBehavior") {
+            importOnce(commonNativeModule, allowOverride = true)
 
             bind<NativeHyperLinkFactory>() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
 
-            bindBehavior<HyperLink>(SystemTheme::class) { it.behavior = SystemHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
+            bindBehavior<HyperLink>(NativeTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
         }
 
-        val systemCheckBoxBehavior = Module(name = "SystemCheckBoxBehavior") {
+        val nativeCheckBoxBehavior = Module(name = "NativeCheckBoxBehavior") {
             importOnce(nativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
-            bindBehavior<CheckBox>(SystemTheme::class) { it.behavior = SystemCheckBoxBehavior(instance(), instance(), it) as Behavior<Button> }
+            bindBehavior<CheckBox>(NativeTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), it) as Behavior<Button> }
         }
 
-        val systemRadioButtonBehavior = Module(name = "SystemRadioButtonBehavior") {
+        val nativeRadioButtonBehavior = Module(name = "NativeRadioButtonBehavior") {
             importOnce(nativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
-            bindBehavior<RadioButton>(SystemTheme::class) { it.behavior = SystemRadioButtonBehavior(instance(), instance(), it) as Behavior<Button> }
+            bindBehavior<RadioButton>(NativeTheme::class) { it.behavior = NativeRadioButtonBehavior(instance(), instance(), it) as Behavior<Button> }
         }
     }
 }

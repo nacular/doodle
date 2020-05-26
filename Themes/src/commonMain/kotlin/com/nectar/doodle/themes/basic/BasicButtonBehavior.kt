@@ -1,7 +1,7 @@
 package com.nectar.doodle.themes.basic
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
+import com.nectar.doodle.controls.theme.CommonTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
@@ -22,7 +22,7 @@ class BasicButtonBehavior(
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val borderColor        : Color,
-        private val borderWidth        : Double = 1.0): AbstractTextButtonBehavior<Button>(textMetrics) {
+        private val borderWidth        : Double = 1.0): CommonTextButtonBehavior<Button>(textMetrics) {
 
     private var insets = Insets(4.0)
 

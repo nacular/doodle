@@ -19,7 +19,7 @@ interface SplitPanelBehavior: Behavior<SplitPanel> {
     val dividerVisible: Boolean
 }
 
-abstract class AbstractSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
+abstract class CommonSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var orientation     = Vertical

@@ -2,7 +2,7 @@ package com.nectar.doodle.controls.spinner
 
 import com.nectar.doodle.utils.ObservableList
 
-open class ListModel<T, out L: List<T>>(protected open val values: L): AbstractModel<T>() {
+open class ListModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
     protected var index = 0
         private set(new) {
             if (new == field) { return }

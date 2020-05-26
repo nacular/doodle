@@ -7,7 +7,7 @@ import com.nectar.doodle.animation.fixedTimeLinear
 import com.nectar.doodle.animation.speedUpSlowDown
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ButtonModel
-import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
+import com.nectar.doodle.controls.theme.CommonTextButtonBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -49,7 +49,7 @@ class MaterialButtonBehavior(
         private val fontDetector   : FontDetector,
         private val textColor      : Color,
         private val backgroundColor: Color,
-        private val cornerRadius   : Double = 0.0): AbstractTextButtonBehavior<Button>(textMetrics), PointerListener {
+        private val cornerRadius   : Double = 0.0): CommonTextButtonBehavior<Button>(textMetrics), PointerListener {
 
     private var fontLoadJob          = null as Job?; set(new) { field?.cancel(); field = new }
     private var shadow1Blur          = 1.0
@@ -123,7 +123,7 @@ class MaterialButtonBehavior(
     }
 
     override fun pressed(event: PointerEvent) {
-        super<AbstractTextButtonBehavior>.pressed(event)
+        super<CommonTextButtonBehavior>.pressed(event)
 
         pointerPressed       = true
         pointerPressLocation = event.location
@@ -141,7 +141,7 @@ class MaterialButtonBehavior(
     }
 
     override fun released(event: PointerEvent) {
-        super<AbstractTextButtonBehavior>.released(event)
+        super<CommonTextButtonBehavior>.released(event)
 
         pointerPressed = false
 

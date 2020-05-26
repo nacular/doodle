@@ -22,10 +22,10 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 10/3/18.
  */
-abstract class AbstractTextButtonBehavior<T: Button>(
+abstract class CommonTextButtonBehavior<T: Button>(
         private val textMetrics: TextMetrics,
         private val defaultFont: Font?  = null,
-        private val insets     : Insets = Insets.None): AbstractButtonBehavior<T>() {
+        private val insets     : Insets = Insets.None): CommonButtonBehavior<T>() {
 
 
     private val textChanged: (Button, String, String) -> Unit = { button,_,_ ->

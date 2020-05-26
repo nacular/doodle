@@ -1,37 +1,36 @@
 package com.nectar.doodle.theme.native
 
 import com.nectar.doodle.controls.buttons.Button
-import com.nectar.doodle.controls.buttons.HyperLink
-import com.nectar.doodle.controls.theme.AbstractTextButtonBehavior
+import com.nectar.doodle.controls.theme.CommonTextButtonBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
-import com.nectar.doodle.drawing.impl.NativeHyperLinkFactory
+import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.system.Cursor.Companion.Default
 
-internal class SystemHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFactory, textMetrics: TextMetrics, hyperLink: HyperLink): AbstractTextButtonBehavior<HyperLink>(textMetrics) {
+internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): CommonTextButtonBehavior<Button>(textMetrics) {
 
-    private val nativePeer by lazy{ nativeHyperLinkFactory(hyperLink) }
+    private val nativePeer by lazy { nativeButtonFactory(button) }
 
-    override fun render(view: HyperLink, canvas: Canvas) {
+    override fun render(view: Button, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 
-    override fun install(view: HyperLink) {
+    override fun install(view: Button) {
         super.install(view)
 
         view.cursor    = Default
         view.idealSize = nativePeer.idealSize
 
-        view.idealSize?.let {
-            view.size = it
-        }
+//        view.idealSize?.let {
+//            view.size = it
+//        }
 
         view.rerender()
     }
 
-    override fun uninstall(view: HyperLink) {
+    override fun uninstall(view: Button) {
         super.uninstall(view)
 
         nativePeer.discard()
@@ -49,7 +48,7 @@ internal class SystemHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFa
         }
     }
 
-    override fun pointerChanged(button: HyperLink) {}
+    override fun pointerChanged(button: Button) {}
 
     override fun keyReleased(event: KeyEvent) {}
 

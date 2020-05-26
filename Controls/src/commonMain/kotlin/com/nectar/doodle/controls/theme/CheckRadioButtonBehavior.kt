@@ -23,7 +23,7 @@ import kotlin.math.max
 open class CheckRadioButtonBehavior protected constructor(
         private val textMetrics: TextMetrics,
         private val icon       : Icon<Button>,
-        private val spacing    : Double = 2.0): AbstractTextButtonBehavior<ToggleButton>(textMetrics) {
+        private val spacing    : Double = 2.0): CommonTextButtonBehavior<ToggleButton>(textMetrics) {
 
     protected val insets = Insets()
 
