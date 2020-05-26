@@ -1,7 +1,7 @@
 # Hello World
 -------------
 
-The class Hello World app in Doodle. This version displays "Hello, world!" in the top-left of the page.
+The classic "Hello World" app in Doodle. This version displays "Hello, world!" in the top-left of the page.
 
 ```kotlin
 class HelloWorld(display: Display): Application {
@@ -25,3 +25,5 @@ fun main() {
     }
 }
 ```
+
+This is an example of a top-level [**Application**](applications.md).

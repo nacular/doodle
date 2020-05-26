@@ -3,7 +3,7 @@
 
 ### Views are the building blocks of Doodle apps.
 
-A View displays content to the screen and enables interactions with the user. You create a one by extending
+A View displays content to the screen and enables interactions with the user. You create one by extending
 the [`View`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L62)
 base class or instantiating an inline object:
 
@@ -68,7 +68,7 @@ support nesting [`children`](https://github.com/pusolito/doodle/blob/master/Core
 However, this list--and other traits related to being a container of Views--is `protected` to improve encapsulate and API control.
 
 Consider a split panel. Conceptually, it should have no more than 2 children; but it might make sense to have more: i.e. a handle.
-Doodle makes this easy letting you selectively expose a View's internals to callers.
+Doodle makes this easy by letting you selectively expose a View's internals to callers.
 
 ```kotlin
 class VSplitPanel: View() {
@@ -84,15 +84,18 @@ class VSplitPanel: View() {
         }
     
     val right: View? = null
-        // ..
+        // ...
 
     private val handle: View // private View for splitter
 
     init {
         children += handle // add handle to children
     }
+    
+    // ...
 }
 ```
 
-This design prevents direct access to the panel's `children`, which side-steps many usability issues.  It also presents are more
-intuitive API: left, right are fairly self-documenting, and much better than children[0] and children[1].
+This design prevents direct access to the panel's `children`, which side-steps many usability issues. It also presents are more
+intuitive and reliable API. `left` and `right` are fairly self-documenting compared to `children[n]` and `children[m]`. Moreover,
+the panel is able to encapsulate the fact that it uses additional Views for presentation. 

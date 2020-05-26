@@ -3,7 +3,8 @@
 
 ### Pointer handling is very straight forward with Doodle.
 
-The first thing you need to do is include the [`pointerModule`]() when launching your app.
+The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Application.kt#L130)
+when launching your app.
 
 ```kotlin
 class MyApp(display: Display): Application {
@@ -15,7 +16,7 @@ import com.nectar.doodle.application.Modules.Companion.pointerModule
 
 fun main () {
     // "full screen" launch with pointer support
-    application(modules = setOf(pointerModule)) {
+    application(modules = listOf(pointerModule)) {
         MyApp(display = instance())
     }
 }
@@ -26,11 +27,14 @@ bundle size.
 
 ## Hit Detection
 
-The framework relies on the `contains(Point)` method to determine when the pointer is within a View's boundaries.
+The framework relies on the [`View.contains(Point)`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L450)
+method to determine when the pointer is within a View's boundaries.
 
-?> This point is within the View's parent coordinate system (or the [**Display**](display.md?id=the-display-is-an-apps-root-container)'s for top-level Views).
+?> This point is within the View's parent coordinate system (or the [**Display**](display.md?id=the-display-is-an-apps-root-container)'s for
+top-level Views).
 
-The default implementation just checks the point against `bounds`. It also accounts for the View's `transform`.
+The default implementation just checks the point against [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L108).
+It also accounts for the View's [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L142).
 However, more complex hit detection can be used to customize pointer handling.
 
 ```kotlin
@@ -55,7 +59,8 @@ This view renders a circle and provides precise hit detection for it.
 ## Pointer Listeners
 
 Views are able to receive pointer events once the `pointerModule` is loaded, they are `visible` and `enabled`. You can
-then attach a [`PointerListener`]() to any View and get notified.
+then attach a [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerListener.kt#L3)
+to any View and get notified.
 
 Pointer listeners are notified whenever the pointer:
 - **Enters** a View
@@ -63,17 +68,19 @@ Pointer listeners are notified whenever the pointer:
 - **Released** within a View
 - **Exits** a View
 
-You get these notifications by registering with a View's `pointerChanged` property.
+You get these notifications by registering with a View's [`pointerChanged`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L294)
+property.
 
 ```kotlin
 view.pointerChanged += object: PointerListener {
-    override fun pointerPressed(event: PointerEvent) {
+    override fun pressed(event: PointerEvent) {
         // ..
     }
 }
 ```
 
-?> [`PointerListener`]() has no-op defaults for the 4 events, so you only need to implement the ones you need.
+?> [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerListener.kt#L3)
+has no-op defaults for the 4 events, so you only need to implement the ones you need.
 
 Notice that `pointerChanged`--like other observable properties--supports many observers and enables you to add/remove
 an observer any time.
@@ -88,7 +95,7 @@ listeners from receiving it.
 
 ```kotlin
 // ...
-override fun pointerPressed(event: PointerEvent) {
+override fun pressed(event: PointerEvent) {
     // ... take action based on event
 
     event.consume() // indicate that no other listeners should be notified
@@ -117,7 +124,7 @@ descendants toward the `target` View are notified of the event before the target
 
 ### The filter phase is like the "bubbling" phase in reverse
 
-Like bubbling, a [`PointerListener`]() is used to handle the event. But unlike "bubbling", registration happens via the `pointerFilter`
+Like with bubbling, `PointerListener` is used to handle the event. Unlike "bubbling", registration happens via the [`pointerFilter`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L289)
 property. This phase lets ancestors "veto" an event before it reaches the intended target.
 
 ```kotlin
@@ -125,7 +132,7 @@ view.pointerFilter += object: PointerListener {
     // called whenever the pointer is pressed on this
     // View or its children, before the target child
     // is notified
-    override fun pointerPressed(event: PointerEvent) {
+    override fun pressed(event: PointerEvent) {
         // ..
     }
 }

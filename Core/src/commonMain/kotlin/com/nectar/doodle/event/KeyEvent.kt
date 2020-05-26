@@ -7,6 +7,7 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier
 
 inline class KeyText(val text: String) {
     companion object {
+        // Key Text from https://www.w3.org/TR/uievents-key/#key-attribute-value
         val Backspace = KeyText("Backspace")
         val Tab       = KeyText("Tab")
         val Enter     = KeyText("Enter")

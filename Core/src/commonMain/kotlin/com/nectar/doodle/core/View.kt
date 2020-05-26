@@ -637,7 +637,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     internal fun filterPointerMotionEvent_(event: PointerEvent) = filterPointerMotionEvent(event)
 
     /**
-     * This is an event invoked on a View during the filter phase of a pionter-motion event.
+     * This is an event invoked on a View during the filter phase of a pointer-motion event.
      *
      * @param event The event
      */

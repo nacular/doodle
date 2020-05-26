@@ -35,7 +35,7 @@ class MyApp(display: Display): View() {
 [**Stand-alone**](applications.md?id=stand-alone) apps use the entire page by default, and have a Display tied to the page body.
 
 ```kotlin
-application(modules = setOf(/*...*/)) {
+application(modules = listOf(/*...*/)) {
     MyApp(instance /*,...*/)
 }
 ```
@@ -43,11 +43,11 @@ application(modules = setOf(/*...*/)) {
 An app can also be hosted in an element, which ties the Display to that element.
 
 ```kotlin
-application(root = someDiv, modules = setOf(/*...*/)) {
+application(root = someDiv, modules = listOf(/*...*/)) {
     MyApp(instance /*,...*/)
 }
 ```
 
 Here the Display will be tied to `someDiv`.
 
-A [**nested app's**](applications.md?id=nested) [`Display`]() is tied to that View.
+A [**nested app's**](applications.md?id=nested) `Display` is tied to that View.

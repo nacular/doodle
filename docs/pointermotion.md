@@ -5,7 +5,8 @@ Pointer motion events occur whenever the pointer moves within a View. They are t
 because of their high frequency. The [`pointerModule`](pointer.md?id=pointer-handling-is-very-straight-forward-with-doodle) is also
 required to enable them. And [**hit detection**](pointer.md?id=hit-detection) follows the same rules as with pointer events.
 
-Registration is different though. You use listen to the [`pointerMotionChanged`]() property and implement [`PointerMotionListener`]().
+Registration is different though. You use listen to the [`pointerMotionChanged`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L309)
+property and implement [`PointerMotionListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerMotionListener.kt#L4).
 
 Pointer motion listeners are notified whenever the pointer:
 - **Moves** within a View
