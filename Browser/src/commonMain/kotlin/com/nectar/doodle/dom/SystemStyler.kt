@@ -2,6 +2,7 @@ package com.nectar.doodle.dom
 
 import com.nectar.doodle.CSSStyleSheet
 import com.nectar.doodle.Document
+import com.nectar.doodle.HTMLMetaElement
 import com.nectar.doodle.HTMLStyleElement
 import com.nectar.doodle.numStyles
 
@@ -15,6 +16,14 @@ internal interface SystemStyler {
 internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: Document, allowDefaultDarkMode: Boolean): SystemStyler {
     private val style: HTMLStyleElement = htmlFactory.create("style")
 
+    private val meta: HTMLMetaElement?  = when(htmlFactory.root) {
+        document.body -> htmlFactory.create<HTMLMetaElement>("meta" ).apply {
+            name    = "viewport"
+            content = "width=device-width, initial-scale=1"
+        }
+        else -> null
+    }
+
     private val id = when(htmlFactory.root) {
         document.body -> null
         else          -> "#${when (val i = htmlFactory.root.id) {
@@ -26,6 +35,8 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
     private fun prefix(fallback: String = "") = id ?: fallback
 
     init {
+        meta?.let { document.head?.insert(it, 0) }
+
         document.head?.insert(style, 0)
 
         (style.sheet as? CSSStyleSheet)?.apply {

@@ -179,7 +179,12 @@ actual interface ElementCSSInlineStyle {
     actual val style: CSSStyleDeclaration
 }
 
-actual abstract class HTMLStyleElement : HTMLElement() {
+actual abstract class HTMLStyleElement: HTMLElement() {
     actual val sheet: StyleSheet?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+}
+
+actual abstract class HTMLMetaElement: HTMLElement() {
+    actual var name    = ""
+    actual var content = ""
 }

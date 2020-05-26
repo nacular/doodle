@@ -53,3 +53,5 @@ actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(in
 actual typealias StyleSheetList = org.w3c.dom.css.StyleSheetList
 
 actual typealias HTMLStyleElement = org.w3c.dom.HTMLStyleElement
+
+actual typealias HTMLMetaElement = org.w3c.dom.HTMLMetaElement

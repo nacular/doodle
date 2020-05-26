@@ -140,6 +140,11 @@ expect abstract class HTMLStyleElement: HTMLElement {
     val sheet: StyleSheet?
 }
 
+expect abstract class HTMLMetaElement: HTMLElement {
+    var name   : String
+    var content: String
+}
+
 expect class Document {
     val head: HTMLHeadElement?
     var body: HTMLElement?
