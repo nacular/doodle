@@ -3,7 +3,7 @@
 
 ### Pointer handling is very straight forward with Doodle.
 
-The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Application.kt#L130)
+The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L43)
 when launching your app.
 
 ```kotlin

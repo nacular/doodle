@@ -23,7 +23,6 @@ internal class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy
     private var postprocessors = mutableSetOf<Postprocessor>()
     private var rawListeners   = mutableSetOf<RawListener>  ()
 
-
     override fun plusAssign(listener: Listener) {
         if (!started) {
             startUp()

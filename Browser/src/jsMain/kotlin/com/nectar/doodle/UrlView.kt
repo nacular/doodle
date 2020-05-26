@@ -11,11 +11,14 @@ import org.w3c.dom.HTMLIFrameElement
 /**
  * Created by Nicholas Eddy on 3/4/20.
  */
-internal class UrlView(htmlFactory: HtmlFactory, url: String): View() {
+class UrlView internal constructor(htmlFactory: HtmlFactory): View() {
+    var url = ""
+
     private val root = htmlFactory.create<HTMLIFrameElement>("iframe").apply {
-        src = url
         style.setWidthPercent (100.0)
         style.setHeightPercent(100.0)
+
+        src = url
     }
 
     override fun render(canvas: Canvas) {

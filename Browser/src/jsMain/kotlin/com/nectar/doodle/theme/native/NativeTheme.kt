@@ -25,9 +25,9 @@ import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Behavior
-import com.nectar.doodle.themes.Modules.BehaviorResolver
-import com.nectar.doodle.themes.Modules.Companion.bindBehavior
-import com.nectar.doodle.themes.adhoc.AdhocTheme
+import com.nectar.doodle.theme.Modules.BehaviorResolver
+import com.nectar.doodle.theme.Modules.Companion.bindBehavior
+import com.nectar.doodle.theme.adhoc.AdhocTheme
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance

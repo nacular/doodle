@@ -1,23 +1,13 @@
 package com.nectar.doodle.application
 
 import com.nectar.doodle.HTMLElement
-import com.nectar.doodle.UrlView
-import com.nectar.doodle.accessibility.AccessibilityManager
 import com.nectar.doodle.accessibility.AccessibilityManagerImpl
-import com.nectar.doodle.controls.document.Document
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.InternalDisplay
-import com.nectar.doodle.core.View
 import com.nectar.doodle.core.impl.DisplayImpl
 import com.nectar.doodle.datatransport.dragdrop.DragManager
-import com.nectar.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import com.nectar.doodle.deviceinput.KeyboardFocusManager
-import com.nectar.doodle.deviceinput.KeyboardFocusManagerImpl
 import com.nectar.doodle.deviceinput.PointerInputManager
-import com.nectar.doodle.deviceinput.PointerInputManagerImpl
-import com.nectar.doodle.deviceinput.ViewFinder
-import com.nectar.doodle.deviceinput.ViewFinderImpl
-import com.nectar.doodle.document.impl.DocumentImpl
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.SvgFactory
@@ -33,22 +23,11 @@ import com.nectar.doodle.drawing.TextFactory
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.impl.CanvasFactoryImpl
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
-import com.nectar.doodle.drawing.impl.NativeEventHandlerFactory
-import com.nectar.doodle.drawing.impl.NativeEventHandlerImpl
-import com.nectar.doodle.drawing.impl.NativeEventListener
 import com.nectar.doodle.drawing.impl.RealGraphicsDevice
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.RenderManagerImpl
 import com.nectar.doodle.drawing.impl.TextFactoryImpl
 import com.nectar.doodle.drawing.impl.TextMetricsImpl
-import com.nectar.doodle.event.KeyCode.Companion.Tab
-import com.nectar.doodle.event.KeyState
-import com.nectar.doodle.event.KeyState.Type.Down
-import com.nectar.doodle.event.KeyText
-import com.nectar.doodle.focus.FocusManager
-import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
-import com.nectar.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
-import com.nectar.doodle.focus.impl.FocusManagerImpl
 import com.nectar.doodle.scheduler.AnimationScheduler
 import com.nectar.doodle.scheduler.Scheduler
 import com.nectar.doodle.scheduler.Strand
@@ -56,17 +35,9 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.scheduler.impl.StrandImpl
-import com.nectar.doodle.system.KeyInputService
-import com.nectar.doodle.system.PointerInputService
-import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.system.SystemPointerEvent
-import com.nectar.doodle.system.impl.KeyInputServiceImpl
-import com.nectar.doodle.system.impl.KeyInputServiceStrategy
-import com.nectar.doodle.system.impl.KeyInputStrategyWebkit
-import com.nectar.doodle.system.impl.PointerInputServiceImpl
 import com.nectar.doodle.system.impl.PointerInputServiceStrategy
 import com.nectar.doodle.system.impl.PointerInputServiceStrategy.EventHandler
-import com.nectar.doodle.system.impl.PointerInputServiceStrategyWebkit
 import com.nectar.doodle.time.Timer
 import com.nectar.doodle.time.impl.PerformanceTimer
 import org.kodein.di.Copy
@@ -75,10 +46,8 @@ import org.kodein.di.Kodein
 import org.kodein.di.Kodein.Module
 import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
-import org.kodein.di.erased.factory
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
@@ -120,64 +89,6 @@ fun createNestedApplication(
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
-
-class Modules {
-    companion object {
-        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
-        }
-
-        val pointerModule = Module(allowSilentOverride = true, name = "Pointer") {
-            bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
-            bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
-            bind<PointerInputManager>        () with singleton { PointerInputManagerImpl          (instance(), instance(), instance()) }
-            bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document, instance()              ) }
-        }
-
-        val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
-            importOnce(focusModule)
-
-            // TODO: Make this pluggable
-            val keys = mapOf(
-                    Forward  to setOf(KeyState(Tab, KeyText.Tab, emptySet(     ), Down)),
-                    Backward to setOf(KeyState(Tab, KeyText.Tab, setOf   (Shift), Down))
-            )
-
-            bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
-            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit  (instance()                  ) }
-        }
-
-        val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
-            importOnce(pointerModule)
-
-            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
-        }
-
-        val documentModule = Module(allowSilentOverride = true, name = "Document") {
-            bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
-        }
-
-        val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
-            bind<View>(tag = "urlView") with factory { url: String -> UrlView(instance(), url) }
-        }
-
-        val accessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
-            importOnce(keyboardModule)
-
-            // TODO: Can this be handled better?
-            bind<KeyInputServiceImpl> () with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
-
-            // FIXME: Centralize
-            bind<NativeEventHandlerFactory>() with singleton { { element: org.w3c.dom.HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
-
-            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
-
-            // TODO: Can this be handled better?
-            bind<AccessibilityManagerImpl> () with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
-        }
-    }
-}
 
 private class NestedPointerInputStrategy(private val view: ApplicationView, private val delegate: PointerInputServiceStrategy): PointerInputServiceStrategy by(delegate) {
     override fun startUp(handler: EventHandler) {

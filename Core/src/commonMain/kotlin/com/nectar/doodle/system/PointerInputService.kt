@@ -5,7 +5,6 @@ import com.nectar.doodle.geometry.Point
 
 
 interface PointerInputService {
-
     var cursor         : Cursor
     var toolTipText    : String
     val pointerLocation: Point
