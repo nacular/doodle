@@ -384,7 +384,7 @@ internal class DragManagerImpl(
         return if (handler != null && current != null) current to handler else null
     }
 
-    companion object {
+    private companion object {
         private const val DRAG_THRESHOLD = 5.0
     }
 }

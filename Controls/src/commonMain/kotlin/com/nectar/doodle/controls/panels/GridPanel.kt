@@ -52,8 +52,8 @@ open class GridPanel: View() {
     var cellAlignment     : Constraints.() -> Unit = fill //center
     var verticalSpacing                            = 0.0
     var horizontalSpacing                          = 0.0
-    var rowSizingPolicy   : SizingPolicy           = fitContent
-    var columnSizingPolicy: SizingPolicy           = fitContent
+    var rowSizingPolicy   : SizingPolicy           = FitContent
+    var columnSizingPolicy: SizingPolicy           = FitContent
 
     final override var layout: Layout? = GridLayout()
 
@@ -144,7 +144,7 @@ open class GridPanel: View() {
     }
 
     companion object {
-        val fitPanel   = FitPanel  ()
-        val fitContent = FitContent()
+        val FitPanel   = FitPanel  ()
+        val FitContent = FitContent()
     }
 }

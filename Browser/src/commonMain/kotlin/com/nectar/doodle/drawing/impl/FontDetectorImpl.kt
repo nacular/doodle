@@ -94,7 +94,7 @@ class FontDetectorImpl(
         }
     }
 
-    companion object {
+    private companion object {
         private const val DEFAULT_FAMILY = "monospace"
         private const val TEXT           = "abcdefghijklmnopqrstuvwxyz01234567890~!@#$%^&*()_+{}[]:\'\",./<>?\\|"
     }

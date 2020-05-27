@@ -44,21 +44,21 @@ import kotlin.browser.document
 class Modules {
     companion object {
         /** Enables focus management by providing access to [FocusManager]. */
-        val focusModule = Module(allowSilentOverride = true, name = "Focus") {
+        val FocusModule = Module(allowSilentOverride = true, name = "Focus") {
             bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
         }
 
         /** Enables pointer use. */
-        val pointerModule = Module(allowSilentOverride = true, name = "Pointer") {
+        val PointerModule = Module(allowSilentOverride = true, name = "Pointer") {
             bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
             bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
             bind<PointerInputManager>        () with singleton { PointerInputManagerImpl          (instance(), instance(), instance()) }
             bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document,   instance()            ) }
         }
 
-        /** Enables keyboard use. Includes [focusModule]. */
-        val keyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
-            importOnce(focusModule)
+        /** Enables keyboard use. Includes [FocusModule]. */
+        val KeyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
+            importOnce(FocusModule)
 
             // TODO: Make this pluggable
             val keys = mapOf(
@@ -73,22 +73,22 @@ class Modules {
 
         /**
          * Enables drag-drop data transfer (not simple moving of Views) that allows data to be shared in and outside the
-         * application. Includes [pointerModule].
+         * application. Includes [PointerModule].
          */
-        val dragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
-            importOnce(pointerModule)
+        val DragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
+            importOnce(PointerModule)
 
             bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
         }
 
         /** Enables use of [Document]s */
-        val documentModule = Module(allowSilentOverride = true, name = "Document") {
+        val DocumentModule = Module(allowSilentOverride = true, name = "Document") {
             bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
         }
 
         /** Enables accessibility features */
-        val accessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
-            importOnce(keyboardModule)
+        val AccessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
+            importOnce(KeyboardModule)
 
             // TODO: Can this be handled better?
             bind<KeyInputServiceImpl>() with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
@@ -103,7 +103,7 @@ class Modules {
         }
 
         /** Enables use of [UrlView]s */
-        val urlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
+        val UrlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
             bind<UrlView>() with provider { UrlView(instance()) }
         }
     }

@@ -76,7 +76,7 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
         document.head?.remove(style)
     }
 
-    companion object {
-        var currentId = 0
+    private companion object {
+        private var currentId = 0
     }
 }

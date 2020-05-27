@@ -3,7 +3,7 @@
 
 ### Key handling is simple with Doodle.
 
-The first thing you need to do is include the [`keyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L59)
+The first thing you need to do is include the [`KeyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L59)
 when launching your app.
 
 ```kotlin
@@ -12,11 +12,11 @@ class MyApp(display: Display): Application {
 }
 ```
 ```kotlin
-import com.nectar.doodle.application.Modules.Companion.mouseModule
+import com.nectar.doodle.application.Modules.Companion.KeyboardModule
 
 fun main () {
     // "full screen" launch with keyboard support
-    application(modules = listOf(keyboardModule)) {
+    application(modules = listOf(KeyboardModule)) {
         MyApp(display = instance())
     }
 }
@@ -30,7 +30,7 @@ can receive key events at any time within the app.
 ### Use the FocusManager to control focus
 
 The [`FocusManager`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/focus/FocusManager.kt#L9)
-is included in the `keyboardModule`. Just inject it into your app to begin managing the focus.
+is included in the `KeyboardModule`. Just inject it into your app to begin managing the focus.
 
 ```kotlin
 class MyApp(display: Display, focusManager: FocusManager): Application {
@@ -42,7 +42,7 @@ class MyApp(display: Display, focusManager: FocusManager): Application {
 }
 
 fun main () {
-    application(modules = listOf(keyboardModule)) {
+    application(modules = listOf(KeyboardModule)) {
         MyApp(display = instance(), focusManager = instance())
     }
 }
@@ -52,7 +52,7 @@ fun main () {
 
 ## Key Listeners
 
-Views are able to receive key events once the `keyboardModule` is loaded and they have `focus`. You can
+Views are able to receive key events once the `KeyboardModule` is loaded and they have `focus`. You can
 then attach a [`KeyListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/KeyListener.kt#L4)
 to any View and get notified.
 

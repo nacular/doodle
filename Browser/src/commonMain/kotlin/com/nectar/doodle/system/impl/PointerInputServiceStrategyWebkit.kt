@@ -148,17 +148,12 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.run {
-//        onwheel     = { mouseScroll(it) }
-
-        onpointerdown = { mouseDown  (it); followMouse(this) }
-        onpointerover = { mouseEnter (it) }
-
-        onmouseout  = { mouseExit  (it) }
-        ondblclick  = { doubleClick(it) }
-
         // TODO: Figure out fallback in case PointerEvent not present
-//        onmousedown = { mouseDown  (it); followMouse(this) }
-//        onmouseover = { mouseEnter (it) }
+
+        onmouseout    = { mouseExit  (it)                      }
+        ondblclick    = { doubleClick(it)                      }
+        onpointerdown = { mouseDown  (it); followPointer(this) }
+        onpointerover = { mouseEnter (it)                      }
 
         registerMouseCallbacks(this)
     }
@@ -166,30 +161,20 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
     private val trackingMouseMove: (Event) -> Unit = { mouseMove(it as MouseEvent) }
     private val trackingMouseUp  : (Event) -> Unit = { mouseUp  (it as MouseEvent); registerMouseCallbacks(htmlFactory.root) }
 
-    private fun followMouse(element: HTMLElement): Unit = element.run {
+    private fun followPointer(element: HTMLElement): Unit = element.run {
         onpointerup   = null
         onpointermove = null
 
-        document.addEventListener(pointerup,   trackingMouseUp  )
-        document.addEventListener(pointermove, trackingMouseMove)
-
-//        document.addEventListener(mouseup,   trackingMouseUp  )
-//        document.addEventListener(mousemove, trackingMouseMove)
-//        onmouseup   = null
-//        onmousemove = null
+        document.addEventListener(POINTER_UP,   trackingMouseUp  )
+        document.addEventListener(POINTER_MOVE, trackingMouseMove)
     }
 
     private fun registerMouseCallbacks(element: HTMLElement) = element.run {
         onpointerup   = { mouseUp  (it) }
         onpointermove = { mouseMove(it) }
 
-        document.removeEventListener(pointerup,   trackingMouseUp  )
-        document.removeEventListener(pointermove, trackingMouseMove)
-
-//        onmouseup   = { mouseUp  (it) }
-//        onmousemove = { mouseMove(it) }
-//        document.removeEventListener(mouseup,   trackingMouseUp  )
-//        document.removeEventListener(mousemove, trackingMouseMove)
+        document.removeEventListener(POINTER_UP,   trackingMouseUp  )
+        document.removeEventListener(POINTER_MOVE, trackingMouseMove)
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.run {
@@ -198,23 +183,12 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
         onpointerdown = null
         onpointerover = null
 
-        document.removeEventListener(pointerup,   trackingMouseUp  )
-        document.removeEventListener(pointermove, trackingMouseMove)
-
-//        onwheel       = null
-//        onmouseup     = null
-//        onmousedown   = null
-//        onmousemove   = null
-//        onmouseover   = null
-//        document.removeEventListener(mouseup,   trackingMouseUp  )
-//        document.removeEventListener(mousemove, trackingMouseMove)
+        document.removeEventListener(POINTER_UP,   trackingMouseUp  )
+        document.removeEventListener(POINTER_MOVE, trackingMouseMove)
     }
 
-    companion object {
-        const val pointerup   = "pointerup"
-        const val pointermove = "pointermove"
-
-//        const val mouseup   = "mouseup"
-//        const val mousemove = "mousemove"
+    private companion object {
+        private const val POINTER_UP   = "pointerup"
+        private const val POINTER_MOVE = "pointermove"
     }
 }

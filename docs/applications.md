@@ -71,14 +71,14 @@ class OuterApp(display: Display, appView: ApplicationViewFactory): Application {
 }
 
 fun main() {
-    application(modules = listOf(appViewModule)) {
+    application(modules = listOf(AppViewModule)) {
         OuterApp(display = instance(), appView = instance())
     }
 }
 ```
 
 Use an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L75)
-to create nested apps. This class is available via the [`appViewModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L82)
+to create nested apps. This class is available via the [`AppViewModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L82)
 module.
 
 ?> Adding a nested app's View to the [**Display**](display.md?id=the-display-is-an-apps-root-container) triggers the app's initialization. Shutdown

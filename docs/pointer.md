@@ -1,9 +1,9 @@
-# Pointer Handling
-------------------
+# Pointer Input
+---------------
 
 ### Pointer handling is very straight forward with Doodle.
 
-The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
+The first thing you need to do is include the [`PointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
 when launching your app.
 
 ```kotlin
@@ -12,17 +12,17 @@ class MyApp(display: Display): Application {
 }
 ```
 ```kotlin
-import com.nectar.doodle.application.Modules.Companion.pointerModule
+import com.nectar.doodle.application.Modules.Companion.PointerModule
 
 fun main () {
     // "full screen" launch with pointer support
-    application(modules = listOf(pointerModule)) {
+    application(modules = listOf(PointerModule)) {
         MyApp(display = instance())
     }
 }
 ```
 
-Here you can see that the underlying framework, and not you app, depends on the `pointerModule`. Doodle uses opt-in modules like this to improve
+Here you can see that the underlying framework, and not you app, depends on the `PointerModule`. Doodle uses opt-in modules like this to improve
 bundle size.
 
 ## Hit Detection
@@ -58,7 +58,7 @@ This view renders a circle and provides precise hit detection for it.
 
 ## Pointer Listeners
 
-Views are able to receive pointer events once the `pointerModule` is loaded, they are `visible` and `enabled`. You can
+Views are able to receive pointer events once the `PointerModule` is loaded, they are `visible` and `enabled`. You can
 then attach a [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerListener.kt#L3)
 to any View and get notified.
 

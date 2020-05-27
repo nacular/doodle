@@ -922,9 +922,8 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    companion object {
-        private       var id                = 0
-        private const val svgTag            = "svg"
-        private       val containerElements = setOf(svgTag, "filter")
+    private companion object {
+        private var id                = 0
+        private val containerElements = setOf("svg", "filter")
     }
 }

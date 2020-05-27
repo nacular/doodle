@@ -130,7 +130,7 @@ private open class DistributedAnimationTask(private val scheduler: AnimationSche
         }
     }
 
-    private fun frameExpired(start: Measure<Time>) = (timer.now - start) >= frameDuration
+    private fun frameExpired(start: Measure<Time>) = (timer.now - start) >= FRAME_DURATION
 
     private fun processJobs() {
         val start = timer.now
@@ -142,8 +142,8 @@ private open class DistributedAnimationTask(private val scheduler: AnimationSche
         }
     }
 
-    companion object {
-        private val frameDuration = 1000 * milliseconds / 60
+    private companion object {
+        private val FRAME_DURATION = 1000 * milliseconds / 60
     }
 }
 
