@@ -1,5 +1,5 @@
-# Display
----------
+# The Display
+-------------
 
 ### The Display is an app's root container.
 

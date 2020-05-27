@@ -1,9 +1,18 @@
 package com.nectar.doodle.image
 
 /**
- * Created by Nicholas Eddy on 11/15/17.
+ * Provides a way of loading [Image]s from a given source.
  */
 interface ImageLoader {
-    suspend fun load  (source: String): Image?
-            fun unload(image : Image )
+    /**
+     * @param source to load image from
+     * @return an image, or null if there is a failure
+     */
+    suspend fun load(source: String): Image?
+
+    /**
+     * Unloads an image that was previously loaded with [load].
+     * @param image to unload
+     */
+    fun unload(image: Image )
 }

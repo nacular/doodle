@@ -1,4 +1,5 @@
-# Text Handling
+# Rendering Text
+----------------
 
 Doodle is explicit about text rendering, and requires a location for all text drawn to a Canvas. The following View draw's "hello" at `0,0`.
 

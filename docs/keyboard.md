@@ -1,5 +1,5 @@
-# Key Input
------------
+# Keyboard Input
+----------------
 
 ### Key handling is simple with Doodle.
 

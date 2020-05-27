@@ -1,4 +1,4 @@
-# Pointer Motion Handling
+# Pointer Motion Events
 -----------------------
 
 Pointer motion events occur whenever the pointer moves within a View. They are treated separately from [**pointer events**](pointer.md?id=pointer-handling)

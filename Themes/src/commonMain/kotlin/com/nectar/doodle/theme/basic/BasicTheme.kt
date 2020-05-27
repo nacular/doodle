@@ -45,12 +45,13 @@ import org.kodein.di.erasedSet
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-typealias ListModel<T>        = com.nectar.doodle.controls.ListModel<T>
-typealias SpinnerModel<T>     = com.nectar.doodle.controls.spinner.Model<T>
-typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableTreeModel<T>
+private typealias ListModel<T>        = com.nectar.doodle.controls.ListModel<T>
+private typealias SpinnerModel<T>     = com.nectar.doodle.controls.spinner.Model<T>
+private typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableTreeModel<T>
+private typealias BTheme              = BasicTheme
 
 @Suppress("UNCHECKED_CAST")
-open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == BasicTheme::class }) {
+open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == BTheme::class }) {
     override fun install(display: Display, all: Sequence<View>) {
         configProvider.config = config
 
@@ -82,121 +83,121 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
     }
 
     companion object {
-        internal fun basicModule(name: String, init: Kodein.Builder.() -> Unit) = Module(name = name) {
-            importOnce(Companion.config, allowOverride = true)
+        internal fun BasicModule(name: String, init: Kodein.Builder.() -> Unit) = Module(name = name) {
+            importOnce(Config, allowOverride = true)
 
             init()
         }
 
-        val basicTheme = basicModule(name = "BasicTheme") {
+        val BasicTheme = BasicModule(name = "BasicTheme") {
             bind<BasicTheme>() with singleton { BasicTheme(instance(), Instance(erasedSet())) }
         }
 
-        private val config = Module(name = "BasicThemeConfig") {
+        private val Config = Module(name = "BasicThemeConfig") {
             bind<ConfigProvider>  () with singleton { ConfigProviderImpl()              }
             bind<BasicThemeConfig>() with provider  { instance<ConfigProvider>().config }
         }
 
-        val basicListBehavior = basicModule(name = "BasicListBehavior") {
-            bindBehavior<List<Any, ListModel<Any>>>(BasicTheme::class) {
+        val BasicListBehavior = BasicModule(name = "BasicListBehavior") {
+            bindBehavior<List<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicListBehavior(instance(), instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
-        val basicTreeBehavior = basicModule(name = "BasicTreeBehavior") {
-            bindBehavior<Tree<Any,TreeModel<Any>>>(BasicTheme::class) {
+        val BasicTreeBehavior = BasicModule(name = "BasicTreeBehavior") {
+            bindBehavior<Tree<Any,TreeModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTreeBehavior(instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
             }
         }
 
-        val basicLabelBehavior = basicModule(name = "BasicLabelBehavior") {
-            bindBehavior<Label>(BasicTheme::class) {
+        val BasicLabelBehavior = BasicModule(name = "BasicLabelBehavior") {
+            bindBehavior<Label>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { LabelBehavior(foregroundColor) }
             }
         }
 
-        val basicTableBehavior = basicModule(name = "BasicTableBehavior") {
-            bindBehavior<Table<Any, ListModel<Any>>>(BasicTheme::class) {
+        val BasicTableBehavior = BasicModule(name = "BasicTableBehavior") {
+            bindBehavior<Table<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(instanceOrNull(), 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
-        val basicButtonBehavior = basicModule(name = "BasicButtonBehavior") {
-            bindBehavior<Button>(BasicTheme::class) {
+        val BasicButtonBehavior = BasicModule(name = "BasicButtonBehavior") {
+            bindBehavior<Button>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicButtonBehavior(instance(), backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
             }
         }
 
-        val basicSliderBehavior = basicModule(name = "BasicSliderBehavior") {
-            bindBehavior<Slider>(BasicTheme::class) {
+        val BasicSliderBehavior = BasicModule(name = "BasicSliderBehavior") {
+            bindBehavior<Slider>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicSliderBehavior(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) }
             }
         }
 
-        val basicSpinnerBehavior = basicModule(name = "BasicSpinnerBehavior") {
-            bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BasicTheme::class) {
+        val BasicSpinnerBehavior = BasicModule(name = "BasicSpinnerBehavior") {
+            bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicSpinnerBehavior(borderColor = borderColor, backgroundColor = backgroundColor, labelFactory = instance()) }
             }
         }
 
-        val basicCheckBoxBehavior = basicModule(name = "BasicCheckBoxBehavior") {
-            bindBehavior<CheckBox>(BasicTheme::class) {
+        val BasicCheckBoxBehavior = BasicModule(name = "BasicCheckBoxBehavior") {
+            bindBehavior<CheckBox>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(instance()) as Behavior<Button> }
             }
         }
 
-        val basicSplitPanelBehavior = basicModule(name = "BasicSplitPanelBehavior") {
-            bindBehavior<SplitPanel>(BasicTheme::class) {
+        val BasicSplitPanelBehavior = BasicModule(name = "BasicSplitPanelBehavior") {
+            bindBehavior<SplitPanel>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicSplitPanelBehavior() }
             }
         }
 
-        val basicRadioButtonBehavior = basicModule(name = "BasicRadioButtonBehavior") {
-            bindBehavior<RadioButton>(BasicTheme::class) {
+        val BasicRadioButtonBehavior = BasicModule(name = "BasicRadioButtonBehavior") {
+            bindBehavior<RadioButton>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(instance()) as Behavior<Button> }
             }
         }
 
-        val basicMutableListBehavior = basicModule(name = "BasicMutableListBehavior") {
-            bindBehavior<MutableList<Any, MutableListModel<Any>>>(BasicTheme::class) {
+        val BasicMutableListBehavior = BasicModule(name = "BasicMutableListBehavior") {
+            bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicMutableListBehavior(instance(), instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
-        val basicProgressBarBehavior = basicModule(name = "BasicProgressBarBehavior") {
-            bindBehavior<ProgressBar>(BasicTheme::class) {
+        val BasicProgressBarBehavior = BasicModule(name = "BasicProgressBarBehavior") {
+            bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicProgressBarBehavior(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) as Behavior<ProgressIndicator> }
             }
         }
 
-        val basicMutableTreeBehavior = basicModule(name = "BasicMutableTreeBehavior") {
-            bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BasicTheme::class) {
+        val BasicMutableTreeBehavior = BasicModule(name = "BasicMutableTreeBehavior") {
+            bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
             }
         }
 
-        val basicMutableTableBehavior = basicModule(name = "BasicMutableTableBehavior") {
-            bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BasicTheme::class) {
+        val BasicMutableTableBehavior = BasicModule(name = "BasicMutableTableBehavior") {
+            bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(instanceOrNull(), 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
-        val basicThemeBehaviors = Module(name = "BasicThemeBehaviors") {
+        val BasicThemeBehaviors = Module(name = "BasicThemeBehaviors") {
             importAll(listOf(
-                    basicListBehavior,
-                    basicTreeBehavior,
-                    basicLabelBehavior,
-                    basicTableBehavior,
-                    basicButtonBehavior,
-                    basicSliderBehavior,
-                    basicSpinnerBehavior,
-                    basicCheckBoxBehavior,
-                    basicSplitPanelBehavior,
-                    basicRadioButtonBehavior,
-                    basicMutableListBehavior,
-                    basicProgressBarBehavior,
-                    basicMutableTreeBehavior,
-                    basicMutableTableBehavior),
+                    BasicListBehavior,
+                    BasicTreeBehavior,
+                    BasicLabelBehavior,
+                    BasicTableBehavior,
+                    BasicButtonBehavior,
+                    BasicSliderBehavior,
+                    BasicSpinnerBehavior,
+                    BasicCheckBoxBehavior,
+                    BasicSplitPanelBehavior,
+                    BasicRadioButtonBehavior,
+                    BasicMutableListBehavior,
+                    BasicProgressBarBehavior,
+                    BasicMutableTreeBehavior,
+                    BasicMutableTableBehavior),
                     allowOverride = true)
         }
     }
@@ -215,7 +216,7 @@ class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<Modules
     override val config = DarkBasicThemeConfig()
 
     companion object {
-        val darkBasicTheme = basicModule(name = "DarkBasicTheme") {
+        val DarkBasicTheme = BasicModule(name = "DarkBasicTheme") {
             bind<DarkBasicTheme>() with singleton { DarkBasicTheme(instance(), Instance(erasedSet())) }
         }
     }

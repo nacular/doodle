@@ -5,7 +5,8 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.image.Image
 
 /**
- * Created by Nicholas Eddy on 2/14/18.
+ * A simple wrapper around an [Image]. The image is scaled to fit within the
+ * bounds of this Photo when drawn.
  */
 class Photo(private var image: Image): View() {
     init {
