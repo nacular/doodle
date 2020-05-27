@@ -3,7 +3,7 @@
 
 ### Pointer handling is very straight forward with Doodle.
 
-The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L43)
+The first thing you need to do is include the [`pointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
 when launching your app.
 
 ```kotlin
@@ -48,7 +48,7 @@ class CircularView(val radius: Double): View() {
         (point - position) in circle
 
     override fun render(canvas: Canvas) {
-        canvas.circle(circle, ColorBrush(Color.red))
+        canvas.circle(circle, ColorBrush(Red))
     }
 }
 ``` 

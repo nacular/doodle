@@ -1,9 +1,9 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.red
-import com.nectar.doodle.drawing.Color.Companion.transparent
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Red
+import com.nectar.doodle.drawing.Color.Companion.Transparent
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -53,7 +53,7 @@ class PatternBrushTests {
     @Test @JsName("horizontalStripesEmptyIfColorsTransparent")
     fun `horizontal stripes empty if colors transparent`() {
         listOf(
-            red opacity 0f to transparent,
+            Red opacity 0f to Transparent,
             null to null
         ).forEach {
             expect(true) { horizontalStripedBrush(rowHeight = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
@@ -63,7 +63,7 @@ class PatternBrushTests {
     @Test @JsName("horizontalStripesSizeCorrect")
     fun `horizontal stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it, it * 2)) { horizontalStripedBrush(rowHeight = it, evenRowColor = red).size }
+            expect(Size(it, it * 2)) { horizontalStripedBrush(rowHeight = it, evenRowColor = Red).size }
         }
     }
 
@@ -72,10 +72,10 @@ class PatternBrushTests {
         data class Attributes(val rowHeight: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
-                Attributes(45.6, red, green),
-                Attributes( 0.6, red,  null),
-                Attributes( 0.6, null,  red),
-                Attributes( 0.0, red, green)
+                Attributes(45.6, Red, Green),
+                Attributes( 0.6, Red,  null),
+                Attributes( 0.6, null,  Red),
+                Attributes( 0.0, Red, Green)
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
@@ -96,7 +96,7 @@ class PatternBrushTests {
     @Test @JsName("verticalStripesEmptyIfColorsTransparent")
     fun `vertical stripes empty if colors transparent`() {
         listOf(
-            red opacity 0f to transparent,
+            Red opacity 0f to Transparent,
             null to null
         ).forEach {
             expect(true) { verticalStripedBrush(colWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
@@ -106,7 +106,7 @@ class PatternBrushTests {
     @Test @JsName("verticalStripesSizeCorrect")
     fun `vertical stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it * 2, it)) { verticalStripedBrush(colWidth = it, evenRowColor = red).size }
+            expect(Size(it * 2, it)) { verticalStripedBrush(colWidth = it, evenRowColor = Red).size }
         }
     }
 
@@ -115,10 +115,10 @@ class PatternBrushTests {
         data class Attributes(val colWidth: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
-                Attributes(45.6, red, green),
-                Attributes( 0.6, red,  null),
-                Attributes( 0.6, null,  red),
-                Attributes( 0.0, red, green)
+                Attributes(45.6, Red, Green),
+                Attributes( 0.6, Red,  null),
+                Attributes( 0.6, null,  Red),
+                Attributes( 0.0, Red, Green)
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
@@ -139,7 +139,7 @@ class PatternBrushTests {
     @Test @JsName("checkerEmptyIfColorsTransparent")
     fun `checker empty if colors transparent`() {
         listOf(
-            red opacity 0f to transparent,
+            Red opacity 0f to Transparent,
             null to null
         ).forEach {
             expect(true) { checkerBrush(checkerSize = Size(10.0), firstColor = it.first, secondColor = it.second).size.empty }
@@ -149,7 +149,7 @@ class PatternBrushTests {
     @Test @JsName("checkerSizeCorrect")
     fun `checker size correct`() {
         listOf(Size(20.0, 10.0), Size(1.0), Size(3.4, 0.0), Empty).forEach {
-            expect(it * 2) { checkerBrush(checkerSize = it, firstColor = red).size }
+            expect(it * 2) { checkerBrush(checkerSize = it, firstColor = Red).size }
         }
     }
 
@@ -158,9 +158,9 @@ class PatternBrushTests {
         data class Attributes(val checkerSize: Size, val firstColor: Color?, val secondColor: Color?)
 
         listOf(
-                Attributes(Size(45.6), red, green),
-                Attributes(Size( 0.6), red,  null),
-                Attributes(Size( 0.6), null,  red)//,
+                Attributes(Size(45.6), Red, Green),
+                Attributes(Size( 0.6), Red,  null),
+                Attributes(Size( 0.6), null,  Red)//,
 //                Attributes(Size( 0.0), red, green)
         ).forEach { test ->
             val canvas = mockk<Canvas>()

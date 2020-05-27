@@ -9,11 +9,6 @@ import kotlin.math.abs
 import kotlin.math.round
 
 
-private fun Double.toIntExactOrNull() = if (this in Int.MIN_VALUE.toDouble()..Int.MAX_VALUE.toDouble()) this.toInt() else null
-
-private operator fun ClosedRange<Int>.contains(value: Double) = value.toIntExactOrNull().let { if (it != null) contains(it) else false }
-
-
 class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
@@ -52,25 +47,25 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 
     companion object {
-        val red         = Color(0xff0000u)
-        val pink        = Color(0xffc0cbu)
-        val blue        = Color(0x0000ffu)
-        val cyan        = Color(0x00ffffu)
-        val gray        = Color(0xa9a9a9u)
-        val black       = Color(0x000000u)
-        val white       = Color(0xffffffu)
-        val green       = Color(0x00ff00u)
-        val brown       = Color(0xA52A2Au)
-        val yellow      = Color(0xffff00u)
-        val orange      = Color(0xffa500u)
-        val magenta     = Color(0xff00ffu)
-        val darkgray    = Color(0x808080u)
-        val lightgray   = Color(0xd3d3d3u)
-        val transparent = black.opacity(value = 0f)
+        val Red         = Color(0xff0000u)
+        val Pink        = Color(0xffc0cbu)
+        val Blue        = Color(0x0000ffu)
+        val Cyan        = Color(0x00ffffu)
+        val Gray        = Color(0xa9a9a9u)
+        val Black       = Color(0x000000u)
+        val White       = Color(0xffffffu)
+        val Green       = Color(0x00ff00u)
+        val Brown       = Color(0xA52A2Au)
+        val Yellow      = Color(0xffff00u)
+        val Orange      = Color(0xffa500u)
+        val Magenta     = Color(0xff00ffu)
+        val Darkgray    = Color(0x808080u)
+        val Lightgray   = Color(0xd3d3d3u)
+        val Transparent = Black.opacity(value = 0f)
 
         fun blackOrWhiteContrast(color: Color): Color {
             val y = (299u * color.red + 587u * color.green + 114u * color.blue) / 1000u
-            return if (y >= 128u) black else white
+            return if (y >= 128u) Black else White
         }
     }
 }
@@ -248,10 +243,13 @@ val Color?.visible   : Boolean get() = this?.visible ?: false
 val HslColor?.visible: Boolean get() = this?.visible ?: false
 val HsvColor?.visible: Boolean get() = this?.visible ?: false
 
+private operator fun ClosedRange<Int>.contains(value: Double) = value.toIntExactOrNull().let { if (it != null) contains(it) else false }
+
+private fun Double.toIntExactOrNull() = if (this in Int.MIN_VALUE.toDouble()..Int.MAX_VALUE.toDouble()) this.toInt() else null
+
 private fun Double.toUByte() = toInt().toUByte()
 
 private fun UInt.toHex(): String {
-
     var i              = this
     var hash           = ""
     val alphabet       = "0123456789abcdef"

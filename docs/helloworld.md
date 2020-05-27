@@ -10,7 +10,7 @@ class HelloWorld(display: Display): Application {
             init { size = display.size }
 
             override fun render(canvas: Canvas) {
-                canvas.text("Hello, world!", at = Origin, brush = ColorBrush(black))
+                canvas.text("Hello, world!", at = Origin, brush = ColorBrush(Black))
             }
         }
     }

@@ -10,8 +10,8 @@ import com.nectar.doodle.controls.text.TextFit
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.lightgray
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.event.KeyEvent
@@ -33,8 +33,8 @@ import com.nectar.doodle.utils.ObservableSet
 
 open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
                                         textMetrics          : TextMetrics,
-                                        selectionColor       : Color? = green.lighter(),
-                                        selectionBlurredColor: Color? = lightgray): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
+                                        selectionColor       : Color? = Green.lighter(),
+                                        selectionBlurredColor: Color? = Lightgray): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -52,16 +52,16 @@ open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
 }
 
 open class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
-                                       evenRowColor: Color? = Color.white,
-                                       oddRowColor : Color? = lightgray.lighter().lighter(),
+                                       evenRowColor: Color? = Color.White,
+                                       oddRowColor : Color? = Lightgray.lighter().lighter(),
                                        rowHeight   : Double = 20.0): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
 
     constructor(focusManager         : FocusManager?,
                 textMetrics          : TextMetrics,
-                evenRowColor         : Color? = Color.white,
-                oddRowColor          : Color? = lightgray.lighter().lighter(),
-                selectionColor       : Color? = green.lighter(),
-                selectionBlurredColor: Color? = lightgray): this(MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
+                evenRowColor         : Color? = Color.White,
+                oddRowColor          : Color? = Lightgray.lighter().lighter(),
+                selectionColor       : Color? = Green.lighter(),
+                selectionBlurredColor: Color? = Lightgray): this(MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
     override fun keyPressed(event: KeyEvent) {
         when (event.key) {

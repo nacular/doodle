@@ -18,7 +18,7 @@ import com.nectar.doodle.utils.VerticalAlignment.Top
  */
 class LabelBehavior(private val foregroundColor: Color? = null, private val backgroundColor: Color? = null): Behavior<Label> {
     override fun install(view: Label) {
-        foregroundColor?.let { if (it != Color.black) view.foregroundColor = it } // FIXME: Check default color instead
+        foregroundColor?.let { if (it != Color.Black) view.foregroundColor = it } // FIXME: Check default color instead
         backgroundColor?.let {                        view.backgroundColor = it }
     }
 

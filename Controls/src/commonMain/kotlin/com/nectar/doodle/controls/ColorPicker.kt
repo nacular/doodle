@@ -3,11 +3,11 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.Color.Companion.blackOrWhiteContrast
-import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.transparent
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
+import com.nectar.doodle.drawing.Color.Companion.Transparent
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.HsvColor
 import com.nectar.doodle.drawing.LinearGradientBrush
@@ -127,8 +127,8 @@ class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
-                canvas.rect(rect, 3.0, LinearGradientBrush(white, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
-                canvas.rect(rect, 3.0, LinearGradientBrush(black, transparent, Point(0.0, rect.height), Point.Origin          ))
+                canvas.rect(rect, 3.0, LinearGradientBrush(White, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
+                canvas.rect(rect, 3.0, LinearGradientBrush(Black, Transparent, Point(0.0, rect.height), Point.Origin          ))
             }
 
             canvas.circle(Circle(Point(selection.first * width, selection.second * height), 7.0), Pen(blackOrWhiteContrast(color.toRgb())))
@@ -141,7 +141,7 @@ class ColorPicker(color: Color): View() {
                 val inset = 2.0
 
                 canvas.outerShadow(blurRadius = 1.0) {
-                    canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(white))
+                    canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(White))
                 }
             }
         }
@@ -255,7 +255,7 @@ class ColorPicker(color: Color): View() {
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val checkerBrush = checkerBrush(Size(32.0 / 2, 15.0 / 2), white, lightgray)
+        private val checkerBrush = checkerBrush(Size(32.0 / 2, 15.0 / 2), White, Lightgray)
 
         private lateinit var brush: LinearGradientBrush
 
@@ -302,7 +302,7 @@ class ColorPicker(color: Color): View() {
         }
 
         private fun updateBrush() {
-            brush = LinearGradientBrush(transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
+            brush = LinearGradientBrush(Transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
         }
     }
 
@@ -314,7 +314,7 @@ class ColorPicker(color: Color): View() {
         override fun render(canvas: Canvas) {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
-                    canvas.rect(bounds.atOrigin, 3.0, checkerBrush(Size(width * 2 / 3, height * 2 / 3) / 2, lightgray, white))
+                    canvas.rect(bounds.atOrigin, 3.0, checkerBrush(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
                 }
 
                 backgroundColor?.let {

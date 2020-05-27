@@ -12,7 +12,7 @@ val view = object: View() {}.apply { size = Size(100.0) }
 display.children += view // view's position is 0,0
 ```
 
-### Manual Positioning
+### You can set a View's position manually.
 
 Set the View's [`x`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L77),
 [`y`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L82), or
@@ -32,13 +32,12 @@ retains the same `bounds`, but its [`boundingBox`](https://github.com/pusolito/d
 
 ?> `boundingBox` == `bounds` when
 [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L144) ==
-[`Identity`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/AffineTransform.kt#L134) 
+[`Identity`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/AffineTransform.kt#L134).
 
-### Layouts
+### Views can also be positioned automatically with Layouts.
 
-Doodle also supports automatic positioning of Views via [`Layout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/Layout.kt#L75).
-A Layout monitors a View and updates its children's positions whenever the View's `size` changes, or any of the View's children have a `bounds`
-change.
+A [`Layout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/Layout.kt#L75) monitors a View
+and automatically updates its children's bounds. This happens whenever View's `size` changes, or one of its children has its bounds change.
 
 The View class also `protects` its `layout` property from callers, but sub-classes are free to expose
 it.
@@ -52,9 +51,9 @@ box.layout = HorizontalFlowLayout() // Box exposes its layout
 [`HorizontalFlowLayout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/layout/HorizontalFlowLayout.kt#L16)
 wraps a View's children from left to right within its bounds.
 
-?> Changes to a View's `transform` will not trigger layout
+!> Changes to a View's `transform` will not trigger layout.
 
-### Create Custom Layouts
+### You can also create custom Layouts.
 
 Custom Layouts are simple to build. Just implement the `Layout` interface:
 
@@ -71,10 +70,10 @@ class CustomLayout: Layout {
 ?> Layouts do not work with View directly because it does not expose its children. `PositionableContainer` proxies the
 managed View instead.
 
-### Constraints Based Layout
+### Doodle also offers constraint-based Layout.
 
-Doodle provides a useful Layout mechanism that is based on constraints. This covers many of the common layout
-use cases and is easy to use.
+This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right` points of Views. It also allows you to specify values
+for `width` and `height`, This covers many of the common layout use cases and is easy to use.
 
 ```kotlin
 val container = Box() // a simple container
@@ -97,4 +96,4 @@ container.layout = constrain(panel1, panel2) { panel1, panel2 ->
 }
 ```
 
-!> `constrain` only supports positioning for siblings within the same parent
+!> `constrain` only supports positioning for siblings within the same parent.

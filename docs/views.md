@@ -39,18 +39,20 @@ class UserInfo(
     }
     
     override fun render(canvas: Canvas) {
-        canvas.text("name: $name", Origin, ColorBrush(black))
+        canvas.text("name: $name", Origin, ColorBrush(Black))
         canvas.text("age : $age", Point(0.0, textMetrics.height(name)),
-            ColorBrush(black))
+            ColorBrush(Black))
     }
 }
 ```
 ?> Don't worry about the `render` method yet; we cover that [later](rendering.md).
 
-### Top-level Views
+## View Hierarchy
+
+### You can have any number of top-level Views.
 
 Doodle apps contain a hierarchy of Views working together; with the [**Display**](display.md?id=the-display-is-an-apps-root-container)
-being the root ancestor. You display a top-level View like this:
+being the root ancestor--though it is not a View. You display a top-level View like this:
 
 ```kotlin
 class MyApp(display: Display): View() {
@@ -61,7 +63,7 @@ class MyApp(display: Display): View() {
 }
 ```
 
-### Views Can Have Children
+### Views can also have children.
 
 Most apps consist of hierarchies with Views nested inside one another. Doodle apps are no different: Views
 support nesting [`children`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L348).

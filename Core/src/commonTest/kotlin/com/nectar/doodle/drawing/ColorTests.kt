@@ -3,14 +3,14 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Color.Companion.blue
-import com.nectar.doodle.drawing.Color.Companion.cyan
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.red
-import com.nectar.doodle.drawing.Color.Companion.transparent
-import com.nectar.doodle.drawing.Color.Companion.white
-import com.nectar.doodle.drawing.Color.Companion.yellow
+import com.nectar.doodle.drawing.Color.Companion.Black
+import com.nectar.doodle.drawing.Color.Companion.Blue
+import com.nectar.doodle.drawing.Color.Companion.Cyan
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Red
+import com.nectar.doodle.drawing.Color.Companion.Transparent
+import com.nectar.doodle.drawing.Color.Companion.White
+import com.nectar.doodle.drawing.Color.Companion.Yellow
 import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.times
 import kotlin.test.Test
@@ -22,7 +22,7 @@ import kotlin.test.expect
  */
 class ColorTests {
     @Test @JsName("redNotEqualBlue")
-    fun `red != blue`() = expect(false) { red == blue }
+    fun `red != blue`() = expect(false) { Red == Blue }
 
     @Test @JsName("invalidHexFails")
     fun `invalid hex fails`() {
@@ -35,16 +35,16 @@ class ColorTests {
     }
 
     @Test @JsName("transparentInvisible")
-    fun `transparent invisible`() = listOf(Color(0xaaaaaau, 0f), Color(10u, 10u, 10u, 0f), transparent).forEach { expect(false) { it.visible } }
+    fun `transparent invisible`() = listOf(Color(0xaaaaaau, 0f), Color(10u, 10u, 10u, 0f), Transparent).forEach { expect(false) { it.visible } }
 
     @Test @JsName("inversion")
-    fun `inversion works`() = listOf(white to black, red to cyan, yellow to blue, green to Color(0xff00ffu)).forEach {
+    fun `inversion works`() = listOf(White to Black, Red to Cyan, Yellow to Blue, Green to Color(0xff00ffu)).forEach {
         expect(it.first ) { it.second.inverted }
         expect(it.second) { it.first.inverted  }
     }
 
     @Test @JsName("hexCorrect")
-    fun `hexString correct`() = listOf(red to "ff0000", green to "00ff00", blue to "0000ff").forEach {
+    fun `hexString correct`() = listOf(Red to "ff0000", Green to "00ff00", Blue to "0000ff").forEach {
         expect(it.second) { it.first.hexString }
     }
 

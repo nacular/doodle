@@ -21,9 +21,9 @@ import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.blue
-import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Blue
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
@@ -57,7 +57,7 @@ private class TableListRow<T>(
                     row                  : T,
                     index                : Int,
                     itemVisualizer       : IndexedItemVisualizer<T>,
-                    selectionColor       : Color? = blue,
+                    selectionColor       : Color? = Blue,
                     selectionBlurredColor: Color? = selectionColor): ListRow<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
 
     private val alignmentChanged: (Column<*>) -> Unit = {
@@ -91,11 +91,11 @@ open class BasicCellGenerator<T>: CellGenerator<T> {
 open class BasicTableBehavior<T>(
         private   val focusManager         : FocusManager?,
         protected val rowHeight            : Double = 20.0,
-        protected val headerColor          : Color? = lightgray,
-                      evenRowColor         : Color? = white,
-                      oddRowColor          : Color? = lightgray.lighter().lighter(),
-        protected val selectionColor       : Color? = blue,
-        protected val selectionBlurredColor: Color? = lightgray): TableBehavior<T>, PointerListener, KeyListener, SelectableListKeyHandler {
+        protected val headerColor          : Color? = Lightgray,
+                      evenRowColor         : Color? = White,
+                      oddRowColor          : Color? = Lightgray.lighter().lighter(),
+        protected val selectionColor       : Color? = Blue,
+        protected val selectionBlurredColor: Color? = Lightgray): TableBehavior<T>, PointerListener, KeyListener, SelectableListKeyHandler {
 
     override var bodyDirty  : ((         ) -> Unit)? = null
     override var headerDirty: ((         ) -> Unit)? = null
@@ -203,11 +203,11 @@ open class BasicTableBehavior<T>(
 open class BasicMutableTableBehavior<T>(
         focusManager         : FocusManager?,
         rowHeight            : Double = 20.0,
-        headerColor          : Color? = lightgray,
-        evenRowColor         : Color? = white,
-        oddRowColor          : Color? = lightgray.lighter().lighter(),
-        selectionColor       : Color? = blue,
-        selectionBlurredColor: Color? = lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
+        headerColor          : Color? = Lightgray,
+        evenRowColor         : Color? = White,
+        oddRowColor          : Color? = Lightgray.lighter().lighter(),
+        selectionColor       : Color? = Blue,
+        selectionBlurredColor: Color? = Lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {

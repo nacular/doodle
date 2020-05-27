@@ -187,7 +187,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         brush = null
 
         rootElement.apply {
-
             style.setTransform(null)
 
             clearVisualStyles()

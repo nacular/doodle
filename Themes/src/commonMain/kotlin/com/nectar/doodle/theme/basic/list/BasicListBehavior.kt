@@ -13,9 +13,9 @@ import com.nectar.doodle.theme.basic.SelectableListKeyHandler
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
@@ -30,8 +30,8 @@ import com.nectar.doodle.focus.FocusManager
 
 open class BasicItemGenerator<T>(private val focusManager         : FocusManager?,
                                  private val textMetrics          : TextMetrics,
-                                 private val selectionColor       : Color? = green.lighter(),
-                                 private val selectionBlurredColor: Color? = lightgray): RowGenerator<T> {
+                                 private val selectionColor       : Color? = Green.lighter(),
+                                 private val selectionBlurredColor: Color? = Lightgray): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
         else          -> ListRow(list, row, index, list.itemVisualizer ?: passThrough(ToStringItemVisualizer(TextItemVisualizer(textMetrics))), backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor).apply {
@@ -51,15 +51,15 @@ private class BasicListPositioner<T>(height: Double): ListPositioner(height), Ro
 }
 
 open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
-                                             evenRowColor: Color? = white,
-                                             oddRowColor : Color? = lightgray.lighter().lighter(),
+                                             evenRowColor: Color? = White,
+                                             oddRowColor : Color? = Lightgray.lighter().lighter(),
                                              rowHeight   : Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
     constructor(focusManager         : FocusManager?,
                 textMetrics          : TextMetrics,
-                evenRowColor         : Color? = white,
-                oddRowColor          : Color? = lightgray.lighter().lighter(),
-                selectionColor       : Color? = Color.green.lighter(),
-                selectionBlurredColor: Color? = lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
+                evenRowColor         : Color? = White,
+                oddRowColor          : Color? = Lightgray.lighter().lighter(),
+                selectionColor       : Color? = Color.Green.lighter(),
+                selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
     private val patternBrush = if (evenRowColor != null || oddRowColor != null) horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor) else null
 

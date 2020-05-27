@@ -13,7 +13,7 @@ import com.nectar.doodle.dom.translate
 import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Brush
-import com.nectar.doodle.drawing.Color.Companion.red
+import com.nectar.doodle.drawing.Color.Companion.Red
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.Pen
@@ -98,7 +98,7 @@ class CanvasImplTests {
 //    }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
-        val brush = ColorBrush(red)
+        val brush = ColorBrush(Red)
         val rect  = Rectangle(100, 100)
 
         validateRender { renderParent, htmlFactory, _, _ ->
@@ -118,7 +118,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val brush  = ColorBrush(red)
+        val brush  = ColorBrush(Red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -140,7 +140,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val brush  = ColorBrush(red)
+        val brush  = ColorBrush(Red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
@@ -161,7 +161,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val brush   = ColorBrush(red)
+        val brush   = ColorBrush(Red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
@@ -182,7 +182,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleText") fun `renders simple text`() {
-        val brush = ColorBrush(red)
+        val brush = ColorBrush(Red)
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(34, 89)
@@ -222,7 +222,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
-        val brush = ColorBrush(red)
+        val brush = ColorBrush(Red)
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(150, 89)

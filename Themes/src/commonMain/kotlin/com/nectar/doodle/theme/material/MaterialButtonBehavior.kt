@@ -11,8 +11,8 @@ import com.nectar.doodle.controls.theme.CommonTextButtonBehavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Black
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Font.Companion.Thick
 import com.nectar.doodle.drawing.FontDetector
@@ -40,7 +40,7 @@ fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
 
     val maxRadius = sqrt(x.pow(2) + y.pow(2))
 
-    on.circle(Circle(radius = maxRadius * progress, center = at), ColorBrush(white opacity opacity))
+    on.circle(Circle(radius = maxRadius * progress, center = at), ColorBrush(White opacity opacity))
 }
 
 class MaterialButtonBehavior(
@@ -155,12 +155,12 @@ class MaterialButtonBehavior(
     override fun render(view: Button, canvas: Canvas) {
         val bounds = view.bounds.atOrigin
 
-        canvas.outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
+        canvas.outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
             canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, brush = ColorBrush(backgroundColor))
         }
 
-        canvas.outerShadow(color = black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
-            canvas.outerShadow(color = black opacity 0.2f, vertical = 1.0, blurRadius = 5.0) {
+        canvas.outerShadow(color = Black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
+            canvas.outerShadow(color = Black opacity 0.2f, vertical = 1.0, blurRadius = 5.0) {
                 canvas.rect(bounds, cornerRadius, ColorBrush(backgroundColor))
             }
         }
@@ -170,7 +170,7 @@ class MaterialButtonBehavior(
         canvas.clip(bounds, cornerRadius) {
             canvas.text(text, view.font, textPosition(view, text, bounds = bounds), ColorBrush(textColor))
 
-            canvas.rect(bounds, cornerRadius, ColorBrush(white opacity overlayOpacity))
+            canvas.rect(bounds, cornerRadius, ColorBrush(White opacity overlayOpacity))
 
             pointerPressLocation?.let { drawRipple(canvas, it, rippleOpacity, rippleProgress) }
         }

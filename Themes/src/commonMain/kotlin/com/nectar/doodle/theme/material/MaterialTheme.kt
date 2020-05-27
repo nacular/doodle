@@ -2,7 +2,7 @@ package com.nectar.doodle.theme.material
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.theme.Modules.BehaviorResolver
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme
@@ -24,7 +24,7 @@ class MaterialTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors
         }
 
         val materialButtonBehavior = Module(name = "MaterialButtonBehavior") {
-            bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehavior(instance(), instance(), instance(), textColor = white, backgroundColor = Color(0x6200EEu), cornerRadius = 4.0) }
+            bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehavior(instance(), instance(), instance(), textColor = White, backgroundColor = Color(0x6200EEu), cornerRadius = 4.0) }
 //            bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehaviorBase(instance(), instance(), instance(), textColor = Color(0x6200EEu), cornerRadius = 4.0) }
         }
     }

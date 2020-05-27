@@ -3,7 +3,7 @@
 
 ### Key handling is simple with Doodle.
 
-The first thing you need to do is include the [`keyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L54)
+The first thing you need to do is include the [`keyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L59)
 when launching your app.
 
 ```kotlin

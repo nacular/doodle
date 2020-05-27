@@ -1,7 +1,7 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
-import com.nectar.doodle.drawing.Color.Companion.black
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.geometry.Circle
 import com.nectar.doodle.geometry.Ellipse
 import com.nectar.doodle.geometry.Point
@@ -17,8 +17,8 @@ import com.nectar.measured.units.Measure
 
 
 sealed class Shadow(val horizontal: Double, val vertical: Double, val blurRadius: Double, val color: Color)
-class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
-class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = black): Shadow(horizontal, vertical, blurRadius, color)
+class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
+class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
 
 /**
  * All rendering operations are done using Canvases. A canvas represents an "infinite", 2-D surface that can be
@@ -327,7 +327,7 @@ interface Canvas: Renderer {
      * @param color of the shadow
      * @param block shadow applied to
      */
-    fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
+    fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
 
     /**
      * Adds an outer shadow to the operations within [block].
@@ -338,5 +338,5 @@ interface Canvas: Renderer {
      * @param color of the shadow
      * @param block shadow applied to
      */
-    fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
+    fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
 }

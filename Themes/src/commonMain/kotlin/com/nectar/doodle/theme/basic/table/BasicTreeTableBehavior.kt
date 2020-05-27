@@ -21,9 +21,9 @@ import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.event.KeyEvent
@@ -65,12 +65,12 @@ fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int) = obj
 open class BasicTreeTableBehavior<T>(
         private val focusManager         : FocusManager?,
         private val rowHeight            : Double = 20.0,
-        private val headerColor          : Color? = lightgray,
-                    evenRowColor         : Color? = white,
-                    oddRowColor          : Color? = lightgray.lighter().lighter(),
-                    iconColor            : Color  = Color.black,
-        private val selectionColor       : Color? = green.lighter(),
-        private val blurredSelectionColor: Color? = lightgray): TreeTableBehavior<T>, PointerListener, KeyListener, SelectableTreeKeyHandler {
+        private val headerColor          : Color? = Lightgray,
+                    evenRowColor         : Color? = White,
+                    oddRowColor          : Color? = Lightgray.lighter().lighter(),
+                    iconColor            : Color  = Color.Black,
+        private val selectionColor       : Color? = Green.lighter(),
+        private val blurredSelectionColor: Color? = Lightgray): TreeTableBehavior<T>, PointerListener, KeyListener, SelectableTreeKeyHandler {
 
     override var headerDirty: ((         ) -> Unit)? = null
     override var bodyDirty  : ((         ) -> Unit)? = null

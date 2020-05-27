@@ -5,8 +5,8 @@ import com.nectar.doodle.controls.list.ListLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.blue
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Blue
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -26,9 +26,9 @@ open class ListRow<T>(private var list                           : ListLike,
                       private var row                            : T,
                               var index                          : Int,
                       private val itemVisualizer                 : IndexedItemVisualizer<T>,
-                      private val foregroundSelectionColor       : Color? = white,
+                      private val foregroundSelectionColor       : Color? = White,
                       private val foregroundSelectionBlurredColor: Color? = foregroundSelectionColor,
-                      private val backgroundSelectionColor       : Color? = blue,
+                      private val backgroundSelectionColor       : Color? = Blue,
                       private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }

@@ -7,7 +7,7 @@ import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
@@ -64,7 +64,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
         private       val sFillColor          = Color(0x21a121u)
         private       val sHoverColor         = Color(0xfac55au)
         private       val sBorderColor        = Color(0x1c5180u)
-        private       val sLightBGColor       = white
+        private       val sLightBGColor       = White
         private       val sDisabledLightColor = Color(0xccccccu)
     }
 }

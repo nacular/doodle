@@ -21,7 +21,7 @@ import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Modules
@@ -66,7 +66,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         val oddRowColor            get() = foregroundColor.inverted
         val eventRowColor          get() = lightBackgroundColor
         val selectionColor         get() = Color(0x0063e1u)
-        val foregroundColor        get() = black
+        val foregroundColor        get() = Black
         val backgroundColor        get() = Color(0xccccccu)
         val darkBackgroundColor    get() = Color(0xaaaaaau)
         val lightBackgroundColor   get() = Color(0xf3f4f5u)

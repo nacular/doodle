@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.table.Column
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.gray
+import com.nectar.doodle.drawing.Color.Companion.Gray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.PointerEvent
@@ -162,7 +162,7 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
         val x = width - lineThickness / 2
 
         backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Pen(headerColor?.inverted ?: gray, lineThickness))
+        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Pen(headerColor?.inverted ?: Gray, lineThickness))
     }
 
     companion object {

@@ -8,7 +8,7 @@ import com.nectar.doodle.core.height
 import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Size
@@ -37,7 +37,7 @@ open class CheckRadioButtonBehavior protected constructor(
 
     override fun render(view: ToggleButton, canvas: Canvas) {
         val icon      = icon(view)
-        val textColor = if (view.enabled) black else Color(0xccccccu)
+        val textColor = if (view.enabled) Black else Color(0xccccccu)
 
         canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorBrush(textColor))
 

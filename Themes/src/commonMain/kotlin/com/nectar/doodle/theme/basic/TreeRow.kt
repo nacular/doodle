@@ -5,7 +5,7 @@ import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.green
+import com.nectar.doodle.drawing.Color.Companion.Green
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.PointerEvent
@@ -71,7 +71,7 @@ class TreeRow<T>(tree                : TreeLike, node: T,
              var path                : Path<Int>,
      private var index               : Int,
      private val contentGenerator    : ContentGenerator<T>,
-     private val selectionColor      : Color? = green,
+     private val selectionColor      : Color? = Green,
      private val selectionBluredColor: Color? = selectionColor,
      private val iconFactory         : () -> TreeRowIcon): View() {
 

@@ -3,9 +3,9 @@ package com.nectar.doodle.controls
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Color.Companion.lightgray
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Black
+import com.nectar.doodle.drawing.Color.Companion.Lightgray
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.PatternBrush
 import com.nectar.doodle.drawing.Pen
@@ -74,7 +74,7 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
     init {
         foregroundColor = Color(0x6200EEu)
-        backgroundColor = white
+        backgroundColor = White
 
         boundsChanged += { _,_,_ ->
             updateStar()
@@ -117,8 +117,8 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
         if (displayValue < max) {
             canvas.rect(rect, PatternBrush(bounds = brushBounds) {
-                outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                    poly(star, Pen(lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
+                outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
+                    poly(star, Pen(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
                 }
             })
         }
@@ -133,7 +133,7 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
                 canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternBrush(bounds = brushBounds) {
                     if (displayValue.toInt() == max) {
-                        outerShadow(color = black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
+                        outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                             poly(star, ColorBrush(foregroundColor))
                         }
                     } else {

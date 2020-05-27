@@ -34,6 +34,6 @@ class CircularProgressBehavior(private val defaultBackgroundColor: Color, privat
         canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90 * degrees - sweep, brush = ColorBrush(darkBackgroundColor))
 
         // TODO: Make this transparent
-        canvas.circle(Circle(center, radius - radius / 4), Pen(darkBackgroundColor, border), ColorBrush(Color.white))
+        canvas.circle(Circle(center, radius - radius / 4), Pen(darkBackgroundColor, border), ColorBrush(Color.White))
     }
 }

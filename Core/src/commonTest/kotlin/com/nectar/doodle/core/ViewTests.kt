@@ -3,8 +3,8 @@
 package com.nectar.doodle.core
 
 import com.nectar.doodle.JsName
-import com.nectar.doodle.drawing.Color.Companion.green
-import com.nectar.doodle.drawing.Color.Companion.red
+import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.Red
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
@@ -101,8 +101,8 @@ class ViewTests {
         validateSetter(View::focusable,           false                          )
         validateSetter(View::idealSize,           Size(20.0, 37.6)               )
         validateSetter(View::minimumSize,         Size.Empty                     )
-        validateSetter(View::foregroundColor,     red                            )
-        validateSetter(View::backgroundColor,     green                          )
+        validateSetter(View::foregroundColor,     Red                            )
+        validateSetter(View::backgroundColor,     Green                          )
         validateSetter(View::monitorsDisplayRect, false                          )
     }
 

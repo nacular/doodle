@@ -9,9 +9,9 @@ import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
-import com.nectar.doodle.drawing.Color.Companion.black
-import com.nectar.doodle.drawing.Color.Companion.gray
-import com.nectar.doodle.drawing.Color.Companion.white
+import com.nectar.doodle.drawing.Color.Companion.Black
+import com.nectar.doodle.drawing.Color.Companion.Gray
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
@@ -118,14 +118,14 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
         backgroundColor?.let {
             canvas.path(path, ColorBrush(it))
         } ?: if (index > panel.selection || index < panel.selection - 1) {
-            canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Pen(gray))
+            canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Pen(Gray))
         }
 
         canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
             val name       = name
             val nameHeight = textMetrics.height(name)
 
-            text(name, at = Point(2 * radius, (height - nameHeight) / 2), brush = ColorBrush(black))
+            text(name, at = Point(2 * radius, (height - nameHeight) / 2), brush = ColorBrush(Black))
         }
     }
 
@@ -162,7 +162,7 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
                                protected val namer        : (T) -> String,
                                override  val tabHeight    : Double = 40.0,
                                protected val tabRadius    : Double = 10.0,
-                               protected val selectedColor: Color  = white,
+                               protected val selectedColor: Color  = White,
                                protected val tabColor     : Color  = Color(0xdee1e6u)): TabProducer<T> {
     override val spacing = -2 * tabRadius
 
