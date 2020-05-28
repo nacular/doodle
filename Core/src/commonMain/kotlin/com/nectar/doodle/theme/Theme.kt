@@ -1,6 +1,3 @@
-/**
- * Created by Nicholas Eddy on 1/24/18.
- */
 package com.nectar.doodle.theme
 
 import com.nectar.doodle.core.Display
@@ -13,14 +10,12 @@ import com.nectar.doodle.utils.ObservableSet
 
 
 /**
- * Themes are able to visually style [View]s within the [Display].  Installing one will trigger an update and provide the full set of [View]s
+ * Themes are able to visually style [View]s within the [Display]. Installing one will trigger an update and provide the full set of [View]s
  * to the [Theme.install] method, allowing the theme to update any subset of [View]s it chooses.
- *
- * @author Nicholas Eddy
  */
 interface Theme {
     /**
-     * Called whenever a Theme is set as [ThemeManager.selected].  This allows the theme to update any of the [View]s present in the [Display].
+     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s present in the [Display].
      *
      * @param display
      * @param all the Views (recursively) within the Display
@@ -32,43 +27,44 @@ interface Theme {
 
 /**
  * A Behavior can be used by [View]s and [Theme]s to allow delegation of the [View.render] call and other characteristics of the [View].
- * This way, a [View] can have it's visual style and behaviors controlled by a delegate.
+ * This way, a [View] can support pluggable visual style and behavior.
  */
 interface Behavior<in T: View> {
     /**
      * Allows the Behavior to override the View's [View.clipCanvasToBounds] property.
      *
+     * @param view being controlled
      * @see View.clipCanvasToBounds
      */
-    val clipCanvasToBounds: Boolean get() = true
+    fun clipCanvasToBounds(view: T): Boolean = view.clipCanvasToBounds_
 
     /**
      * Invoked to render the given [View].
      *
-     * @param view  the View being rendered
-     * @param canvas the Canvas given to the View during a system call to [View.render]
+     * @param view being controlled
+     * @param canvas given to the View during a system call to [View.render]
      */
     fun render(view: T, canvas: Canvas) {}
 
     /**
-     * Returns true if the [View] contains point.  This can be used to handle cases when the [Behavior] wants to control hit detection.
+     * Returns true if the [View] contains point. This can be used to handle cases when the [Behavior] wants to control hit detection.
      *
-     * @param view
-     * @param point
+     * @param view being controlled
+     * @param point to check
      */
-    fun contains(view: T, point: Point): Boolean = point in view.bounds
+    fun contains(view: T, point: Point): Boolean = point in view
 
     /**
      * Called when the Behavior is applied to a [View].
      *
-     * @param view being applied to
+     * @param view to control
      */
     fun install(view: T) {}
 
     /**
      * Called when the Behavior is removed from a [View].
      *
-     * @param view being removed from
+     * @param view being controlled
      */
     fun uninstall(view: T) {}
 }
@@ -81,7 +77,7 @@ interface ThemeManager {
     val themes: ObservableSet<Theme>
 
     /**
-     * The currently selected [Theme].  Setting this will cause the new Theme to update the [Display] and [View]s therein.
+     * The currently selected [Theme]. Setting this will cause the new Theme to update the [Display] and [View]s therein.
      * A theme that is set as selected is also added to the [themes] set.
      */
     var selected: Theme?

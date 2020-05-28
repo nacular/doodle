@@ -1,9 +1,8 @@
 package com.nectar.doodle.theme.basic.tabbedpanel
 
 import com.nectar.doodle.controls.panels.TabbedPanel
-import com.nectar.doodle.controls.theme.TabbedPanelBehavior
+import com.nectar.doodle.controls.panels.TabbedPanelBehavior
 import com.nectar.doodle.core.Box
-import com.nectar.doodle.core.Container
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
@@ -191,15 +190,17 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
 
 open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<T>,
                                        private val backgroundColor: Color = Color(0xdee1e6u),
-                                       private val displayer      : (T) -> View): TabbedPanelBehavior<T> {
+                                       private val displayer      : (T) -> View): TabbedPanelBehavior<T>() {
 
-    override fun install(panel: TabbedPanel<T>, container: Container) {
-        container.apply {
+    override fun install(panel: TabbedPanel<T>) {
+        panel.apply {
             children.add(TabContainer(panel, tabProducer))
 
-            panel.forEach { children.add(displayer(it).apply {
-                visible = it == panel.selectedItem
-            }) }
+            panel.forEach {
+                children.add(displayer(it).apply {
+                    visible = it == panel.selectedItem
+                })
+            }
 
             layout = object: Layout {
                 override fun layout(container: PositionableContainer) {
@@ -214,29 +215,29 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         }
     }
 
-    override fun uninstall(panel: TabbedPanel<T>, container: Container) {
-        container.apply {
+    override fun uninstall(panel: TabbedPanel<T>) {
+        panel.apply {
             children.clear()
             layout = null
         }
     }
 
-    override fun selectionChanged(panel: TabbedPanel<T>, container: Container, new: T, newIndex: Int, old: T?, oldIndex: Int?) {
+    override fun selectionChanged(panel: TabbedPanel<T>, new: T, newIndex: Int, old: T?, oldIndex: Int?) {
         val dirty = mutableSetOf<Int>()
 
         oldIndex?.let {
-            container.children.getOrNull(it + 1)?.visible = false
+            panel.children.getOrNull(it + 1)?.visible = false
 
             dirty += it
         }
 
         newIndex.let {
-            container.children.getOrNull(it + 1)?.visible = true
+            panel.children.getOrNull(it + 1)?.visible = true
 
             dirty += it
         }
 
-        (container.children[0] as TabContainer<*>).apply {
+        (panel.children[0] as TabContainer<*>).apply {
             oldIndex?.let{ children.getOrNull(it) }?.let { it.zOrder = 0 }
 
             newIndex.let { children.getOrNull(it) }?.zOrder = 1
@@ -247,8 +248,8 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         }
     }
 
-    override fun tabsChanged(panel: TabbedPanel<T>, container: Container, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
-        (container.first() as? TabContainer<T>)?.apply {
+    override fun tabsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+        (panel.first() as? TabContainer<T>)?.apply {
             children.batch {
                 removed.keys.forEach { removeAt(it) }
 
@@ -266,14 +267,14 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
             }
         }
 
-        removed.keys.forEach { container.children.removeAt(it + 1) }
+        removed.keys.forEach { panel.children.removeAt(it + 1) }
 
         added.forEach { (index, item) ->
-            container.children.addOrAppend(index + 1, displayer(item))
+            panel.children.addOrAppend(index + 1, displayer(item))
         }
 
         moved.forEach { (oldIndex, new) ->
-            container.children.addOrAppend(new.first + 1, container.children.removeAt(oldIndex + 1))
+            panel.children.addOrAppend(new.first + 1, panel.children.removeAt(oldIndex + 1))
         }
     }
 

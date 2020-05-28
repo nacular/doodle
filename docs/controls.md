@@ -5,7 +5,7 @@ Doodle has several common UI components in the Controls library. Access these by
 `com.nectar.doodle:controls:$doodle_version` in your build.gradle file.
 
 Most of these components rely entirely on their `Behavior` for rendering. Moreover, they do not have
-defaults for them to minimize bundle size. So you need to specify them explicitly or use a `Theme` that provides
+defaults for them to minimize bundle size. So you need to specify them explicitly or use a [**Theme**](themes.md) that provides
 them for the controls you use. 
 
 ## Label
@@ -20,7 +20,7 @@ val label = Label("hello")
 
 ## TextField
 
-A component that allows simple text input.
+A component for simple text input.
 
 ```kotlin
 val textField = TextField().apply {
@@ -32,7 +32,7 @@ val textField = TextField().apply {
 
 ## Button
 
-A component that can be "pressed" to trigger an action; usually with the pointer or keyboard.
+A component that is "pressed" to trigger an action; usually with the pointer or keyboard.
 
 ```kotlin
 val button = PushButton("Press Here").apply {

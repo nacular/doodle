@@ -61,7 +61,7 @@ abstract class Button protected constructor(
 
             field = new?.also {
                 it.install(this)
-                clipCanvasToBounds = it.clipCanvasToBounds
+                clipCanvasToBounds = it.clipCanvasToBounds(this)
             }
         }
 

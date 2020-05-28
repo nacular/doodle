@@ -1,11 +1,8 @@
 package com.nectar.doodle.controls.panels
 
-import com.nectar.doodle.controls.theme.TabbedPanelBehavior
-import com.nectar.doodle.core.Container
-import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.geometry.Point
+import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.BoxOrientation
 import com.nectar.doodle.utils.BoxOrientation.Top
 import com.nectar.doodle.utils.ObservableList
@@ -14,31 +11,21 @@ import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import com.nectar.doodle.utils.addOrAppend
 
-/**
- * Created by Nicholas Eddy on 4/2/18.
- */
+abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
+    val TabbedPanel<T>.children         get() = this._children
+    var TabbedPanel<T>.insets           get() = this._insets;           set(new) { _insets           = new }
+    var TabbedPanel<T>.layout           get() = this._layout;           set(new) { _layout           = new }
+    var TabbedPanel<T>.isFocusCycleRoot get() = this._isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+
+    abstract fun selectionChanged(panel: TabbedPanel<T>, new: T, newIndex: Int, old: T?, oldIndex: Int?)
+
+    abstract fun tabsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
+}
 
 class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remaining: T): View(), Iterable<T> {
     constructor(item: T, vararg remaining: T): this(Top, item, *remaining)
 
-    private val wrapper: Container = object: Container {
-        override var insets
-            get(   ) = this@TabbedPanel.insets
-            set(new) { this@TabbedPanel.insets = new }
-        override var layout: Layout?
-            get(   ) = this@TabbedPanel.layout
-            set(new) { this@TabbedPanel.layout = new }
-        override var isFocusCycleRoot: Boolean
-            get(   ) = this@TabbedPanel.isFocusCycleRoot
-            set(new) { this@TabbedPanel.isFocusCycleRoot = new }
-        override val children get() = this@TabbedPanel.children
-
-        override fun ancestorOf(view: View) = this@TabbedPanel.ancestorOf(view)
-
-        override fun child(at: Point) = this@TabbedPanel.child(at)
-    }
-
-    val selectionChanged  : PropertyObservers<TabbedPanel<T>, Int?>           by lazy { PropertyObserversImpl<TabbedPanel<T>, Int>           (this) }
+    val selectionChanged  : PropertyObservers<TabbedPanel<T>, Int?>           by lazy { PropertyObserversImpl<TabbedPanel<T>, Int?>          (this) }
     val orientationChanged: PropertyObservers<TabbedPanel<T>, BoxOrientation> by lazy { PropertyObserversImpl<TabbedPanel<T>, BoxOrientation>(this) }
 
     val numItems   : Int            get() = items.size
@@ -52,11 +39,17 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
             children.batch {
                 clear()
 
-                field?.uninstall(this@TabbedPanel, wrapper)
+                field?.uninstall(this@TabbedPanel)
 
-                field = new?.apply { install(this@TabbedPanel, wrapper) }
+                field = new?.apply { install(this@TabbedPanel) }
             }
         }
+
+    // Expose container APIs for behavior
+    internal val _children         get() = children
+    internal var _insets           get() = insets; set(new) { insets = new }
+    internal var _layout           get() = layout; set(new) { layout = new }
+    internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     private val items = ObservableList<T>()
 
@@ -65,12 +58,12 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remainin
         items += remaining
 
         selectionChanged += { _,old,new ->
-            behavior?.selectionChanged(this, wrapper, selectedItem, new!!, old?.let { get(it) }, old)
+            behavior?.selectionChanged(this, selectedItem, new!!, old?.let { get(it) }, old)
         }
 
         items.changed += { _,removed,added,moved ->
 
-            behavior?.tabsChanged(this, wrapper, removed, added, moved)
+            behavior?.tabsChanged(this, removed, added, moved)
 
             removed.forEach { (index, _) ->
                 selection = when {

@@ -77,7 +77,7 @@ class MaterialButtonBehavior(
         overlayAnimation = (animate (overlayOpacity to overlayEnd    ) using fixedTimeLinear(hoverAnimationTime)) { overlayOpacity = it }
     }
 
-    override val clipCanvasToBounds = false
+    override fun clipCanvasToBounds(view: Button) = false
 
     override fun install(view: Button) {
         super.install(view)
