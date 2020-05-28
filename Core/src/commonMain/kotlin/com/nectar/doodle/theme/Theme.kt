@@ -47,12 +47,13 @@ interface Behavior<in T: View> {
     fun render(view: T, canvas: Canvas) {}
 
     /**
-     * Returns true if the [View] contains point. This can be used to handle cases when the [Behavior] wants to control hit detection.
+     * Returns true if the point is within the [View]'s bounds. This can be used to handle cases
+     * when the [Behavior] wants to control hit detection.
      *
      * @param view being controlled
-     * @param point to check
+     * @param point to check (in view's parent's coordinate system)
      */
-    fun contains(view: T, point: Point): Boolean = point in view
+    fun contains(view: T, point: Point): Boolean = point in view.bounds
 
     /**
      * Called when the Behavior is applied to a [View].

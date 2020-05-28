@@ -16,5 +16,5 @@ val textField = TextField().apply {
 Take a TabbedPanel for example. The number of configurations is fairly open-ended; and the API would be needlessly complicated if it
 tried to encompass everything.
 
-This is where [`Behavior`s]() come in. Views can accept a Behavior and delegate things like rendering, hit-detection and anything else
-to provide deep customization. TabbedPanel--along with Textfield and many other controls--actually does this.
+This is where [`Behavior`s]() come in. Views can offer deep customization by delegating rendering, hit detection and anything else
+to Behaviors. TabbedPanel--along with Textfield and many other controls--actually does this.

@@ -114,10 +114,14 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
     }
 
     override fun render(canvas: Canvas) {
+        val selection = panel.selection
+
         backgroundColor?.let {
             canvas.path(path, ColorBrush(it))
-        } ?: if (index > panel.selection || index < panel.selection - 1) {
-            canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Pen(Gray))
+        } ?: when {
+            selection != null && (index > selection || index < selection - 1) -> {
+                canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Pen(Gray))
+            }
         }
 
         canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
@@ -222,7 +226,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         }
     }
 
-    override fun selectionChanged(panel: TabbedPanel<T>, new: T, newIndex: Int, old: T?, oldIndex: Int?) {
+    override fun selectionChanged(panel: TabbedPanel<T>, new: T?, newIndex: Int?, old: T?, oldIndex: Int?) {
         val dirty = mutableSetOf<Int>()
 
         oldIndex?.let {
@@ -231,7 +235,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
             dirty += it
         }
 
-        newIndex.let {
+        newIndex?.let {
             panel.children.getOrNull(it + 1)?.visible = true
 
             dirty += it
@@ -240,7 +244,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         (panel.children[0] as TabContainer<*>).apply {
             oldIndex?.let{ children.getOrNull(it) }?.let { it.zOrder = 0 }
 
-            newIndex.let { children.getOrNull(it) }?.zOrder = 1
+            newIndex?.let { children.getOrNull(it) }?.zOrder = 1
 
             dirty.forEach {
                 children.getOrNull(it)?.rerender()
@@ -248,7 +252,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         }
     }
 
-    override fun tabsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+    override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
         (panel.first() as? TabContainer<T>)?.apply {
             children.batch {
                 removed.keys.forEach { removeAt(it) }
