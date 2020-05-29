@@ -1,7 +1,7 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.ProgressIndicator
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 
 /**
  * Created by Nicholas Eddy on 2/12/18.

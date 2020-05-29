@@ -24,7 +24,7 @@ import com.nectar.doodle.drawing.impl.NativeSliderFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.theme.Modules.BehaviorResolver
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme

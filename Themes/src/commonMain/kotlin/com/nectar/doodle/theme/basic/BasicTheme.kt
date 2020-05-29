@@ -19,13 +19,13 @@ import com.nectar.doodle.controls.theme.LabelBehavior
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeModel
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.drawing.lighter
-import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Modules
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme
@@ -186,14 +186,18 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         }
 
         val BasicTabbedPanelBehavior = BasicModule(name = "BasicTabbedPanelBehavior") {
-            bindBehavior<TabbedPanel<Any>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run {
-                    com.nectar.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior(
+            bind<com.nectar.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>>() with singleton {
+                instance<BasicThemeConfig>().run {
+                    com.nectar.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>(
                             BasicTabProducer(instance(), { _,_,index ->
                                 "tab: $index"
                             }, tabColor = backgroundColor),
                             backgroundColor)
                 }
+            }
+
+            bindBehavior<TabbedPanel<Any>>(BTheme::class) {
+                it.behavior = instance<com.nectar.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>>()
             }
         }
 

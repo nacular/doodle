@@ -7,7 +7,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.HorizontalAlignment.Center

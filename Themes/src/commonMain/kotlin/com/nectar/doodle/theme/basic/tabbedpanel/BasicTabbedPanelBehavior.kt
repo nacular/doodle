@@ -204,7 +204,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
 
     override fun install(panel: TabbedPanel<T>) {
         panel.apply {
-            children.add(TabContainer(panel, tabProducer))
+            children += TabContainer(panel, tabProducer)
 
             panel.forEach {
                 children.add(panel.visualizer(it).apply {

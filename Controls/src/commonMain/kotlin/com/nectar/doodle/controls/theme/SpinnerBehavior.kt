@@ -9,7 +9,7 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.layout.Insets.Companion.None
 import com.nectar.doodle.layout.constrain
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 
 /**
  * Created by Nicholas Eddy on 3/15/18.

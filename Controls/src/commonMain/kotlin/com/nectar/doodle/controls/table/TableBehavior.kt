@@ -4,7 +4,7 @@ import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Completable
 import com.nectar.doodle.utils.NoOpCompletable
 import com.nectar.doodle.utils.Path

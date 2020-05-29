@@ -3,22 +3,22 @@
 
 ----
 
-[![Kotlin 1.3.70](https://img.shields.io/badge/Kotlin-1.3.70-blue.svg?style=flat&logo=kotlin)](http://kotlinlang.org)
+[![Kotlin 1.3.72](https://img.shields.io/badge/Kotlin-1.3.72-blue.svg?style=flat&logo=kotlin)](http://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 
-**Expressive:** Creating expressive, intuitive apps is natural with doodle. It handles all complex rendering and layout timing for you. Simply
+**Expressive:** Creating expressive, intuitive apps is natural with Doodle. It handles all complex rendering and layout timing for you. Simply
 define your View hierarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
 
 **Single-language:** Doodle apps do not use HTML, Javascript, CSS or wrappers around these concepts. Instead, you write all parts of your
 application in a browser agnostic way using [Kotlin](http://kotlinlang.org). Doodle apps can actually be written entirely as common code in
 multi-platform setups.
 
-**Vector Oriented:** Its easy to build beautifully detailed UIs with doodle. All rendering in doodle is vector-oriented; so ellipses, paths,
+**Vector Oriented:** Its easy to build beautifully detailed UIs with Doodle. All rendering in Doodle is vector-oriented; so ellipses, paths,
 lines, gradients, affine transforms etc. are as simple to use as images and rectangles. 
 
 **Transparent:** Doodle gives you control over all aspects of the UI presentation, making it easier to precisely control rendering.
 
-**Testable:** Apps written with doodle are dependency-injected; and there are no global objects or state to make mocking challenging.
+**Testable:** Apps written with Doodle are dependency-injected; and there are no global objects or state to make mocking challenging.
 
 ## Installation
 

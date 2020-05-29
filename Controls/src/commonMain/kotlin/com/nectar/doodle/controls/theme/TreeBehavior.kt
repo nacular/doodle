@@ -3,7 +3,7 @@ package com.nectar.doodle.controls.theme
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Path
 
 /**

@@ -1,9 +1,9 @@
 package com.nectar.doodle.controls.panels
 
 import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.utils.BoxOrientation
 import com.nectar.doodle.utils.BoxOrientation.Top
 import com.nectar.doodle.utils.ObservableList
@@ -46,7 +46,7 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
 
 /**
  * A container that manages a set of tabs, each representing one of the items it holds. This container is
- * intended to display a single item at a time based on which item is selected. This class delegates
+ * intended to display a single item at a time based on which is selected. This class delegates
  * all rendering an configuration to its [TabbedPanelBehavior], which allows a high degree of flexibility
  * regarding display and behavior.
  *

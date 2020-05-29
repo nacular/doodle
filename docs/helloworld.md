@@ -19,7 +19,6 @@ class HelloWorld(display: Display): Application {
 }
 
 fun main() {
-    // app initialization, with DI via Kodein
     application {
         HelloWorld(display = instance())
     }

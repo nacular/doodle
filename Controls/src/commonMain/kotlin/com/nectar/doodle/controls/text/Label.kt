@@ -10,7 +10,7 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.text.invoke
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left

@@ -17,7 +17,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.SetObserver

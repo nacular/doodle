@@ -5,7 +5,7 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right

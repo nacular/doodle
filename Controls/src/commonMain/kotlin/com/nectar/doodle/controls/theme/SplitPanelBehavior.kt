@@ -7,7 +7,7 @@ import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.system.Cursor.Companion.ColResize
 import com.nectar.doodle.system.Cursor.Companion.RowResize
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
 import kotlin.math.max

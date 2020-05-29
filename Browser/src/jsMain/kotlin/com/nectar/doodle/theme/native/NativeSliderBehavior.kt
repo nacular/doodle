@@ -7,7 +7,7 @@ import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.system.Cursor.Companion.Default
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 
 /**
  * Created by Nicholas Eddy on 11/20/18.

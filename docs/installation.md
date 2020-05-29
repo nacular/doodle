@@ -13,10 +13,7 @@ plugins {
     id 'org.jetbrains.kotlin.js' version '1.3.72'
 }
 
-apply plugin: 'idea'
-apply plugin: 'maven'
-
-version = '1.0'
+version = '1.0.0'
 group   = 'com.my.cool.app'
 
 repositories {
@@ -29,10 +26,6 @@ ext {
 }
 
 kotlin {
-    target.browser.testTask {
-        enabled = false
-    }
-
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
 
@@ -59,6 +52,9 @@ plugins {
     id 'org.jetbrains.kotlin.multiplatform' version '1.3.72'
 }
 
+version = '1.0.0'
+group   = 'com.my.cool.app'
+
 repositories {
     jcenter     ()
     mavenCentral()
@@ -69,11 +65,7 @@ ext {
 }
 
 kotlin {
-    js {
-        browser.testTask {
-            enabled = false
-        }
-    }
+    js {}
 
     sourceSets {
         commonMain.dependencies {

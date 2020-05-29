@@ -4,7 +4,7 @@ import com.nectar.doodle.accessibility.slider
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.PropertyObservers

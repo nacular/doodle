@@ -10,7 +10,7 @@ import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
 import com.nectar.doodle.utils.size

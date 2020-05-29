@@ -11,7 +11,7 @@ import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.system.SystemPointerEvent.Button.Button1
-import com.nectar.doodle.theme.Behavior
+import com.nectar.doodle.core.Behavior
 
 
 abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
