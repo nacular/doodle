@@ -1,7 +1,7 @@
 # The Display
 -------------
 
-### The Display is an app's root container.
+### An app's root container
 
 The Display holds an app's View hierarchy, and behaves like a basic container. It is not a View however, so many of the capabilities
 of Views are not available for the Display.
@@ -26,7 +26,7 @@ fun main() {
 }
 ```
 
-### Add Views to the Display to make them top-level.
+### Add Views to the Display to make them top-level
 
 The Display has a `children` property that contains all its direct descendants. These top-level views have no
 `parent` and are the top-most ancestors of all other Views in an app. An app can have any number of these Views.
@@ -53,7 +53,7 @@ class MyApp(display: Display): View() {
 }
 ```
 
-### An app's launch mode changes the Display.
+### An app's launch mode changes the Display
 
 [**Stand-alone**](applications.md?id=stand-alone) apps use the entire page by default, and have a Display tied to the page body.
 

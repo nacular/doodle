@@ -4,8 +4,8 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
 
 /**
- * A Behavior can be used by [View]s and [Theme]s to allow delegation of the [View.render] call and other characteristics of the [View].
- * This way, a [View] can support pluggable visual style and behavior.
+ * A Behavior can be used by [View]s and [Theme][com.nectar.doodle.theme.Theme]s to allow delegation of the [View.render]
+ * call and other characteristics of the [View]. This way, a [View] can support pluggable visual style and behavior.
  */
 interface Behavior<in T: View> {
     /**

@@ -1,7 +1,7 @@
 # Pointer Input
 ---------------
 
-### Pointer handling is very straight forward with Doodle.
+### Pointer handling is very straight forward with Doodle
 
 The first thing you need to do is include the [`PointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
 when launching your app.
@@ -105,7 +105,7 @@ override fun pressed(event: PointerEvent) {
 
 ## Event Bubbling
 
-### Pointer events "bubble" up to ancestors of a View.
+### Pointer events "bubble" up to ancestors of a View
 
 Pointer events sent to a View will also be sent up to its parent and so on. This means you can listen to all events that happen
 to the descendants of a View.
@@ -117,7 +117,7 @@ The event sent to a parent if slightly different from the one sent to the View. 
 
 ## Event Filtering
 
-### Pointer events also "sink" from root ancestors down to their target.
+### Pointer events also "sink" from root ancestors down to their target
 
 The first phase of pointer event handling is the "sink" phase. It runs **before** the "bubbling" phase. The root ancestor and all
 descendants toward the `target` View are notified of the event before the target is.

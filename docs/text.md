@@ -41,7 +41,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
 
 ## Fonts
 
-### Doodle is also explicit about fonts.
+### Doodle is also explicit about fonts
 
 You can specify a font when drawing text or have Doodle fallback to the default font otherwise. Fonts can be tricky, since
 they may not be present on the system at render time. This presents a race-condition for drawing text.

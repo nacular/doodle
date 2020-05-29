@@ -26,7 +26,7 @@ returns `Image?`, which is `null` when the image fails to load for some reason.
 
 ?> The `load` method is suspending, so it much be called from another `suspend` method or from a coroutine scope.
 
-### You can draw images directly onto a Canvas.
+### You can draw images directly onto a Canvas
 
 The method for doing this allows you to customize how the image drawing by specify the following.
 

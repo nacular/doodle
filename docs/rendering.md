@@ -1,7 +1,7 @@
 # Rendering
 -----------
 
-### Views manage rendering directly.
+### Views manage rendering directly
 
 You can override the [`render`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L478)
 method to draw a `View`'s contents to the screen. The framework calls this method whenever a View needs a visual update.
@@ -62,7 +62,7 @@ bounds by default.
 ?> Sub-classes can disable clipping by setting [`clipCanvasToBounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L122)
 to `false`.
 
-### You can also transform a Canvas.
+### You can also transform a Canvas
 
 ```kotlin
 class MyView: View() {

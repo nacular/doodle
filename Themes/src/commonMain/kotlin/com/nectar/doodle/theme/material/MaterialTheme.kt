@@ -25,7 +25,6 @@ class MaterialTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors
 
         val materialButtonBehavior = Module(name = "MaterialButtonBehavior") {
             bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehavior(instance(), instance(), instance(), textColor = White, backgroundColor = Color(0x6200EEu), cornerRadius = 4.0) }
-//            bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehaviorBase(instance(), instance(), instance(), textColor = Color(0x6200EEu), cornerRadius = 4.0) }
         }
     }
 }

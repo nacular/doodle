@@ -1,7 +1,7 @@
 # Keyboard Input
 ----------------
 
-### Key handling is simple with Doodle.
+### Key handling is simple with Doodle
 
 The first thing you need to do is include the [`KeyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L59)
 when launching your app.
