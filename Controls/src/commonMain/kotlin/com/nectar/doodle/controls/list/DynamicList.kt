@@ -2,12 +2,12 @@ package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.DynamicListModel
 import com.nectar.doodle.controls.IndexedItemVisualizer
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.SelectableItemVisualizer
 import com.nectar.doodle.controls.ModelObserver
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.mutableListModelOf
-import com.nectar.doodle.controls.passThrough
+import com.nectar.doodle.controls.ignoreIndex
 import com.nectar.doodle.utils.size
 
 open class DynamicList<T, M: DynamicListModel<T>>(
@@ -115,11 +115,11 @@ open class DynamicList<T, M: DynamicListModel<T>>(
 
         operator fun <T, M: DynamicListModel<T>> invoke(
                 model         : M,
-                itemGenerator : ItemVisualizer<T>?   = null,
+                itemGenerator : SelectableItemVisualizer<T>?   = null,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10) =
-                DynamicList(model, itemGenerator?.let { passThrough(it) }, selectionModel, fitContent, scrollCache)
+                DynamicList(model, itemGenerator?.let { ignoreIndex(it) }, selectionModel, fitContent, scrollCache)
 
     }
 }

@@ -1,15 +1,12 @@
 package com.nectar.doodle.theme.basic.list
 
 import com.nectar.doodle.controls.TextItemVisualizer
-import com.nectar.doodle.controls.ToStringItemVisualizer
+import com.nectar.doodle.controls.ignoreIndex
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.ListBehavior
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
-import com.nectar.doodle.controls.passThrough
-import com.nectar.doodle.theme.basic.ListPositioner
-import com.nectar.doodle.theme.basic.ListRow
-import com.nectar.doodle.theme.basic.SelectableListKeyHandler
+import com.nectar.doodle.controls.toString
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
@@ -18,11 +15,15 @@ import com.nectar.doodle.drawing.Color.Companion.Lightgray
 import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.horizontalStripedBrush
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
+import com.nectar.doodle.theme.basic.ListPositioner
+import com.nectar.doodle.theme.basic.ListRow
+import com.nectar.doodle.theme.basic.SelectableListKeyHandler
 
 /**
  * Created by Nicholas Eddy on 3/20/18.
@@ -34,7 +35,7 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
                                  private val selectionBlurredColor: Color? = Lightgray): RowGenerator<T> {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(list, row, index, list.itemVisualizer ?: passThrough(ToStringItemVisualizer(TextItemVisualizer(textMetrics))), backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor).apply {
+        else          -> ListRow(list, row, index, list.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(list)
@@ -58,7 +59,7 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
                 textMetrics          : TextMetrics,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                selectionColor       : Color? = Color.Green.lighter(),
+                selectionColor       : Color? = Green.lighter(),
                 selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
 
     private val patternBrush = if (evenRowColor != null || oddRowColor != null) horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor) else null

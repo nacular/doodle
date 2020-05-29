@@ -15,22 +15,19 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
 
     constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
 
+    private val decimal: UInt by lazy { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
+
     init {
         require(opacity in 0f..1f) { "opacity must be in ${0..1}" }
     }
 
-    private val decimal: UInt by lazy { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
-
     val visible = opacity > 0
+
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
-    fun darker(percent: Float = 0.5f) = HslColor(this).darker(percent).toRgb()
-
-    fun lighter(percent: Float = 0.5f) = HslColor(this).lighter(percent).toRgb()
+    val inverted get() = Color(0xffffffu xor decimal)
 
     infix fun opacity(value: Float) = Color(red, green, blue, value)
-
-    val inverted get() = Color(0xffffffu xor decimal)
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -69,6 +66,10 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         }
     }
 }
+
+fun Color.lighter(percent: Float = 0.5f) = HslColor(this).lighter(percent).toRgb()
+
+fun Color.darker(percent: Float = 0.5f) = HslColor(this).darker(percent).toRgb()
 
 fun Color.grayScale(): Color {
     val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toByte().toUByte()

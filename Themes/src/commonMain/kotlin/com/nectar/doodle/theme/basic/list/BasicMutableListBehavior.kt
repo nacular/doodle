@@ -14,6 +14,7 @@ import com.nectar.doodle.drawing.Color.Companion.Green
 import com.nectar.doodle.drawing.Color.Companion.Lightgray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyText.Companion.Backspace
 import com.nectar.doodle.event.KeyText.Companion.Delete

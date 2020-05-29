@@ -2,11 +2,11 @@ package com.nectar.doodle.controls.list
 
 import com.nectar.doodle.controls.EditOperation
 import com.nectar.doodle.controls.IndexedItemVisualizer
-import com.nectar.doodle.controls.ItemVisualizer
+import com.nectar.doodle.controls.SelectableItemVisualizer
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.mutableListModelOf
-import com.nectar.doodle.controls.passThrough
+import com.nectar.doodle.controls.ignoreIndex
 import com.nectar.doodle.core.View
 
 
@@ -101,7 +101,7 @@ open class MutableList<T, M: MutableListModel<T>>(
 
         operator fun invoke(
                 progression   : IntProgression,
-                itemGenerator : ItemVisualizer<Int>,
+                itemGenerator : SelectableItemVisualizer<Int>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10) =
@@ -117,7 +117,7 @@ open class MutableList<T, M: MutableListModel<T>>(
 
         inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : ItemVisualizer<T>,
+                itemGenerator : SelectableItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
@@ -125,10 +125,10 @@ open class MutableList<T, M: MutableListModel<T>>(
 
 
         operator fun  <T, M: MutableListModel<T>>invoke(model     : M,
-                itemGenerator : ItemVisualizer<T>?   = null,
+                itemGenerator : SelectableItemVisualizer<T>?   = null,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10) = MutableList(model, itemGenerator?.let { passThrough(it) }, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                  = 10) = MutableList(model, itemGenerator?.let { ignoreIndex(it) }, selectionModel, fitContent, scrollCache)
 
     }
 }

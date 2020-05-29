@@ -7,6 +7,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.layout.Insets

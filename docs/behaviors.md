@@ -1,5 +1,5 @@
-# Delegating Rendering
-----------------------
+# Render Delegation
+-------------------
 
 It is common to make a View's behavior and presentation configurable. In many cases this happens through properties like colors, fonts, etc.
 
@@ -13,7 +13,7 @@ val textField = TextField().apply {
 
 ### Sometimes a View requires more complex customization.
 
-Take a TabbedPanel for example. The number of configurations is fairly open-ended; and the API would be needlessly complicated if it
+Take a TabbedPanel for example. The number of configurations is fairly open-ended; and the API would be needlessly complex if it
 tried to encompass everything.
 
 This is where [`Behavior`s]() come in. Views can offer deep customization by delegating rendering, hit detection and anything else

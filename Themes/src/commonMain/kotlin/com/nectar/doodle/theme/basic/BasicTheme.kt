@@ -10,6 +10,7 @@ import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.list.List
 import com.nectar.doodle.controls.list.MutableList
 import com.nectar.doodle.controls.panels.SplitPanel
+import com.nectar.doodle.controls.panels.TabbedPanel
 import com.nectar.doodle.controls.spinner.Spinner
 import com.nectar.doodle.controls.table.MutableTable
 import com.nectar.doodle.controls.table.Table
@@ -23,12 +24,14 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.grayScale
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.theme.Behavior
 import com.nectar.doodle.theme.Modules
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme
 import com.nectar.doodle.theme.basic.list.BasicListBehavior
 import com.nectar.doodle.theme.basic.list.BasicMutableListBehavior
+import com.nectar.doodle.theme.basic.tabbedpanel.BasicTabProducer
 import com.nectar.doodle.theme.basic.table.BasicMutableTableBehavior
 import com.nectar.doodle.theme.basic.table.BasicTableBehavior
 import com.nectar.doodle.theme.basic.tree.BasicMutableTreeBehavior
@@ -179,6 +182,18 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         val BasicMutableTableBehavior = BasicModule(name = "BasicMutableTableBehavior") {
             bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(instanceOrNull(), 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+            }
+        }
+
+        val BasicTabbedPanelBehavior = BasicModule(name = "BasicTabbedPanelBehavior") {
+            bindBehavior<TabbedPanel<Any>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    com.nectar.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior(
+                            BasicTabProducer(instance(), { _,_,index ->
+                                "tab: $index"
+                            }, tabColor = backgroundColor),
+                            backgroundColor)
+                }
             }
         }
 

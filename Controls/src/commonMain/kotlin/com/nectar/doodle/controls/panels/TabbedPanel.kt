@@ -1,5 +1,6 @@
 package com.nectar.doodle.controls.panels
 
+import com.nectar.doodle.controls.ItemVisualizer
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.theme.Behavior
@@ -51,17 +52,19 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
  *
  * @constructor
  * @param orientation of the tab container
+ * @param visualizer to display each item
  * @param item the first item in the list
  * @param remaining items in the lest
  */
-class TabbedPanel<T>(orientation: BoxOrientation = Top, item: T, vararg remaining: T): View(), Iterable<T> {
+class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisualizer<T>, item: T, vararg remaining: T): View(), Iterable<T> {
     /**
      * Creates a TabbedPanel with [orientation] == [Top].
      *
+     * @param visualizer to display each item
      * @param item the first item in the list
      * @param remaining items in the lest
      */
-    constructor(item: T, vararg remaining: T): this(Top, item, *remaining)
+    constructor(visualizer: ItemVisualizer<T>, item: T, vararg remaining: T): this(Top, visualizer, item, *remaining)
 
     /** Notifies of changes to [selection]. */
     val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> by lazy { PropertyObserversImpl<TabbedPanel<T>, Int?>(this) }

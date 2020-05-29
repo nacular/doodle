@@ -7,6 +7,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Gray
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
+import com.nectar.doodle.drawing.darker
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener

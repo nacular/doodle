@@ -14,6 +14,7 @@ import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
@@ -38,14 +39,18 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
                                var index        : Int,
                        private val name         : String,
                        private val radius       : Double,
-                       private val panelColor   : Color,
+                       private val tabColor     : Color,
                        private val selectedColor: Color,
                        private val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
                        private val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): View() {
     private var pointerOver = false
         set(new) {
             field = new
-            if (!selected) backgroundColor = panelColor.lighter()
+            backgroundColor = when {
+                new       -> tabColor.lighter()
+                selected  -> selectedColor
+                else      -> tabColor
+            }
         }
 
     private var pointerDown     = false
@@ -57,7 +62,7 @@ open class BasicTab<T>(private val textMetrics  : TextMetrics,
 
     private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
         backgroundColor = when {
-            old == index -> if (pointerOver) panelColor.lighter() else null
+            old == index -> if (pointerOver) tabColor.lighter() else null
             new == index -> selectedColor
             else         -> null
         }
@@ -161,15 +166,17 @@ interface TabProducer<T> {
     operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): View
 }
 
+typealias TabNamer<T> = (TabbedPanel<T>, T, Int) -> String
+
 open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
-                               protected val namer        : (T) -> String,
+                               protected val namer        : TabNamer<T>,
                                override  val tabHeight    : Double = 40.0,
                                protected val tabRadius    : Double = 10.0,
                                protected val selectedColor: Color  = White,
                                protected val tabColor     : Color  = Color(0xdee1e6u)): TabProducer<T> {
     override val spacing = -2 * tabRadius
 
-    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(item), tabRadius, tabColor, selectedColor, move, cancelMove).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(panel, item, index), tabRadius, tabColor, selectedColor, move, cancelMove).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
 
     protected open val move = { _: TabbedPanel<T>, _: Int,_: Double -> }
 
@@ -193,15 +200,14 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
 }
 
 open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<T>,
-                                       private val backgroundColor: Color = Color(0xdee1e6u),
-                                       private val displayer      : (T) -> View): TabbedPanelBehavior<T>() {
+                                       private val backgroundColor: Color = Color(0xdee1e6u)): TabbedPanelBehavior<T>() {
 
     override fun install(panel: TabbedPanel<T>) {
         panel.apply {
             children.add(TabContainer(panel, tabProducer))
 
             panel.forEach {
-                children.add(displayer(it).apply {
+                children.add(panel.visualizer(it).apply {
                     visible = it == panel.selectedItem
                 })
             }
@@ -274,7 +280,7 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         removed.keys.forEach { panel.children.removeAt(it + 1) }
 
         added.forEach { (index, item) ->
-            panel.children.addOrAppend(index + 1, displayer(item))
+            panel.children.addOrAppend(index + 1, panel.visualizer(item))
         }
 
         moved.forEach { (oldIndex, new) ->

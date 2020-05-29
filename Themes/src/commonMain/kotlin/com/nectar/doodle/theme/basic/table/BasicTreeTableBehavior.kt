@@ -26,6 +26,7 @@ import com.nectar.doodle.drawing.Color.Companion.Lightgray
 import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.horizontalStripedBrush
+import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
