@@ -11,7 +11,7 @@ class TextView: View() {
 }
 ```
 
-### What About Centered Text?
+## Text alignment
 
 You need to measure text in order to align it in any way other than left-aligned at `x,y`. Doodle provides
 the `TextMetrics` component for this. Simply inject it into your app and Views. 
@@ -41,9 +41,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
 
 ## Fonts
 
-### Doodle is also explicit about fonts
-
-You can specify a font when drawing text or have Doodle fallback to the default font otherwise. Fonts can be tricky, since
+You can specify a font when drawing text or have Doodle fallback to the default. Fonts can be tricky, since
 they may not be present on the system at render time. This presents a race-condition for drawing text.
 
 Doodle provides a [`FontDetector`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/FontDetector.kt#L18)

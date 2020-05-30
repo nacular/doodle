@@ -4,7 +4,9 @@
 Doodle apps are built using [Gradle](http://www.gradle.org), like other Kotlin JS or multi-platform projects.
 Learn more by checking out [Setting up a Kotlin/JS project](https://kotlinlang.org/docs/tutorials/javascript/setting-up.html).
 
-### Pure JS Project
+---
+
+## Pure JS Project
 
 You can set up a pure Javascript app with the following **build.gradle** script.
 
@@ -40,10 +42,10 @@ kotlin {
 }
 ```
 
-### Multi-platform Project
+## Multi-platform Project
 
 Doodle is a set of Kotlin Multi-platform (MPP) libraries. Which means you can create an MPP for your app as well. The advantage of this
-is that you can write your app almost entirely in `common` code and test it with very fast unit tests on the JVM.
+is that you can write your app entirely (except for `main`) in `common` code and test it with very fast unit tests on the JVM.
 
 ?> App [**launch code**](applications.md?id=app-launch) is the only portion that needs to be in `js`
 

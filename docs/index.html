@@ -8,10 +8,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
     <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">-->
     <link rel="stylesheet" href="https://unpkg.com/prism-theme-one-dark/prism-onedark.css">
+    <link rel="icon" href="favicon.png" type="image/x-icon">
     <style>
         :root {
           --code-block-border-radius     : 12px;
           --code-inline-border-radius    : 4px;
+          --code-inline-background       : #bbeffd4d;
+          --code-block-margin            : 3em 0;
           --search-input-border-radius   : 4px;
           --sidebar-border-width         : 0px;
           --sidebar-background           : unset;
@@ -22,8 +25,9 @@
           --search-input-padding         : 0.5em;
           --sidebar-border-color         : unset;
           --search-input-border-color    : var(--mono-tint1);
-
-          --code-inline-background: #bbeffd4d;
+          --link-color                   : var(--notice-tip-border-color, var(--notice-border-color));
+          --heading-h3-margin            : 0.5m;
+          --heading-h2-border-width      : 0;
 
 <!--          &#45;&#45;sidebar-nav-link-border-color&#45;&#45;active: #bbeffd;-->
 
@@ -45,7 +49,7 @@
         basePath   : '/../',
         relative   : 'true',
         repo       : '/pusolito/doodle',
-//      subMaxLevel: 2,
+//        subMaxLevel: 2,
         loadSidebar: true,
     }
 </script>

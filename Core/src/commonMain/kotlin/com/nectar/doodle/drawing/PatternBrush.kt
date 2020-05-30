@@ -5,6 +5,8 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.geometry.times
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.times
 
 
 /**
@@ -27,14 +29,29 @@ class PatternBrush(val bounds: Rectangle, val transform: AffineTransform = Ident
 /**
  * Creates a [PatternBrush] that draws an alternating horizontal striped pattern.
  *
+ * @param stripWidth of the alternating rows
+ * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
+ * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
+ */
+fun stripedBrush(stripWidth  : Double,
+                 evenRowColor: Color? = null,
+                 oddRowColor : Color? = null,
+                 transform   : AffineTransform = Identity) = PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) stripWidth else 0.0, 2 * stripWidth), transform) {
+    evenRowColor?.let { rect(Rectangle(                 stripWidth, stripWidth), ColorBrush(it)) }
+    oddRowColor?.let  { rect(Rectangle(0.0, stripWidth, stripWidth, stripWidth), ColorBrush(it)) }
+}
+
+
+/**
+ * Creates a [PatternBrush] that draws an alternating horizontal striped pattern.
+ *
  * @param rowHeight of the alternating rows
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) rowHeight else 0.0, 2 * rowHeight)) {
-    evenRowColor?.let { rect(Rectangle(                rowHeight, rowHeight), ColorBrush(it)) }
-    oddRowColor?.let  { rect(Rectangle(0.0, rowHeight, rowHeight, rowHeight), ColorBrush(it)) }
-}
+fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = stripedBrush(
+        rowHeight, evenRowColor, oddRowColor
+)
 
 /**
  * Creates a [PatternBrush] that draws an alternating vertical striped pattern.
@@ -43,10 +60,9 @@ fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRo
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = PatternBrush(Size(2 * colWidth, if (evenRowColor.visible || oddRowColor.visible) colWidth else 0.0)) {
-    evenRowColor?.let { rect(Rectangle(               colWidth, colWidth), ColorBrush(it)) }
-    oddRowColor?.let  { rect(Rectangle(colWidth, 0.0, colWidth, colWidth), ColorBrush(it)) }
-}
+fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = stripedBrush(
+        colWidth, evenRowColor, oddRowColor, Identity.rotate(90 * degrees)
+)
 
 /**
  * Creates a [PatternBrush] that draws a checkered pattern.

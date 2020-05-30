@@ -1,7 +1,7 @@
 # Rendering
 -----------
 
-### Views manage rendering directly
+## Views manage rendering
 
 You can override the [`render`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L478)
 method to draw a `View`'s contents to the screen. The framework calls this method whenever a View needs a visual update.
@@ -18,7 +18,7 @@ This `RectView` draws a filled rectangle covering its bounds.
 
 ?> `render` is automatically called on `size` changes and `visibile` changing to `true`
 
-### Efficient Rendering
+## Efficient Rendering
 
 Doodle optimizes rendering to avoid re-applying operations when rendering the same content repeatedly. For example, the `Timer` app
 below renders the epoch time every millisecond. However, Doodle only updates the changing regions in the DOM. The text in this case.
@@ -45,8 +45,8 @@ class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
     //..
 }
 ```
-
-## Views draw using Canvases.
+---
+## Draw with Canvas
 
 The `render` method provides a [`Canvas`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/Canvas.kt#L23)
 onto which a `View` can draw. Canvas offers a rich set of operations for geometric shapes, paths, images, and text. It
@@ -62,7 +62,7 @@ bounds by default.
 ?> Sub-classes can disable clipping by setting [`clipCanvasToBounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L122)
 to `false`.
 
-### You can also transform a Canvas
+### Canvas transforms
 
 ```kotlin
 class MyView: View() {

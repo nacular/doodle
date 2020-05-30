@@ -29,13 +29,13 @@ class Modules {
     }
 
     companion object {
-        val themeModule = Module(allowSilentOverride = true, name = "Theme") {
+        val ThemeModule = Module(allowSilentOverride = true, name = "Theme") {
             bind<ThemeManager>        () with singleton { instance<InternalThemeManager>() }
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl(instance()) }
         }
 
-        val adhocThemeModule = Module(name = "AdhocTheme") {
-            importOnce(themeModule, allowOverride = true)
+        val AdhocThemeModule = Module(name = "AdhocTheme") {
+            importOnce(ThemeModule, allowOverride = true)
 
             bind() from setBinding<BehaviorResolver>()
 
@@ -49,7 +49,7 @@ class Modules {
 
         // TODO: Can this be renamed to bindBehavior in 1.4?
         inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
-            importOnce(adhocThemeModule, allowOverride = true)
+            importOnce(AdhocThemeModule, allowOverride = true)
 
             bind<BehaviorResolver>().inSet() with singleton {
                 object: BehaviorResolver {

@@ -14,7 +14,7 @@ class UsefulApp: Application {
     override fun shutdown() {}
 }
 ```
-
+---
 ## App Launch
 
 Applications are launched stand-alone, or within another app using [`ApplicationViewFactory()`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L21).
@@ -84,6 +84,7 @@ module.
 ?> Adding a nested app's View to the [**Display**](display.md?id=the-display-is-an-apps-root-container) triggers the app's initialization. Shutdown
 the app by removing the host View from the Display.
 
+---
 ## Dependencies
 
 Doodle uses [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) when creating apps. The

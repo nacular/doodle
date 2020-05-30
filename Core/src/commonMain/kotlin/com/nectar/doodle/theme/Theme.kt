@@ -9,7 +9,7 @@ import com.nectar.doodle.utils.ObservableSet
 
 /**
  * Themes are able to visually style [View]s within the [Display]. Installing one will trigger an update and provide the full set of [View]s
- * to the [Theme.install] method, allowing the theme to update any subset of [View]s it chooses.
+ * to the [Theme.install] method, allowing it to update any subset of [View]s it chooses.
  */
 interface Theme {
     /**

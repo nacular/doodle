@@ -1,4 +1,4 @@
-* [Home](/)
+* [Introduction](/)
 * [Installation](installation.md)
 * [Hello World](helloworld.md)
 * [Applications](applications.md)

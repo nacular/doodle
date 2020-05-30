@@ -1,7 +1,7 @@
 # The Display
 -------------
 
-### An app's root container
+## An app's root container
 
 The Display holds an app's View hierarchy, and behaves like a basic container. It is not a View however, so many of the capabilities
 of Views are not available for the Display.
@@ -26,10 +26,14 @@ fun main() {
 }
 ```
 
-### Add Views to the Display to make them top-level
+## Adding Views to the Display
 
 The Display has a `children` property that contains all its direct descendants. These top-level views have no
 `parent` and are the top-most ancestors of all other Views in an app. An app can have any number of these Views.
+
+!> Top-level Views are displayed, yet they have no `parent`. Similarly, Views can have parents even before they are
+in the display hierarchy: when the parents themselves are not displayed. This means the `parent` property says nothing
+about a View being in the Display hierarchy. Luckily, View has the `displayed` property for this exact purpose.
 
 Add a top-level View like this.
 
@@ -42,7 +46,7 @@ class MyApp(display: Display): View() {
 }
 ```
 
-Removing a top-level View is just as simple.
+And remove it like this.
 
 ```kotlin
 class MyApp(display: Display): View() {
@@ -53,9 +57,10 @@ class MyApp(display: Display): View() {
 }
 ```
 
-### An app's launch mode changes the Display
+## Launch mode changes the Display
 
-[**Stand-alone**](applications.md?id=stand-alone) apps use the entire page by default, and have a Display tied to the page body.
+A [**Stand-Alone**](applications.md?id=stand-alone) app that uses the entire page will have a Display tied to the page body. While
+an app hosted in an element will have a Display that is tied to that element.
 
 ```kotlin
 application(modules = listOf(/*...*/)) {
@@ -63,7 +68,7 @@ application(modules = listOf(/*...*/)) {
 }
 ```
 
-An app can also be hosted in an element, which ties the Display to that element.
+Here the Display will be tied to `someDiv`.
 
 ```kotlin
 application(root = someDiv, modules = listOf(/*...*/)) {
@@ -71,6 +76,5 @@ application(root = someDiv, modules = listOf(/*...*/)) {
 }
 ```
 
-Here the Display will be tied to `someDiv`.
-
-A [**nested app's**](applications.md?id=nested) `Display` is tied to its host View.
+The Displays for a [**Nested app**](applications.md?id=nested) sits within the View hosting it. This means changes to that View's
+size will change the Display size. 

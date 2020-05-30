@@ -1,10 +1,12 @@
 # Creating Views
 ----------------
 
-### Views are the building blocks of Doodle apps
+## App building blocks
 
-A View displays content to the screen and enables interactions with the user. You create one by extending
-the [`View`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L62)
+Views are the building blocks of Doodle apps. They encapsulate state, display content on the screen and respond to user input. Apps
+typically contain many View classes and have lots of View instances at runtime.
+
+You create a new View by extending the [`View`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L62)
 base class or instantiating an inline object:
 
 ```kotlin
@@ -17,9 +19,10 @@ val view = object: View() {
 }
 ```
 
-### Views encapsulate state and render updates to the screen
+## State and rendering
 
-Here is more useful example of holding and displaying some user data.
+Here is more useful example of a View that holds some user data (a name and age). This View tracks this state and monitors it for changes. It
+also keeps the user informed of its state by rendering any changes to its internal state.
 
 ```kotlin
 class UserInfo(
@@ -45,11 +48,13 @@ class UserInfo(
     }
 }
 ```
+
 ?> Don't worry about the `render` method yet; we cover that [later](rendering.md).
 
+---
 ## View Hierarchy
 
-### You can have any number of top-level Views
+### Apps can have any number of top-level Views
 
 Doodle apps contain a hierarchy of Views working together; with the [**Display**](display.md?id=the-display-is-an-apps-root-container)
 being the root ancestor--though it is not a View. You display a top-level View like this:

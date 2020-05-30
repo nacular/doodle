@@ -7,6 +7,7 @@ import com.nectar.doodle.controls.buttons.HyperLink
 import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.panels.ScrollPanel
 import com.nectar.doodle.controls.text.TextField
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.drawing.impl.GraphicsSurfaceFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactory
 import com.nectar.doodle.drawing.impl.NativeButtonFactoryImpl
@@ -24,8 +25,8 @@ import com.nectar.doodle.drawing.impl.NativeSliderFactoryImpl
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactory
 import com.nectar.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.theme.Modules.BehaviorResolver
+import com.nectar.doodle.theme.Modules.Companion.ThemeModule
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme
 import org.kodein.di.Kodein.Module
@@ -48,6 +49,8 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.f
 
     companion object {
         val NativeTheme = Module(name = "NativeTheme") {
+            importOnce(ThemeModule, allowOverride = true)
+
             bind<NativeTheme>() with singleton { NativeTheme(Instance(erasedSet())) }
         }
 

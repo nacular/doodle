@@ -1,14 +1,17 @@
 # Pointer Input
 ---------------
 
-### Pointer handling is very straight forward with Doodle
+### Pointer handling is easy with Doodle
 
 The first thing you need to do is include the [`PointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
-when launching your app.
+when launching your app. The underlying framework uses the `PointerModule` to produce pointer events.
+
+?> Doodle uses opt-in modules like this to improve bundle size.
 
 ```kotlin
 class MyApp(display: Display): Application {
-    // ...
+    // pointer events will fire for this app when launched with
+    // the PointerModule
 }
 ```
 ```kotlin
@@ -21,17 +24,11 @@ fun main () {
     }
 }
 ```
-
-Here you can see that the underlying framework, and not you app, depends on the `PointerModule`. Doodle uses opt-in modules like this to improve
-bundle size.
-
+---
 ## Hit Detection
 
 The framework relies on the [`View.contains(Point)`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L450)
 method to determine when the pointer is within a View's boundaries.
-
-?> This point is within the View's parent coordinate system (or the [**Display**](display.md?id=the-display-is-an-apps-root-container)'s for
-top-level Views).
 
 The default implementation just checks the point against [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L108).
 It also accounts for the View's [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L142).
@@ -54,8 +51,9 @@ class CircularView(val radius: Double): View() {
 ``` 
 This view renders a circle and provides precise hit detection for it.
 
-?> An overlay panel with click-through could always return `false` for the contains check.
-
+?> The contains check passes a point within the View's parent coordinate system (or the [**Display**](display.md?id=the-display-is-an-apps-root-container)'s for
+top-level Views).
+---
 ## Pointer Listeners
 
 Views are able to receive pointer events once the `PointerModule` is loaded, they are `visible` and `enabled`. You can
@@ -84,7 +82,7 @@ has no-op defaults for the 4 events, so you only need to implement the ones you 
 
 Notice that `pointerChanged`--like other observable properties--supports many observers and enables you to add/remove
 an observer any time.
-
+---
 ## Pointer Event
 
 The event provided to pointer listeners carries information about the View it originated from (`source`), the View it is sent to (`target`),
@@ -102,7 +100,7 @@ override fun pressed(event: PointerEvent) {
 }
 // ..
 ```
-
+---
 ## Event Bubbling
 
 ### Pointer events "bubble" up to ancestors of a View

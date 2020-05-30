@@ -4,8 +4,12 @@ import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.Orientation.Horizontal
 
 /**
- * Created by Nicholas Eddy on 2/12/18.
+ * Represents a progress indicator that can be [Horizontal] or [Vertical][com.nectar.doodle.utils.Orientation.Vertical].
+ *
+ * @constructor
+ * @param model containing range and value
+ * @param orientation of the control
  */
-class ProgressBar(model: ConfinedValueModel<Double>, val orientation: Orientation = Horizontal): ProgressIndicator(model) {
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
-}
+class ProgressBar(
+        model          : ConfinedValueModel<Double> = BasicConfinedValueModel(0.0 .. 100.0),
+        val orientation: Orientation                = Horizontal): ProgressIndicator(model)

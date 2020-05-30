@@ -4,11 +4,12 @@
 ### Key handling is simple with Doodle
 
 The first thing you need to do is include the [`KeyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L59)
-when launching your app.
+when launching your app. The underlying framework uses the `KeyboardModule` to produce key events.
 
 ```kotlin
 class MyApp(display: Display): Application {
-    // ...
+    // key events will fire for this app when launched with
+    // the KeyboardModule
 }
 ```
 ```kotlin
@@ -21,16 +22,14 @@ fun main () {
     }
 }
 ```
-
-### Only focused Views receive key events
+---
+## Only focused Views receive key events
 
 A View must gain `focus` in order to begin receiving key events. This ensures that only a single View
 can receive key events at any time within the app.
 
-### Use the FocusManager to control focus
-
-The [`FocusManager`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/focus/FocusManager.kt#L9)
-is included in the `KeyboardModule`. Just inject it into your app to begin managing the focus.
+Use the [`FocusManager`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/focus/FocusManager.kt#L9)
+to control focus. It is included in the `KeyboardModule`. Just inject it into your app to begin managing the focus.
 
 ```kotlin
 class MyApp(display: Display, focusManager: FocusManager): Application {
@@ -50,6 +49,7 @@ fun main () {
 
 ?> Some controls (i.e. text fields) also manage their focus when styled in the native theme
 
+---
 ## Key Listeners
 
 Views are able to receive key events once the `KeyboardModule` is loaded and they have `focus`. You can
@@ -75,7 +75,7 @@ view.keyChanged += object: KeyListener {
 
 Notice that `keyChanged`--like other observable properties--supports many observers and enables you to add/remove
 an observer any time.
-
+---
 ## Key Event
 
 The event provided to key listeners carries information about the View it originated from (`source`), and
@@ -96,7 +96,7 @@ override fun pressed(event: KeyEvent) {
 
 ## Identifying Keys
 
-### Layout independent keys and user text
+### Virtual keys and text
 
 [`KeyEvent.key`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/KeyEvent.kt#L211)
 is a layout independent identifier that tells you which "virtual key" was pressed or which text the key can be translated into.

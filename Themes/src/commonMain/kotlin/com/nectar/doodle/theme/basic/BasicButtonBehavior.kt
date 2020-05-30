@@ -7,6 +7,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.drawing.TextMetrics
+import com.nectar.doodle.drawing.darker
 import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
@@ -20,10 +21,11 @@ import kotlin.math.max
 class BasicButtonBehavior(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
-        private val darkBackgroundColor: Color,
-        private val foregroundColor    : Color,
-        private val borderColor        : Color,
-        private val borderWidth        : Double = 1.0): CommonTextButtonBehavior<Button>(textMetrics) {
+        private val darkBackgroundColor: Color  = backgroundColor.darker(),
+        private val foregroundColor    : Color  = Color.White,
+        private val borderColor        : Color? = null,
+        private val borderWidth        : Double = 0.0,
+        private val cornerRadius       : Double = 4.0): CommonTextButtonBehavior<Button>(textMetrics) {
 
     private var insets = Insets(4.0)
 
@@ -34,14 +36,20 @@ class BasicButtonBehavior(
         var borderColor = borderColor
 
         if (!view.enabled) {
-            textColor   = textColor.lighter  ()
-            fillColor   = fillColor.lighter  ()
-            borderColor = borderColor.lighter()
+            textColor   = textColor.lighter   ()
+            fillColor   = fillColor.lighter   ()
+            borderColor = borderColor?.lighter()
+        } else if (model.pointerOver) {
+            fillColor = fillColor.darker(0.1f)
         }
 
         val penWidth = if (view.enabled && (model.pressed || model.pointerOver)) 2 * borderWidth else borderWidth
 
-        canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), Pen(borderColor, penWidth), ColorBrush(fillColor))
+        if (penWidth > 0 && borderColor != null) {
+            canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), cornerRadius, Pen(borderColor, penWidth), ColorBrush(fillColor))
+        } else {
+            canvas.rect(Rectangle(size = view.size), cornerRadius, ColorBrush(fillColor))
+        }
 
         val icon = icon(view)
         val text = view.text

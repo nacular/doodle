@@ -22,11 +22,14 @@ import com.nectar.doodle.controls.tree.TreeModel
 import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.Display
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.Brush
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Black
+import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.grayScale
 import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.theme.Modules
+import com.nectar.doodle.theme.Modules.Companion.ThemeModule
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
 import com.nectar.doodle.theme.adhoc.AdhocTheme
 import com.nectar.doodle.theme.basic.list.BasicListBehavior
@@ -93,6 +96,8 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         }
 
         val BasicTheme = BasicModule(name = "BasicTheme") {
+            importOnce(ThemeModule, allowOverride = true)
+
             bind<BasicTheme>() with singleton { BasicTheme(instance(), Instance(erasedSet())) }
         }
 
@@ -127,7 +132,12 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicButtonBehavior = BasicModule(name = "BasicButtonBehavior") {
             bindBehavior<Button>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicButtonBehavior(instance(), backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor) }
+                val cornerRadius = when (it.parent) {
+                    is Spinner<*,*> -> 0.0
+                    else            -> 4.0
+                }
+
+                it.behavior = instance<BasicThemeConfig>().run { BasicButtonBehavior(instance(), backgroundColor = backgroundColor, borderColor = borderColor, darkBackgroundColor = darkBackgroundColor, foregroundColor = foregroundColor, cornerRadius = cornerRadius) }
             }
         }
 
@@ -167,9 +177,18 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        val BasicProgressBarBehavior = BasicModule(name = "BasicProgressBarBehavior") {
+        fun basicProgressBarBehavior(
+                backgroundBrush: Brush? = null,
+                fillBrush      : Brush? = null,
+                outlineColor   : Color? = null,
+                cornerRadius   : Double = 2.0): Module = BasicModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicProgressBarBehavior(defaultBackgroundColor = defaultBackgroundColor, darkBackgroundColor = darkBackgroundColor) as Behavior<ProgressIndicator> }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicProgressBarBehavior(
+                            backgroundBrush ?: ColorBrush(defaultBackgroundColor),
+                            fillBrush       ?: ColorBrush(darkBackgroundColor   ),
+                            outlineColor,
+                            cornerRadius) as Behavior<ProgressIndicator> }
             }
         }
 
@@ -214,7 +233,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                     BasicSplitPanelBehavior,
                     BasicRadioButtonBehavior,
                     BasicMutableListBehavior,
-                    BasicProgressBarBehavior,
+                    basicProgressBarBehavior(),
                     BasicMutableTreeBehavior,
                     BasicMutableTableBehavior),
                     allowOverride = true)
