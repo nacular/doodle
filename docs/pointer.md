@@ -51,6 +51,14 @@ class CircularView(val radius: Double): View() {
 ``` 
 This view renders a circle and provides precise hit detection for it.
 
+```doodle
+{
+    "height": "200px",
+    "border": false,
+    "run"   : "DocApps.hitDetection"
+}
+```
+
 ?> The contains check passes a point within the View's parent coordinate system (or the [**Display**](display.md?id=the-display-is-an-apps-root-container)'s for
 top-level Views).
 ---

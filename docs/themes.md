@@ -78,17 +78,17 @@ class MyApp(display: Display,
 }
 ```
 
-`CustomTheme`'s simple implementation leads to lots of dependencies that are not used in `MyApp`. This includes the View
+`CustomTheme`'s static implementation leads to lots of dependencies that are not used in `MyApp`. This includes the View
 and Behavior classes it uses.
 
-## Adhoc Themes
+## Dynamic Themes
 
-Doodle addresses this concern with the [`AdhocTheme`](). This Theme uses dependency injection to discover the set of
-Behaviors that have been installed via Kodein Modules. It therefore avoids hard dependencies on either View or Behavior
-sub-classes.
+Doodle addresses this concern with the [`DynamicTheme`](). This Theme uses dependency injection to discover the set of
+Behaviors that have been installed via Kodein Modules. It then filters that list down to those Behaviors associated
+with it. This avoids hard dependencies on Views or Behaviors as a result.
 
-Adhoc Themes require explicit Behavior registration to work. The built-in Themes define a Module per Behavior to allow
-arbitrary groupings from the app.
+DynamicThemes require explicit Behavior registration to work. The built-in Themes define a Module per Behavior to allow
+arbitrary groupings within apps.
 
 ```kotlin
 class MyApp(display: Display,
@@ -102,13 +102,13 @@ class MyApp(display: Display,
 }
 
 fun main() {
-    // Both the Adhoc Theme and a list of Behavior modules are
-    // needed.
+    // DynamicThemes require a list of Behavior modules since the
+    // Theme itself is essentially a Behavior filter.
     application(modules = listOf(NativeTheme, NativeButtonBehavior)) {
         MyApp(instance(), instance(), instance())
     }
 }
 ``` 
-?> Include behavior modules at launch, so they can be used with a registered Adhoc Theme (NativeTheme in this case).
+?> Include behavior modules at launch, so they can be used with a registered DynamicTheme (NativeTheme in this case).
 
 This app no longer has extraneous dependencies on things like ProgressBar and its Behavior.

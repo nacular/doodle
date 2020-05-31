@@ -3,7 +3,7 @@ package com.nectar.doodle.theme
 import com.nectar.doodle.core.View
 import com.nectar.doodle.theme.Modules.BehaviorResult.Matched
 import com.nectar.doodle.theme.Modules.BehaviorResult.NotMatched
-import com.nectar.doodle.theme.adhoc.AdhocTheme
+import com.nectar.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.DKodein
 import org.kodein.di.Kodein.Builder
 import org.kodein.di.Kodein.Module
@@ -34,12 +34,12 @@ class Modules {
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl(instance()) }
         }
 
-        val AdhocThemeModule = Module(name = "AdhocTheme") {
+        val DynamicThemeModule = Module(name = "DynamicThemeModule") {
             importOnce(ThemeModule, allowOverride = true)
 
             bind() from setBinding<BehaviorResolver>()
 
-            bind<AdhocTheme>() with singleton { object: AdhocTheme(Instance(erasedSet())) {} }
+            bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
         }
 
         inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit) = bindConditionalBehavior<T>(theme) {
@@ -49,7 +49,7 @@ class Modules {
 
         // TODO: Can this be renamed to bindBehavior in 1.4?
         inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
-            importOnce(AdhocThemeModule, allowOverride = true)
+            importOnce(DynamicThemeModule, allowOverride = true)
 
             bind<BehaviorResolver>().inSet() with singleton {
                 object: BehaviorResolver {

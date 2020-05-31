@@ -31,7 +31,7 @@ import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.theme.Modules
 import com.nectar.doodle.theme.Modules.Companion.ThemeModule
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
-import com.nectar.doodle.theme.adhoc.AdhocTheme
+import com.nectar.doodle.theme.adhoc.DynamicTheme
 import com.nectar.doodle.theme.basic.list.BasicListBehavior
 import com.nectar.doodle.theme.basic.list.BasicMutableListBehavior
 import com.nectar.doodle.theme.basic.tabbedpanel.BasicTabProducer
@@ -57,7 +57,7 @@ private typealias MutableTreeModel<T> = com.nectar.doodle.controls.tree.MutableT
 private typealias BTheme              = BasicTheme
 
 @Suppress("UNCHECKED_CAST")
-open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == BTheme::class }) {
+open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
     override fun install(display: Display, all: Sequence<View>) {
         configProvider.config = config
 

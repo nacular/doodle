@@ -116,6 +116,8 @@ private class NestedApplicationHolder(
 
     init {
         injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
+            // TODO: Find better way to handle this
+            it.nested = true
             injector = Kodein.direct {
                 extend(injector, copy = Copy.All)
 

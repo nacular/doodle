@@ -1,0 +1,6 @@
+.doodle {
+    border       :1px solid #eaeefb;
+    border-radius:var(--code-block-border-radius);
+    padding      :var(--code-block-padding);
+    margin       :var(--code-block-margin);
+}

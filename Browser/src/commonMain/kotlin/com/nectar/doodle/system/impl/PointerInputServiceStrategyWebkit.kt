@@ -51,6 +51,8 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
     override var pointerLocation = Origin
         protected set
 
+    override var nested = false
+
     private var inputDevice  = null as HTMLElement?
     private var eventHandler = null as EventHandler?
 
@@ -92,10 +94,21 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
         }
     }
 
+    private fun updatePointer(event: MouseEvent) {
+        pointerLocation = when {
+            !nested && inputDevice != document.body -> {
+                val rect = inputDevice?.getBoundingClientRect()
+
+                Point(event.clientX - (rect?.x ?: 0.0), event.clientY - (rect?.y ?: 0.0))
+            }
+            else -> Point(event.pageX, event.pageY)
+        }
+    }
+
     private fun mouseDown(event: MouseEvent): Boolean {
         // Need to update location here in case running on a touch-based device; in which case mouseMove isn't called
         // unless touch is dragged
-        pointerLocation = Point(event.pageX, event.pageY)
+        updatePointer(event)
 
         eventHandler?.handle(createPointerEvent(event, Down, 1))
 
@@ -113,7 +126,7 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
     }
 
     private fun mouseMove(event: MouseEvent): Boolean {
-        pointerLocation = Point(event.pageX, event.pageY)
+        updatePointer(event)
 
         eventHandler?.handle(createPointerEvent(event, Move, 0))
 

@@ -9,6 +9,7 @@ internal interface PointerInputServiceStrategy {
     var cursor         : Cursor
     var toolTipText    : String
     val pointerLocation: Point
+    var nested         : Boolean
 
     fun startUp (handler: EventHandler)
     fun shutdown()

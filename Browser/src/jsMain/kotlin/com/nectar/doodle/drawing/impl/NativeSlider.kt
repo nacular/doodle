@@ -4,8 +4,10 @@ import com.nectar.doodle.controls.Slider
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory
+import com.nectar.doodle.dom.Overflow.Visible
 import com.nectar.doodle.dom.add
 import com.nectar.doodle.dom.setBounds
+import com.nectar.doodle.dom.setOverflow
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
@@ -68,7 +70,8 @@ internal class NativeSlider internal constructor(
         type  = "range"
         step  = "any"
         value = slider.value.toString()
-//        style.cursor = "inherit"
+
+        style.setOverflow(Visible())
     }
 
     private val changed: (Slider, Double, Double) -> Unit = { it,_,_ ->

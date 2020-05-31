@@ -5,7 +5,7 @@ import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.theme.Modules.BehaviorResolver
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
-import com.nectar.doodle.theme.adhoc.AdhocTheme
+import com.nectar.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
@@ -15,7 +15,7 @@ import org.kodein.di.erasedSet
 /**
  * Created by Nicholas Eddy on 1/8/20.
  */
-class MaterialTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
+class MaterialTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
     override fun toString() = this::class.simpleName ?: ""
 
     companion object {

@@ -25,4 +25,11 @@ fun main() {
 }
 ```
 
+```doodle
+{
+    "height": "50px",
+    "run"   : "DocApps.helloWorld"
+}
+```
+
 This is an example of a top-level [**Application**](applications.md).

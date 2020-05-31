@@ -25,10 +25,26 @@ view.x = 10.0                 // move to 10,0
 view.position = Point(13, -2) // reposition to 13,-2
 ```
 
+```doodle
+{
+    "height": "400px",
+    "border": false,
+    "run"   : "DocApps.positioning"
+}
+```
+
 Views can also have
 [Affine Transformations](https://en.wikipedia.org/wiki/Affine_transformation) to change how they are displayed. A transformed View still
 retains the same `bounds`, but its [`boundingBox`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L158) property changes, since it reflects the smallest rectangle that encloses the View's
 **transformed** bounds.
+
+```doodle
+{
+    "height": "400px",
+    "border": false,
+    "run"   : "DocApps.transforms"
+}
+```
 
 ?> `boundingBox` == `bounds` when
 [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L144) ==

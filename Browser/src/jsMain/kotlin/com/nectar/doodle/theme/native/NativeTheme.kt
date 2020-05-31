@@ -28,7 +28,7 @@ import com.nectar.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import com.nectar.doodle.theme.Modules.BehaviorResolver
 import com.nectar.doodle.theme.Modules.Companion.ThemeModule
 import com.nectar.doodle.theme.Modules.Companion.bindBehavior
-import com.nectar.doodle.theme.adhoc.AdhocTheme
+import com.nectar.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
@@ -44,7 +44,7 @@ import org.w3c.dom.HTMLElement
 
 private typealias NTheme = NativeTheme
 
-class NativeTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.filter { it.theme == NTheme::class }) {
+class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
     override fun toString() = this::class.simpleName ?: ""
 
     companion object {
@@ -69,13 +69,15 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): AdhocTheme(behaviors.f
         }
 
         val NativeThemeBehaviors = Module(name = "NativeThemeBehaviors") {
-            importOnce(NativeButtonBehavior,      allowOverride = true)
-            importOnce(NativeSliderBehavior,      allowOverride = true)
-            importOnce(NativeCheckBoxBehavior,    allowOverride = true)
-            importOnce(NativeTextFieldBehavior,   allowOverride = true)
-            importOnce(NativeHyperLinkBehavior,   allowOverride = true)
-            importOnce(NativeScrollPanelBehavior, allowOverride = true)
-            importOnce(NativeRadioButtonBehavior, allowOverride = true)
+            importAll(listOf(
+                    NativeButtonBehavior,
+                    NativeSliderBehavior,
+                    NativeCheckBoxBehavior,
+                    NativeTextFieldBehavior,
+                    NativeHyperLinkBehavior,
+                    NativeScrollPanelBehavior,
+                    NativeRadioButtonBehavior),
+                    allowOverride = true)
         }
 
         val NativeButtonBehavior = Module(name = "NativeButtonBehavior") {
