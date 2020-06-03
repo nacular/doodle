@@ -81,8 +81,8 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics, private val lab
     override fun install(view: Spinner<Any, Model<Any>>) {
         super.install(view)
 
-        val center   = labelFactory(view.value.toString()).apply { fitText = emptySet() }
-        val next     = PushButton().apply {
+        val center = labelFactory(view.value.toString()).apply { fitText = emptySet() }
+        val next = PushButton().apply {
             iconAnchor    = Anchor.Leading
             enabled       = view.hasNext
             acceptsThemes = false

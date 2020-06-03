@@ -111,7 +111,7 @@ Sliders hold a value within a specified range and let the user move that value a
 ```doodle
 {
     "border": false,
-    "height": "100px",
+    "height": "200px",
     "run"   : "DocApps.slider"
 }
 ```
@@ -129,7 +129,8 @@ val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
 
 ```doodle
 {
-    "height": "100px",
+    "border": false,
+    "height": "200px",
     "run"   : "DocApps.spinner"
 }
 ```

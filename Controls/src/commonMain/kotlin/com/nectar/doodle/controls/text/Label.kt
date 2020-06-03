@@ -2,6 +2,7 @@ package com.nectar.doodle.controls.text
 
 import com.nectar.doodle.controls.text.TextFit.Height
 import com.nectar.doodle.controls.text.TextFit.Width
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.ColorBrush
@@ -10,7 +11,6 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.text.StyledText
 import com.nectar.doodle.text.invoke
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.HorizontalAlignment
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
@@ -54,8 +54,6 @@ open class Label internal constructor(
 
     var styledText = font?.invoke { foregroundColor?.invoke { styledText } ?: styledText } ?: styledText
         set(new) {
-            if (new == field) { return }
-
             field = font?.invoke { foregroundColor?.invoke { new } ?: new } ?: new
             measureText()
 
@@ -110,7 +108,8 @@ open class Label internal constructor(
         }
 
         styleChanged += {
-            text = text
+            // force update
+            this.styledText = this.styledText
 
             rerender()
         }
@@ -124,6 +123,9 @@ open class Label internal constructor(
         if (textSize.empty) {
             measureText()
         }
+
+        // force update
+        styledText = styledText
     }
 
     override fun render(canvas: Canvas) { behavior?.render(this, canvas) }
