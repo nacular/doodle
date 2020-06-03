@@ -64,6 +64,13 @@ val box = Box()
 box.layout = HorizontalFlowLayout() // Box exposes its layout
 ```
 
+```doodle
+{
+    "height": "400px",
+    "run"   : "DocApps.flowLayout"
+}
+```
+
 [`HorizontalFlowLayout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/layout/HorizontalFlowLayout.kt#L16)
 wraps a View's children from left to right within its bounds.
 

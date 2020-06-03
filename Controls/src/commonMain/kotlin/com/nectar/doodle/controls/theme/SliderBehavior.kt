@@ -1,16 +1,17 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.event.KeyEvent
+import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyText.Companion.ArrowDown
 import com.nectar.doodle.event.KeyText.Companion.ArrowLeft
 import com.nectar.doodle.event.KeyText.Companion.ArrowRight
 import com.nectar.doodle.event.KeyText.Companion.ArrowUp
-import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
-import com.nectar.doodle.core.Behavior
+import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.Orientation.Vertical
 import com.nectar.doodle.utils.size
@@ -20,12 +21,11 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-abstract class SliderBehavior: Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
+abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
 
     private   var lastStart           = -1.0
     protected var lastPointerPosition = -1.0
         private set
-
 
     private val changed: (Slider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
 
@@ -56,11 +56,13 @@ abstract class SliderBehavior: Behavior<Slider>, PointerListener, PointerMotionL
         val barPosition = barPosition(slider)
 
         if (offset < barPosition || offset > barPosition + barSize) {
-            slider.value += round(scaleFactor * (offset - (barPosition + barSize / 2)))
+            slider.value += scaleFactor * (offset - (barPosition + barSize / 2))
         }
 
         lastPointerPosition = offset
-        lastStart         = slider.value
+        lastStart           = slider.value
+
+        focusManager?.requestFocus(slider)
 
         event.consume()
     }

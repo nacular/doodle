@@ -47,10 +47,18 @@ val textField = TextField().apply {
 A component that is "pressed" to trigger an action; usually with the pointer or keyboard.
 
 ```kotlin
-val button = PushButton("Press Here").apply {
+val button = PushButton("Button").apply {
     fired += {
         println("Hey! That Hurt!")
     }
+}
+```
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.button"
 }
 ```
 
@@ -66,7 +74,15 @@ The Photo component provides a simple wrapper around an Image.
 val photo = Photo(image).apply {
     size = Size(100, 200)
 }
-``` 
+```
+
+```doodle
+{
+    "height": "400px",
+    "run"   : "DocApps.photo"
+}
+```
+ 
 ---
 ### ProgressBar
 
@@ -76,13 +92,48 @@ Represents a value within a specified range. It provides notifications when its 
 val progressBar = ProgressBar() // creates a bar that ranges form 0 - 100
 ```
 
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.progress"
+}
+```
+
 ?> ProgressBar is a specialization of ProgressIndicator, which should be used for more generalized
 progress display (i.e. circular)
 
 ---
 ### Slider
+
+Sliders hold a value within a specified range and let the user move that value around. There 
+
+```doodle
+{
+    "border": false,
+    "height": "100px",
+    "run"   : "DocApps.slider"
+}
+```
+
 ---
 ### Spinner
+
+Spinners let you represent a list of items where only one is visible (selected) at a time. The are usefull when the list of options
+is relatively small, or the input is an incremental value: like the number of items to purchase.
+
+```kotlin
+val spinner1 = Spinner(1..9 step 2)
+val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
+```
+
+```doodle
+{
+    "height": "100px",
+    "run"   : "DocApps.spinner"
+}
+```
+
 ---
 ### List
 ---

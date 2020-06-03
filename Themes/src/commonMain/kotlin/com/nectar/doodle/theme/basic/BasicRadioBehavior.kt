@@ -1,6 +1,6 @@
 package com.nectar.doodle.theme.basic
 
-import com.nectar.doodle.controls.buttons.Button
+import com.nectar.doodle.controls.buttons.RadioButton
 import com.nectar.doodle.controls.theme.CheckRadioButtonBehavior
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.drawing.Canvas
@@ -16,13 +16,13 @@ import com.nectar.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 4/25/19.
  */
-class BasicRadioBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(textMetrics, BasicCheckBoxIcon, sSpacing) {
+class BasicRadioBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior<RadioButton>(textMetrics, BasicCheckBoxIcon, sSpacing) {
 
-    private object BasicCheckBoxIcon: Icon<Button> {
+    private object BasicCheckBoxIcon: Icon<RadioButton> {
 
-        override val size = Size(sCircleRadius * 2)
+        override fun size(view: RadioButton) = Size(sCircleRadius * 2)
 
-        override fun render(view: Button, canvas: Canvas, at: Point) {
+        override fun render(view: RadioButton, canvas: Canvas, at: Point) {
             val location  = at + Point(sCircleRadius, sCircleRadius)
             var fillColor = sFillColor
 

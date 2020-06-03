@@ -1,6 +1,7 @@
 package com.nectar.doodle.drawing
 
 import com.nectar.doodle.JsName
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Color.Companion.Green
 import com.nectar.doodle.drawing.Color.Companion.Red
 import com.nectar.doodle.drawing.Color.Companion.Transparent
@@ -9,7 +10,10 @@ import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
 import com.nectar.doodle.geometry.times
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.times
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.Test
 import kotlin.test.expect
@@ -18,6 +22,10 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 3/21/20.
  */
 class PatternBrushTests {
+    init {
+        mockkStatic("com.nectar.doodle.drawing.PatternBrushKt")
+    }
+
     @Test @JsName("sizeCorrect")
     fun `size correct`() {
         listOf(
@@ -50,25 +58,65 @@ class PatternBrushTests {
         }
     }
 
-    @Test @JsName("horizontalStripesEmptyIfColorsTransparent")
-    fun `horizontal stripes empty if colors transparent`() {
+    @Test @JsName("transformCorrect")
+    fun `transform correct`() {
         listOf(
-            Red opacity 0f to Transparent,
-            null to null
+                Identity,
+                Identity.rotate(30 * degrees)
         ).forEach {
-            expect(true) { horizontalStripedBrush(rowHeight = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
+            expect(it) { PatternBrush(size = Empty, transform = it) {}.transform }
         }
     }
 
-    @Test @JsName("horizontalStripesSizeCorrect")
-    fun `horizontal stripes size correct`() {
+    @Test @JsName("stripesEmptyIfColorsTransparent")
+    fun `stripes empty if colors transparent`() {
+        listOf(
+                Red opacity 0f to Transparent,
+                null to null
+        ).forEach {
+            expect(true) { stripedBrush(stripWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
+        }
+    }
+
+    @Test @JsName("stripesSizeCorrect")
+    fun `stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it, it * 2)) { horizontalStripedBrush(rowHeight = it, evenRowColor = Red).size }
+            expect(Size(it, it * 2)) { stripedBrush(stripWidth = it, evenRowColor = Red).size }
         }
     }
 
-    @Test @JsName("horizontalStripesRendersCorrectly")
-    fun `horizontal stripes renders correctly`() {
+    @Test @JsName("stripesRendersCorrectly")
+    fun `stripes renders correctly`() {
+        data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: AffineTransform)
+
+        listOf(
+                Attributes(45.6, Red, Green, Identity                     ),
+                Attributes( 0.6, Red,  null, Identity.rotate(30 * degrees)),
+                Attributes( 0.6, null,  Red, Identity                     ),
+                Attributes( 0.0, Red, Green, Identity.rotate(30 * degrees))
+        ).forEach { test ->
+            val canvas = mockk<Canvas>()
+
+            stripedBrush(stripWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
+                expect(transform) { test.transform }
+
+                canvas.apply(fill)
+            }
+
+            test.evenColor?.let {
+                verify(exactly = 1) {
+                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorBrush(it))
+                }
+            }
+
+            test.oddColor?.let {
+                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorBrush(it)) }
+            }
+        }
+    }
+
+    @Test @JsName("horizontalStripesUsesStripes")
+    fun `horizontal stripes uses stripes`() {
         data class Attributes(val rowHeight: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
@@ -83,35 +131,12 @@ class PatternBrushTests {
                 canvas.apply(fill)
             }
 
-            test.evenColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(width = test.rowHeight, height = test.rowHeight), ColorBrush(it)) }
-            }
-
-            test.oddColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(y = test.rowHeight, width = test.rowHeight, height = test.rowHeight), ColorBrush(it)) }
-            }
+            verify(exactly = 1) { stripedBrush(stripWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor) }
         }
     }
 
-    @Test @JsName("verticalStripesEmptyIfColorsTransparent")
+    @Test @JsName("verticalStripesUsesStripes")
     fun `vertical stripes empty if colors transparent`() {
-        listOf(
-            Red opacity 0f to Transparent,
-            null to null
-        ).forEach {
-            expect(true) { verticalStripedBrush(colWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
-        }
-    }
-
-    @Test @JsName("verticalStripesSizeCorrect")
-    fun `vertical stripes size correct`() {
-        listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it * 2, it)) { verticalStripedBrush(colWidth = it, evenRowColor = Red).size }
-        }
-    }
-
-    @Test @JsName("verticalStripesRendersCorrectly")
-    fun `vertical stripes renders correctly`() {
         data class Attributes(val colWidth: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
@@ -126,12 +151,8 @@ class PatternBrushTests {
                 canvas.apply(fill)
             }
 
-            test.evenColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(width = test.colWidth, height = test.colWidth), ColorBrush(it)) }
-            }
-
-            test.oddColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(x = test.colWidth, width = test.colWidth, height = test.colWidth), ColorBrush(it)) }
+            verify(exactly = 1) {
+                stripedBrush(stripWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(90 * degrees))
             }
         }
     }

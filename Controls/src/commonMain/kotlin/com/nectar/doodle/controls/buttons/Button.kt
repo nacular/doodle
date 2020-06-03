@@ -1,11 +1,11 @@
 package com.nectar.doodle.controls.buttons
 
 import com.nectar.doodle.accessibility.button
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObservers
 import com.nectar.doodle.utils.ChangeObserversImpl
@@ -21,8 +21,8 @@ import com.nectar.doodle.utils.VerticalAlignment.Middle
 
 @Suppress("PrivatePropertyName")
 abstract class Button protected constructor(
-            text: String        = "",
-        var icon: Icon<Button>? = null,
+            text : String        = "",
+            icon : Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): View(accessibilityRole = button()) {
 
     private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
@@ -33,13 +33,27 @@ abstract class Button protected constructor(
     override fun addedToDisplay() {
         super.addedToDisplay()
 
-        model.fired += modelFired
+        registerModel(model)
     }
 
     override fun removedFromDisplay() {
         super.removedFromDisplay()
 
-        model.fired -= modelFired
+        unregisterModel(model)
+    }
+
+    private fun registerModel(model: ButtonModel) {
+        model.fired              += modelFired
+        model.armedChanged       += armedChanged_
+        model.pressedChanged     += pressedChanged_
+        model.pointerOverChanged += pointerOverChanged_
+    }
+
+    private fun unregisterModel(model: ButtonModel) {
+        model.fired              -= modelFired
+        model.armedChanged       -= armedChanged_
+        model.pressedChanged     -= pressedChanged_
+        model.pointerOverChanged -= pointerOverChanged_
     }
 
     val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl<Button, String>(this) }
@@ -48,8 +62,8 @@ abstract class Button protected constructor(
 
     val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
 
-    val armedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
-    val pressedChanged  : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    val armedChanged      : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    val pressedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
     val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
 
     var behavior: Behavior<Button>? = null
@@ -73,12 +87,13 @@ abstract class Button protected constructor(
 
     var iconAnchor = Left; set(new) { field = new; styleChanged() }
 
-    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon
-    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon
-    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon
-    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon
-    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon
-    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon
+    var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged() }
+    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
+    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
+    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
+    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
+    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon; set(new) { field = new; styleChanged() }
+    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon; set(new) { field = new; styleChanged() }
 
     var selected: Boolean
         get(   ) = model.selected
@@ -90,12 +105,12 @@ abstract class Button protected constructor(
 
     open var model: ButtonModel = model
         set(new) {
-            field.fired -= modelFired
+            unregisterModel(field)
 
             field = new
 
             if (displayed) {
-                field.fired += modelFired
+                registerModel(field)
             }
         }
 

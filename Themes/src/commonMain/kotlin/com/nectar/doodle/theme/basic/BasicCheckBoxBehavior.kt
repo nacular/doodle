@@ -1,10 +1,8 @@
 package com.nectar.doodle.theme.basic
 
-import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.theme.CheckRadioButtonBehavior
 import com.nectar.doodle.core.Icon
-import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.White
@@ -19,17 +17,18 @@ import com.nectar.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 4/25/19.
  */
-class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(textMetrics, BasicCheckBoxIcon, sSpacing) {
+class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior<CheckBox>(textMetrics, BasicCheckBoxIcon, sSpacing) {
 
-    private object BasicCheckBoxIcon: Icon<Button> {
+    private object BasicCheckBoxIcon: Icon<CheckBox> {
 
-        override val size = Size(sRectSize)
+        override fun size(view: CheckBox) = Size(sRectSize)
 
-        override fun render(view: Button, canvas: Canvas, at: Point) {
+        override fun render(view: CheckBox, canvas: Canvas, at: Point) {
+            val size            = size(view)
             var fillColor       = sFillColor
             var borderColor     = sBorderColor
             var backgroundColor = if (view.model.armed && view.model.pointerOver) Color(0xaaaaaau); else sLightBGColor
-            val rect            = Rectangle(at, size)
+            val rect            = Rectangle(at, size(view))
 
             if (!view.enabled) {
                 fillColor       = Color(0x888888u)
@@ -44,7 +43,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior(
             }
 
             when {
-                (view as CheckBox).indeterminate -> canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, width - 6, 2.0), ColorBrush(fillColor))
+                (view as CheckBox).indeterminate -> canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, size.width - 6, 2.0), ColorBrush(fillColor))
                 view.model.selected              -> canvas.poly(ConvexPolygon(
                         Point(at.x + 3, at.y + 5),
                         Point(at.x + 5, at.y + 7),

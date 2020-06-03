@@ -2,8 +2,6 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.core.Icon
-import com.nectar.doodle.core.height
-import com.nectar.doodle.core.width
 import com.nectar.doodle.drawing.Font
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Point
@@ -28,7 +26,7 @@ abstract class CommonTextButtonBehavior<T: Button>(
         private val insets     : Insets = Insets.None): CommonButtonBehavior<T>() {
 
 
-    private val textChanged: (Button, String, String) -> Unit = { button,_,_ ->
+    protected open val textChanged: (Button, String, String) -> Unit = { button,_,_ ->
         button.rerender()
     }
 
@@ -47,18 +45,28 @@ abstract class CommonTextButtonBehavior<T: Button>(
     protected fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
         var minX       = insets.left
         val stringSize = textMetrics.size(text, font(button))
+        var iconWidth  = 0.0
         var maxX       = bounds.width - stringSize.width - insets.right
 
         icon?.let {
+            iconWidth = it.size(button).width + button.iconTextSpacing
+
             when (button.iconAnchor) {
-                Anchor.Left,  Anchor.Leading  -> minX += it.width + button.iconTextSpacing
-                Anchor.Right, Anchor.Trailing -> maxX -= it.width + button.iconTextSpacing
+                Anchor.Left,  Anchor.Leading  -> minX += iconWidth
+                Anchor.Right, Anchor.Trailing -> maxX -= iconWidth
             }
         }
 
         val x = when (button.horizontalAlignment) {
             Right  -> max(maxX, minX)
-            Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2))
+            Center -> {
+                val iconOffset = when (button.iconAnchor) {
+                    Anchor.Leading -> iconWidth
+                    else           -> 0.0
+                }
+
+                max(minX, min(maxX, (bounds.width - (stringSize.width + iconWidth)) / 2 + iconOffset))
+            }
             Left   -> minX
         }
 
@@ -72,22 +80,24 @@ abstract class CommonTextButtonBehavior<T: Button>(
     }
 
     protected fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds.atOrigin): Point {
+        val size = icon.size(button)
+
         val y = when (button.verticalAlignment) {
             Bottom -> bounds.height - insets.bottom
-            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - icon.height) / 2))
+            Middle -> max(insets.top, min(bounds.height - insets.bottom, (bounds.height - size.height) / 2))
             Top    -> insets.top
         }
 
         val minX        = insets.left
-        val maxX        = bounds.width - icon.width - insets.right
+        val maxX        = bounds.width - size.width - insets.right
         val stringWidth = textMetrics.width(text, font(button))
 
         val x = when (button.iconAnchor) {
             Anchor.Leading ->
                 if (stringWidth > 0) {
-                    max(minX, stringPosition.x - icon.width - button.iconTextSpacing)
+                    max(minX, stringPosition.x - size.width - button.iconTextSpacing)
                 } else {
-                    max(minX, min(maxX, (bounds.width - icon.width) / 2))
+                    max(minX, min(maxX, (bounds.width - size.width) / 2))
                 }
 
             Anchor.Right ->
@@ -101,25 +111,13 @@ abstract class CommonTextButtonBehavior<T: Button>(
                 if (stringWidth > 0) {
                     stringPosition.x + stringWidth + button.iconTextSpacing
                 } else {
-                    max(minX, min(maxX, (bounds.width - icon.width) / 2))
+                    max(minX, min(maxX, (bounds.width - size.width) / 2))
                 }
-            else -> insets.left
+            else -> minX
         }
 
         return Point(x, y) + bounds.position
     }
 
     protected fun font(button: Button) = button.font ?: defaultFont
-
-    protected fun icon(button: Button): Icon<Button>? {
-        val model = button.model
-
-        return when {
-            !button.enabled -> if (model.selected) button.disabledSelectedIcon else button.disabledIcon
-            model.pressed   -> button.pressedIcon
-            model.selected    -> button.selectedIcon
-            model.pointerOver -> if (model.selected) button.pointerOverSelectedIcon else button.pointerOverIcon
-            else              -> button.icon
-        }
-    }
 }

@@ -11,9 +11,9 @@ import com.nectar.doodle.image.Image
  * Created by Nicholas Eddy on 8/13/19.
  */
 class ImageIcon<T: View>(private val image: Image): Icon<T> {
-    override val size get() = image.size
+    override fun size(view: T) = image.size
 
     override fun render(view: T, canvas: Canvas, at: Point) {
-        canvas.image(image, Rectangle(position = at, size = size))
+        canvas.image(image, Rectangle(position = at, size = size(view)))
     }
 }

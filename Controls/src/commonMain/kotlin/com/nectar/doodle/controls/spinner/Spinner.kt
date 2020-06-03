@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.spinner
 
-import com.nectar.doodle.controls.theme.SpinnerBehavior
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.utils.ChangeObservers
@@ -21,9 +21,27 @@ interface MutableModel<T>: Model<T> {
     override var value: T
 }
 
+/**
+ * Provides presentation and behavior customization for [Spinner].
+ */
+abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
+    val Spinner<T, M>.children get() = this._children
+    var Spinner<T, M>.insets   get() = this._insets; set(new) { _insets = new }
+    var Spinner<T, M>.layout   get() = this._layout; set(new) { _layout = new }
+
+    /**
+     * Called whenever the Spinner's selection changes. This is an explicit API to ensure that
+     * behaviors receive the notification before listeners to [Spinner.changed].
+     *
+     * @param spinner with change
+     */
+    abstract fun changed(spinner: Spinner<T, M>)
+}
+
+@Suppress("PropertyName")
 open class Spinner<T, M: Model<T>>(val model: M): View() {
 
-    fun next    () = model.next()
+    fun next    () = model.next    ()
     fun previous() = model.previous()
 
     open val value       get() = model.value
@@ -37,11 +55,6 @@ open class Spinner<T, M: Model<T>>(val model: M): View() {
             field?.uninstall(this)
 
             field = new?.also {
-                it.components(this).also {
-                    children.addAll(it.components)
-                    layout = it.layout()
-                }
-
                 it.install(this)
             }
         }
@@ -49,6 +62,11 @@ open class Spinner<T, M: Model<T>>(val model: M): View() {
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
+
+    // Expose container APIs for behavior
+    internal val _children get() = children
+    internal var _insets   get() = insets; set(new) { insets = new }
+    internal var _layout   get() = layout; set(new) { layout = new }
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { ChangeObserversImpl(this) }

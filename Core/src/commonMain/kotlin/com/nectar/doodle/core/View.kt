@@ -237,19 +237,24 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /** The current text to display for tool-tips.  The default is the empty string.  */
     var toolTipText = ""
 
+    private var actualCursor: Cursor? = null
+
     /** Cursor that is displayed whenever the pointer is over this View. This falls back to the [parent]'s Cursor if not set. */
     var cursor: Cursor? = null
-        get(   ) = field ?: parent?.cursor
+        get(   ) = actualCursor ?: parent?.cursor
         set(new) {
-            if (new == field) {
-                return
-            }
+            if (actualCursor == new) return
 
             val old = field
 
-            field = new
+            actualCursor = new
 
             (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
+
+            // Notify relevant children that their cursor has changed
+            children.filter { it.actualCursor == null }.forEach {
+                (it.cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
+            }
         }
 
     /** Notifies changes to [cursor] */

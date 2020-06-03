@@ -49,6 +49,13 @@ class UserInfo(
 }
 ```
 
+```doodle
+{
+    "height": "60px",
+    "run"   : "DocApps.userInfo"
+}
+```
+
 ?> Don't worry about the `render` method yet; we cover that [later](rendering.md).
 
 ---

@@ -13,8 +13,12 @@ import com.nectar.doodle.geometry.Size
  */
 interface Icon<in T: View> {
 
-    /** The icon's size */
-    val size: Size
+    /**
+     * The icon's size for the given view.
+     *
+     * @param view to get size for
+     */
+    fun size(view: T): Size
 
     /**
      * Renders the icon onto the surface of the given [View],
@@ -27,6 +31,3 @@ interface Icon<in T: View> {
      */
     fun render(view: T, canvas: Canvas, at: Point)
 }
-
-inline val Icon<*>.width  get() = size.width
-inline val Icon<*>.height get() = size.height

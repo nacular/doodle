@@ -2,16 +2,17 @@ package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.ToggleButton
+import com.nectar.doodle.core.Behavior
+import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
-import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyCode.Companion.Space
+import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
 import com.nectar.doodle.event.KeyText.Companion.Enter
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.event.PointerMotionListener
 import com.nectar.doodle.system.SystemPointerEvent.Button.Button1
-import com.nectar.doodle.core.Behavior
 
 
 abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
@@ -21,18 +22,18 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
     }
 
     private val stylesChanged: (View) -> Unit = {
-        it.rerender()
+        stylesChanged(it as T)
     }
 
-    private val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button,_,_ ->
+    protected open val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button,_,_ ->
         button.rerender()
     }
 
     override fun install(view: T) {
-        view.keyChanged         += this
+        view.keyChanged           += this
         view.pointerChanged       += this
-        view.styleChanged       += stylesChanged
-        view.enabledChanged     += enabledChanged
+        view.styleChanged         += stylesChanged
+        view.enabledChanged       += enabledChanged
         view.pointerMotionChanged += this
 
         (view as? ToggleButton)?.let { it.selectedChanged += selectionChanged }
@@ -42,10 +43,10 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
     }
 
     override fun uninstall(view: T) {
-        view.keyChanged         -= this
+        view.keyChanged           -= this
         view.pointerChanged       -= this
-        view.styleChanged       -= stylesChanged
-        view.enabledChanged     -= enabledChanged
+        view.styleChanged         -= stylesChanged
+        view.enabledChanged       -= enabledChanged
         view.pointerMotionChanged -= this
 
         (view as? ToggleButton)?.let { it.selectedChanged -= selectionChanged }
@@ -142,6 +143,19 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
         }
     }
 
+    protected open fun stylesChanged (button: T) = button.rerender()
     protected open fun pointerChanged(button: T) = button.rerender()
     protected open fun enabledChanged(button: T) = button.rerender()
+
+    protected fun icon(button: Button): Icon<Button>? {
+        val model = button.model
+
+        return when {
+            !button.enabled   -> if (model.selected) button.disabledSelectedIcon else button.disabledIcon
+            model.pressed     -> button.pressedIcon
+            model.selected    -> button.selectedIcon
+            model.pointerOver -> if (model.selected) button.pointerOverSelectedIcon else button.pointerOverIcon
+            else              -> button.icon
+        }
+    }
 }

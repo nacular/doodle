@@ -18,20 +18,21 @@ import com.nectar.doodle.geometry.Size
  */
 open class PathIcon<in T: View>(
         private val path       : Path,
-                    size       : Size?    = null,
+        private val size       : Size?    = null,
                     fill       : Color?   = null,
                     outline    : Color?   = null,
         private val fillRule   : FillRule = EvenOdd,
                     pathMetrics: PathMetrics): Icon<T> {
 
     private val pathSize = pathMetrics.size(path)
-    override val size = size ?: pathSize
+    override fun size(view: T) = size ?: pathSize
 
     private val pen   = outline?.let { Pen       (it) }
     private val brush = fill?.let    { ColorBrush(it) }
 
     override fun render(view: T, canvas: Canvas, at: Point) {
         val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
+        val size  = size(view)
 
         canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
             translate(at) {

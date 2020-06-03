@@ -1,6 +1,16 @@
 .doodle {
-    border       :1px solid #eaeefb;
     border-radius:var(--code-block-border-radius);
-    padding      :var(--code-block-padding);
-    margin       :var(--code-block-margin);
+//    padding      :var(--code-block-padding);
+    margin       : var(--code-block-margin);
+     -webkit-transition: .2s;
+    transition: .2s;
+}
+
+.doodle.border {
+    border: 1px solid #eaeefb;
+}
+
+.doodle.hover {
+    -webkit-box-shadow: 0 0 18px rgba(0,0,0,0.1), 0 2px 8px 0 rgba(0,0,0,0.1);
+    box-shadow        : 0 0 18px rgba(0,0,0,0.1), 0 2px 8px 0 rgba(0,0,0,0.1);
 }

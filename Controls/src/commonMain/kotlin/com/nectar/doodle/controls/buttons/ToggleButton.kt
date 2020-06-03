@@ -4,10 +4,11 @@ import com.nectar.doodle.core.Icon
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
+interface ToggleButtonModel: ButtonModel
 
 @Suppress("PrivatePropertyName")
-open class ToggleButton(text: String = "", icon: Icon<Button>? = null): PushButton(text, icon, ToggleButtonModel()) {
-    private class ToggleButtonModel: ButtonModelImpl() {
+open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: ToggleButtonModel = ToggleButtonModelImpl()): PushButton(text, icon, model) {
+    protected class ToggleButtonModelImpl: ButtonModelImpl(), ToggleButtonModel {
         override var selected
             get(   ) = super.selected
             set(new) {

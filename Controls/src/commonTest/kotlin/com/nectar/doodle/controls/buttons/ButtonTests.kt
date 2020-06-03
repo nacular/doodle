@@ -1,13 +1,13 @@
 package com.nectar.doodle.controls.buttons
 
 import com.nectar.doodle.JsName
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.Icon
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.RenderManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Anchor.Left
 import com.nectar.doodle.utils.ChangeObserver
 import com.nectar.doodle.utils.HorizontalAlignment.Center
@@ -205,10 +205,17 @@ class ButtonTests {
 
     @Test @JsName("styleChangeEventsWork")
     fun `style change events work`() {
-        validateStyleChanged(Button::iconAnchor,          mockk(relaxed = true))
-        validateStyleChanged(Button::iconTextSpacing,     5.6                  )
-        validateStyleChanged(Button::verticalAlignment,   mockk(relaxed = true))
-        validateStyleChanged(Button::horizontalAlignment, mockk(relaxed = true))
+        validateStyleChanged(Button::icon,                    mockk(relaxed = true))
+        validateStyleChanged(Button::iconAnchor,              mockk(relaxed = true))
+        validateStyleChanged(Button::pressedIcon,             mockk(relaxed = true))
+        validateStyleChanged(Button::disabledIcon,            mockk(relaxed = true))
+        validateStyleChanged(Button::selectedIcon,            mockk(relaxed = true))
+        validateStyleChanged(Button::pointerOverIcon,         mockk(relaxed = true))
+        validateStyleChanged(Button::iconTextSpacing,         5.6                  )
+        validateStyleChanged(Button::verticalAlignment,       mockk(relaxed = true))
+        validateStyleChanged(Button::horizontalAlignment,     mockk(relaxed = true))
+        validateStyleChanged(Button::disabledSelectedIcon,    mockk(relaxed = true))
+        validateStyleChanged(Button::pointerOverSelectedIcon, mockk(relaxed = true))
     }
 
     @Test @JsName("delegatesContainsPointToBehavior")

@@ -1,10 +1,6 @@
 package com.nectar.doodle.controls.buttons
 
-/**
- * Created by Nicholas Eddy on 11/10/17.
- */
-
-class ButtonGroup {
+class ButtonGroup(var allowDeselectAll: Boolean = false) {
     val size: Int get() = buttons.size
 
     private val buttons by lazy { mutableSetOf<Button>() }
@@ -60,7 +56,9 @@ class ButtonGroup {
                 }
             }
 
-            selectedModel?.selected = true
+            if (!allowDeselectAll) {
+                selectedModel?.selected = true
+            }
         }
     }
 }
