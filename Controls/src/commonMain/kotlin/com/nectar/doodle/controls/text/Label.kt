@@ -5,7 +5,6 @@ import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
-import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.Size.Companion.Empty
@@ -46,18 +45,38 @@ open class Label internal constructor(
                     horizontalAlignment: HorizontalAlignment = Center): View() {
 
     var fitText = setOf(Width, Height)
+        set(new) {
+            field = new
+            measureText()
+        }
 
     var text: String get() = styledText.text
         set(new) {
-            styledText = StyledText(new, font, foregroundColor?.let { ColorBrush(it) })
+            styledText = StyledText(new)
         }
 
-    var styledText = font?.invoke { foregroundColor?.invoke { styledText } ?: styledText } ?: styledText
+    // this a clone of actualStyledText with the Label's styling applied
+    private var visibleStyledText = styledText
+        set(value) {
+            field = value
+            foregroundColor?.invoke { field }
+            font?.invoke { field }
+        }
+
+    // this is the styled-text that is set by a caller
+    private var actualStyledText = styledText
         set(new) {
-            field = font?.invoke { foregroundColor?.invoke { new } ?: new } ?: new
+            field = new
+            visibleStyledText = field.copy()
+
             measureText()
 
             rerender()
+        }
+
+    var styledText get() = visibleStyledText
+        set(new) {
+            actualStyledText = new
         }
 
     var wrapsWords = false
@@ -109,10 +128,15 @@ open class Label internal constructor(
 
         styleChanged += {
             // force update
-            this.styledText = this.styledText
+            actualStyledText = actualStyledText
+
+            println("text: $text, fgcolor: $foregroundColor")
 
             rerender()
         }
+
+        // force update
+        actualStyledText = actualStyledText
 
         size = textSize
     }
@@ -125,7 +149,7 @@ open class Label internal constructor(
         }
 
         // force update
-        styledText = styledText
+        actualStyledText = actualStyledText
     }
 
     override fun render(canvas: Canvas) { behavior?.render(this, canvas) }

@@ -1,11 +1,12 @@
 package com.nectar.doodle.controls.theme
 
 import com.nectar.doodle.controls.text.Label
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.HorizontalAlignment.Center
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.HorizontalAlignment.Right
@@ -18,8 +19,8 @@ import com.nectar.doodle.utils.VerticalAlignment.Top
  */
 class LabelBehavior(private val foregroundColor: Color? = null, private val backgroundColor: Color? = null): Behavior<Label> {
     override fun install(view: Label) {
-        foregroundColor?.let { if (it != Color.Black) view.foregroundColor = it } // FIXME: Check default color instead
-        backgroundColor?.let {                        view.backgroundColor = it }
+        foregroundColor?.let { if (it != Black) view.foregroundColor = it } // FIXME: Check default color instead
+        backgroundColor?.let {                  view.backgroundColor = it }
     }
 
     override fun uninstall(view: Label) {

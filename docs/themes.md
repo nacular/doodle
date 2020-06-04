@@ -84,7 +84,7 @@ and Behavior classes it uses.
 ## Dynamic Themes
 
 Doodle addresses this concern with the [`DynamicTheme`](). This Theme uses dependency injection to discover the set of
-Behaviors that have been installed via Kodein Modules. It then filters that list down to those Behaviors associated
+Behaviors that have been installed via Kodein Modules. It can filter that list down to those Behaviors associated
 with it. This avoids hard dependencies on Views or Behaviors as a result.
 
 DynamicThemes require explicit Behavior registration to work. The built-in Themes define a Module per Behavior to allow
@@ -93,7 +93,7 @@ arbitrary groupings within apps.
 ```kotlin
 class MyApp(display: Display,
             manager: ThemeManager,
-            theme  : NativeTheme): Application {
+            theme  : DynamicTheme): Application {
 
     init {
         manager.selected = theme
@@ -104,11 +104,11 @@ class MyApp(display: Display,
 fun main() {
     // DynamicThemes require a list of Behavior modules since the
     // Theme itself is essentially a Behavior filter.
-    application(modules = listOf(NativeTheme, NativeButtonBehavior)) {
+    application(modules = listOf(NativeButtonBehavior)) {
         MyApp(instance(), instance(), instance())
     }
 }
 ``` 
-?> Include behavior modules at launch, so they can be used with a registered DynamicTheme (NativeTheme in this case).
+?> Include behavior modules at launch, so they can be used with a registered DynamicTheme.
 
 This app no longer has extraneous dependencies on things like ProgressBar and its Behavior.

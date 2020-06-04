@@ -10,6 +10,7 @@ internal class NativeTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFa
     private val nativePeer by lazy { nativeTextFieldFactory(textField) }
 
     override fun fitTextSize(textField: TextField) = nativePeer.fitTextSize()
+    override fun clipCanvasToBounds(view: TextField) = nativePeer.clipCanvasToBounds
 
     override fun render(view: TextField, canvas: Canvas) {
         nativePeer.size = view.size

@@ -9,12 +9,9 @@ import com.nectar.doodle.dom.HtmlFactory
 import com.nectar.doodle.dom.setBackgroundColor
 import com.nectar.doodle.dom.setBorderWidth
 import com.nectar.doodle.dom.setColor
-import com.nectar.doodle.dom.setHeight
+import com.nectar.doodle.dom.setFont
 import com.nectar.doodle.dom.setHeightPercent
-import com.nectar.doodle.dom.setLeft
 import com.nectar.doodle.dom.setOutlineWidth
-import com.nectar.doodle.dom.setTop
-import com.nectar.doodle.dom.setWidth
 import com.nectar.doodle.dom.setWidthPercent
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.TextMetrics
@@ -70,6 +67,8 @@ internal class NativeTextField(
         private val borderSize         : Size,
         private val textField          : TextField): NativeEventListener {
 
+    val clipCanvasToBounds = false
+
     var text
         get(   ) = inputElement.value
         set(new) {
@@ -108,13 +107,20 @@ internal class NativeTextField(
     }
 
     private val styleChanged = { _: View ->
-        inputElement.style.setColor          (textField.foregroundColor)
-        inputElement.style.setBackgroundColor(textField.backgroundColor)
-        inputElement.style.textAlign = when (textField.horizontalAlignment) {
+        inputElement.placeholder = textField.placeHolder
+
+        inputElement.style.setFont           (textField.font               )
+        inputElement.style.setColor          (textField.foregroundColor    )
+        inputElement.style.setBackgroundColor(textField.backgroundColor    )
+        inputElement.style.textAlign = when  (textField.horizontalAlignment) {
             Center -> "center"
             Right  -> "right"
             else   -> ""
         }
+
+        inputElement.style.outline = if (textField.borderVisible) "" else "none"
+        inputElement.style.setBorderWidth (if (textField.borderVisible) null else 0.0)
+        inputElement.style.setOutlineWidth(if (textField.borderVisible) null else 0.0)
     }
 
     private val focusabilityChanged = { _: View, _: Boolean, new: Boolean ->
@@ -132,26 +138,11 @@ internal class NativeTextField(
     init {
         text = textField.text
 
+        styleChanged(textField)
+
         inputElement.apply {
-            if (!textField.borderVisible) {
-                style.setBorderWidth  (0.0  )
-                style.setOutlineWidth (0.0  )
-                style.setWidthPercent (100.0)
-                style.setHeightPercent(100.0)
-
-            } else {
-                style.setTop (borderSize.height / 2)
-                style.setLeft(borderSize.width  / 2)
-            }
-
-            style.setColor          (textField.foregroundColor)
-            style.setBackgroundColor(textField.backgroundColor)
-
-            style.textAlign = when (textField.horizontalAlignment) {
-                Center -> "center"
-                Right  -> "right"
-                else   -> ""
-            }
+            style.setWidthPercent (100.0)
+            style.setHeightPercent(100.0)
 
             type       = if (textField.masked) "password" else "text"
             spellcheck = false
@@ -189,11 +180,6 @@ internal class NativeTextField(
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
-            if (textField.borderVisible) {
-                inputElement.style.setWidth (textField.width  - borderSize.width )
-                inputElement.style.setHeight(textField.height - borderSize.height)
-            }
-
             canvas.addData(listOf(inputElement))
         }
 
@@ -204,8 +190,10 @@ internal class NativeTextField(
         select(textField.selection.run { start .. end })
     }
 
-    fun fitTextSize() = textMetrics.size(textField.displayText).run {
-        Size(max(8.0, width) + 1.6 + if (textField.borderVisible) borderSize.width * 2 else 0.0, height + if (textField.borderVisible) borderSize.height * 2 else 0.0)
+    fun fitTextSize() = textMetrics.size(textField.displayText, textField.font).run {
+        val h = if (height == 0.0) textField.height - borderSize.height else height
+
+        Size(max(8.0, width) + borderSize.width, h + borderSize.height)
     }
 
     override fun onKeyUp(target: EventTarget?) = true.also { syncTextField() }

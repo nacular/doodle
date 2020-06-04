@@ -40,6 +40,8 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
     operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorBrush(color)))) }
     operator fun rangeTo(text : String) = this.also { add(MutablePair(text, StyleImpl())) }
 
+    fun copy() = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
+
     private fun add(pair: MutablePair<String, StyleImpl>) {
         val (_, style) = data.last()
 

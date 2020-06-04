@@ -1,8 +1,8 @@
 package com.nectar.doodle.controls.text
 
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 
@@ -13,8 +13,13 @@ interface TextFieldBehavior: Behavior<TextField> {
 }
 
 open class TextField(text: String = ""): TextInput(text) {
+    var placeHolder = ""
+        set(new) {
+            field = new
+            styleChanged()
+        }
 
-    var fitText = null as Set<TextFit>?
+    var fitText = emptySet<TextFit>()
         set(new) {
             field = new
 
@@ -22,6 +27,10 @@ open class TextField(text: String = ""): TextInput(text) {
         }
 
     var borderVisible = true
+        set(new) {
+            field = new
+            styleChanged()
+        }
 
     val masked get() = mask != null
 
@@ -43,11 +52,18 @@ open class TextField(text: String = ""): TextInput(text) {
 
     var behavior: TextFieldBehavior? = null
         set(new) {
-            field = new
+            if (field == new) { return }
+
+            clipCanvasToBounds = true
+            field?.uninstall(this)
+
+            field = new?.also {
+                it.install(this)
+                clipCanvasToBounds = it.clipCanvasToBounds(this)
+            }
 
             fitText()
         }
-
 
     init {
         boundsChanged += { _,_,_ ->
@@ -87,15 +103,11 @@ open class TextField(text: String = ""): TextInput(text) {
         }
 
     private fun fitText() {
-        fitText?.let { fitText ->
-            if (behavior != null) {
-                behavior?.let {
-                    val size = it.fitTextSize(this)
+        behavior?.let {
+            val size = it.fitTextSize(this)
 
-                    if (TextFit.Width  in fitText) width  = size.width
-                    if (TextFit.Height in fitText) height = size.height
-                }
-            }
+            if (TextFit.Width  in fitText) width  = size.width
+            if (TextFit.Height in fitText) height = size.height
         }
     }
 }

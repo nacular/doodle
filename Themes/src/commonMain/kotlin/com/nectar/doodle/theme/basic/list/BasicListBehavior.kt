@@ -57,10 +57,11 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
                                              rowHeight   : Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
     constructor(focusManager         : FocusManager?,
                 textMetrics          : TextMetrics,
+                rowHeight            : Double,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
                 selectionColor       : Color? = Green.lighter(),
-                selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
+                selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
 
     private val patternBrush = if (evenRowColor != null || oddRowColor != null) horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor) else null
 

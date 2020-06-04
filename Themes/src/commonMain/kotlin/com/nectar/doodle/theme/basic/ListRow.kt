@@ -6,7 +6,6 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Blue
-import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
@@ -26,8 +25,6 @@ open class ListRow<T>(private var list                           : ListLike,
                       private var row                            : T,
                               var index                          : Int,
                       private val itemVisualizer                 : IndexedItemVisualizer<T>,
-                      private val foregroundSelectionColor       : Color? = White,
-                      private val foregroundSelectionBlurredColor: Color? = foregroundSelectionColor,
                       private val backgroundSelectionColor       : Color? = Blue,
                       private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
@@ -48,8 +45,7 @@ open class ListRow<T>(private var list                           : ListLike,
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
-            backgroundColor                         = if (new) backgroundSelectionColor else backgroundSelectionBlurredColor
-            children.firstOrNull()?.foregroundColor = if (new) foregroundSelectionColor else foregroundSelectionBlurredColor
+            backgroundColor = if (new) backgroundSelectionColor else backgroundSelectionBlurredColor
         }
     }
 
@@ -118,14 +114,12 @@ open class ListRow<T>(private var list                           : ListLike,
             listSelected -> {
                 list.focusChanged += listFocusChanged
 
-                backgroundColor                         = if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
-                children.firstOrNull()?.foregroundColor = if (list.hasFocus) foregroundSelectionColor else foregroundSelectionBlurredColor
+                backgroundColor = if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
             }
             else         -> {
                 list.focusChanged -= listFocusChanged
 
-                backgroundColor                         = null
-                children.firstOrNull()?.foregroundColor = null
+                backgroundColor = null
             }
         }
     }

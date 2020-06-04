@@ -9,6 +9,7 @@ import com.nectar.doodle.controls.SimpleListModel
 import com.nectar.doodle.controls.list.ListBehavior.RowGenerator
 import com.nectar.doodle.controls.list.ListBehavior.RowPositioner
 import com.nectar.doodle.controls.panels.ScrollPanel
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
@@ -17,7 +18,6 @@ import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.geometry.Rectangle.Companion.Empty
 import com.nectar.doodle.geometry.Size
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.SetObserver
@@ -206,6 +206,10 @@ open class List<T, out M: ListModel<T>>(
             view.bounds = it(this, row, index)
 
             minimumSize = Size(max(width, view.width), minHeight)
+
+            if (fitContent) {
+                size = minimumSize
+            }
         }
     }
 
@@ -260,20 +264,20 @@ open class List<T, out M: ListModel<T>>(
 
     companion object {
         operator fun invoke(
-                progression   : IntProgression,
-                itemGenerator : IndexedItemVisualizer<Int>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10) =
-                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemGenerator, selectionModel, fitContent, scrollCache)
+                progression    : IntProgression,
+                itemVisualizer : IndexedItemVisualizer<Int>,
+                selectionModel : SelectionModel<Int>? = null,
+                fitContent     : Boolean              = true,
+                scrollCache    : Int                  = 10) =
+                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemGenerator : IndexedItemVisualizer<T>,
+                itemVisualizer: IndexedItemVisualizer<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
-                List<T, ListModel<T>>(SimpleListModel(values), itemGenerator, selectionModel, fitContent, scrollCache)
+                List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
     }
 }
 

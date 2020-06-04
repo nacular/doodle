@@ -97,10 +97,9 @@ internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundC
 //
 //internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
 //
-internal inline fun Style.setOutlineWidth(value: Double           ) { outlineWidth = em(value, true) }
-
-internal inline fun Style.setBorderWidth (value: Double           ) { borderWidth  = em(value, true) }
-internal inline fun Style.setBorderRadius(value: Double           ) { borderRadius = em(value) }
+internal inline fun Style.setOutlineWidth(value: Double?          ) { outlineWidth = value?.let { em(value, true) } ?: "" }
+internal inline fun Style.setBorderWidth (value: Double?          ) { borderWidth  = value?.let { em(it, true) } ?: "" }
+internal inline fun Style.setBorderRadius(value: Double?          ) { borderRadius = value?.let { em(it) } ?: "" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${em(x, true)} / ${em(y, true)}" }
 internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it)} ?: "" }
 internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle  = style.value }

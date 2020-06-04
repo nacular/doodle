@@ -541,3 +541,13 @@ fun min(a: Double, b: VerticalConstraint) = VerticalConstraint(b.target, b.depen
 inline fun min(a: VerticalConstraint, b: Double) = min(b, a)
 
 fun min(a: VerticalConstraint, b: VerticalConstraint) = VerticalConstraint(b.target, b.dependencies, false) { min(a.invoke(), b.invoke()) }
+
+fun max(a: Double, b: MagnitudeConstraint) = MagnitudeConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
+inline fun max(a: MagnitudeConstraint, b: Double) = max(b, a)
+
+fun max(a: MagnitudeConstraint, b: MagnitudeConstraint) = MagnitudeConstraint(b.target, b.dependencies, false) { max(a.invoke(), b.invoke()) }
+
+fun min(a: Double, b: MagnitudeConstraint) = MagnitudeConstraint(b.target, b.dependencies, false) { min(a, b.invoke()) }
+inline fun min(a: MagnitudeConstraint, b: Double) = min(b, a)
+
+fun min(a: MagnitudeConstraint, b: MagnitudeConstraint) = MagnitudeConstraint(b.target, b.dependencies, false) { min(a.invoke(), b.invoke()) }

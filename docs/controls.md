@@ -27,8 +27,17 @@ Holds and displays static text with support for basic styling. You can construct
 ```kotlin
 val Label: LabelFactory // injectable to app and Views
 
-val label = Label("hello")
+val label = Label("Some Text")
 ``` 
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.label"
+}
+```
+
 ---
 ### TextField
 
@@ -41,6 +50,14 @@ val textField = TextField().apply {
     borderVisible = false
 }
 ```
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.textField"
+}
+```
+
 ---
 ### Button
 
@@ -106,7 +123,7 @@ progress display (i.e. circular)
 ---
 ### Slider
 
-Sliders hold a value within a specified range and let the user move that value around. There 
+Sliders hold a value within a specified range and allow the user to change the value.
 
 ```doodle
 {
@@ -119,7 +136,7 @@ Sliders hold a value within a specified range and let the user move that value a
 ---
 ### Spinner
 
-Spinners let you represent a list of items where only one is visible (selected) at a time. The are usefull when the list of options
+Spinners let you represent a list of items where only one is visible (selected) at a time. They work well when the list of options
 is relatively small, or the input is an incremental value: like the number of items to purchase.
 
 ```kotlin
@@ -137,6 +154,38 @@ val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
 
 ---
 ### List
+
+The List control is a visual analog to the list data structure. It is an ordered collection of items with random
+access to its members. It is also readonly like the data structure.
+
+You need 2 things to create a List: a [`ListModel`](), and [`IndexedItemVisualizer`]().
+
+?> You also need to provide a Behavior or use a Theme with one since List delegates rendering.
+
+```kotlin
+val textVisualizer: TextItemVisualizer
+
+val list = List(listOf(
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"),
+    itemVisualizer = ignoreIndex(textVisualizer))
+```
+
+This creates a list using a factory that takes a list collection and creates a ListModel from it. 
+
+```doodle
+{
+    "border": false,
+    "height": "300px",
+    "run"   : "DocApps.list"
+}
+```
+
 ---
 ### Tree
 ---
@@ -145,3 +194,40 @@ val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
 ### SplitPanel
 ---
 ### TabbedPanel
+
+```kotlin
+val object1: View
+val object2: View
+val object3: View
+val object4: View
+
+// Each Tab just shows the View
+val visualizer = object: ItemVisualizer<View> {
+    override fun invoke(item: View, previous: View?) = item
+}
+
+val panel = TabbedPanel(visualizer, object1, object2, object3, object4).apply {
+    // disable Themes since specifying Behavior directly
+    acceptsThemes = false
+
+    behavior = BasicTabbedPanelBehavior(
+        // BasicTabbedPanelBehavior uses text for each tab 
+        AnimatingTabProducer(animator, textMetrics, namer = { _,item,_ ->
+            when (item) {
+                object1 -> "Circle"
+                object2 -> "Square"
+                object3 -> "Tab 3"
+                object4 -> "Tab 4"
+                else    -> "Unknown"
+            }
+        }))
+}
+```
+
+```doodle
+{
+    "border": false,
+    "height": "400px",
+    "run"   : "DocApps.tabbedPanel"
+}
+```

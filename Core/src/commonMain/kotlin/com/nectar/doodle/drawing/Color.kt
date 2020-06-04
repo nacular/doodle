@@ -253,7 +253,7 @@ private fun Double.toUByte() = toInt().toUByte()
 private fun UInt.toHex(): String {
     var i              = this
     var hash           = ""
-    val alphabet       = "0123456789abcdef"
+    val alphabet       = "0123456789ABCDEF"
     val alphabetLength = alphabet.length.toUInt()
 
     do {

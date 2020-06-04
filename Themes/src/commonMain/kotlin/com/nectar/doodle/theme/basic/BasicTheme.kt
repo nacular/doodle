@@ -75,7 +75,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
     interface BasicThemeConfig {
         val borderColor            get() = Color(0x888888u)
         val oddRowColor            get() = foregroundColor.inverted
-        val eventRowColor          get() = lightBackgroundColor
+        val evenRowColor           get() = lightBackgroundColor
         val selectionColor         get() = Color(0x0063e1u)
         val foregroundColor        get() = Black
         val backgroundColor        get() = Color(0xccccccu)
@@ -110,15 +110,30 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             bind<BasicThemeConfig>() with provider  { instance<ConfigProvider>().config }
         }
 
-        val BasicListBehavior = BasicModule(name = "BasicListBehavior") {
+        fun basicListBehavior(
+                rowHeight            : Double? = null,
+                evenRowColor         : Color?  = null,
+                oddRowColor          : Color?  = null,
+                selectionColor       : Color?  = null,
+                selectionBlurredColor: Color?  = null) = BasicModule(name = "BasicListBehavior") {
             bindBehavior<List<Any, ListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicListBehavior(instance(), instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicListBehavior(
+                            focusManager          = instanceOrNull(),
+                            textMetrics           = instance(),
+                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                            selectionColor        = selectionColor        ?: this.selectionColor,
+                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                            rowHeight             = rowHeight             ?: 20.0
+                    )
+                }
             }
         }
 
         val BasicTreeBehavior = BasicModule(name = "BasicTreeBehavior") {
             bindBehavior<Tree<Any,TreeModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicTreeBehavior(instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
             }
         }
 
@@ -130,7 +145,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicTableBehavior = BasicModule(name = "BasicTableBehavior") {
             bindBehavior<Table<Any, ListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(instanceOrNull(), 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(instanceOrNull(), 20.0, backgroundColor, evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
@@ -216,7 +231,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicMutableListBehavior = BasicModule(name = "BasicMutableListBehavior") {
             bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableListBehavior(instance(), instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicMutableListBehavior(instanceOrNull(), instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
@@ -237,13 +252,13 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicMutableTreeBehavior = BasicModule(name = "BasicMutableTreeBehavior") {
             bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
             }
         }
 
         val BasicMutableTableBehavior = BasicModule(name = "BasicMutableTableBehavior") {
             bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(instanceOrNull(), 20.0, backgroundColor, eventRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(instanceOrNull(), 20.0, backgroundColor, evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
@@ -265,7 +280,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicThemeBehaviors = Module(name = "BasicThemeBehaviors") {
             importAll(listOf(
-                    BasicListBehavior,
+                    basicListBehavior(),
                     BasicTreeBehavior,
                     BasicLabelBehavior,
                     BasicTableBehavior,

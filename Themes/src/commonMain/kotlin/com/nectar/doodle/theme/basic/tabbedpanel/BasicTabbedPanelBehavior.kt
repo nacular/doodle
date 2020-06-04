@@ -1,11 +1,15 @@
 package com.nectar.doodle.theme.basic.tabbedpanel
 
+import com.nectar.doodle.animation.Animator
+import com.nectar.doodle.animation.fixedSpeedLinear
+import com.nectar.doodle.animation.fixedTimeLinear
 import com.nectar.doodle.controls.panels.TabbedPanel
 import com.nectar.doodle.controls.panels.TabbedPanelBehavior
 import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Black
@@ -25,7 +29,11 @@ import com.nectar.doodle.geometry.Size
 import com.nectar.doodle.geometry.path
 import com.nectar.doodle.layout.Insets
 import com.nectar.doodle.system.Cursor
+import com.nectar.doodle.utils.Cancelable
 import com.nectar.doodle.utils.addOrAppend
+import com.nectar.measured.units.Time
+import com.nectar.measured.units.div
+import com.nectar.measured.units.times
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -181,6 +189,129 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
     protected open val move = { _: TabbedPanel<T>, _: Int,_: Double -> }
 
     protected open val cancelMove = { _: TabbedPanel<T>, _: Int -> }
+}
+
+class AnimatingTabProducer<T>(
+        private val animate: Animator,
+        textMetrics    : TextMetrics,
+        namer          : TabNamer<T>,
+        tabHeight      : Double = 40.0,
+        tabRadius      : Double = 10.0,
+        selectedColor  : Color  = White,
+        tabColor       : Color  = Color(0xdee1e6u)): BasicTabProducer<T>(textMetrics, namer, tabHeight, tabRadius, selectedColor, tabColor) {
+    private val animations = mutableMapOf<View, Cancelable>()
+    private val tabs       = mutableListOf<View>()
+
+    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = super.invoke(panel, item, index).apply {
+        tabs += this
+
+        pointerChanged += object: PointerListener {
+            override fun exited(event: PointerEvent) {
+                doAnimation(panel, this@apply, 1f, 0f)
+            }
+
+            override fun entered(event: PointerEvent) {
+                doAnimation(panel, this@apply, 0f, 1f)
+            }
+
+            override fun pressed(event: PointerEvent) {
+                cleanupAnimation(this@apply)
+            }
+        }
+    }
+
+    private fun cleanupAnimation(tab: View) {
+        animations[tab]?.let {
+            it.cancel()
+            animations.remove(tab)
+        }
+    }
+
+    override val move = { panel: TabbedPanel<T>, movingIndex: Int, delta: Double ->
+        tabs.getOrNull(movingIndex)?.apply {
+            zOrder         = 1
+            val translateX = transform.translateX
+            val delta      = min(max(delta, 0 - (x + translateX)), panel.width - width - (x + translateX))
+
+            transform *= AffineTransform.Identity.translate(delta)
+
+            val adjustWidth = width + spacing
+
+            tabs.forEachIndexed { index, tab ->
+                if (tab != this) {
+                    val targetBounds = tab.bounds
+
+                    val value = when (targetBounds.x + tab.transform.translateX + targetBounds.width / 2) {
+                        in x + translateX + delta            .. x + translateX                    ->  adjustWidth
+                        in x + translateX                    .. x + translateX + delta            -> -adjustWidth
+                        in bounds.right + translateX         .. bounds.right + translateX + delta -> -adjustWidth
+                        in bounds.right + translateX + delta .. bounds.right + translateX         ->  adjustWidth
+                        else                                                                      ->  null
+                    }
+
+                    value?.let {
+                        val oldTransform = tab.transform
+                        val minViewX     = if (index > movingIndex) tab.x - adjustWidth else tab.x
+                        val maxViewX     = minViewX + adjustWidth
+                        val offset       = tab.x + tab.transform.translateX
+                        val translate    = min(max(value, minViewX - offset), maxViewX - offset)
+
+//                        tab.animation = behavior?.moveColumn(this@Table) {
+                        animate { (0f to 1f using fixedSpeedLinear(10 / Time.seconds)) {
+                            tab.transform = oldTransform.translate(translate * it) //1.0)
+                        } }
+                    }
+                }
+            }
+        }
+
+        Unit
+    }
+
+    override val cancelMove = { panel: TabbedPanel<T>, movingIndex: Int ->
+        tabs.getOrNull(movingIndex)?.apply {
+            zOrder         = 0
+            var moved      = false
+            val myOffset   = x + transform.translateX
+            var myNewIndex = movingIndex
+
+            tabs.forEachIndexed { index, tab ->
+                println("$index -> ${tab.x + tab.transform.translateX}")
+
+                if (!moved && myOffset < tab.x + tab.transform.translateX) {
+                    myNewIndex = index - if (movingIndex < index) 1 else 0
+                    moved = true
+                }
+
+//                tab.animation?.cancel()
+                tab.transform = AffineTransform.Identity
+            }
+
+            if (movingIndex != myNewIndex) {
+                tabs.addOrAppend(myNewIndex, tabs.removeAt(movingIndex))
+
+                panel[movingIndex]?.let { panel.move(it, to = myNewIndex) }
+            }
+        }
+
+        Unit
+    }
+
+    private fun <T> doAnimation(panel: TabbedPanel<T>, tab: BasicTab<T>, start: Float, end: Float) {
+        cleanupAnimation(tab)
+
+        if (panel.selection == tab.index) {
+            return
+        }
+
+        animations[tab] = (animate (start to end) using fixedTimeLinear(250 * Time.milliseconds)) {
+            tab.backgroundColor = tabColor.lighter() opacity it
+
+            tab.rerenderNow()
+        }.apply {
+            completed += { animations.remove(tab) }
+        }
+    }
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {

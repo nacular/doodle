@@ -11,12 +11,6 @@ import com.nectar.doodle.controls.table.TreeTableBehavior.CellGenerator
 import com.nectar.doodle.controls.table.TreeTableBehavior.HeaderCellGenerator
 import com.nectar.doodle.controls.table.TreeTableBehavior.HeaderPositioner
 import com.nectar.doodle.controls.table.TreeTableBehavior.RowPositioner
-import com.nectar.doodle.theme.basic.ContentGenerator
-import com.nectar.doodle.theme.basic.ListPositioner
-import com.nectar.doodle.theme.basic.ListRow
-import com.nectar.doodle.theme.basic.SelectableTreeKeyHandler
-import com.nectar.doodle.theme.basic.SimpleTreeRowIcon
-import com.nectar.doodle.theme.basic.TreeRow
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
@@ -34,6 +28,12 @@ import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
+import com.nectar.doodle.theme.basic.ContentGenerator
+import com.nectar.doodle.theme.basic.ListPositioner
+import com.nectar.doodle.theme.basic.ListRow
+import com.nectar.doodle.theme.basic.SelectableTreeKeyHandler
+import com.nectar.doodle.theme.basic.SimpleTreeRowIcon
+import com.nectar.doodle.theme.basic.TreeRow
 import com.nectar.doodle.utils.Path
 import com.nectar.doodle.utils.PropertyObserver
 import com.nectar.doodle.utils.SetObserver
@@ -107,7 +107,7 @@ open class BasicTreeTableBehavior<T>(
     override val cellGenerator = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, foregroundSelectionColor = null, backgroundSelectionColor = null)
+            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 

@@ -7,26 +7,47 @@ import com.nectar.doodle.utils.sortWith
 import com.nectar.doodle.utils.sortWithDescending
 
 /**
- * Created by Nicholas Eddy on 3/19/18.
+ * Holds data in a list-like structure for use with controls like [List][com.nectar.doodle.controls.list.List].
  */
-
 interface ListModel<T>: Iterable<T> {
+    /** Number of elements in the model */
     val size: Int
+
     val isEmpty get() = size == 0
 
+    /**
+     * @param index to retrieve
+     * @return item found at the index or `null` if index invalid
+     */
     operator fun get(index: Int): T?
 
+    /**
+     * @param range of data to extract
+     * @return list of items in the range
+     */
     fun section (range: ClosedRange<Int>): List<T>
-    fun contains(value: T               ): Boolean
+
+    /**
+     * @param value to check
+     * @return `true` if the item is in the model
+     */
+    fun contains(value: T): Boolean
 }
 
 typealias ModelObserver<T> = (source: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 
+/**
+ * A model that can change over time. These models do not directly expose mutators,
+ * but they admit to being mutable.
+ */
 interface DynamicListModel<T>: ListModel<T> {
+    /** Notifies of changes to the model */
     val changed: Pool<ModelObserver<T>>
 }
 
-
+/**
+ * A model that lets callers modify it.
+ */
 interface MutableListModel<T>: DynamicListModel<T> {
 
     operator fun set(index: Int, value: T): T?
