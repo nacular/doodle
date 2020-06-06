@@ -122,6 +122,9 @@ expect abstract class HTMLElement: Element {
     var ondragstart: ((DragEvent) -> Boolean)?
 }
 
+internal expect fun HTMLElement.stopMonitoringSize ()
+internal expect fun HTMLElement.startMonitoringSize()
+
 expect var HTMLElement.role: String?
 
 expect interface ElementCreationOptions

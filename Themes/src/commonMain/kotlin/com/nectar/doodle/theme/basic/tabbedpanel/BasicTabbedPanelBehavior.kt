@@ -58,8 +58,8 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
         set(new) {
             field = new
             backgroundColor = when {
-                new       -> tabColor.lighter()
                 selected  -> selectedColor
+                new       -> tabColor.lighter()
                 else      -> tabColor
             }
         }

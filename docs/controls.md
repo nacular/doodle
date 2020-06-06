@@ -237,17 +237,22 @@ val panel = TabbedPanel(visualizer, object1, object2, object3, object4).apply {
     // disable Themes since specifying Behavior directly
     acceptsThemes = false
 
+    // BasicTabbedPanelBehavior uses text for each tab 
     behavior = BasicTabbedPanelBehavior(
-        // BasicTabbedPanelBehavior uses text for each tab 
-        AnimatingTabProducer(animator, textMetrics, namer = { _,item,_ ->
-            when (item) {
-                object1 -> "Circle"
-                object2 -> "Square"
-                object3 -> "Tab 3"
-                object4 -> "Tab 4"
-                else    -> "Unknown"
+        BasicTabProducer(
+            textMetrics,
+            namer = { _,item,_ ->
+                when (item) {
+                    object1 -> "Circle"
+                    object2 -> "Second Tab"
+                    object3 -> "Cool Photo"
+                    object4 -> "Tab 4"
+                    else    -> "Unknown"
+                }
+            })) { panel, producer ->
+                // override the default tab container with one that animates
+                AnimatingTabContainer(animator, panel, producer)
             }
-        }))
 }
 ```
 

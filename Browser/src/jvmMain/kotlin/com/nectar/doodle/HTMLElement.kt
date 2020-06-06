@@ -6,6 +6,7 @@ import com.nectar.doodle.dom.KeyboardEvent
 import com.nectar.doodle.dom.MouseEvent
 import com.nectar.doodle.dom.PointerEvent
 import com.nectar.doodle.dom.WheelEvent
+import com.nectar.doodle.geometry.Size
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
@@ -125,6 +126,9 @@ actual abstract class HTMLElement: Element() {
     actual var onpointermove = null as ((PointerEvent) -> Any)?
     actual var onpointerover = null as ((PointerEvent) -> Any)?
 }
+
+actual fun HTMLElement.stopMonitoringSize () {}
+actual fun HTMLElement.startMonitoringSize() {}
 
 actual var HTMLElement.role get() = role_
     set(new) { role_ = new }

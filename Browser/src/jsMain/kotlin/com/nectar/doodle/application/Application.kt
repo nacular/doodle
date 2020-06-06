@@ -35,6 +35,8 @@ import com.nectar.doodle.scheduler.Task
 import com.nectar.doodle.scheduler.impl.AnimationSchedulerImpl
 import com.nectar.doodle.scheduler.impl.SchedulerImpl
 import com.nectar.doodle.scheduler.impl.StrandImpl
+import com.nectar.doodle.startMonitoringSize
+import com.nectar.doodle.stopMonitoringSize
 import com.nectar.doodle.system.SystemPointerEvent
 import com.nectar.doodle.system.impl.PointerInputServiceStrategy
 import com.nectar.doodle.system.impl.PointerInputServiceStrategy.EventHandler
@@ -138,6 +140,10 @@ private open class ApplicationHolderImpl protected constructor(
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
+        if (root != document.body) {
+            root.startMonitoringSize()
+        }
+
         bind<Window>                   () with instance  ( window )
 
         bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                                    ) }
@@ -210,6 +216,10 @@ private open class ApplicationHolderImpl protected constructor(
     override fun shutdown() {
         if (isShutdown) {
             return
+        }
+
+        if (root != document.body) {
+            root.stopMonitoringSize()
         }
 
         window.removeEventListener("unload", ::onUnload)

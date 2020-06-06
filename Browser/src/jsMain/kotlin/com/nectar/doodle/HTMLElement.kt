@@ -29,6 +29,29 @@ actual typealias DragEvent = org.w3c.dom.DragEvent
 
 actual typealias HTMLElement = org.w3c.dom.HTMLElement
 
+private val SIZE_OBSERVERS = mutableMapOf<HTMLElement, dynamic>()
+
+actual fun HTMLElement.startMonitoringSize() {
+    SIZE_OBSERVERS.getOrPut(this) {
+        try {
+            val observer = js(
+         """new ResizeObserver(function(entries) {
+                for (var i = 0; i < entries.length; ++i) {
+                    var entry = entries[i]
+                    if (entry.target.onresize) { entry.target.onresize(new Event("onresize")) }
+                }
+            })""")
+
+            observer.observe(this)
+
+        } catch (ignored: Throwable) {}
+    }
+}
+
+actual fun HTMLElement.stopMonitoringSize() {
+    SIZE_OBSERVERS.remove(this)?.disconnect()
+}
+
 actual var HTMLElement.role: String? get() = this.getAttribute("role")
     set(new) { this.setAttribute("role", new ?: "") }
 
