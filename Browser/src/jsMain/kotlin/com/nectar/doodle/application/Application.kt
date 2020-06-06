@@ -140,7 +140,7 @@ private open class ApplicationHolderImpl protected constructor(
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
-        if (root != document.body) {
+        if (!isNested && root != document.body) {
             root.startMonitoringSize()
         }
 
@@ -218,7 +218,7 @@ private open class ApplicationHolderImpl protected constructor(
             return
         }
 
-        if (root != document.body) {
+        if (!isNested && root != document.body) {
             root.stopMonitoringSize()
         }
 
