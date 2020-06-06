@@ -98,4 +98,12 @@ class MyView: View() {
 }
 ```
 
-Here, `horizontalStripes` will fill shapes with a repeating red and white stripe pattern. 
+Here, `horizontalStripes` will fill shapes with a repeating red and white stripe pattern.
+
+```doodle
+{
+    "border": false,
+    "height": "300px",
+    "run"   : "DocApps.patternBrush"
+}
+``` 

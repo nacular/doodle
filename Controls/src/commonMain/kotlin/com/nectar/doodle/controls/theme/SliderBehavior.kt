@@ -30,15 +30,15 @@ abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior
     private val changed: (Slider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
 
     override fun install(view: Slider) {
-        view.changed            += changed
-        view.keyChanged         += this
+        view.changed              += changed
+        view.keyChanged           += this
         view.pointerChanged       += this
         view.pointerMotionChanged += this
     }
 
     override fun uninstall(view: Slider) {
-        view.changed            -= changed
-        view.keyChanged         -= this
+        view.changed              -= changed
+        view.keyChanged           -= this
         view.pointerChanged       -= this
         view.pointerMotionChanged -= this
     }

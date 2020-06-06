@@ -33,6 +33,3 @@ project(':Browser'  ).name = 'browser'
 project(':Controls' ).name = 'controls'
 project(':Core'     ).name = 'core'
 project(':Themes'   ).name = 'themes'
-
-include 'TestApp'
-project(':TestApp'  ).name = 'testapp'

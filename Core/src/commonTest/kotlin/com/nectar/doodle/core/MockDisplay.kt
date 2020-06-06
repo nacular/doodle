@@ -13,7 +13,7 @@ fun display(): Display = mockk<Display>().apply {
         val view = slot<View>()
 
         every { add(capture(view)) } answers {
-            view.captured.addedToDisplay(mockk(), mockk())
+            view.captured.addedToDisplay(mockk(), mockk(), mockk())
 
             true
         }

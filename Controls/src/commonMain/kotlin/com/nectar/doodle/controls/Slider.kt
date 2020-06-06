@@ -1,10 +1,10 @@
 package com.nectar.doodle.controls
 
 import com.nectar.doodle.accessibility.slider
+import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.geometry.Point
-import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.utils.Orientation
 import com.nectar.doodle.utils.Orientation.Horizontal
 import com.nectar.doodle.utils.PropertyObservers
@@ -74,12 +74,11 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
         changed_(old, new)
     }
 
-    private val modelLimitsChanged: (ConfinedValueModel<Double>, ClosedRange<Double>, ClosedRange<Double>) -> Unit = { _,old,new ->
+    private val modelLimitsChanged: (ConfinedValueModel<Double>, ClosedRange<Double>, ClosedRange<Double>) -> Unit = { _,_,_ ->
         (accessibilityRole as? slider)?.let {
             it.valueMin = range.start.toInt()
             it.valueMax = range.endInclusive.toInt()
         }
-
     }
 
     private var snapSize = 0.0
