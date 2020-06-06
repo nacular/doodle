@@ -77,7 +77,7 @@ class MutableTable<T, M: MutableListModel<T>>(
 
         override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
-        }, selectionModelWrapper).apply {
+        }, selectionModelWrapper, fitContent = false).apply {
             acceptsThemes = false
 
             this@MutableInternalListColumn.editor?.let {

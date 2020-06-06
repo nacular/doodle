@@ -81,6 +81,24 @@ fun <T> toString(delegate: ItemVisualizer<String>) = object: ItemVisualizer<T> {
 }
 
 /**
+ * Visualizes the item's `toString()` using the delegate.
+ *
+ * @param delegate to visualize the item's `toString()`
+ */
+fun <T> toString(delegate: IndexedItemVisualizer<String>) = object: IndexedItemVisualizer<T> {
+    override fun invoke(item: T, index: Int, previous: View?, isSelected: () -> Boolean) = delegate(item.toString(), index, previous, isSelected)
+}
+
+/**
+ * Visualizes the item's `toString()` using the delegate.
+ *
+ * @param delegate to visualize the item's `toString()`
+ */
+fun <T> toString(delegate: SelectableItemVisualizer<String>) = object: SelectableItemVisualizer<T> {
+    override fun invoke(item: T, previous: View?, isSelected: () -> Boolean) = delegate(item.toString(), previous, isSelected)
+}
+
+/**
  * Helper for using an [ItemVisualizer] in place of an [IndexedItemVisualizer].
  *
  * @param delegate used for visualization

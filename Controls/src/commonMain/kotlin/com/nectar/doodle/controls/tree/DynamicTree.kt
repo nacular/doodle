@@ -1,12 +1,13 @@
 package com.nectar.doodle.controls.tree
 
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.utils.Path
 
 /**
  * Created by Nicholas Eddy on 9/29/19.
  */
-open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, selectionModel) {
+open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: IndexedItemVisualizer<T>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }

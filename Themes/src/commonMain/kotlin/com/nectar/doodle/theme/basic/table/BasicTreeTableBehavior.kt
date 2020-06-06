@@ -28,7 +28,6 @@ import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Rectangle
 import com.nectar.doodle.layout.Insets
-import com.nectar.doodle.theme.basic.ContentGenerator
 import com.nectar.doodle.theme.basic.ListPositioner
 import com.nectar.doodle.theme.basic.ListRow
 import com.nectar.doodle.theme.basic.SelectableTreeKeyHandler
@@ -98,7 +97,7 @@ open class BasicTreeTableBehavior<T>(
     override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
-            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, contentGenerator = object: ContentGenerator<A> {
+            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: IndexedItemVisualizer<A> {
                 override fun invoke(item: A, index: Int, previous: View?, isSelected: () -> Boolean) = itemGenerator(item, index, previous, isSelected)
             }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
@@ -156,7 +155,7 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         += expansionChanged
         view.collapsed        += expansionChanged
         view.keyChanged       += this
-        view.pointerChanged     += this
+        view.pointerChanged   += this
         view.focusChanged     += focusChanged
         view.selectionChanged += selectionChanged
 
@@ -168,7 +167,7 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         -= expansionChanged
         view.collapsed        -= expansionChanged
         view.keyChanged       -= this
-        view.pointerChanged     -= this
+        view.pointerChanged   -= this
         view.focusChanged     -= focusChanged
         view.selectionChanged -= selectionChanged
     }

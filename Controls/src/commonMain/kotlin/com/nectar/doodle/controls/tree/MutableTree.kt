@@ -1,6 +1,7 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.controls.EditOperation
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.core.View
 import com.nectar.doodle.geometry.Rectangle
@@ -14,7 +15,7 @@ interface TreeEditor<T> {
     fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
-class MutableTree<T, M: MutableTreeModel<T>>(model: M, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, selectionModel) {
+class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: IndexedItemVisualizer<T>? = null, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, itemVisualizer, selectionModel) {
     init {
         selectionChanged += { _,_,_ ->
             editingRect?.let {

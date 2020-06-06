@@ -45,8 +45,8 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
 
         if (to !in 0 until size || oldIndex < 0 || oldIndex == to) return false
 
-        list.remove(element    )
-        list.add   (to, element)
+        list.removeAt(oldIndex)
+        list.add     (to, element)
 
         changed_.forEach {
             it(this, mapOf(), mapOf(), mapOf(to to (oldIndex to element)))

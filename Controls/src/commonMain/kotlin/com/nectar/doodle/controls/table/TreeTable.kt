@@ -231,7 +231,9 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
             maxWidth      : Double?        = null,
             extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
-        override val view = Tree(model.map(extractor), selectionModel, scrollCache = scrollCache).apply {
+        override val view = Tree(model.map(extractor), object: IndexedItemVisualizer<R> {
+            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous, isSelected)
+        }, selectionModel, scrollCache = scrollCache).apply {
             acceptsThemes = false
 
 //            expanded += { _,_ ->

@@ -193,7 +193,7 @@ class TreeTests {
                 node("child1_1")
             }
             node("child2")
-        }), SingleItemSelectionModel())
+        }), selectionModel = SingleItemSelectionModel())
 
         tree.setSelection(setOf(Path(0) + 0))
 

@@ -188,10 +188,37 @@ This creates a list using a factory that takes a list collection and creates a L
 
 ---
 ### Tree
+
+```doodle
+{
+    "border": false,
+    "height": "300px",
+    "run"   : "DocApps.tree"
+}
+```
+
 ---
 ### Table
+
+```doodle
+{
+    "border": false,
+    "height": "400px",
+    "run"   : "DocApps.table"
+}
+```
+
 ---
 ### SplitPanel
+
+```doodle
+{
+    "border": false,
+    "height": "400px",
+    "run"   : "DocApps.splitPanel"
+}
+```
+
 ---
 ### TabbedPanel
 

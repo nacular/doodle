@@ -33,7 +33,7 @@ class BasicSliderBehavior(private val barColor: Color = Lightgray, private val k
             }
         }
 
-        canvas.rect(rect1, rect1.height / 2, ColorBrush(barColor ))
+        canvas.rect(rect1, rect1.height / 2, ColorBrush(barColor))
         canvas.circle(Circle(rect2.center, rect2.width / 2), ColorBrush(knobColor))
     }
 }

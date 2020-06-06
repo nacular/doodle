@@ -131,9 +131,26 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        val BasicTreeBehavior = BasicModule(name = "BasicTreeBehavior") {
+        fun basicTreeBehavior(
+                rowHeight            : Double?              = null,
+                evenRowColor         : Color?               = null,
+                oddRowColor          : Color?               = null,
+                selectionColor       : Color?               = null,
+                selectionBlurredColor: Color?               = null,
+                iconFactory          : (() -> TreeRowIcon)? = null) = BasicModule(name = "BasicTreeBehavior") {
             bindBehavior<Tree<Any,TreeModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicTreeBehavior(
+                            focusManager          = instanceOrNull(),
+                            textMetrics           = instance(),
+                            rowHeight             = rowHeight             ?: 20.0,
+                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                            selectionColor        = selectionColor        ?: this.selectionColor,
+                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                            iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
+                    )
+                }
             }
         }
 
@@ -252,7 +269,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicMutableTreeBehavior = BasicModule(name = "BasicMutableTreeBehavior") {
             bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), foregroundColor, instanceOrNull()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), focusManager = instanceOrNull()) }
             }
         }
 
@@ -281,7 +298,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         val BasicThemeBehaviors = Module(name = "BasicThemeBehaviors") {
             importAll(listOf(
                     basicListBehavior(),
-                    BasicTreeBehavior,
+                    basicTreeBehavior(),
                     BasicLabelBehavior,
                     BasicTableBehavior,
                     basicButtonBehavior(),

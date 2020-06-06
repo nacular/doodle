@@ -3,6 +3,7 @@
 package com.nectar.doodle.controls.tree
 
 import com.nectar.doodle.JvmName
+import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.Selectable
 import com.nectar.doodle.controls.SelectionModel
 import com.nectar.doodle.controls.panels.ScrollPanel
@@ -64,6 +65,7 @@ interface TreeLike: Selectable<Path<Int>> {
 
 open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
+                       val itemVisualizer: IndexedItemVisualizer<T>?  = null,
         protected      val selectionModel: SelectionModel<Path<Int>>? = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
         private        val scrollCache   : Int                        = 10): View(), TreeLike {
 

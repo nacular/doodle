@@ -13,10 +13,12 @@ import com.nectar.doodle.geometry.times
 import com.nectar.measured.units.Angle.Companion.degrees
 import com.nectar.measured.units.times
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.Test
 import kotlin.test.expect
+
+// FIXME: Remove once Mockk updates js library to support this function
+expect inline fun mockkStatic(vararg classes: String)
 
 /**
  * Created by Nicholas Eddy on 3/21/20.

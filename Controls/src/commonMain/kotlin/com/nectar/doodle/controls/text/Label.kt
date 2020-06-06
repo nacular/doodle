@@ -130,8 +130,6 @@ open class Label internal constructor(
             // force update
             actualStyledText = actualStyledText
 
-            println("text: $text, fgcolor: $foregroundColor")
-
             rerender()
         }
 

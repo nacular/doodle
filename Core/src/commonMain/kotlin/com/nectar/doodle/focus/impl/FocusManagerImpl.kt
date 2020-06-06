@@ -14,10 +14,6 @@ import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
 
-/**
- * Created by Nicholas Eddy on 3/2/18.
- */
-
 class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy: FocusTraversalPolicy? = null): FocusManager {
 
     private val defaultFocusTraversalPolicy = defaultFocusTraversalPolicy ?: FocusTraversalPolicyImpl(display, this)

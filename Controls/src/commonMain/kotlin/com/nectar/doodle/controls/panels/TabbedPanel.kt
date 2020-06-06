@@ -6,11 +6,12 @@ import com.nectar.doodle.core.View
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.utils.BoxOrientation
 import com.nectar.doodle.utils.BoxOrientation.Top
+import com.nectar.doodle.utils.ListObserver
 import com.nectar.doodle.utils.ObservableList
 import com.nectar.doodle.utils.ObservableProperty
+import com.nectar.doodle.utils.Pool
 import com.nectar.doodle.utils.PropertyObservers
 import com.nectar.doodle.utils.PropertyObserversImpl
-import com.nectar.doodle.utils.addOrAppend
 
 /**
  * Provides presentation and behavior customization for [TabbedPanel].
@@ -66,6 +67,11 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
      */
     constructor(visualizer: ItemVisualizer<T>, item: T, vararg remaining: T): this(Top, visualizer, item, *remaining)
 
+    private val items = ObservableList<T>()
+
+    /** Notifies of changes to items. */
+    val itemsChanged: Pool<ListObserver<T>> = items.changed
+
     /** Notifies of changes to [selection]. */
     val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> by lazy { PropertyObserversImpl<TabbedPanel<T>, Int?>(this) }
 
@@ -75,7 +81,6 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
     /** The number of items (tabs) in the panel. */
     val numItems: Int get() = items.size
 
-    // FIXME: Selection can be null if empty
     /** The currently selected item/tab. Defaults to `0`. */
     var selection: Int? by ObservableProperty(0, { this }, selectionChanged as PropertyObserversImpl)
 
@@ -104,8 +109,6 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
     internal var _layout           get() = layout; set(new) { layout = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
-    private val items = ObservableList<T>()
-
     init {
         items += item
         items += remaining
@@ -132,8 +135,9 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
                 selection = selection?.let { if (it >= index) it + 1 else it }
             }
 
-            moved.forEach { (from, pair) ->
-                val to = pair.first
+            moved.forEach { (new, old) ->
+                val to   = new
+                val from = old.first
 
                 selection = when (val s = selection) {
                     null                     -> s
@@ -214,13 +218,7 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
      * @param item to move
      * @param to this index
      */
-    fun move(item: T, to: Int) = items.batch {
-        val index = indexOf(item)
-
-        if (index >= 0 && index != to) {
-            addOrAppend(to, removeAt(index))
-        }
-    }
+    fun move(item: T, to: Int) = items.move(item, to)
 
     /**
      * Changes the item at a given index.

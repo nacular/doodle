@@ -3,11 +3,13 @@ package com.nectar.doodle.theme.basic
 import com.nectar.doodle.controls.IndexedItemVisualizer
 import com.nectar.doodle.controls.tree.TreeLike
 import com.nectar.doodle.core.View
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
+import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.Color.Companion.Green
+import com.nectar.doodle.drawing.Color.Companion.White
 import com.nectar.doodle.drawing.ColorBrush
-import com.nectar.doodle.drawing.Pen
 import com.nectar.doodle.event.PointerEvent
 import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.geometry.Point
@@ -23,6 +25,8 @@ import com.nectar.doodle.system.SystemInputEvent.Modifier.Ctrl
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Meta
 import com.nectar.doodle.system.SystemInputEvent.Modifier.Shift
 import com.nectar.doodle.utils.Path
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.times
 import kotlin.math.max
 
 /**
@@ -35,49 +39,67 @@ private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraint
 
 private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
-interface ContentGenerator<T>: IndexedItemVisualizer<T> {
-    fun position(tree: TreeLike, node: T, path: Path<Int>, index: Int): Constraints.() -> Unit = {
-        left    = parent.left
-        centerY = parent.centerY
-    }
-}
-
 abstract class TreeRowIcon: View() {
     abstract var expanded: Boolean
+    abstract var selected: Boolean
 }
 
-class SimpleTreeRowIcon(private val color: Color): TreeRowIcon() {
+class SimpleTreeRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeRowIcon() {
     override var expanded = false
         set (new) {
             field = new
             rerender()
         }
 
-    override fun render(canvas: Canvas) {
-        val pen      = Pen(color)
-        val length   = 3.5
-        val width_2  = width  / 2
-        val height_2 = height / 2
-
-        if (!expanded) {
-            canvas.line(Point(width_2, height_2 - length), Point(width_2, height_2 + length), pen)
+    override var selected = false
+        set (new) {
+            field = new
+            rerender()
         }
 
-        canvas.line(Point(width_2 - length, height_2), Point(width_2 + length, height_2), pen)
+    override fun render(canvas: Canvas) {
+        val transform = when {
+            expanded -> Identity.rotate(Point(width / 2, height / 2), 90 * degrees)
+            else     -> Identity
+        }
+
+        val centeredRect = bounds.atOrigin.inset(6.0)
+
+        canvas.transform(transform) {
+            path(listOf(
+                    centeredRect.position,
+                    Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
+                    Point(centeredRect.x, centeredRect.bottom)),
+                    ColorBrush(if (selected) selectedColor else color))
+        }
     }
 }
 
-class TreeRow<T>(tree                : TreeLike, node: T,
+class TreeRow<T>(tree                : TreeLike,
+                 node                : T,
              var path                : Path<Int>,
      private var index               : Int,
-     private val contentGenerator    : ContentGenerator<T>,
+     private val itemVisualizer      : IndexedItemVisualizer<T>,
      private val selectionColor      : Color? = Green,
      private val selectionBluredColor: Color? = selectionColor,
      private val iconFactory         : () -> TreeRowIcon): View() {
 
+    var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
+        set(new) {
+            if (field == new) {
+                return
+            }
+
+            field = new
+
+            layout = constrain(children[0]) {
+                positioner(it)
+            }
+        }
+
     private  var icon        = null as TreeRowIcon?
     private  var depth       = -1
-    internal var content     = contentGenerator(node, index)
+    internal var content     = itemVisualizer(node, index, null) { tree.selected(path) }
         set(new) {
             if (field != new) {
                 children.batch {
@@ -147,31 +169,33 @@ class TreeRow<T>(tree                : TreeLike, node: T,
         update(tree, node, path, index)
     }
 
+    private fun constrainLayout(view: View) = constrain(view) { content ->
+        positioner(
+            // Override the parent for content to confine it within a smaller region
+            ConstraintWrapper(content) { parent ->
+                object: ParentConstraintWrapper(parent) {
+                    override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth) }
+                    override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + depth) }
+                }
+            }
+        )
+    }
+
     fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
         this.path  = path
         this.index = index
 
-        content = contentGenerator(node, index, content)
+        content = itemVisualizer(node, index, content) { tree.selected(path) }
 
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
         if (newDepth != depth) {
-            constraintLayout = constrain(content) { content ->
-                contentGenerator.position(tree, node, path, index).invoke(
-                    // Override the parent for content to confine it within a smaller region
-                    ConstraintWrapper(content) { parent ->
-                        object: ParentConstraintWrapper(parent) {
-                            override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + newDepth) }
-                            override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + newDepth) }
-                        }
-                    }
-                )
-            }
+            depth            = newDepth
+            constraintLayout = constrainLayout(content)
 
             constrainIcon(icon)
 
             layout = constraintLayout
-            depth  = newDepth
         }
 
         if (tree.isLeaf(this.path)) {
@@ -181,10 +205,9 @@ class TreeRow<T>(tree                : TreeLike, node: T,
             }
             icon = null
         } else  {
-            icon = icon?.apply { expanded = tree.expanded(path) } ?: iconFactory().apply {
+            icon = icon ?: iconFactory().apply {
                 width    = iconWidth
                 height   = width
-                expanded = tree.expanded(path)
 
                 this@TreeRow.children += this
 
@@ -219,6 +242,11 @@ class TreeRow<T>(tree                : TreeLike, node: T,
                 }
 
                 constrainIcon(this)
+            }
+
+            icon?.apply {
+                expanded = tree.expanded(path)
+                selected = tree.selected(path)
             }
         }
 

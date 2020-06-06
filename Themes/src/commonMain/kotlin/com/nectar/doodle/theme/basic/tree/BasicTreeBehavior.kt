@@ -1,14 +1,14 @@
 package com.nectar.doodle.theme.basic.tree
 
 import com.nectar.doodle.controls.EditOperation
-import com.nectar.doodle.controls.text.Label
-import com.nectar.doodle.controls.text.LabelFactory
+import com.nectar.doodle.controls.TextItemVisualizer
+import com.nectar.doodle.controls.ignoreIndex
 import com.nectar.doodle.controls.text.TextField
-import com.nectar.doodle.controls.text.TextFit.Height
 import com.nectar.doodle.controls.text.TextFit.Width
 import com.nectar.doodle.controls.theme.TreeBehavior
 import com.nectar.doodle.controls.theme.TreeBehavior.RowGenerator
 import com.nectar.doodle.controls.theme.TreeBehavior.RowPositioner
+import com.nectar.doodle.controls.toString
 import com.nectar.doodle.controls.tree.MutableTree
 import com.nectar.doodle.controls.tree.Tree
 import com.nectar.doodle.controls.tree.TreeEditor
@@ -20,6 +20,7 @@ import com.nectar.doodle.drawing.Color.Companion.Black
 import com.nectar.doodle.drawing.Color.Companion.Green
 import com.nectar.doodle.drawing.Color.Companion.Lightgray
 import com.nectar.doodle.drawing.Color.Companion.White
+import com.nectar.doodle.drawing.TextMetrics
 import com.nectar.doodle.drawing.horizontalStripedBrush
 import com.nectar.doodle.drawing.lighter
 import com.nectar.doodle.event.KeyEvent
@@ -33,10 +34,10 @@ import com.nectar.doodle.event.PointerListener
 import com.nectar.doodle.focus.FocusManager
 import com.nectar.doodle.geometry.Point
 import com.nectar.doodle.geometry.Rectangle
-import com.nectar.doodle.theme.basic.ContentGenerator
 import com.nectar.doodle.theme.basic.SelectableTreeKeyHandler
 import com.nectar.doodle.theme.basic.SimpleTreeRowIcon
 import com.nectar.doodle.theme.basic.TreeRow
+import com.nectar.doodle.theme.basic.TreeRowIcon
 import com.nectar.doodle.utils.Encoder
 import com.nectar.doodle.utils.HorizontalAlignment.Left
 import com.nectar.doodle.utils.Path
@@ -67,24 +68,14 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     }
 }
 
-private class LabelContentGenerator<T>(private val labelFactory: LabelFactory): ContentGenerator<T> {
-    override fun invoke(item: T, index: Int, previous: View?, isSelected: () -> Boolean) = when (previous) {
-        is Label -> { previous.text = item.toString(); previous }
-        else     -> labelFactory(item.toString()).apply {
-            fitText             = setOf(Width, Height)
-            horizontalAlignment = Left
-        }
-    }
-}
-
 open class BasicTreeRowGenerator<T>(private val focusManager         : FocusManager?,
-                                    private val contentGenerator     : ContentGenerator<T>,
+                                    private val textMetrics          : TextMetrics,
                                     private val selectionColor       : Color? = Green.lighter(),
                                     private val selectionBlurredColor: Color? = Lightgray,
-                                    private val iconColor            : Color  = Black): RowGenerator<T> {
+                                    private val iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) }): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
-        else          -> TreeRow(tree, node, path, index, contentGenerator, selectionColor = selectionColor, selectionBluredColor = selectionBlurredColor, iconFactory = { SimpleTreeRowIcon(iconColor) }).apply {
+        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), selectionColor = selectionColor, selectionBluredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(tree)
@@ -95,10 +86,10 @@ open class BasicTreeRowGenerator<T>(private val focusManager         : FocusMana
 }
 
 class BasicMutableTreeRowGenerator<T>(focusManager         : FocusManager?,
-                                      contentGenerator     : ContentGenerator<T>,
+                                      textMetrics          : TextMetrics,
                                       selectionColor       : Color? = Green.lighter(),
                                       selectionBlurredColor: Color? = Lightgray,
-                                      iconColor            : Color = Black): BasicTreeRowGenerator<T>(focusManager, contentGenerator, selectionColor, selectionBlurredColor, iconColor) {
+                                      iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }): BasicTreeRowGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory) {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
         if (current !is TreeRow<*>) {
             val result = it as TreeRow<*>
@@ -118,13 +109,15 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
                                              evenRowColor: Color? = White,
                                              oddRowColor : Color? = Lightgray.lighter().lighter(),
                                              rowHeight   : Double = 20.0): TreeBehavior<T>, KeyListener, SelectableTreeKeyHandler {
-    constructor(labelFactory         : LabelFactory,
+    constructor(focusManager         : FocusManager?,
+                textMetrics          : TextMetrics,
+                rowHeight            : Double = 20.0,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
                 selectionColor       : Color? = Green.lighter(),
                 selectionBlurredColor: Color? = Lightgray,
-                iconColor            : Color  = Black,
-                focusManager         : FocusManager?): this(BasicTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory), selectionColor, selectionBlurredColor, iconColor), evenRowColor, oddRowColor)
+                iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
+    ): this(BasicTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
     private val patternBrush = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
 
@@ -153,13 +146,13 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
                                   evenRowColor: Color? = White,
                                   oddRowColor : Color? = Lightgray.lighter().lighter(),
                                   rowHeight   : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
-    constructor(labelFactory         : LabelFactory,
+    constructor(textMetrics          : TextMetrics,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
                 selectionColor       : Color? = Green.lighter(),
                 selectionBlurredColor: Color? = Lightgray,
-                iconColor            : Color  = Black,
-                focusManager         : FocusManager?): this(BasicMutableTreeRowGenerator(focusManager, LabelContentGenerator(labelFactory), selectionColor, selectionBlurredColor, iconColor), evenRowColor, oddRowColor)
+                iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) },
+                focusManager         : FocusManager?): this(BasicMutableTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor)
 
     override fun keyPressed(event: KeyEvent) {
         (event.source as MutableTree<*, *>).let { tree ->

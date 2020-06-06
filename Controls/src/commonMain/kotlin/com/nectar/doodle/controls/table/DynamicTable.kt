@@ -123,7 +123,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
 
         override val view: View = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
-        }, selectionModelWrapper).apply {
+        }, selectionModelWrapper, fitContent = false).apply {
             acceptsThemes = false
         }
 

@@ -51,7 +51,7 @@ class ImageIconTests {
                 override val size   = it
                 override val source = "foo"
             }).apply {
-                expect(it) { size }
+                expect(it) { size(mockk()) }
             }
         }
     }

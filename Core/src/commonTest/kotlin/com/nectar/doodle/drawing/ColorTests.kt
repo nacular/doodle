@@ -44,7 +44,7 @@ class ColorTests {
     }
 
     @Test @JsName("hexCorrect")
-    fun `hexString correct`() = listOf(Red to "ff0000", Green to "00ff00", Blue to "0000ff").forEach {
+    fun `hexString correct`() = listOf(Red to "FF0000", Green to "00FF00", Blue to "0000FF").forEach {
         expect(it.second) { it.first.hexString }
     }
 

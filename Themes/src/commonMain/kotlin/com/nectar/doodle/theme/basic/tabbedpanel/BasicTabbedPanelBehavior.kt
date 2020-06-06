@@ -5,11 +5,10 @@ import com.nectar.doodle.animation.fixedSpeedLinear
 import com.nectar.doodle.animation.fixedTimeLinear
 import com.nectar.doodle.controls.panels.TabbedPanel
 import com.nectar.doodle.controls.panels.TabbedPanelBehavior
-import com.nectar.doodle.core.Box
 import com.nectar.doodle.core.Layout
 import com.nectar.doodle.core.PositionableContainer
 import com.nectar.doodle.core.View
-import com.nectar.doodle.drawing.AffineTransform
+import com.nectar.doodle.drawing.AffineTransform.Companion.Identity
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color
 import com.nectar.doodle.drawing.Color.Companion.Black
@@ -42,15 +41,19 @@ import kotlin.math.sqrt
  * Created by Nicholas Eddy on 3/14/19.
  */
 
-open class BasicTab<T>(private val textMetrics  : TextMetrics,
-                       private val panel        : TabbedPanel<T>,
-                               var index        : Int,
-                       private val name         : String,
-                       private val radius       : Double,
-                       private val tabColor     : Color,
-                       private val selectedColor: Color,
-                       private val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
-                       private val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): View() {
+abstract class Tab<T>: View() {
+    abstract var index: Int
+}
+
+open class BasicTab<T>(private  val textMetrics  : TextMetrics,
+                       private  val panel        : TabbedPanel<T>,
+                       override var index        : Int,
+                       private  val name         : String,
+                       private  val radius       : Double,
+                       private  val tabColor     : Color,
+                       private  val selectedColor: Color,
+                       private  val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
+                       private  val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): Tab<T>() {
     private var pointerOver = false
         set(new) {
             field = new
@@ -171,7 +174,7 @@ interface TabProducer<T> {
     val spacing  : Double
     val tabHeight: Double
 
-    operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): View
+    operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): Tab<T>
 }
 
 typealias TabNamer<T> = (TabbedPanel<T>, T, Int) -> String
@@ -191,31 +194,121 @@ open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
     protected open val cancelMove = { _: TabbedPanel<T>, _: Int -> }
 }
 
-class AnimatingTabProducer<T>(
-        private val animate: Animator,
-        textMetrics    : TextMetrics,
-        namer          : TabNamer<T>,
-        tabHeight      : Double = 40.0,
-        tabRadius      : Double = 10.0,
-        selectedColor  : Color  = White,
-        tabColor       : Color  = Color(0xdee1e6u)): BasicTabProducer<T>(textMetrics, namer, tabHeight, tabRadius, selectedColor, tabColor) {
-    private val animations = mutableMapOf<View, Cancelable>()
-    private val tabs       = mutableListOf<View>()
+private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
+    override fun layout(container: PositionableContainer) {
+        val maxLineWidth = max(0.0, container.width - container.insets.left - container.insets.right - (container.children.size - 1) * spacing)
 
-    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = super.invoke(panel, item, index).apply {
-        tabs += this
+        var x     = container.insets.left
+        val width = max(minWidth, min(defaultWidth, maxLineWidth / container.children.size))
+
+        container.children.filter { it.visible }.forEach { child ->
+            child.width    = width
+            child.position = Point(x, container.insets.top)
+
+            x += width + spacing
+        }
+    }
+}
+
+abstract class TabContainer<T>: View() {
+    /**
+     * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
+     * behaviors receive the notification before listeners to [TabbedPanel.selectionChanged].
+     *
+     * @param panel with change
+     * @param newIndex of the selected item
+     * @param oldIndex of previously selected item
+     */
+    abstract fun selectionChanged(panel: TabbedPanel<T>, newIndex: Int?, oldIndex: Int?)
+
+    /**
+     * Called whenever the items within the TabbedPanel change.
+     *
+     * @param panel with change
+     * @param removed items
+     * @param added items
+     * @param moved items (changed index)
+     */
+    abstract fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
+}
+
+open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer: TabProducer<T>): TabContainer<T>() {
+    init {
+        children.addAll(panel.mapIndexed { index, item ->
+            tabProducer(panel, item, index)
+        })
+
+        insets = Insets(top = 10.0) // TODO: Make this configurable
+        layout = TabLayout(spacing = tabProducer.spacing)
+    }
+
+    override fun selectionChanged(panel: TabbedPanel<T>, newIndex: Int?, oldIndex: Int?) {
+        oldIndex?.let { children.getOrNull(it) }?.let { it.zOrder = 0; it.rerender() }
+        newIndex?.let { children.getOrNull(it) }?.let { it.zOrder = 1; it.rerender() }
+    }
+
+    override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+        children.batch {
+            removed.keys.forEach { removeAt(it) }
+
+            added.forEach { (index, item) ->
+                addOrAppend(index, tabProducer(panel, item, index))
+            }
+
+            moved.forEach { (new, old) ->
+                addOrAppend(new, removeAt(old.first))
+            }
+
+            filterIsInstance<Tab<T>>().forEachIndexed { index, item ->
+                item.index = index
+            }
+        }
+    }
+}
+
+class AnimatingTabContainer<T>(
+        private val animate: Animator,
+        private val panel: TabbedPanel<T>,
+        private val tabProducer: TabProducer<T>): SimpleTabContainer<T>(panel, tabProducer) {
+    private val animations = mutableMapOf<View, Cancelable>()
+
+    init {
+        childrenChanged += { _,_,added,_ ->
+            added.values.filterIsInstance<Tab<T>>().forEach { tagTab(panel, it) }
+        }
+
+        children.filterIsInstance<Tab<T>>().forEach { tagTab(panel, it) }
+    }
+
+    private fun tagTab(panel: TabbedPanel<T>, tab: Tab<T>) = tab.apply {
+        var pointerDown     = false
+        var initialPosition = null as Point?
 
         pointerChanged += object: PointerListener {
-            override fun exited(event: PointerEvent) {
-                doAnimation(panel, this@apply, 1f, 0f)
-            }
+            override fun pressed (event: PointerEvent) { pointerDown = true; initialPosition = toLocal(event.location, event.target); cleanupAnimation(this@apply) }
+            override fun entered (event: PointerEvent) { doAnimation(panel, this@apply, 0f, 1f) }
+            override fun exited  (event: PointerEvent) { doAnimation(panel, this@apply, 1f, 0f) }
+            override fun released(event: PointerEvent) {
+                if (pointerDown) {
+                    pointerDown = false
+                    cancelMove(panel, index)
+                }
 
-            override fun entered(event: PointerEvent) {
-                doAnimation(panel, this@apply, 0f, 1f)
+                initialPosition = null
             }
+        }
 
-            override fun pressed(event: PointerEvent) {
-                cleanupAnimation(this@apply)
+        pointerMotionChanged += object: PointerMotionListener {
+            override fun dragged(event: PointerEvent) {
+                initialPosition?.let {
+                    val delta = (toLocal(event.location, event.target) - it).x
+
+                    move(panel, index, delta)
+
+                    cursor = Cursor.Grabbing
+
+                    event.consume()
+                }
             }
         }
     }
@@ -227,17 +320,17 @@ class AnimatingTabProducer<T>(
         }
     }
 
-    override val move = { panel: TabbedPanel<T>, movingIndex: Int, delta: Double ->
-        tabs.getOrNull(movingIndex)?.apply {
+    private fun move(panel: TabbedPanel<T>, movingIndex: Int, delta: Double) {
+        children.getOrNull(movingIndex)?.apply {
             zOrder         = 1
             val translateX = transform.translateX
             val delta      = min(max(delta, 0 - (x + translateX)), panel.width - width - (x + translateX))
 
-            transform *= AffineTransform.Identity.translate(delta)
+            transform *= Identity.translate(delta)
 
-            val adjustWidth = width + spacing
+            val adjustWidth = width + tabProducer.spacing
 
-            tabs.forEachIndexed { index, tab ->
+            children.forEachIndexed { index, tab ->
                 if (tab != this) {
                     val targetBounds = tab.bounds
 
@@ -264,48 +357,59 @@ class AnimatingTabProducer<T>(
                 }
             }
         }
-
-        Unit
     }
 
-    override val cancelMove = { panel: TabbedPanel<T>, movingIndex: Int ->
-        tabs.getOrNull(movingIndex)?.apply {
-            zOrder         = 0
-            var moved      = false
-            val myOffset   = x + transform.translateX
-            var myNewIndex = movingIndex
+    private fun cancelMove(panel: TabbedPanel<T>, movingIndex: Int) {
+        children.filterIsInstance<Tab<*>>().getOrNull(movingIndex)?.apply {
+            zOrder           = 0
+            val myOffset     = x + transform.translateX
+            var myNewIndex   = if (myOffset >= children.last().x) children.size - 1 else movingIndex
+            var targetBounds = bounds
+            val numChildren  = children.size
 
-            tabs.forEachIndexed { index, tab ->
-                println("$index -> ${tab.x + tab.transform.translateX}")
+            run loop@ {
+                children.forEachIndexed { index, tab ->
+                    val targetMiddle = tab.x + tab.transform.translateX + tab.width / 2
 
-                if (!moved && myOffset < tab.x + tab.transform.translateX) {
-                    myNewIndex = index - if (movingIndex < index) 1 else 0
-                    moved = true
+                    if ((transform.translateX < 0 && myOffset < targetMiddle) ||
+                        (transform.translateX > 0 && ((myOffset + width < targetMiddle) || index == numChildren - 1))) {
+                        myNewIndex   = index - if (this.index < index) 1 else 0 // Since tab will be removed and added to index
+                        targetBounds = children[myNewIndex].bounds
+                        return@loop
+                    }
                 }
-
-//                tab.animation?.cancel()
-                tab.transform = AffineTransform.Identity
             }
 
-            if (movingIndex != myNewIndex) {
-                tabs.addOrAppend(myNewIndex, tabs.removeAt(movingIndex))
+            val oldTransform = transform
 
-                panel[movingIndex]?.let { panel.move(it, to = myNewIndex) }
-            }
+//            animation = behavior?.moveColumn(table) {
+                transform = when {
+                    index < myNewIndex -> oldTransform.translate((targetBounds.right - width - myOffset) * 1f)
+                    else               -> oldTransform.translate((targetBounds.x             - myOffset) * 1f)
+                }
+//            }?.apply {
+//                completed += {
+                    if (index != myNewIndex) {
+                        panel[movingIndex]?.let { panel.move(it, to = myNewIndex) }
+                    }
+
+                    children.forEach { it.transform = Identity }
+//                }
+//            }
         }
-
-        Unit
     }
 
-    private fun <T> doAnimation(panel: TabbedPanel<T>, tab: BasicTab<T>, start: Float, end: Float) {
+    private fun <T> doAnimation(panel: TabbedPanel<T>, tab: Tab<T>, start: Float, end: Float) {
         cleanupAnimation(tab)
 
         if (panel.selection == tab.index) {
             return
         }
 
+        val tabColor = tab.backgroundColor
+
         animations[tab] = (animate (start to end) using fixedTimeLinear(250 * Time.milliseconds)) {
-            tab.backgroundColor = tabColor.lighter() opacity it
+            tab.backgroundColor = tabColor?.lighter()?.opacity(it)
 
             tab.rerenderNow()
         }.apply {
@@ -314,32 +418,20 @@ class AnimatingTabProducer<T>(
     }
 }
 
-private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
-    override fun layout(container: PositionableContainer) {
-        val maxLineWidth = max(0.0, container.width - container.insets.left - container.insets.right - (container.children.size - 1) * spacing)
+typealias TabContainerFactory<T> = (TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
-        var x     = container.insets.left
-        val width = max(minWidth, min(defaultWidth, maxLineWidth / container.children.size))
+open class BasicTabbedPanelBehavior<T>(
+        private val tabProducer    : TabProducer<T>,
+        private val backgroundColor: Color = Color(0xdee1e6u),
+        private val tabContainer   : TabContainerFactory<T> = { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) }): TabbedPanelBehavior<T>() {
 
-        container.children.filter { it.visible }.forEach { child ->
-            child.width    = width
-            child.position = Point(x, container.insets.top)
+    override fun install(view: TabbedPanel<T>) {
+        view.apply {
+            children += tabContainer(view, tabProducer)
 
-            x += width + spacing
-        }
-    }
-}
-
-open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<T>,
-                                       private val backgroundColor: Color = Color(0xdee1e6u)): TabbedPanelBehavior<T>() {
-
-    override fun install(panel: TabbedPanel<T>) {
-        panel.apply {
-            children += TabContainer(panel, tabProducer)
-
-            panel.forEach {
-                children.add(panel.visualizer(it).apply {
-                    visible = it == panel.selectedItem
+            view.forEach {
+                children.add(view.visualizer(it).apply {
+                    visible = it == view.selectedItem
                 })
             }
 
@@ -356,8 +448,8 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
         }
     }
 
-    override fun uninstall(panel: TabbedPanel<T>) {
-        panel.apply {
+    override fun uninstall(view: TabbedPanel<T>) {
+        view.apply {
             children.clear()
             layout = null
         }
@@ -378,34 +470,14 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
             dirty += it
         }
 
-        (panel.children[0] as TabContainer<*>).apply {
-            oldIndex?.let{ children.getOrNull(it) }?.let { it.zOrder = 0 }
-
-            newIndex?.let { children.getOrNull(it) }?.zOrder = 1
-
-            dirty.forEach {
-                children.getOrNull(it)?.rerender()
-            }
+        (panel.children[0] as? TabContainer<T>)?.let {
+            it.selectionChanged(panel, newIndex, oldIndex)
         }
     }
 
     override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
-        (panel.first() as? TabContainer<T>)?.apply {
-            children.batch {
-                removed.keys.forEach { removeAt(it) }
-
-                added.forEach { (index, item) ->
-                    addOrAppend(index, tabProducer(panel, item, index))
-                }
-
-                moved.forEach { (oldIndex, new) ->
-                    addOrAppend(new.first, removeAt(oldIndex))
-                }
-
-                this.forEachIndexed { index, item ->
-                    (item as? BasicTab<*>)?.index = index // FIXME
-                }
-            }
+        (panel.children[0] as? TabContainer<T>)?.apply {
+            itemsChanged(panel, removed, added, moved)
         }
 
         removed.keys.forEach { panel.children.removeAt(it + 1) }
@@ -414,23 +486,12 @@ open class BasicTabbedPanelBehavior<T>(private val tabProducer    : TabProducer<
             panel.children.addOrAppend(index + 1, panel.visualizer(item))
         }
 
-        moved.forEach { (oldIndex, new) ->
-            panel.children.addOrAppend(new.first + 1, panel.children.removeAt(oldIndex + 1))
+        moved.forEach { (new, old) ->
+            panel.children.addOrAppend(new + 1, panel.children.removeAt(old.first + 1))
         }
     }
 
-    override fun render(panel: TabbedPanel<T>, canvas: Canvas) {
-        canvas.rect(panel.bounds.atOrigin, ColorBrush(backgroundColor))
-    }
-
-    private class TabContainer<T>(panel: TabbedPanel<T>, tabProducer: TabProducer<T>): Box() {
-        init {
-            children.addAll(panel.mapIndexed { index, item ->
-                tabProducer(panel, item, index)
-            })
-
-            insets = Insets(top = 10.0) // TODO: Make this configurable
-            layout = TabLayout(spacing = tabProducer.spacing)
-        }
+    override fun render(view: TabbedPanel<T>, canvas: Canvas) {
+        canvas.rect(view.bounds.atOrigin, ColorBrush(backgroundColor))
     }
 }
