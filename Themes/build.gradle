@@ -3,8 +3,6 @@ apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 
-version = '0.1.0'
-
 kotlin {
     jvm ().compilations.all {
         kotlinOptions {
@@ -28,7 +26,6 @@ kotlin {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {
                     freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
-//                    allWarningsAsErrors = true
                 }
             }
         }

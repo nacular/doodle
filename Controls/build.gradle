@@ -2,9 +2,6 @@ apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
-//apply plugin: 'java-test-fixtures'
-
-version = '0.1.0'
 
 kotlin {
     jvm ().compilations.all {
@@ -29,7 +26,6 @@ kotlin {
             compilations.all {
                 tasks[compileKotlinTaskName].kotlinOptions {
                     freeCompilerArgs = ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
-//                    allWarningsAsErrors = true
                 }
             }
         }

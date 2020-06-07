@@ -3,8 +3,6 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 apply from  : '../jacoco.gradle'
 
-version = '0.1.0'
-
 kotlin {
     jvm ().compilations.all {
         kotlinOptions {
