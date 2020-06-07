@@ -1,6 +1,6 @@
 package com.nectar.doodle.theme.basic
 
-import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.controls.range.Slider
 import com.nectar.doodle.controls.theme.SliderBehavior
 import com.nectar.doodle.drawing.Canvas
 import com.nectar.doodle.drawing.Color

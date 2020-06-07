@@ -3,7 +3,7 @@ package com.nectar.doodle.theme.basic
 import com.nectar.doodle.controls.MutableListModel
 import com.nectar.doodle.controls.ProgressBar
 import com.nectar.doodle.controls.ProgressIndicator
-import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.controls.range.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.buttons.RadioButton

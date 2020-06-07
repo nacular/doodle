@@ -1,6 +1,6 @@
 package com.nectar.doodle.controls.theme
 
-import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.controls.range.Slider
 import com.nectar.doodle.core.Behavior
 import com.nectar.doodle.event.KeyEvent
 import com.nectar.doodle.event.KeyListener
@@ -68,7 +68,7 @@ abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior
     }
 
     override fun released(event: PointerEvent) {
-        lastStart         = -1.0
+        lastStart           = -1.0
         lastPointerPosition = -1.0
     }
 

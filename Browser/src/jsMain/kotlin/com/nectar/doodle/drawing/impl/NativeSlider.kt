@@ -1,6 +1,6 @@
 package com.nectar.doodle.drawing.impl
 
-import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.controls.range.Slider
 import com.nectar.doodle.core.View
 import com.nectar.doodle.dom.ElementRuler
 import com.nectar.doodle.dom.HtmlFactory

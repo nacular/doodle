@@ -1,5 +1,9 @@
 package com.nectar.doodle.geometry
 
+import com.nectar.measured.units.Angle
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.Measure
+
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
  */
@@ -35,6 +39,8 @@ interface PathBuilder {
      * @param handle location of the control point
      */
     fun quadraticTo(point: Point, handle: Point): PathBuilder
+
+    fun arcTo(point: Point, xRadius: Double, yRadius: Double, rotation: Measure<Angle>, largeArch: Boolean, sweep: Boolean): PathBuilder
 
     /** Closes the path. */
     fun close(): Path
@@ -91,6 +97,10 @@ private class PathBuilderImpl(start: Point): PathBuilder {
 
     override fun quadraticTo(point: Point, handle: Point) = this.also {
         data += "Q${handle.x},${handle.y} ${point.x},${point.y}"
+    }
+
+    override fun arcTo(point: Point, xRadius: Double, yRadius: Double, rotation: Measure<Angle>, largeArch: Boolean, sweep: Boolean) = this.also {
+        data += "A$xRadius $yRadius ${rotation `in` degrees} ${if (largeArch) 1 else 0} ${if (sweep) 1 else 0} ${point.x},${point.y}"
     }
 
     override fun close(): Path = PathImpl(data + "Z")

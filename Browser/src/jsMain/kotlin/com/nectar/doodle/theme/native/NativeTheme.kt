@@ -1,6 +1,6 @@
 package com.nectar.doodle.theme.native
 
-import com.nectar.doodle.controls.Slider
+import com.nectar.doodle.controls.range.Slider
 import com.nectar.doodle.controls.buttons.Button
 import com.nectar.doodle.controls.buttons.CheckBox
 import com.nectar.doodle.controls.buttons.HyperLink
