@@ -18,7 +18,7 @@ plugins {
 
 allprojects {
     version = '0.1.0'
-    group   = 'com.nectar.doodle'
+    group   = 'io.nacular.doodle'
 
     repositories {
         maven       { url 'http://dl.bintray.com/kotlin/kotlin-eap' }

@@ -31,13 +31,13 @@ kotlin {
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
 
-        implementation "com.nectar.doodle:core:$doodle_version"
-        implementation "com.nectar.doodle:browser:$doodle_version"
+        implementation "io.nacular.doodle:core:$doodle_version"
+        implementation "io.nacular.doodle:browser:$doodle_version"
         
         // Optional
-        // implementation "com.nectar.doodle:controls:$doodle_version"
-        // implementation "com.nectar.doodle:animation:$doodle_version"
-        // implementation "com.nectar.doodle:themes:$doodle_version"
+        // implementation "io.nacular.doodle:controls:$doodle_version"
+        // implementation "io.nacular.doodle:animation:$doodle_version"
+        // implementation "io.nacular.doodle:themes:$doodle_version"
     }
 }
 ```
@@ -73,13 +73,13 @@ kotlin {
         commonMain.dependencies {
             implementation "org.jetbrains.kotlin:kotlin-stdlib-common"
 
-            implementation "com.nectar.doodle:core:$doodle_version"
-            implementation "com.nectar.doodle:browser:$doodle_version"
+            implementation "io.nacular.doodle:core:$doodle_version"
+            implementation "io.nacular.doodle:browser:$doodle_version"
         
             // Optional
-            // implementation "com.nectar.doodle:controls:$doodle_version"
-            // implementation "com.nectar.doodle:animation:$doodle_version"
-            // implementation "com.nectar.doodle:themes:$doodle_version"
+            // implementation "io.nacular.doodle:controls:$doodle_version"
+            // implementation "io.nacular.doodle:animation:$doodle_version"
+            // implementation "io.nacular.doodle:themes:$doodle_version"
         }
 
         jsMain.dependencies {

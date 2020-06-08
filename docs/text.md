@@ -44,7 +44,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
 You can specify a font when drawing text or have Doodle fallback to the default. Fonts can be tricky, since
 they may not be present on the system at render time. This presents a race-condition for drawing text.
 
-Doodle provides a [`FontDetector`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/FontDetector.kt#L18)
+Doodle provides a [`FontDetector`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/FontDetector.kt#L18)
 to help with this. It checks the system asynchronously for a given font and returns only when it has been found.
 
 ```kotlin

@@ -1,7 +1,7 @@
 # Creating Applications
 -----------------------
 
-All Doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/com/nectar/doodle/application/Application.kt#L6).
+All Doodle code runs within an [`Application`](https://github.com/pusolito/doodle/blob/master/Browser/src/commonMain/kotlin/io/nacular/doodle/application/Application.kt#L6).
 It is the entry-point for your business logic, and often the first class you write. Doodle fully initializes your app at constructor time,
 so there is no additional *run* or *start* method to implement. You can provide custom tear-down logic via the `shutdown` method though.
 
@@ -17,13 +17,13 @@ class UsefulApp: Application {
 ---
 ## App Launch
 
-Applications are launched stand-alone, or within another app using [`ApplicationViewFactory()`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L21).
+Applications are launched stand-alone, or within another app using [`ApplicationViewFactory()`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/ApplicationView.kt#L21).
 Your app class does not change regardless of the launch mode. That is because apps have no knowledge of which mode they will run in,
 further improving separation of concerns and flexibility.
 
 ### Top-level Apps
 
-Most apps will run independent of other apps and exist purely within the context of a page (or element within it). Use the [`application`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Application.kt#L94)
+Most apps will run independent of other apps and exist purely within the context of a page (or element within it). Use the [`application`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Application.kt#L94)
 function to launch apps this way. This launches apps in full-screen by default, but you can override this by passing an HTML element
 as the root. This is useful when hosting Doodle apps in non-Doodle contexts.
 
@@ -77,8 +77,8 @@ fun main() {
 }
 ```
 
-Use an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L75)
-to create nested apps. This class is available via the [`AppViewModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/ApplicationView.kt#L82)
+Use an [`ApplicationViewFactory`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/ApplicationView.kt#L75)
+to create nested apps. This class is available via the [`AppViewModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/ApplicationView.kt#L82)
 module.
 
 ?> Adding a nested app's View to the [**Display**](display.md?id=the-display-is-an-apps-root-container) triggers the app's initialization. Shutdown

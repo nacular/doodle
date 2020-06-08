@@ -3,7 +3,7 @@
 
 ### Pointer handling is easy with Doodle
 
-The first thing you need to do is include the [`PointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/com/nectar/doodle/application/Modules.kt#L51)
+The first thing you need to do is include the [`PointerModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L51)
 when launching your app. The underlying framework uses the `PointerModule` to produce pointer events.
 
 ?> Doodle uses opt-in modules like this to improve bundle size.
@@ -15,7 +15,7 @@ class MyApp(display: Display): Application {
 }
 ```
 ```kotlin
-import com.nectar.doodle.application.Modules.Companion.PointerModule
+import io.nacular.doodle.application.Modules.Companion.PointerModule
 
 fun main () {
     // "full screen" launch with pointer support
@@ -27,15 +27,15 @@ fun main () {
 ---
 ## Hit Detection
 
-The framework relies on the [`View.contains(Point)`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L450)
+The framework relies on the [`View.contains(Point)`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L450)
 method to determine when the pointer is within a View's boundaries.
 
-The default implementation just checks the point against [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L108).
-It also accounts for the View's [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L142).
+The default implementation just checks the point against [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L108).
+It also accounts for the View's [`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L142).
 However, more complex hit detection can be used to customize pointer handling.
 
 ```kotlin
-import com.nectar.doodle.geometry.Circle
+import io.nacular.doodle.geometry.Circle
 
 class CircularView(val radius: Double): View() {
     private val circle = Circle(radius)
@@ -65,7 +65,7 @@ top-level Views).
 ## Pointer Listeners
 
 Views are able to receive pointer events once the `PointerModule` is loaded, they are `visible` and `enabled`. You can
-then attach a [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerListener.kt#L3)
+then attach a [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/PointerListener.kt#L3)
 to any View and get notified.
 
 Pointer listeners are notified whenever the pointer:
@@ -74,7 +74,7 @@ Pointer listeners are notified whenever the pointer:
 - **Released** within a View
 - **Exits** a View
 
-You get these notifications by registering with a View's [`pointerChanged`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L294)
+You get these notifications by registering with a View's [`pointerChanged`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L294)
 property.
 
 ```kotlin
@@ -85,7 +85,7 @@ view.pointerChanged += object: PointerListener {
 }
 ```
 
-?> [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/event/PointerListener.kt#L3)
+?> [`PointerListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/PointerListener.kt#L3)
 has no-op defaults for the 4 events, so you only need to implement the ones you need.
 
 Notice that `pointerChanged`--like other observable properties--supports many observers and enables you to add/remove
@@ -130,7 +130,7 @@ descendants toward the `target` View are notified of the event before the target
 
 ### The filter phase is like the "bubbling" phase in reverse
 
-Like with bubbling, `PointerListener` is used to handle the event. Unlike "bubbling", registration happens via the [`pointerFilter`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/core/View.kt#L289)
+Like with bubbling, `PointerListener` is used to handle the event. Unlike "bubbling", registration happens via the [`pointerFilter`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L289)
 property. This phase lets ancestors "veto" an event before it reaches the intended target.
 
 ```kotlin

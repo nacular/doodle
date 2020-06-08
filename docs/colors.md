@@ -1,7 +1,7 @@
 # Rendering Colors
 ------------------
 
-Doodle supports RGBA colors via the [`Color`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/com/nectar/doodle/drawing/Color.kt#L12)
+Doodle supports RGBA colors via the [`Color`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Color.kt#L12)
 class. It uses this for things like `foregroundColor` and `backgroundColor`, and with Pens and brushes.
 
 ```kotlin

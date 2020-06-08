@@ -10,7 +10,7 @@ the Controls library in your build file.
 //...
 
 dependencies {
-     implementation "com.nectar.doodle:controls:$doodle_version"
+     implementation "io.nacular.doodle:controls:$doodle_version"
 }
 
 //...
