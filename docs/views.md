@@ -6,7 +6,7 @@
 Views are the building blocks of Doodle apps. They encapsulate state, display content on the screen and respond to user input. Apps
 typically contain many View classes and have lots of View instances at runtime.
 
-You create a new View by extending the [`View`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L62)
+You create a new View by extending the [`View`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L61)
 base class or instantiating an inline object:
 
 ```kotlin
@@ -51,6 +51,7 @@ class UserInfo(
 
 ```doodle
 {
+    "border": false,
     "height": "60px",
     "run"   : "DocApps.userInfo"
 }
@@ -78,7 +79,7 @@ class MyApp(display: Display): View() {
 ### Views can also have children
 
 Most apps consist of hierarchies with Views nested inside one another. Doodle apps are no different: Views
-support nesting [`children`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L348).
+support nesting [`children`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L360).
 However, this list--and other traits related to being a container of Views--is `protected` to improve encapsulate and API control.
 
 Consider a split panel. Conceptually, it should have no more than 2 children; but it might make sense to have more: i.e. a handle.

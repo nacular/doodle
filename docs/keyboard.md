@@ -3,7 +3,7 @@
 
 ### Key handling is simple with Doodle
 
-The first thing you need to do is include the [`KeyboardModule`](https://github.com/pusolito/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L59)
+The first thing you need to do is include the [`KeyboardModule`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L59)
 when launching your app. The underlying framework uses the `KeyboardModule` to produce key events.
 
 ```kotlin
@@ -28,7 +28,7 @@ fun main () {
 A View must gain `focus` in order to begin receiving key events. This ensures that only a single View
 can receive key events at any time within the app.
 
-Use the [`FocusManager`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/focus/FocusManager.kt#L9)
+Use the [`FocusManager`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/focus/FocusManager.kt#L9)
 to control focus. It is included in the `KeyboardModule`. Just inject it into your app to begin managing the focus.
 
 ```kotlin
@@ -53,14 +53,14 @@ fun main () {
 ## Key Listeners
 
 Views are able to receive key events once the `KeyboardModule` is loaded and they have `focus`. You can
-then attach a [`KeyListener`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyListener.kt#L4)
+then attach a [`KeyListener`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyListener.kt#L4)
 to any View and get notified.
 
 Key listeners are notified whenever a key is:
 - **Pressed**
 - **Released**
 
-You get these notifications by registering with a View's [`keyChanged`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L299)
+You get these notifications by registering with a View's [`keyChanged`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L299)
 property.
 
 ```kotlin
@@ -98,7 +98,7 @@ override fun pressed(event: KeyEvent) {
 
 ### Virtual keys and text
 
-[`KeyEvent.key`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyEvent.kt#L211)
+[`KeyEvent.key`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyEvent.kt#L211)
 is a layout independent identifier that tells you which "virtual key" was pressed or which text the key can be translated into.
 Most key handling use-cases should use this property to compare keys.
 
@@ -126,7 +126,7 @@ override fun pressed(event: KeyEvent) {
 Some applications will require the use of "physical" keys instead of virtual ones. This makes sense for games or other apps
 where the key position on a physical keyboard matters.
 
-This information comes from [`KeyEvent.code`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyEvent.kt#L211).
+This information comes from [`KeyEvent.code`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/KeyEvent.kt#L211).
 
 ```kotlin
 import io.nacular.doodle.event.KeyCode.Companion.AltLeft

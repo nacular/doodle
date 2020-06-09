@@ -1,8 +1,11 @@
 package io.nacular.doodle.application
 
 /**
- * Created by Nicholas Eddy on 3/13/20.
+ * Interface that all Doodle apps must implement.
  */
 interface Application {
+    /**
+     * Called whenever the app is being torn down.
+     */
     fun shutdown()
 }

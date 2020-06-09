@@ -29,16 +29,16 @@ class PatternBrush(val bounds: Rectangle, val transform: AffineTransform = Ident
 /**
  * Creates a [PatternBrush] that draws an alternating horizontal striped pattern.
  *
- * @param stripWidth of the alternating rows
+ * @param stripeWidth of the alternating rows
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun stripedBrush(stripWidth  : Double,
+fun stripedBrush(stripeWidth : Double,
                  evenRowColor: Color? = null,
                  oddRowColor : Color? = null,
-                 transform   : AffineTransform = Identity) = PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) stripWidth else 0.0, 2 * stripWidth), transform) {
-    evenRowColor?.let { rect(Rectangle(                 stripWidth, stripWidth), ColorBrush(it)) }
-    oddRowColor?.let  { rect(Rectangle(0.0, stripWidth, stripWidth, stripWidth), ColorBrush(it)) }
+                 transform   : AffineTransform = Identity) = PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
+    evenRowColor?.let { rect(Rectangle(                 stripeWidth, stripeWidth), ColorBrush(it)) }
+    oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorBrush(it)) }
 }
 
 
@@ -61,7 +61,7 @@ fun horizontalStripedBrush(rowHeight: Double, evenRowColor: Color? = null, oddRo
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
 fun verticalStripedBrush(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = stripedBrush(
-        colWidth, evenRowColor, oddRowColor, Identity.rotate(90 * degrees)
+        colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees)
 )
 
 /**

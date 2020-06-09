@@ -14,10 +14,10 @@ display.children += view // view's position is 0,0
 
 ## Manual positioning
 
-You can set the View's [`x`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L77),
-[`y`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L82), or
-[`position`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L87) properties directly
-to move it around. These are proxies to the View's [`bounds`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L110)
+You can set the View's [`x`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L75),
+[`y`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L80), or
+[`position`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L85) properties directly
+to move it around. These are proxies to the View's [`bounds`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L109)
 property, which represents its rectangular boundary relative to its parent. 
 
 ```kotlin
@@ -35,7 +35,7 @@ view.position = Point(13, -2) // reposition to 13,-2
 
 Views can also have
 [Affine Transformations](https://en.wikipedia.org/wiki/Affine_transformation) to change how they are displayed. A transformed View still
-retains the same `bounds`, but its [`boundingBox`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L158) property changes, since it reflects the smallest rectangle that encloses the View's
+retains the same `bounds`, but its [`boundingBox`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L156) property changes, since it reflects the smallest rectangle that encloses the View's
 **transformed** bounds.
 
 ```doodle
@@ -47,12 +47,12 @@ retains the same `bounds`, but its [`boundingBox`](https://github.com/pusolito/d
 ```
 
 ?> `boundingBox` == `bounds` when
-[`transform`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L144) ==
-[`Identity`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/AffineTransform.kt#L134).
+[`transform`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L143) ==
+[`Identity`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/AffineTransform.kt#L134).
 
 ## Automatic positioning with Layouts
 
-A [`Layout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) monitors a View
+A [`Layout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) monitors a View
 and automatically updates its children's bounds. This happens whenever View's `size` changes, or one of its children has its bounds change.
 
 The View class also `protects` its `layout` property from callers, but sub-classes are free to expose
@@ -71,7 +71,7 @@ box.layout = HorizontalFlowLayout() // Box exposes its layout
 }
 ```
 
-[`HorizontalFlowLayout`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/layout/HorizontalFlowLayout.kt#L16)
+[`HorizontalFlowLayout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/layout/HorizontalFlowLayout.kt#L16)
 wraps a View's children from left to right within its bounds.
 
 !> Changes to a View's `transform` will not trigger layout.

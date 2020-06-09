@@ -1,8 +1,8 @@
 # Rendering Images
 ------------------
 
-Doodle allows you to load [`Image`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/Image.kt#L6)s
-into your app for rendering using the [`ImageLoader`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/ImageLoader.kt#L3).
+Doodle allows you to load [`Image`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/Image.kt#L6)s
+into your app for rendering using the [`ImageLoader`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/ImageLoader.kt#L3).
 
 ```kotlin
 import kotlinx.coroutines.GlobalScope
@@ -21,7 +21,7 @@ class SimpleImageApp(display: Display, imageLoader: ImageLoader): Application {
 }
 ```
 
-This app tries to load and render an image. Notice that [`ImageLoader.load`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/ImageLoader.kt#L11)
+This app tries to load and render an image. Notice that [`ImageLoader.load`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/ImageLoader.kt#L11)
 returns `Image?`, which is `null` when the image fails to load for some reason.
 
 ?> The `load` method is suspending, so it much be called from another `suspend` method or from a coroutine scope.

@@ -4,7 +4,7 @@
 ----
 
 [![Kotlin 1.3.72](https://img.shields.io/badge/Kotlin-1.3.72-blue.svg?style=flat&logo=kotlin)](http://kotlinlang.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/nacular/doodle/blob/master/LICENSE)
 
 **Expressive:** Creating expressive, intuitive apps is natural with Doodle. It handles all complex rendering and layout timing for you. Simply
 define your View hierarchy, business logic and go. User interactions (i.e. mouse and keyboard) are consistent and easy to use.
@@ -85,5 +85,5 @@ container.layout = constrain(panel1, panel2) { panel1, panel2 ->
 
 ## Contact
 
-- Please see [issues](https://github.com/pusolito/doodle/issues) to share bugs you find, make feature requests, or just get help with your questions.
-- Don't hesitate to ⭐️ [star](https://github.com/pusolito/doodle) if you find this project useful.
+- Please see [issues](https://github.com/nacular/doodle/issues) to share bugs you find, make feature requests, or just get help with your questions.
+- Don't hesitate to ⭐️ [star](https://github.com/nacular/doodle) if you find this project useful.

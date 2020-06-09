@@ -16,13 +16,13 @@ val textField = TextField().apply {
 Sometimes a View needs to support more complex customization. Take a TabbedPanel for example. The number of configurations is
 fairly open-ended; and the API would be needlessly complex if it tried to encompass everything.
 
-This is where [`Behavior`s](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
+This is where [`Behavior`s](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
 come in. Views can offer deep customization by delegating rendering, hit detection and anything else to Behaviors. TabbedPanel--along
 with Textfield and many other controls--actually does this.
 
 ### Implementing a Behavior
 
-Behaviors offer a few common capabilities that help with View customization. You create one by implementing the [`Behavior`](https://github.com/pusolito/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
+Behaviors offer a few common capabilities that help with View customization. You create one by implementing the [`Behavior`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
 interface, or a sub-type of it depending on the target View.
 
 ```kotlin
@@ -42,7 +42,7 @@ Behaviors support installation into a View. This gives the Behavior a chance to 
 ## Specialized Behaviors
 
 As mentioned before, TabbedPanel delegates a lot to its Behavior. It actually exposes the fact that it is a container to it. This is done
-using the [`TabbedPanelBehavior`](https://github.com/pusolito/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/panels/TabbedPanel.kt#L15)
+using the [`TabbedPanelBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/panels/TabbedPanel.kt#L15)
 sub interface.
 
 Classes that implement `TabbedPanbleBehavior` are able to directly modify their panel's children and layout.

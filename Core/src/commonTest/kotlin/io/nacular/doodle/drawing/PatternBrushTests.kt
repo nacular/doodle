@@ -76,14 +76,14 @@ class PatternBrushTests {
                 Red opacity 0f to Transparent,
                 null to null
         ).forEach {
-            expect(true) { stripedBrush(stripWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
+            expect(true) { stripedBrush(stripeWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
         }
     }
 
     @Test @JsName("stripesSizeCorrect")
     fun `stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it, it * 2)) { stripedBrush(stripWidth = it, evenRowColor = Red).size }
+            expect(Size(it, it * 2)) { stripedBrush(stripeWidth = it, evenRowColor = Red).size }
         }
     }
 
@@ -99,7 +99,7 @@ class PatternBrushTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            stripedBrush(stripWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
+            stripedBrush(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
                 expect(transform) { test.transform }
 
                 canvas.apply(fill)
@@ -133,7 +133,7 @@ class PatternBrushTests {
                 canvas.apply(fill)
             }
 
-            verify(exactly = 1) { stripedBrush(stripWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor) }
+            verify(exactly = 1) { stripedBrush(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor) }
         }
     }
 
@@ -154,7 +154,7 @@ class PatternBrushTests {
             }
 
             verify(exactly = 1) {
-                stripedBrush(stripWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(90 * degrees))
+                stripedBrush(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(90 * degrees))
             }
         }
     }
