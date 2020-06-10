@@ -152,6 +152,26 @@ val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
 }
 ```
 
+### StarRater
+
+Displays a rating between [0, n] using stars. It also lets the user change the underlying value. 
+
+```kotlin
+val stars = StarRater(displayRounded = 0f, max = 5).apply {
+    bounds           = Rectangle(200, 50)
+    innerRadiusRatio = 0.6f
+    minSpacing       = 15.0
+}
+``` 
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.starRater"
+}
+```
+
 ---
 ### List
 

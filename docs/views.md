@@ -52,7 +52,7 @@ class UserInfo(
 ```doodle
 {
     "border": false,
-    "height": "60px",
+    "height": "120px",
     "run"   : "DocApps.userInfo"
 }
 ```

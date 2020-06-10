@@ -1,6 +1,5 @@
 * [Introduction](/)
 * [Installation](installation.md)
-* [Hello World](helloworld.md)
 * [Applications](applications.md)
 * [Creating Views](views.md)
 * [Positioning Views](positioning.md)

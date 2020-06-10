@@ -133,12 +133,14 @@ class PatternBrushTests {
                 canvas.apply(fill)
             }
 
-            verify(exactly = 1) { stripedBrush(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor) }
+            verify(exactly = 1) {
+                stripedBrush(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor)
+            }
         }
     }
 
     @Test @JsName("verticalStripesUsesStripes")
-    fun `vertical stripes empty if colors transparent`() {
+    fun `vertical stripes uses stripes`() {
         data class Attributes(val colWidth: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
@@ -154,7 +156,7 @@ class PatternBrushTests {
             }
 
             verify(exactly = 1) {
-                stripedBrush(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(90 * degrees))
+                stripedBrush(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(270 * degrees))
             }
         }
     }

@@ -46,7 +46,7 @@ abstract class ValueSlider(model: ConfinedValueModel<Double>): View(accessibilit
         set(new) { model.limits = new }
 
 
-    abstract protected fun changed(old: Double, new: Double)
+    protected abstract fun changed(old: Double, new: Double)
 
     private val modelChanged: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
         (accessibilityRole as? slider)?.let {

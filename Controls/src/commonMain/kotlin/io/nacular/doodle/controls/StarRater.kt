@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls
 
+import com.nectar.measured.units.Angle.Companion.degrees
+import com.nectar.measured.units.times
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -26,7 +28,12 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 4/25/20.
  */
 class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
-    val max = max(0, max)
+    var max = max(0, max)
+        set(new) {
+            field = max(0, new)
+            updateStar()
+            value = min(field.toDouble(), value)
+        }
 
     var innerRadiusRatio = null as Float?
         set(new) {
@@ -46,10 +53,22 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             updateStar()
         }
 
+    var starRotation = 0 * degrees
+        set(new) {
+            field = new
+            updateStar()
+        }
+
+    var shadowColor: Color? = Black opacity 0.2f
+        set(new) {
+            field = new
+            rerender()
+        }
+
     var value = 0.0
         set(new) {
             val old = field
-            field = new
+            field = max(0.0, min(max.toDouble(), new))
 
             displayValue = field.roundToNearest(displayRounded.toDouble())
             changed_(old, new)
@@ -85,6 +104,8 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             rerender()
         }
 
+        clipCanvasToBounds = false
+
         updateStar()
     }
 
@@ -95,8 +116,8 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         val circle = Circle(Point(0.0, height / 2), radius)
 
         val tempStart = when (val r2 = innerRadiusRatio) {
-            null -> star(circle, points = numStarPoints)
-            else -> star(circle, points = numStarPoints, innerCircle = circle.withRadius(radius * r2))
+            null -> star(circle, points = numStarPoints, rotation = starRotation)
+            else -> star(circle, points = numStarPoints, rotation = starRotation, innerCircle = circle.withRadius(radius * r2))
         }!!
 
         val starWidth = tempStart.boundingRectangle.width
@@ -110,6 +131,8 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         }
 
         star = tempStart.translateBy(x = brushBounds.width / 2)
+
+        rerender()
     }
 
     override fun render(canvas: Canvas) {
@@ -117,9 +140,13 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
         if (displayValue < max) {
             canvas.rect(rect, PatternBrush(bounds = brushBounds) {
-                outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
+                shadowColor?.let {
+                    outerShadow(color = it, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
+                        poly(star, Pen(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
+                    }
+                } ?: {
                     poly(star, Pen(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
-                }
+                }()
             })
         }
 
