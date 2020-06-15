@@ -194,10 +194,15 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        fun basicSliderBehavior(barColor: Color? = null, knobColor: Color? = null) = BasicModule(name = "BasicSliderBehavior") {
+        fun basicSliderBehavior(barColor: Color? = null, knobColor: Color? = null, grooveThicknessRatio: Float? = null) = BasicModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSliderBehavior(barColor ?: defaultBackgroundColor, knobColor ?: darkBackgroundColor, instanceOrNull())
+                    BasicSliderBehavior(
+                            barColor             ?: defaultBackgroundColor,
+                            knobColor            ?: darkBackgroundColor,
+                            grooveThicknessRatio ?: 0.6f,
+                            instanceOrNull()
+                    )
                 }
             }
         }

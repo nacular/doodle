@@ -11,8 +11,8 @@ import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.Color.Companion.Yellow
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect

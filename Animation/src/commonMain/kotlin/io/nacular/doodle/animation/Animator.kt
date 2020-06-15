@@ -7,37 +7,37 @@ import io.nacular.doodle.animation.transition.SpeedUpSlowDown
 import io.nacular.doodle.animation.transition.Transition
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Pool
-import com.nectar.measured.units.InverseUnit
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.UnitRatio
-import com.nectar.measured.units.times
+import io.nacular.measured.units.InverseUnits
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.UnitsRatio
+import io.nacular.measured.units.times
 import kotlin.jvm.JvmName
 
 /**
  * Created by Nicholas Eddy on 3/29/18.
  */
-class NoneUnit: Unit("")
+class NoneUnit: Units("")
 
 val noneUnits = NoneUnit()
 
 @JvmName("fixedSpeedLinearNumber")
-fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnit<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear(1 * noneUnits * speed, end * noneUnits) }
+fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnits<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear(1 * noneUnits * speed, end * noneUnits) }
 
 @JvmName("fixedSpeedLinearUnit")
-fun <T: Unit> fixedSpeedLinear(speed: Measure<UnitRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
+fun <T: Units> fixedSpeedLinear(speed: Measure<UnitsRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
 
 fun <T: Number> fixedTimeLinear(time: Measure<Time>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedTimeLinear(time, end * noneUnits) }
 
-fun <T: Unit> fixedTimeLinearM(time: Measure<Time>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedTimeLinear(time, end) }
+fun <T: Units> fixedTimeLinearM(time: Measure<Time>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedTimeLinear(time, end) }
 
 fun <T: Number> speedUpSlowDown(time: Measure<Time>, accelerationFraction: Float = 0.5f): (T, T) -> Transition<NoneUnit> = { _,end -> SpeedUpSlowDown(time, end * noneUnits, accelerationFraction) }
 
-fun <T: Unit> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float = 0.5f): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> SpeedUpSlowDown(time, end, accelerationFraction) }
+fun <T: Units> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float = 0.5f): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> SpeedUpSlowDown(time, end, accelerationFraction) }
 
 fun <T: Number> noChange (time: Measure<Time>): (T) -> Transition<NoneUnit> = { NoChange(time) }
-fun <T: Unit>   noChangeM(time: Measure<Time>): (Measure<T>) -> Transition<T> = { NoChange(time) }
+fun <T: Units>  noChangeM(time: Measure<Time>): (Measure<T>) -> Transition<T> = { NoChange(time) }
 
 
 interface Animation: Completable
@@ -52,13 +52,13 @@ interface Animator {
     interface TransitionBuilder<T: Number> {
         infix fun then(transition: Transition<NoneUnit>): TransitionBuilder<T>
 
-        operator fun invoke(block: (T) -> kotlin.Unit): Animation
+        operator fun invoke(block: (T) -> Unit): Animation
     }
 
-    interface MeasureTransitionBuilder<T: Unit> {
+    interface MeasureTransitionBuilder<T: Units> {
         infix fun then(transition: Transition<T>): MeasureTransitionBuilder<T>
 
-        operator fun invoke(block: (Measure<T>) -> kotlin.Unit): Animation
+        operator fun invoke(block: (Measure<T>) -> Unit): Animation
     }
 
     interface NumberRangeUsing<T: Number> {
@@ -69,11 +69,11 @@ interface Animator {
         infix fun using(transition: (start: T) -> Transition<NoneUnit>): TransitionBuilder<T>
     }
 
-    interface MeasureRangeUsing<T: Unit> {
+    interface MeasureRangeUsing<T: Units> {
         infix fun  using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
     }
 
-    interface MeasureUsing<T: Unit> {
+    interface MeasureUsing<T: Units> {
         infix fun  using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
     }
 
@@ -85,20 +85,20 @@ interface Animator {
         override fun using(transition: (start: T) -> Transition<NoneUnit>) = value using transition
     }
 
-    operator fun <T: Unit> invoke(range: Pair<Measure<T>, Measure<T>>) = object: MeasureRangeUsing<T> {
+    operator fun <T: Units> invoke(range: Pair<Measure<T>, Measure<T>>) = object: MeasureRangeUsing<T> {
         override fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>) = range using transition
     }
 
-    operator fun <T: Unit> invoke(value: Measure<T>) = object: MeasureUsing<T> {
+    operator fun <T: Units> invoke(value: Measure<T>) = object: MeasureUsing<T> {
         override fun using(transition: (start: Measure<T>) -> Transition<T>) = value using transition
     }
 
     infix fun <T: Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>
     infix fun <T: Number> T.using(transition: (start: T) -> Transition<NoneUnit>): TransitionBuilder<T>
-    infix fun <T: Unit>   Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
-    infix fun <T: Unit>   Measure<T>.using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+    infix fun <T: Units>  Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+    infix fun <T: Units>  Measure<T>.using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
 
-    operator fun invoke(block: Animator.() -> kotlin.Unit): Completable
+    operator fun invoke(block: Animator.() -> Unit): Completable
 
     val listeners: Pool<Listener>
 }

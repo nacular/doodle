@@ -5,8 +5,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.times
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 
 
 /**

@@ -4,10 +4,10 @@ import io.nacular.doodle.dom.Date
 import io.nacular.doodle.dom.Performance
 import io.nacular.doodle.time.Clock
 import io.nacular.doodle.time.Timer
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 10/19/17.

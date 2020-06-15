@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls
 
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color

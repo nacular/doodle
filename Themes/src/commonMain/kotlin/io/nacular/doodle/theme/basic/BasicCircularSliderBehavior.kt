@@ -11,10 +11,10 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.path
-import com.nectar.measured.units.Angle.Companion.cos
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Angle.Companion.sin
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.cos
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Angle.Companion.sin
+import io.nacular.measured.units.times
 
 class BasicCircularSliderBehavior(
         private val barColor : Color = Lightgray,

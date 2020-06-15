@@ -22,8 +22,8 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

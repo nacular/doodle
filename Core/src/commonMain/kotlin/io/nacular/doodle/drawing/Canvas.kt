@@ -12,8 +12,8 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Measure
 
 
 sealed class Shadow(val horizontal: Double, val vertical: Double, val blurRadius: Double, val color: Color)

@@ -1,7 +1,7 @@
 package io.nacular.doodle.time
 
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
 
 /**
  * Exposes the current epoch time that is useful for date related time operations.

@@ -15,9 +15,9 @@ import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
 import kotlin.math.max
 import kotlin.math.min
 

@@ -1,11 +1,11 @@
 package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Moment
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 3/30/18.
@@ -14,7 +14,7 @@ import com.nectar.measured.units.times
 /**
  * A transition that instantly jumps to the final value.
  */
-class InstantTransition<T: Unit>(private val finalValue: Measure<T>): FixedDuration<T>(0 * milliseconds) {
+class InstantTransition<T: Units>(private val finalValue: Measure<T>): FixedDuration<T>(0 * milliseconds) {
     override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = endState(initial)
     override fun endState(initial: Moment<T>                           ) = Moment(finalValue, initial.velocity)
 }

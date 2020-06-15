@@ -17,11 +17,12 @@ import io.nacular.doodle.utils.CompletableImpl
 import io.nacular.doodle.utils.CompletableImpl.State.Active
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.SetPool
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 1/12/20.
@@ -33,7 +34,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         var time = 0 * milliseconds
     }
 
-    private class InternalProperty<T: com.nectar.measured.units.Unit>(initialValue: Measure<T>) {
+    private class InternalProperty<T: Units>(initialValue: Measure<T>) {
 
         val transitions      = mutableListOf<TransitionNode<T>>()
         var activeTransition = null as TransitionNode<T>?
@@ -67,7 +68,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         }
     }
 
-    private class TransitionNode<T: com.nectar.measured.units.Unit>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
+    private class TransitionNode<T: Units>(val transition: Transition<T>, val startTime: KeyFrame, var endTime: KeyFrame) {
 
         fun shouldStart(elapsedTime: Measure<Time>) = startTime.time <= elapsedTime
 
@@ -76,9 +77,9 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         }
     }
 
-    private class Result<T: com.nectar.measured.units.Unit>(val active: Boolean, val old: Measure<T>, val new: Measure<T>)
+    private class Result<T: Units>(val active: Boolean, val old: Measure<T>, val new: Measure<T>)
 
-    private inner class AnimationImpl<T: com.nectar.measured.units.Unit>(
+    private inner class AnimationImpl<T: Units>(
             private val property: InternalProperty<T>, private val block: (Measure<T>) -> Unit): Animation, CompletableImpl() {
         private lateinit var startTime: Measure<Time>
 
@@ -159,7 +160,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { animations += it }
     }
 
-    private inner class MeasurePairTransitionBuilderImpl<T: com.nectar.measured.units.Unit>(
+    private inner class MeasurePairTransitionBuilderImpl<T: Units>(
             start     : Measure<T>,
             end       : Measure<T>,
             transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> {
@@ -172,7 +173,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         }
     }
 
-    private inner class MeasureTransitionBuilderImpl<T: com.nectar.measured.units.Unit>(
+    private inner class MeasureTransitionBuilderImpl<T: Units>(
             value     : Measure<T>,
             transition: (value: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> {
         private val property = InternalProperty(value).apply { add(transition(value)) }
@@ -198,9 +199,9 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
 
     override fun <T: Number> T.using(transition: (value: T) -> Transition<NoneUnit>): TransitionBuilder<T> = TransitionBuilderImpl(this, transition)
 
-    override fun <T: com.nectar.measured.units.Unit> Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> = MeasurePairTransitionBuilderImpl(first, second, transition)
+    override fun <T: Units> Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> = MeasurePairTransitionBuilderImpl(first, second, transition)
 
-    override fun <T: com.nectar.measured.units.Unit> Measure<T>.using(transition: (value: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> = MeasureTransitionBuilderImpl(this, transition)
+    override fun <T: Units> Measure<T>.using(transition: (value: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T> = MeasureTransitionBuilderImpl(this, transition)
 
     override fun invoke(block: Animator.() -> Unit): Completable {
         val newAnimations = mutableSetOf<AnimationImpl<*>>()

@@ -1,10 +1,10 @@
 package io.nacular.doodle.scheduler
 
 import io.nacular.doodle.utils.Cancelable
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 10/19/17.

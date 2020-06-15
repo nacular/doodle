@@ -2,19 +2,19 @@ package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Moment
 import io.nacular.doodle.animation.Velocity
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.abs
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.abs
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 
 
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
 
-class FixedSpeedLinear<T: Unit>(private val speed: Measure<Velocity<T>>, private val endValue: Measure<T>): Transition<T> {
+class FixedSpeedLinear<T: Units>(private val speed: Measure<Velocity<T>>, private val endValue: Measure<T>): Transition<T> {
 
     override fun duration(initial: Moment<T>): Measure<Time> = (endValue - initial.position) / speed
 

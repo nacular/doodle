@@ -3,8 +3,8 @@ package io.nacular.doodle.drawing
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Measure
 
 /**
  * Created by Nicholas Eddy on 10/23/17.

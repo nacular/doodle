@@ -6,10 +6,10 @@ import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlin.coroutines.CoroutineContext

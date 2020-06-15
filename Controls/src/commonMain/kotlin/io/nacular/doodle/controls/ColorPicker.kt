@@ -30,11 +30,11 @@ import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.system.Cursor.Companion.None
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 import kotlin.math.max
 import kotlin.math.min
 

@@ -9,8 +9,8 @@ import io.nacular.doodle.drawing.Pen
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.div
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import kotlin.math.min
 
 /**

@@ -1,11 +1,11 @@
 package io.nacular.doodle.geometry
 
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.cos
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Angle.Companion.sin
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.cos
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Angle.Companion.sin
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
 import kotlin.math.abs
 import kotlin.math.sqrt
 

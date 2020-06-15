@@ -4,9 +4,9 @@
 package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Moment
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Unit
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Units
 
 
 /**
@@ -14,7 +14,7 @@ import com.nectar.measured.units.Unit
  *
  * @author Nicholas Eddy (neddy@zinoti.com)
  */
-class NoChange<T: Unit>(duration: Measure<Time>): FixedDuration<T>(duration) {
+class NoChange<T: Units>(duration: Measure<Time>): FixedDuration<T>(duration) {
     override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = initial
     override fun endState(initial: Moment<T>                           ) = initial
 }

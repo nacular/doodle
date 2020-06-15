@@ -6,9 +6,9 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.AffineMatrix3D
 import io.nacular.doodle.utils.matrixOf
 import io.nacular.doodle.utils.times
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.radians
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.radians
+import io.nacular.measured.units.Measure
 import kotlin.math.cos
 import kotlin.math.sin
 

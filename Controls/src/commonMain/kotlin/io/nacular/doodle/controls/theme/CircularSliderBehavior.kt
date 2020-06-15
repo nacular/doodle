@@ -14,13 +14,13 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.size
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.atan
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Angle.Companion.normalize
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.atan
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.div
+import io.nacular.measured.units.normalize
+import io.nacular.measured.units.times
 import kotlin.math.abs
 
 abstract class CircularSliderBehavior(

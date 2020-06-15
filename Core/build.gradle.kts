@@ -2,28 +2,11 @@ apply (from = "../jacoco.gradle")
 
 plugins {
     kotlin("multiplatform")
-
-    id("maven-publish"      )
-    id("org.jetbrains.dokka")
 }
 
 kotlin {
-    jvm().compilations.all {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-    js {
-        browser.testTask {
-            enabled = false
-        }
-    }.compilations.all {
-        kotlinOptions {
-            sourceMap             = true
-            moduleKind            = "commonjs"
-            sourceMapEmbedSources = "always"
-        }
-    }
+    jsTargets ()
+    jvmTargets()
 
     val mockkVersion   : String by project
     val junitVersion   : String by project
@@ -35,7 +18,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api ("com.nectar.measured:measured:$measuredVersion")
+                api ("io.nacular.measured:measured:$measuredVersion")
 
                 implementation(kotlin("stdlib-common"))
                 implementation(kotlin("reflect"      ))

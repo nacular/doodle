@@ -30,9 +30,9 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt

@@ -24,11 +24,11 @@ import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just

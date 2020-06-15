@@ -13,15 +13,13 @@ buildscript {
 }
 
 plugins {
-    val kotlinVersion: String by System.getProperties()
-
-    id ("org.jetbrains.kotlin.multiplatform") version kotlinVersion
-    id ("org.jetbrains.dokka"               ) version "0.10.0"
+    kotlin("multiplatform")
+    id ("org.jetbrains.dokka") version "0.10.0"
 }
 
 allprojects {
-    version = "0.1.0"
-    group   = "io.nacular.doodle"
+    apply (plugin = "org.jetbrains.dokka")
+    apply (plugin = "maven-publish"      )
 
     repositories {
         maven       { url = uri("http://dl.bintray.com/kotlin/kotlin-eap") }
@@ -30,7 +28,7 @@ allprojects {
         jcenter     ()
     }
 
-    apply(plugin = "org.jetbrains.dokka")
+    setupPublication()
 
     tasks {
         val dokka by getting(org.jetbrains.dokka.gradle.DokkaTask::class) {

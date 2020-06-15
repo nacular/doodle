@@ -1,8 +1,8 @@
 package io.nacular.doodle.geometry
 
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
 
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands

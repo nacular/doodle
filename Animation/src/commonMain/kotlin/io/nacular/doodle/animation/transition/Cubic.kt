@@ -2,17 +2,17 @@ package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Moment
 import io.nacular.doodle.animation.Velocity
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 import kotlin.math.pow
 
 /**
  * Created by Nicholas Eddy on 10/29/18.
  */
-class Cubic<T: Unit>(private val duration: Measure<Time>, private val endValue: Measure<T>, private val endVelocity: Measure<Velocity<T>>): Transition<T> {
+class Cubic<T: Units>(private val duration: Measure<Time>, private val endValue: Measure<T>, private val endVelocity: Measure<Velocity<T>>): Transition<T> {
 
     private val deltaTime = duration * 0.1
 

@@ -2,10 +2,10 @@ package io.nacular.doodle
 
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Task
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 
 class ManualScheduler: Scheduler {
     private class SimpleTask(override var completed: Boolean = false) : Task {

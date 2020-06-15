@@ -14,10 +14,10 @@ import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
 import io.nacular.doodle.utils.MutableTreeSet
 import io.nacular.doodle.utils.ifTrue
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.seconds
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.seconds
+import io.nacular.measured.units.times
 
 private object AncestorComparator: Comparator<View> {
     override fun compare(a: View, b: View) = when {

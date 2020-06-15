@@ -2,37 +2,11 @@ apply (from = "../jacoco.gradle")
 
 plugins {
     kotlin("multiplatform")
-
-    id("maven-publish"      )
-    id("org.jetbrains.dokka")
 }
 
 kotlin {
-    jvm().compilations.all {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-    js {
-        browser.testTask {
-            enabled = false
-        }
-    }.compilations.all {
-        kotlinOptions {
-            sourceMap             = true
-            moduleKind            = "commonjs"
-            sourceMapEmbedSources = "always"
-        }
-    }
-
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
-//                    allWarningsAsErrors = true
-            }
-        }
-    }
+    jsTargets ()
+    jvmTargets()
 
     val mockkVersion  : String by project
     val junitVersion  : String by project

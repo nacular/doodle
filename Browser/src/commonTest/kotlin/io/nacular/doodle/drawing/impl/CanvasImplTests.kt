@@ -25,8 +25,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk

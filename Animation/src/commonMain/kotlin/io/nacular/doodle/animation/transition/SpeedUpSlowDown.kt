@@ -1,17 +1,17 @@
 package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Moment
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Time.Companion.milliseconds
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 10/29/18.
  */
-class SpeedUpSlowDown<T: Unit>(duration            : Measure<Time>,
+class SpeedUpSlowDown<T: Units>(duration            : Measure<Time>,
                    private val endValue            : Measure<T>,
                    private val accelerationFraction: Float = 0.5f): FixedDuration<T>(duration)
 {

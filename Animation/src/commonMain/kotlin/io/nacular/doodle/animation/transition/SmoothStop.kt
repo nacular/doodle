@@ -2,16 +2,16 @@ package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Acceleration
 import io.nacular.doodle.animation.Moment
-import com.nectar.measured.units.Measure
-import com.nectar.measured.units.Time
-import com.nectar.measured.units.Unit
-import com.nectar.measured.units.div
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Units
+import io.nacular.measured.units.div
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-class SmoothStop<T: Unit>(private val endValue: Measure<T>): Transition<T> {
+class SmoothStop<T: Units>(private val endValue: Measure<T>): Transition<T> {
     override fun value(initial: Moment<T>, timeOffset: Measure<Time>): Moment<T> {
         val acceleration: Measure<Acceleration<T>> = -(initial.velocity * initial.velocity) / ((endValue - initial.position) * 2)
 

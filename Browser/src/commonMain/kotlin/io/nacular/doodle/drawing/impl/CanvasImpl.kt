@@ -58,8 +58,8 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
-import com.nectar.measured.units.Angle
-import com.nectar.measured.units.Measure
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Measure
 import kotlin.math.max
 
 

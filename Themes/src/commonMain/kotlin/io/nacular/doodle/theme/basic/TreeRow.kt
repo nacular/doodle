@@ -25,8 +25,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.utils.Path
-import com.nectar.measured.units.Angle.Companion.degrees
-import com.nectar.measured.units.times
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import kotlin.math.max
 
 /**
