@@ -1,7 +1,9 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.controls.buttons.CheckBox
+import io.nacular.doodle.controls.panels.FitContent
 import io.nacular.doodle.controls.text.Label
+import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.text.StyledText
@@ -54,10 +56,12 @@ interface IndexedItemVisualizer<T> {
 /**
  * Visualizes Strings using [Label]s.
  */
-open class TextItemVisualizer(private val textMetrics: TextMetrics): ItemVisualizer<String> {
+open class TextItemVisualizer(private val textMetrics: TextMetrics, private val fitText: Set<TextFit>? = null): ItemVisualizer<String> {
     override fun invoke(item: String, previous: View?): Label = when (previous) {
-        is Label -> previous.apply { text = item }
-        else     -> Label(textMetrics, StyledText(item))
+        is Label -> previous.apply { text = item; this@TextItemVisualizer.fitText?.let { fitText = it } }
+        else     -> Label(textMetrics, StyledText(item)).apply {
+            this@TextItemVisualizer.fitText?.let { fitText = it }
+        }
     }
 }
 

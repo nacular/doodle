@@ -209,7 +209,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         val BasicSpinnerBehavior = BasicModule(name = "BasicSpinnerBehavior") {
             bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicSpinnerBehavior(instance(), instance()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicSpinnerBehavior(instance()) }
             }
         }
 

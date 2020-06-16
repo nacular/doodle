@@ -11,9 +11,20 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
 /**
- * Created by Nicholas Eddy on 2/12/18.
+ * Represents a selection slider that can be [Horizontal] or [Vertical][io.nacular.doodle.utils.Orientation.Vertical].
+ *
+ * @constructor
+ * @param model containing range and value
+ * @param orientation of the control
  */
 open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Horizontal): ValueSlider(model) {
+    /**
+     * Creates a Slider with a given range and starting value.
+     *
+     * @param range of the bar
+     * @param value to start with
+     * @param orientation of the control
+     */
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
     @Suppress("PrivatePropertyName")

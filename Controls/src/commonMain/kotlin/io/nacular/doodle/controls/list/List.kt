@@ -161,6 +161,10 @@ open class List<T, out M: ListModel<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+        if (new.empty) {
+            return
+        }
+
         rowPositioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return

@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.spinner
 
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -39,7 +40,7 @@ abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
 }
 
 @Suppress("PropertyName")
-open class Spinner<T, M: Model<T>>(val model: M): View() {
+open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisualizer<T>? = null): View() {
 
     fun next    () = model.next    ()
     fun previous() = model.previous()

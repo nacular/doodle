@@ -80,10 +80,14 @@ class MyApp(display: Display): View() {
 
 Most apps consist of hierarchies with Views nested inside one another. Doodle apps are no different: Views
 support nesting [`children`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L360).
-However, this list--and other traits related to being a container of Views--is `protected` to improve encapsulate and API control.
+However, this list--and other traits related to being a container--is `protected` to improve encapsulation and API control.
 
-Consider a split panel. Conceptually, it should have no more than 2 children; but it might make sense to have more: i.e. a handle.
-Doodle makes this easy by letting you selectively expose a View's internals to callers.
+Consider a split panel. It is reasonable to think about it as having a left and right child (ignoring orientation for now).
+However, an implementation of this concept might choose to have an additional child to represent the splitter. This choice is an
+internal detail of the implementation that would be leaked if the `children` list were public. Worse, a caller could remove the splitter
+or add more children than expected and break the behavior.
+
+Doodle helpds with these design challenges by letting you selectively expose a View's internals to callers.
 
 ```kotlin
 class VSplitPanel: View() {
@@ -111,6 +115,6 @@ class VSplitPanel: View() {
 }
 ```
 
-This design prevents direct access to the panel's `children`, which side-steps many usability issues. It also presents are more
+This design prevents direct access to the panel's `children`, which side-steps many issues. It also presents are more
 intuitive and reliable API. `left` and `right` are fairly self-documenting compared to `children[n]` and `children[m]`. Moreover,
 the panel is able to encapsulate the fact that it uses additional Views for presentation. 

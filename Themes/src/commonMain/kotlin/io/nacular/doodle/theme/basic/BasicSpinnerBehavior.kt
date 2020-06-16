@@ -1,11 +1,14 @@
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.TextItemVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
 import io.nacular.doodle.controls.text.LabelFactory
+import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
@@ -18,11 +21,12 @@ import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.ConstraintLayout
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Anchor
 
-class BasicSpinnerBehavior(private val textMetrics: TextMetrics, private val labelFactory: LabelFactory): SpinnerBehavior<Any, Model<Any>>() {
+class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavior<Any, Model<Any>>() {
 
     private class ButtonIcon(private val color: Color, private val disabledColor: Color, private val isUp: Boolean): Icon<Button> {
         override fun size(view: Button) = Size(view.width * 0.3, view.height * 0.3)
@@ -71,6 +75,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics, private val lab
         }
     }
 
+    private val itemVisualizer by lazy { toString<Any>(TextItemVisualizer(textMetrics, fitText = emptySet())) }
 
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 
@@ -81,7 +86,9 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics, private val lab
     override fun install(view: Spinner<Any, Model<Any>>) {
         super.install(view)
 
-        val center = labelFactory(view.value.toString()).apply { fitText = emptySet() }
+        val itemVisualizer = view.itemVisualizer ?: itemVisualizer
+
+        val center = itemVisualizer(view.value)
         val next = PushButton().apply {
             iconAnchor    = Anchor.Leading
             enabled       = view.hasNext
@@ -97,7 +104,22 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics, private val lab
         }
 
         view.changed += {
-            center.text      = it.value.toString() // TODO: Define string converter?
+            val newCenter = itemVisualizer(view.value, center)
+
+            if (newCenter != center) {
+                view.children -= center
+                (view.layout as? ConstraintLayout)?.unconstrain(center)
+
+                view.children += newCenter
+
+                (view.layout as? ConstraintLayout)?.constrain(newCenter, next) { center, next ->
+                    center.top = parent.top
+                    center.left = parent.left
+                    center.right = next.left
+                    center.bottom = parent.bottom
+                }
+            }
+
             next.enabled     = it.hasNext
             previous.enabled = it.hasPrevious
         }

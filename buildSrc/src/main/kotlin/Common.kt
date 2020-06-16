@@ -69,16 +69,21 @@ fun Project.setupSigning() {
         isRequired = project.hasProperty("release") && gradle.taskGraph.hasTask("publish")
         useGpgCmd()
 
-        sign(extensions.getByType<PublishingExtension>().publications)
+        if (isRequired) {
+            sign(extensions.getByType<PublishingExtension>().publications)
+        }
     }
 }
 
 fun Project.setupPublication(dokkaJar: Jar) {
     extensions.getByType<PublishingExtension>().run {
         publications.withType<MavenPublication>().all {
-            artifact(dokkaJar)
-            pom {
-                setupPom()
+            if (project.hasProperty("release")) {
+                artifact(dokkaJar)
+
+                pom {
+                    setupPom()
+                }
             }
         }
 

@@ -45,6 +45,30 @@ As mentioned before, TabbedPanel delegates a lot to its Behavior. It actually ex
 using the [`TabbedPanelBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/panels/TabbedPanel.kt#L15)
 sub interface.
 
+**io.nacular.doodle.controls.panels.TabbedPanel.kt**
+
+```kotlin
+abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
+    // 
+    val TabbedPanel<T>.children         get() = this._children
+    var TabbedPanel<T>.insets           get() = this._insets;           set(new) { _insets           = new }
+    var TabbedPanel<T>.layout           get() = this._layout;           set(new) { _layout           = new }
+    var TabbedPanel<T>.isFocusCycleRoot get() = this._isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+}
+
+class TabbedPanel<T> {
+    //...
+
+    // Expose container APIs for behavior
+    internal val _children         get() = children
+    internal var _insets           get() = insets; set(new) { insets = new }
+    internal var _layout           get() = layout; set(new) { layout = new }
+    internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
+    
+    // ...
+}
+```
+
 Classes that implement `TabbedPanbleBehavior` are able to directly modify their panel's children and layout.
 
 ```kotlin

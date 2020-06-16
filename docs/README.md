@@ -10,28 +10,29 @@
 ## Why Doodle?
 
 ### Single-language
-Doodle is written entirely in [Kotlin](http://kotlinlang.org). Apps written with Doodle do not
-use HTML, Javascript, CSS or wrappers around these concepts. All parts of a Doodle app are written in a browser agnostic way using
-Kotlin. Doodle apps can actually be written entirely as common (cross-platform) code in multi-platform setups.
+Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle [Applications](applications.md) do not use HTML,
+CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all, and can be written entirely
+as common (cross-platform) code in [multi-platform](https://kotlinlang.org/docs/reference/platform-specific-declarations.html) setups.
 
 ### Expressive
-Creating expressive, intuitive apps is natural with Doodle. It makes complex rendering easy, simplifies layout and offers a great
-deal of flexibility. Doodle also provides intuitive pointer and keyboard support for both desktop and mobile.
+Creating expressive, intuitive apps is natural with Doodle. It makes complex rendering easy with powerful, vector-oriented rendering,
+provides fully customizable layouts and simplifies pointer and keyboard handling.
 
 Simply define your View hierarchy, business logic and go.
 
 ### Vector Oriented
-Its easy to build beautifully detailed UIs with Doodle. All rendering in Doodle is vector-oriented; so ellipses, paths,
+It is easy to build beautifully detailed UIs with Doodle. All rendering in Doodle is vector-oriented; so ellipses, paths,
 lines, gradients, affine transforms etc. are as simple to use as images and rectangles. 
 
 ### Precise
 
-Doodle gives you control over all aspects of the UI presentation, making it easier to precisely control rendering.
+Doodle gives you control over all aspects of the UI presentation, including pixel-level positioning, making it easier to precisely
+control rendering.
 
 ### Modular
 
 Doodle has several libraries and a collection of modules. This allows selective adoption of various features and helps
-with bundle size. Apps written with Doodle are also dependency-injected; and there are no global objects or state to make mocking challenging.
+with bundle size. Apps written with Doodle are also dependency-injected; and there are no global objects or state to make mocking challenging. 
 
 ## Hello World
 ```kotlin

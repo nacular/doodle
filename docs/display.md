@@ -62,6 +62,8 @@ class MyApp(display: Display): View() {
 A [**Stand-Alone**](applications.md?id=stand-alone) app that uses the entire page will have a Display tied to the page body. While
 an app hosted in an element will have a Display that is tied to that element.
 
+This is transparent to the app.
+
 ```kotlin
 application(modules = listOf(/*...*/)) {
     MyApp(instance /*,...*/)

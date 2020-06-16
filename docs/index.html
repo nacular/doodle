@@ -34,11 +34,7 @@
           --heading-h3-margin            : 0.5m;
           --heading-h2-border-width      : 0;
 
-<!--          &#45;&#45;sidebar-nav-link-border-color&#45;&#45;active: #bbeffd;-->
-
-          --notice-before-top : 0.9em;
-          --notice-before-left: -0.85em;
-          --notice-padding    : 0.75em 1.5em
+        //  --sidebar-nav-link-border-color--active: #bbeffd;
         }
 
     </style>
@@ -54,20 +50,24 @@
         basePath   : '/../',
         relative   : 'true',
         repo       : '/nacular/doodle',
-//        subMaxLevel: 2,
         loadSidebar: true,
+
+        tabs: {
+            persist    : true,      // default
+            sync       : true,      // default
+            theme      : 'material',
+            tabComments: true,      // default
+            tabHeadings: true       // default
+          }
     }
 </script>
-
-<script src="//unpkg.com/mermaid/dist/mermaid.js"></script>
-<script src="//unpkg.com/docsify-mermaid@latest/dist/docsify-mermaid.js"></script>
-<script>mermaid.initialize({ startOnLoad: true });</script>
 
 <script src="//unpkg.com/prismjs/components/prism-kotlin.min.js"></script>
 <script src="//unpkg.com/prismjs/components/prism-groovy.min.js"></script>
 <script src="https://unpkg.com/docsify-themeable"></script>
 <script src="https://unpkg.com/docsify-copy-code"></script>
 <script src="https://unpkg.com/docsify/lib/plugins/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 
 <script src="DocApps.js"></script>
 

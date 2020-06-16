@@ -198,6 +198,7 @@ internal open class VectorRendererSvg constructor(
         if (renderPosition != null) {
             findSvgDepthFirst(context.renderRegion)?.let {
                 rootSvgElement = it
+                svgElement = it
                 this.renderPosition = it.firstChild
             }
         } else {

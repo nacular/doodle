@@ -11,16 +11,8 @@ import io.nacular.doodle.utils.size
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
+abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
-
-    var behavior: Behavior<ProgressIndicator>? = null
-        set(new) {
-            if (field == new) { return }
-
-            field?.uninstall(this)
-            field = new?.apply { install(this@ProgressIndicator) }
-        }
 
     private val changedHandler: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
         changed_(old, new)
@@ -54,12 +46,6 @@ open class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
         set(new) { model.limits = new }
 
     override var focusable = false
-
-    override fun render(canvas: Canvas) {
-        behavior?.render(this, canvas)
-    }
-
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }

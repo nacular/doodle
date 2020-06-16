@@ -23,6 +23,8 @@ This `RectView` draws a filled rectangle covering its bounds.
 Doodle optimizes rendering to avoid re-applying operations when rendering the same content repeatedly. For example, the `Timer` app
 below renders the epoch time every millisecond. However, Doodle only updates the changing regions in the DOM. The text in this case.
 
+?> Doodle uses [Measured](https://nacular.github.io/measured/) for time
+
 ```kotlin
 class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
     init {
@@ -92,6 +94,19 @@ This brush has a "render" body that provides a powerful and familiar way of crea
 
 You create this brush by specifying a `size` and a `fill` lambda, which has access to the full `Canvas` APIs.
 
+**io.nacular.doodle.drawing.PatternBrush.kt**
+
+```kotlin
+fun stripedBrush(stripeWidth : Double,
+                 evenRowColor: Color? = null,
+                 oddRowColor : Color? = null,
+                 transform   : AffineTransform = Identity) =
+PatternBrush(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
+    evenRowColor?.let { rect(Rectangle(                 stripeWidth, stripeWidth), ColorBrush(it)) }
+    oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorBrush(it)) }
+}
+```
+
 ```kotlin
 private inner class MyView: View() {
     val stripeWidth = 20.0
@@ -118,3 +133,5 @@ private inner class MyView: View() {
     "run"   : "DocApps.patternBrush"
 }
 ``` 
+
+This app shows how a `PatternBrush` can be rotated around its center.

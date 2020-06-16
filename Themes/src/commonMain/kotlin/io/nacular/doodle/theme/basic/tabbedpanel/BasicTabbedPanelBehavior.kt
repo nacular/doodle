@@ -31,6 +31,7 @@ import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.div
 import io.nacular.measured.units.times
 import kotlin.math.max
@@ -350,7 +351,7 @@ class AnimatingTabContainer<T>(
                         val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
 //                        tab.animation = behavior?.moveColumn(this@Table) {
-                        animate { (0f to 1f using fixedSpeedLinear(10 / Time.seconds)) {
+                        animate { (0f to 1f using fixedSpeedLinear(10 / seconds)) {
                             tab.transform = oldTransform.translate(translate * it) //1.0)
                         } }
                     }
@@ -365,17 +366,31 @@ class AnimatingTabContainer<T>(
             val myOffset     = x + transform.translateX
             var myNewIndex   = if (myOffset >= children.last().x) children.size - 1 else movingIndex
             var targetBounds = bounds
-            val numChildren  = children.size
 
             run loop@ {
-                children.forEachIndexed { index, tab ->
-                    val targetMiddle = tab.x + tab.transform.translateX + tab.width / 2
+                when {
+                    transform.translateX > 0 -> {
+                        for (index in children.lastIndex downTo 0) {
+                            val tab = children[index]
+                            val targetMiddle = tab.x + tab.transform.translateX + tab.width / 2
 
-                    if ((transform.translateX < 0 && myOffset < targetMiddle) ||
-                        (transform.translateX > 0 && ((myOffset + width < targetMiddle) || index == numChildren - 1))) {
-                        myNewIndex   = index - if (this.index < index) 1 else 0 // Since tab will be removed and added to index
-                        targetBounds = children[myNewIndex].bounds
-                        return@loop
+                            if (myOffset + width > targetMiddle) {
+                                myNewIndex   = index
+                                targetBounds = children[myNewIndex].bounds
+                                return@loop
+                            }
+                        }
+                    }
+                    else                     -> {
+                        children.forEachIndexed { index, tab ->
+                            val targetMiddle = tab.x + tab.transform.translateX + tab.width / 2
+
+                            if (myOffset < targetMiddle) {
+                                myNewIndex   = index
+                                targetBounds = children[myNewIndex].bounds
+                                return@loop
+                            }
+                        }
                     }
                 }
             }
