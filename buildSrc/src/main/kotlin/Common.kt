@@ -66,7 +66,7 @@ fun MavenPom.setupPom() {
 
 fun Project.setupSigning() {
     extensions.getByType<SigningExtension>().run {
-        isRequired = project.hasProperty("release") && gradle.taskGraph.hasTask("publish")
+        isRequired = project.hasProperty("release")
         useGpgCmd()
 
         if (isRequired) {

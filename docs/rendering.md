@@ -23,7 +23,7 @@ This `RectView` draws a filled rectangle covering its bounds.
 Doodle optimizes rendering to avoid re-applying operations when rendering the same content repeatedly. For example, the `Timer` app
 below renders the epoch time every millisecond. However, Doodle only updates the changing regions in the DOM. The text in this case.
 
-?> Doodle uses [Measured](https://nacular.github.io/measured/) for time
+?> Doodle uses [Measured](https://nacular.github.io/measured/) for time, angles etc.
 
 ```kotlin
 class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {

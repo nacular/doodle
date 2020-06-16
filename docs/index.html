@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Doodle</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta charset="UTF-8">
-    <!--    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-    <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">-->
     <link rel="stylesheet" href="https://unpkg.com/prism-theme-one-dark/prism-onedark.css">
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons" rel="stylesheet">
@@ -16,7 +15,7 @@
     <link rel="icon" href="favicon.png" type="image/x-icon">
     <style>
         :root {
-          --code-block-border-radius     : 4px; //12px;
+          --code-block-border-radius     : 4px;
           --code-inline-border-radius    : 4px;
           --code-inline-background       : #bbeffd4d;
           --code-block-margin            : 3em 0;
@@ -33,8 +32,6 @@
           --link-color                   : var(--notice-tip-border-color, var(--notice-border-color));
           --heading-h3-margin            : 0.5m;
           --heading-h2-border-width      : 0;
-
-        //  --sidebar-nav-link-border-color--active: #bbeffd;
         }
 
     </style>
@@ -53,12 +50,8 @@
         loadSidebar: true,
 
         tabs: {
-            persist    : true,      // default
-            sync       : true,      // default
-            theme      : 'material',
-            tabComments: true,      // default
-            tabHeadings: true       // default
-          }
+            theme  : 'material',
+        }
     }
 </script>
 
@@ -70,8 +63,6 @@
 <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 
 <script src="DocApps.js"></script>
-
 <script src="doodle_plugin.js"></script>
-
 </body>
 </html>
