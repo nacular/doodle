@@ -3,7 +3,7 @@ package io.nacular.doodle.drawing
 import io.nacular.doodle.geometry.Point
 
 /**
- * A brush that fills with a linear gradient that transitions between a list of [Stop]s.
+ * A fill that fills with a linear gradient that transitions between a list of [Stop]s.
  *
  * Created by Nicholas Eddy on 11/5/18.
  *
@@ -16,11 +16,11 @@ import io.nacular.doodle.geometry.Point
  * @param start of the line along which the gradient flows
  * @param end of the line along which the gradient flows
  */
-class LinearGradientBrush(val colors: List<Stop>, val start: Point, val end: Point): Brush() {
+class LinearGradientFill(val colors: List<Stop>, val start: Point, val end: Point): Fill() {
     data class Stop(val color: Color, val offset: Float)
 
     /**
-     * Creates a brush with a gradient between the given colors.
+     * Creates a fill with a gradient between the given colors.
      *
      * @param color1 associated with the start point
      * @param color2 associated with the end point

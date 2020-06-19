@@ -26,10 +26,10 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.CanvasFactory
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.ImageBrush
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ImageFill
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -71,7 +71,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
-    private var brush               = null as Brush?
+    private var fill               = null as Fill?
 
     override var transform = Identity
         set (new) {
@@ -104,32 +104,32 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 //            ROOT_CONTAINER.setFocusTraversalPolicy(aPolicy)
 //        }
 
-    override fun fill(brush: Brush) {
-        when (brush) {
-            is ColorBrush -> {
+    override fun fill(fill: Fill) {
+        when (fill) {
+            is ColorFill -> {
                 canvasElement.parentNode?.removeChild(canvasElement)
 
-                rootElement.style.setBackgroundColor(brush.color)
+                rootElement.style.setBackgroundColor(fill.color)
             }
-            is ImageBrush -> {
-                when (brush.opacity) {
+            is ImageFill -> {
+                when (fill.opacity) {
                     1.0f -> {
                         canvasElement.parentNode?.removeChild(canvasElement)
-                        rootElement.style.setBackgroundSize (brush.size )
-                        rootElement.style.setBackgroundImage(brush.image)
+                        rootElement.style.setBackgroundSize (fill.size )
+                        rootElement.style.setBackgroundImage(fill.image)
                     }
                     else -> {
                         rootElement.addIfNotPresent(canvasElement, 0)
 
                         canvasElement.clear()
-                        canvasElement.style.setOpacity        (brush.opacity)
-                        canvasElement.style.setBackgroundSize (brush.size   )
-                        canvasElement.style.setBackgroundImage(brush.image  )
+                        canvasElement.style.setOpacity        (fill.opacity)
+                        canvasElement.style.setBackgroundSize (fill.size   )
+                        canvasElement.style.setBackgroundImage(fill.image  )
                     }
                 }
             }
-            else          -> {
-                this.brush = brush
+            else         -> {
+                this.fill = fill
                 rootElement.addIfNotPresent(canvasElement, 0)
 
                 repaint()
@@ -184,7 +184,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     fun shutdown() {
         children.clear()
 
-        brush = null
+        fill = null
 
         rootElement.apply {
             style.setTransform(null)
@@ -202,7 +202,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     }
 
     override fun repaint() {
-        brush?.let {
+        fill?.let {
             canvas.clear()
             canvas.rect (Rectangle(size = size), it)
             canvas.flush()

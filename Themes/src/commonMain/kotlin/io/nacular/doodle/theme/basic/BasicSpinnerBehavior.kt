@@ -1,21 +1,19 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.TextItemVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
-import io.nacular.doodle.controls.text.LabelFactory
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.geometry.Point
@@ -38,7 +36,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
                 else -> Identity.flipVertically(at.y + size.height / 2)
             }
 
-            val pen = Pen(when {
+            val stroke = Stroke(when {
                 view.enabled -> color
                 else         -> disabledColor
             }, 2.0)
@@ -47,7 +45,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
                 path(listOf(
                         Point(at.x,                  at.y + size.height),
                         Point(at.x + size.width / 2, at.y              ),
-                        Point(at.x + size.width,     at.y + size.height)), pen)
+                        Point(at.x + size.width,     at.y + size.height)), stroke)
             }
         }
     }
@@ -66,7 +64,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
 
             val fill = if (view.enabled) colors.fillColor else Color.Lightgray
 
-            canvas.rect(Rectangle(-cornerRadius, 0.0 - if (!isTop) cornerRadius else 0.0, view.width + cornerRadius, view.height + cornerRadius), cornerRadius, ColorBrush(fill))
+            canvas.rect(Rectangle(-cornerRadius, 0.0 - if (!isTop) cornerRadius else 0.0, view.width + cornerRadius, view.height + cornerRadius), cornerRadius, ColorFill(fill))
 
             icon(view)?.let {
                 val adjust = it.size(view).height / 3 * if (isTop) 1 else -1
@@ -80,7 +78,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 
     override fun render(view: Spinner<Any, Model<Any>>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, 4.0, ColorBrush(Color.Lightgray))
+        canvas.rect(view.bounds.atOrigin, 4.0, ColorFill(Color.Lightgray))
     }
 
     override fun install(view: Spinner<Any, Model<Any>>) {

@@ -6,8 +6,8 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
@@ -36,14 +36,14 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior<
                 backgroundColor = sDisabledLightColor
             }
 
-            canvas.rect(rect.inset(0.5), Pen(borderColor), ColorBrush(backgroundColor))
+            canvas.rect(rect.inset(0.5), Stroke(borderColor), ColorFill(backgroundColor))
 
             if (view.enabled && !view.model.armed && view.model.pointerOver) {
-                canvas.rect(rect.inset(2.0), Pen(sHoverColor, 2.0))
+                canvas.rect(rect.inset(2.0), Stroke(sHoverColor, 2.0))
             }
 
             when {
-                (view as CheckBox).indeterminate -> canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, size.width - 6, 2.0), ColorBrush(fillColor))
+                (view as CheckBox).indeterminate -> canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, size.width - 6, 2.0), ColorFill(fillColor))
                 view.model.selected              -> canvas.poly(ConvexPolygon(
                         Point(at.x + 3, at.y + 5),
                         Point(at.x + 5, at.y + 7),
@@ -51,7 +51,7 @@ class BasicCheckBoxBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior<
                         Point(at.x + 9, at.y + 5),
                         Point(at.x + 5, at.y + 9),
                         Point(at.x + 3, at.y + 7)),
-                        ColorBrush(fillColor))
+                        ColorFill(fillColor))
             }
         }
     }

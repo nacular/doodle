@@ -42,9 +42,9 @@ class UserInfo(
     }
     
     override fun render(canvas: Canvas) {
-        canvas.text("name: $name", Origin, ColorBrush(Black))
+        canvas.text("name: $name", Origin, ColorFill(Black))
         canvas.text("age : $age", Point(0.0, textMetrics.height(name)),
-            ColorBrush(Black))
+            ColorFill(Black))
     }
 }
 ```

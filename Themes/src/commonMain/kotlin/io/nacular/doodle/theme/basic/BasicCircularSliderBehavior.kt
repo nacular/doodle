@@ -6,7 +6,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
@@ -49,13 +49,13 @@ class BasicCircularSliderBehavior(
         ).lineTo(Point(center.x, center.y - innerRadius)).
         close()
 
-        canvas.path(path, ColorBrush(barColor))
+        canvas.path(path, ColorFill(barColor))
 
         val handleAngle          = handleAngle(view)
         val radiusToHandleCenter = (innerRadius + outerRadius) / 2
         val handleCenter         = center + Point(radiusToHandleCenter * cos(handleAngle), radiusToHandleCenter * sin(handleAngle))
 
-        canvas.circle(Circle(handleCenter, (outerRadius - innerRadius) / 2), ColorBrush(knobColor))
+        canvas.circle(Circle(handleCenter, (outerRadius - innerRadius) / 2), ColorFill(knobColor))
     }
 
     private companion object {

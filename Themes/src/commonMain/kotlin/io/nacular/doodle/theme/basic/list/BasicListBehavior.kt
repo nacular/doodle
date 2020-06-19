@@ -14,7 +14,7 @@ import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.drawing.horizontalStripedBrush
+import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -63,7 +63,7 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
                 selectionColor       : Color? = Green.lighter(),
                 selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
 
-    private val patternBrush = if (evenRowColor != null || oddRowColor != null) horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor) else null
+    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight, evenRowColor, oddRowColor) else null
 
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
@@ -78,7 +78,7 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
     }
 
     override fun render(view: List<T, *>, canvas: Canvas) {
-        patternBrush?.let { canvas.rect(view.bounds.atOrigin, it) }
+        patternFill?.let { canvas.rect(view.bounds.atOrigin, it) }
     }
 
     override fun keyPressed(event: KeyEvent) {

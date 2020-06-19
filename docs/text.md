@@ -6,7 +6,7 @@ Doodle is explicit about text rendering, and requires a location for all text dr
 ```kotlin
 class TextView: View() {
     override fun render(canvas: Canvas) {
-        canvas.text("hello", Origin, ColorBrush(Black))
+        canvas.text("hello", Origin, ColorFill(Black))
     }
 }
 ```
@@ -33,7 +33,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
         canvas.text("hello",
                 Point((width - textSize.width) / 2,
                     (height - textSize.height) / 2),
-                ColorBrush(Black))
+                ColorFill(Black))
     }
 }
 ```

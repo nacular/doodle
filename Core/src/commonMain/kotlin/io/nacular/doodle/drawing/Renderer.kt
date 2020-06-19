@@ -22,99 +22,99 @@ interface Renderer {
      *
      * @param start point for line
      * @param end point for line
-     * @param pen used for line
+     * @param stroke used for line
      */
-    fun line(start: Point, end: Point, pen: Pen)
+    fun line(start: Point, end: Point, stroke: Stroke)
 
     /**
      * Fills a line path connecting the given points.
      *
      * @param points list of points for the path
-     * @param brush to fill with
+     * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    fun path(points: List<Point>, brush: Brush, fillRule: FillRule? = null)
+    fun path(points: List<Point>, fill: Fill, fillRule: FillRule? = null)
 
     /**
      * Fills a line path connecting the given points.
      *
      * @param path to draw
-     * @param brush to fill with
+     * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    fun path(path: Path, brush: Brush, fillRule: FillRule? = null)
+    fun path(path: Path, fill: Fill, fillRule: FillRule? = null)
 
     /**
      * Draws a line path connecting the given points.
      *
      * @param points list of points for the path
-     * @param pen to outline with
+     * @param stroke to outline with
      */
-    fun path(points: List<Point>, pen: Pen)
+    fun path(points: List<Point>, stroke: Stroke)
 
     /**
      * Draws a line path connecting the given points.
      *
      * @param path to draw
-     * @param pen to outline with
+     * @param stroke to outline with
      */
-    fun path(path: Path, pen: Pen)
+    fun path(path: Path, stroke: Stroke)
 
     /**
      * Fills and outlines a line path connecting the given points.
      *
      * @param points list of points for the path
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    fun path(points: List<Point>, pen: Pen, brush: Brush, fillRule: FillRule? = null)
+    fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule? = null)
 
     /**
      * Fills and outlines a line path connecting the given points.
      *
      * @param path to draw
-     * @param pen to use for outlining the path
-     * @param brush to fill with
+     * @param stroke to use for outlining the path
+     * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    fun path(path: Path, pen: Pen, brush: Brush, fillRule: FillRule? = null)
+    fun path(path: Path, stroke: Stroke, fill: Fill, fillRule: FillRule? = null)
 
     /**
      * Fills a polygon.
      *
      * @param polygon to draw
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun poly(polygon: Polygon, brush: Brush)
+    fun poly(polygon: Polygon, fill: Fill)
 
     /**
      * Fills and outlines a polygon.
      *
      * @param polygon to draw
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun poly(polygon: Polygon, pen: Pen, brush: Brush? = null)
+    fun poly(polygon: Polygon, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills an arc centered at the given point and swept by the given angle.
      *
      * @param center point for arc
      * @param sweep of the arc
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, brush: Brush)
+    fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill)
 
     /**
      * Fills and outlines an arc centered at the given point and swept by the given angle.
      *
      * @param center point for arc
      * @param sweep of the arc
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush? = null)
+    fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -122,9 +122,9 @@ interface Renderer {
      *
      * @param center point for arc
      * @param sweep of the arc
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, brush: Brush)
+    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill)
 
     /**
      * Fills and outlines a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -132,10 +132,10 @@ interface Renderer {
      *
      * @param center point for arc
      * @param sweep of the arc
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen, brush: Brush? = null)
+    fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill? = null)
 
     enum class FillRule {
         NonZero,

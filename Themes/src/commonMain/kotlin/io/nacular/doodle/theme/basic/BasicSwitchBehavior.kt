@@ -8,7 +8,7 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 
@@ -32,7 +32,7 @@ class BasicSwitchBehavior(
         }
 
 //        canvas.innerShadow(blurRadius = 5.0) {
-        canvas.rect(view.bounds.atOrigin, radius, ColorBrush(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, radius, ColorFill(backgroundColor))
 //        }
 
         val circleColor = when {
@@ -42,8 +42,8 @@ class BasicSwitchBehavior(
         }
 
         when {
-            view.selected -> canvas.circle(Circle(Point(view.width - radius, radius), radius - border), ColorBrush(circleColor))
-            else          -> canvas.circle(Circle(Point(radius, radius), radius - border), ColorBrush(circleColor))
+            view.selected -> canvas.circle(Circle(Point(view.width - radius, radius), radius - border), ColorFill(circleColor))
+            else          -> canvas.circle(Circle(Point(radius, radius), radius - border), ColorFill(circleColor))
         }
     }
 }

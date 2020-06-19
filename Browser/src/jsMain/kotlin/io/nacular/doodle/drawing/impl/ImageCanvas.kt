@@ -90,26 +90,26 @@ package io.nacular.doodle.drawing.impl
 //        }
 //    }
 //
-//    private fun visible(pen: Pen?, brush: Brush?) = (pen?.visible ?: false) || (brush?.visible ?: false)
+//    private fun visible(stroke: Stroke?, fill: Fill?) = (stroke?.visible ?: false) || (fill?.visible ?: false)
 //
-//    private fun createPattern(brush: PatternBrush): CanvasPattern? = ImageCanvas(htmlFactory.create(), htmlFactory).let {
-//        it.size = brush.size
-//        brush.fill(it)
+//    private fun createPattern(fill: PatternFill): CanvasPattern? = ImageCanvas(htmlFactory.create(), htmlFactory).let {
+//        it.size = fill.size
+//        fill.fill(it)
 //
 //        renderingContext.createPattern(it.renderingContext.canvas, "repeat")
 //    }
 //
-//    private fun configureFill(brush: Brush): Boolean {
-//        if (!brush.visible) {
+//    private fun configureFill(fill: Fill): Boolean {
+//        if (!fill.visible) {
 //            return false
 //        }
 //
-//        when (brush) {
-//            is ColorBrush          -> renderingContext.fillColor = brush.color
-//            is PatternBrush        -> renderingContext.fillStyle = createPattern(brush)
-//            is LinearGradientBrush -> renderingContext.apply {
-//                fillStyle = createLinearGradient(brush.start.x, brush.start.y, brush.end.x, brush.end.y).apply {
-//                    brush.colors.forEach {
+//        when (fill) {
+//            is ColorFill          -> renderingContext.fillColor = fill.color
+//            is PatternFill        -> renderingContext.fillStyle = createPattern(fill)
+//            is LinearGradientFill -> renderingContext.apply {
+//                fillStyle = createLinearGradient(fill.start.x, fill.start.y, fill.end.x, fill.end.y).apply {
+//                    fill.colors.forEach {
 //                        addColorStop(it.offset.toDouble(), it.color.rgbaString)
 //                    }
 //                }
@@ -158,14 +158,14 @@ package io.nacular.doodle.drawing.impl
 //        }
 //    }
 //
-//    private fun present(pen: Pen? = null, brush: Brush?, fillRule: FillRule? = null, block: CanvasRenderingContext2D.() -> Unit) {
-//        if (visible(pen, brush)) {
+//    private fun present(stroke: Stroke? = null, fill: Fill?, fillRule: FillRule? = null, block: CanvasRenderingContext2D.() -> Unit) {
+//        if (visible(stroke, fill)) {
 //            renderingContext.beginPath()
 //
 //            block(renderingContext)
 //
-//            if (brush != null && configureFill(brush)) {
-//                if (brush is PatternBrush) {
+//            if (fill != null && configureFill(fill)) {
+//                if (fill is PatternFill) {
 //                    renderingContext.resetTransform()
 //                }
 //
@@ -179,16 +179,16 @@ package io.nacular.doodle.drawing.impl
 //                    })
 //                }
 //
-//                if (brush is PatternBrush) {
+//                if (fill is PatternFill) {
 //                    renderingContext.scale(scale, scale)
 //                }
 //            }
 //
-//            if (pen != null) {
-//                renderingContext.lineWidth   = pen.thickness
-//                renderingContext.strokeColor = pen.color
+//            if (stroke != null) {
+//                renderingContext.lineWidth   = stroke.thickness
+//                renderingContext.strokeColor = stroke.color
 //
-//                pen.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
+//                stroke.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
 //
 //                renderingContext.stroke()
 //            }
@@ -202,13 +202,13 @@ package io.nacular.doodle.drawing.impl
 //        }
 //    }
 //
-//    override fun rect(rectangle: Rectangle,                            brush: Brush ) = rect(rectangle, null,        brush)
-//    override fun rect(rectangle: Rectangle,                 pen: Pen,  brush: Brush?) = rect(rectangle, pen as Pen?, brush)
-//    private  fun rect(rectangle: Rectangle,                 pen: Pen?, brush: Brush?) = present(pen, brush) { rectangle.apply { rect(x, y, width, height) } }
+//    override fun rect(rectangle: Rectangle,                            fill: Fill ) = rect(rectangle, null,        fill)
+//    override fun rect(rectangle: Rectangle,                 stroke: Stroke,  fill: Fill?) = rect(rectangle, stroke as Stroke?, fill)
+//    private  fun rect(rectangle: Rectangle,                 stroke: Stroke?, fill: Fill?) = present(stroke, fill) { rectangle.apply { rect(x, y, width, height) } }
 //
-//    override fun rect(rectangle: Rectangle, radius: Double,            brush: Brush ) = rect(rectangle, radius, null,        brush)
-//    override fun rect(rectangle: Rectangle, radius: Double, pen: Pen,  brush: Brush?) = rect(rectangle, radius, pen as Pen?, brush)
-//    private  fun rect(rectangle: Rectangle, radius: Double, pen: Pen?, brush: Brush?) = present(pen, brush) { rectangle.apply { roundedRect(rectangle, radius) } }
+//    override fun rect(rectangle: Rectangle, radius: Double,            fill: Fill ) = rect(rectangle, radius, null,        fill)
+//    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke,  fill: Fill?) = rect(rectangle, radius, stroke as Stroke?, fill)
+//    private  fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke?, fill: Fill?) = present(stroke, fill) { rectangle.apply { roundedRect(rectangle, radius) } }
 //
 //    private fun path(block: CanvasRenderingContext2D.() -> Unit) {
 //        renderingContext.beginPath()
@@ -218,40 +218,40 @@ package io.nacular.doodle.drawing.impl
 //        renderingContext.closePath()
 //    }
 //
-//    override fun circle(circle: Circle,            brush: Brush ) = circle(circle, null,        brush)
-//    override fun circle(circle: Circle, pen: Pen,  brush: Brush?) = circle(circle, pen as Pen?, brush)
-//    private  fun circle(circle: Circle, pen: Pen?, brush: Brush?) = present(pen, brush) { path { circle.apply { arc(center.x, center.y, radius, 0.0, 2 * PI, false) } } }
+//    override fun circle(circle: Circle,            fill: Fill ) = circle(circle, null,        fill)
+//    override fun circle(circle: Circle, stroke: Stroke,  fill: Fill?) = circle(circle, stroke as Stroke?, fill)
+//    private  fun circle(circle: Circle, stroke: Stroke?, fill: Fill?) = present(stroke, fill) { path { circle.apply { arc(center.x, center.y, radius, 0.0, 2 * PI, false) } } }
 //
-//    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = arc(center, radius, sweep, rotation, null,        brush)
-//    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = arc(center, radius, sweep, rotation, pen as Pen?, brush)
-//    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) { path { arc(center, radius, sweep, rotation) } }
+//    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            fill: Fill ) = arc(center, radius, sweep, rotation, null,        fill)
+//    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke,  fill: Fill?) = arc(center, radius, sweep, rotation, stroke as Stroke?, fill)
+//    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Fill?) = present(stroke, fill) { path { arc(center, radius, sweep, rotation) } }
 //    private  fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>                          ) = renderingContext.apply { arc(center.x, center.y, radius, (rotation - 90 * degrees) `in` radians, (sweep - 90 * degrees) `in` radians, false) }
 //
-//    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            brush: Brush ) = wedge(center, radius, sweep, rotation, null,        brush)
-//    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen,  brush: Brush?) = wedge(center, radius, sweep, rotation, pen as Pen?, brush)
-//    private  fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, pen: Pen?, brush: Brush?) = present(pen, brush) {
+//    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,            fill: Fill ) = wedge(center, radius, sweep, rotation, null,        fill)
+//    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke,  fill: Fill?) = wedge(center, radius, sweep, rotation, stroke as Stroke?, fill)
+//    private  fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
 //        path {
 //            arc(center, radius, sweep, rotation)
 //            lineTo(center.x, center.y)
 //        }
 //    }
 //
-//    override fun ellipse(ellipse: Ellipse,            brush: Brush ) = ellipse(ellipse, null,        brush)
-//    override fun ellipse(ellipse: Ellipse, pen: Pen,  brush: Brush?) = ellipse(ellipse, pen as Pen?, brush)
-//    private  fun ellipse(ellipse: Ellipse, pen: Pen?, brush: Brush?) = present(pen, brush) { path { ellipse.apply { ellipse(center.x, center.y, xRadius, yRadius, 0.0, 0.0, 2 * PI, false) } } }
+//    override fun ellipse(ellipse: Ellipse,            fill: Fill ) = ellipse(ellipse, null,        fill)
+//    override fun ellipse(ellipse: Ellipse, stroke: Stroke,  fill: Fill?) = ellipse(ellipse, stroke as Stroke?, fill)
+//    private  fun ellipse(ellipse: Ellipse, stroke: Stroke?, fill: Fill?) = present(stroke, fill) { path { ellipse.apply { ellipse(center.x, center.y, xRadius, yRadius, 0.0, 0.0, 2 * PI, false) } } }
 //
-//    override fun text(text: String, font: Font?, at: Point, brush: Brush) {
+//    override fun text(text: String, font: Font?, at: Point, fill: Fill) {
 //        if (text.isEmpty()) {
 //            return
 //        }
 //
 //        renderingContext.font = fontSerializer(font)
 //
-//        text(text, at, brush)
+//        text(text, at, fill)
 //    }
 //
-//    private fun text(text: String, at: Point, brush: Brush) {
-//        configureFill(brush)
+//    private fun text(text: String, at: Point, fill: Fill) {
+//        configureFill(fill)
 //
 //        renderingContext.textBaseline = CanvasTextBaseline.TOP
 //
@@ -270,14 +270,14 @@ package io.nacular.doodle.drawing.impl
 //                rect(Rectangle(position = offset, size = Size(metrics.width, (style.font?.size ?: defaultFontSize).toDouble())), it)
 //            }
 //
-//            text(text, at = offset, brush = style.foreground ?: ColorBrush(black))
+//            text(text, at = offset, fill = style.foreground ?: ColorFill(black))
 //
 //            offset += Point(metrics.width, 0.0)
 //        }
 //    }
 //
-//    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, brush: Brush) {
-//        StyledText(text, font, foreground = brush).first().let { (text, style) ->
+//    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {
+//        StyledText(text, font, foreground = fill).first().let { (text, style) ->
 //            wrappedText(text, style, at, leftMargin, rightMargin)
 //        }
 //    }
@@ -378,17 +378,17 @@ package io.nacular.doodle.drawing.impl
 //        shadows -= shadow
 //    }
 //
-//    override fun line(point1: Point, point2: Point, pen: Pen) = present(pen, brush = null) {
+//    override fun line(point1: Point, point2: Point, stroke: Stroke) = present(stroke, fill = null) {
 //        path {
 //            moveTo(point1.x, point1.y)
 //            lineTo(point2.x, point2.y)
 //        }
 //    }
 //
-//    override fun path(points: List<Point>, pen: Pen                                     ) = path(points, pen as Pen?, null,  null    )
-//    override fun path(points: List<Point>,            brush: Brush,  fillRule: FillRule?) = path(points, null,        brush, fillRule)
-//    override fun path(points: List<Point>, pen: Pen,  brush: Brush,  fillRule: FillRule?) = path(points, pen as Pen?, brush, fillRule)
-//    private  fun path(points: List<Point>, pen: Pen?, brush: Brush?, fillRule: FillRule?) = present(pen, brush, fillRule) {
+//    override fun path(points: List<Point>, stroke: Stroke                                     ) = path(points, stroke as Stroke?, null,  null    )
+//    override fun path(points: List<Point>,            fill: Fill,  fillRule: FillRule?) = path(points, null,        fill, fillRule)
+//    override fun path(points: List<Point>, stroke: Stroke,  fill: Fill,  fillRule: FillRule?) = path(points, stroke as Stroke?, fill, fillRule)
+//    private  fun path(points: List<Point>, stroke: Stroke?, fill: Fill?, fillRule: FillRule?) = present(stroke, fill, fillRule) {
 //        path {
 //            points.firstOrNull()?.apply {
 //                moveTo(x, y)
@@ -399,16 +399,16 @@ package io.nacular.doodle.drawing.impl
 //        }
 //    }
 //
-//    override fun path(path: Path,            brush: Brush,  fillRule: FillRule?) = path(path, null,        brush, fillRule)
-//    override fun path(path: Path, pen: Pen                                     ) = path(path, pen as Pen?, null,  null    )
-//    override fun path(path: Path, pen: Pen,  brush: Brush,  fillRule: FillRule?) = path(path, pen as Pen?, brush, fillRule)
-//    private  fun path(path: Path, pen: Pen?, brush: Brush?, fillRule: FillRule?) {
+//    override fun path(path: Path,            fill: Fill,  fillRule: FillRule?) = path(path, null,        fill, fillRule)
+//    override fun path(path: Path, stroke: Stroke                                     ) = path(path, stroke as Stroke?, null,  null    )
+//    override fun path(path: Path, stroke: Stroke,  fill: Fill,  fillRule: FillRule?) = path(path, stroke as Stroke?, fill, fillRule)
+//    private  fun path(path: Path, stroke: Stroke?, fill: Fill?, fillRule: FillRule?) {
 //        // TODO: Unify with present
-//        if (visible(pen, brush)) {
+//        if (visible(stroke, fill)) {
 //            val path2d = Path2D(path.data)
 //
-//            if (brush != null && configureFill(brush)) {
-//                if (brush is PatternBrush) {
+//            if (fill != null && configureFill(fill)) {
+//                if (fill is PatternFill) {
 //                    renderingContext.resetTransform()
 //                }
 //
@@ -422,25 +422,25 @@ package io.nacular.doodle.drawing.impl
 //                    })
 //                }
 //
-//                if (brush is PatternBrush) {
+//                if (fill is PatternFill) {
 //                    renderingContext.scale(scale, scale)
 //                }
 //            }
 //
-//            if (pen != null) {
-//                renderingContext.lineWidth   = pen.thickness
-//                renderingContext.strokeColor = pen.color
+//            if (stroke != null) {
+//                renderingContext.lineWidth   = stroke.thickness
+//                renderingContext.strokeColor = stroke.color
 //
-//                pen.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
+//                stroke.dashes?.run { renderingContext.setLineDash(map { it.toDouble() }.toTypedArray()) }
 //
 //                renderingContext.stroke(path2d)
 //            }
 //        }
 //    }
 //
-//    override fun poly(polygon: ConvexPolygon,            brush: Brush ) = poly(polygon, null, brush)
-//    override fun poly(polygon: ConvexPolygon, pen: Pen,  brush: Brush?) = poly(polygon, pen as Pen?, brush)
-//    private  fun poly(polygon: ConvexPolygon, pen: Pen?, brush: Brush?) = present(pen, brush) {
+//    override fun poly(polygon: ConvexPolygon,            fill: Fill ) = poly(polygon, null, fill)
+//    override fun poly(polygon: ConvexPolygon, stroke: Stroke,  fill: Fill?) = poly(polygon, stroke as Stroke?, fill)
+//    private  fun poly(polygon: ConvexPolygon, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
 //        path {
 //            polygon.points.firstOrNull()?.apply {
 //                moveTo(x, y)

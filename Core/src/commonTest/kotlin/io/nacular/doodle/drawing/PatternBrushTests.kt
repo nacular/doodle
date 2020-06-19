@@ -23,9 +23,9 @@ expect inline fun mockkStatic(vararg classes: String)
 /**
  * Created by Nicholas Eddy on 3/21/20.
  */
-class PatternBrushTests {
+class PatternFillTests {
     init {
-        mockkStatic("io.nacular.doodle.drawing.PatternBrushKt")
+        mockkStatic("io.nacular.doodle.drawing.PatternFillKt")
     }
 
     @Test @JsName("sizeCorrect")
@@ -35,7 +35,7 @@ class PatternBrushTests {
             Size(  1    ),
             Size(100, 23)
         ).forEach {
-            expect(it) { PatternBrush(size = it) {}.size }
+            expect(it) { PatternFill(size = it) {}.size }
         }
     }
 
@@ -43,9 +43,9 @@ class PatternBrushTests {
     fun `fill correct`() {
         listOf<(Canvas) -> Unit>(
             {                             },
-            { it.rect(Rectangle(), Pen()) }
+            { it.rect(Rectangle(), Stroke()) }
         ).forEach {
-            expect(it) { PatternBrush(size = Empty, fill = it).fill }
+            expect(it) { PatternFill(size = Empty, fill = it).fill }
         }
     }
 
@@ -56,7 +56,7 @@ class PatternBrushTests {
             Size(  1    ),
             Size(100, 23)
         ).forEach {
-            expect(!it.empty) { PatternBrush(size = it) {}.visible }
+            expect(!it.empty) { PatternFill(size = it) {}.visible }
         }
     }
 
@@ -66,7 +66,7 @@ class PatternBrushTests {
                 Identity,
                 Identity.rotate(30 * degrees)
         ).forEach {
-            expect(it) { PatternBrush(size = Empty, transform = it) {}.transform }
+            expect(it) { PatternFill(size = Empty, transform = it) {}.transform }
         }
     }
 
@@ -76,14 +76,14 @@ class PatternBrushTests {
                 Red opacity 0f to Transparent,
                 null to null
         ).forEach {
-            expect(true) { stripedBrush(stripeWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
+            expect(true) { stripedFill(stripeWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
         }
     }
 
     @Test @JsName("stripesSizeCorrect")
     fun `stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it, it * 2)) { stripedBrush(stripeWidth = it, evenRowColor = Red).size }
+            expect(Size(it, it * 2)) { stripedFill(stripeWidth = it, evenRowColor = Red).size }
         }
     }
 
@@ -99,7 +99,7 @@ class PatternBrushTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            stripedBrush(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
+            stripedFill(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
                 expect(transform) { test.transform }
 
                 canvas.apply(fill)
@@ -107,12 +107,12 @@ class PatternBrushTests {
 
             test.evenColor?.let {
                 verify(exactly = 1) {
-                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorBrush(it))
+                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorFill(it))
                 }
             }
 
             test.oddColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorBrush(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorFill(it)) }
             }
         }
     }
@@ -129,12 +129,12 @@ class PatternBrushTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            horizontalStripedBrush(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
+            horizontalStripedFill(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(fill)
             }
 
             verify(exactly = 1) {
-                stripedBrush(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor)
+                stripedFill(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor)
             }
         }
     }
@@ -151,12 +151,12 @@ class PatternBrushTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            verticalStripedBrush(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
+            verticalStripedFill(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(fill)
             }
 
             verify(exactly = 1) {
-                stripedBrush(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(270 * degrees))
+                stripedFill(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(270 * degrees))
             }
         }
     }
@@ -167,14 +167,14 @@ class PatternBrushTests {
             Red opacity 0f to Transparent,
             null to null
         ).forEach {
-            expect(true) { checkerBrush(checkerSize = Size(10.0), firstColor = it.first, secondColor = it.second).size.empty }
+            expect(true) { checkerFill(checkerSize = Size(10.0), firstColor = it.first, secondColor = it.second).size.empty }
         }
     }
 
     @Test @JsName("checkerSizeCorrect")
     fun `checker size correct`() {
         listOf(Size(20.0, 10.0), Size(1.0), Size(3.4, 0.0), Empty).forEach {
-            expect(it * 2) { checkerBrush(checkerSize = it, firstColor = Red).size }
+            expect(it * 2) { checkerFill(checkerSize = it, firstColor = Red).size }
         }
     }
 
@@ -190,18 +190,18 @@ class PatternBrushTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            checkerBrush(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
+            checkerFill(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
                 canvas.apply(fill)
             }
 
             test.firstColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(size     = test.checkerSize), ColorBrush(it)) }
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, test.checkerSize.height), size = test.checkerSize), ColorBrush(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(size     = test.checkerSize), ColorFill(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, test.checkerSize.height), size = test.checkerSize), ColorFill(it)) }
             }
 
             test.secondColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, 0.0                   ), size = test.checkerSize), ColorBrush(it)) }
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(0.0,                    test.checkerSize.width), size = test.checkerSize), ColorBrush(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, 0.0                   ), size = test.checkerSize), ColorFill(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(0.0,                    test.checkerSize.width), size = test.checkerSize), ColorFill(it)) }
             }
         }
     }

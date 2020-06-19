@@ -23,13 +23,13 @@ import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.grayScale
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.theme.Modules
@@ -258,15 +258,15 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         }
 
         fun basicProgressBarBehavior(
-                backgroundBrush: Brush? = null,
-                fillBrush      : Brush? = null,
+                backgroundFill: Fill? = null,
+                fill      : Fill? = null,
                 outlineColor   : Color? = null,
                 cornerRadius   : Double = 2.0): Module = BasicModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            backgroundBrush ?: ColorBrush(defaultBackgroundColor),
-                            fillBrush       ?: ColorBrush(darkBackgroundColor   ),
+                            backgroundFill ?: ColorFill(defaultBackgroundColor),
+                            fill       ?: ColorFill(darkBackgroundColor   ),
                             outlineColor,
                             cornerRadius) as Behavior<ProgressIndicator> }
             }

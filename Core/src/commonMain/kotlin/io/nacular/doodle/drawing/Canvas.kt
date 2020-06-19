@@ -158,80 +158,80 @@ interface Canvas: Renderer {
      * Fills a rectangle.
      *
      * @param rectangle to draw
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, brush: Brush)
+    fun rect(rectangle: Rectangle, fill: Fill)
 
     /**
      * Fills and outlines a rectangle.
      *
      * @param rectangle to draw
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, pen: Pen, brush: Brush? = null)
+    fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills a rounded rectangle.
      *
      * @param rectangle to draw
      * @param radius for corners
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, radius: Double, brush: Brush)
+    fun rect(rectangle: Rectangle, radius: Double, fill: Fill)
 
     /**
      * Fills and outlines a rounded rectangle.
      *
      * @param rectangle to draw
      * @param radius for corners
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush? = null)
+    fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills a circle.
      *
      * @param circle to draw
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun circle(circle: Circle, brush: Brush)
+    fun circle(circle: Circle, fill: Fill)
 
     /**
      * Fills and outlines a circle.
      *
      * @param circle to draw
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun circle(circle: Circle, pen: Pen, brush: Brush? = null)
+    fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills an ellipse.
      *
      * @param ellipse to draw
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun ellipse(ellipse: Ellipse, brush: Brush)
+    fun ellipse(ellipse: Ellipse, fill: Fill)
 
     /**
      * Fills and outlines an ellipse.
      *
      * @param ellipse to draw
-     * @param pen to outline with
-     * @param brush to fill with
+     * @param stroke to outline with
+     * @param fill to fill with
      */
-    fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
+    fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Draws unwrapped plain text in the default [Font].
      *
      * @param text to draw
      * @param at this point
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun text(text: String, at: Point, brush: Brush) = text(text, null, at, brush)
+    fun text(text: String, at: Point, fill: Fill) = text(text, null, at, fill)
 
     /**
      * Draws unwrapped plain text.
@@ -239,9 +239,9 @@ interface Canvas: Renderer {
      * @param text to draw
      * @param font to use
      * @param at this point
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun text(text: String, font: Font?, at: Point, brush: Brush)
+    fun text(text: String, font: Font?, at: Point, fill: Fill)
 
     /**
      * Draws styled text.
@@ -259,15 +259,9 @@ interface Canvas: Renderer {
      * @param at this point
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
-     * @param brush to fill with
+     * @param fill to fill with
      */
-    fun wrapped(
-            text       : String,
-            font       : Font? = null,
-            at         : Point,
-            leftMargin : Double,
-            rightMargin: Double,
-            brush      : Brush)
+    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill)
 
     /**
      * Draws wrapped styled text.
@@ -277,11 +271,7 @@ interface Canvas: Renderer {
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
      */
-    fun wrapped(
-            text       : StyledText,
-            at         : Point,
-            leftMargin : Double,
-            rightMargin: Double)
+    fun wrapped(text: StyledText, at: Point, leftMargin : Double, rightMargin: Double)
 
     /**
      * Draws an image.

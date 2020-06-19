@@ -18,8 +18,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.horizontalStripedBrush
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -90,7 +90,7 @@ open class BasicTreeTableBehavior<T>(
         }
     }
 
-    private val canvasBrush = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private val canvasFill = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
@@ -126,11 +126,11 @@ open class BasicTreeTableBehavior<T>(
     }
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorBrush(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
     }
 
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
-        canvas.rect(Rectangle(size = canvas.size), canvasBrush)
+        canvas.rect(Rectangle(size = canvas.size), canvasFill)
 
         val color = if (table.hasFocus) selectionColor else blurredSelectionColor
 
@@ -138,7 +138,7 @@ open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorBrush(color))
+                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorFill(color))
                 }
             }
         }
@@ -146,7 +146,7 @@ open class BasicTreeTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorFill(headerColor.opacity(0.2f)))
         }
     }
 

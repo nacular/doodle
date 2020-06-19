@@ -2,7 +2,7 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -52,8 +52,8 @@ interface Display: Iterable<View> {
 
     var focusTraversalPolicy: FocusTraversalPolicy?
 
-    /** Fills the Display's background with the given brush */
-    fun fill (brush: Brush)
+    /** Fills the Display's background with the given fill */
+    fun fill (fill: Fill)
 
     /**
      * @param at the x,y within the Display's coordinate-space

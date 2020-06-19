@@ -6,7 +6,7 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
@@ -28,7 +28,7 @@ open class CheckRadioButtonBehavior<T: ToggleButton> protected constructor(
         val icon      = icon(view)
         val textColor = if (view.enabled) Black else Color(0xccccccu)
 
-        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorBrush(textColor))
+        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorFill(textColor))
 
         icon?.render(view, canvas, iconPosition(view, icon = this.icon as Icon<Button>))
     }

@@ -8,12 +8,12 @@ import io.nacular.doodle.drawing.Color.Companion.blackOrWhiteContrast
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.HsvColor
-import io.nacular.doodle.drawing.LinearGradientBrush
-import io.nacular.doodle.drawing.LinearGradientBrush.Stop
-import io.nacular.doodle.drawing.Pen
-import io.nacular.doodle.drawing.checkerBrush
+import io.nacular.doodle.drawing.LinearGradientFill
+import io.nacular.doodle.drawing.LinearGradientFill.Stop
+import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.checkerFill
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -127,11 +127,11 @@ class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
-                canvas.rect(rect, 3.0, LinearGradientBrush(White, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
-                canvas.rect(rect, 3.0, LinearGradientBrush(Black, Transparent, Point(0.0, rect.height), Point.Origin          ))
+                canvas.rect(rect, 3.0, LinearGradientFill(White, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
+                canvas.rect(rect, 3.0, LinearGradientFill(Black, Transparent, Point(0.0, rect.height), Point.Origin          ))
             }
 
-            canvas.circle(Circle(Point(selection.first * width, selection.second * height), 7.0), Pen(blackOrWhiteContrast(color.toRgb())))
+            canvas.circle(Circle(Point(selection.first * width, selection.second * height), 7.0), Stroke(blackOrWhiteContrast(color.toRgb())))
         }
     }
 
@@ -141,7 +141,7 @@ class ColorPicker(color: Color): View() {
                 val inset = 2.0
 
                 canvas.outerShadow(blurRadius = 1.0) {
-                    canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorBrush(White))
+                    canvas.rect(bounds.atOrigin.inset(inset), (width - inset) / 4, ColorFill(White))
                 }
             }
         }
@@ -214,7 +214,7 @@ class ColorPicker(color: Color): View() {
     }
 
     private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {
-        private lateinit var brush: LinearGradientBrush
+        private lateinit var fill: LinearGradientFill
 
         var hue = hue
             set(new) {
@@ -234,20 +234,20 @@ class ColorPicker(color: Color): View() {
             }
 
             boundsChanged += { _,_,_ ->
-                updateBrush()
+                updateFill()
             }
 
-            updateBrush()
+            updateFill()
         }
 
         val changed: PropertyObservers<HueStrip, Measure<Angle>> by lazy { PropertyObserversImpl<HueStrip, Measure<Angle>>(this) }
 
         override fun render(canvas: Canvas) {
-            canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
+            canvas.rect(bounds.atOrigin, min(width, height) / 5, fill)
         }
 
-        private fun updateBrush() {
-            brush = LinearGradientBrush(
+        private fun updateFill() {
+            fill = LinearGradientFill(
                     listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) },
                     Point.Origin, Point(width, 0.0)
             )
@@ -255,15 +255,15 @@ class ColorPicker(color: Color): View() {
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val checkerBrush = checkerBrush(Size(32.0 / 2, 15.0 / 2), White, Lightgray)
+        private val checkerFill = checkerFill(Size(32.0 / 2, 15.0 / 2), White, Lightgray)
 
-        private lateinit var brush: LinearGradientBrush
+        private lateinit var fill: LinearGradientFill
 
         var color = color
             set(new) {
                 if (field == new) { return }
                 field   = new
-                updateBrush()
+                updateFill()
                 opacity = color.opacity
 
                 rerender()
@@ -287,7 +287,7 @@ class ColorPicker(color: Color): View() {
             }
 
             boundsChanged += { _,_,_ ->
-                updateBrush()
+                updateFill()
             }
         }
 
@@ -295,14 +295,14 @@ class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
 //            canvas.innerShadow {
-            canvas.rect(bounds.atOrigin, min(width, height) / 5, checkerBrush)
+            canvas.rect(bounds.atOrigin, min(width, height) / 5, checkerFill)
 //            }
 
-            canvas.rect(bounds.atOrigin, min(width, height) / 5, brush)
+            canvas.rect(bounds.atOrigin, min(width, height) / 5, fill)
         }
 
-        private fun updateBrush() {
-            brush = LinearGradientBrush(Transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
+        private fun updateFill() {
+            fill = LinearGradientFill(Transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
         }
     }
 
@@ -314,11 +314,11 @@ class ColorPicker(color: Color): View() {
         override fun render(canvas: Canvas) {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
-                    canvas.rect(bounds.atOrigin, 3.0, checkerBrush(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
+                    canvas.rect(bounds.atOrigin, 3.0, checkerFill(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
                 }
 
                 backgroundColor?.let {
-                    canvas.rect(bounds.atOrigin, 3.0, ColorBrush(it))
+                    canvas.rect(bounds.atOrigin, 3.0, ColorFill(it))
                 }
             }
         }

@@ -21,7 +21,7 @@ import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.drawing.horizontalStripedBrush
+import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -119,12 +119,12 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
                 iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
     ): this(BasicTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
-    private val patternBrush = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private val patternFill = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(rowHeight)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, patternBrush)
+        canvas.rect(view.bounds.atOrigin, patternFill)
     }
 
     override fun install(view: Tree<T, *>) {

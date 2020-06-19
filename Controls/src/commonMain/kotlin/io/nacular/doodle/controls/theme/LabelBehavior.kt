@@ -5,7 +5,7 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -42,7 +42,7 @@ class LabelBehavior(private val foregroundColor: Color? = null, private val back
             }
 
             backgroundColor?.let {
-                canvas.rect(bounds.atOrigin, ColorBrush(it))
+                canvas.rect(bounds.atOrigin, ColorFill(it))
             }
 
             if (wrapsWords) {

@@ -44,7 +44,7 @@ class HelloWorld(display: Display): Application {
             override fun render(canvas: Canvas) {
                 canvas.text("Hello, world!",
                     at = Origin, 
-                    brush = ColorBrush(Black))
+                    fill = ColorFill(Black))
             }
         }
     }

@@ -4,8 +4,8 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
 import io.nacular.doodle.geometry.Path
@@ -27,20 +27,20 @@ open class PathIcon<in T: View>(
     private val pathSize = pathMetrics.size(path)
     override fun size(view: T) = size ?: pathSize
 
-    private val pen   = outline?.let { Pen       (it) }
-    private val brush = fill?.let    { ColorBrush(it) }
+    private val stroke   = outline?.let { Stroke       (it) }
+    private val fill = fill?.let    { ColorFill(it) }
 
     override fun render(view: T, canvas: Canvas, at: Point) {
-        val brush = this.brush ?: view.foregroundColor?.let { ColorBrush(it) }
+        val fill = this.fill ?: view.foregroundColor?.let { ColorFill(it) }
         val size  = size(view)
 
         canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
             translate(at) {
-                when (pen) {
-                    null -> path(path,      brush!!, fillRule)
-                    else -> when (brush) {
-                        null -> path(path, pen                 )
-                        else -> path(path, pen, brush, fillRule)
+                when (stroke) {
+                    null -> path(path,      fill!!, fillRule)
+                    else -> when (fill) {
+                        null -> path(path, stroke                 )
+                        else -> path(path, stroke, fill, fillRule)
                     }
                 }
             }

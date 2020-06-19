@@ -13,7 +13,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Font.Companion.Thick
 import io.nacular.doodle.drawing.FontDetector
 import io.nacular.doodle.drawing.TextMetrics
@@ -40,7 +40,7 @@ fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
 
     val maxRadius = sqrt(x.pow(2) + y.pow(2))
 
-    on.circle(Circle(radius = maxRadius * progress, center = at), ColorBrush(White opacity opacity))
+    on.circle(Circle(radius = maxRadius * progress, center = at), ColorFill(White opacity opacity))
 }
 
 class MaterialButtonBehavior(
@@ -156,21 +156,21 @@ class MaterialButtonBehavior(
         val bounds = view.bounds.atOrigin
 
         canvas.outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
-            canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, brush = ColorBrush(backgroundColor))
+            canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, fill = ColorFill(backgroundColor))
         }
 
         canvas.outerShadow(color = Black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
             canvas.outerShadow(color = Black opacity 0.2f, vertical = 1.0, blurRadius = 5.0) {
-                canvas.rect(bounds, cornerRadius, ColorBrush(backgroundColor))
+                canvas.rect(bounds, cornerRadius, ColorFill(backgroundColor))
             }
         }
 
         val text = view.text.toUpperCase()
 
         canvas.clip(bounds, cornerRadius) {
-            canvas.text(text, view.font, textPosition(view, text, bounds = bounds), ColorBrush(textColor))
+            canvas.text(text, view.font, textPosition(view, text, bounds = bounds), ColorFill(textColor))
 
-            canvas.rect(bounds, cornerRadius, ColorBrush(White opacity overlayOpacity))
+            canvas.rect(bounds, cornerRadius, ColorFill(White opacity overlayOpacity))
 
             pointerPressLocation?.let { drawRipple(canvas, it, rippleOpacity, rippleProgress) }
         }

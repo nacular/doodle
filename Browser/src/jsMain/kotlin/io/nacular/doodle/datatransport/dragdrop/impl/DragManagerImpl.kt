@@ -20,7 +20,7 @@ import io.nacular.doodle.dom.DataTransfer
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.drawing.GraphicsDevice
-import io.nacular.doodle.drawing.PatternBrush
+import io.nacular.doodle.drawing.PatternFill
 import io.nacular.doodle.drawing.Renderable
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
@@ -361,7 +361,7 @@ internal class DragManagerImpl(
             visualCanvas.zOrder = -Int.MAX_VALUE
             visualCanvas.size   = visual.size
 
-            visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternBrush(visual.size) {
+            visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternFill(visual.size) {
                 visual.render(this)
             })
         }

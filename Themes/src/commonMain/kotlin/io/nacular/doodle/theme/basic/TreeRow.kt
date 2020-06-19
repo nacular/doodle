@@ -9,7 +9,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Point
@@ -70,7 +70,7 @@ class SimpleTreeRowIcon(private val color: Color = Black, private val selectedCo
                     centeredRect.position,
                     Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
                     Point(centeredRect.x, centeredRect.bottom)),
-                    ColorBrush(if (selected) selectedColor else color))
+                    ColorFill(if (selected) selectedColor else color))
         }
     }
 }
@@ -265,7 +265,7 @@ class TreeRow<T>(tree                : TreeLike,
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorBrush(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
     }
 
     private fun constrainIcon(icon: TreeRowIcon?) {

@@ -5,8 +5,8 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Gray
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
@@ -162,8 +162,8 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
     override fun render(canvas: Canvas) {
         val x = width - lineThickness / 2
 
-        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
-        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Pen(headerColor?.inverted ?: Gray, lineThickness))
+        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorFill(it)) }
+        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(headerColor?.inverted ?: Gray, lineThickness))
     }
 
     companion object {

@@ -24,8 +24,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.horizontalStripedBrush
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyText.Companion.Enter
@@ -110,7 +110,7 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private  val patternBrush  = horizontalStripedBrush(rowHeight, evenRowColor, oddRowColor)
+    private  val patternFill   = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
     private  val movingColumns = mutableSetOf<Column<*>>()
     override val cellGenerator = BasicCellGenerator<T>()
 
@@ -130,11 +130,11 @@ open class BasicTableBehavior<T>(
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorBrush(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
     }
 
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
-        canvas.rect(Rectangle(size = canvas.size), patternBrush)
+        canvas.rect(Rectangle(size = canvas.size), patternFill)
 
         val color = if (table.hasFocus) selectionColor else selectionBlurredColor
 
@@ -142,7 +142,7 @@ open class BasicTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, row, index).inset(Insets(top = 1.0)), ColorBrush(color))
+                    canvas.rect(rowPositioner(table, row, index).inset(Insets(top = 1.0)), ColorFill(color))
                 }
             }
         }
@@ -150,7 +150,7 @@ open class BasicTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorBrush(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorFill(headerColor.opacity(0.2f)))
         }
     }
 
@@ -291,7 +291,7 @@ open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorBrush(it)) }
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorFill(it)) }
         }
     }
 

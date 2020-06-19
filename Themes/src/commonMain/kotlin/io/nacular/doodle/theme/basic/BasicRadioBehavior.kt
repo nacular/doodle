@@ -6,8 +6,8 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
@@ -35,14 +35,14 @@ class BasicRadioBehavior(textMetrics: TextMetrics): CheckRadioButtonBehavior<Rad
                 backgroundColor = sDisabledLightColor
             }
 
-            canvas.circle(Circle(location, sCircleRadius).inset(0.5), Pen(borderColor), ColorBrush(backgroundColor))
+            canvas.circle(Circle(location, sCircleRadius).inset(0.5), Stroke(borderColor), ColorFill(backgroundColor))
 
             if (view.enabled && !view.model.armed && view.model.pointerOver) {
-                canvas.circle(Circle(location, sCircleRadius - 1).inset(0.5), Pen(sHoverColor, 2.0))
+                canvas.circle(Circle(location, sCircleRadius - 1).inset(0.5), Stroke(sHoverColor, 2.0))
             }
 
             if (view.model.selected) {
-                canvas.circle(Circle(location, sCircleRadius - 2).inset(0.5), ColorBrush(fillColor))
+                canvas.circle(Circle(location, sCircleRadius - 2).inset(0.5), ColorFill(fillColor))
             }
         }
     }

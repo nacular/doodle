@@ -16,13 +16,13 @@ import io.nacular.doodle.dom.setFill
 import io.nacular.doodle.dom.setPoints
 import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setStrokeWidth
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Pink
 import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.ConvexPolygon
@@ -56,51 +56,51 @@ class VectorRendererSvglTests {
         val poly   = ConvexPolygon(Origin, Origin + Point(100, 100), Origin + Point(-100, 100))
         val circle = Circle(100.0)
 
-        listOf<VectorRendererSvg.(Pen, Brush) -> Unit>(
-            { pen, _     -> line(Origin, Origin + Point(100, 0), pen) },
+        listOf<VectorRendererSvg.(Stroke, Fill) -> Unit>(
+            { stroke, _     -> line(Origin, Origin + Point(100, 0), stroke) },
 
-            { _,   brush -> rect(rect,            brush) },
-            { _,   brush -> rect(rect, 10.0,      brush) },
-            { pen, brush -> rect(rect, pen,       brush) },
-            { pen, brush -> rect(rect, 10.0, pen, brush) },
+            { _,   fill -> rect(rect,            fill) },
+            { _,   fill -> rect(rect, 10.0,      fill) },
+            { stroke, fill -> rect(rect, stroke,       fill) },
+            { stroke, fill -> rect(rect, 10.0, stroke, fill) },
 
-            { _,   brush -> circle(circle,      brush) },
-            { pen, brush -> circle(circle, pen, brush) },
+            { _,   fill -> circle(circle,      fill) },
+            { stroke, fill -> circle(circle, stroke, fill) },
 
-            { _,   brush -> poly(poly,      brush) },
-            { pen, brush -> poly(poly, pen, brush) },
+            { _,   fill -> poly(poly,      fill) },
+            { stroke, fill -> poly(poly, stroke, fill) },
 
-            { _,   brush -> ellipse(circle,      brush) },
-            { pen, brush -> ellipse(circle, pen, brush) }
+            { _,   fill -> ellipse(circle,      fill) },
+            { stroke, fill -> ellipse(circle, stroke, fill) }
         ).forEach {
             nothingRendered(it)
         }
     }
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
-        val pen    = Pen()
-        val brush  = ColorBrush(Red)
+        val stroke    = Stroke()
+        val fill  = ColorFill(Red)
         val rect   = Rectangle.Empty
         val poly   = ConvexPolygon(Origin, Origin, Origin)
         val circle = Circle.Empty
 
         listOf<VectorRendererSvg.() -> Unit>(
-            { rect(rect,            brush) },
-            { rect(rect, 10.0,      brush) },
-            { rect(rect,       pen, brush) },
-            { rect(rect, 10.0, pen, brush) },
+            { rect(rect,            fill) },
+            { rect(rect, 10.0,      fill) },
+            { rect(rect,       stroke, fill) },
+            { rect(rect, 10.0, stroke, fill) },
 
-            { circle(circle,      brush) },
-            { circle(circle, pen, brush) },
+            { circle(circle,      fill) },
+            { circle(circle, stroke, fill) },
 
-            { poly(poly,      brush) },
-            { poly(poly, pen, brush) },
+            { poly(poly,      fill) },
+            { poly(poly, stroke, fill) },
 
-            { ellipse(circle,      brush) },
-            { ellipse(circle, pen, brush) }//,
+            { ellipse(circle,      fill) },
+            { ellipse(circle, stroke, fill) }//,
 
-//            { text   ("text", null, Point.Origin,             brush) },
-//            { wrapped("text", null, Point.Origin, 0.0, 100.0, brush) }
+//            { text   ("text", null, Point.Origin,             fill) },
+//            { wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
         ).forEach {
             nothingRendered(it)
         }
@@ -108,7 +108,7 @@ class VectorRendererSvglTests {
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
         validateRender { context, svgFactory ->
-            val brush = ColorBrush(Red)
+            val fill = ColorFill(Red)
             val rect  = Rectangle(100, 100)
 
             val region = context.renderRegion
@@ -119,9 +119,9 @@ class VectorRendererSvglTests {
             every { svgFactory<SVGElement>       ("svg"    ) } returns svg
             every { svgFactory<SVGPolygonElement>("polygon") } returns poly
 
-            rect(rect, brush)
+            rect(rect, fill)
 
-            verifyRect(poly, rect, brush = brush)
+            verifyRect(poly, rect, fill = fill)
 
             verify (exactly = 1) { svg.appendChild   (poly) }
             verify (exactly = 1) { region.appendChild(svg ) }
@@ -129,7 +129,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val brush  = ColorBrush(Red)
+        val fill  = ColorFill(Red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -142,9 +142,9 @@ class VectorRendererSvglTests {
             every { svgFactory<SVGElement>    ("svg" ) } returns svg
             every { svgFactory<SVGRectElement>("rect") } returns r
 
-            rect(rect, radius, brush)
+            rect(rect, radius, fill)
 
-            verify (exactly = 1) { r.setFill  (brush.color           ) }
+            verify (exactly = 1) { r.setFill  (fill.color           ) }
             verify (exactly = 0) { r.setStroke(isNull(inverse = true)) }
             verify (exactly = 1) { r.setBounds(rect                  ) }
 
@@ -154,7 +154,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val brush  = ColorBrush(Red)
+        val fill  = ColorFill(Red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { context, svgFactory ->
@@ -166,9 +166,9 @@ class VectorRendererSvglTests {
             every { svgFactory<SVGElement>      ("svg"   ) } returns svg
             every { svgFactory<SVGCircleElement>("circle") } returns c
 
-            circle(circle, brush)
+            circle(circle, fill)
 
-            verify (exactly = 1) { c.setFill  (brush.color           ) }
+            verify (exactly = 1) { c.setFill  (fill.color           ) }
             verify (exactly = 1) { c.setCircle(circle                ) }
             verify (exactly = 0) { c.setStroke(isNull(inverse = true)) }
 
@@ -178,7 +178,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val brush   = ColorBrush(Red)
+        val fill   = ColorFill(Red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { context, svgFactory ->
@@ -190,9 +190,9 @@ class VectorRendererSvglTests {
             every { svgFactory<SVGElement>       ("svg"    ) } returns svg
             every { svgFactory<SVGEllipseElement>("ellipse") } returns e
 
-            ellipse(ellipse, brush)
+            ellipse(ellipse, fill)
 
-            verify (exactly = 1) { e.setFill   (brush.color           ) }
+            verify (exactly = 1) { e.setFill   (fill.color           ) }
             verify (exactly = 0) { e.setStroke (isNull(inverse = true)) }
             verify (exactly = 1) { e.setEllipse(ellipse               ) }
 
@@ -216,8 +216,8 @@ class VectorRendererSvglTests {
 
         every { region.appendChild(capture(svg)) } answers { every { svg.captured.parentNode } returns region; svg.captured }
 
-        renderer.rect(Rectangle(200, 100), ColorBrush(Red))
-        renderer.rect(Rectangle(100, 200), ColorBrush(Red))
+        renderer.rect(Rectangle(200, 100), ColorFill(Red))
+        renderer.rect(Rectangle(100, 200), ColorFill(Red))
 
         verify (exactly = 2) { svg.captured.appendChild(any()        ) }
         verify (exactly = 1) { svgFactory<SVGElement>  ("svg"        ) }
@@ -239,20 +239,20 @@ class VectorRendererSvglTests {
 
         every { context.renderPosition = capture(element) } answers { every { context.renderPosition } returns element.captured }
 
-        renderer.rect(Rectangle(100, 200), ColorBrush(Red))
+        renderer.rect(Rectangle(100, 200), ColorFill(Red))
         drawNonSvg(context)
 
         context.renderPosition = context.renderRegion.firstChild
         renderer.clear()
 
-        renderer.rect(Rectangle(200, 100), ColorBrush(Green))
+        renderer.rect(Rectangle(200, 100), ColorFill(Green))
 
         expect(2) { svgElements.size }
 
         val svg = svgElements.first { it.nodeName == "svg" }
 
-        verifyRect(svg.firstChild as SVGPolygonElement, Rectangle(100, 200), brush = ColorBrush(Red  ))
-        verifyRect(svg.firstChild as SVGPolygonElement, Rectangle(200, 100), brush = ColorBrush(Green))
+        verifyRect(svg.firstChild as SVGPolygonElement, Rectangle(100, 200), fill = ColorFill(Red  ))
+        verifyRect(svg.firstChild as SVGPolygonElement, Rectangle(200, 100), fill = ColorFill(Green))
 
         verify (exactly = 1) { svg.appendChild(any()           ) }
         verify (exactly = 1) { svgFactory<SVGElement>("svg"    ) }
@@ -274,18 +274,18 @@ class VectorRendererSvglTests {
 
         every { context.renderPosition = capture(element) } answers { every { context.renderPosition } returns element.captured }
 
-        renderer.rect(Rectangle(100, 200), ColorBrush(Red))
+        renderer.rect(Rectangle(100, 200), ColorFill(Red))
 
         drawNonSvg(context)
 
-        renderer.rect(Rectangle(200, 100), ColorBrush(Green))
+        renderer.rect(Rectangle(200, 100), ColorFill(Green))
 
         val svgs = svgElements.filter { it.nodeName == "svg" }
 
         expect(2) { svgs.size }
 
-        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(100, 200), brush = ColorBrush(Red  ))
-        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(200, 100), brush = ColorBrush(Green))
+        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(100, 200), fill = ColorFill(Red  ))
+        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(200, 100), fill = ColorFill(Green))
 
         verify (exactly = 1) { svgs[0].appendChild   (any()    ) }
         verify (exactly = 1) { svgs[1].appendChild   (any()    ) }
@@ -309,23 +309,23 @@ class VectorRendererSvglTests {
 
         every { context.renderPosition = capture(element) } answers { every { context.renderPosition } returns element.captured }
 
-        renderer.rect(Rectangle(100, 100), ColorBrush(Red))
+        renderer.rect(Rectangle(100, 100), ColorFill(Red))
         drawNonSvg(context)
-        renderer.rect(Rectangle(200, 200), ColorBrush(Green))
+        renderer.rect(Rectangle(200, 200), ColorFill(Green))
         context.renderPosition = context.renderRegion.firstChild
         renderer.clear()
-        renderer.rect(Rectangle(300, 300), ColorBrush(Pink))
+        renderer.rect(Rectangle(300, 300), ColorFill(Pink))
         context.renderPosition = context.renderRegion.childNodes.item(2)
-        renderer.rect(Rectangle(400, 400), ColorBrush(Black))
+        renderer.rect(Rectangle(400, 400), ColorFill(Black))
 
         val svgs = svgElements.filter { it.nodeName == "svg" }
 
         expect(2) { svgs.size }
 
-        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(100, 100), brush = ColorBrush(Red  ))
-        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(200, 200), brush = ColorBrush(Green))
-        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(300, 300), brush = ColorBrush(Pink ))
-        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(400, 400), brush = ColorBrush(Black))
+        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(100, 100), fill = ColorFill(Red  ))
+        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(200, 200), fill = ColorFill(Green))
+        verifyRect(svgs[0].firstChild as SVGPolygonElement, Rectangle(300, 300), fill = ColorFill(Pink ))
+        verifyRect(svgs[1].firstChild as SVGPolygonElement, Rectangle(400, 400), fill = ColorFill(Black))
 
         verify (exactly = 1) { svgs[0].appendChild   (any()    ) }
         verify (exactly = 1) { svgs[1].appendChild   (any()    ) }
@@ -341,12 +341,12 @@ class VectorRendererSvglTests {
         every { context.renderPosition } returns null
     }
 
-    private fun verifyRect(poly: SVGPolygonElement, rect: Rectangle, pen: Pen? = null, brush: ColorBrush) {
-        verify (exactly = 1) { poly.setFill  (brush.color                ) }
+    private fun verifyRect(poly: SVGPolygonElement, rect: Rectangle, stroke: Stroke? = null, fill: ColorFill) {
+        verify (exactly = 1) { poly.setFill  (fill.color                ) }
 
-        when (pen) {
+        when (stroke) {
             null -> verify (exactly = 0) { poly.setStroke(isNull(inverse = true)     ) }
-            else -> verify (exactly = 1) { poly.setStroke(pen.color); poly.setStrokeWidth(pen.thickness) }
+            else -> verify (exactly = 1) { poly.setStroke(stroke.color); poly.setStrokeWidth(stroke.thickness) }
         }
 
         verify (exactly = 1) { poly.setPoints(*rect.points.toTypedArray()) }
@@ -400,7 +400,7 @@ class VectorRendererSvglTests {
     }
 
 //    @Test fun `renders simple text`() {
-//        val brush = ColorBrush(red)
+//        val fill = ColorFill(red)
 //        val text  = "some text"
 //        val font  = mockk<Font>()
 //        val at    = Point(34, 89)
@@ -409,12 +409,12 @@ class VectorRendererSvglTests {
 //            val t = mockk<HTMLElement>()
 //            every { textFactory.create(text, font, null) } returns t
 //
-//            text(text, font, at, brush)
+//            text(text, font, at, fill)
 //
 //            val style = t.style
 //
-//            verify (exactly = 1) { style.setOpacity(brush.color.opacity) }
-//            verify (exactly = 1) { style.setColor  (brush.color        ) }
+//            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
+//            verify (exactly = 1) { style.setColor  (fill.color        ) }
 //            verify (exactly = 1) { style.translate (at                 ) }
 //
 //            verify (exactly = 1) { renderParent.appendChild(t) }
@@ -440,7 +440,7 @@ class VectorRendererSvglTests {
 //    }
 //
 //    @Test fun `renders simple wrapped text`() {
-//        val brush = ColorBrush(red)
+//        val fill = ColorFill(red)
 //        val text  = "some text"
 //        val font  = mockk<Font>()
 //        val at    = Point(150, 89)
@@ -449,12 +449,12 @@ class VectorRendererSvglTests {
 //            val t = mockk<HTMLElement>()
 //            every { textFactory.wrapped(text, font, 100.0, 50.0, null) } returns t
 //
-//            wrapped(text, font, at, 100.0, 200.0, brush)
+//            wrapped(text, font, at, 100.0, 200.0, fill)
 //
 //            val style = t.style
 //
-//            verify (exactly = 1) { style.setOpacity(brush.color.opacity) }
-//            verify (exactly = 1) { style.setColor  (brush.color        ) }
+//            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
+//            verify (exactly = 1) { style.setColor  (fill.color        ) }
 //            verify (exactly = 1) { style.translate (at                 ) }
 //
 //            verify (exactly = 1) { renderParent.appendChild(t) }
@@ -546,12 +546,12 @@ class VectorRendererSvglTests {
         }
     }
 
-    private fun nothingRendered(block: VectorRendererSvg.(Pen, Brush) -> Unit) {
+    private fun nothingRendered(block: VectorRendererSvg.(Stroke, Fill) -> Unit) {
         val context = mockk<CanvasContext>()
         val factory = mockk<SvgFactory>   ()
 
         renderer(context, factory).apply {
-            block(this, mockk<Pen>().apply { every { visible } returns false }, mockk<Brush>().apply { every { visible } returns false })
+            block(this, mockk<Stroke>().apply { every { visible } returns false }, mockk<Fill>().apply { every { visible } returns false })
         }
 
         val region = context.renderRegion

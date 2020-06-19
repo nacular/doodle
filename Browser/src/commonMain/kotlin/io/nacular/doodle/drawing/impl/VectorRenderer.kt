@@ -1,8 +1,8 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.geometry.Circle
@@ -17,19 +17,19 @@ import io.nacular.doodle.text.StyledText
  */
 
 internal interface VectorRenderer: Renderer {
-    fun rect(rectangle: Rectangle,           brush: Brush        )
-    fun rect(rectangle: Rectangle, pen: Pen, brush: Brush? = null)
+    fun rect(rectangle: Rectangle,           fill: Fill        )
+    fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
 
-    fun rect(rectangle: Rectangle, radius: Double,           brush: Brush)
-    fun rect(rectangle: Rectangle, radius: Double, pen: Pen, brush: Brush? = null)
+    fun rect(rectangle: Rectangle, radius: Double,           fill: Fill)
+    fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
 
-    fun circle(circle: Circle,           brush: Brush        )
-    fun circle(circle: Circle, pen: Pen, brush: Brush? = null)
+    fun circle(circle: Circle,           fill: Fill        )
+    fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
 
-    fun ellipse(ellipse: Ellipse,           brush: Brush        )
-    fun ellipse(ellipse: Ellipse, pen: Pen, brush: Brush? = null)
+    fun ellipse(ellipse: Ellipse,           fill: Fill        )
+    fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
 
-    fun text(text: String, font: Font? = null, at: Point, brush: Brush)
+    fun text(text: String, font: Font? = null, at: Point, fill: Fill)
 
     fun text(text: StyledText, at: Point)
 
@@ -39,7 +39,7 @@ internal interface VectorRenderer: Renderer {
             at         : Point,
             leftMargin : Double,
             rightMargin: Double,
-            brush      : Brush)
+            fill      : Fill)
 
     fun wrapped(
             text       : StyledText,

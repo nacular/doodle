@@ -1,27 +1,26 @@
 package io.nacular.doodle.text
 
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.text.Fill.Background
-import io.nacular.doodle.text.Fill.Foreground
+import io.nacular.doodle.text.Target.*
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
 interface Style {
     val font      : Font?
-    val foreground: Brush?
-    val background: Brush?
+    val foreground: Fill?
+    val background: Fill?
 }
 
 class StyledText private constructor(val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
     constructor(
         text      : String,
         font      : Font?  = null,
-        foreground: Brush? = null,
-        background: Brush? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
+        foreground: Fill? = null,
+        background: Fill? = null): this(mutableListOf(MutablePair(text, StyleImpl(font, foreground = foreground, background = background))))
 
     data class MutablePair<A, B>(var first: A, var second: B) {
         override fun toString() = "($first, $second)"
@@ -37,7 +36,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
     operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
     operator fun rangeTo(font : Font  ) = this.also { add(MutablePair("",   StyleImpl(font))) }
-    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorBrush(color)))) }
+    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
     operator fun rangeTo(text : String) = this.also { add(MutablePair(text, StyleImpl())) }
 
     fun copy() = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
@@ -74,7 +73,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
         return text
     }
 
-    data class StyleImpl(override var font: Font? = null, override var foreground: Brush? = null, override var background: Brush? = null): Style
+    data class StyleImpl(override var font: Font? = null, override var foreground: Fill? = null, override var background: Fill? = null): Style
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
@@ -97,30 +96,30 @@ operator fun Font.invoke(text: () -> StyledText) = text().apply {
 //}
 
 
-enum class Fill {
+enum class Target {
     Background,
     Foreground
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Color.invoke(text: String, fill: Fill = Foreground) = ColorBrush(this).let {
-    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
+operator fun Color.invoke(text: String, target: Target = Foreground) = ColorFill(this).let {
+    StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
 operator fun Color.invoke(text: () -> StyledText) = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null) {
-            style.foreground = ColorBrush(this@invoke)
+            style.foreground = ColorFill(this@invoke)
         }
     }
 }
 
-//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorBrush(this).let {
+//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorFill(this).let {
 //    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
 //}
 //operator fun Color.get(text: StyledText) = text.apply {
 //    data.forEach { (_, style) ->
 //        if (style.foreground == null) {
-//            style.foreground = ColorBrush(this@get)
+//            style.foreground = ColorFill(this@get)
 //        }
 //    }
 //}

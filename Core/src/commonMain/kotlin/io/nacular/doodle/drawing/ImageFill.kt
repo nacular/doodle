@@ -5,7 +5,7 @@ import io.nacular.doodle.image.Image
 
 
 /**
- * A [Brush] that produces a repeating fill with the given [Image].
+ * A [Fill] that produces a repeating fill with the given [Image].
  *
  * @author Nicholas Eddy
  *
@@ -18,6 +18,6 @@ import io.nacular.doodle.image.Image
  * @param size Size to draw the image when repeating
  * @param opacity The opacity to draw the image with when repeating
  */
-class ImageBrush(val image: Image, val size: Size = image.size, val opacity: Float = 1f): Brush() {
+class ImageFill(val image: Image, val size: Size = image.size, val opacity: Float = 1f): Fill() {
     override val visible = opacity > 0 && !size.empty && !image.size.empty
 }

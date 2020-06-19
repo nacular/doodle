@@ -14,8 +14,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.PointerEvent
@@ -134,10 +134,10 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
         val selection = panel.selection
 
         backgroundColor?.let {
-            canvas.path(path, ColorBrush(it))
+            canvas.path(path, ColorFill(it))
         } ?: when {
             selection != null && (index > selection || index < selection - 1) -> {
-                canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Pen(Gray))
+                canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Stroke(Gray))
             }
         }
 
@@ -145,7 +145,7 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
             val name       = name
             val nameHeight = textMetrics.height(name)
 
-            text(name, at = Point(2 * radius, (height - nameHeight) / 2), brush = ColorBrush(Black))
+            text(name, at = Point(2 * radius, (height - nameHeight) / 2), fill = ColorFill(Black))
         }
     }
 
@@ -507,6 +507,6 @@ open class BasicTabbedPanelBehavior<T>(
     }
 
     override fun render(view: TabbedPanel<T>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, ColorBrush(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, ColorFill(backgroundColor))
     }
 }

@@ -8,9 +8,9 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorBrush
-import io.nacular.doodle.drawing.PatternBrush
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
@@ -109,7 +109,7 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         updateStar()
     }
 
-    private lateinit var brushBounds: Rectangle
+    private lateinit var fillBounds: Rectangle
 
     private fun updateStar() {
         val radius = max(0.0, min(width / (2 * max) - minSpacing / 2, height / 2))
@@ -122,15 +122,15 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
 
         val starWidth = tempStart.boundingRectangle.width
 
-        brushBounds = when(max) {
+        fillBounds = when(max) {
             1    -> Rectangle(width, height)
             else -> {
-                val brushWidth = (width - starWidth * max) / (2 * (max - 1)) * 2 + starWidth
-                Rectangle(-(brushWidth - starWidth) / 2, 0.0, brushWidth, height)
+                val fillWidth = (width - starWidth * max) / (2 * (max - 1)) * 2 + starWidth
+                Rectangle(-(fillWidth - starWidth) / 2, 0.0, fillWidth, height)
             }
         }
 
-        star = tempStart.translateBy(x = brushBounds.width / 2)
+        star = tempStart.translateBy(x = fillBounds.width / 2)
 
         rerender()
     }
@@ -139,13 +139,13 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         val rect = bounds.atOrigin
 
         if (displayValue < max) {
-            canvas.rect(rect, PatternBrush(bounds = brushBounds) {
+            canvas.rect(rect, PatternFill(bounds = fillBounds) {
                 shadowColor?.let {
                     outerShadow(color = it, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                        poly(star, Pen(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
+                        poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorFill(it) })
                     }
                 } ?: {
-                    poly(star, Pen(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorBrush(it) })
+                    poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorFill(it) })
                 }()
             })
         }
@@ -153,18 +153,18 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
         if (displayValue > 0) {
             foregroundColor?.let { foregroundColor ->
                 val starWidth = star.boundingRectangle.width
-                val rectWidth = displayValue * starWidth + (brushBounds.width - starWidth) * when (max) {
+                val rectWidth = displayValue * starWidth + (fillBounds.width - starWidth) * when (max) {
                     1    -> 0.5
                     else -> floor(displayValue)
                 }
 
-                canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternBrush(bounds = brushBounds) {
+                canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternFill(bounds = fillBounds) {
                     if (displayValue.toInt() == max) {
                         outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                            poly(star, ColorBrush(foregroundColor))
+                            poly(star, ColorFill(foregroundColor))
                         }
                     } else {
-                        poly(star, ColorBrush(foregroundColor))
+                        poly(star, ColorFill(foregroundColor))
                     }
                 })
             }

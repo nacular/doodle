@@ -12,11 +12,11 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.translate
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Brush
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.doodle.drawing.ColorBrush
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.Pen
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -52,20 +52,20 @@ class CanvasImplTests {
         val rect = Rectangle(100, 100)
         val circle = Circle(100.0)
 
-        listOf<CanvasImpl.(Pen, Brush) -> Unit>(
-                { _, brush -> rect(rect, brush) },
-                { _, brush -> rect(rect, 10.0, brush) },
-                { pen, brush -> rect(rect, pen, brush) },
-                { pen, brush -> rect(rect, 10.0, pen, brush) },
+        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
+                { _, fill -> rect(rect, fill) },
+                { _, fill -> rect(rect, 10.0, fill) },
+                { stroke, fill -> rect(rect, stroke, fill) },
+                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
 
-                { _, brush -> circle(circle, brush) },
-                { pen, brush -> circle(circle, pen, brush) },
+                { _, fill -> circle(circle, fill) },
+                { stroke, fill -> circle(circle, stroke, fill) },
 
-                { _, brush -> ellipse(circle, brush) },
-                { pen, brush -> ellipse(circle, pen, brush) },
+                { _, fill -> ellipse(circle, fill) },
+                { stroke, fill -> ellipse(circle, stroke, fill) },
 
-                { _, brush -> text("text", null, Point.Origin, brush) },
-                { _, brush -> wrapped("text", null, Point.Origin, 0.0, 100.0, brush) }
+                { _, fill -> text("text", null, Point.Origin, fill) },
+                { _, fill -> wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
         ).forEach {
             nothingRendered(it)
         }
@@ -73,44 +73,44 @@ class CanvasImplTests {
 
 //    @Test @JsName("emptyShapesNoOp")
 //    fun `empty shapes no-op`() {
-//        val pen    = Pen()
-//        val brush  = ColorBrush(red)
+//        val stroke    = Stroke()
+//        val fill  = ColorFill(red)
 //        val rect   = Rectangle.Empty
 //        val circle = Circle.Empty
 //
 //        listOf<CanvasImpl.() -> Unit>(
-//            { rect(rect,            brush) },
-//            { rect(rect, 10.0,      brush) },
-//            { rect(rect,       pen, brush) },
-//            { rect(rect, 10.0, pen, brush) },
+//            { rect(rect,            fill) },
+//            { rect(rect, 10.0,      fill) },
+//            { rect(rect,       stroke, fill) },
+//            { rect(rect, 10.0, stroke, fill) },
 //
-//            { circle(circle,      brush) },
-//            { circle(circle, pen, brush) },
+//            { circle(circle,      fill) },
+//            { circle(circle, stroke, fill) },
 //
-//            { ellipse(circle,      brush) },
-//            { ellipse(circle, pen, brush) },
+//            { ellipse(circle,      fill) },
+//            { ellipse(circle, stroke, fill) },
 //
-//            { text   ("text", null, Point.Origin,             brush) },
-//            { wrapped("text", null, Point.Origin, 0.0, 100.0, brush) }
+//            { text   ("text", null, Point.Origin,             fill) },
+//            { wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
 //        ).forEach {
 //            nothingRendered(it)
 //        }
 //    }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
-        val brush = ColorBrush(Red)
+        val fill = ColorFill(Red)
         val rect  = Rectangle(100, 100)
 
         validateRender { renderParent, htmlFactory, _, _ ->
             val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
-            rect(rect, brush)
+            rect(rect, fill)
 
             val style = b.style
 
             verify (exactly = 1) { style.setSize           (rect.size                        ) }
-            verify (exactly = 1) { style.setBackgroundColor(brush.color                      ) }
+            verify (exactly = 1) { style.setBackgroundColor(fill.color                      ) }
             verify               { style.setTransform      (Identity.translate(rect.position)) }
 
             verify (exactly = 1) { renderParent.appendChild(b) }
@@ -118,7 +118,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val brush  = ColorBrush(Red)
+        val fill  = ColorFill(Red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -126,13 +126,13 @@ class CanvasImplTests {
             val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
-            rect(rect, radius, brush)
+            rect(rect, radius, fill)
 
             val style = b.style
 
             verify (exactly = 1) { style.setBorderRadius   (radius                           ) }
             verify (exactly = 1) { style.setSize           (rect.size                        ) }
-            verify (exactly = 1) { style.setBackgroundColor(brush.color                      ) }
+            verify (exactly = 1) { style.setBackgroundColor(fill.color                      ) }
             verify               { style.setTransform      (Identity.translate(rect.position)) }
 
             verify (exactly = 1) { renderParent.appendChild(b) }
@@ -140,20 +140,20 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val brush  = ColorBrush(Red)
+        val fill  = ColorFill(Red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
             val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
-            circle(circle, brush)
+            circle(circle, fill)
 
             val style = b.style
 
             verify (exactly = 1) { style.setBorderRadius   (circle.radius                                        ) }
             verify (exactly = 1) { style.setSize           (circle.boundingRectangle.size                        ) }
-            verify (exactly = 1) { style.setBackgroundColor(brush.color                                          ) }
+            verify (exactly = 1) { style.setBackgroundColor(fill.color                                          ) }
             verify               { style.setTransform      (Identity.translate(circle.boundingRectangle.position)) }
 
             verify (exactly = 1) { renderParent.appendChild(b) }
@@ -161,20 +161,20 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val brush   = ColorBrush(Red)
+        val fill   = ColorFill(Red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { renderParent, htmlFactory, _, _ ->
             val b = mockk<HTMLElement>()
             every { htmlFactory.createOrUse("B", any()) } returns b
 
-            ellipse(ellipse, brush)
+            ellipse(ellipse, fill)
 
             val style = b.style
 
             verify (exactly = 1) { style.setBorderRadius   (ellipse.xRadius, ellipse.yRadius                      ) }
             verify (exactly = 1) { style.setSize           (ellipse.boundingRectangle.size                        ) }
-            verify (exactly = 1) { style.setBackgroundColor(brush.color                                           ) }
+            verify (exactly = 1) { style.setBackgroundColor(fill.color                                           ) }
             verify               { style.setTransform      (Identity.translate(ellipse.boundingRectangle.position)) }
 
             verify (exactly = 1) { renderParent.appendChild(b) }
@@ -182,7 +182,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleText") fun `renders simple text`() {
-        val brush = ColorBrush(Red)
+        val fill = ColorFill(Red)
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(34, 89)
@@ -191,12 +191,12 @@ class CanvasImplTests {
             val t = mockk<HTMLElement>()
             every { textFactory.create(text, font, null) } returns t
 
-            text(text, font, at, brush)
+            text(text, font, at, fill)
 
             val style = t.style
 
-            verify (exactly = 1) { style.setOpacity(brush.color.opacity) }
-            verify (exactly = 1) { style.setColor  (brush.color        ) }
+            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
+            verify (exactly = 1) { style.setColor  (fill.color        ) }
             verify (exactly = 1) { style.translate (at                 ) }
 
             verify (exactly = 1) { renderParent.appendChild(t) }
@@ -222,7 +222,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
-        val brush = ColorBrush(Red)
+        val fill = ColorFill(Red)
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(150, 89)
@@ -231,12 +231,12 @@ class CanvasImplTests {
             val t = mockk<HTMLElement>()
             every { textFactory.wrapped(text, font, 100.0, 50.0, null) } returns t
 
-            wrapped(text, font, at, 100.0, 200.0, brush)
+            wrapped(text, font, at, 100.0, 200.0, fill)
 
             val style = t.style
 
-            verify (exactly = 1) { style.setOpacity(brush.color.opacity) }
-            verify (exactly = 1) { style.setColor  (brush.color        ) }
+            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
+            verify (exactly = 1) { style.setColor  (fill.color        ) }
             verify (exactly = 1) { style.translate (at                 ) }
 
             verify (exactly = 1) { renderParent.appendChild(t) }
@@ -343,12 +343,12 @@ class CanvasImplTests {
         verify(exactly = 0) { renderParent.appendChild(any()) }
     }
 
-    private fun nothingRendered(block: CanvasImpl.(Pen, Brush) -> Unit) {
+    private fun nothingRendered(block: CanvasImpl.(Stroke, Fill) -> Unit) {
         val renderParent = spyk<HTMLElement>()
         val renderer     = mockk<VectorRenderer>()
 
         canvas(renderParent, rendererFactory = rendererFactory(renderer)).apply {
-            block(this, mockk<Pen>().apply { every { visible } returns false }, mockk<Brush>().apply { every { visible } returns false })
+            block(this, mockk<Stroke>().apply { every { visible } returns false }, mockk<Fill>().apply { every { visible } returns false })
         }
 
 //        verify { renderer wasNot Called }

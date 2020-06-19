@@ -13,7 +13,7 @@ class HelloWorld(display: Display): Application {
                 canvas.text(
                     "Hello, world!", 
                     at = Origin, 
-                    brush = ColorBrush(Black)
+                    fill = ColorFill(Black)
                 )
             }
         }
