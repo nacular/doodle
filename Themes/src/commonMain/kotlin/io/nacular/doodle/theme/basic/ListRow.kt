@@ -12,6 +12,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.VerticalConstraint
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -28,6 +29,8 @@ open class ListRow<T>(private var list                           : ListLike,
                       private val backgroundSelectionColor       : Color? = Blue,
                       private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
+    var insetTop = 1.0
+
     var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
             if (field == new) {
@@ -36,9 +39,7 @@ open class ListRow<T>(private var list                           : ListLike,
 
             field = new
 
-            layout = constrain(children[0]) {
-                positioner(it)
-            }
+            layout = constrainLayout(children[0])
         }
 
     private var pointerOver = false
@@ -51,9 +52,7 @@ open class ListRow<T>(private var list                           : ListLike,
 
     init {
         childrenChanged += { _,_,_,_ ->
-            layout = constrain(children[0]) {
-                positioner(it)
-            }
+            layout = constrainLayout(children[0])
         }
 
         children += itemVisualizer(row, index)
@@ -125,12 +124,23 @@ open class ListRow<T>(private var list                           : ListLike,
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorFill(it)) }
+    }
+
+    private fun constrainLayout(view: View) = constrain(view) { content ->
+        positioner(
+                // Override the parent for content to confine it within a smaller region
+                ConstraintWrapper(content) { parent ->
+                    object: ParentConstraintWrapper(parent) {
+                        override val top = VerticalConstraint  (this@ListRow) { insetTop }
+                    }
+                }
+        )
     }
 }
 
-open class ListPositioner(private val height: Double) {
-    fun rowFor(insets: Insets, y: Double) = max(0, ((y - insets.top) / height).toInt())
+open class ListPositioner(private val height: Double, private val spacing: Double = 0.0) {
+    fun rowFor(insets: Insets, y: Double) = max(0, ((y - insets.top) / (height + spacing)).toInt())
 
-    operator fun invoke(list: View, insets: Insets, index: Int) = Rectangle(insets.left, insets.top + index * height, list.width - insets.run { left + right }, height)
+    operator fun invoke(list: View, insets: Insets, index: Int) = Rectangle(insets.left, insets.top + index * height + (index + 1) * spacing, list.width - insets.run { left + right }, height)
 }

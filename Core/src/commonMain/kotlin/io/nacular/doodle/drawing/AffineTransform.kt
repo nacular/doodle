@@ -104,16 +104,25 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
      * @param points that will be transformed
      * @return a list of points transformed by this object
      */
-    operator fun invoke(points: List<Point>) = points.map {
-        val point   = matrixOf(3, 1) { col, row -> listOf(listOf(it.x), listOf(it.y), listOf(1.0))[row][col] }
-        val product = matrix * point
+    operator fun invoke(points: List<Point>): List<Point> = when{
+        isIdentity -> points
+        else       -> points.map {
+            val point   = matrixOf(3, 1) { col, row -> listOf(listOf(it.x), listOf(it.y), listOf(1.0))[row][col] }
+            val product = matrix * point
 
-        Point(product[0, 0], product[1, 0])
+            Point(product[0, 0], product[1, 0])
+        }
     }
 
-    operator fun invoke(rectangle: Rectangle): ConvexPolygon = when {
-        isIdentity -> rectangle
-        else       -> this(rectangle.points).let { ConvexPolygon(it[0], it[1], it[2], it[3]) }
+    /**
+     * Transforms the given polygon.
+     *
+     * @param polygon that will be transformed
+     * @return a polygon transformed by this object
+     */
+    operator fun invoke(polygon: ConvexPolygon): ConvexPolygon = when {
+        isIdentity -> polygon
+        else       -> this(polygon.points).let { ConvexPolygon(it[0], it[1], it[2], *it.subList(3, it.size).toTypedArray()) }
     }
 
     override fun toString() = matrix.toString()

@@ -31,6 +31,9 @@ open class BasicButtonBehavior(
         private val cornerRadius       : Double = 4.0,
                     insets             : Double = 4.0): CommonTextButtonBehavior<Button>(textMetrics) {
 
+    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    var disabledColorMapper: ColorMapper = { it.lighter()    }
+
     private var insets = Insets(insets)
 
     protected data class RenderColors(val fillColor: Color, val textColor: Color, val borderColor: Color?)
@@ -42,11 +45,11 @@ open class BasicButtonBehavior(
         var borderColor = borderColor
 
         if (!view.enabled) {
-            textColor   = textColor.lighter   ()
-            fillColor   = fillColor.lighter   ()
-            borderColor = borderColor?.lighter()
+            textColor   = disabledColorMapper(textColor)
+            fillColor   = disabledColorMapper(fillColor)
+            borderColor = borderColor?.let { disabledColorMapper(it) }
         } else if (model.pointerOver) {
-            fillColor = fillColor.darker(0.1f)
+            fillColor = hoverColorMapper(fillColor)
         }
 
         return RenderColors(fillColor, textColor, borderColor)

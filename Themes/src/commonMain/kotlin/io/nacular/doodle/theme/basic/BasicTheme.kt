@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.ProgressIndicator
-import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
@@ -12,6 +11,7 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
@@ -23,13 +23,14 @@ import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.grayScale
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.theme.Modules
@@ -82,6 +83,9 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         val darkBackgroundColor    get() = Color(0xaaaaaau)
         val lightBackgroundColor   get() = Color(0xf3f4f5u)
         val defaultBackgroundColor get() = backgroundColor
+        val cornerRadius           get() = 4.0
+        val hoverColorMapper       get() = { color: Color -> color.darker(0.1f) }
+        val disabledColorMapper    get() = { color: Color -> color.lighter()    }
     }
 
     interface ConfigProvider {
@@ -131,6 +135,26 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
+        fun basicMutableListBehavior(
+                rowHeight            : Double? = null,
+                evenRowColor         : Color?  = null,
+                oddRowColor          : Color?  = null,
+                selectionColor       : Color?  = null,
+                selectionBlurredColor: Color?  = null) = BasicModule(name = "BasicMutableListBehavior") {
+            bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicMutableListBehavior(
+                        focusManager          = instanceOrNull(),
+                        textMetrics           = instance(),
+                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        rowHeight             = rowHeight             ?: 20.0
+                ) }
+            }
+        }
+
         fun basicTreeBehavior(
                 rowHeight            : Double?              = null,
                 evenRowColor         : Color?               = null,
@@ -154,15 +178,71 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        val BasicLabelBehavior = BasicModule(name = "BasicLabelBehavior") {
-            bindBehavior<Label>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { LabelBehavior(foregroundColor) }
+        fun basicMutableTreeBehavior(
+                rowHeight            : Double?              = null,
+                evenRowColor         : Color?               = null,
+                oddRowColor          : Color?               = null,
+                selectionColor       : Color?               = null,
+                selectionBlurredColor: Color?               = null,
+                iconFactory          : (() -> TreeRowIcon)? = null) = BasicModule(name = "BasicMutableTreeBehavior") {
+            bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicMutableTreeBehavior(
+                            focusManager          = instanceOrNull(),
+                            textMetrics           = instance(),
+                            rowHeight             = rowHeight             ?: 20.0,
+                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                            selectionColor        = selectionColor        ?: this.selectionColor,
+                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                            iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
+                ) }
             }
         }
 
-        val BasicTableBehavior = BasicModule(name = "BasicTableBehavior") {
+        fun basicLabelBehavior(foregroundColor: Color? = null) = BasicModule(name = "BasicLabelBehavior") {
+            bindBehavior<Label>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run { LabelBehavior(foregroundColor ?: this.foregroundColor) }
+            }
+        }
+
+        fun basicTableBehavior(
+                rowHeight            : Double? = null,
+                headerColor          : Color?  = null,
+                evenRowColor         : Color?  = null,
+                oddRowColor          : Color?  = null,
+                selectionColor       : Color?  = null,
+                selectionBlurredColor: Color?  = null) = BasicModule(name = "BasicTableBehavior") {
             bindBehavior<Table<Any, ListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(instanceOrNull(), 20.0, backgroundColor, evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+                it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(
+                        focusManager          = instanceOrNull(),
+                        rowHeight             = rowHeight             ?: 20.0,
+                        headerColor           = headerColor           ?: this.backgroundColor,
+                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
+                ) }
+            }
+        }
+
+        fun basicMutableTableBehavior(
+                rowHeight            : Double? = null,
+                headerColor          : Color?  = null,
+                evenRowColor         : Color?  = null,
+                oddRowColor          : Color?  = null,
+                selectionColor       : Color?  = null,
+                selectionBlurredColor: Color?  = null) = BasicModule(name = "BasicMutableTableBehavior") {
+            bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(
+                        focusManager          = instanceOrNull(),
+                        rowHeight             = rowHeight             ?: 20.0,
+                        headerColor           = headerColor           ?: this.backgroundColor,
+                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
+                ) }
             }
         }
 
@@ -175,11 +255,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 cornerRadius       : Double? = null,
                 insets             : Double? = null) = BasicModule(name = "BasicButtonBehavior") {
             bindBehavior<Button>(BTheme::class) {
-                val defaultCornerRadius = when (it.parent) {
-                    is Spinner<*,*> -> 0.0
-                    else            -> 4.0
-                }
-
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicButtonBehavior(
                             instance(),
@@ -188,8 +263,11 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                             foregroundColor     = foregroundColor     ?: this.foregroundColor,
                             borderColor         = borderColor         ?: this.borderColor,
                             borderWidth         = borderWidth         ?: 0.0,
-                            cornerRadius        = cornerRadius        ?: defaultCornerRadius,
-                            insets              = insets              ?: 8.0)
+                            cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                            insets              = insets              ?: 8.0).apply {
+                        hoverColorMapper     = this@run.hoverColorMapper
+                        disabledColorMapper  = this@run.disabledColorMapper
+                    }
                 }
             }
         }
@@ -200,34 +278,72 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                     BasicSliderBehavior(
                             barColor             ?: defaultBackgroundColor,
                             knobColor            ?: darkBackgroundColor,
-                            grooveThicknessRatio ?: 0.6f,
+                            grooveThicknessRatio ?: 0.5f,
                             instanceOrNull()
                     )
                 }
             }
         }
 
-        val BasicSpinnerBehavior = BasicModule(name = "BasicSpinnerBehavior") {
+        fun basicSpinnerBehavior(
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                foregroundColor    : Color?  = null,
+                cornerRadius       : Double? = null) = BasicModule(name = "BasicSpinnerBehavior") {
             bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicSpinnerBehavior(instance()) }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicSpinnerBehavior(
+                            instance(),
+                            cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                            backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                            foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                    ).apply {
+                        hoverColorMapper     = this@run.hoverColorMapper
+                        disabledColorMapper  = this@run.disabledColorMapper
+                    }
+                }
             }
         }
 
-        val BasicCheckBoxBehavior = BasicModule(name = "BasicCheckBoxBehavior") {
+        fun basicCheckBoxBehavior(
+                foregroundColor    : Color?  = null,
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                cornerRadius       : Double? = null,
+                iconSpacing        : Double? = null,
+                iconInset          : Double? = null,
+                checkInset         : Double? = null) = BasicModule(name = "BasicCheckBoxBehavior") {
             bindBehavior<CheckBox>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(instance()) as Behavior<Button> }
+                it.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(
+                        instance(),
+                        iconInset           = iconInset           ?: 2.0,
+                        checkInset          = checkInset          ?: 7.0,
+                        iconSpacing         = iconSpacing         ?: 8.0,
+                        cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                ) as Behavior<Button> }
             }
         }
 
-        val BasicSplitPanelBehavior = BasicModule(name = "BasicSplitPanelBehavior") {
-            bindBehavior<SplitPanel>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicSplitPanelBehavior() }
-            }
-        }
-
-        val BasicRadioButtonBehavior = BasicModule(name = "BasicRadioButtonBehavior") {
+        fun basicRadioButtonBehavior(
+                foregroundColor    : Color?  = null,
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                iconSpacing        : Double? = null,
+                innerCircleInset   : Double? = null
+        ) = BasicModule(name = "BasicRadioButtonBehavior") {
             bindBehavior<RadioButton>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(instance()) as Behavior<Button> }
+                it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
+                        instance(),
+                        iconSpacing         = iconSpacing         ?: 8.0,
+                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                        innerCircleInset    = innerCircleInset    ?: 4.0,
+                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                ) as Behavior<Button> }
             }
         }
 
@@ -251,36 +367,24 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        val BasicMutableListBehavior = BasicModule(name = "BasicMutableListBehavior") {
-            bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableListBehavior(instanceOrNull(), instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
+        fun basicSplitPanelBehavior() = BasicModule(name = "BasicSplitPanelBehavior") {
+            bindBehavior<SplitPanel>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run { BasicSplitPanelBehavior() }
             }
         }
 
         fun basicProgressBarBehavior(
-                backgroundFill: Fill? = null,
-                fill      : Fill? = null,
-                outlineColor   : Color? = null,
-                cornerRadius   : Double = 2.0): Module = BasicModule(name = "BasicProgressBarBehavior") {
+                background  : Fill?  = null,
+                foreground  : Fill?  = null,
+                outlineColor: Color? = null,
+                cornerRadius: Double = 2.0): Module = BasicModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            backgroundFill ?: ColorFill(defaultBackgroundColor),
-                            fill       ?: ColorFill(darkBackgroundColor   ),
+                            background ?: ColorFill(defaultBackgroundColor),
+                            foreground ?: ColorFill(darkBackgroundColor   ),
                             outlineColor,
                             cornerRadius) as Behavior<ProgressIndicator> }
-            }
-        }
-
-        val BasicMutableTreeBehavior = BasicModule(name = "BasicMutableTreeBehavior") {
-            bindBehavior<MutableTree<Any, MutableTreeModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTreeBehavior(instance(), evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter(), focusManager = instanceOrNull()) }
-            }
-        }
-
-        val BasicMutableTableBehavior = BasicModule(name = "BasicMutableTableBehavior") {
-            bindBehavior<MutableTable<Any, MutableListModel<Any>>>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicMutableTableBehavior(instanceOrNull(), 20.0, backgroundColor, evenRowColor, oddRowColor, selectionColor, selectionColor.grayScale().lighter()) }
             }
         }
 
@@ -304,19 +408,19 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             importAll(listOf(
                     basicListBehavior(),
                     basicTreeBehavior(),
-                    BasicLabelBehavior,
-                    BasicTableBehavior,
+                    basicLabelBehavior(),
+                    basicTableBehavior(),
+                    basicSwitchBehavior(),
                     basicButtonBehavior(),
                     basicSliderBehavior(),
-                    BasicSpinnerBehavior,
-                    BasicCheckBoxBehavior,
-                    BasicSplitPanelBehavior,
-                    BasicRadioButtonBehavior,
-                    BasicMutableListBehavior,
+                    basicSpinnerBehavior(),
+                    basicCheckBoxBehavior(),
+                    basicSplitPanelBehavior(),
+                    basicRadioButtonBehavior(),
+                    basicMutableListBehavior(),
                     basicProgressBarBehavior(),
-                    BasicMutableTreeBehavior,
-                    BasicMutableTableBehavior,
-                    basicSwitchBehavior()),
+                    basicMutableTreeBehavior(),
+                    basicMutableTableBehavior()),
                     allowOverride = true)
         }
     }
@@ -330,6 +434,8 @@ class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<Modules
         override val darkBackgroundColor    = super.darkBackgroundColor.inverted
         override val lightBackgroundColor   = Color(0x282928u)
         override val defaultBackgroundColor = super.defaultBackgroundColor.inverted
+        override val hoverColorMapper       = { color: Color -> color.lighter(0.3f) }
+        override val disabledColorMapper    = { color: Color -> color.lighter()    }
     }
 
     override val config = DarkBasicThemeConfig()

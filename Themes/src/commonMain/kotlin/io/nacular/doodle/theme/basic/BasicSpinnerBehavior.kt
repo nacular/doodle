@@ -11,10 +11,10 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -24,9 +24,17 @@ import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Anchor
 
-class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavior<Any, Model<Any>>() {
+class BasicSpinnerBehavior(
+        private val textMetrics        : TextMetrics,
+        private val backgroundColor    : Color,
+        private val darkBackgroundColor: Color,
+        private val foregroundColor    : Color,
+        private val cornerRadius       : Double): SpinnerBehavior<Any, Model<Any>>() {
 
-    private class ButtonIcon(private val color: Color, private val disabledColor: Color, private val isUp: Boolean): Icon<Button> {
+    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    var disabledColorMapper: ColorMapper = { it.lighter()    }
+
+    private inner class ButtonIcon(private val disabledColor: Color, private val isUp: Boolean): Icon<Button> {
         override fun size(view: Button) = Size(view.width * 0.3, view.height * 0.3)
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
@@ -37,7 +45,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
             }
 
             val stroke = Stroke(when {
-                view.enabled -> color
+                view.enabled -> foregroundColor
                 else         -> disabledColor
             }, 2.0)
 
@@ -50,21 +58,32 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
         }
     }
 
-    private inner class SpinnerButtonBehavior(
-            private val isTop: Boolean,
-            private val cornerRadius: Double = 4.0): BasicButtonBehavior(textMetrics, Color.Lightgray) {
+    private inner class SpinnerButtonBehavior(private val isTop: Boolean): BasicButtonBehavior(
+            textMetrics         = textMetrics,
+            cornerRadius        = cornerRadius,
+            backgroundColor     = backgroundColor,
+            foregroundColor     = foregroundColor,
+            darkBackgroundColor = darkBackgroundColor
+    ) {
+        init {
+            hoverColorMapper    = this@BasicSpinnerBehavior.hoverColorMapper
+            disabledColorMapper = { it }
+        }
+
         override fun install(view: Button) {
-            view.icon = ButtonIcon(Black, Color.Lightgray.lighter(), isTop)
+            view.icon = ButtonIcon(foregroundColor.lighter(), isTop)
 
             super.install(view)
         }
 
         override fun render(view: Button, canvas: Canvas) {
-            val colors = colors(view)
-
-            val fill = if (view.enabled) colors.fillColor else Color.Lightgray
-
-            canvas.rect(Rectangle(-cornerRadius, 0.0 - if (!isTop) cornerRadius else 0.0, view.width + cornerRadius, view.height + cornerRadius), cornerRadius, ColorFill(fill))
+            canvas.rect(
+                Rectangle(
+                    -cornerRadius,
+                    0.0 - if (!isTop) cornerRadius else 0.0,
+                    view.width + cornerRadius,
+                    view.height + cornerRadius),
+                cornerRadius, ColorFill(colors(view).fillColor))
 
             icon(view)?.let {
                 val adjust = it.size(view).height / 3 * if (isTop) 1 else -1
@@ -78,7 +97,7 @@ class BasicSpinnerBehavior(private val textMetrics: TextMetrics): SpinnerBehavio
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 
     override fun render(view: Spinner<Any, Model<Any>>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, 4.0, ColorFill(Color.Lightgray))
+        canvas.rect(view.bounds.atOrigin, cornerRadius, ColorFill(backgroundColor))
     }
 
     override fun install(view: Spinner<Any, Model<Any>>) {

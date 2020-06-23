@@ -6,21 +6,22 @@ import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Delete
 import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.KeyText.Companion.Escape
-import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
@@ -34,8 +35,8 @@ import io.nacular.doodle.utils.ObservableSet
 
 open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
                                         textMetrics          : TextMetrics,
-                                        selectionColor       : Color? = Green.lighter(),
-                                        selectionBlurredColor: Color? = Lightgray): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
+                                        selectionColor       : Color?,
+                                        selectionBlurredColor: Color?): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -53,23 +54,29 @@ open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
 }
 
 open class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
-                                       evenRowColor: Color? = Color.White,
-                                       oddRowColor : Color? = Lightgray.lighter().lighter(),
-                                       rowHeight   : Double = 20.0): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
+                                       evenRowColor: Color?,
+                                       oddRowColor : Color?,
+                                       rowHeight   : Double): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
 
     constructor(focusManager         : FocusManager?,
                 textMetrics          : TextMetrics,
-                evenRowColor         : Color? = Color.White,
-                oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                selectionColor       : Color? = Green.lighter(),
-                selectionBlurredColor: Color? = Lightgray): this(MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor)
+                evenRowColor         : Color?,
+                oddRowColor          : Color?,
+                selectionColor       : Color?,
+                selectionBlurredColor: Color?,
+                rowHeight            : Double): this(
+            generator    = MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor),
+            evenRowColor = evenRowColor,
+            oddRowColor  = oddRowColor,
+            rowHeight    = rowHeight
+    )
 
     override fun keyPressed(event: KeyEvent) {
         when (event.key) {
             Delete, Backspace -> (event.source as MutableList<*, *>).let { list ->
                 list.selection.sortedByDescending { it }.forEach { list.removeAt(it) }
             }
-            else                                      -> super.keyPressed(event)
+            else              -> super.keyPressed(event)
         }
     }
 }
@@ -88,7 +95,7 @@ open class TextEditOperation<T>(
 
     init {
         text                = encoder.encode(row) ?: ""
-        fitText             = setOf(TextFit.Width, TextFit.Height)
+        fitText             = setOf(Width)
         borderVisible       = false
         foregroundColor     = current.foregroundColor
         backgroundColor     = current.backgroundColor
@@ -124,7 +131,8 @@ open class TextEditOperation<T>(
             children += this@TextEditOperation
 
             layout = constrain(this@TextEditOperation) {
-                it.centerY = it.parent.centerY
+                it.height = parent.height - 1
+                it.bottom = parent.bottom
             }
         }
 

@@ -72,8 +72,6 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun invoke(keyState: KeyState, target: EventTarget?): Boolean {
-        println("key state")
-
         view(target)?.let {
             focusManager.requestFocus(it)
         }

@@ -31,11 +31,19 @@ import io.nacular.doodle.theme.basic.SelectableListKeyHandler
 
 open class BasicItemGenerator<T>(private val focusManager         : FocusManager?,
                                  private val textMetrics          : TextMetrics,
-                                 private val selectionColor       : Color? = Green.lighter(),
-                                 private val selectionBlurredColor: Color? = Lightgray): RowGenerator<T> {
+                                 private val selectionColor       : Color?,
+                                 private val selectionBlurredColor: Color?): RowGenerator<T> {
+
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
-        else          -> ListRow(list, row, index, list.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor).apply {
+        else          -> ListRow(
+                list                            = list,
+                row                             = row,
+                index                           = index,
+                itemVisualizer                  = list.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))),
+                backgroundSelectionColor        = selectionColor,
+                backgroundSelectionBlurredColor = selectionBlurredColor
+        ).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(list)
@@ -45,25 +53,28 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
     }
 }
 
-private class BasicListPositioner<T>(height: Double): ListPositioner(height), RowPositioner<T> {
+private class BasicListPositioner<T>(height: Double): ListPositioner(height, spacing = 1.0), RowPositioner<T> {
     override fun rowFor(list: List<T, *>, y: Double) = super.rowFor(list.insets, y)
 
     override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
 }
 
 open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
-                                             evenRowColor: Color? = White,
-                                             oddRowColor : Color? = Lightgray.lighter().lighter(),
-                                             rowHeight   : Double = 20.0): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
+                                             evenRowColor: Color?,
+                                             oddRowColor : Color?,
+                                             rowHeight   : Double): ListBehavior<T>, KeyListener, SelectableListKeyHandler {
     constructor(focusManager         : FocusManager?,
                 textMetrics          : TextMetrics,
                 rowHeight            : Double,
-                evenRowColor         : Color? = White,
-                oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                selectionColor       : Color? = Green.lighter(),
-                selectionBlurredColor: Color? = Lightgray): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
+                evenRowColor         : Color?,
+                oddRowColor          : Color?,
+                selectionColor       : Color?,
+                selectionBlurredColor: Color?): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
 
-    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight, evenRowColor, oddRowColor) else null
+    private val patternFill = when {
+        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight + 1, evenRowColor, oddRowColor)
+        else                                        -> null
+    }
 
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 

@@ -20,6 +20,7 @@ import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.MagnitudeConstraint
 import io.nacular.doodle.layout.ParentConstraints
+import io.nacular.doodle.layout.VerticalConstraint
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -32,12 +33,6 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 5/7/19.
  */
-
-private class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraints) -> ParentConstraints): Constraints by delegate {
-    override val parent = parent(delegate.parent)
-}
-
-private open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
 
 abstract class TreeRowIcon: View() {
     abstract var expanded: Boolean
@@ -75,14 +70,16 @@ class SimpleTreeRowIcon(private val color: Color = Black, private val selectedCo
     }
 }
 
-class TreeRow<T>(tree                : TreeLike,
-                 node                : T,
-             var path                : Path<Int>,
-     private var index               : Int,
-     private val itemVisualizer      : IndexedItemVisualizer<T>,
-     private val selectionColor      : Color? = Green,
-     private val selectionBluredColor: Color? = selectionColor,
-     private val iconFactory         : () -> TreeRowIcon): View() {
+class TreeRow<T>(tree                 : TreeLike,
+                 node                 : T,
+             var path                 : Path<Int>,
+     private var index                : Int,
+     private val itemVisualizer       : IndexedItemVisualizer<T>,
+     private val selectionColor       : Color? = Green,
+     private val selectionBlurredColor: Color? = selectionColor,
+     private val iconFactory          : () -> TreeRowIcon): View() {
+
+    var insetTop = 1.0
 
     var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
         set(new) {
@@ -92,15 +89,13 @@ class TreeRow<T>(tree                : TreeLike,
 
             field = new
 
-            layout = constrain(children[0]) {
-                positioner(it)
-            }
+            layout = constrainLayout(children[0])
         }
 
-    private  var icon        = null as TreeRowIcon?
-    private  var depth       = -1
-    internal var content     = itemVisualizer(node, index, null) { tree.selected(path) }
-        set(new) {
+    private var icon    = null as TreeRowIcon?
+    private var depth   = -1
+            var content = itemVisualizer(node, index, null) { tree.selected(path) }
+        private set(new) {
             if (field != new) {
                 children.batch {
                     remove(field)
@@ -116,7 +111,7 @@ class TreeRow<T>(tree                : TreeLike,
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (tree.selected(index)) {
-            backgroundColor = if (new) selectionColor else selectionBluredColor
+            backgroundColor = if (new) selectionColor else selectionBlurredColor
         }
     }
 
@@ -174,6 +169,7 @@ class TreeRow<T>(tree                : TreeLike,
             // Override the parent for content to confine it within a smaller region
             ConstraintWrapper(content) { parent ->
                 object: ParentConstraintWrapper(parent) {
+                    override val top   = VerticalConstraint  (this@TreeRow) { insetTop }
                     override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth) }
                     override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + depth) }
                 }
@@ -185,7 +181,11 @@ class TreeRow<T>(tree                : TreeLike,
         this.path  = path
         this.index = index
 
-        content = itemVisualizer(node, index, content) { tree.selected(path) }
+        update(itemVisualizer(node, index, content) { tree.selected(path) }, tree)
+    }
+
+    fun update(content: View, tree: TreeLike) {
+        this.content = content
 
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
@@ -255,7 +255,7 @@ class TreeRow<T>(tree                : TreeLike,
             tree.selected(index) -> {
                 tree.focusChanged += treeFocusChanged
 
-                if (tree.hasFocus) selectionColor else selectionBluredColor
+                if (tree.hasFocus) selectionColor else selectionBlurredColor
             }
             else                 -> {
                 tree.focusChanged -= treeFocusChanged
@@ -265,14 +265,14 @@ class TreeRow<T>(tree                : TreeLike,
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorFill(it)) }
     }
 
     private fun constrainIcon(icon: TreeRowIcon?) {
         icon?.let {
-            constraintLayout.constrain(it, content) { icon, label ->
-                icon.right   = label.left
-                icon.centerY = label.centerY
+            constraintLayout.constrain(it, content) { icon, content ->
+                icon.right   = content.left
+                icon.centerY = content.centerY
             }
         }
     }

@@ -32,7 +32,7 @@ import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
@@ -75,7 +75,7 @@ open class BasicTreeRowGenerator<T>(private val focusManager         : FocusMana
                                     private val iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) }): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
-        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), selectionColor = selectionColor, selectionBluredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
+        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(tree)
@@ -119,12 +119,12 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
                 iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
     ): this(BasicTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
-    private val patternFill = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight + 1, evenRowColor, oddRowColor) else null
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(rowHeight)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, patternFill)
+        patternFill?.let { canvas.rect(view.bounds.atOrigin, it) }
     }
 
     override fun install(view: Tree<T, *>) {
@@ -146,13 +146,25 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
                                   evenRowColor: Color? = White,
                                   oddRowColor : Color? = Lightgray.lighter().lighter(),
                                   rowHeight   : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
-    constructor(textMetrics          : TextMetrics,
+    constructor(focusManager         : FocusManager?,
+                textMetrics          : TextMetrics,
+                rowHeight            : Double = 20.0,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
                 selectionColor       : Color? = Green.lighter(),
                 selectionBlurredColor: Color? = Lightgray,
-                iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) },
-                focusManager         : FocusManager?): this(BasicMutableTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor)
+                iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) }): this(
+            BasicMutableTreeRowGenerator(
+                    focusManager,
+                    textMetrics,
+                    selectionColor,
+                    selectionBlurredColor,
+                    iconFactory
+            ),
+            evenRowColor,
+            oddRowColor,
+            rowHeight
+    )
 
     override fun keyPressed(event: KeyEvent) {
         (event.source as MutableTree<*, *>).let { tree ->
@@ -186,7 +198,7 @@ open class TextEditOperation<T>(
     init {
         text                = encoder.encode(node) ?: ""
         fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
-        bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin))
+        bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Origin))
         borderVisible       = false
         horizontalAlignment = Left
 
@@ -194,7 +206,7 @@ open class TextEditOperation<T>(
 
         focusChanged += { _,_,_ ->
             if (!hasFocus) {
-                tree.cancelEditing()
+//                tree.cancelEditing()
             }
         }
 
@@ -217,10 +229,7 @@ open class TextEditOperation<T>(
 
     override fun invoke(): View? = null.also {
         when (current) {
-            is TreeRow<*> -> {
-                bounds = current.content.bounds
-                current.content = this
-            }
+            is TreeRow<*> -> current.update(this, tree)
             else          -> {
                 positionMonitor[current] += positionChanged
 

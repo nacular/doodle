@@ -108,7 +108,7 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
 
         if (button.enabled && event.buttons == setOf(Button1)) {
             model.apply {
-                armed = true
+                armed   = true
                 pressed = true
             }
 

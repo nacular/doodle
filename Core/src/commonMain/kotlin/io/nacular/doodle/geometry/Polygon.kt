@@ -15,7 +15,7 @@ import kotlin.math.sqrt
  */
 abstract class Polygon: Shape {
 
-    /** Points representing the verticies */
+    /** Points representing the vertices */
     abstract val points: List<Point>
 
     override fun equals(other: Any?): Boolean {
