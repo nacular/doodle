@@ -90,11 +90,7 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun onFocusGained(target: EventTarget?): Boolean {
-        println("focus gained")
-
         view(target)?.let {
-            println("focus gained 2")
-
             focusManager.requestFocus(it)
         }
 
@@ -102,8 +98,6 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun onFocusLost(target: EventTarget?): Boolean {
-        println("focus lost")
-
         view(target)?.let {
             if (it === focusManager.focusOwner) {
                 focusManager.clearFocus()
