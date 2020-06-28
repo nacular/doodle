@@ -15,7 +15,8 @@ class Menu(
         private val menuSelectionManager: MenuSelectionManager,
                     popupFactory        : PopupFactory,
                     text                : String = "",
-                    icon                : Icon<Button>? = null): PushButton(text, icon), MenuItem {
+                    icon                : Icon<Button>? = null
+): PushButton(text, icon), MenuItem {
 
     private val popup = popupFactory()
 

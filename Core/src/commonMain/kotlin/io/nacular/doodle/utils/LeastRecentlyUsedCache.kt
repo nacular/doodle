@@ -35,13 +35,13 @@ class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
         }
     }.toMutableSet()
 
-    override val keys   = hashMap.keys
-    override val size   = hashMap.size
-    override val values = hashMap.values.map { it.value }.toMutableList()
+    override val keys   get() = hashMap.keys
+    override val size   get() = hashMap.size
+    override val values get() = hashMap.values.map { it.value }.toMutableList()
 
     override fun containsKey(key: K) = hashMap.containsKey(key)
 
-    override fun containsValue(value: V) = values.find { it == value }?.let { true } ?: false
+    override fun containsValue(value: V) = value in values
 
     override fun isEmpty() = hashMap.isEmpty()
 
@@ -59,14 +59,19 @@ class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
                 val newNode = Entry(key = key, value = value)
 
                 // We have reached maximum size so need to make room for new element.
-                if (hashMap.size > maxSize) {
-                    hashMap.remove(end!!.key)
-                    removeNode(end!!)
-                    addAtTop(newNode)
+                if (hashMap.size >= maxSize) {
+                    end?.let { end ->
+                        hashMap.remove(end.key)
+                        removeNode(end)
+                        addAtTop(newNode)
+                    }
                 } else {
                     addAtTop(newNode)
                 }
-                hashMap[key] = newNode
+
+                if (end != null) {
+                    hashMap[key] = newNode
+                }
             }
             else -> {
                 result = entry.value

@@ -119,7 +119,7 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
                 iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
     ): this(BasicTreeRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
-    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight + 1, evenRowColor, oddRowColor) else null
+    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight, evenRowColor, oddRowColor) else null
 
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(rowHeight)
 

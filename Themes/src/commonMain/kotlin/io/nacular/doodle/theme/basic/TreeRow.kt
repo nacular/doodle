@@ -19,7 +19,6 @@ import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.MagnitudeConstraint
-import io.nacular.doodle.layout.ParentConstraints
 import io.nacular.doodle.layout.VerticalConstraint
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
@@ -169,9 +168,10 @@ class TreeRow<T>(tree                 : TreeLike,
             // Override the parent for content to confine it within a smaller region
             ConstraintWrapper(content) { parent ->
                 object: ParentConstraintWrapper(parent) {
-                    override val top   = VerticalConstraint  (this@TreeRow) { insetTop }
-                    override val left  = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth) }
-                    override val width = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + depth) }
+                    override val top    = VerticalConstraint  (this@TreeRow) { insetTop }
+                    override val left   = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth) }
+                    override val width  = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + depth) }
+                    override val height = MagnitudeConstraint (this@TreeRow) { it.height - insetTop }
                 }
             }
         )

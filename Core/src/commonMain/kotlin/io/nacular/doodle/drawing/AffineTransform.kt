@@ -2,7 +2,6 @@ package io.nacular.doodle.drawing
 
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.AffineMatrix3D
 import io.nacular.doodle.utils.matrixOf
 import io.nacular.doodle.utils.times

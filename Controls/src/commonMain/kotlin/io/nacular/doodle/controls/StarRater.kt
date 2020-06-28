@@ -1,7 +1,5 @@
 package io.nacular.doodle.controls
 
-import io.nacular.measured.units.Angle.Companion.degrees
-import io.nacular.measured.units.times
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -20,6 +18,8 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.roundToNearest
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min

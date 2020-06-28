@@ -11,6 +11,9 @@ import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.SortOrder
+import io.nacular.doodle.utils.SortOrder.Ascending
+import io.nacular.doodle.utils.SortOrder.Descending
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -112,13 +115,14 @@ class MutableTable<T, M: MutableListModel<T>>(
         MutableColumnFactoryImpl().apply(block)
     }
 
-    data class Sorting(val column: MutableColumn<*, *>, val ascending: Boolean)
+    data class Sorting(val column: MutableColumn<*, *>, val order: SortOrder)
 
     /** Notifies changes to [sorting] */
-    val sortingChanged: PropertyObservers<View, List<Sorting>> by lazy { PropertyObserversImpl<View, List<Sorting>>(this) }
+    val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting>>(this) }
 
     /** current sorting for the table default is ```emptyList()```.  */
-    var sorting by ObservableProperty(emptyList(), { this }, sortingChanged as PropertyObserversImpl<View, List<Sorting>>)
+    var sorting by ObservableProperty(emptyList(), { this }, sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting>>)
+        private set
 
     val editing get() = editingColumn != null
 
@@ -139,9 +143,12 @@ class MutableTable<T, M: MutableListModel<T>>(
 
     fun toggleSort(by: MutableColumn<T, *>) {
         sorting.find { it.column == by }?.let {
-            if (it.ascending) {
-                sortDescending(by)
-                return
+            when (it.order) {
+                Ascending -> {
+                    sortDescending(by)
+                    return
+                }
+                else -> {}
             }
         }
 
@@ -151,13 +158,13 @@ class MutableTable<T, M: MutableListModel<T>>(
     fun sort(by: MutableColumn<T, *>) {
         by.sort(model)
 
-        sorting = listOf(Sorting(by, ascending = true))
+        sorting = listOf(Sorting(by, order = Ascending))
     }
 
     fun sortDescending(by: MutableColumn<T, *>) {
         by.sortDescending(model)
 
-        sorting = listOf(Sorting(by, ascending = false))
+        sorting = listOf(Sorting(by, order = Descending))
     }
 
     fun startEditing(index: Int, column: MutableColumn<T, *>) {

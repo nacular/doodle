@@ -2,12 +2,18 @@ package io.nacular.doodle.controls.list
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.IndexedItemVisualizer
-import io.nacular.doodle.controls.SelectableItemVisualizer
 import io.nacular.doodle.controls.MutableListModel
+import io.nacular.doodle.controls.SelectableItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
-import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.controls.ignoreIndex
+import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.ObservableProperty
+import io.nacular.doodle.utils.PropertyObservers
+import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.SortOrder
+import io.nacular.doodle.utils.SortOrder.Ascending
+import io.nacular.doodle.utils.SortOrder.Descending
 
 
 interface ListEditor<T> {
@@ -24,6 +30,13 @@ open class MutableList<T, M: MutableListModel<T>>(
     val editing get() = editingRow != null
 
     var editor = null as ListEditor<T>?
+
+    /** Notifies changes to [sortOrder] */
+    val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> by lazy { PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this) }
+
+    /** current sorting for the list default is ```null```.  */
+    var sortOrder: SortOrder? by ObservableProperty(null, { this }, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
+        private set
 
     private var editingRow = null as Int?
         set(new) {
@@ -80,6 +93,18 @@ open class MutableList<T, M: MutableListModel<T>>(
     // FIXME: Cancel editing on selection/focus change
     fun cancelEditing() {
         cleanupEditing()?.let { update(children, it) }
+    }
+
+    fun sort(with: Comparator<T>) {
+        model.sortWith(with)
+
+        sortOrder = Ascending
+    }
+
+    fun sortDescending(with: Comparator<T>) {
+        model.sortWithDescending(with)
+
+        sortOrder = Descending
     }
 
     private fun cleanupEditing(): Int? {

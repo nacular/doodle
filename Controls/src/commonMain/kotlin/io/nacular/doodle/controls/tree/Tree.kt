@@ -153,13 +153,6 @@ open class Tree<T, out M: TreeModel<T>>(
     init {
         monitorsDisplayRect = true
 
-//        // FIXME: Move to layout
-//        boundsChanged += { _,_,_ ->
-//            children.forEach {
-//                it.width = width
-//            }
-//        }
-
         selectionModel?.let { it.changed += selectionChanged_ }
 
         updateNumRows()

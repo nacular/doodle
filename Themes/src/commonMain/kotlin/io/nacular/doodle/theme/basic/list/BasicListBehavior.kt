@@ -10,12 +10,8 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Green
-import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.horizontalStripedFill
-import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
@@ -53,7 +49,7 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
     }
 }
 
-private class BasicListPositioner<T>(height: Double): ListPositioner(height, spacing = 1.0), RowPositioner<T> {
+private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
     override fun rowFor(list: List<T, *>, y: Double) = super.rowFor(list.insets, y)
 
     override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
@@ -72,7 +68,7 @@ open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,
                 selectionBlurredColor: Color?): this(BasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
 
     private val patternFill = when {
-        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight + 1, evenRowColor, oddRowColor)
+        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
         else                                        -> null
     }
 
