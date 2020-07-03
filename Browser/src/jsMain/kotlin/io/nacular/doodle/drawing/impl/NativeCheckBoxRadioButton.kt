@@ -22,6 +22,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
@@ -45,7 +46,10 @@ internal class NativeCheckBoxRadioButtonFactoryImpl internal constructor(
         private val htmlFactory              : HtmlFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?): NativeCheckBoxRadioButtonFactory {
+        private val focusManager             : FocusManager?,
+        private val nativeFocusManager       : NativeFocusManager?
+): NativeCheckBoxRadioButtonFactory {
+
     override fun invoke(button: Button, type: Type) = NativeCheckBoxRadioButton(
             button,
             textFactory,
@@ -53,26 +57,31 @@ internal class NativeCheckBoxRadioButtonFactoryImpl internal constructor(
             elementRuler,
             nativeEventHandlerFactory,
             focusManager,
+            nativeFocusManager,
             htmlFactory,
-            type)
+            type
+    )
 }
 
 internal class NativeCheckBoxRadioButton(
-        private val button        : Button,
-        private val textFactory   : TextFactory,
-        private val textMetrics   : TextMetrics,
-        private val elementRuler  : ElementRuler,
-        private val handlerFactory: NativeEventHandlerFactory,
-        private val focusManager  : FocusManager? = null,
-                    htmlFactory   : HtmlFactory,
-                    type          : Type): NativeEventListener {
+        private val button            : Button,
+        private val textFactory       : TextFactory,
+        private val textMetrics       : TextMetrics,
+        private val elementRuler      : ElementRuler,
+        private val handlerFactory    : NativeEventHandlerFactory,
+        private val focusManager      : FocusManager?,
+        private val nativeFocusManager: NativeFocusManager?,
+                    htmlFactory       : HtmlFactory,
+                    type              : Type
+): NativeEventListener {
 
     private var textSize  = Empty
     private var inputSize = Empty
 
-    val idealSize: Size? get() {
-        return Size(inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0, max(inputSize.height, textSize.height))
-    }
+    val idealSize: Size? get() = Size(
+            inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0,
+            max(inputSize.height, textSize.height)
+    )
 
     private val rootEventHandler : NativeEventHandler
     private val inputEventHandler: NativeEventHandler
@@ -123,7 +132,12 @@ internal class NativeCheckBoxRadioButton(
     private var textElement: HTMLElement? = null
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-        if (new) inputElement.focus() else inputElement.blur()
+        when {
+            new  -> inputElement.focus()
+            else -> inputElement.blur ()
+        }
+
+        nativeFocusManager?.hasFocusOwner = new
     }
 
     private val styleChanged: (View) -> Unit = {
@@ -215,11 +229,11 @@ internal class NativeCheckBoxRadioButton(
             textElement?.let { rootElement.remove(it) }
 
             textElement = field.takeIf { it.isNotBlank() }?.let {
-                textFactory.create(it, button.font).also {
-                    rootElement.insert(it, 0)
+                textFactory.create(it, button.font).also { text ->
+                    rootElement.insert(text, 0)
 
-                    it.style.setMargin (0.0     )
-                    it.style.setDisplay(Inline())
+                    text.style.setMargin (0.0     )
+                    text.style.setDisplay(Inline())
 
                     textSize = textMetrics.size(button.text, button.font)
                 }

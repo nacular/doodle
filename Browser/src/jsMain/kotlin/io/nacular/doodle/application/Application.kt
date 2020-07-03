@@ -4,11 +4,13 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
+import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.SvgFactoryImpl
@@ -28,6 +30,8 @@ import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.drawing.impl.TextFactoryImpl
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
+import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
@@ -55,7 +59,6 @@ import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Window
 import org.w3c.dom.asList
-import org.w3c.dom.events.Event
 import kotlin.browser.document
 import kotlin.browser.window
 
@@ -142,6 +145,7 @@ private open class ApplicationHolderImpl protected constructor(
 
         if (!isNested && root != document.body) {
             root.startMonitoringSize()
+            root.tabIndex = 0
         }
 
         bind<Window>                   () with instance  ( window )
@@ -165,8 +169,8 @@ private open class ApplicationHolderImpl protected constructor(
         bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bind<DisplayImpl>              () with singleton { instance<Display>    () as DisplayImpl }
-        bind<InternalDisplay>          () with singleton { instance<DisplayImpl>()                }
+        bind<DisplayImpl>              () with singleton { instance<Display>     () as DisplayImpl }
+        bind<InternalDisplay>          () with singleton { instance<DisplayImpl> ()                }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -182,6 +186,8 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     private var mutations: MutationObserver? = null
+
+    private var focusListener: ((FocusManager, View?, View?) -> Unit)? = null
 
     protected fun run() {
         window.addEventListener("unload", ::onUnload)
@@ -211,15 +217,24 @@ private open class ApplicationHolderImpl protected constructor(
         initTask = injector.instance<Scheduler>().now {
             application = injector.instance()
         }
+
+        if (!isNested && root != document.body) {
+            val nativeFocusManager = injector.instanceOrNull<NativeFocusManager>()
+
+            injector.instanceOrNull<FocusManager>()?.let {
+                it.focusChanged += { _: FocusManager, _: View?, new: View? ->
+                    when {
+                        new == null                                -> root.blur ()
+                        nativeFocusManager?.hasFocusOwner == false -> root.focus()
+                    }
+                }.also { focusListener = it }
+            }
+        }
     }
 
     override fun shutdown() {
         if (isShutdown) {
             return
-        }
-
-        if (!isNested && root != document.body) {
-            root.stopMonitoringSize()
         }
 
         window.removeEventListener("unload", ::onUnload)
@@ -228,14 +243,24 @@ private open class ApplicationHolderImpl protected constructor(
 
         initTask?.cancel()
 
-        injector.instance<DisplayImpl> ().shutdown()
+        injector.instance<DisplayImpl>().shutdown()
+
         if (!isNested) {
             injector.instance<SystemStyler>().shutdown()
         }
+
         injector.instanceOrNull<DragManager>             ()?.shutdown()
-        injector.instanceOrNull<PointerInputManager>       ()?.shutdown()
+        injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
         injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
+
+        if (!isNested && root != document.body) {
+            root.stopMonitoringSize()
+
+            injector.instanceOrNull<FocusManager>()?.let { focusManager ->
+                focusListener?.let { focusManager.focusChanged -= it }
+            }
+        }
 
         application?.shutdown()
 

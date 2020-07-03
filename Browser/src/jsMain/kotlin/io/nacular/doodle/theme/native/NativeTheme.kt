@@ -1,11 +1,11 @@
 package io.nacular.doodle.theme.native
 
-import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
@@ -65,7 +65,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         private val NativeCheckBoxRadioButtonBehavior = Module(name = "NativeCheckBoxRadioButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
         }
 
         val NativeThemeBehaviors = Module(name = "NativeThemeBehaviors") {
@@ -83,7 +83,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         val NativeButtonBehavior = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeButtonFactory>() with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeButtonFactory>() with singleton { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
 
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), it) }
         }
@@ -99,7 +99,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         val NativeSliderBehavior = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeSliderFactory>() with singleton { NativeSliderFactoryImpl(instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeSliderFactory>() with singleton { NativeSliderFactoryImpl(instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
 
             bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
@@ -107,7 +107,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         val NativeTextFieldBehavior = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instanceOrNull(), instance()) }
+            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }
@@ -115,7 +115,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         val NativeHyperLinkBehavior = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeHyperLinkFactory>() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeHyperLinkFactory>() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
 
             bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
         }

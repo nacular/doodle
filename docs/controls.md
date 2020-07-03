@@ -4,7 +4,21 @@
 Doodle has several UI components in the Controls library. Here are a few of the common ones. Access these by adding a dependency to
 the Controls library in your build file.
 
-### build.gradle
+<!-- tabs:start -->
+
+#### ** build.gradle.kts **
+
+```kotlin
+//...
+
+dependencies {
+     implementation ("io.nacular.doodle:controls:$doodleVersion")
+}
+
+//...
+```
+
+#### ** build.gradle **
 
 ```groovy
 //...
@@ -15,6 +29,7 @@ dependencies {
 
 //...
 ```
+<!-- tabs:end -->
 
 Most of these components rely entirely on their [`Behavior`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L7) for rendering. Moreover, they do not have
 defaults for them to minimize bundle size. So you need to specify them explicitly or use a [**Theme**](themes.md) that provides
@@ -312,12 +327,17 @@ derivable from each `<T>` in the table. This Table extracts a `name`, `age`, and
 arbitrary values. The first column here does that by rendering an index for each item.
 
 Each column's [`CellVisualizer`]() ultimately controls what is displayed in it. The visualizer is given the value of each element in
-that column to produce a View. So the Name column gets a `String`, while the Male colum gets a `Boolean`. The first column has values 
+that column to produce a View. So the Name column gets a `String`, while the Male column gets a `Boolean`. The first column has values 
 of type `Unit`. The RowNumberGenerator just renders the index of each one.
 
 ?> Tables require a [`TableBehavior`] for rendering. `BasicTheme` provides one.
 
 ```kotlin
+data class Person(val name: String, val age: Int, val isMale: Boolean)
+
+fun male  (name: String, age: Int) = Person(name, age, isMale = true )
+fun female(name: String, age: Int) = Person(name, age, isMale = false)
+
 val textVisualizer = HighlightingTextVisualizer(textMetrics)
 val itemGenerator  = toString<Any>(textVisualizer)
 

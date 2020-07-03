@@ -6,11 +6,8 @@ import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.list.DynamicList
-import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.SetPool
 
@@ -67,7 +64,8 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
         scrollCache   : Int                  = 10,
-        block         : ColumnFactory<T>.() -> Unit): Table<T, M>(model, selectionModel, scrollCache, block) {
+        block         : ColumnFactory<T>.() -> Unit
+): Table<T, M>(model, selectionModel, scrollCache, block) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
         override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
@@ -86,7 +84,8 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
             extractor      : Extractor<T, R>,
-            private val firstColumn: Boolean): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            private val firstColumn: Boolean
+    ): Table<T, M>.InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor) {
 
         protected open inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
@@ -121,34 +120,10 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
 
         protected val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
 
-        override val view: View = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
+        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
         }, selectionModelWrapper, fitContent = false).apply {
             acceptsThemes = false
-        }
-
-        override fun behavior(behavior: TableLikeBehaviorWrapper?) {
-            behavior?.delegate?.let {
-                (view as DynamicList<R, *>).behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@DynamicTable, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous, isSelected)
-                        }, current)
-                    }
-
-                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@DynamicTable, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
-
-                        override fun rowFor(list: io.nacular.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@DynamicTable, y)
-                    }
-
-                    override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
-                        if (this@InternalListColumn != internalColumns.last()) {
-                            it.renderColumnBody(this@DynamicTable, this@InternalListColumn, canvas)
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -159,6 +134,7 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 scrollCache   : Int                  = 10,
-                noinline block: ColumnFactory<T>.() -> Unit): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
+                noinline block: ColumnFactory<T>.() -> Unit
+        ): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
     }
 }

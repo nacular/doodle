@@ -120,6 +120,9 @@ expect abstract class HTMLElement: Element {
 
     var onresize   : ((Event) -> Unit)?
     var ondragstart: ((DragEvent) -> Boolean)?
+
+    fun focus()
+    fun blur ()
 }
 
 internal expect fun HTMLElement.stopMonitoringSize ()

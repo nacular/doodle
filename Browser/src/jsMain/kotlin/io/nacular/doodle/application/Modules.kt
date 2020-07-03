@@ -23,6 +23,8 @@ import io.nacular.doodle.event.KeyText
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
+import io.nacular.doodle.focus.NativeFocusManager
+import io.nacular.doodle.focus.NativeFocusManagerImpl
 import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.system.KeyInputService
 import io.nacular.doodle.system.PointerInputService
@@ -45,7 +47,8 @@ class Modules {
     companion object {
         /** Enables focus management by providing access to [FocusManager]. */
         val FocusModule = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusManager>() with singleton { FocusManagerImpl(instance()) }
+            bind<FocusManager>      () with singleton { FocusManagerImpl(instance()) }
+            bind<NativeFocusManager>() with singleton { NativeFocusManagerImpl()     }
         }
 
         /** Enables pointer use. */

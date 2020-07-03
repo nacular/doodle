@@ -12,6 +12,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import org.w3c.dom.HTMLAnchorElement
@@ -32,7 +33,9 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
         private val graphicsSurfaceFactory   : RealGraphicsSurfaceFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?): NativeHyperLinkFactory {
+        private val focusManager             : FocusManager?,
+        private val nativeFocusManager       : NativeFocusManager?
+): NativeHyperLinkFactory {
     override fun invoke(hyperLink: HyperLink) = NativeHyperLink(
             textMetrics,
             textFactory,
@@ -40,6 +43,7 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
             graphicsSurfaceFactory,
             nativeEventHandlerFactory,
             focusManager,
+            nativeFocusManager,
             hyperLink,
             Insets.None,
             Insets.None)
@@ -91,6 +95,7 @@ class NativeHyperLink internal constructor(
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
                     handlerFactory        : NativeEventHandlerFactory,
         private val focusManager          : FocusManager?,
+        private val nativeFocusManager    : NativeFocusManager?,
         private val hyperLink             : HyperLink,
         private val insets                : Insets,
         private val border                : Insets): NativeEventListener {
@@ -123,6 +128,8 @@ class NativeHyperLink internal constructor(
             true -> linkElement.focus()
             else -> linkElement.blur ()
         }
+
+        nativeFocusManager?.hasFocusOwner = new
     }
 
 //    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->

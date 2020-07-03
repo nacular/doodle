@@ -16,6 +16,7 @@ import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -33,6 +34,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         private val elementRuler       : ElementRuler,
         private val eventHandlerFactory: NativeEventHandlerFactory,
         private val focusManager       : FocusManager?,
+        private val nativeFocusManager : NativeFocusManager?,
         private val textMetrics        : TextMetrics): NativeTextFieldFactory {
 
     private val sizeDifference: Size by lazy {
@@ -53,6 +55,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             eventHandlerFactory,
             htmlFactory,
             focusManager,
+            nativeFocusManager,
             textMetrics,
             sizeDifference,
             textField)
@@ -63,6 +66,7 @@ internal class NativeTextField(
                     eventHandlerFactory: NativeEventHandlerFactory,
                     htmlFactory        : HtmlFactory,
         private val focusManager       : FocusManager?,
+        private val nativeFocusManager : NativeFocusManager?,
         private val textMetrics        : TextMetrics,
         private val borderSize         : Size,
         private val textField          : TextField): NativeEventListener {
@@ -100,6 +104,8 @@ internal class NativeTextField(
             true -> inputElement.focus()
             else -> inputElement.blur ()
         }
+
+        nativeFocusManager?.hasFocusOwner = new
     }
 
     private val enabledChanged = { _: View, _: Boolean, new: Boolean ->

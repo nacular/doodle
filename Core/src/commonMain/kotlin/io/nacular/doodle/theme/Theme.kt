@@ -46,7 +46,9 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
 
     override var selected = null as Theme?
         set(new) {
-            field = new?.apply {
+            field = new
+
+            field?.apply {
                 themes += this
                 install(display, allViews)
             }

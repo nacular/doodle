@@ -34,7 +34,7 @@ class BasicSpinnerBehavior(
     var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     var disabledColorMapper: ColorMapper = { it.lighter()    }
 
-    private inner class ButtonIcon(private val disabledColor: Color, private val isUp: Boolean): Icon<Button> {
+    private inner class ButtonIcon(private val isUp: Boolean): Icon<Button> {
         override fun size(view: Button) = Size(view.width * 0.3, view.height * 0.3)
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
@@ -46,7 +46,7 @@ class BasicSpinnerBehavior(
 
             val stroke = Stroke(when {
                 view.enabled -> foregroundColor
-                else         -> disabledColor
+                else         -> disabledColorMapper(foregroundColor)
             }, 2.0)
 
             canvas.transform(transform) {
@@ -71,7 +71,7 @@ class BasicSpinnerBehavior(
         }
 
         override fun install(view: Button) {
-            view.icon = ButtonIcon(foregroundColor.lighter(), isTop)
+            view.icon = ButtonIcon(isTop)
 
             super.install(view)
         }

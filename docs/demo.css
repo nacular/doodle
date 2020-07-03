@@ -1,9 +1,14 @@
 .doodle {
     border-radius:var(--code-block-border-radius);
-//    padding      :var(--code-block-padding);
     margin       : var(--code-block-margin);
      -webkit-transition: .2s;
     transition: .2s;
+    line-height: initial;
+
+}
+
+.doodle div:focus {
+    outline:none
 }
 
 .doodle.border {

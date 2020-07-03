@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.theme.CheckRadioButtonBehavior
 import io.nacular.doodle.core.Icon
-import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -25,12 +25,13 @@ private class BasicCheckBoxIcon(
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val cornerRadius       : Double,
-        private val checkInset         : Double,
-        private val iconInset          : Double,
+        private val checkInset         : Float,
+        private val iconInset          : Float,
         private val hoverColorMapper   : ColorMapper,
-        private val disabledColorMapper: ColorMapper): Icon<CheckBox> {
+        private val disabledColorMapper: ColorMapper
+): Icon<CheckBox> {
 
-    override fun size(view: CheckBox) = Size(maxOf(0.0, minOf(view.height - 2.0, view.width - 2.0)))
+    override fun size(view: CheckBox) = Size(maxOf(0.0, minOf(view.height * (1 - iconInset), view.width * (1 - iconInset))))
 
     private fun fillColor(view: CheckBox): Color {
         val model       = view.model
@@ -41,32 +42,38 @@ private class BasicCheckBoxIcon(
 
         when {
             !view.enabled     -> fillColor = disabledColorMapper(fillColor)
-            model.pointerOver -> fillColor = hoverColorMapper(fillColor)
+            model.pointerOver -> fillColor = hoverColorMapper   (fillColor)
         }
 
         return fillColor
     }
 
     override fun render(view: CheckBox, canvas: Canvas, at: Point) {
-        val size = size(view)
-        val rect = Rectangle(at, size(view)).inset(iconInset)
-        val fill = ColorFill(fillColor(view))
+        val rect       = Rectangle(at, size(view))
+        val background = ColorFill(fillColor(view))
 
-        var updatedPoly = AffineTransform.Identity.scale(CHECK_POLY.points[0], (rect.width - checkInset) / CHECK_BOUNDING_BOX.width, (rect.height - checkInset) / CHECK_BOUNDING_BOX.height).invoke(CHECK_POLY)
-        updatedPoly = AffineTransform.Identity.translate(rect.center - updatedPoly.boundingRectangle.center).invoke(updatedPoly)
+        val xScale = (rect.width  * (1 - checkInset)) / CHECK_BOUNDING_BOX.width
+        val yScale = (rect.height * (1 - checkInset)) / CHECK_BOUNDING_BOX.height
+
+        var updatedPoly = Identity.scale(CHECK_POLY.points[0], xScale, yScale).invoke(CHECK_POLY)
+        updatedPoly     = Identity.translate(rect.center - updatedPoly.boundingRectangle.center).invoke(updatedPoly)
+
+        canvas.rect(rect, cornerRadius, background)
+
+        val foreground = when {
+            view.enabled -> ColorFill(foregroundColor)
+            else         -> ColorFill(disabledColorMapper(foregroundColor))
+        }
 
         when {
-            view.indeterminate -> {
-                canvas.rect(rect, cornerRadius, fill)
-                canvas.rect(Rectangle(at.x + 3, at.y + size.height / 2 - 1, size.width - 6, 2.0), cornerRadius, fill)
+            view.indeterminate  -> {
+                val updatedSize = INDETERMINATE_RECT_SIZE.run { Size(width * xScale, height * yScale) }
+                canvas.rect(Rectangle(
+                        position = rect.center - updatedSize.run { Point(width / 2, height / 2) },
+                        size     = updatedSize
+                ), cornerRadius, foreground)
             }
-            else               -> {
-                canvas.rect(rect, cornerRadius, fill)
-
-                if (view.model.selected) {
-                    canvas.poly(updatedPoly, ColorFill(foregroundColor))
-                }
-            }
+            view.model.selected -> canvas.poly(updatedPoly, foreground)
         }
     }
 
@@ -81,18 +88,20 @@ private class BasicCheckBoxIcon(
         )
 
         val CHECK_BOUNDING_BOX = CHECK_POLY.boundingRectangle
+
+        val INDETERMINATE_RECT_SIZE = Size(7.0, 1.5)
     }
 }
 
 class BasicCheckBoxBehavior(
         textMetrics        : TextMetrics,
-        foregroundColor    : Color = Black,
-        backgroundColor    : Color = Lightgray,
-        darkBackgroundColor: Color = backgroundColor.darker(),
+        foregroundColor    : Color  = Black,
+        backgroundColor    : Color  = Lightgray,
+        darkBackgroundColor: Color  = backgroundColor.darker(),
         cornerRadius       : Double = 4.0,
         iconSpacing        : Double = 8.0,
-        checkInset         : Double = 7.0,
-        iconInset          : Double = 2.0,
+        checkInset         : Float  = 0.5f,
+        iconInset          : Float  = 0.0f,
         hoverColorMapper   : ColorMapper = { it.darker(0.1f) },
         disabledColorMapper: ColorMapper = { it.lighter()    }
 ): CheckRadioButtonBehavior<CheckBox>(

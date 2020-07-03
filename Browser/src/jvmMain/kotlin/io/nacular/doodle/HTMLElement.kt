@@ -125,6 +125,9 @@ actual abstract class HTMLElement: Element() {
     actual var onpointerdown = null as ((PointerEvent) -> Any)?
     actual var onpointermove = null as ((PointerEvent) -> Any)?
     actual var onpointerover = null as ((PointerEvent) -> Any)?
+
+    actual fun focus() {}
+    actual fun blur () {}
 }
 
 actual fun HTMLElement.stopMonitoringSize () {}

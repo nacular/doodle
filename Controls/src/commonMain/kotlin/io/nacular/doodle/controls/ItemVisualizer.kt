@@ -1,11 +1,11 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.controls.buttons.CheckBox
-import io.nacular.doodle.controls.panels.FitContent
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
 
 /**
@@ -68,11 +68,11 @@ open class TextItemVisualizer(private val textMetrics: TextMetrics, private val 
 /**
  * Visualizes Booleans using [CheckBox]s.
  */
-open class BooleanItemVisualizer: ItemVisualizer<Boolean> {
+open class BooleanItemVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean> {
     override fun invoke(item: Boolean, previous: View?): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
         else        -> CheckBox().apply { enabled = false; selected = item                   }
-    }
+    }.apply { size = defaultSize }
 }
 
 /**

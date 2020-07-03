@@ -8,29 +8,32 @@ import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeCanvas
+import io.nacular.doodle.focus.NativeFocusManager
 import org.kodein.di.Kodein.Module
 import org.kodein.di.bindings.NoArgSimpleBindingKodein
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
+import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.provider
 
 /**
  * Created by Nicholas Eddy on 1/30/20.
  */
-class ApplicationViewFactory private constructor(val htmlFactory: HtmlFactory) {
+class ApplicationViewFactory private constructor(val htmlFactory: HtmlFactory, val nativeFocusManager: NativeFocusManager?) {
     inline operator fun <reified T: Application> invoke(
             allowDefaultDarkMode: Boolean      = false,
             modules             : List<Module> = emptyList(),
-            noinline creator    : NoArgSimpleBindingKodein<*>.() -> T): View = ApplicationView(htmlFactory) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
+            noinline creator    : NoArgSimpleBindingKodein<*>.() -> T
+    ): View = ApplicationView(htmlFactory, nativeFocusManager) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
 
     companion object {
         val AppViewModule = Module(allowSilentOverride = true, name = "ApplicationView") {
-            bind<ApplicationViewFactory>() with provider { ApplicationViewFactory(instance()) }
+            bind<ApplicationViewFactory>() with provider { ApplicationViewFactory(instance(), instanceOrNull()) }
         }
     }
 }
 
-class ApplicationView(htmlFactory: HtmlFactory, private val builder: (ApplicationView, HTMLElement) -> Application): View() {
+class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusManager: NativeFocusManager?, private val builder: (ApplicationView, HTMLElement) -> Application): View() {
 
     private val root = htmlFactory.create<HTMLElement>().apply {
         style.setWidthPercent (100.0)
@@ -54,7 +57,7 @@ class ApplicationView(htmlFactory: HtmlFactory, private val builder: (Applicatio
 
         focusChanged += { _,_,new ->
             when (new) {
-                true -> root.focus()
+                true -> if(nativeFocusManager?.hasFocusOwner == false) root.focus()
                 else -> root.blur ()
             }
         }

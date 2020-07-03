@@ -83,7 +83,7 @@ open class Table<T, M: ListModel<T>>(
         override fun moveColumn(table: TableLikeWrapper, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, function)
     }
 
-    internal inner class InternalListColumn<R>(
+    internal open inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
             itemVisualizer : CellVisualizer<R>,

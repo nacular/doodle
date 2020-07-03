@@ -14,6 +14,7 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
 import io.nacular.doodle.utils.SortOrder.Ascending
 import io.nacular.doodle.utils.SortOrder.Descending
+import kotlin.reflect.KProperty
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -27,7 +28,8 @@ class MutableTable<T, M: MutableListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
         scrollCache   : Int                  = 10,
-        block         : MutableColumnFactory<T>.() -> Unit): DynamicTable<T, M>(model, selectionModel, scrollCache, {}) {
+        block         : MutableColumnFactory<T>.() -> Unit
+): DynamicTable<T, M>(model, selectionModel, scrollCache, {}) {
 
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
                         header         : View?,
@@ -39,8 +41,9 @@ class MutableTable<T, M: MutableListModel<T>>(
                         maxWidth       : Double? = null,
             private val extractor      : Extractor<T, R>,
                         firstColumn    : Boolean,
-            val         sorter         : Sorter<T, S>?,
-                        editor         : TableEditor<T>?): InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
+                        sorter         : Sorter<T, S>?,
+                        editor         : TableEditor<T>?
+    ): InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
 
         private inner class FieldModel<A>(model: M, extractor: Extractor<T, A>): InternalListColumn<R>.FieldModel<A>(model, extractor), MutableListModel<A> {
             override fun set        (index  : Int, value : A            ): A? = this[index] // This is essential to allow MutableList to handle edits that result in the content being unchanged
@@ -78,6 +81,10 @@ class MutableTable<T, M: MutableListModel<T>>(
                 view.editor = new?.let { ListEditorAdapter(it) }
             }
 
+        override var comparator = sorter?.let {
+            Comparator<T> { a, b -> it(a).compareTo(it(b)) }
+        }
+
         override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
             override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
         }, selectionModelWrapper, fitContent = false).apply {
@@ -85,18 +92,6 @@ class MutableTable<T, M: MutableListModel<T>>(
 
             this@MutableInternalListColumn.editor?.let {
                 this.editor = ListEditorAdapter(it)
-            }
-        }
-
-        override fun sort(list: MutableListModel<T>) {
-            sorter?.let {
-                list.sortWith(Comparator { a, b -> it(a).compareTo(it(b)) })
-            }
-        }
-
-        override fun sortDescending(list: MutableListModel<T>) {
-            sorter?.let {
-                list.sortWith(Comparator { a, b -> it(b).compareTo(it(a)) })
             }
         }
     }
@@ -115,14 +110,18 @@ class MutableTable<T, M: MutableListModel<T>>(
         MutableColumnFactoryImpl().apply(block)
     }
 
-    data class Sorting(val column: MutableColumn<*, *>, val order: SortOrder)
+    data class Sorting<T>(val column: MutableColumn<T, *>, val order: SortOrder)
 
     /** Notifies changes to [sorting] */
-    val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting>>(this) }
+    val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }
 
     /** current sorting for the table default is ```emptyList()```.  */
-    var sorting by ObservableProperty(emptyList(), { this }, sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting>>)
-        private set
+    var sorting by object: ObservableProperty<MutableTable<T, M>, List<Sorting<T>>>(emptyList(), { this }, sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) {
+        override fun afterChange(property: KProperty<*>, oldValue: List<Sorting<T>>, newValue: List<Sorting<T>>) {
+            updateSort()
+            super.afterChange(property, oldValue, newValue)
+        }
+    }
 
     val editing get() = editingColumn != null
 
@@ -156,15 +155,29 @@ class MutableTable<T, M: MutableListModel<T>>(
     }
 
     fun sort(by: MutableColumn<T, *>) {
-        by.sort(model)
-
         sorting = listOf(Sorting(by, order = Ascending))
     }
 
     fun sortDescending(by: MutableColumn<T, *>) {
-        by.sortDescending(model)
-
         sorting = listOf(Sorting(by, order = Descending))
+    }
+
+    private fun updateSort() {
+        val comparator = sorting.fold(null as Comparator<T>?) { a, b ->
+            var next = b.column.comparator
+
+            if (b.order == Descending) {
+                next = next?.reversed()
+            }
+
+            when {
+                a == null -> next
+                next != null -> a.then(next)
+                else -> null
+            }
+        }
+
+        comparator?.let { model.sortWith(it) }
     }
 
     fun startEditing(index: Int, column: MutableColumn<T, *>) {

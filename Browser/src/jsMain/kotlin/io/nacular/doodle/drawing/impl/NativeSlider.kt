@@ -10,6 +10,7 @@ import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.size
@@ -28,7 +29,9 @@ internal class NativeSliderFactoryImpl internal constructor(
         private val htmlFactory              : HtmlFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?): NativeSliderFactory {
+        private val focusManager             : FocusManager?,
+        private val nativeFocusManager       : NativeFocusManager?
+): NativeSliderFactory {
 
     private val sizeDifference: Size by lazy {
         val slider = htmlFactory.createInput().apply {
@@ -51,16 +54,26 @@ internal class NativeSliderFactoryImpl internal constructor(
         })
     }
 
-    override fun invoke(slider: Slider) = NativeSlider(htmlFactory, nativeEventHandlerFactory, focusManager, defaultSize, sizeDifference, slider)
+    override fun invoke(slider: Slider) = NativeSlider(
+            htmlFactory,
+            nativeEventHandlerFactory,
+            focusManager,
+            nativeFocusManager,
+            defaultSize,
+            sizeDifference,
+            slider
+    )
 }
 
 internal class NativeSlider internal constructor(
-                    htmlFactory   : HtmlFactory,
-                    handlerFactory: NativeEventHandlerFactory,
-        private val focusManager  : FocusManager?,
-        private val defaultSize   : Size,
-        private val marginSize    : Size,
-        private val slider        : Slider): NativeEventListener {
+                    htmlFactory       : HtmlFactory,
+                    handlerFactory    : NativeEventHandlerFactory,
+        private val focusManager      : FocusManager?,
+        private val nativeFocusManager: NativeFocusManager?,
+        private val defaultSize       : Size,
+        private val marginSize        : Size,
+        private val slider            : Slider
+): NativeEventListener {
 
     private val oldSliderHeight = slider.height
 
@@ -83,6 +96,8 @@ internal class NativeSlider internal constructor(
             true -> sliderElement.focus()
             else -> sliderElement.blur ()
         }
+
+        nativeFocusManager?.hasFocusOwner = new
     }
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
