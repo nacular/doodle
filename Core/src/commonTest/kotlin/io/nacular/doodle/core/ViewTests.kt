@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.core
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.RenderManager

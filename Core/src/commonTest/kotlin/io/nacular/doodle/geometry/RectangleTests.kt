@@ -1,6 +1,5 @@
 package io.nacular.doodle.geometry
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.layout.Insets

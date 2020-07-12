@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.GraphicsSurface

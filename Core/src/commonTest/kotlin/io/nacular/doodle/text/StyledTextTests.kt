@@ -1,6 +1,5 @@
 package io.nacular.doodle.text
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorFill
 import kotlin.test.Test

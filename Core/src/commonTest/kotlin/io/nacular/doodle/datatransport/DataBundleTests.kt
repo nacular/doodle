@@ -1,6 +1,5 @@
 package io.nacular.doodle.datatransport
 
-import io.nacular.doodle.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

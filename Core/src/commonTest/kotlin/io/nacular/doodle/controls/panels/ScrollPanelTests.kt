@@ -1,15 +1,15 @@
 package io.nacular.doodle.controls.panels
 
-import io.nacular.doodle.JsName
-import io.nacular.doodle.core.Box
-import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Size
 import io.mockk.CapturingSlot
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.core.Box
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

@@ -1,8 +1,8 @@
 package io.nacular.doodle.utils
 
-import io.nacular.doodle.JsName
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.expect

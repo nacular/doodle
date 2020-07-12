@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.controls.text
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
@@ -12,6 +11,7 @@ import io.nacular.doodle.text.invoke
 import io.nacular.doodle.text.rangeTo
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls
 
-import io.nacular.doodle.JsName
+import io.mockk.mockk
+import io.mockk.verify
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -8,8 +9,7 @@ import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.utils.PropertyObserver
-import io.mockk.mockk
-import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

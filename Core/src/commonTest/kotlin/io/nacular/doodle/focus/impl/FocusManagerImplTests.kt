@@ -1,6 +1,5 @@
 package io.nacular.doodle.focus.impl
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.View
 import io.nacular.doodle.focus.FocusManager
 import io.mockk.every

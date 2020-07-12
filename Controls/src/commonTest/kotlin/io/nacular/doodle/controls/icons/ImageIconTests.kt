@@ -1,6 +1,5 @@
 package io.nacular.doodle.controls.icons
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -11,6 +10,7 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.image.Image
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

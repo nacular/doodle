@@ -1,6 +1,5 @@
 package io.nacular.doodle.controls.tree
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
@@ -8,6 +7,7 @@ import io.nacular.doodle.utils.Path
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

@@ -1,6 +1,5 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
@@ -23,6 +22,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.Ignore

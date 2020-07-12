@@ -1,6 +1,5 @@
 package io.nacular.doodle.deviceinput
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View

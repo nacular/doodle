@@ -1,6 +1,5 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red

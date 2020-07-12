@@ -4,7 +4,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse

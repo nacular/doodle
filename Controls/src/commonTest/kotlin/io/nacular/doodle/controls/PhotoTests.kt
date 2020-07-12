@@ -1,12 +1,12 @@
 package io.nacular.doodle.controls
 
-import io.nacular.doodle.JsName
+import io.mockk.mockk
+import io.mockk.verify
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
-import io.mockk.mockk
-import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 
 /**

@@ -1,6 +1,5 @@
 package io.nacular.doodle.layout
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.geometry.Size
 import io.mockk.every

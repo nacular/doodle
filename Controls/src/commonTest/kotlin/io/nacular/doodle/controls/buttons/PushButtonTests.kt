@@ -1,10 +1,10 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.JsName
 import io.mockk.Called
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
+import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect

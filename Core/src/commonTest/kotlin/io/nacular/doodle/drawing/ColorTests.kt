@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Cyan

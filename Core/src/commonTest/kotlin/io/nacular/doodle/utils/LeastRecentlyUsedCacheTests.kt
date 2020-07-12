@@ -1,6 +1,5 @@
 package io.nacular.doodle.utils
 
-import io.nacular.doodle.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect

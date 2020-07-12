@@ -1,6 +1,5 @@
 package io.nacular.doodle.geometry
 
-import io.nacular.doodle.JsName
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import kotlin.test.Test
 import kotlin.test.expect
