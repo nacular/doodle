@@ -25,17 +25,17 @@ open class DynamicList<T, M: DynamicListModel<T>>(
 
         val oldVisibleRange = firstVisibleRow..lastVisibleRow
 
-        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
-
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
+        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
         }
 
-        trueAdded = trueAdded.filterKeys { it <= lastVisibleRow }
+        trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
+        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
 
         if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleRow..lastVisibleRow).size) {
+            val numToRemove = oldVisibleRange.size - (firstVisibleRow..lastVisibleRow).size
             children.batch {
-                for (it in 0 until trueRemoved.size - trueAdded.size) {
+                for (it in 0 until numToRemove) {
                     removeAt(0)
                 }
             }

@@ -352,10 +352,10 @@ internal class DragManagerImpl(
     }
 
     private fun createVisual(visual: Renderable?) {
-        // TODO: Make this a general purpose View -> Image generator
-        visualCanvas = graphicsDevice.create()
-
         if (visual != null) {
+            // TODO: Make this a general purpose View -> Image generator
+            visualCanvas = graphicsDevice.create()
+
             visualCanvas.rootElement.style.setTop(-visual.size.height)
 
             visualCanvas.zOrder = -Int.MAX_VALUE
