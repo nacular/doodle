@@ -12,13 +12,9 @@ import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.core.Box
-import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
@@ -28,7 +24,6 @@ import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
-import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 5/5/19.
@@ -231,9 +226,14 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
             maxWidth      : Double?        = null,
             extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
-        override val view = Tree(model.map(extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous, isSelected)
-        }, selectionModel, scrollCache = scrollCache).apply {
+        override val view = Tree(
+                model.map(extractor),
+                object: IndexedItemVisualizer<R> {
+                    override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalTreeColumn.cellGenerator(this@InternalTreeColumn, item, index, previous, isSelected)
+                },
+                selectionModel,
+                scrollCache = scrollCache
+        ).apply {
             acceptsThemes = false
 
 //            expanded += { _,_ ->
@@ -403,6 +403,17 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
             field = new
 
             new?.also { behavior ->
+                block?.let {
+                    factory.apply(it)
+
+                    // Last, unusable column
+                    internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
+
+                    children += listOf(header, panel)
+
+                    block = null
+                }
+
                 behavior.bodyDirty   = bodyDirty
                 behavior.headerDirty = headerDirty
                 behavior.columnDirty = columnDirty
@@ -449,79 +460,31 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     private val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
-    init {
-        ColumnFactoryImpl().apply(block)
+    protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
-        internalColumns += InternalListColumn(header = null, cellGenerator = object: CellVisualizer<Unit> {
-            override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
-        }) {} // FIXME: Use a more robust method to avoid any rendering of the cell contents
-    }
+    private var block: (ColumnFactory<T>.() -> Unit)? = block
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*, *, *>>()
 
-    private val header: Box = object: Box() {
-        init {
-            layout = object: Layout {
-                override fun layout(container: PositionableContainer) {
-                    var x = 0.0
-                    var totalWidth = 0.0
-
-                    container.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, container.height))
-
-                        x += view.width
-                        totalWidth += view.width
-                    }
-
-                    container.width = totalWidth + internalColumns[internalColumns.size - 1].width
-                }
-            }
-        }
-
-        override fun render(canvas: Canvas) {
+    private val header by lazy {
+        TableHeader(internalColumns) { canvas ->
             behavior?.renderHeader(this@TreeTable, canvas)
         }
     }
 
-    private val panel = ScrollPanel(object: Box() {
-        init {
-            children += internalColumns.map { it.view }
-
-            layout = object: Layout {
-                override fun layout(container: PositionableContainer) {
-                    var x          = 0.0
-                    var height     = 0.0
-                    var totalWidth = 0.0
-
-                    container.children.forEachIndexed { index, view ->
-                        view.bounds = Rectangle(Point(x, 0.0), Size(internalColumns[index].width, view.minimumSize.height))
-
-                        x          += view.width
-                        height      = max(height, view.height)
-                        totalWidth += view.width
-                    }
-
-                    container.height = max(container.parent!!.height, height)
-
-                    container.children.forEach {
-                        it.height = container.height
-                    }
-                }
-            }
-        }
-
-        override fun render(canvas: Canvas) {
+    private val panel by lazy {
+        val panel = TablePanel(internalColumns) { canvas ->
             behavior?.renderBody(this@TreeTable, canvas)
         }
-    }.apply {
-        // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
-        boundsChanged += { _,old,new ->
-            if (old.x != new.x) {
-                header.x = new.x
+
+        ScrollPanel(panel.apply {
+            // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
+            boundsChanged += { _, old, new ->
+                if (old.x != new.x) {
+                    header.x = new.x
+                }
             }
-        }
-    }).apply {
-        scrollsHorizontally = false
+        })
     }
 
     @Suppress("PrivatePropertyName")
@@ -532,8 +495,6 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
     }
 
     init {
-        children += listOf(header, panel)
-
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 

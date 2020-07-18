@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Completable
@@ -15,7 +16,7 @@ import kotlin.math.min
  */
 internal interface TableLikeBehavior<T: TableLike> {
     fun <B: TableLikeBehavior<T>, R> columnMoveStart(table: T, internalColumn: InternalColumn<T, B, R>)
-    fun <B: TableLikeBehavior<T>, R> columnMoveEnd(table: T, internalColumn: InternalColumn<T, B, R>)
+    fun <B: TableLikeBehavior<T>, R> columnMoveEnd  (table: T, internalColumn: InternalColumn<T, B, R>)
     fun <B: TableLikeBehavior<T>, R> columnMoved    (table: T, internalColumn: InternalColumn<T, B, R>)
     fun moveColumn(table: T, function: (Float) -> Unit): Completable?
 }
@@ -220,4 +221,14 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
     abstract val view: View
 
     abstract fun behavior(behavior: B?)
+}
+
+internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit>(table, null, null, null, object: CellVisualizer<Unit> {
+    override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
+}, null, null, 0.0, null) {
+    override val view = view ?: object: View() {
+        override fun contains(point: Point) = false
+    }
+
+    override fun behavior(behavior: B?) {}
 }

@@ -1,10 +1,10 @@
 package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
 import io.nacular.doodle.utils.Path
@@ -34,10 +34,16 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
         operator fun <A> invoke(table: Table<T, *>, column: Column<A>): View
     }
 
-    val cellGenerator      : CellGenerator<T>
-    val rowPositioner      : RowPositioner<T>
-    val headerPositioner   : HeaderPositioner<T>
-    val headerCellGenerator: HeaderCellGenerator<T>
+    interface OverflowColumnConfig<T> {
+        fun header(table: Table<T, *>): View? = null
+        fun body  (table: Table<T, *>): View? = null
+    }
+
+    val cellGenerator       : CellGenerator<T>
+    val rowPositioner       : RowPositioner<T>
+    val headerPositioner    : HeaderPositioner<T>
+    val headerCellGenerator : HeaderCellGenerator<T>
+    val overflowColumnConfig: OverflowColumnConfig<T>?
 
     var bodyDirty  : ((         ) -> Unit)?
     var headerDirty: ((         ) -> Unit)?
@@ -53,7 +59,6 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
     fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
 }
-
 
 interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     interface TreeCellGenerator<T> {
@@ -78,11 +83,17 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
         operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>): View
     }
 
-    val treeCellGenerator  : TreeCellGenerator<T>
-    val cellGenerator      : CellGenerator<T>
-    val rowPositioner      : RowPositioner<T>
-    val headerPositioner   : HeaderPositioner<T>
-    val headerCellGenerator: HeaderCellGenerator<T>
+    interface OverflowColumnConfig<T> {
+        fun header(table: TreeTable<T, *>): View? = null
+        fun body  (table: TreeTable<T, *>): View? = null
+    }
+
+    val treeCellGenerator   : TreeCellGenerator<T>
+    val cellGenerator       : CellGenerator<T>
+    val rowPositioner       : RowPositioner<T>
+    val headerPositioner    : HeaderPositioner<T>
+    val headerCellGenerator : HeaderCellGenerator<T>
+    val overflowColumnConfig: OverflowColumnConfig<T>?
 
     var bodyDirty  : ((         ) -> Unit)?
     var headerDirty: ((         ) -> Unit)?
