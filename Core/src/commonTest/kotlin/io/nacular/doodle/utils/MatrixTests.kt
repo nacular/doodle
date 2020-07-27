@@ -2,6 +2,7 @@
 
 package io.nacular.doodle.utils
 
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect

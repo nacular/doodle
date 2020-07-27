@@ -1,10 +1,11 @@
 package io.nacular.doodle.focus.impl
 
-import io.nacular.doodle.core.View
-import io.nacular.doodle.focus.FocusManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.core.View
+import io.nacular.doodle.focus.FocusManager
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

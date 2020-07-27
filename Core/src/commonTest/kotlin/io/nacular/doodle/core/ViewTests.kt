@@ -33,6 +33,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.Test

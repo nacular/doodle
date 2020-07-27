@@ -52,7 +52,7 @@ open class BasicItemGenerator<T>(private val focusManager         : FocusManager
 private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
     override fun rowFor(list: List<T, *>, y: Double) = super.rowFor(list.insets, y)
 
-    override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list, list.insets, index)
+    override fun invoke(list: List<T, *>, row: T, index: Int) = super.invoke(list.width, list.insets, index)
 }
 
 open class BasicListBehavior<T>(override val generator   : RowGenerator<T>,

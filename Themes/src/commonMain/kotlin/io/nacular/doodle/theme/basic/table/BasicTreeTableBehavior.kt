@@ -94,7 +94,7 @@ open class BasicTreeTableBehavior<T>(
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
-    override val treeCellGenerator = object: TreeTableBehavior.TreeCellGenerator<T> {
+    override val treeCellGenerator = object: TreeCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: IndexedItemVisualizer<A> {
@@ -117,7 +117,7 @@ open class BasicTreeTableBehavior<T>(
     override val rowPositioner = object: RowPositioner<T> {
         private val delegate = ListPositioner(rowHeight)
 
-        override fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate(table, table.insets, index)
+        override fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate(table.width, table.insets, index)
         override fun rowFor(table: TreeTable<T, *>, y: Double)                           = delegate.rowFor(table.insets, y)
     }
 

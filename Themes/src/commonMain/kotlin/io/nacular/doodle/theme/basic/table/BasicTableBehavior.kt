@@ -121,7 +121,7 @@ open class BasicTableBehavior<T>(
     override val rowPositioner = object: RowPositioner<T> {
         private val delegate = ListPositioner(rowHeight)
 
-        override fun invoke(table: Table<T, *>, row: T, index: Int) = delegate(table, table.insets, index)
+        override fun invoke(table: Table<T, *>, row: T, index: Int) = delegate(table.width, table.insets, index)
         override fun rowFor(table: Table<T, *>, y: Double)          = delegate.rowFor(table.insets, y    )
     }
 

@@ -18,6 +18,7 @@ import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
+import kotlin.js.JsName
 import kotlin.test.Test
 
 /**

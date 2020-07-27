@@ -14,7 +14,6 @@ import io.nacular.doodle.utils.Path
  */
 data class HeaderGeometry(val y: Double, val height: Double)
 
-
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
         operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View? = null): View

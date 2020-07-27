@@ -2,12 +2,13 @@
 
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.core.Box
-import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.GraphicsSurface
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.GraphicsSurface
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

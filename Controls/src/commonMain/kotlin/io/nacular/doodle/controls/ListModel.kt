@@ -61,6 +61,7 @@ interface MutableListModel<T>: DynamicListModel<T> {
     fun removeAll  (values : Collection<T>             )
     fun retainAll  (values : Collection<T>             )
     fun removeAllAt(indexes: Collection<Int>           )
+    fun replaceAll (values : Collection<T>             )
 
     fun clear()
 
@@ -109,6 +110,7 @@ open class SimpleMutableListModel<T> private constructor(private val list: Obser
     override fun removeAll  (values : Collection<T>             ) = list.removeAll(values       ).run { Unit }
     override fun retainAll  (values : Collection<T>             ) = list.retainAll(values       ).run { Unit }
     override fun removeAllAt(indexes: Collection<Int>           ) = list.batch { indexes.sortedDescending().forEach { list.removeAt(it) } }
+    override fun replaceAll (values : Collection<T>             ) = list.replaceAll(values).run { Unit }
 
     override fun clear() = list.clear()
 

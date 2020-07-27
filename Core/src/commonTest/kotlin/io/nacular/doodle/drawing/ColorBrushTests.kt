@@ -4,6 +4,7 @@ import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

@@ -109,7 +109,7 @@ class TreeRow<T>(tree                 : TreeLike,
     private  var pointerOver = false
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
-        if (tree.selected(index)) {
+        if (tree.selected(path)) {
             backgroundColor = if (new) selectionColor else selectionBlurredColor
         }
     }
@@ -252,7 +252,7 @@ class TreeRow<T>(tree                 : TreeLike,
 
         idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
         backgroundColor = when {
-            tree.selected(index) -> {
+            tree.selected(path) -> {
                 tree.focusChanged += treeFocusChanged
 
                 if (tree.hasFocus) selectionColor else selectionBlurredColor

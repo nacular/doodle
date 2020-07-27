@@ -62,7 +62,7 @@ open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): TreeModel<
 
     override fun children(parent: Path<Int>) = (node(parent)?.children?.asSequence() ?: emptySequence()).map { it.value }.iterator()
 
-    override fun isLeaf(node: Path<Int>) = node(node)?.children?.isEmpty() ?: false
+    override fun isLeaf(node: Path<Int>) = node(node)?.children?.isEmpty() ?: true
 
     override fun child(of: Path<Int>, path: Int) = node(of)?.children?.get(path)?.value
 

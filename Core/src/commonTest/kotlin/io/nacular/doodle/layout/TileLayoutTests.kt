@@ -1,9 +1,10 @@
 package io.nacular.doodle.layout
 
-import io.nacular.doodle.core.PositionableContainer
-import io.nacular.doodle.geometry.Size
 import io.mockk.every
 import io.mockk.mockk
+import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.geometry.Size
+import kotlin.js.JsName
 import kotlin.test.Ignore
 import kotlin.test.Test
 

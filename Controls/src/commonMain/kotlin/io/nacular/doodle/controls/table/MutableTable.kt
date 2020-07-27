@@ -56,6 +56,7 @@ class MutableTable<T, M: MutableListModel<T>>(
             override fun removeAll  (              values: Collection<A>) { /*NO-OP*/ }
             override fun retainAll  (              values: Collection<A>) { /*NO-OP*/ }
             override fun removeAllAt(indexes: Collection<Int>           ) { /*NO-OP*/ }
+            override fun replaceAll (              values: Collection<A>) { /*NO-OP*/ }
             override fun clear      (                                   ) { /*NO-OP*/ }
 
             override fun <R: Comparable<R>> sortBy            (selector  : (A) -> R?       ) { /*NO-OP*/ }

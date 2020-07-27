@@ -1,6 +1,7 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect

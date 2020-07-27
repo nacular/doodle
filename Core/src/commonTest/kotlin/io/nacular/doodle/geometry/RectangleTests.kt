@@ -3,6 +3,7 @@ package io.nacular.doodle.geometry
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.layout.Insets
+import kotlin.js.JsName
 import kotlin.math.max
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

@@ -7,6 +7,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import kotlin.math.max
 
 internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Box() {
     init {
@@ -48,11 +49,13 @@ internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val rend
                     view.bounds = Rectangle(Point(x, 0.0), Size(columns[index].width, view.minimumSize.height))
 
                     x          += view.width
-                    height      = kotlin.math.max(height, view.height)
+                    height      = max(height, view.height)
                     totalWidth += view.width
                 }
 
-                container.size = Size(kotlin.math.max(container.parent!!.width, totalWidth), kotlin.math.max(container.parent!!.height, height))
+                container.parent?.let {
+                    container.size = Size(max(it.width, totalWidth), max(it.height, height))
+                }
 
                 container.children.forEach {
                     it.height = container.height

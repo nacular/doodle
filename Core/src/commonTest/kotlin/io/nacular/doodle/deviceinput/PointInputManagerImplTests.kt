@@ -1,5 +1,10 @@
 package io.nacular.doodle.deviceinput
 
+import io.mockk.Ordering.ORDERED
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
@@ -23,11 +28,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
-import io.mockk.Ordering.ORDERED
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 
 /**

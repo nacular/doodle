@@ -1,5 +1,7 @@
 package io.nacular.doodle.drawing
 
+import io.mockk.mockk
+import io.mockk.verify
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
@@ -11,8 +13,7 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.times
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
-import io.mockk.mockk
-import io.mockk.verify
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

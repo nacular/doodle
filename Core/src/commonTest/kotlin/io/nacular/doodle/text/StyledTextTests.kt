@@ -2,6 +2,7 @@ package io.nacular.doodle.text
 
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorFill
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 

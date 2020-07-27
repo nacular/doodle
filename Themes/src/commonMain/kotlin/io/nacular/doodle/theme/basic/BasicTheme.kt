@@ -20,6 +20,7 @@ import io.nacular.doodle.controls.theme.LabelBehavior
 import io.nacular.doodle.controls.tree.MutableTree
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeModel
+import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
@@ -44,6 +45,9 @@ import io.nacular.doodle.theme.basic.table.BasicMutableTableBehavior
 import io.nacular.doodle.theme.basic.table.BasicTableBehavior
 import io.nacular.doodle.theme.basic.tree.BasicMutableTreeBehavior
 import io.nacular.doodle.theme.basic.tree.BasicTreeBehavior
+import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
+import io.nacular.doodle.theme.basic.treecolumns.SimpleTreeColumnRowIcon
+import io.nacular.doodle.theme.basic.treecolumns.TreeColumnRowIcon
 import org.kodein.di.Kodein
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
@@ -246,6 +250,27 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
+        fun basicTreeColumnsBehavior(
+                rowHeight            : Double? = null,
+                evenRowColor         : Color?  = null,
+                oddRowColor          : Color?  = null,
+                selectionColor       : Color?  = null,
+                selectionBlurredColor: Color?  = null,
+                iconFactory          : (() -> TreeColumnRowIcon)? = null) = basicThemeModule(name = "BasicTreeColumnsBehavior") {
+            bindBehavior<TreeColumns<Any, *>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run { BasicTreeColumnsBehavior (
+                        focusManager          = instanceOrNull(),
+                        textMetrics           = instance(),
+                        rowHeight             = rowHeight             ?: 20.0,
+                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
+                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        iconFactory           = iconFactory           ?: { SimpleTreeColumnRowIcon(foregroundColor, foregroundColor.inverted) }
+                ) }
+            }
+        }
+
         fun basicButtonBehavior(
                 backgroundColor    : Color?  = null,
                 darkBackgroundColor: Color?  = null,
@@ -424,6 +449,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                     basicMutableListBehavior(),
                     basicProgressBarBehavior(),
                     basicMutableTreeBehavior(),
+                    basicTreeColumnsBehavior(),
                     basicMutableTableBehavior()),
                     allowOverride = true)
         }

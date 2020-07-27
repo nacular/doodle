@@ -25,12 +25,13 @@ open class DynamicList<T, M: DynamicListModel<T>>(
 
         val oldVisibleRange = firstVisibleRow..lastVisibleRow
 
+        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
+
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
         }
 
-        trueAdded   = trueAdded.filterKeys   { it <= lastVisibleRow }
-        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
+        trueAdded = trueAdded.filterKeys   { it <= lastVisibleRow }
 
         if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleRow..lastVisibleRow).size) {
             val numToRemove = oldVisibleRange.size - (firstVisibleRow..lastVisibleRow).size
