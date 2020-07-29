@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.panels
 
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
@@ -7,7 +8,9 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.MagnitudeConstraint
+import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
@@ -71,6 +74,22 @@ open class ScrollPanel(content: View? = null): View() {
     /** Allows horizontal scrolling when set to `true`. Defaults to `true`. */
     var scrollsHorizontally = true
 
+    /** Determines how the [content] width changes as the panel resizes */
+    var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
+        set(new) {
+            field = new
+
+            (layout as ViewLayout).updateConstraints()
+        }
+
+    /** Determines how the [content] height changes as the panel resizes */
+    var contentHeightConstraints: Constraints.() -> MagnitudeConstraint = { idealHeight or height }
+        set(new) {
+            field = new
+
+            (layout as ViewLayout).updateConstraints()
+        }
+
     /** The current scroll offset. */
     var scroll = Origin
         private set
@@ -91,7 +110,8 @@ open class ScrollPanel(content: View? = null): View() {
 
     init {
         this.content = content
-        layout       = ViewLayout()
+
+        layout = ViewLayout()
     }
 
     override fun render(canvas: Canvas) {
@@ -196,12 +216,29 @@ open class ScrollPanel(content: View? = null): View() {
     }
 
     private inner class ViewLayout: Layout {
-        override fun layout(container: PositionableContainer) {
-            container.children.forEach  {
-                val width  = if (scrollsHorizontally) it.idealSize?.width  ?: it.width  else this@ScrollPanel.width
-                val height = if (scrollsVertically  ) it.idealSize?.height ?: it.height else this@ScrollPanel.height
+        var delegate = null as Layout?
 
-                it.bounds = Rectangle(-scroll.x, -scroll.y, width, height)
+        init {
+            updateConstraints()
+        }
+
+        override fun layout(container: PositionableContainer) {
+            delegate?.layout(container)
+
+            container.children.forEach  {
+                it.position = Point(-scroll.x, -scroll.y)
+            }
+        }
+
+        fun updateConstraints() {
+            delegate = content?.let { content ->
+                constrain(content) {
+                    val width  = contentWidthConstraints (it)
+                    val height = contentHeightConstraints(it)
+
+                    it.width  = width
+                    it.height = height
+                }
             }
         }
     }

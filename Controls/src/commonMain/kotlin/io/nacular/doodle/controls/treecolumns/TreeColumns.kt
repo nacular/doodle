@@ -15,6 +15,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
@@ -146,7 +147,6 @@ open class TreeColumns<T, M: TreeModel<T>>(
 
         override fun contains(item: Int) = delegateHandle?.iterator()?.asSequence()?.find { overlappingIndex(it) == item } != null
 
-
         // FIXME: This is pretty inefficient
         override val changed: Pool<SetObserver<Int>> = SetPool()
 
@@ -247,12 +247,17 @@ open class TreeColumns<T, M: TreeModel<T>>(
                     val columnIndex = index + 1
 
                     if (columnIndex < columns.size) {
-                        columns[columnIndex].list.disable()
+                        val column = columns[columnIndex]
 
-                        columns[columnIndex].path = path
-                        columns[columnIndex].list.localSelectionModel?.root = path
-                        columns[columnIndex].list.model.replaceAll(model.children(path).asSequence().toList())
-                        columns[columnIndex].list.enable()
+                        if (column.path != path) {
+                            column.apply {
+                                list.disable()
+                                this.path = path
+                                list.localSelectionModel?.root = path
+                                list.model.replaceAll(model.children(path).asSequence().toList())
+                                list.enable()
+                            }
+                        }
                     } else {
                         columns += createColumn(path)
                     }
@@ -269,7 +274,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
                     }
                     else                      -> {
                         (size until columns.size).forEach {
-                            this += ScrollPanel(columns[it].list).apply { scrollsHorizontally = false } // add to children
+                            this += createScrollPanel(columns[it].list) // add to children
                         }
                     }
                 }
@@ -278,7 +283,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
 
         columns += createColumn(Path())
 
-        children.addAll(columns.map { ScrollPanel(it.list).apply { scrollsHorizontally = false } })
+        children.addAll(columns.map { createScrollPanel(it.list) })
 
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
@@ -288,7 +293,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
                 var width = 0.0
 
                 container.children.forEach {
-                    it.bounds = Rectangle(x, y, 100.0 /*it.width*/, h) // FIXME
+                    it.bounds = Rectangle(x, y, it.idealSize?.width ?: 150.0, h) // FIXME
 
                     x += it.width
 
@@ -359,17 +364,23 @@ open class TreeColumns<T, M: TreeModel<T>>(
         // FIXME: IMPLEMENT
     }
 
-    private fun createColumn(node: Path<Int>): Column<T> = Column(node, CustomMutableList(
-            SimpleMutableListModel(model.children(node).asSequence().toList()),
-            itemVisualizer,
-            selectionModel?.let { LocalSelectionModel(node, it) },
-            fitContent  = false,
-            scrollCache = 10
-    ).apply {
-        width = 100.0 // FIXME
+    private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
+        contentWidthConstraints  = { parent.width }
+        contentHeightConstraints = { max(minHeight, parent.height) }
+    }
 
-        acceptsThemes = false
-    }).also {
+    private fun createColumn(node: Path<Int>): Column<T> = Column(
+            node,
+            CustomMutableList(
+                SimpleMutableListModel(model.children(node).asSequence().toList()),
+                itemVisualizer,
+                selectionModel?.let { LocalSelectionModel(node, it) },
+                fitContent  = false,
+                scrollCache = 10
+            ).apply {
+                acceptsThemes = false
+            }
+    ).also {
         behavior?.let { behavior ->
             installBehavior(it, behavior)
         }

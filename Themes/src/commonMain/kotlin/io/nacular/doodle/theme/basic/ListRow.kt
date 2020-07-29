@@ -145,7 +145,7 @@ open class ListPositioner(private val height: Double, private val spacing: Doubl
     operator fun invoke(width: Double, insets: Insets, index: Int) = Rectangle(
             insets.left,
             insets.top + index * height + (index + 1) * spacing,
-            width - insets.run { left + right },
+            max(0.0, width - insets.run { left + right }),
             height
     )
 }

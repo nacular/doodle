@@ -128,7 +128,7 @@ open class Tree<T, out M: TreeModel<T>>(
         set(new) {
             field = new
 
-            minimumSize = Size(minimumSize.width, field)
+            minimumSize = Size(minimumSize.width, field).also { idealSize = it }
             height      = field
         }
 
@@ -194,14 +194,18 @@ open class Tree<T, out M: TreeModel<T>>(
             val oldFirst = firstVisibleRow
             val oldLast  = lastVisibleRow
 
-            firstVisibleRow = when (val y = new.y) {
-                old.y -> firstVisibleRow
-                else  -> max(0, findRowAt(y, firstVisibleRow) - scrollCache)
+            var y = new.y
+
+            firstVisibleRow = when {
+                y == old.y && !old.empty -> firstVisibleRow
+                else                     -> max(0, findRowAt(y, firstVisibleRow) - scrollCache)
             }
 
-            lastVisibleRow = when (val y = new.bottom) {
-                old.bottom -> lastVisibleRow
-                else       -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
+            y = new.bottom
+
+            lastVisibleRow = when {
+                y == old.bottom && !old.empty -> lastVisibleRow
+                else                          -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
             val halfCacheLength = min(children.size, scrollCache) / 2

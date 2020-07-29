@@ -516,11 +516,11 @@ interface ConstraintBlockContext {
 
 private class ConstraintBlockContextImpl(override val parent: ParentConstraints): ConstraintBlockContext
 
-fun constrain(a: View,                                     block: ConstraintBlockContext.(Constraints                                                                                           ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,                      block) }
-fun constrain(a: View, b: View,                            block: ConstraintBlockContext.(Constraints, Constraints                                                                              ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,                   block) }
-fun constrain(a: View, b: View, c: View,                   block: ConstraintBlockContext.(Constraints, Constraints, Constraints                                                                 ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,                block) }
-fun constrain(a: View, b: View, c: View, d: View,          block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,             block) }
-fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, e,          block) }
+fun constrain(a: View,                                     block: ConstraintBlockContext.(Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,             block) }
+fun constrain(a: View, b: View,                            block: ConstraintBlockContext.(Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,          block) }
+fun constrain(a: View, b: View, c: View,                   block: ConstraintBlockContext.(Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,       block) }
+fun constrain(a: View, b: View, c: View, d: View,          block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,    block) }
+fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, e, block) }
 
 fun max(a: Double, b: HorizontalConstraint) = HorizontalConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
 inline fun max(a: HorizontalConstraint, b: Double) = max(b, a)
