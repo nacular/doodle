@@ -32,7 +32,7 @@ class Resizer(private val view: View): PointerListener, PointerMotionListener {
     }
 
     var movable     = true
-    var directions  = mutableSetOf(North, East, South, West)
+    var directions  = setOf(North, East, South, West)
     var hotspotSize = 5.0
 
     private var dragMode             = mutableSetOf<Direction>()
@@ -146,7 +146,7 @@ class Resizer(private val view: View): PointerListener, PointerMotionListener {
                 mask += North
             }
         } else if (y >= view.height - hotspotSize) {
-            if (directions.contains(South)) {
+            if (South in directions) {
                 mask += South
             }
         } else {

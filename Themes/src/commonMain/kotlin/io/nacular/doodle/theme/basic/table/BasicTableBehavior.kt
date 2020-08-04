@@ -14,6 +14,7 @@ import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.table.TableBehavior.HeaderCellGenerator
 import io.nacular.doodle.controls.table.TableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.TableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.TableBehavior.RowPositioner
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit
@@ -28,9 +29,9 @@ import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.KeyText.Companion.Escape
-import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
@@ -38,6 +39,9 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.theme.basic.ListPositioner
 import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
@@ -110,9 +114,9 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private  val patternFill   = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
-    private  val movingColumns = mutableSetOf<Column<*>>()
-    override val cellGenerator = BasicCellGenerator<T>()
+    private  val patternFill    = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+    private  val movingColumns  = mutableSetOf<Column<*>>()
+    override val cellGenerator  = BasicCellGenerator<T>()
 
     override val headerPositioner = object: HeaderPositioner<T> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
@@ -127,6 +131,54 @@ open class BasicTableBehavior<T>(
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
+    }
+
+    override val overflowColumnConfig = object: OverflowColumnConfig<T> {
+        override fun body(table: Table<T, *>): View? = object: View() {
+            init {
+                pointerChanged += object: PointerListener {
+                    private var pointerOver    = false
+                    private var pointerPressed = false
+
+                    override fun entered(event: PointerEvent) {
+                        pointerOver = true
+                    }
+
+                    override fun exited(event: PointerEvent) {
+                        pointerOver = false
+                    }
+
+                    override fun pressed(event: PointerEvent) {
+                        pointerPressed = true
+                    }
+
+                    override fun released(event: PointerEvent) {
+                        if (pointerOver && pointerPressed) {
+                            val index = rowPositioner.rowFor(table, event.location.y)
+
+                            if (index >= table.numRows) {
+                                return
+                            }
+
+                            when {
+                                Ctrl  in event.modifiers || Meta in event.modifiers     -> table.toggleSelection(setOf(index))
+                                Shift in event.modifiers && table.lastSelection != null -> {
+                                    table.selectionAnchor?.let { anchor ->
+                                        when {
+                                            index  < anchor -> table.setSelection((index.. anchor ).reversed().toSet())
+                                            anchor < index  -> table.setSelection((anchor  ..index).           toSet())
+                                        }
+                                    }
+                                }
+                                else                                                    -> table.setSelection(setOf(index))
+                            }
+                        }
+
+                        pointerPressed = false
+                    }
+                }
+            }
+        }
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
@@ -157,8 +209,8 @@ open class BasicTableBehavior<T>(
     // FIXME: Centralize
     override fun install(view: Table<T, *>) {
         view.keyChanged       += this
-        view.pointerChanged     += this
         view.focusChanged     += focusChanged
+        view.pointerChanged   += this
         view.selectionChanged += selectionChanged
 
         bodyDirty?.invoke  ()
@@ -167,8 +219,8 @@ open class BasicTableBehavior<T>(
 
     override fun uninstall(view: Table<T, *>) {
         view.keyChanged       -= this
-        view.pointerChanged     -= this
         view.focusChanged     -= focusChanged
+        view.pointerChanged   -= this
         view.selectionChanged -= selectionChanged
     }
 

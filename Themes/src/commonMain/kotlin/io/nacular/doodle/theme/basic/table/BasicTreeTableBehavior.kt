@@ -10,12 +10,15 @@ import io.nacular.doodle.controls.table.TreeTableBehavior
 import io.nacular.doodle.controls.table.TreeTableBehavior.CellGenerator
 import io.nacular.doodle.controls.table.TreeTableBehavior.HeaderCellGenerator
 import io.nacular.doodle.controls.table.TreeTableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.TreeTableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.TreeTableBehavior.RowPositioner
+import io.nacular.doodle.controls.table.TreeTableBehavior.TreeCellGenerator
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Green
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
@@ -28,6 +31,9 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.theme.basic.ListPositioner
 import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
@@ -68,8 +74,8 @@ open class BasicTreeTableBehavior<T>(
         private val headerColor          : Color? = Lightgray,
                     evenRowColor         : Color? = White,
                     oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                    iconColor            : Color  = Color.Black,
-        private val selectionColor       : Color? = Green.lighter(),
+                    iconColor            : Color  = Black,
+        private val selectionColor       : Color? = Blue,
         private val blurredSelectionColor: Color? = Lightgray): TreeTableBehavior<T>, PointerListener, KeyListener, SelectableTreeKeyHandler {
 
     override var headerDirty: ((         ) -> Unit)? = null
@@ -125,6 +131,54 @@ open class BasicTreeTableBehavior<T>(
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
+    override val overflowColumnConfig = object: OverflowColumnConfig<T> {
+        override fun body(table: TreeTable<T, *>): View? = object: View() {
+            init {
+                pointerChanged += object: PointerListener {
+                    private var pointerOver    = false
+                    private var pointerPressed = false
+
+                    override fun entered(event: PointerEvent) {
+                        pointerOver = true
+                    }
+
+                    override fun exited(event: PointerEvent) {
+                        pointerOver = false
+                    }
+
+                    override fun pressed(event: PointerEvent) {
+                        pointerPressed = true
+                    }
+
+                    override fun released(event: PointerEvent) {
+                        if (pointerOver && pointerPressed) {
+                            val index = rowPositioner.rowFor(table, event.location.y)
+
+                            if (index >= table.numRows) {
+                                return
+                            }
+
+                            when {
+                                Ctrl  in event.modifiers || Meta in event.modifiers     -> table.toggleSelection(setOf(index))
+                                Shift in event.modifiers && table.lastSelection != null -> {
+                                    table.selectionAnchor?.let { table.rowFromPath(it) }?.let { anchor ->
+                                        when {
+                                            index  < anchor -> table.setSelection((index.. anchor ).reversed().toSet())
+                                            anchor < index  -> table.setSelection((anchor  ..index).           toSet())
+                                        }
+                                    }
+                                }
+                                else                                                    -> table.setSelection(setOf(index))
+                            }
+                        }
+
+                        pointerPressed = false
+                    }
+                }
+            }
+        }
+    }
+
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
         headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
     }
@@ -155,8 +209,8 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         += expansionChanged
         view.collapsed        += expansionChanged
         view.keyChanged       += this
-        view.pointerChanged   += this
         view.focusChanged     += focusChanged
+        view.pointerChanged   += this
         view.selectionChanged += selectionChanged
 
         bodyDirty?.invoke  ()
@@ -167,8 +221,8 @@ open class BasicTreeTableBehavior<T>(
         view.expanded         -= expansionChanged
         view.collapsed        -= expansionChanged
         view.keyChanged       -= this
-        view.pointerChanged   -= this
         view.focusChanged     -= focusChanged
+        view.pointerChanged   -= this
         view.selectionChanged -= selectionChanged
     }
 
