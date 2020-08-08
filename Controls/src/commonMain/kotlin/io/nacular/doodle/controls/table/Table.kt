@@ -111,9 +111,11 @@ open class Table<T, M: ListModel<T>>(
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@Table, model[index]!!, index).run { Rectangle(0.0, y, list.width, height) }
+                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@Table, model[index]!!, index).run { Rectangle(0.0, y, of.width, height) }
 
-                        override fun rowFor(list: io.nacular.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@Table, y)
+                        override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.row(this@Table, atY)
+
+                        override fun totalRowHeight(of: io.nacular.doodle.controls.list.List<R, *>) = it.rowPositioner.totalRowHeight(this@Table)
                     }
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {

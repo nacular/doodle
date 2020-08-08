@@ -10,6 +10,7 @@ import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.VerticalConstraint
@@ -51,10 +52,6 @@ open class ListRow<T>(private var list                           : ListLike,
     }
 
     init {
-        childrenChanged += { _,_,_,_ ->
-            layout = constrainLayout(children[0])
-        }
-
         children += itemVisualizer(row, index)
 
         styleChanged += { rerender() }
@@ -109,6 +106,9 @@ open class ListRow<T>(private var list                           : ListLike,
 
         children[0] = itemVisualizer(row, index, children.firstOrNull()) { listSelected }
 
+        idealSize = children[0].idealSize?.let { Size(it.width, it.height + insetTop) }
+        layout = constrainLayout(children[0])
+
         when {
             listSelected -> {
                 list.focusChanged += listFocusChanged
@@ -129,12 +129,12 @@ open class ListRow<T>(private var list                           : ListLike,
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
         positioner(
-                // Override the parent for content to confine it within a smaller region
-                ConstraintWrapper(content) { parent ->
-                    object: ParentConstraintWrapper(parent) {
-                        override val top = VerticalConstraint  (this@ListRow) { insetTop }
-                    }
+            // Override the parent for content to confine it within a smaller region
+            ConstraintWrapper(content) { parent ->
+                object: ParentConstraintWrapper(parent) {
+                    override val top = VerticalConstraint(this@ListRow) { insetTop }
                 }
+            }
         )
     }
 }
@@ -142,7 +142,9 @@ open class ListRow<T>(private var list                           : ListLike,
 open class ListPositioner(private val height: Double, private val spacing: Double = 0.0) {
     fun rowFor(insets: Insets, y: Double) = max(0, ((y - insets.top) / (height + spacing)).toInt())
 
-    operator fun invoke(width: Double, insets: Insets, index: Int) = Rectangle(
+    fun totalHeight(numItems: Int, insets: Insets) = numItems * height + insets.run { top + bottom }
+
+    fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null) = Rectangle(
             insets.left,
             insets.top + index * height + (index + 1) * spacing,
             max(0.0, width - insets.run { left + right }),

@@ -64,9 +64,11 @@ class BasicTreeColumnsBehavior<T>(
     ): this(BasicTreeColumnRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
     private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
-        override fun invoke(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int) = super.invoke(columnWidth, Insets(right = VERTICAL_LINE_THICKNESS), index)
+        override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.rowBounds(columnWidth, Insets(right = VERTICAL_LINE_THICKNESS), index, current)
 
-        override fun row(of: TreeColumns<T, *>, y: Double) = super.rowFor(Insets.None, y)
+        override fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double) = super.rowFor(Insets.None, y)
+
+        override fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>) = super.totalHeight(of.numChildren(path), Insets.None)
     }
 
 //    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight, evenRowColor, oddRowColor) else null

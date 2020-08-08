@@ -93,6 +93,7 @@ open class Label internal constructor(
     var textSize = Empty
         private set(new) {
             field = new
+            idealSize = new
             if (Width  in fitText) width  = new.width
             if (Height in fitText) height = new.height
         }

@@ -44,7 +44,7 @@ import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.RelativePositionMonitor
 import kotlin.math.max
 
-private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T> {
+private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T>() {
     override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = Rectangle(
             tree.insets.left,
             tree.insets.top + index * height,
@@ -66,6 +66,8 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     override fun row(of: Tree<T, *>, atY: Double): Int {
         return max(0, ((atY - of.insets.top) / height).toInt())
     }
+
+    override fun height(of: Tree<T, *>, below: Path<Int>) = of.rowsBelow(below) * height + of.insets.run { top + bottom }
 }
 
 open class BasicTreeRowGenerator<T>(private val focusManager         : FocusManager?,

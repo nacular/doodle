@@ -123,7 +123,14 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
     override fun visible(row : Int      ) = tree.visible(row )
     override fun visible(path: Path<Int>) = tree.visible(path)
 
-    override fun isLeaf  (path: Path<Int>) = tree.isLeaf  (path)
+    override fun isLeaf  (path: Path<Int>) = model.isLeaf(path)
+
+    fun children(parent: Path<Int>) = model.children(parent)
+
+    fun child       (of    : Path<Int>, path : Int) = model.child       (of,     path )
+    fun numChildren (of    : Path<Int>            ) = model.numChildren (of           )
+    fun indexOfChild(parent: Path<Int>, child: T  ) = model.indexOfChild(parent, child)
+
     override fun expanded(path: Path<Int>) = tree.expanded(path)
     override fun collapse(path: Path<Int>) = tree.collapse(path)
     override fun expand  (path: Path<Int>) = tree.expand  (path)
@@ -256,12 +263,14 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
                         }, current)
                     }
 
-                    override val positioner get() = object: TreeBehavior.RowPositioner<R> {
-                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.invoke(this@TreeTable, path, model[path]!!, index).run { Rectangle(0.0, y, tree.width, height) }
+                    override val positioner get() = object: TreeBehavior.RowPositioner<R>() {
+                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path]!!, index).run { Rectangle(0.0, y, tree.width, height) }
 
                         override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = rowBounds(tree, node, path, index, current) // FIXME
 
                         override fun row(of: Tree<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
+
+                        override fun height(of: Tree<R, *>, below: Path<Int>) = it.rowPositioner.height(this@TreeTable, below)
                     }
 
                     override fun render(view: Tree<R, *>, canvas: Canvas) {
@@ -282,11 +291,6 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
         }
     }
 
-    /**
-     * Returns all rows below the given [[Path]]; even if path is collapsed/invisible
-     */
-    private fun rowsBelow(path: Path<Int>): List<Path<Int>> = (0 until model.numChildren(path)).map { path + it }.flatMap { listOf(it) + if (expanded(it)) rowsBelow(it) else emptyList() }
-
     private inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
@@ -296,12 +300,16 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
             extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+        /**
+         * Returns all rows below the given [[Path]]; even if path is collapsed/invisible
+         */
+        private fun allRowsBelow(path: Path<Int>): List<Path<Int>> = (0 until model.numChildren(path)).map { path + it }.flatMap { listOf(it) + if (expanded(it)) allRowsBelow(it) else emptyList() }
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
-                // FIXME: Centralize to avoid calling rowsBelow more than once per changed path
+                // FIXME: Centralize to avoid calling allRowsBelow more than once per changed path
                 expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
-                    val added = paths.flatMap { rowsBelow(it) }
+                    val added = paths.flatMap { allRowsBelow(it) }
 
                     // FIXME: This is way too expensive for large trees
                     changed.forEach {
@@ -313,7 +321,7 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
                     val removed = paths.flatMap {
                         var index = rowFromPath(it)!!
 
-                        rowsBelow(it).map { index++ to it }
+                        allRowsBelow(it).map { index++ to it }
                     }
 
                     // FIXME: This is way too expensive for large trees
@@ -353,9 +361,11 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int) = it.rowPositioner.invoke(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, list.width, height) }
+                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, of.width, height) }
 
-                        override fun rowFor(list: io.nacular.doodle.controls.list.List<R, *>, y: Double) = it.rowPositioner.rowFor(this@TreeTable, y)
+                        override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
+
+                        override fun totalRowHeight(of: io.nacular.doodle.controls.list.List<R, *>) = it.rowPositioner.height(this@TreeTable, below = Path())
                     }
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
@@ -525,4 +535,6 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
         header.relayout()
         (panel.content as? Box)?.relayout() // FIXME
     }
+
+    internal fun rowsBelow(path: Path<Int>) = tree.rowsBelow(path)
 }

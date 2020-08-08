@@ -128,7 +128,7 @@ class RenderManagerImpl(
 
         var clipRect = if (of.visible) Rectangle(size = of.size) else Empty
 
-        while (parent != null && !clipRect.empty) {
+        while (parent != null) {
             clipRect = clipRect intersect Rectangle(-child.x,
                                                     -child.y,
                                                     if (parent.visible) parent.width  else 0.0,
@@ -564,7 +564,7 @@ class RenderManagerImpl(
 
         if (old.size != new.size) {
             reRender = true
-            if (view.children_.isNotEmpty()) {
+            if (view.children_.isNotEmpty() && view.layout_ != null) {
                 pendingLayout += view
             }
         }
@@ -572,7 +572,7 @@ class RenderManagerImpl(
         when (parent) {
             null -> display.relayout()
 //            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
-            else -> pendingLayout += parent
+            else -> if (parent.layout_ != null) pendingLayout += parent
         }
 
         if (reRender) {

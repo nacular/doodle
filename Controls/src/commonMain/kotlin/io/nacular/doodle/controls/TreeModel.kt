@@ -16,7 +16,7 @@ interface TreeModel<T> {
     fun children(parent: Path<Int>): Iterator<T>
 
     fun isLeaf      (node  : Path<Int>            ): Boolean
-    fun child       (of    : Path<Int>, path: Int): T?
+    fun child       (of    : Path<Int>, path : Int): T?
     fun numChildren (of    : Path<Int>            ): Int
     fun indexOfChild(parent: Path<Int>, child: T  ): Int
 }

@@ -15,9 +15,11 @@ abstract class TreeColumnsBehavior<T>: Behavior<TreeColumns<T, *>> {
     }
 
     interface RowPositioner<T> {
-        operator fun invoke(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int): Rectangle
+        fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View? = null): Rectangle
 
-        fun row(of: TreeColumns<T, *>, y: Double): Int
+        fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double): Int
+
+        fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>): Double
     }
 
     abstract val generator : CellGenerator<T>

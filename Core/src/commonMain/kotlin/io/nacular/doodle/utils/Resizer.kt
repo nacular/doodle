@@ -98,23 +98,37 @@ class Resizer(private val view: View): PointerListener, PointerMotionListener {
             val minWidth  = view.minimumSize.width
             val minHeight = view.minimumSize.height
 
-            if (West in dragMode && West in directions) {
-                width  = max(minWidth, view.width - delta.x)
-                x     += bounds.width - width
-            } else if (East in dragMode && East in directions) {
-                width = max(minWidth, initialSize.width + delta.x)
+            var consume = false
+
+            when {
+                West in dragMode && West in directions -> {
+                    width   = max(minWidth, view.width - delta.x)
+                    x      += bounds.width - width
+                    consume = true
+                }
+                East in dragMode && East in directions -> {
+                    width   = max(minWidth, initialSize.width + delta.x)
+                    consume = true
+                }
             }
 
-            if (North in dragMode && North in directions) {
-                height  = max(minHeight, view.height - delta.y)
-                y      += bounds.height - height
-            } else if (South in dragMode && South in directions) {
-                height = max(minHeight, initialSize.height + delta.y)
+            when {
+                North in dragMode && North in directions -> {
+                    height  = max(minHeight, view.height - delta.y)
+                    y      += bounds.height - height
+                    consume = true
+                }
+                South in dragMode && South in directions -> {
+                    height  = max(minHeight, initialSize.height + delta.y)
+                    consume = true
+                }
             }
 
             view.bounds = Rectangle(x, y, width, height)
 
-            event.consume()
+            if (consume) {
+                event.consume()
+            }
         }
     }
 

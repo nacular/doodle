@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.treecolumns
 
 import io.nacular.doodle.controls.IndexedItemVisualizer
-import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleMutableListModel
@@ -16,10 +15,13 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.max
+import io.nacular.doodle.utils.Direction.East
+import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
+import io.nacular.doodle.utils.Resizer
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
 import kotlin.math.max
@@ -27,54 +29,6 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 6/1/19.
  */
-class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
-    var root     = null as Path<Int>?
-    val children = mutableListOf<Int>()
-
-    init {
-        delegate.changed += { _, removed, added ->
-            root?.let { root ->
-                removed.forEach {
-                    // Toggle leaf
-                    when {
-                        root == it.parent -> {
-                            children -= it.bottom!!
-                        }
-                        it == root || it ancestorOf root -> {
-                            children.clear()
-                            this.root = null
-                        }
-                    }
-                }
-            }
-
-            val r = root
-
-            added.forEach {
-                when {
-                    r != null && it != r && it.parent == r.parent -> {
-                        children += listOf(it.bottom!!, r.bottom!!)
-                        root = it.parent
-                    }
-                    else -> {
-                        children.clear()
-
-                        root = it
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun main() {
-    val selectionModel = FilteringSelectionModel(MultiSelectionModel())
-
-    selectionModel.add(Path(0) + 0 + 1)
-    selectionModel.add(Path(0) + 0 + 2)
-    selectionModel.add(Path(0) + 1    )
-}
-
 private interface Focusable {
     val hasFocus    : Boolean
     val focusChanged: PropertyObservers<View, Boolean>
@@ -85,6 +39,47 @@ open class TreeColumns<T, M: TreeModel<T>>(
         protected val model         : M,
                   val itemVisualizer: IndexedItemVisualizer<T>?  = null,
                       selectionModel: SelectionModel<Path<Int>>? = null): View(), Selectable<Path<Int>>, Focusable {
+
+    protected class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
+        var root     = null as Path<Int>?
+        val children = mutableListOf<Int>()
+
+        init {
+            // FIXME: There are still bugs around toggling
+            delegate.changed += { _, removed, added ->
+                root?.let { root ->
+                    removed.forEach {
+                        // Toggle leaf
+                        when {
+                            root == it.parent -> {
+                                children -= it.bottom!!
+                            }
+                            it == root || it ancestorOf root -> {
+                                children.clear()
+                                this.root = null
+                            }
+                        }
+                    }
+                }
+
+                val r = root
+
+                added.forEach {
+                    when {
+                        r != null && it != r && it.parent == r.parent -> {
+                            children += listOf(it.bottom!!, r.bottom!!)
+                            root = it.parent
+                        }
+                        else -> {
+                            children.clear()
+
+                            root = it
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private val columns = mutableListOf<Column<T>>()
 
@@ -212,17 +207,18 @@ open class TreeColumns<T, M: TreeModel<T>>(
             }
 
             override val positioner = object: ListBehavior.RowPositioner<T> {
-                override fun invoke(list: List<T, *>, row: T, index: Int) = behavior.positioner(
+                override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = behavior.positioner.rowBounds(
                         this@TreeColumns,
-                        list.width,
+                        of.width,
                         column.path + index,
                         row,
-                        index
+                        index,
+                        view
                 )
 
-                override fun rowFor(list: List<T, *>, y: Double) = behavior.positioner.row(
-                        this@TreeColumns, y
-                )
+                override fun row(of: List<T, *>, atY: Double) = behavior.positioner.row(this@TreeColumns, column.path, atY)
+
+                override fun totalRowHeight(of: List<T, *>) = behavior.positioner.totalRowHeight(this@TreeColumns, column.path)
             }
 
             override fun render(view: List<T, *>, canvas: Canvas) {
@@ -269,12 +265,14 @@ open class TreeColumns<T, M: TreeModel<T>>(
                     rootDepth < size - 1 -> {
                         repeat((children.size - 1) - rootDepth) {
                             columns.removeAt(columns.size - 1)
-                            removeAt(size - 1) // remove from children
+                            // remove from children
+                            removeAt(size - 1)
                         }
                     }
                     else                      -> {
                         (size until columns.size).forEach {
-                            this += createScrollPanel(columns[it].list) // add to children
+                            // add to children
+                            this += createScrollPanel(columns[it].list)
                         }
                     }
                 }
@@ -293,7 +291,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
                 var width = 0.0
 
                 container.children.forEach {
-                    it.bounds = Rectangle(x, y, it.idealSize?.width ?: 150.0, h) // FIXME
+                    it.bounds = Rectangle(x, y, it.width, h) // FIXME
 
                     x += it.width
 
@@ -310,6 +308,12 @@ open class TreeColumns<T, M: TreeModel<T>>(
     fun visible(path: Path<Int>) = path.parent?.let { selected(it) }
 
     fun isLeaf(path: Path<Int>) = model.isLeaf(path)
+
+    fun children(parent: Path<Int>) = model.children(parent)
+
+    fun child       (of    : Path<Int>, path : Int) = model.child       (of,     path )
+    fun numChildren (of    : Path<Int>            ) = model.numChildren (of           )
+    fun indexOfChild(parent: Path<Int>, child: T  ) = model.indexOfChild(parent, child)
 
     override fun selected(item: Path<Int>) = selectionModel?.contains(item) ?: false
 
@@ -367,6 +371,11 @@ open class TreeColumns<T, M: TreeModel<T>>(
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
         contentWidthConstraints  = { parent.width }
         contentHeightConstraints = { max(minHeight, parent.height) }
+        // FIXME: REMOVE
+        Resizer(this).apply {
+            movable = false
+            directions = setOf(East, West)
+        }
     }
 
     private fun createColumn(node: Path<Int>): Column<T> = Column(
@@ -384,5 +393,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
         behavior?.let { behavior ->
             installBehavior(it, behavior)
         }
+
+        width = 150.0
     }
 }

@@ -4,7 +4,7 @@ import io.nacular.doodle.geometry.Rectangle
 
 /**
  * Represents offsets from a [Rectangle]'s boundary.  Each of the 4 sides are specified independently as follows:
- *
+ * ```
  * +-------------------+
  * |       t           |
  * |   +---------+     |
@@ -12,7 +12,7 @@ import io.nacular.doodle.geometry.Rectangle
  * |   +---------+     |
  * |       b           |
  * +-------------------+
- *
+ * ```
  * The values l,t,r, and b represent the Left, Top, Right, and Bottom values for the Insets respectively.
  *
  * @author Nicholas Eddy

@@ -38,7 +38,7 @@ class SimpleTreeColumnRowIcon(private val color: Color = Black, private val sele
     override var selected = false
 
     override fun render(canvas: Canvas) {
-        val centeredRect = bounds.atOrigin.inset(6.0)
+        val centeredRect = bounds.atOrigin
 
         canvas.transform(transform) {
             path(listOf(
@@ -85,8 +85,10 @@ class TreeColumnRow<T>(
             }
         }
 
-    private  val iconWidth   = 20.0
-    private  var pointerOver = false
+    // FIXME: Inject
+    private val iconWidth   = 9.0
+    private val iconSpacing = 4.0
+    private var pointerOver = false
 
     private lateinit var constraintLayout: ConstraintLayout
 
@@ -142,10 +144,10 @@ class TreeColumnRow<T>(
                 // Override the parent for content to confine it within a smaller region
                 ConstraintWrapper(content) { parent ->
                     object: ParentConstraintWrapper(parent) {
-                        override val top    = VerticalConstraint  (this@TreeColumnRow) { insetTop              }
-                        override val right  = HorizontalConstraint(this@TreeColumnRow) { it.width  - iconWidth }
-                        override val width  = MagnitudeConstraint (this@TreeColumnRow) { it.width  - iconWidth }
-                        override val height = MagnitudeConstraint (this@TreeColumnRow) { it.height - insetTop  }
+                        override val top    = VerticalConstraint  (this@TreeColumnRow) { insetTop                                  }
+                        override val right  = HorizontalConstraint(this@TreeColumnRow) { it.width  - (iconWidth + 2 * iconSpacing) }
+                        override val width  = MagnitudeConstraint (this@TreeColumnRow) { it.width  - (iconWidth + 2 * iconSpacing) }
+                        override val height = MagnitudeConstraint (this@TreeColumnRow) { it.height - insetTop                      }
                     }
                 }
         )
@@ -161,6 +163,11 @@ class TreeColumnRow<T>(
     fun update(content: View, treeColumns: TreeColumns<T, *>) {
         this.content = content
 
+        idealSize = Size(
+                (content.idealSize?.width ?: content.width) + iconWidth + 2 * iconSpacing,
+                max(content.idealSize?.height ?: content.height, iconWidth)
+        )
+
         constraintLayout = constrainLayout(content)
 
         constrainIcon(icon)
@@ -175,8 +182,7 @@ class TreeColumnRow<T>(
             icon = null
         } else  {
             icon = icon ?: iconFactory().apply {
-                width  = iconWidth
-                height = width
+                size = Size(iconWidth, iconWidth)
 
                 this@TreeColumnRow.children += this
 
@@ -188,7 +194,6 @@ class TreeColumnRow<T>(
             }
         }
 
-        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
         backgroundColor = when {
             treeColumns.selected           (path) -> if (treeColumns.hasFocus) selectionColor else selectionBlurredColor
             treeColumns.enclosedBySelection(path) -> selectionBlurredColor
@@ -203,7 +208,7 @@ class TreeColumnRow<T>(
     private fun constrainIcon(icon: View?) {
         icon?.let {
             constraintLayout.constrain(it, content) { icon, content ->
-                icon.right   = parent.right
+                icon.right   = parent.right - iconSpacing
                 icon.centerY = content.centerY
             }
         }

@@ -158,11 +158,33 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
     /** Size that would best display this View, or `null` if no preference */
     var idealSize: Size? = null
-        get() = layout?.idealSize(positionableWrapper, field) ?: field
+        get(   ) = layout?.idealSize(positionableWrapper, field) ?: field
+        set(new) {
+            if (field == new) return
+            val old = field
+            field = new
+            (sizePreferencesChanged as PropertyObserversImpl).forEach {
+                it(this, SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
+            }
+        }
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
     var minimumSize = Size.Empty
-        get() = layout?.minimumSize(positionableWrapper, field) ?: field
+        get(   ) = layout?.minimumSize(positionableWrapper, field) ?: field
+        set(new) {
+            if (field == new) return
+            val old = field
+            field = new
+            (sizePreferencesChanged as PropertyObserversImpl).forEach {
+                it(this, SizePreferences(idealSize, old), SizePreferences(idealSize, new))
+            }
+        }
+
+    /** Indicates the minimum and ideal sizes for a View. */
+    data class SizePreferences(val idealSize: Size?, val minimumSize: Size)
+
+    /** Notifies changes to [idealSize] or [minimumSize] */
+    val sizePreferencesChanged: PropertyObservers<View, SizePreferences> by lazy { PropertyObserversImpl<View, SizePreferences>(this) }
 
     /**
      * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,

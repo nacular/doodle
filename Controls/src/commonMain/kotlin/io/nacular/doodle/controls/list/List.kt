@@ -34,9 +34,11 @@ interface ListBehavior<T>: Behavior<List<T, *>> {
     }
 
     interface RowPositioner<T> {
-        operator fun invoke(list: List<T, *>, row: T, index: Int): Rectangle
+        fun rowBounds(of: List<T, *>, row: T, index: Int, view: View? = null): Rectangle
 
-        fun rowFor(list: List<T, *>, y: Double): Int
+        fun row(of: List<T, *>, atY: Double): Int
+
+        fun totalRowHeight(of: List<T, *>): Double
     }
 
     val generator : RowGenerator<T>
@@ -83,10 +85,8 @@ open class List<T, out M: ListModel<T>>(
     private   var maxVisibleY  = 0.0
     protected var minHeight    = 0.0
         set(new) {
-            field = new
-
-            minimumSize = Size(minimumSize.width, field).also { idealSize = it }
-            height      = field
+            field  = new
+            height = field
         }
 
     protected var firstVisibleRow =  0
@@ -113,7 +113,7 @@ open class List<T, out M: ListModel<T>>(
     protected fun updateVisibleHeight() {
         val oldHeight = minHeight
 
-        minHeight = model.size * (model[0]?.let { rowPositioner?.invoke(this@List, it, 0)?.height } ?: 0.0) + insets.run { top + bottom }
+        minHeight = rowPositioner?.totalRowHeight(this) ?: 0.0
 
         if (oldHeight == minHeight) {
             // FIXME: This reset logic could be handled better
@@ -131,6 +131,10 @@ open class List<T, out M: ListModel<T>>(
         set(new) { super.insets = new }
 
     init {
+        sizePreferencesChanged += { _,_,_ ->
+            idealSize = minimumSize
+        }
+
         monitorsDisplayRect = true
 
         selectionModel?.let { it.changed += selectionChanged_ }
@@ -139,7 +143,9 @@ open class List<T, out M: ListModel<T>>(
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
                     model[it]?.let { row ->
-                        children.getOrNull(it % children.size)?.let { child -> layout(child, row, it) }
+                        children.getOrNull(it % children.size)?.let { child ->
+                            layout(child, row, it)
+                        }
                     }
                 }
             }
@@ -161,10 +167,6 @@ open class List<T, out M: ListModel<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        if (new.empty) {
-            return
-        }
-
         rowPositioner?.let { positioner ->
             if (maxVisibleY > new.bottom && minVisibleY < new.y) {
                 return
@@ -189,8 +191,8 @@ open class List<T, out M: ListModel<T>>(
 
             val halfCacheLength = min(children.size, scrollCache) / 2
 
-            model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner(this, it, firstVisibleRow + halfCacheLength).y      }
-            model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner(this, it, lastVisibleRow  - halfCacheLength).bottom }
+            model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow + halfCacheLength).y      }
+            model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow  - halfCacheLength).bottom }
 
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
@@ -211,7 +213,7 @@ open class List<T, out M: ListModel<T>>(
 
     protected fun layout(view: View, row: T, index: Int) {
         rowPositioner?.let {
-            view.bounds = it(this, row, index)
+            view.bounds = it.rowBounds(this, row, index, view)
 
             minimumSize = Size(max(width, view.width), minHeight)
 
@@ -256,13 +258,13 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.rowFor(this, y) ?: nearbyRow)
+    private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.row(this, y) ?: nearbyRow)
 
     fun scrollToSelection() {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 this[lastSelection]?.let {
-                    rowPositioner?.invoke(this, it, lastSelection)?.let {
+                    rowPositioner?.rowBounds(this, it, lastSelection)?.let {
                         parent.scrollVerticallyToVisible(it.y .. it.bottom)
                     }
                 }

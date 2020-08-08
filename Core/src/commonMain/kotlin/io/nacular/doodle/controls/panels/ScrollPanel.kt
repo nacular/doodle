@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.layout.ConstraintLayout
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.MagnitudeConstraint
 import io.nacular.doodle.layout.constrain
@@ -42,6 +43,11 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  * @param content to host in the panel
  */
 open class ScrollPanel(content: View? = null): View() {
+    private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
+        idealSize = new.idealSize
+        doLayout()
+    }
+
     /** The content being shown within the panel */
     var content = null as View?
         set(new) {
@@ -51,6 +57,8 @@ open class ScrollPanel(content: View? = null): View() {
 
             field?.let {
                 children -= it
+                it.sizePreferencesChanged -= sizePreferencesListener
+                (layout as? ViewLayout)?.clearConstrains()
             }
 
             if (field != new) {
@@ -59,6 +67,7 @@ open class ScrollPanel(content: View? = null): View() {
 
                 field?.let {
                     children += it
+                    it.sizePreferencesChanged += sizePreferencesListener
                 }
 
                 (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
@@ -79,7 +88,7 @@ open class ScrollPanel(content: View? = null): View() {
         set(new) {
             field = new
 
-            (layout as ViewLayout).updateConstraints()
+            (layout as? ViewLayout)?.updateConstraints()
         }
 
     /** Determines how the [content] height changes as the panel resizes */
@@ -87,7 +96,7 @@ open class ScrollPanel(content: View? = null): View() {
         set(new) {
             field = new
 
-            (layout as ViewLayout).updateConstraints()
+            (layout as? ViewLayout)?.updateConstraints()
         }
 
     /** The current scroll offset. */
@@ -216,7 +225,7 @@ open class ScrollPanel(content: View? = null): View() {
     }
 
     private inner class ViewLayout: Layout {
-        var delegate = null as Layout?
+        var delegate = null as ConstraintLayout?
 
         init {
             updateConstraints()
@@ -228,6 +237,10 @@ open class ScrollPanel(content: View? = null): View() {
             container.children.forEach  {
                 it.position = Point(-scroll.x, -scroll.y)
             }
+        }
+
+        fun clearConstrains() {
+            content?.let { delegate?.unconstrain(it) }
         }
 
         fun updateConstraints() {

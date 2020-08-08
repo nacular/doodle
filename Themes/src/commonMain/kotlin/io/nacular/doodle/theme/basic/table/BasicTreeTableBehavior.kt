@@ -120,11 +120,12 @@ open class BasicTreeTableBehavior<T>(
         override fun invoke(table: TreeTable<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
     }
 
-    override val rowPositioner = object: RowPositioner<T> {
+    override val rowPositioner = object: RowPositioner<T>() {
         private val delegate = ListPositioner(rowHeight)
 
-        override fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate(table.width, table.insets, index)
-        override fun rowFor(table: TreeTable<T, *>, y: Double)                           = delegate.rowFor(table.insets, y)
+        override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
+        override fun rowFor(of: TreeTable<T, *>, y: Double)                           = delegate.rowFor(of.insets, y)
+        override fun height(of: TreeTable<T, *>, below: Path<Int>)                    = delegate.totalHeight(of.rowsBelow(below), of.insets)
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
@@ -192,7 +193,7 @@ open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorFill(color))
+                    canvas.rect(rowPositioner.rowBounds(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorFill(color))
                 }
             }
         }

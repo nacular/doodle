@@ -20,9 +20,11 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
     }
 
     interface RowPositioner<T> {
-        operator fun invoke(table: Table<T, *>, row: T, index: Int): Rectangle
+        fun rowBounds(of: Table<T, *>, row: T, index: Int): Rectangle
 
-        fun rowFor(table: Table<T, *>, y: Double): Int
+        fun row(of: Table<T, *>, y: Double): Int
+
+        fun totalRowHeight(of: Table<T, *>): Double
     }
 
     interface HeaderPositioner<T> {
@@ -68,10 +70,14 @@ interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
         operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View? = null): View
     }
 
-    interface RowPositioner<T> {
-        operator fun invoke(table: TreeTable<T, *>, path: Path<Int>, row: T, index: Int): Rectangle
+    abstract class RowPositioner<T> {
+        fun TreeTable<T, *>.rowsBelow(path: Path<Int>): Int = this.rowsBelow(path)
 
-        fun rowFor(table: TreeTable<T, *>, y: Double): Int
+        abstract fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int): Rectangle
+
+        abstract fun rowFor(of: TreeTable<T, *>, y: Double): Int
+
+        abstract fun height(of: TreeTable<T, *>, below: Path<Int>): Double
     }
 
     interface HeaderPositioner<T> {

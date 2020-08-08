@@ -125,8 +125,9 @@ open class BasicTableBehavior<T>(
     override val rowPositioner = object: RowPositioner<T> {
         private val delegate = ListPositioner(rowHeight)
 
-        override fun invoke(table: Table<T, *>, row: T, index: Int) = delegate(table.width, table.insets, index)
-        override fun rowFor(table: Table<T, *>, y: Double)          = delegate.rowFor(table.insets, y    )
+        override fun rowBounds(of: Table<T, *>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
+        override fun row(of: Table<T, *>, y: Double)                = delegate.rowFor(of.insets,  y                )
+        override fun totalRowHeight(of: Table<T, *>)                = delegate.totalHeight(of.numRows, of.insets   )
     }
 
     override val headerCellGenerator = object: HeaderCellGenerator<T> {
@@ -154,7 +155,7 @@ open class BasicTableBehavior<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pointerPressed) {
-                            val index = rowPositioner.rowFor(table, event.location.y)
+                            val index = rowPositioner.row(table, event.location.y)
 
                             if (index >= table.numRows) {
                                 return
@@ -194,7 +195,7 @@ open class BasicTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner(table, row, index).inset(Insets(top = 1.0)), ColorFill(color))
+                    canvas.rect(rowPositioner.rowBounds(table, row, index).inset(Insets(top = 1.0)), ColorFill(color))
                 }
             }
         }
