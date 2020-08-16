@@ -130,6 +130,14 @@ private class NestedApplicationHolder(
             }
         }
 
+        val display = injector.instance<Display>()
+
+        display.contentDirection = view.contentDirection
+
+        view.contentDirectionChanged += {
+            display.contentDirection = view.contentDirection
+        }
+
         run()
     }
 }

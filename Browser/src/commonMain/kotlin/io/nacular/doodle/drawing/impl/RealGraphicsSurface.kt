@@ -80,6 +80,13 @@ internal class RealGraphicsSurface private constructor(
             refreshAugmentedTransform()
         }
 
+    override var mirrored = false
+        set(new) {
+            field = new
+
+            updateTransform(position)
+        }
+
     override var clipToBounds = true
         set(new) {
             if (field == new) {
@@ -235,10 +242,17 @@ internal class RealGraphicsSurface private constructor(
             return
         }
 
-        rootElement.parent?.takeUnless { (it as HTMLElement).hasAutoOverflow }?.let {
+        rootElement.parent?.takeUnless { (it as HTMLElement).hasAutoOverflow }?.also {
             when {
-                augmentedTransform.isIdentity -> rootElement.style.translate(new)
-                else                          -> rootElement.style.setTransform(augmentedTransform.translate(new))
+                !mirrored && augmentedTransform.isIdentity -> rootElement.style.translate(new)
+                else                                       -> {
+                    val transform = when {
+                        mirrored -> (augmentedTransform translate new).flipHorizontally()
+                        else     ->  augmentedTransform translate new
+                    }
+
+                    rootElement.style.setTransform(transform)
+                }
             }
         }
     }

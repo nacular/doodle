@@ -2,8 +2,13 @@
 
 package io.nacular.doodle.core
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
+import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -29,10 +34,6 @@ import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -246,6 +247,26 @@ class ViewTests {
         validateStyleChanged(View::font,            mockk())
         validateStyleChanged(View::foregroundColor, mockk())
         validateStyleChanged(View::backgroundColor, mockk())
+    }
+
+    @Test @JsName("styleChangeSinks")
+    fun `style change sinks to descendants`() {
+        val parent     = Box()
+        val child      = Box()
+        val grandChild = object: View() {}
+        val observer   = mockk<ChangeObserver<View>>()
+
+        parent.children         += child
+        child.children          += grandChild
+        child.styleChanged      += observer
+        grandChild.styleChanged += observer
+
+        val font = mockk<Font>()
+
+        parent.font = font
+
+        verify(exactly = 1) { observer(child     ) }
+        verify(exactly = 1) { observer(grandChild) }
     }
 
     @Test @JsName("keyDownEventsWorks")

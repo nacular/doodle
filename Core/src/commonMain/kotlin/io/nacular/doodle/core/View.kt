@@ -4,6 +4,8 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
+import io.nacular.doodle.core.ContentDirection.LeftRight
+import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
@@ -290,10 +292,9 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         set(new) {
             if (actualFont == new) return
 
-            actualFont = new; styleChanged()
+            actualFont = new
 
-            // Notify relevant children that their font has changed
-            children.filter { it.actualFont == null }.forEach { it.styleChanged() }
+            styleChanged()
         }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
@@ -304,6 +305,9 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
+
+    /** Notifies changes to [localContentDirection] */
+    val contentDirectionChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
 
     /**
      * Determines whether the View will be affected by [Theme][io.nacular.doodle.theme.Theme]s set in [ThemeManager][io.nacular.doodle.theme.ThemeManager].
@@ -357,8 +361,99 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
+    /**
+     * Indicates the direction of content within the View; used to support right-to-left locales.
+     * Setting this property to `null` will allow the View to inherit the value from its [parent].
+     * The resolved value is obtained via [contentDirection]; and it will never be `null`.
+     */
+    var localContentDirection: ContentDirection? = null
+        set(new) {
+            if (field == new) return
+
+            field = new
+
+            contentDirectionChanged()
+        }
+
+    /**
+     * The resolved content direction for this View, including any value inherited from its [parent] if
+     * [localContentDirection] is `null`. The final fallback value is [LeftRight].
+     */
+    val contentDirection: ContentDirection
+        get() = localContentDirection ?: parent?.contentDirection ?: display?.contentDirection ?: LeftRight
+
+    /**
+     * Indicates whether the View should be mirrored (as though transformed using [AffineTransform.flipHorizontally]),
+     * when the [contentDirection] is [RightLeft][ContentDirection.RightLeft].
+     *
+     * Views should set this to `false` if the want to handle right-left flow themselves. This includes those
+     * that render text.
+     *
+     * Defaults to `true`
+     */
+    var mirrorWhenRightLeft = true
+        protected set(new) {
+            if (field == new) return
+            field = new
+
+            updateNeedsMirror()
+        }
+
+    /**
+     * Indicates whether the framework should apply an additional [AffineTransform]
+     * to ensure the View is properly oriented based on its [mirrored] state relative
+     * to that of its parent.
+     */
+    internal var needsMirrorTransform = mirrored != (parent?.mirrored == true)
+        private set(new) {
+            if (field == new) return
+
+            field = new
+
+            rerender()
+
+            children.forEach { it.updateNeedsMirror() }
+        }
+
+    internal fun contentDirectionChanged_() = contentDirectionChanged()
+
+    @JsName("fireContentDirectionChanged")
+    protected fun contentDirectionChanged() {
+        updateNeedsMirror()
+
+        (contentDirectionChanged as ChangeObserversImpl)()
+
+        notifyChildrenContentDirectionChanged()
+    }
+
     @JsName("fireStyleChanged")
-    protected fun styleChanged() = (styleChanged as ChangeObserversImpl)()
+    protected fun styleChanged() {
+        (styleChanged as ChangeObserversImpl)()
+
+        notifyChildrenStyleChanged()
+    }
+
+    /**
+     * `true` if the View's [contentDirection] is [RightLeft] and [mirrorWhenRightLeft] is `true`.
+     */
+    private val mirrored get() = contentDirection == RightLeft && mirrorWhenRightLeft
+
+    /**
+     * Refresh [needsMirrorTransform] flag to allow rerender if needed.
+     */
+    internal fun updateNeedsMirror() {
+        needsMirrorTransform = mirrored != (parent?.mirrored ?: display?.mirrored == true)
+    }
+
+    private fun notifyChildrenContentDirectionChanged() {
+        // Notify relevant children that their content direction has changed
+        children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
+    }
+
+    private fun notifyChildrenStyleChanged() {
+        // Notify relevant children that their style has changed
+        children.filter { it.actualFont == null }.forEach { it.styleChanged() }
+    }
 
     // ================= Container ================= //
     internal val insets_ get() = insets
@@ -480,24 +575,22 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
-    protected open fun child(at: Point): View? = (transform.inverse?.invoke(at) ?: at).let { point ->
-        when (val result = layout?.child(positionableWrapper, point)) {
-            null, Ignored -> {
-                var child = null as View?
-                var topZOrder = 0
+    protected open fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
+        null, Ignored -> {
+            var child = null as View?
+            var topZOrder = 0
 
-                children.reversed().forEach {
-                    if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
-                        child = it
-                        topZOrder = it.zOrder
-                    }
+            children.reversed().forEach {
+                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
+                    child = it
+                    topZOrder = it.zOrder
                 }
-
-                child
             }
-            is Found      -> (result.child as PositionableWrapper).view
-            is Empty      -> null
+
+            child
         }
+        is Found      -> (result.child as PositionableWrapper).view
+        is Empty      -> null
     }
 
     internal fun child_(at: Point) = child(at)
@@ -527,6 +620,11 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: PointerEvent): String = toolTipText
 
+    private val resolvedTransform get() = when {
+        needsMirrorTransform -> transform.flipHorizontally(at = center.x)
+        else                 -> transform
+    }
+
     /**
      * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.  This check accounts for [transforms][AffineTransform]
      * within the View's hierarchy as well.
@@ -534,7 +632,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point The point to check
      * @return `true` IFF the point falls within the View
      */
-    open operator fun contains(point: Point) = transform.inverse?.invoke(point)?.let { it in bounds } ?: false
+    open operator fun contains(point: Point) = resolvedTransform.inverse?.invoke(point)?.let { it in bounds } ?: false
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.
@@ -577,18 +675,21 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * Maps a [Point] within the View to absolute coordinate-space.
      *
      * @param point to be mapped
-     * @returns a Point relative to the [Display]
+     * @returns a Point relative to the un-transformed [Display]
      */
-    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: display?.transform?.invoke(it) ?: it }
+    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
 
     /**
-     * Maps a [Point] from absolute coordinate-space: relative to the [Display], into this View's coordinate-space.
+     * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
      *
      * @param point to be mapped
      * @returns a Point relative to this View's [position]
      */
-    fun fromAbsolute(point: Point): Point = (parent?.fromAbsolute(point) ?: display?.transform?.inverse?.invoke(point) ?:
-        point).let { transform.inverse?.invoke(it) ?: it } - position
+    fun fromAbsolute(point: Point): Point = (
+            parent?.fromAbsolute (point) ?:
+            display?.fromAbsolute(point) ?:
+            point
+    ).let { resolvedTransform.inverse?.invoke(it) ?: it } - position
 
     /**
      * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from

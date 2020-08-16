@@ -2,6 +2,8 @@ package io.nacular.doodle.core.impl
 
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.clear
+import io.nacular.doodle.core.ContentDirection
+import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
@@ -9,6 +11,7 @@ import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.PositionableWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
@@ -26,9 +29,9 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.ImageFill
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
@@ -37,8 +40,11 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.ObservableProperty
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.observable
@@ -67,6 +73,39 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     override var cursor: Cursor?                                    by ObservableProperty(null, { this }, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
+
+    override val contentDirectionChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+
+    override var mirrorWhenRightLeft = true
+        set(new) {
+            if (field == new) return
+
+            field = new
+
+            notifyMirroringChanged()
+        }
+
+    override val mirroringChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+
+    override var contentDirection: ContentDirection = LeftRight
+        set(new) {
+            if (field == new) return
+
+            field = new
+
+            contentDirectionChanged()
+        }
+
+    private fun contentDirectionChanged() {
+        (contentDirectionChanged as ChangeObserversImpl)()
+        notifyMirroringChanged()
+    }
+
+    private fun notifyMirroringChanged() {
+        updateTransform()
+
+        (mirroringChanged as ChangeObserversImpl)()
+    }
 
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
@@ -147,7 +186,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = (transform.inverse?.invoke(at) ?: at).let { point ->
+    override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at) ?: at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
             null, Ignored -> {
                 var child     = null as View?
@@ -170,6 +209,10 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     override fun iterator() = children.iterator()
 
     private var layingOut = false
+
+    override fun toAbsolute(point: Point) = resolvedTransform.invoke(point)
+
+    override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point) ?: point
 
     override fun relayout() {
         if (!layingOut) {
@@ -214,8 +257,17 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         augmentedTransform = ((Identity translate point) * transform) translate -point
     }
 
+    private val resolvedTransform get() = when {
+        mirrored -> augmentedTransform.flipHorizontally(at = width / 2)
+        else     -> augmentedTransform
+    }
+
     private fun updateTransform() {
-        rootElement.style.setTransform(augmentedTransform)
+        // resolvedTransform isn't used b/c element transforms are centered already
+        rootElement.style.setTransform(when {
+            mirrored -> augmentedTransform.flipHorizontally()
+            else     -> augmentedTransform
+        })
     }
 
     private inner class PositionableWrapper: PositionableContainer {
@@ -228,6 +280,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         override val insets      get() = this@DisplayImpl.insets
         override val layout      get() = this@DisplayImpl.layout
         override val parent      get() = null as PositionableContainer?
-        override val children    get() = this@DisplayImpl.children.map { io.nacular.doodle.core.PositionableWrapper(it) }
+        override val children    get() = this@DisplayImpl.children.map { PositionableWrapper(it) }
     }
 }

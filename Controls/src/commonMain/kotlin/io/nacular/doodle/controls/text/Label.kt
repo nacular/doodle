@@ -134,6 +134,8 @@ open class Label internal constructor(
             rerender()
         }
 
+        mirrorWhenRightLeft = false
+
         // force update
         actualStyledText = actualStyledText
 

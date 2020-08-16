@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform
@@ -82,6 +83,14 @@ class RenderManagerImpl(
             display.relayout()
 
             display.forEach { checkDisplayRectChange(it) }
+        }
+
+        display.contentDirectionChanged += {
+            display.forEach { checkContentDirectionChange(it) }
+        }
+
+        display.mirroringChanged += {
+            display.forEach { it.updateNeedsMirror() }
         }
     }
 
@@ -189,6 +198,8 @@ class RenderManagerImpl(
             if (displayTree.containsKey(view)) {
                 // TODO: IMPLEMENT
             }
+
+            checkContentDirectionChange(view)
 
             if (view in display) {
                 render(view, true)
@@ -368,6 +379,7 @@ class RenderManagerImpl(
                     neverRendered -= view
 
                     graphicsSurface.clipToBounds = view.clipCanvasToBounds_
+                    graphicsSurface.mirrored     = view.needsMirrorTransform //mirrored != (view.parent?.mirrored == true)
 
                     graphicsSurface.render { canvas ->
                         view.render(canvas)
@@ -644,6 +656,12 @@ class RenderManagerImpl(
     private fun notifyDisplayRectChange(view: View, old: Rectangle, new: Rectangle) {
         if (old != new) {
             view.handleDisplayRectEvent_(old, new)
+        }
+    }
+
+    private fun checkContentDirectionChange(view: View) {
+        if (view.localContentDirection == null && view.parent?.contentDirection ?: display.contentDirection != LeftRight) {
+            view.contentDirectionChanged_()
         }
     }
 

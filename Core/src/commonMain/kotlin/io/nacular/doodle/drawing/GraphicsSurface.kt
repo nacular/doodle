@@ -14,6 +14,7 @@ interface GraphicsSurface {
     var zOrder      : Int
     var visible     : Boolean
     var transform   : AffineTransform
+    var mirrored    : Boolean
     var clipToBounds: Boolean
 
     fun render(block: (Canvas) -> Unit)
