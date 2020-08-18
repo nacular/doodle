@@ -2,6 +2,13 @@
 
 package io.nacular.doodle.drawing.impl
 
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.spyk
+import io.mockk.verify
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.Display
@@ -18,7 +25,6 @@ import io.nacular.doodle.geometry.times
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
-import io.nacular.doodle.time.Timer
 import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
@@ -28,13 +34,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
-import io.mockk.Runs
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.spyk
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.test.Test
 
@@ -691,10 +690,6 @@ class RenderManagerImplTests {
 
     private val defaultGraphicsDevice by lazy {
         graphicsDevice()
-    }
-
-    private fun timer(): Timer = mockk<Timer>().apply {
-        every { now } returns 0 * milliseconds
     }
 
     private fun graphicsDevice(mapping: Map<View, GraphicsSurface> = mapOf()): GraphicsDevice<*> {

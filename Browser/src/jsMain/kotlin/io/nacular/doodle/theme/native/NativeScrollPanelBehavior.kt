@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeScrollPanelFactory
 import io.nacular.doodle.geometry.Point
 
@@ -21,8 +22,10 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
         }
     }
 
-    override fun install(view: ScrollPanel) {
-        nativePeer // Load
+    override fun render(view: ScrollPanel, canvas: Canvas) {
+        // Load on first render to avoid premature creation of Graphics Surface, which would
+        // mess up element ordering.
+        nativePeer
     }
 
     override fun uninstall(view: ScrollPanel) {
