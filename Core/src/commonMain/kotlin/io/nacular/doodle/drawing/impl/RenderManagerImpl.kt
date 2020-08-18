@@ -1,7 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.accessibility.AccessibilityManager
-import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform
@@ -660,7 +659,7 @@ class RenderManagerImpl(
     }
 
     private fun checkContentDirectionChange(view: View) {
-        if (view.localContentDirection == null && view.parent?.contentDirection ?: display.contentDirection != LeftRight) {
+        if (view.localContentDirection == null) {
             view.contentDirectionChanged_()
         }
     }

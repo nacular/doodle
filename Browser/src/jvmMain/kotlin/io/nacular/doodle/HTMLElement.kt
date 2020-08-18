@@ -6,7 +6,6 @@ import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.WheelEvent
-import io.nacular.doodle.geometry.Size
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
@@ -125,6 +124,8 @@ actual abstract class HTMLElement: Element() {
     actual var onpointerdown = null as ((PointerEvent) -> Any)?
     actual var onpointermove = null as ((PointerEvent) -> Any)?
     actual var onpointerover = null as ((PointerEvent) -> Any)?
+
+    actual var dir = ""
 
     actual fun focus() {}
     actual fun blur () {}

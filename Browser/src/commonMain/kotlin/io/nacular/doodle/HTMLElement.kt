@@ -121,6 +121,8 @@ expect abstract class HTMLElement: Element {
     var onresize   : ((Event) -> Unit)?
     var ondragstart: ((DragEvent) -> Boolean)?
 
+    var dir: String
+
     fun focus()
     fun blur ()
 }

@@ -4,6 +4,7 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.clear
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
+import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
@@ -128,6 +129,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     init {
         rootElement.onresize = ::onResize
+
+        // TODO: How can changes to this be detected?
+        if (rootElement.dir == "rtl") {
+            contentDirection = RightLeft
+        }
+
+        // currently need to force left-to-right since we handle content direction
+        // TODO: Need a better way to do this to avoid compromising browser/accessibility integrations
+        rootElement.dir = "ltr"
 
         onResize()
 

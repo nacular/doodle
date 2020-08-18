@@ -77,12 +77,6 @@ open class ScrollPanel(content: View? = null): View() {
     /** Notifies of changes to [content]. */
     val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
-    /** Allows vertical scrolling when set to `true`. Defaults to `true`. */
-    var scrollsVertically = true
-
-    /** Allows horizontal scrolling when set to `true`. Defaults to `true`. */
-    var scrollsHorizontally = true
-
     /** Determines how the [content] width changes as the panel resizes */
     var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
         set(new) {
