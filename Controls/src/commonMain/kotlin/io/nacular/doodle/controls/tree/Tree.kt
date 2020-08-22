@@ -10,6 +10,7 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
+import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
@@ -40,6 +41,8 @@ interface TreeLike: Selectable<Path<Int>> {
     val rootVisible: Boolean
 
     val focusChanged: PropertyObservers<View, Boolean>
+
+    val contentDirection: ContentDirection
 
     fun visible(row: Int): Boolean
     fun visible(path: Path<Int>): Boolean

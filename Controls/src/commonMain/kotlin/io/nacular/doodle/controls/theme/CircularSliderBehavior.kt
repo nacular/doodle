@@ -2,6 +2,7 @@ package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.ArrowDown
@@ -68,9 +69,14 @@ abstract class CircularSliderBehavior(
         val slider    = event.source as CircularSlider
         val increment = slider.range.size / 100
 
+        val (incrementKey, decrementKey) = when (slider.contentDirection) {
+            LeftRight -> ArrowRight to ArrowLeft
+            else      -> ArrowLeft  to ArrowRight
+        }
+
         when (event.key) {
-            ArrowLeft,  ArrowDown -> slider.value -= increment
-            ArrowRight, ArrowUp   -> slider.value += increment
+            ArrowUp,   incrementKey -> slider.value += increment
+            ArrowDown, decrementKey -> slider.value -= increment
         }
     }
 
