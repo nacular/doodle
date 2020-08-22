@@ -202,10 +202,16 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
     }
 
     override operator fun set(index: Int, element: E) = list.set(index, element).also { old ->
-        if (old !== element) {
+        if (old != element) {
             changed_.forEach {
                 it(this, mapOf(index to old), mapOf(index to element), mapOf())
             }
+        }
+    }
+
+    fun notifyChanged(index: Int) {
+        changed_.forEach {
+            it(this, mapOf(index to this[index]), mapOf(index to this[index]), mapOf())
         }
     }
 

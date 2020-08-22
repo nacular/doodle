@@ -140,6 +140,8 @@ open class GridPanel: View() {
                                 heights.map { it.size }.sum() + verticalSpacing   * (heights.size - 1)),
                         block = cellAlignment)
             }
+
+            container.idealSize = Size(idealWidth!!, idealHeight!!)
         }
     }
 

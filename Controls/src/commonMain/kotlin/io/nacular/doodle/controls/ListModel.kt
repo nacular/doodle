@@ -52,6 +52,8 @@ interface MutableListModel<T>: DynamicListModel<T> {
 
     operator fun set(index: Int, value: T): T?
 
+    fun notifyChanged(index: Int)
+
     fun add        (value  : T                         )
     fun add        (index  : Int, value: T             )
     fun remove     (value  : T                         )
@@ -102,6 +104,8 @@ open class SimpleMutableListModel<T> private constructor(private val list: Obser
     override fun set(index: Int, value: T) = list.set(index, value)
     override fun add(value: T            ) = list.add(value).run { Unit }
     override fun add(index: Int, value: T) = list.add(index, value)
+
+    override fun notifyChanged(index: Int) = list.notifyChanged(index)
 
     override fun remove     (value  : T                         ) = list.remove   (value        ).run { Unit }
     override fun removeAt   (index  : Int                       ) = list.removeAt (index        )

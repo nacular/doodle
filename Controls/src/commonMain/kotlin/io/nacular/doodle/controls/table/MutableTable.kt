@@ -59,6 +59,8 @@ class MutableTable<T, M: MutableListModel<T>>(
             override fun replaceAll (              values: Collection<A>) { /*NO-OP*/ }
             override fun clear      (                                   ) { /*NO-OP*/ }
 
+            override fun notifyChanged(index: Int) { /*NO-OP*/ }
+
             override fun <R: Comparable<R>> sortBy            (selector  : (A) -> R?       ) { /*NO-OP*/ }
             override fun <R: Comparable<R>> sortByDescending  (selector  : (A) -> R?       ) { /*NO-OP*/ }
             override fun                    sortWith          (comparator: Comparator<in A>) { /*NO-OP*/ }
