@@ -1,49 +1,86 @@
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.theme.CommonButtonBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
-import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.darker
+import io.nacular.doodle.drawing.interpolate
+import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.NoOpCompletable
 
 
-class BasicSwitchBehavior(
+open class BasicSwitchBehavior(
         private val onBackground      : Color = Blue,
         private val onForeground      : Color = White,
         private val offBackground     : Color = Lightgray,
-        private val offForeground     : Color = onForeground,
-        private val disabledBackground: Color = offBackground,
-        private val disabledForeground: Color = Gray): CommonButtonBehavior<Switch>() {
+        private val offForeground     : Color = onForeground): CommonButtonBehavior<Switch>() {
+
+    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    var disabledColorMapper: ColorMapper = { it.lighter()    }
+
+    private var progress  = 0f
+    private var activeTransition = null as Completable?
+        private set(new) {
+            field?.cancel()
+            field = new
+        }
+
+    open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+
+    override val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button, _, new ->
+        val start = progress
+        val end   = when {
+            new  -> 1f
+            else -> 0f
+        }
+
+        activeTransition = transitionSlider {
+            progress = start * (1 - it) + end * it
+            button.rerenderNow()
+        }.apply {
+            completed += { activeTransition = null }
+            canceled  += { activeTransition = null }
+        }
+    }
+
+    override fun install(view: Switch) {
+        super.install(view)
+
+        progress = when {
+            view.selected -> 1f
+            else          -> 0f
+        }
+    }
 
     override fun render(view: Switch, canvas: Canvas) {
-        val radius = view.height / 2
-        val border = maxOf(2.0, view.height / 20)
-
-        val backgroundColor = when {
-            !view.enabled -> disabledBackground
-            view.selected -> onBackground
-            else          -> offBackground
-        }
+        val radius          = view.height / 2
+        val border          = maxOf(2.0, view.height / 20)
+        val circleColor     = color(view, offForeground, onForeground)
+        val backgroundColor = color(view, offBackground, onBackground)
 
 //        canvas.innerShadow(blurRadius = 5.0) {
         canvas.rect(view.bounds.atOrigin, radius, ColorFill(backgroundColor))
 //        }
 
-        val circleColor = when {
-            !view.enabled -> disabledForeground
-            view.selected -> onForeground
-            else          -> offForeground
-        }
+        val center = Point(radius + (view.width - 2 * radius) * progress, radius)
 
+        canvas.circle(Circle(center, radius - border), ColorFill(circleColor))
+    }
+
+    private fun color(button: Button, start: Color, end: Color) = interpolate(start, end, progress).let {
         when {
-            view.selected -> canvas.circle(Circle(Point(view.width - radius, radius), radius - border), ColorFill(circleColor))
-            else          -> canvas.circle(Circle(Point(radius, radius), radius - border), ColorFill(circleColor))
+            !button.enabled          -> disabledColorMapper(it)
+            button.model.pointerOver -> hoverColorMapper   (it)
+            else                     -> it
         }
     }
 }

@@ -27,7 +27,6 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
-import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Fill
@@ -377,21 +376,21 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
         }
 
         fun basicSwitchBehavior(
-                onBackground      : Color? = null,
-                onForeground      : Color? = null,
-                offBackground     : Color? = null,
-                offForeground     : Color? = null,
-                disabledBackground: Color? = null,
-                disabledForeground: Color? = null) = basicThemeModule(name = "BasicSwitchBehavior") {
+                onBackground : Color? = null,
+                onForeground : Color? = null,
+                offBackground: Color? = null,
+                offForeground: Color? = null
+        ) = basicThemeModule(name = "BasicSwitchBehavior") {
             bindBehavior<Switch>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicSwitchBehavior(
-                            onBackground       ?: Blue,
-                            onForeground       ?: White,
-                            offBackground      ?: backgroundColor,
-                            offForeground      ?: onForeground  ?: White,
-                            disabledBackground ?: offForeground ?: backgroundColor,
-                            disabledForeground ?: Gray) as Behavior<Button>
+                            onBackground ?: Blue,
+                            onForeground ?: White,
+                            offBackground?: backgroundColor,
+                            offForeground?: onForeground ?: White).apply {
+                        hoverColorMapper    = this@run.hoverColorMapper
+                        disabledColorMapper = this@run.disabledColorMapper
+                    } as Behavior<Button>
                 }
             }
         }

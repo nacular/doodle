@@ -72,7 +72,7 @@ fun Color.lighter(percent: Float = 0.5f) = HslColor(this).lighter(percent).toRgb
 fun Color.darker(percent: Float = 0.5f) = HslColor(this).darker(percent).toRgb()
 
 fun Color.grayScale(): Color {
-    val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toByte().toUByte()
+    val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toInt().toUByte()
     return Color(gray, gray, gray)
 }
 
@@ -237,6 +237,19 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
             // Get modulus instead of remainder https://stackoverflow.com/questions/5385024/mod-in-java-produces-negative-numbers
             return HsvColor(hue * degrees, saturation, max.toFloat(), rgb.opacity)
         }
+    }
+}
+
+fun interpolate(start: Color, end: Color, percent: Float) = when (percent) {
+    0f   -> start
+    1f   -> end
+    else -> {
+        Color(
+            red     = (start.red.toInt  () * (1 - percent) + end.red.toInt  () * percent).toInt().toUByte(),
+            green   = (start.green.toInt() * (1 - percent) + end.green.toInt() * percent).toInt().toUByte(),
+            blue    = (start.blue.toInt () * (1 - percent) + end.blue.toInt () * percent).toInt().toUByte(),
+            opacity = start.opacity * (1 - percent) + end.opacity * percent
+        )
     }
 }
 
