@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic.tabbedpanel
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.fixedSpeedLinear
 import io.nacular.doodle.animation.fixedTimeLinear
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.panels.TabbedPanelBehavior
 import io.nacular.doodle.core.Layout
@@ -11,12 +12,11 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
-import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
@@ -26,8 +26,15 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.path
+import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.layout.MagnitudeConstraint
+import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.system.Cursor.Companion.Grabbing
+import io.nacular.doodle.theme.basic.ColorMapper
+import io.nacular.doodle.theme.basic.ConstraintWrapper
+import io.nacular.doodle.theme.basic.ParentConstraintWrapper
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.measured.units.Time
@@ -46,21 +53,22 @@ abstract class Tab<T>: View() {
     abstract var index: Int
 }
 
-open class BasicTab<T>(private  val textMetrics  : TextMetrics,
-                       private  val panel        : TabbedPanel<T>,
-                       override var index        : Int,
-                       private  val name         : String,
-                       private  val radius       : Double,
-                       private  val tabColor     : Color,
-                       private  val selectedColor: Color,
-                       private  val move         : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
-                       private  val cancelMove   : (panel: TabbedPanel<T>, tab: Int) -> Unit): Tab<T>() {
+open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
+                       override var index              : Int,
+                                    visualizer         : ItemVisualizer<T>,
+                       private  val radius             : Double,
+                       private  val tabColor           : Color,
+                       private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
+                       private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
+                       private  var selectedColorMapper: ColorMapper,
+                       private  var hoverColorMapper   : ColorMapper): Tab<T>() {
+
     private var pointerOver = false
         set(new) {
             field = new
             backgroundColor = when {
-                selected  -> selectedColor
-                new       -> tabColor.lighter()
+                selected  -> selectedColorMapper(tabColor)
+                new       -> hoverColorMapper   (tabColor)
                 else      -> tabColor
             }
         }
@@ -74,17 +82,49 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
 
     private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
         backgroundColor = when {
-            old == index -> if (pointerOver) tabColor.lighter() else null
-            new == index -> selectedColor
+            old == index -> if (pointerOver) hoverColorMapper(tabColor) else null
+            new == index -> selectedColorMapper(tabColor)
             else         -> null
         }
     }
 
+    var cellAlignment: (Constraints.() -> Unit) = { left = parent.left; centerY = parent.centerY }
+
+    private fun constrainLayout(view: View) = constrain(view) { content ->
+        cellAlignment(
+                // Override the parent for content to confine it within a smaller region
+                ConstraintWrapper(content) { parent ->
+                    object: ParentConstraintWrapper(parent) {
+                        override val left   = HorizontalConstraint(this@BasicTab) { 2 * radius }
+                        override val width  = MagnitudeConstraint (this@BasicTab) { it.width - 4 * radius }
+                    }
+                }
+        )
+
+        val width = content.width
+
+        content.width = io.nacular.doodle.layout.min(width, parent.width - 4 * radius)
+    }
+
     init {
+        children += visualizer.invoke(panel[index]!!)
+
+        layout = constrainLayout(children[0])
+
         pointerChanged += object: PointerListener {
-            override fun pressed (event: PointerEvent) { pointerDown = true; panel.selection = index; initialPosition = toLocal(event.location, event.target) }
-            override fun entered (event: PointerEvent) { pointerOver = true  }
-            override fun exited  (event: PointerEvent) { pointerOver = false }
+            override fun pressed (event: PointerEvent) {
+                pointerDown     = true
+                panel.selection = index
+                initialPosition = toLocal(event.location, event.target)
+            }
+
+            override fun entered (event: PointerEvent) { if (!pointerOver) pointerOver = true  }
+            override fun exited  (event: PointerEvent) {
+                pointerOver = when (val p = parent) {
+                    null -> event.target.toAbsolute(event.location) in this@BasicTab
+                    else -> p.toLocal(event.location, event.target) in this@BasicTab
+                }
+            }
             override fun released(event: PointerEvent) {
                 if (pointerDown) {
                     pointerDown = false
@@ -104,7 +144,7 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
 
                     move(panel, index, delta)
 
-                    cursor = Cursor.Grabbing
+                    cursor = Grabbing
 
                     event.consume()
                 }
@@ -118,7 +158,7 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
         panel.selectionChanged += selectionChanged
 
         if (selected) {
-            backgroundColor = selectedColor
+            backgroundColor = selectedColorMapper(tabColor)
         }
 
         path = updatePath()
@@ -141,12 +181,12 @@ open class BasicTab<T>(private  val textMetrics  : TextMetrics,
             }
         }
 
-        canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
-            val name       = name
-            val nameHeight = textMetrics.height(name)
-
-            text(name, at = Point(2 * radius, (height - nameHeight) / 2), fill = ColorFill(Black))
-        }
+//        canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
+//            val name       = name
+//            val nameHeight = textMetrics.height(name)
+//
+//            text(name, at = Point(2 * radius, (height - nameHeight) / 2), fill = ColorFill(Black))
+//        }
     }
 
     override fun contains(point: Point) = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
@@ -178,17 +218,25 @@ interface TabProducer<T> {
     operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): Tab<T>
 }
 
-typealias TabNamer<T> = (TabbedPanel<T>, T, Int) -> String
-
-open class BasicTabProducer<T>(protected val textMetrics  : TextMetrics,
-                               protected val namer        : TabNamer<T>,
-                               override  val tabHeight    : Double = 40.0,
-                               protected val tabRadius    : Double = 10.0,
-                               protected val selectedColor: Color  = White,
-                               protected val tabColor     : Color  = Color(0xdee1e6u)): TabProducer<T> {
+open class BasicTabProducer<T>(override  val tabHeight          : Double = 40.0,
+                               protected val tabRadius          : Double = 10.0,
+                               protected val tabColor           : Color  = Color(0xdee1e6u),
+                               protected val selectedColorMapper: ColorMapper = { White           },
+                               protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+): TabProducer<T> {
     override val spacing = -2 * tabRadius
 
-    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(textMetrics, panel, index, namer(panel, item, index), tabRadius, tabColor, selectedColor, move, cancelMove).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(
+            panel,
+            index,
+            panel.tabVisualizer,
+            tabRadius,
+            tabColor,
+            move,
+            cancelMove,
+            selectedColorMapper,
+            hoverColorMapper
+    ).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
 
     protected open val move = { _: TabbedPanel<T>, _: Int,_: Double -> }
 
@@ -286,7 +334,11 @@ class AnimatingTabContainer<T>(
         var initialPosition = null as Point?
 
         pointerChanged += object: PointerListener {
-            override fun pressed (event: PointerEvent) { pointerDown = true; initialPosition = toLocal(event.location, event.target); cleanupAnimation(this@apply) }
+            override fun pressed (event: PointerEvent) {
+                pointerDown     = true
+                initialPosition = toLocal(event.location, event.target)
+                cleanupAnimation(this@apply)
+            }
             override fun entered (event: PointerEvent) { doAnimation(panel, this@apply, 0f, 1f) }
             override fun exited  (event: PointerEvent) { doAnimation(panel, this@apply, 1f, 0f) }
             override fun released(event: PointerEvent) {
@@ -306,7 +358,7 @@ class AnimatingTabContainer<T>(
 
                     move(panel, index, delta)
 
-                    cursor = Cursor.Grabbing
+                    cursor = Grabbing
 
                     event.consume()
                 }
@@ -321,6 +373,7 @@ class AnimatingTabContainer<T>(
         }
     }
 
+    // FIXME: Handle right-left when tab is left-right
     private fun move(panel: TabbedPanel<T>, movingIndex: Int, delta: Double) {
         children.getOrNull(movingIndex)?.apply {
             zOrder         = 1
@@ -485,13 +538,13 @@ open class BasicTabbedPanelBehavior<T>(
             dirty += it
         }
 
-        (panel.children[0] as? TabContainer<T>)?.let {
+        (panel.children.getOrNull(0) as? TabContainer<T>)?.let {
             it.selectionChanged(panel, newIndex, oldIndex)
         }
     }
 
     override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
-        (panel.children[0] as? TabContainer<T>)?.apply {
+        (panel.children.getOrNull(0) as? TabContainer<T>)?.apply {
             itemsChanged(panel, removed, added, moved)
         }
 

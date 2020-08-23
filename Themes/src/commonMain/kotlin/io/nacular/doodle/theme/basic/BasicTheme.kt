@@ -40,6 +40,10 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
+import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior
+import io.nacular.doodle.theme.basic.tabbedpanel.SimpleTabContainer
+import io.nacular.doodle.theme.basic.tabbedpanel.TabContainerFactory
+import io.nacular.doodle.theme.basic.tabbedpanel.TabProducer
 import io.nacular.doodle.theme.basic.table.BasicMutableTableBehavior
 import io.nacular.doodle.theme.basic.table.BasicTableBehavior
 import io.nacular.doodle.theme.basic.tree.BasicMutableTreeBehavior
@@ -416,19 +420,21 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             }
         }
 
-        val BasicTabbedPanelBehavior = basicThemeModule(name = "BasicTabbedPanelBehavior") {
-            bind<io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>>() with singleton {
-                instance<BasicThemeConfig>().run {
-                    io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>(
-                            BasicTabProducer(instance(), { _,_,index ->
-                                "tab: $index"
-                            }, tabColor = backgroundColor),
-                            backgroundColor)
-                }
-            }
-
+        fun basicTabbedPanelBehavior(
+                tabProducer    : TabProducer<Any>?         = null,
+                backgroundColor: Color?                    = null,
+                tabContainer   : TabContainerFactory<Any>? = null) = basicThemeModule(name = "BasicTabbedPanelBehavior") {
             bindBehavior<TabbedPanel<Any>>(BTheme::class) {
-                it.behavior = instance<io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior<Any>>()
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicTabbedPanelBehavior(
+                            tabProducer     ?: BasicTabProducer(
+                                    tabColor            = backgroundColor ?: this.backgroundColor,
+                                    hoverColorMapper    = this@run.hoverColorMapper,
+                                    selectedColorMapper = { foregroundColor.inverted }
+                            ),
+                            backgroundColor ?: this.backgroundColor,
+                            tabContainer    ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) })
+                }
             }
         }
 
@@ -449,6 +455,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                     basicProgressBarBehavior(),
                     basicMutableTreeBehavior(),
                     basicTreeColumnsBehavior(),
+                    basicTabbedPanelBehavior(),
                     basicMutableTableBehavior()),
                     allowOverride = true)
         }

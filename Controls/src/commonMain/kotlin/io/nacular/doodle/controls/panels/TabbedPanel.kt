@@ -54,18 +54,31 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
  * @constructor
  * @param orientation of the tab container
  * @param visualizer to display each item
+ * @param tabVisualizer to display the tab for each item
  * @param item the first item in the list
  * @param remaining items in the lest
  */
-class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisualizer<T>, item: T, vararg remaining: T): View(), Iterable<T> {
+class TabbedPanel<T>(
+               orientation  : BoxOrientation = Top,
+        val    visualizer   : ItemVisualizer<T>,
+        val    tabVisualizer: ItemVisualizer<T>,
+               item         : T,
+        vararg remaining    : T
+): View(), Iterable<T> {
     /**
      * Creates a TabbedPanel with [orientation] == [Top].
      *
      * @param visualizer to display each item
+     * @param tabVisualizer to display the tab for each item
      * @param item the first item in the list
      * @param remaining items in the lest
      */
-    constructor(visualizer: ItemVisualizer<T>, item: T, vararg remaining: T): this(Top, visualizer, item, *remaining)
+    constructor(
+                   visualizer   : ItemVisualizer<T>,
+                   tabVisualizer: ItemVisualizer<T>,
+                   item         : T,
+            vararg remaining    : T
+    ): this(Top, visualizer, tabVisualizer, item, *remaining)
 
     private val items = ObservableList<T>()
 
@@ -93,11 +106,9 @@ class TabbedPanel<T>(orientation: BoxOrientation = Top, val visualizer: ItemVisu
             if (new == field) return
 
             children.batch {
-                clear()
-
-                selection = 0
-
                 field?.uninstall(this@TabbedPanel)
+
+                clear()
 
                 field = new?.apply { install(this@TabbedPanel) }
             }
