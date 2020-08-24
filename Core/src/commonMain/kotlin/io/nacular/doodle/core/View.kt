@@ -30,6 +30,7 @@ import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
@@ -137,6 +138,23 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
                 rerender() // TODO: Should this notify instead?
             }
         }
+
+    /**
+     * A [Polygon] used to further clip the View's children within its [bounds]. The View's children cannot extend
+     * beyond its [bounds], so specifying a value larger than it will not enable that.
+     *
+     * The default is `null`.
+     */
+    protected var childrenClipPoly: Polygon? = null
+        set(new) {
+            if (field != new) {
+                field = new
+
+                rerender() // TODO: Should this notify instead?
+            }
+        }
+
+    internal val childrenClipPoly_ get() = childrenClipPoly
 
     /** Notifies changes to [transform] */
     val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }

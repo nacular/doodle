@@ -3,11 +3,13 @@
 package io.nacular.doodle.dom
 
 import io.nacular.doodle.CSSStyleDeclaration
+import io.nacular.doodle.clipPath
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
@@ -38,6 +40,13 @@ internal fun Style.setBounds(value: Rectangle) {
         setLeft  (x     )
         setWidth (width )
         setHeight(height)
+    }
+}
+
+internal fun Style.setClipPath(value: Polygon?) {
+    clipPath = when (value) {
+        null -> ""
+        else -> "polygon(${value.points.joinToString(",") { "${it.x}px ${it.y}px" }})"
     }
 }
 

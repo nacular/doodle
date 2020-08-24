@@ -377,11 +377,14 @@ class RenderManagerImpl(
                     dirtyViews    -= view
                     neverRendered -= view
 
-                    graphicsSurface.clipToBounds = view.clipCanvasToBounds_
-                    graphicsSurface.mirrored     = view.needsMirrorTransform //mirrored != (view.parent?.mirrored == true)
+                    graphicsSurface.apply {
+                        clipCanvasToBounds = view.clipCanvasToBounds_
+                        childdrenClipPoly  = view.childrenClipPoly_
+                        mirrored           = view.needsMirrorTransform
 
-                    graphicsSurface.render { canvas ->
-                        view.render(canvas)
+                        render { canvas ->
+                            view.render(canvas)
+                        }
                     }
 
                     rendered = true

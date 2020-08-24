@@ -12,6 +12,7 @@ import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
+import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setOverflow
@@ -25,6 +26,7 @@ import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.MutableTreeSet
@@ -87,49 +89,67 @@ internal class RealGraphicsSurface private constructor(
             updateTransform(position)
         }
 
-    override var clipToBounds = true
-        set(new) {
-            if (field == new) {
-                return
-            }
+    private fun setupChildrenClipRect() {
+        val needsClipping = !(clipCanvasToBounds && childdrenClipPoly == null)
 
-            field = new
+        when {
+            needsClipping -> if (isContainer && childrenElement == rootElement) {
+                childrenElement = htmlFactory.create<HTMLElement>().apply {
+                    style.setWidthPercent (100.0)
+                    style.setHeightPercent(100.0)
+
+                    while(rootElement.numChildren > indexStart) {
+                        rootElement.childAt(indexStart)?.let { rootElement.remove(it); add(it) }
+                    }
+
+                    rootElement.appendChild(this)
+
+                    indexStart = 0
+                }
+            }
+            else -> if(isContainer && childrenElement != rootElement) {
+                // Move all children into rootNode
+                while(childrenElement.numChildren > 0) {
+                    childrenElement.firstChild?.let { childrenElement.remove(it); rootElement.add(it) }
+                }
+
+                rootElement.remove(childrenElement)
+                childrenElement = rootElement
+                indexStart = 1
+            }
+        }
+
+        if (childrenElement != rootElement) {
+            childrenElement.style.setClipPath(childdrenClipPoly)
+        }
+    }
+
+    override var clipCanvasToBounds = true
+        set(new) {
+            if (field != new) {
+                field = new
+
+                setupChildrenClipRect()
+            }
 
             when (field) {
                 false -> {
                     rootElement.style.setOverflow    (Visible())
                     canvasElement?.style?.setOverflow(Visible())
-
-                    if (isContainer) {
-                        childrenElement = htmlFactory.create<HTMLElement>().apply {
-                            style.setWidthPercent (100.0)
-                            style.setHeightPercent(100.0)
-
-                            while(rootElement.numChildren > indexStart) {
-                                rootElement.childAt(indexStart)?.let { rootElement.remove(it); add(it) }
-                            }
-
-                            rootElement.appendChild(this)
-
-                            indexStart = 0
-                        }
-                    }
                 }
                 else  -> {
                     rootElement.style.setOverflow    (null)
                     canvasElement?.style?.setOverflow(null)
-
-                    if (isContainer && childrenElement != rootElement) {
-                        // Move all children into rootNode
-                        while(childrenElement.numChildren > 0) {
-                            childrenElement.firstChild?.let { childrenElement.remove(it); rootElement.add(it) }
-                        }
-
-                        rootElement.remove(childrenElement)
-                        childrenElement = rootElement
-                        indexStart = 1
-                    }
                 }
+            }
+        }
+
+    override var childdrenClipPoly: Polygon? = null
+        set(new) {
+            if (field != new) {
+                field = new
+
+                setupChildrenClipRect()
             }
         }
 
@@ -158,9 +178,9 @@ internal class RealGraphicsSurface private constructor(
 
             field = new
 
-            val oldClipping = clipToBounds
+            val oldClipping = clipCanvasToBounds
 
-            clipToBounds = true
+            clipCanvasToBounds = true
 
             canvasElement = if (field) {
                 htmlFactory.create<HTMLElement>().apply {
@@ -174,6 +194,8 @@ internal class RealGraphicsSurface private constructor(
                     rootElement.insert(this, 0)
 
                     canvas = canvasFactory(this).also { it.size = size }
+
+                    indexStart = 1
                 }
             } else {
                 canvasElement?.let { it.parent?.remove(it) }
@@ -183,7 +205,7 @@ internal class RealGraphicsSurface private constructor(
                 null
             }
 
-            clipToBounds = oldClipping
+            clipCanvasToBounds = oldClipping
         }
 
     private  var indexSet        = MutableTreeSet<Int>()

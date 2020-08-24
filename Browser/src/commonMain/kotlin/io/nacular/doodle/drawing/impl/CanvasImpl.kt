@@ -5,7 +5,6 @@ import io.nacular.doodle.HTMLImageElement
 import io.nacular.doodle.Node
 import io.nacular.doodle.Text
 import io.nacular.doodle.clear
-import io.nacular.doodle.clipPath
 import io.nacular.doodle.dom.BorderStyle.Solid
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
@@ -25,6 +24,7 @@ import io.nacular.doodle.dom.setBorderRadius
 import io.nacular.doodle.dom.setBorderStyle
 import io.nacular.doodle.dom.setBorderWidth
 import io.nacular.doodle.dom.setBounds
+import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setLeft
 import io.nacular.doodle.dom.setOpacity
@@ -36,15 +36,15 @@ import io.nacular.doodle.dom.top
 import io.nacular.doodle.dom.translate
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
 import io.nacular.doodle.drawing.OuterShadow
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -237,13 +237,16 @@ internal open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) = subFrame({ translate(-rectangle.position, block) }) {
-        it.style.setBounds      (rectangle)
-        it.style.setBorderRadius(radius   )
+    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) = when (radius) {
+        0.0  -> clip(rectangle, block)
+        else -> subFrame({ translate(-rectangle.position, block) }) {
+            it.style.setBounds      (rectangle)
+            it.style.setBorderRadius(radius   )
+        }
     }
 
     override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.clipPath = "polygon(${polygon.points.joinToString { point -> "${point.x / size.width * 100}% ${point.y / size.height * 100}%" }})"
+        it.style.setClipPath(polygon)
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

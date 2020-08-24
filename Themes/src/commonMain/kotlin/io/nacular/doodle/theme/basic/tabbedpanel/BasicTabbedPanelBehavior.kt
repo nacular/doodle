@@ -180,13 +180,6 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
                 canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Stroke(Gray))
             }
         }
-
-//        canvas.clip(Rectangle(Point(2 * radius, 0.0), Size(width - 4 * radius, height))) {
-//            val name       = name
-//            val nameHeight = textMetrics.height(name)
-//
-//            text(name, at = Point(2 * radius, (height - nameHeight) / 2), fill = ColorFill(Black))
-//        }
     }
 
     override fun contains(point: Point) = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
@@ -208,7 +201,9 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
             quadraticTo(Point(width - radius,     radius         ), Point(width - radius, 0.0   )).
             lineTo     (Point(width - radius,     height - radius                               )).
             quadraticTo(Point(width,              height         ), Point(width - radius, height)).
-            close      ()
+            close      ().also {
+        childrenClipPoly = Rectangle(Point(2 * radius, 0.0), Size(max(0.0, width - 4 * radius), height))
+    }
 }
 
 interface TabProducer<T> {
