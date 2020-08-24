@@ -59,8 +59,8 @@ import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Window
 import org.w3c.dom.asList
-import kotlin.browser.document
-import kotlin.browser.window
+import kotlinx.browser.document
+import kotlinx.browser.window
 
 /**
  * Created by Nicholas Eddy on 1/22/20.

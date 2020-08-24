@@ -23,8 +23,7 @@ kotlin {
                 api(project(":controls"))
                 api(project(":themes"  ))
 
-                implementation(kotlin("stdlib-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
 
@@ -38,7 +37,6 @@ kotlin {
 
         jvm().compilations["main"].defaultSourceSet {
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
@@ -57,9 +55,6 @@ kotlin {
         js().compilations["main"].defaultSourceSet {
             dependencies {
                 api("org.kodein.di:kodein-di-erased-js:$kodeinVersion")
-
-                implementation(kotlin("stdlib-js"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutinesVersion")
             }
         }
 

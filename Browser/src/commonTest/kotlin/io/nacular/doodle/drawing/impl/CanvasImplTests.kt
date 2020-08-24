@@ -1,5 +1,9 @@
 package io.nacular.doodle.drawing.impl
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLImageElement
 import io.nacular.doodle.dom.HtmlFactory
@@ -12,9 +16,9 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.translate
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
@@ -27,10 +31,6 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
@@ -48,28 +48,28 @@ class CanvasImplTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
-        val rect = Rectangle(100, 100)
-        val circle = Circle(100.0)
-
-        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
-                { _, fill -> rect(rect, fill) },
-                { _, fill -> rect(rect, 10.0, fill) },
-                { stroke, fill -> rect(rect, stroke, fill) },
-                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
-
-                { _, fill -> circle(circle, fill) },
-                { stroke, fill -> circle(circle, stroke, fill) },
-
-                { _, fill -> ellipse(circle, fill) },
-                { stroke, fill -> ellipse(circle, stroke, fill) },
-
-                { _, fill -> text("text", null, Point.Origin, fill) },
-                { _, fill -> wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
-        ).forEach {
-            nothingRendered(it)
-        }
-    }
+//    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
+//        val rect = Rectangle(100, 100)
+//        val circle = Circle(100.0)
+//
+//        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
+//                { _, fill -> rect(rect, fill) },
+//                { _, fill -> rect(rect, 10.0, fill) },
+//                { stroke, fill -> rect(rect, stroke, fill) },
+//                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
+//
+//                { _, fill -> circle(circle, fill) },
+//                { stroke, fill -> circle(circle, stroke, fill) },
+//
+//                { _, fill -> ellipse(circle, fill) },
+//                { stroke, fill -> ellipse(circle, stroke, fill) },
+//
+//                { _, fill -> text("text", null, Point.Origin, fill) },
+//                { _, fill -> wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
+//        ).forEach {
+//            nothingRendered(it)
+//        }
+//    }
 
 //    @Test @JsName("emptyShapesNoOp")
 //    fun `empty shapes no-op`() {

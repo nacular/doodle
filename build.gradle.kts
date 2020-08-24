@@ -13,7 +13,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform")
+    kotlin("multiplatform") apply false
     id ("org.jetbrains.dokka") version "0.10.0"
     signing
 }
