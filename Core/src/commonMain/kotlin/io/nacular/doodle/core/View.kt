@@ -593,22 +593,25 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
-    protected open fun child(at: Point): View? = when (val result = layout?.child(positionableWrapper, at)) {
-        null, Ignored -> {
-            var child = null as View?
-            var topZOrder = 0
+    protected open fun child(at: Point): View? = when {
+        false == childrenClipPoly?.contains(at) -> null
+        else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
+            null, Ignored -> {
+                var child = null as View?
+                var topZOrder = 0
 
-            children.reversed().forEach {
-                if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
-                    child = it
-                    topZOrder = it.zOrder
+                children.reversed().forEach {
+                    if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
+                        child = it
+                        topZOrder = it.zOrder
+                    }
                 }
-            }
 
-            child
+                child
+            }
+            is Found      -> (result.child as PositionableWrapper).view
+            is Empty      -> null
         }
-        is Found      -> (result.child as PositionableWrapper).view
-        is Empty      -> null
     }
 
     internal fun child_(at: Point) = child(at)
