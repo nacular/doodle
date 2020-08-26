@@ -133,13 +133,13 @@ internal class RealGraphicsSurface private constructor(
             }
 
             when (field) {
-                false -> {
-                    rootElement.style.setOverflow    (Visible())
-                    canvasElement?.style?.setOverflow(Visible())
-                }
-                else  -> {
+                true  -> {
                     rootElement.style.setOverflow    (null)
                     canvasElement?.style?.setOverflow(null)
+                }
+                else -> {
+                    rootElement.style.setOverflow    (Visible())
+                    canvasElement?.style?.setOverflow(Visible())
                 }
             }
         }

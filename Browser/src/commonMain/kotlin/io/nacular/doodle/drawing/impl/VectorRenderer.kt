@@ -2,9 +2,8 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer
-import io.nacular.doodle.drawing.Shadow
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
@@ -46,11 +45,6 @@ internal interface VectorRenderer: Renderer {
             at         : Point,
             leftMargin : Double,
             rightMargin: Double)
-
-//    fun clip(rectangle: Rectangle, block: VectorRenderer.() -> Unit)
-
-    fun add   (shadow: Shadow)
-    fun remove(shadow: Shadow)
 }
 
 internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

@@ -1,5 +1,9 @@
 package io.nacular.doodle.drawing.impl
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import io.nacular.doodle.Node
 import io.nacular.doodle.NodeList
 import io.nacular.doodle.SVGCircleElement
@@ -16,12 +20,12 @@ import io.nacular.doodle.dom.setFill
 import io.nacular.doodle.dom.setPoints
 import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setStrokeWidth
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Pink
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
@@ -30,10 +34,6 @@ import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
@@ -59,18 +59,18 @@ class VectorRendererSvglTests {
         listOf<VectorRendererSvg.(Stroke, Fill) -> Unit>(
             { stroke, _     -> line(Origin, Origin + Point(100, 0), stroke) },
 
-            { _,   fill -> rect(rect,            fill) },
-            { _,   fill -> rect(rect, 10.0,      fill) },
+            { _,      fill -> rect(rect,               fill) },
+            { _,      fill -> rect(rect, 10.0,         fill) },
             { stroke, fill -> rect(rect, stroke,       fill) },
             { stroke, fill -> rect(rect, 10.0, stroke, fill) },
 
-            { _,   fill -> circle(circle,      fill) },
+            { _,      fill -> circle(circle,         fill) },
             { stroke, fill -> circle(circle, stroke, fill) },
 
-            { _,   fill -> poly(poly,      fill) },
+            { _,      fill -> poly(poly,         fill) },
             { stroke, fill -> poly(poly, stroke, fill) },
 
-            { _,   fill -> ellipse(circle,      fill) },
+            { _,      fill -> ellipse(circle,         fill) },
             { stroke, fill -> ellipse(circle, stroke, fill) }
         ).forEach {
             nothingRendered(it)
@@ -78,25 +78,25 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
-        val stroke    = Stroke()
-        val fill  = ColorFill(Red)
+        val stroke = Stroke()
+        val fill   = ColorFill(Red)
         val rect   = Rectangle.Empty
         val poly   = ConvexPolygon(Origin, Origin, Origin)
         val circle = Circle.Empty
 
         listOf<VectorRendererSvg.() -> Unit>(
-            { rect(rect,            fill) },
-            { rect(rect, 10.0,      fill) },
+            { rect(rect,               fill) },
+            { rect(rect, 10.0,         fill) },
             { rect(rect,       stroke, fill) },
             { rect(rect, 10.0, stroke, fill) },
 
-            { circle(circle,      fill) },
+            { circle(circle,         fill) },
             { circle(circle, stroke, fill) },
 
-            { poly(poly,      fill) },
+            { poly(poly,         fill) },
             { poly(poly, stroke, fill) },
 
-            { ellipse(circle,      fill) },
+            { ellipse(circle,         fill) },
             { ellipse(circle, stroke, fill) }//,
 
 //            { text   ("text", null, Point.Origin,             fill) },
@@ -108,9 +108,8 @@ class VectorRendererSvglTests {
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
         validateRender { context, svgFactory ->
-            val fill = ColorFill(Red)
-            val rect  = Rectangle(100, 100)
-
+            val fill   = ColorFill(Red)
+            val rect   = Rectangle(100, 100)
             val region = context.renderRegion
             val svg    = mockk<SVGElement>       ().apply { every { parentNode } returns null; every { firstChild } returns null }
             val poly   = mockk<SVGPolygonElement>().apply { every { parentNode } returns null }
@@ -129,7 +128,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val fill  = ColorFill(Red)
+        val fill   = ColorFill(Red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -154,7 +153,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val fill  = ColorFill(Red)
+        val fill   = ColorFill(Red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { context, svgFactory ->
@@ -178,7 +177,7 @@ class VectorRendererSvglTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val fill   = ColorFill(Red)
+        val fill    = ColorFill(Red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { context, svgFactory ->

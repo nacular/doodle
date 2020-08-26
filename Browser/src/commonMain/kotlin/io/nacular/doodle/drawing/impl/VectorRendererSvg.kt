@@ -57,17 +57,17 @@ import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.dom.top
 import io.nacular.doodle.drawing.AffineTransform
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
 import io.nacular.doodle.drawing.LinearGradientFill
 import io.nacular.doodle.drawing.OuterShadow
 import io.nacular.doodle.drawing.PatternFill
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -92,12 +92,13 @@ import io.nacular.measured.units.times
 import kotlin.math.max
 
 internal open class VectorRendererSvg constructor(
-        private val context    : CanvasContext,
+                    context    : CanvasContext,
         private val svgFactory : SvgFactory,
         private val htmlFactory: HtmlFactory,
         private val textMetrics: TextMetrics,
                     rootSvgElement: SVGElement? = null): VectorRenderer {
 
+    protected var context = context
     protected lateinit var svgElement    : SVGElement
     private lateinit var rootSvgElement: SVGElement
 
@@ -115,34 +116,34 @@ internal open class VectorRendererSvg constructor(
 
     override fun line(start: Point, end: Point, stroke: Stroke) = drawPath(stroke, null, null, start, end)
 
-    override fun path(points: List<Point>,           fill: Fill, fillRule: FillRule?) = drawPath(null, fill, fillRule, *points.toTypedArray())
-    override fun path(points: List<Point>, stroke: Stroke                                   ) = drawPath(stroke,  null,  null,     *points.toTypedArray())
-    override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(stroke,  fill, fillRule, *points.toTypedArray())
+    override fun path(points: List<Point>,                 fill: Fill, fillRule: FillRule?) = drawPath(null,   fill, fillRule, *points.toTypedArray())
+    override fun path(points: List<Point>, stroke: Stroke                                 ) = drawPath(stroke, null, null,     *points.toTypedArray())
+    override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(stroke, fill, fillRule, *points.toTypedArray())
 
-    override fun path(path: io.nacular.doodle.geometry.Path,           fill: Fill, fillRule: FillRule?) = drawPath(path.data, null, fill, fillRule)
-    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke                                   ) = drawPath(path.data, stroke,  null,  null    )
-    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(path.data, stroke,  fill, fillRule)
+    override fun path(path: io.nacular.doodle.geometry.Path,                 fill: Fill, fillRule: FillRule?) = drawPath(path.data, null,   fill, fillRule)
+    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke                                 ) = drawPath(path.data, stroke, null, null    )
+    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(path.data, stroke, fill, fillRule)
 
-    override fun rect(rectangle: Rectangle,           fill: Fill ) = drawRect(rectangle, null, fill)
-    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = drawRect(rectangle, stroke,  fill)
+    override fun rect(rectangle: Rectangle,                 fill: Fill ) = drawRect(rectangle, null,   fill)
+    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = drawRect(rectangle, stroke, fill)
 
-    override fun poly(polygon: Polygon,           fill: Fill ) = drawPoly(polygon, null, fill)
-    override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) = drawPoly(polygon, stroke,  fill)
+    override fun poly(polygon: Polygon,                 fill: Fill ) = drawPoly(polygon, null,   fill)
+    override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) = drawPoly(polygon, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,           fill: Fill ) = drawRect(rectangle, radius, null, fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Fill ) = drawRect(rectangle, radius, null, fill)
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill?) = drawRect(rectangle, radius, stroke,  fill)
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           fill: Fill ) = drawArc(center, radius, sweep, rotation, null, fill)
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawArc(center, radius, sweep, rotation, stroke,  fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = drawArc(center, radius, sweep, rotation, null,   fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawArc(center, radius, sweep, rotation, stroke, fill)
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           fill: Fill ) = drawWedge(center, radius, sweep, rotation, null, fill)
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawWedge(center, radius, sweep, rotation, stroke,  fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = drawWedge(center, radius, sweep, rotation, null,   fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawWedge(center, radius, sweep, rotation, stroke, fill)
 
-    override fun circle(circle: Circle,           fill: Fill ) = drawCircle(circle, null, fill)
-    override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) = drawCircle(circle, stroke,  fill)
+    override fun circle(circle: Circle,                 fill: Fill ) = drawCircle(circle, null,   fill)
+    override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) = drawCircle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,           fill: Fill ) = drawEllipse(ellipse, null, fill)
-    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) = drawEllipse(ellipse, stroke,  fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Fill ) = drawEllipse(ellipse, null,   fill)
+    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) = drawEllipse(ellipse, stroke, fill)
 
     override fun text(text: String, font: Font?, at: Point, fill: Fill) = present(stroke = null, fill = fill) {
         when {
@@ -154,6 +155,7 @@ internal open class VectorRendererSvg constructor(
     override fun text(text: StyledText, at: Point) {
         when {
             text.count > 0 -> {
+                syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
                 completeOperation(makeStyledText(text, at))
             }
@@ -161,12 +163,16 @@ internal open class VectorRendererSvg constructor(
     }
 
     override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {
+        syncShadows()
+
         StyledText(text, font, foreground = fill).first().let { (text, style) ->
             wrappedText(text, style, at, leftMargin, rightMargin)
         }
     }
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
+        syncShadows()
+
         var offset = at
 
         text.forEach { (text, style) ->
@@ -174,8 +180,20 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun add(shadow: Shadow) {
-        // FIXME: Handle case where shadow is opened/closed w/o anything being rendered
+    private var shadows = mutableListOf<Shadow>()
+
+    private fun syncShadows() {
+        while (shadows.size < context.shadows.size) {
+            add(context.shadows[shadows.size])
+        }
+
+        while (shadows.size > context.shadows.size) {
+            shadows.lastOrNull()?.let { remove(it) }
+        }
+    }
+
+    protected fun add(shadow: Shadow) {
+        shadows.plusAssign(shadow)
 
         pushClip(Rectangle(size = context.size))
 
@@ -188,7 +206,9 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun remove(shadow: Shadow) {
+    protected fun remove(shadow: Shadow) {
+        shadows.minusAssign(shadow)
+
         popClip()
     }
 
@@ -444,6 +464,8 @@ internal open class VectorRendererSvg constructor(
     }
 
     private fun present(stroke: Stroke?, fill: Fill?, block: () -> SVGElement?) {
+        syncShadows()
+
         if (visible(stroke, fill)) {
             // Update SVG Element to enable re-use if the top-level cursor has moved to a new place
             updateRootSvg()
@@ -796,7 +818,17 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private class PatternCanvas(private val context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics, patternElement: SVGElement): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, patternElement), NativeCanvas {
+    private class ContextWrapper(delegate: CanvasContext): CanvasContext by delegate {
+        override val shadows: MutableList<Shadow> = mutableListOf()
+    }
+
+    private class PatternCanvas(context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics, patternElement: SVGElement): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, patternElement), NativeCanvas {
+        private val contextWrapper = ContextWrapper(context)
+
+        init {
+            this.context = contextWrapper
+        }
+
         override var size get() = context.size; set(@Suppress("UNUSED_PARAMETER") value) {}
 
         override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
@@ -824,9 +856,9 @@ internal open class VectorRendererSvg constructor(
 
                     val imageElement = createImage(image,
                             Rectangle(0 - xRatio * source.x,
-                                    0 - yRatio * source.y,
-                                    xRatio * image.size.width,
-                                    yRatio * image.size.height),
+                                      0 - yRatio * source.y,
+                                      xRatio * image.size.width,
+                                      yRatio * image.size.height),
                             0.0,
                             opacity)
 
@@ -851,9 +883,9 @@ internal open class VectorRendererSvg constructor(
         }
 
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
-            add   (shadow)
+            contextWrapper.shadows += shadow
             block (this  )
-            remove(shadow)
+            contextWrapper.shadows -= shadow
         }
 
         override fun addData(elements: List<HTMLElement>, at: Point) {

@@ -92,7 +92,7 @@ class MaterialButtonBehavior(
         }
 
         view.pointerChanged           += this
-        view.styleChanged           += styleChanged
+        view.styleChanged             += styleChanged
         view.model.pointerOverChanged += pointerOverChanged
 
         animationListener?.let { animate.listeners -= it }
