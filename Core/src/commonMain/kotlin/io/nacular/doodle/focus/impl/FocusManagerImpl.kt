@@ -68,7 +68,7 @@ class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy
                 registerAncestorListeners()
             }
 
-            (focusChanged as PropertyObserversImpl<FocusManager, View?>)(oldFocusOwner, view)
+            (focusChanged as PropertyObserversImpl<FocusManager, View?>)(oldFocusOwner, focusOwner)
         }
     }
 

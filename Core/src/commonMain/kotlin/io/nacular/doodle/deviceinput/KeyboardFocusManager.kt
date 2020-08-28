@@ -88,18 +88,7 @@ class KeyboardFocusManagerImpl(
             in backwardKeyEvents -> focusManager.moveFocusBackward(view)
             in upwardKeyEvents   -> focusManager.moveFocusUpward  (view)
             in downwardKeyEvents -> focusManager.moveFocusDownward(view)
-            else                 -> {
-//            var g: View? = view
-
-//            while (g != null) {
-//                if (g.monitorsKeyboard) {
-                view.handleKeyEvent_(keyEvent)
-//                    break
-//                } else {
-//                    g = g.parent
-//                }
-//            }
-            }
+            else                 -> view.handleKeyEvent_(keyEvent)
         }
 
         keyEvent.consume()

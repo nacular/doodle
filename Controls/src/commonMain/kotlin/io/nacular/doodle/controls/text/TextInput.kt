@@ -18,7 +18,7 @@ class Selection(val position: Int, val anchor: Int) {
 
 typealias Validator = (String) -> String
 
-abstract class TextInput(text: String = "") : View() {
+abstract class TextInput(text: String = ""): View() {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
@@ -57,6 +57,8 @@ abstract class TextInput(text: String = "") : View() {
 //                this@TextInput.text = aText
 //            }
 //        })
+
+        mirrorWhenRightLeft = false
     }
 
     fun selectAll() = select(0 .. text.length)
