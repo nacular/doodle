@@ -255,18 +255,18 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         fun basicTreeColumnsBehavior(
                 rowHeight            : Double? = null,
-                evenRowColor         : Color?  = null,
-                oddRowColor          : Color?  = null,
+                columnSeparatorColor : Color?  = null,
                 selectionColor       : Color?  = null,
                 selectionBlurredColor: Color?  = null,
+                backgroundColor      : Color?  = null,
                 iconFactory          : (() -> TreeColumnRowIcon)? = null) = basicThemeModule(name = "BasicTreeColumnsBehavior") {
             bindBehavior<TreeColumns<Any, *>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTreeColumnsBehavior (
                         focusManager          = instanceOrNull(),
                         textMetrics           = instance(),
                         rowHeight             = rowHeight             ?: 20.0,
-                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        columnSeparatorColor  = columnSeparatorColor  ?: this.backgroundColor,
+                        backgroundColor       = backgroundColor       ?: this.oddRowColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         iconFactory           = iconFactory           ?: { SimpleTreeColumnRowIcon(foregroundColor, foregroundColor.inverted) }

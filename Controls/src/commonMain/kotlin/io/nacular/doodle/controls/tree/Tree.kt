@@ -484,6 +484,7 @@ open class Tree<T, out M: TreeModel<T>>(
             view.bounds = it.rowBounds(this, node, path, index, view)
 
             minimumSize = Size(max(width, view.width), minHeight)
+            idealSize   = Size(max(idealSize?.width ?: 0.0, view.idealSize?.width ?: minimumSize.width), minHeight)
         }
     }
 

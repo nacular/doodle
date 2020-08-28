@@ -130,16 +130,16 @@ internal class RealGraphicsSurface private constructor(
                 field = new
 
                 setupChildrenClipRect()
-            }
 
-            when (field) {
-                true  -> {
-                    rootElement.style.setOverflow    (null)
-                    canvasElement?.style?.setOverflow(null)
-                }
-                else -> {
-                    rootElement.style.setOverflow    (Visible())
-                    canvasElement?.style?.setOverflow(Visible())
+                when (field) {
+                    true -> {
+                        rootElement.style.setOverflow    (null)
+                        canvasElement?.style?.setOverflow(null)
+                    }
+                    else -> {
+                        rootElement.style.setOverflow    (Visible())
+                        canvasElement?.style?.setOverflow(Visible())
+                    }
                 }
             }
         }
@@ -262,6 +262,28 @@ internal class RealGraphicsSurface private constructor(
     private fun updateTransform(new: Point) {
         if (rootElement.style.position.isNotBlank()) {
             return
+        }
+
+        when {
+            (rootElement.parent as HTMLElement).hasAutoOverflow -> {
+                when {
+                    mirrored -> rootElement.style.setTransform(Identity.flipHorizontally())
+                    else     -> rootElement.style.setTransform(null)
+                }
+            }
+            else                                                -> {
+                when {
+                    !mirrored && augmentedTransform.isIdentity -> rootElement.style.translate(new)
+                    else                                       -> {
+                        val transform = when {
+                            mirrored -> (augmentedTransform translate new).flipHorizontally()
+                            else     ->  augmentedTransform translate new
+                        }
+
+                        rootElement.style.setTransform(transform)
+                    }
+                }
+            }
         }
 
         rootElement.parent?.takeUnless { (it as HTMLElement).hasAutoOverflow }?.also {

@@ -291,10 +291,9 @@ open class TreeColumns<T, M: TreeModel<T>>(
                 var width = 0.0
 
                 container.children.forEach {
-                    it.bounds = Rectangle(x, y, it.width, h) // FIXME
+                    it.bounds = Rectangle(x, y, it.width, h)
 
-                    x += it.width
-
+                    x     += it.width
                     width += it.width
                 }
 
@@ -371,6 +370,11 @@ open class TreeColumns<T, M: TreeModel<T>>(
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
         contentWidthConstraints  = { parent.width }
         contentHeightConstraints = { max(minHeight, parent.height) }
+
+        sizePreferencesChanged += { _,_,_ ->
+            idealSize?.let { width = it.width }
+        }
+
         // FIXME: REMOVE
         Resizer(this).apply {
             movable = false
@@ -379,21 +383,19 @@ open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createColumn(node: Path<Int>): Column<T> = Column(
-            node,
-            CustomMutableList(
-                SimpleMutableListModel(model.children(node).asSequence().toList()),
-                itemVisualizer,
-                selectionModel?.let { LocalSelectionModel(node, it) },
-                fitContent  = false,
-                scrollCache = 10
-            ).apply {
-                acceptsThemes = false
-            }
+        node,
+        CustomMutableList(
+            SimpleMutableListModel(model.children(node).asSequence().toList()),
+            itemVisualizer,
+            selectionModel?.let { LocalSelectionModel(node, it) },
+            fitContent  = false,
+            scrollCache = 10
+        ).apply {
+            acceptsThemes = false
+        }
     ).also {
         behavior?.let { behavior ->
             installBehavior(it, behavior)
         }
-
-        width = 150.0
     }
 }

@@ -45,7 +45,7 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
 open class ScrollPanel(content: View? = null): View() {
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
         idealSize = new.idealSize
-        doLayout()
+        relayout()
     }
 
     /** The content being shown within the panel */
@@ -112,6 +112,8 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     init {
+        mirrorWhenRightLeft = false
+
         this.content = content
 
         layout = ViewLayout()
