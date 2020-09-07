@@ -10,8 +10,10 @@ import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.ConstraintLayout
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.HorizontalConstraint
@@ -40,12 +42,12 @@ class SimpleTreeColumnRowIcon(private val color: Color = Black, private val sele
     override fun render(canvas: Canvas) {
         val centeredRect = bounds.atOrigin
 
+        val path = ConvexPolygon(centeredRect.position,
+                                 Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
+                                 Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
+
         canvas.transform(transform) {
-            path(listOf(
-                    centeredRect.position,
-                    Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
-                    Point(centeredRect.x, centeredRect.bottom)),
-                    ColorFill(if (selected) selectedColor else color))
+            path(path, ColorFill(if (selected) selectedColor else color))
         }
     }
 }
@@ -194,11 +196,26 @@ class TreeColumnRow<T>(
             }
         }
 
-        backgroundColor = when {
-            treeColumns.selected           (path) -> if (treeColumns.hasFocus) selectionColor else selectionBlurredColor
+        backgroundColor = backgroundColor(treeColumns)
+    }
+
+    private fun backgroundColor(treeColumns: TreeColumns<T, *>): Color? {
+        val selected = treeColumns.selected(path)
+
+        when {
+            selected -> treeColumns.focusChanged += columnsFocusChanged
+            else     -> treeColumns.focusChanged -= columnsFocusChanged
+        }
+
+        return when {
+            selected                              -> if (treeColumns.hasFocus) selectionColor else selectionBlurredColor
             treeColumns.enclosedBySelection(path) -> selectionBlurredColor
             else                                  -> null
         }
+    }
+
+    private val columnsFocusChanged = { _:View, _:Boolean, new:Boolean ->
+        backgroundColor = backgroundColor(treeColumns)
     }
 
     override fun render(canvas: Canvas) {

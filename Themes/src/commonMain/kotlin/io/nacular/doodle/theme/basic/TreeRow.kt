@@ -12,8 +12,10 @@ import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.ConstraintLayout
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.HorizontalConstraint
@@ -59,12 +61,12 @@ class SimpleTreeRowIcon(private val color: Color = Black, private val selectedCo
 
         val centeredRect = bounds.atOrigin.inset(6.0)
 
+        val path = ConvexPolygon(centeredRect.position,
+                                 Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
+                                 Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
+
         canvas.transform(transform) {
-            path(listOf(
-                    centeredRect.position,
-                    Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
-                    Point(centeredRect.x, centeredRect.bottom)),
-                    ColorFill(if (selected) selectedColor else color))
+            path(path, ColorFill(if (selected) selectedColor else color))
         }
     }
 }
