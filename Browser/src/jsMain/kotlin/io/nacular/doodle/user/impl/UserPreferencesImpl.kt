@@ -16,10 +16,7 @@ class UserPreferencesImpl(window: Window): UserPreferences {
     private var old    = colorScheme
 
     init {
-//        println(isDark)
-
         isDark.addListener {
-//            println("isDark changed")
             (colorSchemeChanged as PropertyObserversImpl)(old, colorScheme)
 
             old = colorScheme
