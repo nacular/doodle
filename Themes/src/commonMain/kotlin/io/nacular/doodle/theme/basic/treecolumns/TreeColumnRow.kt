@@ -94,6 +94,10 @@ class TreeColumnRow<T>(
 
     private lateinit var constraintLayout: ConstraintLayout
 
+    private val columnsFocusChanged = { _:View, old:Boolean, new:Boolean ->
+        backgroundColor = backgroundColor(treeColumns)
+    }
+
     init {
         children       += content
         styleChanged   += { rerender() }
@@ -212,10 +216,6 @@ class TreeColumnRow<T>(
             treeColumns.enclosedBySelection(path) -> selectionBlurredColor
             else                                  -> null
         }
-    }
-
-    private val columnsFocusChanged = { _:View, _:Boolean, new:Boolean ->
-        backgroundColor = backgroundColor(treeColumns)
     }
 
     override fun render(canvas: Canvas) {

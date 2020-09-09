@@ -13,13 +13,14 @@ interface FocusManager {
 
     fun focusable(view: View): Boolean
 
-    fun requestFocus     (view: View)
-    fun clearFocus       (          )
-    fun moveFocusForward (          )
-    fun moveFocusForward (from: View)
-    fun moveFocusBackward(from: View)
-    fun moveFocusUpward  (from: View)
-    fun moveFocusDownward(from: View)
+    fun requestFocus      (view: View)
+    fun clearFocus        (          )
+    fun moveFocusForward  (          )
+    fun moveFocusForward  (from: View)
+    fun moveFocusBackward (from: View)
+    fun moveFocusUpward   (from: View)
+    fun moveFocusDownward (from: View)
+    fun moveFocusToDefault(          )
 }
 
 interface FocusCycleRoot {

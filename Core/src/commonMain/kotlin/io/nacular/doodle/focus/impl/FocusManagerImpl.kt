@@ -26,18 +26,38 @@ class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy
     override var focusCycleRoot: View? = null
         private set
 
-    override val focusChanged: PropertyObservers<FocusManager, View?> by lazy { PropertyObserversImpl<FocusManager, View?>(this) }
+    override val focusChanged: PropertyObservers<FocusManager, View?> /*by lazy {*/ = PropertyObserversImpl<FocusManager, View?>(this) //}
 
     override fun focusable(view: View) = view.run { focusable && enabled && visible }
 
     override fun requestFocus(view: View) = requestFocusInternal(view)
 
-    override fun clearFocus       (          ) = requestFocusInternal(null)
-    override fun moveFocusForward (          ) = moveFocus(null, Forward )
-    override fun moveFocusForward (from: View) = moveFocus(from, Forward )
-    override fun moveFocusBackward(from: View) = moveFocus(from, Backward)
-    override fun moveFocusUpward  (from: View) = moveFocus(from, Upward  )
-    override fun moveFocusDownward(from: View) = moveFocus(from, Downward)
+    override fun clearFocus        (          ) = requestFocusInternal(null)
+    override fun moveFocusForward  (          ) = moveFocus(null, Forward )
+    override fun moveFocusForward  (from: View) = moveFocus(from, Forward )
+    override fun moveFocusBackward (from: View) = moveFocus(from, Backward)
+    override fun moveFocusUpward   (from: View) = moveFocus(from, Upward  )
+    override fun moveFocusDownward (from: View) = moveFocus(from, Downward)
+    override fun moveFocusToDefault(          ) = requestFocusInternal(getTraversalPolicy(null).default(display))
+
+    // used to track focus owner before disabled
+    private var finalFocusOwner: View? = null
+
+    var enabled = true
+        set(new) {
+            if (!new) {
+                // do this before updating field since it is checked in requestFocusInternal
+                // and won't do the full clear.
+                finalFocusOwner = focusOwner
+                clearFocus()
+            }
+
+            field = new
+
+            if (field) {
+                requestFocusInternal(finalFocusOwner)
+            }
+        }
 
     private fun requestFocusInternal(view: View?) {
         if (focusOwner != view && (view == null || focusable(view))) {
@@ -53,6 +73,12 @@ class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy
                 } else {
                     return
                 }
+            }
+
+            // short-circuit (and record intended view) if disabled
+            if (!enabled) {
+                finalFocusOwner = view
+                return
             }
 
             focusOwner = view
@@ -72,14 +98,15 @@ class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy
         }
     }
 
+    private fun getTraversalPolicy(view: View?) = when (val focusCycleRoot = view?.focusCycleRoot_) {
+        null -> display.focusTraversalPolicy
+        else -> focusCycleRoot.focusTraversalPolicy_
+    } ?: defaultFocusTraversalPolicy
+
     private fun moveFocus(view: View?, traversalType: TraversalType) {
         var focusView      = view ?: focusOwner
         val focusCycleRoot = focusView?.focusCycleRoot_
-
-        val policy = when (focusCycleRoot) {
-            null -> display.focusTraversalPolicy
-            else -> focusCycleRoot.focusTraversalPolicy_
-        } ?: defaultFocusTraversalPolicy
+        val policy         = getTraversalPolicy(focusView)
 
         when (traversalType) {
             Forward  -> focusView = if (focusCycleRoot != null) policy.next    (focusCycleRoot, focusView) else policy.next    (display, focusView)
@@ -157,5 +184,7 @@ class FocusManagerImpl(private val display: Display, defaultFocusTraversalPolicy
         }
     }
 
-    private val focusabilityChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ -> moveFocusForward(view) }
+    private val focusabilityChanged: (View, Boolean, Boolean) -> Unit = { view, _, _ ->
+        moveFocusForward(view)
+    }
 }

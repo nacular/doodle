@@ -11,6 +11,7 @@ import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.EventTarget
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.SvgFactoryImpl
@@ -32,6 +33,7 @@ import io.nacular.doodle.drawing.impl.TextFactoryImpl
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.NativeFocusManager
+import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
@@ -57,8 +59,10 @@ import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.singleton
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
+import org.w3c.dom.Node
 import org.w3c.dom.Window
 import org.w3c.dom.asList
+import org.w3c.dom.events.FocusEvent
 import kotlin.browser.document
 import kotlin.browser.window
 
@@ -148,6 +152,22 @@ private open class ApplicationHolderImpl protected constructor(
                     allowDefaultDarkMode: Boolean      = false,
                     modules             : List<Module> = emptyList(),
         private val isNested            : Boolean      = false): Application {
+    private var focusManager: FocusManager? = null
+
+    private fun targetOutsideApp(target: EventTarget?) = target == null || (target is Node && !root.contains(target))
+
+    private val onblur = { event: FocusEvent ->
+        when {
+            targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = false
+        }
+    }
+
+    private val onfocus = { event: FocusEvent ->
+        when {
+            targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = true
+        }
+    }
+
     protected var injector = Kodein.direct {
         extend(previousInjector, copy = Copy.All)
 
@@ -226,10 +246,14 @@ private open class ApplicationHolderImpl protected constructor(
             application = injector.instance()
         }
 
+        root.onblur  = onblur
+        root.onfocus = onfocus
+        focusManager = injector.instanceOrNull()
+
         if (!isNested && root != document.body) {
             val nativeFocusManager = injector.instanceOrNull<NativeFocusManager>()
 
-            injector.instanceOrNull<FocusManager>()?.let {
+            focusManager?.let {
                 it.focusChanged += { _: FocusManager, _: View?, new: View? ->
                     when {
                         new == null                                -> root.blur ()
@@ -262,12 +286,17 @@ private open class ApplicationHolderImpl protected constructor(
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
         injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
 
+        root.onblur  = null
+        root.onfocus = null
+
         if (!isNested && root != document.body) {
             root.stopMonitoringSize()
 
-            injector.instanceOrNull<FocusManager>()?.let { focusManager ->
+            focusManager?.let { focusManager ->
                 focusListener?.let { focusManager.focusChanged -= it }
             }
+
+            focusManager = null
         }
 
         application?.shutdown()

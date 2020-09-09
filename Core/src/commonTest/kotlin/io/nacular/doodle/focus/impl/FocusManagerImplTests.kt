@@ -1,10 +1,16 @@
 package io.nacular.doodle.focus.impl
 
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.focus.FocusTraversalPolicy
+import io.nacular.doodle.utils.PropertyObserver
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
@@ -73,7 +79,7 @@ class FocusManagerImplTests {
                 listener(this@apply, previous, view)
             }
 
-            expect(true) { focusOwner == view }
+            expect(view) { focusOwner }
         }
     }
 
@@ -94,40 +100,132 @@ class FocusManagerImplTests {
                 listener(this@apply, null, view)
             }
 
-            expect(true) { focusOwner == view }
+            expect(view) { focusOwner }
         }
     }
 
-//    @Test @JsName("focusClearedWhenOwnerNoLongerFocusable")
-//    fun `focus cleared when owner no longer focusable`() {
-//        val view = createFocusableView()
-//
-//        FocusManagerImpl().apply {
-//            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
-//
-//            focusChanged += listener
-//
-//            val enabledChanged      = slot<PropertyObserver<View, Boolean>>()
-//            val visibilityChanged   = slot<PropertyObserver<View, Boolean>>()
-//            val focusabilityChanged = slot<PropertyObserver<View, Boolean>>()
-//
-//            every { view.enabledChanged      += capture(enabledChanged     ) } just Runs
-//            every { view.visibilityChanged   += capture(visibilityChanged  ) } just Runs
-//            every { view.focusabilityChanged += capture(focusabilityChanged) } just Runs
-//
-//            requestFocus(view) // give focus already
-//
-//            enabledChanged.captured(view, true, false)
-//
-//            verify(exactly = 1) {
-//                view.focusLost(null)
-//                listener(this@apply, view, null)
-//            }
-//
-//            expect(null) { focusOwner }
-//        }
-//    }
+    @Test @JsName("requestFocusWhenDisabledNoOps")
+    fun `request focus when disabled no-ops`() {
+        val view = createFocusableView()
 
+        FocusManagerImpl(mockk()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
+
+            focusChanged += listener
+
+            enabled = false
+
+            requestFocus(view) // should no-op
+
+            verify(exactly = 0) {
+                view.focusGained(any())
+                listener(this@apply, null, view)
+            }
+
+            expect(null) { focusOwner }
+        }
+    }
+
+    @Test @JsName("focusClearedWhenOwnerDisabled")
+    fun `focus cleared when owner disabled`() {
+        verifyFocusLost {
+            val propertyChanged = slot<PropertyObserver<View, Boolean>>()
+
+            every { it.enabledChanged += capture(propertyChanged) } just Runs
+
+            { propertyChanged.captured }
+        }
+    }
+
+    @Test @JsName("focusClearedWhenOwnerNoLongerFocusable")
+    fun `focus cleared when owner no longer focusable`() {
+        verifyFocusLost {
+            val propertyChanged = slot<PropertyObserver<View, Boolean>>()
+
+            every { it.focusabilityChanged += capture(propertyChanged) } just Runs
+
+            { propertyChanged.captured }
+        }
+    }
+
+    @Test @JsName("focusClearedWhenOwnerNoLongerVisible")
+    fun `focus cleared when owner no longer visible`() {
+        verifyFocusLost {
+            val propertyChanged = slot<PropertyObserver<View, Boolean>>()
+
+            every { it.visibilityChanged += capture(propertyChanged) } just Runs
+
+            { propertyChanged.captured }
+        }
+    }
+
+    @Test @JsName("focusClearedWhenDisabled")
+    fun `focus cleared when disabled`() {
+        val view = createFocusableView()
+
+        FocusManagerImpl(createDisplayWithSingleView()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
+
+            focusChanged += listener
+
+            requestFocus(view)
+
+            enabled = false
+
+            verify(exactly = 1) {
+                view.focusLost(null)
+                listener(this@apply, view, null)
+            }
+
+            expect(null) { focusOwner }
+        }
+    }
+
+    @Test @JsName("focusReturnedToPreviousOnwerWhenEnabled")
+    fun `focus returned to previous owner when enabled`() {
+        val view = createFocusableView()
+
+        FocusManagerImpl(createDisplayWithSingleView()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
+
+            focusChanged += listener
+
+            requestFocus(view)
+
+            enabled = false
+            enabled = true
+
+            verify(exactly = 2) {
+                view.focusGained(null)
+                listener(this@apply, null, view)
+            }
+
+            expect(view) { focusOwner }
+        }
+    }
+
+    private fun verifyFocusLost(setup: (View) -> () -> PropertyObserver<View, Boolean>) {
+        val view = createFocusableView()
+
+        FocusManagerImpl(createDisplayWithSingleView()).apply {
+            val listener = mockk<(FocusManager, View?, View?) -> Unit>()
+
+            focusChanged += listener
+
+            val propertyChange = setup(view)
+
+            requestFocus(view) // give focus already
+
+            propertyChange()(view, true, false)
+
+            verify(exactly = 1) {
+                view.focusLost(null)
+                listener(this@apply, view, null)
+            }
+
+            expect(null) { focusOwner }
+        }
+    }
 
     private fun createFocusableView() = mockk<View>().apply {
         every { parent                } returns null
@@ -139,15 +237,21 @@ class FocusManagerImplTests {
         every { focusTraversalPolicy_ } returns null
     }
 
+    private fun createDisplayWithSingleView() = mockk<Display>().apply {
+        every { focusTraversalPolicy } returns mockk<FocusTraversalPolicy>().apply {
+            every { next(any<Display>(), any()) } returns null
+        }
+    }
+
     private fun createFocusablePermutations() = listOf(
-            Focusability(false, false, false) to false,
-            Focusability(false, false, true ) to false,
-            Focusability(false, true,  false) to false,
-            Focusability(false, true,  true ) to false,
-            Focusability(true,  false, false) to false,
-            Focusability(true,  false, true ) to false,
-            Focusability(true,  true,  false) to false,
-            Focusability(true,  true,  true ) to true
+            Focusability(focusable = false, enabled = false, visible = false) to false,
+            Focusability(focusable = false, enabled = false, visible = true ) to false,
+            Focusability(focusable = false, enabled = true,  visible = false) to false,
+            Focusability(focusable = false, enabled = true,  visible = true ) to false,
+            Focusability(focusable = true,  enabled = false, visible = false) to false,
+            Focusability(focusable = true,  enabled = false, visible = true ) to false,
+            Focusability(focusable = true,  enabled = true,  visible = false) to false,
+            Focusability(focusable = true,  enabled = true,  visible = true ) to true
     ).map { (row, expected) ->
         mockk<View>().apply {
             every { enabled               } returns row.enabled
