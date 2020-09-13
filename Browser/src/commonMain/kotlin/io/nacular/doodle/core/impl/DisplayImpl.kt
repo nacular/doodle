@@ -220,7 +220,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     private var layingOut = false
 
-    override fun toAbsolute(point: Point) = resolvedTransform.invoke(point)
+    override fun toAbsolute(point: Point) = resolvedTransform(point)
 
     override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point) ?: point
 

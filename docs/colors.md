@@ -18,6 +18,6 @@ canvas.rect(rect, ColorFill(Color.Blue)) // use predefined color
 ### Doodle also has HSL and HSV Colors
 
 Sometimes it is more effective to work within other color spaces. There are two other color classes for doing this. These colors cannot be used
-directly with Views or Filles, but they have methods for easily transforming to and from RGBA.
+directly with Views or Fills, but they have methods for easily transforming to and from RGBA.
 
-The ColorPicker controls uses HSV internally for example.
+The [ColorPicker](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ColorPicker.kt#L49) controls uses HSV internally for example.

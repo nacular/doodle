@@ -285,20 +285,6 @@ internal class RealGraphicsSurface private constructor(
                 }
             }
         }
-
-        rootElement.parent?.takeUnless { (it as HTMLElement).hasAutoOverflow }?.also {
-            when {
-                !mirrored && augmentedTransform.isIdentity -> rootElement.style.translate(new)
-                else                                       -> {
-                    val transform = when {
-                        mirrored -> (augmentedTransform translate new).flipHorizontally()
-                        else     ->  augmentedTransform translate new
-                    }
-
-                    rootElement.style.setTransform(transform)
-                }
-            }
-        }
     }
 
     override fun release() {
