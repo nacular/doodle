@@ -15,6 +15,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.star
+import io.nacular.doodle.geometry.withRadius
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl

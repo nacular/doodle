@@ -4,9 +4,22 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import kotlin.math.PI
 import kotlin.math.pow
 
-
+/**
+ * An Ellipse centered at [center], with [xRadius] and [yRadius] as its radii.
+ *
+ * @constructor creates a new ellipse
+ * @property center point of the ellipse
+ * @property xRadius or horizontal radius
+ * @property yRadius or vertical radius
+ */
 open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double): Shape {
 
+    /**
+     * Creates an Ellipse centered at the [Origin].
+     *
+     * @param xRadius or horizontal radius
+     * @param yRadius or vertical radius
+     */
     constructor(xRadius: Double, yRadius: Double): this(Origin, xRadius, yRadius)
 
     init {
@@ -30,7 +43,10 @@ open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double):
     override fun intersects(rectangle: Rectangle): Boolean = TODO("not implemented")
 
     companion object {
+        /** The **unit** ellipse, centered at the [Origin], with x and y radii equal to 1. */
         val Unit  = Ellipse(1.0, 1.0)
+
+        /** The **empty** ellipse, centered at the [Origin], with x and y radii equal to 0. */
         val Empty = Ellipse(0.0, 0.0)
     }
 }

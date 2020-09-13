@@ -70,11 +70,11 @@ interface Animator {
     }
 
     interface MeasureRangeUsing<T: Units> {
-        infix fun  using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+        infix fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
     }
 
     interface MeasureUsing<T: Units> {
-        infix fun  using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
+        infix fun using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
     }
 
     operator fun <T: Number> invoke(range: Pair<T, T>) = object: NumberRangeUsing<T> {

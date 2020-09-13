@@ -1,6 +1,6 @@
 package io.nacular.doodle.geometry
 
-import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -301,8 +301,8 @@ private fun colinearPoint(
 
     val direction = vector1.x * vector2.y - vector1.y * vector2.x
 
-    val newPrevious = AffineTransform.Identity.scale(around = point, x = scalePrevious).invoke(previous)
-    val newNext     = AffineTransform.Identity.scale(around = point, x = scaleNext    ).invoke(next    )
+    val newPrevious = Identity.scale(around = point, x = scalePrevious, y = scalePrevious).invoke(previous)
+    val newNext     = Identity.scale(around = point, x = scaleNext,     y = scaleNext    ).invoke(next    )
 
     return PointRelationShip(
             previous = newPrevious,
