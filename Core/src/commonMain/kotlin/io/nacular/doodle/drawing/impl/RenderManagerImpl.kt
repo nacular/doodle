@@ -14,10 +14,6 @@ import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
 import io.nacular.doodle.utils.MutableTreeSet
 import io.nacular.doodle.utils.ifTrue
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-import io.nacular.measured.units.Time.Companion.seconds
-import io.nacular.measured.units.times
 
 private object AncestorComparator: Comparator<View> {
     override fun compare(a: View, b: View) = when {
@@ -27,11 +23,8 @@ private object AncestorComparator: Comparator<View> {
     }
 }
 
-private val frameDuration = 1 * seconds / 60
-
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
 class RenderManagerImpl(
-//        private val timer               : Timer,
         private val display             : InternalDisplay,
         private val scheduler           : AnimationScheduler,
         private val themeManager        : InternalThemeManager?,
@@ -223,40 +216,16 @@ class RenderManagerImpl(
         pendingRender += view
     }
 
-    // TODO: Can this be used w/o creating copies?
-//    private fun onPaint() {
-//        strand (
-//            pendingLayout.map {{ performLayout(it) }} +
-//            pendingRender.map {{ performRender(it) }} +
-//            pendingBoundsChange.filterNot { it in neverRendered }.map {{ updateGraphicsSurface(it, graphicsDevice[it]) }}
-//        )
-//    }
-
-    private fun checkFrameTime(start: Measure<Time>) = false /*(timer.now - start).let {
-        return false
-
-        (it >= frameDuration).ifTrue {
-            paintTask?.cancel()
-            schedulePaint()
-        }
-    }*/
-
     private fun onPaint() {
-//        val start = timer.now
-
         val newRenders = mutableListOf<View>()
 
         // This loop is here because the process of laying out, rendering etc can generate new objects that need to be
-        // handled.  Therefore, the loop runs until these items are exhausted.
+        // handled. Therefore, the loop runs until these items are exhausted.
         // TODO: Should this loop be limited to avoid infinite spinning?  That way we could defer things that happen beyond a point to run on the next animation frame
         while (true) {
             do {
                 pendingLayout.firstOrNull()?.let {
                     performLayout(it)
-
-//                    if (checkFrameTime(start)) {
-//                        return
-//                    }
                 }
             } while (pendingLayout.isNotEmpty())
 
@@ -270,10 +239,6 @@ class RenderManagerImpl(
                     } else if (renderResult.renderable && !item.bounds.empty && item in dirtyViews) {
                         newRenders += item
                     }
-
-//                    if (checkFrameTime(start)) {
-//                        return
-//                    }
                 }
             }
 
@@ -286,10 +251,6 @@ class RenderManagerImpl(
 
                         it.remove()
                     }
-
-//                    if (checkFrameTime(start)) {
-//                        return
-//                    }
                 }
             }
 
@@ -469,10 +430,6 @@ class RenderManagerImpl(
             }
         }
 
-//        if (removed.isEmpty() && added.isEmpty()) {
-//            return
-//        }
-
         if (parent.visible && !parent.size.empty) {
             parent.revalidate_()
         } else {
@@ -594,10 +551,6 @@ class RenderManagerImpl(
         } else {
             schedulePaint()
         }
-
-//        if (displayTree.containsKey(view)) {
-//            checkDisplayRectChange(view)
-//        }
     }
 
     @Suppress("UNUSED_PARAMETER")

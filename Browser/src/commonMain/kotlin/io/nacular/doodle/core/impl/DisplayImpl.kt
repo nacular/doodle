@@ -111,7 +111,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
-    private var fill               = null as Fill?
+    private var fill                = null as Fill?
 
     override var transform = Identity
         set (new) {

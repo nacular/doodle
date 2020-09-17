@@ -10,7 +10,7 @@ import io.nacular.doodle.geometry.Point
  * Created by Nicholas Eddy on 2/5/18.
  */
 internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
-    override fun scrollTo(point: Point) {
+    override fun scrollTo(panel: ScrollPanel, point: Point) {
         nativePeer.scrollTo(point)
     }
 

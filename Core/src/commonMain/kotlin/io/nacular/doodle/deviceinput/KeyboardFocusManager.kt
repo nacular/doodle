@@ -56,7 +56,7 @@ class KeyboardFocusManagerImpl(
             preprocessKeyEvent(keyEvent)
 
             if (!keyEvent.consumed) {
-                handleKeyEvent(focusOwner, keyEvent)
+                handleKeyEvent(focusOwner, keyState, keyEvent)
             }
 
             if (!keyEvent.consumed) {
@@ -75,13 +75,11 @@ class KeyboardFocusManagerImpl(
     operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
     operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
-    private fun handleKeyEvent(view: View, keyEvent: KeyEvent) {
-        val keyState = keyEvent.run { KeyState(code, key, modifiers, type) }
-
+    private fun handleKeyEvent(view: View, keyState: KeyState, keyEvent: KeyEvent) {
         val upwardKeyEvents   = view[Upward  ] ?: defaultTraversalKeys[Upward  ]
         val forwardKeyEvents  = view[Forward ] ?: defaultTraversalKeys[Forward ]
         val backwardKeyEvents = view[Backward] ?: defaultTraversalKeys[Backward]
-        val downwardKeyEvents = if (view.isFocusCycleRoot_) view[Downward] else null
+        val downwardKeyEvents = if (view.isFocusCycleRoot_) view[Downward] ?: defaultTraversalKeys[Downward] else null
 
         when (keyState) {
             in forwardKeyEvents  -> focusManager.moveFocusForward (view)
@@ -90,8 +88,6 @@ class KeyboardFocusManagerImpl(
             in downwardKeyEvents -> focusManager.moveFocusDownward(view)
             else                 -> view.handleKeyEvent_(keyEvent)
         }
-
-        keyEvent.consume()
     }
 
     private fun preprocessKeyEvent(event: KeyEvent) {

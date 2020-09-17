@@ -413,14 +413,16 @@ internal open class VectorRendererSvg constructor(
 
     private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double): Point {
         val lines        = mutableListOf<Pair<String, Point>>()
-        val words        = text.splitMatches("""\s""".toRegex())
+        val words        = text.splitMatches("""\s""".toRegex()).matches
         var line         = ""
         var lineTest     : String
         var currentPoint = at
         var endX         = currentPoint.x
 
-        words.forEach { (word, delimiter) ->
-            lineTest = line + word + delimiter
+        words.forEach {
+            val word      = it.match
+            val delimiter = it.delimiter
+            lineTest      = line + word + delimiter
 
             val metric = textMetrics.size(lineTest, style.font)
 
