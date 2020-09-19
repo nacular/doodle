@@ -4,16 +4,18 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
-import io.nacular.doodle.drawing.Color.Companion.blackOrWhiteContrast
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.Color.Companion.blackOrWhiteContrast
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.HsvColor
 import io.nacular.doodle.drawing.LinearGradientFill
 import io.nacular.doodle.drawing.LinearGradientFill.Stop
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.checkerFill
+import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.toRgb
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -40,8 +42,15 @@ import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 1/9/19.
+ *
+ * Control for selecting a [Color] from within a palette.
+ *
+ * @constructor
+ * @param color to select by default
  */
 class ColorPicker(color: Color): View() {
+
+    /** The selected color */
     var color
         get(   ) = colorRect.color.toRgb()
         set(new) {
@@ -50,6 +59,7 @@ class ColorPicker(color: Color): View() {
 
     private val changed_ by lazy { PropertyObserversImpl<ColorPicker, Color>(this) }
 
+    /** Notifies of changes to [color]. */
     val changed: PropertyObservers<ColorPicker, Color> = changed_
 
     private class ColorRect(color: HsvColor): View() {
@@ -350,7 +360,7 @@ class ColorPicker(color: Color): View() {
         height = 15.0
 
         changed += { _,_,opacity ->
-            colorRect.color = colorRect.color.with(opacity)
+            colorRect.color = colorRect.color.opacity(opacity)
         }
     }
 

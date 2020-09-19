@@ -8,11 +8,31 @@ import io.nacular.measured.units.times
 import kotlin.math.abs
 import kotlin.math.round
 
-
+/**
+ * Represents an [RGBA](https://en.wikipedia.org/wiki/RGBA_color_model) color.
+ *
+ * @constructor creates a Color
+ * @property red component
+ * @property green component
+ * @property blue component
+ * @property opacity of the color
+ */
 class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
+    /**
+     * Creates a new Color using the hex representation.
+     *
+     * ```
+     *
+     * val c = Color(0xff0000)
+     *
+     * ```
+     *
+     * @param hex representation of the color
+     * @param opacity of the color
+     */
     constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
 
     private val decimal: UInt by lazy { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
@@ -21,13 +41,14 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         require(opacity in 0f..1f) { "opacity must be in ${0..1}" }
     }
 
+    /** `true` if [opacity] > 0 */
     val visible = opacity > 0
 
+    /** Hex string representation of this Color */
     val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
+    /** the inversion of this Color */
     val inverted get() = Color(0xffffffu xor decimal)
-
-    infix fun opacity(value: Float) = Color(red, green, blue, value)
 
     override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
 
@@ -58,7 +79,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         val Magenta     = Color(0xff00ffu)
         val Darkgray    = Color(0x808080u)
         val Lightgray   = Color(0xd3d3d3u)
-        val Transparent = Black.opacity(value = 0f)
+        val Transparent = Black opacity 0f
 
         fun blackOrWhiteContrast(color: Color): Color {
             val y = (299u * color.red + 587u * color.green + 114u * color.blue) / 1000u
@@ -67,54 +88,54 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 }
 
-fun Color.lighter(percent: Float = 0.5f) = HslColor(this).lighter(percent).toRgb()
+/**
+ * Creates a new Color like this one except with the given opacity.
+ *
+ * @param value of the new opacity
+ * @return the new color
+ */
+infix fun Color.opacity(value: Float) = Color(red, green, blue, value)
 
-fun Color.darker(percent: Float = 0.5f) = HslColor(this).darker(percent).toRgb()
+/**
+ * Makes this Color lighter by the given percent.
+ *
+ * @param percent to lighted the color
+ * @return the new color
+ */
+fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
 
+/**
+ * Makes this Color darker by the given percent.
+ *
+ * @param percent to darken the color
+ * @return the new color
+ */
+fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(percent).toRgb()
+
+/**
+ * @return a gray scale version of this Color
+ */
 fun Color.grayScale(): Color {
     val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toInt().toUByte()
     return Color(gray, gray, gray)
 }
 
+/**
+ * Represents an [HSL](https://en.wikipedia.org/wiki/HSL_and_HSV) color.
+ *
+ * @constructor creates a Color
+ * @param hue component
+ * @property saturation component
+ * @property lightness component
+ * @property opacity of the color
+ */
 class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
 
+    /** Hue component */
     val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
-    fun darker(percent: Float = 0.5f): HslColor {
-        require(percent in 0f .. 1f)
-
-        return if (percent == 0f) this else HslColor(hue, saturation, lightness * (1f - percent), opacity)
-    }
-
-    fun lighter(percent: Float = 0.5f): HslColor {
-        require(percent in 0f .. 1f)
-
-        return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
-    }
-
+    /** `true` if [opacity] > 0 */
     val visible = opacity > 0
-
-    fun toRgb(): Color {
-        val c = (1.0 - abs(2 * lightness - 1)) * saturation
-        val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
-        val m = lightness - c / 2
-
-        val rgb: List<Double> = when (hue `in` degrees) {
-            in   0 until  60 -> listOf(  c,   x, 0.0)
-            in  60 until 120 -> listOf(  x,   c, 0.0)
-            in 120 until 180 -> listOf(0.0,   c,   x)
-            in 180 until 240 -> listOf(0.0,   x,   c)
-            in 240 until 300 -> listOf(  x, 0.0,   c)
-            in 300 until 360 -> listOf(  c, 0.0,   x)
-            else -> throw IllegalStateException("Invalid HSL Color: $this")
-        }
-
-        return Color(
-                round(0xff * (rgb[0] + m)).toUByte(),
-                round(0xff * (rgb[1] + m)).toUByte(),
-                round(0xff * (rgb[2] + m)).toUByte(),
-                opacity)
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other    ) return true
@@ -139,6 +160,11 @@ class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float,
     override fun toString() = "$hue, $saturation, $lightness"
 
     companion object {
+        /**
+         * Create a new [HslColor] from an RGB [Color].
+         *
+         * @param rgb color to convert
+         */
         operator fun invoke(rgb: Color): HslColor {
             val r     = rgb.red.toFloat()   / 255.0
             val g     = rgb.green.toFloat() / 255.0
@@ -163,35 +189,69 @@ class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float,
     }
 }
 
-class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
+/**
+ * Makes this color lighter by the given percent.
+ *
+ * @param percent to lighted the color
+ * @return the new color
+ */
+fun HslColor.lighter(percent: Float = 0.5f): HslColor {
+    require(percent in 0f .. 1f)
 
-    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+    return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
+}
 
-    val visible = opacity > 0
+/**
+ * Makes this color darker by the given percent.
+ *
+ * @param percent to darken the color
+ * @return the new color
+ */
+fun HslColor.darker(percent: Float = 0.5f): HslColor {
+    require(percent in 0f .. 1f)
 
-    fun toRgb(): Color {
-        val c = (value * saturation).toDouble()
-        val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
-        val m = value - c
+    return if (percent == 0f) this else HslColor(hue, saturation, lightness * (1f - percent), opacity)
+}
 
-        val rgb: List<Double> = when (hue `in` degrees) {
-            in   0 until  60 -> listOf(  c,   x, 0.0)
-            in  60 until 120 -> listOf(  x,   c, 0.0)
-            in 120 until 180 -> listOf(0.0,   c,   x)
-            in 180 until 240 -> listOf(0.0,   x,   c)
-            in 240 until 300 -> listOf(  x, 0.0,   c)
-            in 300 until 360 -> listOf(  c, 0.0,   x)
-            else -> throw IllegalStateException("Invalid HSV Color: $this")
-        }
+/** @return an RGB version of this Color */
+fun HslColor.toRgb(): Color {
+    val c = (1.0 - abs(2 * lightness - 1)) * saturation
+    val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
+    val m = lightness - c / 2
 
-        return Color(
-                round(0xff * (rgb[0] + m)).toUByte(),
-                round(0xff * (rgb[1] + m)).toUByte(),
-                round(0xff * (rgb[2] + m)).toUByte(),
-                opacity)
+    val rgb: List<Double> = when (hue `in` degrees) {
+        in   0 until  60 -> listOf(  c,   x, 0.0)
+        in  60 until 120 -> listOf(  x,   c, 0.0)
+        in 120 until 180 -> listOf(0.0,   c,   x)
+        in 180 until 240 -> listOf(0.0,   x,   c)
+        in 240 until 300 -> listOf(  x, 0.0,   c)
+        in 300 until 360 -> listOf(  c, 0.0,   x)
+        else -> throw IllegalStateException("Invalid HSL Color: $this")
     }
 
-    fun with(opacity: Float) = HsvColor(hue, saturation, value, opacity)
+    return Color(
+            round(0xff * (rgb[0] + m)).toUByte(),
+            round(0xff * (rgb[1] + m)).toUByte(),
+            round(0xff * (rgb[2] + m)).toUByte(),
+            opacity)
+}
+
+/**
+ * Represents an [HSV](https://en.wikipedia.org/wiki/HSL_and_HSV) color.
+ *
+ * @constructor creates a Color
+ * @param hue component
+ * @property saturation component
+ * @property value component
+ * @property opacity of the color
+ */
+class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
+
+    /** Hue component */
+    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+
+    /** `true` if [opacity] > 0 */
+    val visible = opacity > 0
 
     override fun equals(other: Any?): Boolean {
         if (this === other    ) return true
@@ -216,6 +276,11 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
     override fun toString() = "$hue, $saturation, $value"
 
     companion object {
+        /**
+         * Create a new [HsvColor] from an RGB [Color].
+         *
+         * @param rgb color to convert
+         */
         operator fun invoke(rgb: Color): HsvColor {
             val r     = rgb.red.toFloat  () / 255.0
             val g     = rgb.green.toFloat() / 255.0
@@ -240,6 +305,45 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
     }
 }
 
+/**
+ * Creates a new color like this one except with the given opacity.
+ *
+ * @param value of the new opacity
+ * @return the new color
+ */
+fun HsvColor.opacity(value: Float) = HsvColor(hue, saturation, this.value, value)
+
+/** @return an RGB version of this Color */
+fun HsvColor.toRgb(): Color {
+    val c = (value * saturation).toDouble()
+    val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
+    val m = value - c
+
+    val rgb: List<Double> = when (hue `in` degrees) {
+        in   0 until  60 -> listOf(  c,   x, 0.0)
+        in  60 until 120 -> listOf(  x,   c, 0.0)
+        in 120 until 180 -> listOf(0.0,   c,   x)
+        in 180 until 240 -> listOf(0.0,   x,   c)
+        in 240 until 300 -> listOf(  x, 0.0,   c)
+        in 300 until 360 -> listOf(  c, 0.0,   x)
+        else -> throw IllegalStateException("Invalid HSV Color: $this")
+    }
+
+    return Color(
+            round(0xff * (rgb[0] + m)).toUByte(),
+            round(0xff * (rgb[1] + m)).toUByte(),
+            round(0xff * (rgb[2] + m)).toUByte(),
+            opacity)
+}
+
+/**
+ * Picks a Color that is [percent] within the range [[start], [end]] inclusive.
+ *
+ * @param start color
+ * @param end color
+ * @param percent from start to end
+ * @return the color
+ */
 fun interpolate(start: Color, end: Color, percent: Float) = when (percent) {
     0f   -> start
     1f   -> end

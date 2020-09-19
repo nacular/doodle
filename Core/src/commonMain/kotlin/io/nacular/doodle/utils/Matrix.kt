@@ -3,18 +3,41 @@
 package io.nacular.doodle.utils
 
 
+/**
+ * An NxM [Matrix](https://en.wikipedia.org/wiki/Matrix_(mathematics)).
+ */
 interface Matrix<out T: Number> {
-    val numRows   : Int
+    /** The number of rows in the matrix. */
+    val numRows: Int
+
+    /** The number of columns in the matrix. */
     val numColumns: Int
 
+    /** A value within the Matrix at [row, col]. */
     operator fun get(row: Int, col: Int): T
 }
 
+/**
+ * A square (NxN) [Matrix].
+ *
+ * @constructor creates a new matrix from numbers
+ * @param values must be a square 2d list of list of values
+ */
 open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): MatrixImpl<T>(values) {
+    /**
+     * `true` if this matrix is equal to the [Identity Matrix](https://en.wikipedia.org/wiki/Matrix_(mathematics)#Identity_matrix):
+     *
+     * ```
+     *                                 |1 0 ... 0|
+     *                |1 0|            |0 1 ... 0|
+     * I1 = |1|, I2 = |0 1|, ..., In = |: : ... :|
+     *                                 |0 0 ... 1|
+     * ```
+     */
     var isIdentity = true
         private set
 
-        init {
+    init {
         require(numRows == numColumns) { "row and column count must be equal" }
 
         for (row in values.indices) {
@@ -34,6 +57,9 @@ open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): 
         }
     }
 
+    /**
+     * The inverse of this matrix if it is [invertible](https://en.wikipedia.org/wiki/Invertible_matrix).
+     */
     val inverse: SquareMatrix<Double>? by lazy {
         when {
             isIdentity         -> this.map { it.toDouble() } // TODO: This shouldn't require any copy
@@ -80,6 +106,25 @@ open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): 
     }
 }
 
+/**
+ * A matrix used to represent a 2D Affine Transformation. It is of the form
+ *
+ * ```
+ *
+ * |scaleX shearX translateX|
+ * |shearY scaleY translateY|
+ * |0      0      1         |
+ *
+ * ```
+ *
+ * @constructor creates a new instance
+ * @param scaleX component of the matrix
+ * @param shearX component of the matrix
+ * @param translateX component of the matrix
+ * @param shearY component of the matrix
+ * @param scaleY component of the matrix
+ * @param translateY component of the matrix
+ */
 class AffineMatrix3D(
         scaleX    : Double,
         shearX    : Double,
@@ -91,13 +136,29 @@ class AffineMatrix3D(
             listOf(shearY, scaleY, translateY),
             listOf(   0.0,    0.0,        1.0)))
 
-fun <T: Number> squareMatrixOf(size: Int, init: (Int, Int) -> T) = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
+/**
+ * Creates an NxN [SquareMatrix], where N == [size].
+ *
+ * @param size of N
+ * @param init operation to get each value at [row, col]
+ */
+fun <T: Number> squareMatrixOf(size: Int, init: (row: Int, col: Int) -> T) = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
 
+/**
+ * Creates an NxM [Matrix], where N == [rows] and M == [cols].
+ *
+ * @param rows of the matrix
+ * @param cols of the matrix
+ * @param init operation to get each value at [row, col]
+ */
 fun <T: Number> matrixOf(rows: Int, cols: Int, init: (Int, Int) -> T): Matrix<T> = when {
     rows != cols -> MatrixImpl(List(rows) { row -> List(cols) { col -> init(col, row) } })
     else         -> squareMatrixOf(rows, init)
 }
 
+/**
+ * Gives the [transposition](https://en.wikipedia.org/wiki/Transpose) of a [SquareMatrix].
+ */
 fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
     val values = MutableList(numRows){ MutableList<T?>(numColumns) { null } }
 
@@ -110,9 +171,61 @@ fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
     return SquareMatrix(values.map { it.mapNotNull { it } })
 }
 
-operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
-operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { it.toDouble() * toDouble() }
+/**
+ * [Matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication) of two [Matrix]es.
+ */
+operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
+    require (other.numRows == numColumns) { "matrix column and row counts do not match" }
 
+    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+
+    for (r1 in 0 until numRows) {
+        for (c2 in 0 until other.numColumns) {
+            values[r1][c2] = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+        }
+    }
+
+    return MatrixImpl(values)
+}
+
+/**
+ * @see times
+ */
+operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Double> {
+    if (other.isIdentity) {
+        return this
+    }
+
+    return this * (other as Matrix<Double>)
+}
+
+/**
+ * Left [Scalar multiplication](https://en.wikipedia.org/wiki/Scalar_multiplication) of a [SquareMatrix].
+ *
+ * ```
+ *     |A11 A12 ... A1n|   |λA11 λA12 ... λA1n|
+ * λ * |A21 A12 ... A21| = |λA21 λA12 ... λA21|
+ *     | :   :  ...  : |   | :     :  ...  :  |
+ *     |An1 An2 ... Ann|   |λAn1 λAn2 ... λAnn|
+ * ```
+ */
+operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
+
+/**
+ * Right [Scalar multiplication](https://en.wikipedia.org/wiki/Scalar_multiplication) of a [SquareMatrix].
+ *
+ * ```
+ * |A11 A12 ... A1n|       |A11λ A12λ ... A1nλ|
+ * |A21 A12 ... A21| * λ = |A21λ A12λ ... A21λ|
+ * | :   :  ...  : |       | :     :  ...  :  |
+ * |An1 An2 ... Ann|       |An1λ An2λ ... Annλ|
+ * ```
+ */
+operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { toDouble() * it.toDouble() }
+
+/**
+ * [Matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication) of two [SquareMatrix]es.
+ */
 operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): SquareMatrix<Double> {
     if (other.isIdentity) {
         return this
@@ -135,12 +248,18 @@ operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): SquareMatr
     return SquareMatrix(values)
 }
 
+/**
+ * @see times
+ */
 operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
     AffineMatrix3D(
             this[0, 0] * it, this[0, 1] * it, this[0, 2] * it,
             this[1, 0] * it, this[1, 1] * it, this[1, 2] * it)
 }
 
+/**
+ * @see times
+ */
 operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
     if (other.isIdentity) {
         return this
@@ -162,33 +281,25 @@ operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
                           values[3], values[4], values[5])
 }
 
-operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Double> {
-    if (other.isIdentity) {
-        return this
-    }
-
-    return this * (other as Matrix<Double>)
-}
-
-operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
-    require (other.numRows == numColumns) { "matrix column and row counts do not match" }
-
-    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
-
-    for (r1 in 0 until numRows) {
-        for (c2 in 0 until other.numColumns) {
-            values[r1][c2] = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
-        }
-    }
-
-    return MatrixImpl(values)
-}
-
+/**
+ * Creates a new [SquareMatrix] whose members are the [transform] of those in this one.
+ *
+ * @param transform operation to map elements
+ */
 fun <T: Number, R: Number> SquareMatrix<T>.map(transform: (T) -> R): SquareMatrix<R> = SquareMatrix(values.map { it.map { transform(it) } })
 
+/**
+ * Like [map], but with [col, row] given for each item during tranformation.
+ */
 fun <T: Number, R: Number> SquareMatrix<T>.mapIndexed(transform: (col: Int, row: Int, T) -> R): SquareMatrix<R> = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) } })
 
 
+/**
+ * An (NxM) [Matrix].
+ *
+ * @constructor creates a new matrix from numbers
+ * @param values must be a square 2d list of list of values
+ */
 open class MatrixImpl<T: Number> internal constructor(internal val values: List<List<T>>): Matrix<T> {
 
     final override val numRows    = values.size

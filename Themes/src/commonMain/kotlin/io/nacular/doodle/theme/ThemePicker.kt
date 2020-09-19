@@ -9,14 +9,20 @@ import io.nacular.doodle.layout.constrain
  * Created by Nicholas Eddy on 8/30/18.
  */
 class ThemePicker(themeManager: ThemeManager): View() {
-    private val model   = MutableListModel<Theme>()
+    private val model   = MutableListModel<Theme?>()
     private val spinner = MutableSpinner(model)
 
     init {
-        update(emptySet(), themeManager.themes)
+        updateAvailableThemes(emptySet(), setOf(null) + themeManager.themes)
+
+        updateSelected(themeManager.selected)
+
+        themeManager.selectionChanged += { _,_,new ->
+            updateSelected(new)
+        }
 
         themeManager.themes.changed += { _,removed,added ->
-            update(removed, added)
+            updateAvailableThemes(removed, added)
         }
 
         children += spinner
@@ -33,7 +39,19 @@ class ThemePicker(themeManager: ThemeManager): View() {
         }
     }
 
-    private fun update(removed: Set<Theme>, added: Set<Theme>) {
+    private fun updateSelected(theme: Theme?) {
+        spinner.apply {
+            while (value != theme && hasNext) {
+                next()
+            }
+
+            while (value != theme && hasPrevious) {
+                previous()
+            }
+        }
+    }
+
+    private fun updateAvailableThemes(removed: Set<Theme>, added: Set<Theme?>) {
         model.values.batch {
             removeAll(removed)
             addAll   (added  )

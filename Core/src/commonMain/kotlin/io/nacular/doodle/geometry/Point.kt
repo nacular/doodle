@@ -9,30 +9,76 @@ import kotlin.math.sqrt
  *
  * @author Nicholas Eddy
  *
- * @property x x component
- * @property y y component
- *
- * @constructor
- * @param x x component
- * @param y y component
+ * @constructor creates a new Point
+ * @property x position
+ * @property y position
  */
 open class Point(val x: Double = 0.0, val y: Double = 0.0) {
 
-    constructor(x: Int   = 0,  y: Int   = 0 ): this(x.toDouble(), y.toDouble())
+    /**
+     * Creates a new Point.
+     *
+     * @param x position
+     * @param y position
+     */
+    constructor(x: Int = 0, y: Int = 0 ): this(x.toDouble(), y.toDouble())
+
+    /**
+     * Creates a new Point.
+     *
+     * @param x position
+     * @param y position
+     */
     constructor(x: Float = 0f, y: Float = 0f): this(x.toDouble(), y.toDouble())
 
-    operator fun plus (other: Point) = Point(x + other.x, y + other.y)
+    /**
+     * Calculates the [vector sum](https://en.wikipedia.org/wiki/Euclidean_vector#Addition_and_subtraction) of two Points.
+     *
+     * @param other point being added to this
+     * @return the resulting point
+     */
+    operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+
+    /**
+     * Calculates the [vector difference](https://en.wikipedia.org/wiki/Euclidean_vector#Addition_and_subtraction) of two Points.
+     *
+     * @param other point being added to this
+     * @return the resulting point
+     */
     operator fun minus(other: Point) = Point(x - other.x, y - other.y)
 
+    /**
+     * Calculates the [scalar product](https://en.wikipedia.org/wiki/Scalar_multiplication) of this Point and a value.
+     *
+     * @param value to scale by
+     * @return the resulting point
+     */
     operator fun times(value: Int   ) = Point(x * value, y * value)
-    operator fun div  (value: Int   ) = Point(x / value, y / value)
     operator fun times(value: Float ) = Point(x * value, y * value)
-    operator fun div  (value: Float ) = Point(x / value, y / value)
     operator fun times(value: Double) = Point(x * value, y * value)
-    operator fun div  (value: Double) = Point(x / value, y / value)
 
+    /**
+     * Calculates the [scalar product](https://en.wikipedia.org/wiki/Scalar_multiplication) of this Point
+     * and the inverse of a value.
+     *
+     * @param value to scale by
+     * @return the resulting point
+     */
+    operator fun div(value: Int   ) = Point(x / value, y / value)
+    operator fun div(value: Float ) = Point(x / value, y / value)
+    operator fun div(value: Double) = Point(x / value, y / value)
+
+    /**
+     * Performs a negation of this point, resulting in a new point with inverted x and y directions.
+     */
     operator fun unaryMinus() = Point(-x, -y)
 
+    /**
+     * Calculates the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between two points.
+     *
+     * @param other point to compare
+     * @return distance between the points
+     */
     infix fun distanceFrom(other: Point) = sqrt((x - other.x).pow(2) + (y - other.y).pow(2))
 
     override fun hashCode() = hashCode_
@@ -55,6 +101,11 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
     }
 }
 
+/** @see Point.times */
 operator fun Int.times   (value: Point) = value * this
+
+/** @see Point.times */
 operator fun Float.times (value: Point) = value * this
+
+/** @see Point.times */
 operator fun Double.times(value: Point) = value * this

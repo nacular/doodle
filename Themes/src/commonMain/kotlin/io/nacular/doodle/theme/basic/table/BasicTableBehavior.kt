@@ -24,10 +24,12 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.Enter
@@ -306,7 +308,8 @@ open class TextEditOperation<T>(
         text                = encoder.encode(row) ?: ""
         fitText             = setOf(TextFit.Width, TextFit.Height)
         borderVisible       = false
-        backgroundColor     = current.backgroundColor
+        foregroundColor     = current.foregroundColor
+        backgroundColor     = Transparent
         horizontalAlignment = HorizontalAlignment.Left
 
         styleChanged += { rerender() }

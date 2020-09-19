@@ -4,6 +4,7 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.event.KeyCode
+import io.nacular.doodle.event.KeyCode.Companion.Tab
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.KeyState.Type.Down
@@ -43,12 +44,17 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
         }
     }
 
+    private fun allowKey(event: KeyboardEvent) = when (KeyCode(event.code)) {
+        Tab  -> false
+        else -> isNativeElement(event.target)
+    }
+
     private fun keyUp  (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ) || isNativeElement(event.target)
-    private fun keyDown(event: KeyboardEvent) = dispatchKeyEvent(event, Down) || isNativeElement(event.target)
+    private fun keyDown(event: KeyboardEvent) = dispatchKeyEvent(event, Down) || allowKey(event)
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.invoke(
-            KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target)
-    ?: true
+        KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
+    ) ?: true
 
     private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {
         event.altKey.ifTrue   { it += Alt   }

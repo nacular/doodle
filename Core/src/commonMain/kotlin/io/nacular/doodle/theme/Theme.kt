@@ -5,6 +5,8 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.BreadthFirstTreeIterator
 import io.nacular.doodle.utils.Node
 import io.nacular.doodle.utils.ObservableSet
+import io.nacular.doodle.utils.PropertyObservers
+import io.nacular.doodle.utils.PropertyObserversImpl
 
 
 /**
@@ -35,6 +37,11 @@ interface ThemeManager {
      * A theme that is set as selected is also added to the [themes] set.
      */
     var selected: Theme?
+
+    /**
+     * Notifies of changes to [selected]
+     */
+    val selectionChanged: PropertyObservers<ThemeManager, Theme?>
 }
 
 abstract class InternalThemeManager: ThemeManager {
@@ -46,13 +53,20 @@ class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
 
     override var selected = null as Theme?
         set(new) {
+            if (field == new) return
+
+            val old = field
             field = new
 
             field?.apply {
                 themes += this
                 install(display, allViews)
             }
+
+            (selectionChanged as PropertyObserversImpl).forEach { it(this, old, field) }
         }
+
+    override val selectionChanged: PropertyObservers<ThemeManager, Theme?> by lazy { PropertyObserversImpl<ThemeManager, Theme?>(this) }
 
     override fun update(view: View) {
         if (view.acceptsThemes) {

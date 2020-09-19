@@ -111,7 +111,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
-    private var fill               = null as Fill?
+    private var fill                = null as Fill?
 
     override var transform = Identity
         set (new) {
@@ -220,7 +220,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     private var layingOut = false
 
-    override fun toAbsolute(point: Point) = resolvedTransform.invoke(point)
+    override fun toAbsolute(point: Point) = resolvedTransform(point)
 
     override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point) ?: point
 

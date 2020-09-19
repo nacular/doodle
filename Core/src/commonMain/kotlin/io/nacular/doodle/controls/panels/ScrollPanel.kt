@@ -32,8 +32,11 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
     /**
      * Called by the [ScrollPanel] that this behavior is installed in whenever
      * the panel scrolls.
+     *
+     * @param panel being scrolled
+     * @param point being scrolled to
      */
-    fun scrollTo(point: Point)
+    fun scrollTo(panel: ScrollPanel, point: Point)
 }
 
 /**
@@ -45,7 +48,7 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
 open class ScrollPanel(content: View? = null): View() {
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
         idealSize = new.idealSize
-        doLayout()
+        relayout()
     }
 
     /** The content being shown within the panel */
@@ -55,27 +58,29 @@ open class ScrollPanel(content: View? = null): View() {
                 throw IllegalArgumentException("ScrollPanel cannot be added to its self")
             }
 
+            if (field == new) {
+                return
+            }
+
             field?.let {
                 children -= it
                 it.sizePreferencesChanged -= sizePreferencesListener
                 (layout as? ViewLayout)?.clearConstrains()
             }
 
-            if (field != new) {
-                val old = field
-                field   = new
+            val old = field
+            field   = new
 
-                field?.let {
-                    children += it
-                    it.sizePreferencesChanged += sizePreferencesListener
-                }
-
-                (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+            field?.let {
+                children += it
+                it.sizePreferencesChanged += sizePreferencesListener
             }
+
+            (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
         }
 
     /** Notifies of changes to [content]. */
-    val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
+    val contentChanged: PropertyObservers<ScrollPanel, View?> = /*by lazy {*/ PropertyObserversImpl<ScrollPanel, View?>(this) //}
 
     /** Determines how the [content] width changes as the panel resizes */
     var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
@@ -112,10 +117,14 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     init {
+        mirrorWhenRightLeft = false
+
         this.content = content
 
         layout = ViewLayout()
     }
+
+    override var focusable = false
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -131,7 +140,7 @@ open class ScrollPanel(content: View? = null): View() {
     fun scrollTo(point: Point) {
         scrollTo(point, false)
 
-        behavior?.scrollTo(point)
+        behavior?.scrollTo(this, point)
     }
 
     /**

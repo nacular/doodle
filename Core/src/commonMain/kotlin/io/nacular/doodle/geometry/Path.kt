@@ -62,6 +62,9 @@ fun path(data: String): Path? = PathImpl(data)
  */
 fun path(from: Point): PathBuilder = PathBuilderImpl(from)
 
+/**
+ * Converts a [Polygon] to a [Path].
+ */
 fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
     points.subList(1, points.size).forEach {
         lineTo(it)

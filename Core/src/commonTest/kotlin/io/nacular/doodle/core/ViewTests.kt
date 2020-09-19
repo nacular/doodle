@@ -4,6 +4,7 @@ package io.nacular.doodle.core
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.nacular.doodle.drawing.Color.Companion.Green
@@ -352,9 +353,14 @@ class ViewTests {
     @Test @JsName("boundsChangedWorks")
     fun `bounds changed works`() {
         val view    = object: View() {}
-        val observer = mockk<PropertyObserver<View, Rectangle>>()
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = view.bounds
+        val newValue = slot<Rectangle>()
+        val observer = mockk<PropertyObserver<View, Rectangle>>().apply {
+            every { this@apply.invoke(view, any<Rectangle>(), capture(newValue)) } answers {
+                expect(newValue.captured) { view.boundingBox }
+            }
+        }
 
         view.boundsChanged += observer
         view.bounds         = new

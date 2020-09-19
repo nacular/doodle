@@ -216,6 +216,7 @@ open class List<T, out M: ListModel<T>>(
             view.bounds = it.rowBounds(this, row, index, view)
 
             minimumSize = Size(max(width, view.width), minHeight)
+            idealSize   = Size(max(idealSize?.width ?: 0.0, view.idealSize?.width ?: minimumSize.width), minHeight)
 
             if (fitContent) {
                 size = minimumSize

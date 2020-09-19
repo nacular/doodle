@@ -6,16 +6,20 @@ import io.nacular.doodle.utils.AffineMatrix3D
 import io.nacular.doodle.utils.matrixOf
 import io.nacular.doodle.utils.times
 import io.nacular.measured.units.Angle
-import io.nacular.measured.units.Angle.Companion.radians
+import io.nacular.measured.units.Angle.Companion.cos
+import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
-import kotlin.math.cos
-import kotlin.math.sin
 
+/**
+ * Represents an [Affine Transformation](https://en.wikipedia.org/wiki/Affine_transformation).
+ *
+ * @see AffineMatrix3D to see the underlying matrix used for such a transform.
+ */
 @Suppress("ReplaceSingleLineLet")
 class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
 
     /**
-     * Creates a transform with the given properties
+     * Creates a transform with the given properties.
      *
      * @param scaleX     how much to scale the x direction
      * @param shearX     how much to shear the x direction
@@ -34,42 +38,112 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
             this(AffineMatrix3D(scaleX, shearX, translateX,
                                 shearY, scaleY, translateY))
 
-    val isIdentity       = matrix.isIdentity
-    val scaleX     get() = matrix[0, 0]
-    val shearX     get() = matrix[0, 1]
+    /** `true` if this transform is equal to the [Identity] transform */
+    val isIdentity = matrix.isIdentity
+
+    /** Scale component in the x direction */
+    val scaleX get() = matrix[0, 0]
+
+    /** Shear component in the x direction */
+    val shearX get() = matrix[0, 1]
+
+    /** Translation component in the x direction */
     val translateX get() = matrix[0, 2]
-    val shearY     get() = matrix[1, 0]
-    val scaleY     get() = matrix[1, 1]
+
+    /** Shear component in the y direction */
+    val shearY get() = matrix[1, 0]
+
+    /** Scale component in the y direction */
+    val scaleY get() = matrix[1, 1]
+
+    /** Translation component in the y direction */
     val translateY get() = matrix[1, 2]
 
+    /**
+     * Allows transforms to be combined sequentially.
+     *
+     * ```
+     *
+     * val transformC = transformA * transformB
+     *
+     * ```
+     *  So applying `transformC` is equivalent to applying `transformA` then `transformB`.
+     *
+     * @see times
+     */
     operator fun times(other: AffineTransform) = AffineTransform(matrix * other.matrix)
 
-    fun scale(x: Double = 1.0, y: Double = x) = AffineTransform(
+    /**
+     * Append a scale operation (around the [Origin][io.nacular.doodle.geometry.Point.Origin]) to this transform.
+     *
+     * @param x amount to scale in the x-direction
+     * @param y amount to scale in the y-direction
+     * @return a new transform
+     */
+    fun scale(x: Double = 1.0, y: Double = 1.0) = AffineTransform(
             matrix * AffineMatrix3D(
                     x,   0.0, 0.0,
                     0.0,   y, 0.0)
     )
 
-    fun scale(around: Point, x: Double = 1.0, y: Double = x) = (this translate around).scale(x, y) translate -around
+    /**
+     * Append a scale operation to this transform, that scales around the given point.
+     *
+     * @param around this point
+     * @param x amount to scale in the x-direction
+     * @param y amount to scale in the y-direction
+     * @return a new transform
+     */
+    fun scale(around: Point, x: Double = 1.0, y: Double = 1.0) = (this translate around).scale(x, y) translate -around
 
+    /**
+     * Append a translation operation to this transform.
+     *
+     * @param by the x and y components of this point
+     * @see translate
+     * @return a new transform
+     */
     infix fun translate(by: Point) = translate(by.x, by.y)
 
+    /**
+     * Append a translation operation to this transform.
+     *
+     * @param x component
+     * @param y component
+     * @see translate
+     * @return a new transform
+     */
     fun translate(x: Double = 0.0, y: Double = 0.0) = AffineTransform(
             matrix * AffineMatrix3D(
                     1.0, 0.0, x,
                     0.0, 1.0, y)
     )
 
+    /**
+     * Append a skew operation to this transform.
+     *
+     * @param x component
+     * @param y component
+     * @return a new transform
+     */
     fun skew(x: Double, y: Double) = AffineTransform(
             matrix * AffineMatrix3D(
                     1.0,   x, 0.0,
                       y, 1.0, 0.0)
     )
 
+    /**
+     * Appends a rotation operation (around the [Origin][io.nacular.doodle.geometry.Point.Origin]) to this transform.
+     *
+     * @param by this angle
+     * @see rotate
+     * @return a new transform
+     */
     infix fun rotate(by: Measure<Angle>): AffineTransform {
-        val radians = by `in` radians
-        val sin     = sin(radians)
-        val cos     = cos(radians)
+        val sin = sin(by)
+        val cos = cos(by)
+
+        println("sin: $sin, cos: $cos")
 
         return AffineTransform(
                 matrix * AffineMatrix3D(
@@ -78,14 +152,47 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
         )
     }
 
+
+    /**
+     * Appends a rotation operation to this transform.
+     *
+     * @param around this point
+     * @param by this angle
+     * @see rotate
+     * @return a new transform
+     */
     fun rotate(around: Point, by: Measure<Angle>) = this translate around rotate by translate -around
 
-    fun flipVertically  () = scale (1.0, -1.0)
+    /**
+     * Applies a vertical flip operation (around the x-axis) to this transform.
+     */
+    fun flipVertically() = scale (1.0, -1.0)
+
+    /**
+     * Applies a vertical flip operation to this transform.
+     *
+     * @param at this y value
+     */
+    fun flipVertically(at: Double) = this.translate(y = at).flipVertically  ().translate(y = -at)
+
+    /**
+     * Applies a horizontal flip operation (around the y-axis) to this transform.
+     */
     fun flipHorizontally() = scale(-1.0,  1.0)
 
-    fun flipVertically  (at: Double) = this.translate(y = at).flipVertically  ().translate(y = -at)
+    /**
+     * Applies a horizontal flip operation to this transform.
+     *
+     * @param at this x value
+     */
     fun flipHorizontally(at: Double) = this.translate(x = at).flipHorizontally().translate(x = -at)
 
+    /**
+     * The inverse of this transform, if it is invertible. The inverse represents the reverse
+     * operation of a transform. So it can be used to "undo".
+     *
+     * @see AffineMatrix3D.inverse
+     */
     val inverse: AffineTransform? by lazy {
         when {
             isIdentity -> this
@@ -95,6 +202,19 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
         }
     }
 
+    /**
+     * Applies the transform to [point]. This operation treats [point] as a
+     * 3x1 [Matrix][io.nacular.doodle.utils.Matrix] and uses [matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication)
+     * to find a new 3x1 matrix that is "truncated" to produce the result.
+     *
+     * ```
+     *           |a, b, c|
+     * |x, y, 1| |d, e, f| = |xa + yd, xb + ye, ...| -> [xa + yd , xb + ye]
+     *           |0, 0, 1|
+     * ```
+     *
+     * @return a new, transformed point
+     */
     operator fun invoke(point: Point) = this(listOf(point)).first()
 
     /**
@@ -106,7 +226,8 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
     operator fun invoke(points: List<Point>): List<Point> = when{
         isIdentity -> points
         else       -> points.map {
-            val point   = matrixOf(3, 1) { col, row -> listOf(listOf(it.x), listOf(it.y), listOf(1.0))[row][col] }
+            val list    = listOf(listOf(it.x), listOf(it.y), listOf(1.0))
+            val point   = matrixOf(3, 1) { col, row -> list[row][col] }
             val product = matrix * point
 
             Point(product[0, 0], product[1, 0])
@@ -128,7 +249,6 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
 
     override fun hashCode(): Int = matrix.hashCode()
 
-    private operator fun get(vararg values: Double) = values.toList()
     override fun equals(other: Any?): Boolean {
         if (this === other           ) return true
         if (other !is AffineTransform) return false
@@ -138,7 +258,18 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
         return true
     }
 
+    private operator fun get(vararg values: Double) = values.toList()
+
     companion object {
+        /**
+         * The **identity** transform
+         *
+         * ```
+         * |1 0 0|
+         * |0 1 0|
+         * |0 0 1|
+         * ```
+         */
         val Identity = AffineTransform()
     }
 }

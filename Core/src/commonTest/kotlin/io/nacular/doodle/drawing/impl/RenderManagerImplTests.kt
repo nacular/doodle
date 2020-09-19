@@ -25,6 +25,7 @@ import io.nacular.doodle.geometry.times
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
+import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
@@ -36,6 +37,7 @@ import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
 import kotlin.js.JsName
 import kotlin.test.Test
+import kotlin.test.expect
 
 /**
  * Created by Nicholas Eddy on 11/6/17.
@@ -43,7 +45,6 @@ import kotlin.test.Test
 class RenderManagerImplTests {
     // TODO: Add layout tests
     // TODO: Add tests to make sure things in cleanup list never get rendered
-    // TODO: Add tests for display rect handling
 
     @Test @JsName("rendersAreBatched")
     fun `renders are batched`() {
@@ -467,8 +468,8 @@ class RenderManagerImplTests {
 
     @Test @JsName("reflectsVisibilityChange")
     fun `reflects visibility change`() {
-        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
-        val child     = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+        val container = spyk<Box> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = spyk<View>(     ).apply { bounds = Rectangle(size = Size( 10.0,  10.0)) }
 
         container.children += child
 
@@ -509,7 +510,6 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { childSurface.transform = Identity.rotate(57 * degrees) }
     }
-
 
     @Test @JsName("installsThemeForDisplayedViews")
     fun `installs theme for displayed views`() {
@@ -634,6 +634,212 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
+    @Test @JsName("updatesTopLevelOnContentDirectionChange")
+    fun `updates top-level on content direction change`() {
+        val child1  = spyk(view())
+        val child2  = spyk(view())
+        val observer = slot<ChangeObserver<Display>>()
+
+        val display = display(child1, child2).apply {
+            every { contentDirectionChanged += capture(observer) } just Runs
+        }
+
+        val renderManager = renderManager(display)
+
+        observer.captured(display)
+
+        verify { child1.contentDirectionChanged_() }
+        verify { child2.contentDirectionChanged_() }
+    }
+
+    @Test @JsName("updatesTopLevelOnMirrorChange")
+    fun `updates top-level on mirror change`() {
+        val child1  = spyk(view())
+        val child2  = spyk(view())
+        val observer = slot<ChangeObserver<Display>>()
+
+        val display = display(child1, child2).apply {
+            every { mirroringChanged += capture(observer) } just Runs
+        }
+
+        val renderManager = renderManager(display)
+
+        observer.captured(display)
+
+        verify { child1.updateNeedsMirror() }
+        verify { child2.updateNeedsMirror() }
+    }
+
+    @Test @JsName("notifiesTopLevelOfDisplayRectChange")
+    fun `notifies top level of display rect change`() {
+        val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
+
+        // Cannot use spyk since it has issues https://github.com/mockk/mockk/issues/342
+        val child = object: View() {
+            override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+                handleDisplayRectEvent(old, new)
+            }
+        }.apply {
+            size                = Size(10, 10)
+            monitorsDisplayRect = true
+        }
+
+        val display   = display(child)
+        val scheduler = ManualAnimationScheduler()
+
+        renderManager(display, scheduler = scheduler)
+
+        val oldRect = child.bounds.atOrigin
+
+        child.width = 100.0
+
+        val newRect = child.bounds.atOrigin
+
+        scheduler.runJobs()
+
+        verify { handleDisplayRectEvent(oldRect, newRect) }
+    }
+
+    @Test @JsName("displayRectChangeWorksWhenEnabledEate")
+    fun `display rect change works when enabled late`() {
+        val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
+
+        // Cannot use spyk since it has issues https://github.com/mockk/mockk/issues/342
+        val child = object: View() {
+            override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+                handleDisplayRectEvent(old, new)
+            }
+        }.apply { size = Size(10, 10) }
+
+        val display   = display(child)
+        val scheduler = ManualAnimationScheduler()
+
+        renderManager(display, scheduler = scheduler)
+
+        expect(false) { child.monitorsDisplayRect }
+
+        child.monitorsDisplayRect = true
+
+        expect(true) { child.monitorsDisplayRect }
+
+        val oldRect = child.bounds.atOrigin
+
+        child.width = 100.0
+
+        val newRect = child.bounds.atOrigin
+
+        scheduler.runJobs()
+
+        verify { handleDisplayRectEvent(oldRect, newRect) }
+    }
+
+    @Test @JsName("displayRectNotificationWorks")
+    fun `display rect notification works`() {
+        data class Data(
+                val grandParent: Rectangle,
+                val parent     : Rectangle,
+                val child      : Rectangle,
+                val event      : Pair<Rectangle, Rectangle>,
+                val operation  : (View, View, View) -> Unit
+        )
+
+        listOf(
+            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0, 0, 10)) { _,parent,_ ->
+                parent.x = -10.0
+            },
+            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(10, 10)) { _,parent,_ ->
+                parent.width = 1000.0
+            }
+        ).forEach {
+            val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
+
+            val child = object: View() {
+                override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+                    handleDisplayRectEvent(old, new)
+                }
+            }.apply {
+                size                = Size(10, 10)
+                monitorsDisplayRect = true
+            }
+            val parent        = container().apply { children += child;  bounds = it.parent      }
+            val grandParent   = container().apply { children += parent; bounds = it.grandParent }
+            val display       = display(grandParent)
+            val scheduler     = ManualAnimationScheduler()
+            val renderManager = renderManager(display, scheduler = scheduler)
+
+            it.operation(grandParent, parent, child)
+
+            scheduler.runJobs()
+
+            verify { handleDisplayRectEvent(it.event.first, it.event.second) }
+
+            expect(it.event.second) {
+                renderManager.first.displayRect(child)
+            }
+        }
+    }
+
+    @Test @JsName("coldDisplayRectCallWorks")
+    fun `cold display rect call works`() {
+        data class Data(
+                val grandParent: Rectangle,
+                val parent     : Rectangle,
+                val child      : Rectangle,
+                val event      : Pair<Rectangle, Rectangle>,
+                val operation  : (View, View, View) -> Unit
+        )
+
+        listOf(
+                Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0, 0, 10)) { _,parent,_ ->
+                    parent.x = -10.0
+                },
+                Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(10, 10)) { _,parent,_ ->
+                    parent.width = 1000.0
+                }
+        ).forEach {
+            val child         = view()
+            val parent        = container().apply { children += child;  bounds = it.parent      }
+            val grandParent   = container().apply { children += parent; bounds = it.grandParent }
+            val display       = display(grandParent)
+            val renderManager = renderManager(display)
+
+            it.operation(grandParent, parent, child)
+
+            expect(it.event.second) {
+                renderManager.first.displayRect(child)
+            }
+        }
+    }
+
+    @Test @JsName("stopsMonitoringDisplayRectWhenDisabled")
+    fun `stops monitoring display rect when disabled`() {
+        val boundsChange   = slot<PropertyObserver<View, Rectangle>>()
+        val handlingChange = slot<PropertyObserver<View, Boolean>>()
+
+        val child = mockk<View>().apply {
+            every { parent                                                } returns null
+            every { visible                                               } returns true
+            every { monitorsDisplayRect                                   } returns true
+            every { boundsChanged              += capture(boundsChange  ) } just Runs
+            every { displayRectHandlingChanged += capture(handlingChange) } just Runs
+        }
+
+        val display   = display(child)
+        val scheduler = ManualAnimationScheduler()
+
+        renderManager(display, scheduler = scheduler)
+
+        handlingChange.captured(child, true, false) // disable monitoring
+
+        verify(exactly = 1) {
+            child.displayRectHandlingChanged += handlingChange.captured
+        }
+
+        boundsChange.captured(child, Rectangle.Empty, Rectangle(100, 100))
+
+        verify(exactly = 0) { child.handleDisplayRectEvent_(Rectangle.Empty, Rectangle(100, 100)) }
+    }
+
     private fun verifyLayout(block: (View) -> Unit) {
         val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
@@ -661,8 +867,8 @@ class RenderManagerImplTests {
         view.children_.forEach { verifyChildRemovedProperly(it) }
     }
 
-    private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
-    private fun container(): Box = Box().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun view     (): View = object: View() {}.apply { size = Size(10, 10) }
+    private fun container(): Box  = Box().apply             { size = Size(10, 10) }
 
     private fun doesNotRender(view: View) {
         renderManager(display(view))
@@ -682,7 +888,6 @@ class RenderManagerImplTests {
 
     private fun renderManager(
             display             : InternalDisplay      = mockk(),
-//            timer               : Timer                = timer(),
             themeManager        : InternalThemeManager = mockk(),
             scheduler           : AnimationScheduler   = instantScheduler,
             accessibilityManager: AccessibilityManager = mockk(),
@@ -719,6 +924,7 @@ class RenderManagerImplTests {
 
         val view = slot<View>()
 
+        every { this@apply.size       } returns Size(100, 100)
         every { this@apply.children   } returns displayChildren
         every { this@apply.iterator() } answers { displayChildren.iterator() }
 
@@ -756,26 +962,6 @@ class RenderManagerImplTests {
         }
     }}
 
-//    private val instantStrand by lazy { mockk<Strand>().apply {
-//        val iterable = slot<Iterable<() -> Unit>>()
-//
-//        every { this@apply.invoke(capture(iterable)) } answers {
-//            iterable.captured.forEach {
-//                it()
-//            }
-//
-//            val task = mockk<Task>()
-//
-//            every { task.completed } returns true
-//
-//            task
-//        }
-//
-//        val sequence = slot<Sequence<() -> Unit>>()
-//
-//        every { this@apply.invoke(capture(sequence)) } answers { this@apply(sequence.captured.asIterable()) }
-//    } }
-
     private class SimpleTask(override var completed: Boolean = false) : Task {
         override fun cancel() {
             completed = true
@@ -800,25 +986,4 @@ class RenderManagerImplTests {
             return task
         }
     }
-
-//    private class ManualStrand: Strand {
-//        val jobs = mutableListOf<Pair<SimpleTask, Iterable<() -> Unit>>>()
-//
-//        fun runJobs() {
-//            jobs.forEach {
-//                it.first.completed = true
-//                it.second.forEach { it() }
-//            }
-//        }
-//
-//        override operator fun invoke(jobs: Sequence<() -> Unit>): Task = invoke(jobs.asIterable())
-//
-//        override operator fun invoke(jobs: Iterable<() -> Unit>): Task {
-//            val task = SimpleTask()
-//
-//            this.jobs += task to jobs
-//
-//            return task
-//        }
-//    }
 }

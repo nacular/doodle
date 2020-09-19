@@ -5,22 +5,33 @@ import io.nacular.doodle.controls.ignoreIndex
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior.CellGenerator
+import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyText
+import io.nacular.doodle.event.KeyText.Companion.ArrowDown
+import io.nacular.doodle.event.KeyText.Companion.ArrowLeft
+import io.nacular.doodle.event.KeyText.Companion.ArrowRight
+import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
+import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.theme.basic.ListPositioner
-import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.utils.Path
 
 /**
@@ -47,21 +58,21 @@ open class BasicTreeColumnRowGenerator<T>(
 }
 
 class BasicTreeColumnsBehavior<T>(
-        override val generator   : CellGenerator<T>,
-        evenRowColor: Color? = Color.White,
-        oddRowColor : Color? = Lightgray.lighter().lighter(),
-        rowHeight   : Double = 20.0): TreeColumnsBehavior<T>(), /*KeyListener,*/ SelectableTreeKeyHandler {
+        override val generator           : CellGenerator<T>,
+        private  val columnSeparatorColor: Color? = Lightgray.lighter().lighter(),
+        private  val backgroundColor     : Color? = Lightgray,
+        rowHeight                        : Double = 20.0): TreeColumnsBehavior<T>(), KeyListener {
 
     constructor(
             focusManager         : FocusManager?,
             textMetrics          : TextMetrics,
             rowHeight            : Double = 20.0,
-            evenRowColor         : Color? = Color.White,
-            oddRowColor          : Color? = Lightgray.lighter().lighter(),
+            columnSeparatorColor : Color? = Lightgray.lighter().lighter(),
             selectionColor       : Color? = Green.lighter(),
             selectionBlurredColor: Color? = Lightgray,
+            backgroundColor      : Color? = Lightgray,
             iconFactory          : () -> TreeColumnRowIcon = { SimpleTreeColumnRowIcon() }
-    ): this(BasicTreeColumnRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
+    ): this(BasicTreeColumnRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), columnSeparatorColor, backgroundColor, rowHeight)
 
     private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
         override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.rowBounds(columnWidth, Insets(right = VERTICAL_LINE_THICKNESS), index, current)
@@ -71,28 +82,66 @@ class BasicTreeColumnsBehavior<T>(
         override fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>) = super.totalHeight(of.numChildren(path), Insets.None)
     }
 
-//    private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedFill(rowHeight, evenRowColor, oddRowColor) else null
-
     override val positioner: RowPositioner<T> = BasicTreeColumnPositioner(rowHeight)
 
     override fun install(view: TreeColumns<T, *>) {
-//        view.keyChanged += this
-
-//        view.rerender()
+        view.keyChanged += this
     }
 
-//    override fun uninstall(view: TreeColumns<T, *>) {
-//        view.keyChanged -= this
-//    }
+    override fun uninstall(view: TreeColumns<T, *>) {
+        view.keyChanged -= this
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+        (event.source as? TreeColumns<*,*>)?.let { tree ->
+            val (expandKey, collapseKey) = when (tree.contentDirection) {
+                LeftRight -> ArrowRight to ArrowLeft
+                else      -> ArrowLeft to ArrowRight
+            }
+
+            when (event.key) {
+                ArrowUp, ArrowDown -> {
+                    when (Shift) {
+                        in event -> {
+                            tree.selectionAnchor?.let { anchor ->
+                                tree.lastSelection?.let { if (event.key == ArrowUp) tree.previous(it) else tree.next(it) }?.let { current ->
+//                                    val currentRow = tree.rowFromPath(current)
+//                                    val anchorRow  = tree.rowFromPath(anchor )
 //
-//    override fun keyPressed(event: KeyEvent) {
-//        super<SelectableTreeKeyHandler>.keyPressed(event)
-//    }
+//                                    if (currentRow != null && anchorRow != null) {
+//                                        when {
+//                                            currentRow < anchorRow  -> tree.setSelection((currentRow..anchorRow).reversed().toSet())
+//                                            anchorRow  < currentRow -> tree.setSelection((anchorRow..currentRow).toSet())
+//                                            else                    -> tree.setSelection(setOf(currentRow))
+//                                        }
+//                                    }
+                                }
+                            }
+                        }
+                        else -> tree.lastSelection?.let { if (event.key == ArrowUp) tree.previous(it) else tree.next(it) }?.let { tree.setSelection(setOf(it)) }
+                    }
+                }
+                collapseKey        -> { tree.selection.firstOrNull()?.parent?.takeUnless { it.depth == 0 }?.let { tree.setSelection(setOf(it)) } }
+                expandKey          -> { tree.selection.firstOrNull()?.takeUnless { tree.isLeaf(it) }?.let { tree.setSelection(setOf(it + 0)) } }
+                KeyText("a"), KeyText("A")         -> {
+                    if (Ctrl in event || Meta in event) {
+                        tree.selectAll()
+                    }
+                    Unit
+                }
+                else -> {}
+            }
+        }
+    }
 
     override fun renderColumnBody(treeColumns: TreeColumns<T, *>, path: Path<Int>, canvas: Canvas) {
+        backgroundColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
+
         val x = canvas.size.width - VERTICAL_LINE_THICKNESS / 2
 
-        canvas.line(Point(x, 0.0), Point(x, canvas.size.height), Stroke(Black, VERTICAL_LINE_THICKNESS))
+        columnSeparatorColor?.let {
+            canvas.line(Point(x, 0.0), Point(x, canvas.size.height), Stroke(it, VERTICAL_LINE_THICKNESS))
+        }
 
 //        patternFill?.let { canvas.rect(Rectangle(size = canvas.size), it) }
     }

@@ -100,12 +100,16 @@ internal class NativeTextField(
     }
 
     private val focusChanged = { _: View, _: Boolean, new: Boolean ->
+        ignoreSync = true
+
         when (new) {
             true -> inputElement.focus()
             else -> inputElement.blur ()
         }
 
         nativeFocusManager?.hasFocusOwner = new
+
+        ignoreSync = false
     }
 
     private val enabledChanged = { _: View, _: Boolean, new: Boolean ->

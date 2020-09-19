@@ -87,16 +87,16 @@ internal open class CanvasImpl(
     private val vectorRenderer   by lazy { rendererFactory(Context()) }
     private var innerShadowCount = 0
 
-    override fun rect(rectangle: Rectangle,           fill: Fill ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
+    override fun rect(rectangle: Rectangle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = vectorRenderer.rect(rectangle, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,           fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill?) = vectorRenderer.rect(rectangle, radius, stroke, fill)
 
-    override fun circle(circle: Circle,           fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
+    override fun circle(circle: Circle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
     override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) = vectorRenderer.circle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,           fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) = vectorRenderer.ellipse(ellipse, stroke, fill)
 
     // =============== Complex =============== //
@@ -181,29 +181,30 @@ internal open class CanvasImpl(
                 completeOperation(createImage(image, destination, radius, opacity))
             } else {
 
-                val clipRect = getRect(destination)
-                val oldRenderPosition = renderPosition
+                getRect(destination)?.let { clipRect ->
+                    val oldRenderPosition = renderPosition
 
-                renderPosition = clipRect.childAt(0)
+                    renderPosition = clipRect.childAt(0)
 
-                val xRatio = destination.width / source.width
-                val yRatio = destination.height / source.height
+                    val xRatio = destination.width / source.width
+                    val yRatio = destination.height / source.height
 
-                val imageElement = createImage(image,
-                        Rectangle(0 - xRatio * source.x,
-                                  0 - yRatio * source.y,
-                                      xRatio * image.size.width,
-                                      yRatio * image.size.height),
-                                  0.0,
-                                  opacity)
+                    val imageElement = createImage(image,
+                            Rectangle(0 - xRatio * source.x,
+                                    0 - yRatio * source.y,
+                                    xRatio * image.size.width,
+                                    yRatio * image.size.height),
+                            0.0,
+                            opacity)
 
-                if (renderPosition !== imageElement) {
-                    clipRect.add(imageElement)
+                    if (renderPosition !== imageElement) {
+                        clipRect.add(imageElement)
+                    }
+
+                    renderPosition = oldRenderPosition
+
+                    completeOperation(clipRect)
                 }
-
-                renderPosition = oldRenderPosition
-
-                completeOperation(clipRect)
             }
         }
     }
@@ -254,11 +255,7 @@ internal open class CanvasImpl(
 
         if (shadow is InnerShadow) ++innerShadowCount
 
-        vectorRenderer.add(shadow)
-
         apply(block)
-
-        vectorRenderer.remove(shadow)
 
         if (shadow is InnerShadow) --innerShadowCount
 
@@ -355,31 +352,33 @@ internal open class CanvasImpl(
         it.style.filter = ""
     }
 
-    private fun getRect(rectangle: Rectangle): HTMLElement = getRectElement().also {
-        /*
+    private fun getRect(rectangle: Rectangle): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
+        getRectElement().also {
+            /*
          * This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
          */
 
-        var transform = Identity.translate(rectangle.position)
-        var width     = rectangle.width
-        var height    = rectangle.height
+            var transform = Identity.translate(rectangle.position)
+            var width = rectangle.width
+            var height = rectangle.height
 
-        if (rectangle.height < 1) {
-            height    *= 2
-            transform  = transform.scale(y = 0.5)
+            if (rectangle.height < 1) {
+                height *= 2
+                transform = transform.scale(y = 0.5)
+            }
+
+            if (rectangle.width < 1) {
+                width *= 2
+                transform = transform.scale(x = 0.5)
+            }
+
+            it.style.setSize(Size(width, height))
+            it.style.setTransform(transform)
         }
-
-        if (rectangle.width < 1) {
-            width     *= 2
-            transform  = transform.scale(x = 0.5)
-        }
-
-        it.style.setSize     (Size(width, height))
-        it.style.setTransform(transform          )
     }
 
-    private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle).also { it.style.setBorderRadius(radius          ) }
-    private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle).also { it.style.setBorderRadius(xRadius, yRadius) }
+    private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle)?.also { it.style.setBorderRadius(radius          ) }
+    private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle)?.also { it.style.setBorderRadius(xRadius, yRadius) }
 
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {

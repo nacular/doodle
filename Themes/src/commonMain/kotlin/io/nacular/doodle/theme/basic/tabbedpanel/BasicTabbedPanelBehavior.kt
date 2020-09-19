@@ -18,6 +18,7 @@ import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener

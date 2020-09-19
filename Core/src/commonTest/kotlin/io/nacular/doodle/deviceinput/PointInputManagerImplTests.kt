@@ -1,8 +1,11 @@
 package io.nacular.doodle.deviceinput
 
 import io.mockk.Ordering.ORDERED
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.nacular.doodle.core.Box
@@ -28,6 +31,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
+import io.nacular.doodle.utils.PropertyObserver
 import kotlin.js.JsName
 import kotlin.test.Test
 
@@ -472,6 +476,36 @@ class PointInputManagerImplTests {
         verify(ORDERED) {
             child.handlePointerEvent_(PointerEvent(child, child, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
             child.handlePointerEvent_(PointerEvent(child, child, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
+        }
+    }
+
+    @Test @JsName("pointerOutWhenViewDisabled")
+    fun `pointer out when view disabled`() {
+        val enabledChanged = slot<PropertyObserver<View, Boolean>>()
+        val display        = display()
+        val inputService   = mockk<PointerInputService>()
+        val child          = spyk(view()).apply {
+            every { this@apply.enabledChanged += capture(enabledChanged) } just Runs
+        }
+
+        child.position = Point(9.0, 9.0)
+
+        every { display.child(any()            ) } returns null
+        every { display.child(Point(10.0, 10.0)) } returns child
+
+        display.children += child
+
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
+
+        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), setOf(Button1), 0, emptySet()))
+
+        child.enabled = false
+
+        enabledChanged.captured(child, true, false)
+
+        verify(ORDERED) {
+            child.handlePointerEvent_(PointerEvent(child, child, Enter, Point(1.0, 1.0), Button1, 0, emptySet()))
+            child.handlePointerEvent_(PointerEvent(child, child, Exit,  Point(1.0, 1.0), Button1, 0, emptySet()))
         }
     }
 

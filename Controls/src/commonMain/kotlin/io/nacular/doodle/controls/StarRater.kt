@@ -9,11 +9,13 @@ import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.PatternFill
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.star
+import io.nacular.doodle.geometry.withRadius
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl

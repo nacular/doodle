@@ -17,6 +17,7 @@ import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Font.Companion.Thick
 import io.nacular.doodle.drawing.FontDetector
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Circle
@@ -92,7 +93,7 @@ class MaterialButtonBehavior(
         }
 
         view.pointerChanged           += this
-        view.styleChanged           += styleChanged
+        view.styleChanged             += styleChanged
         view.model.pointerOverChanged += pointerOverChanged
 
         animationListener?.let { animate.listeners -= it }

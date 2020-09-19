@@ -2,35 +2,38 @@ package io.nacular.doodle.focus.impl
 
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 5/11/18.
  */
-class FocusTraversalPolicyImpl(private val display: Display, private val focusManager: FocusManager): FocusTraversalPolicy {
+class FocusTraversalPolicyImpl(private val focusabilityChecker: FocusabilityChecker): FocusTraversalPolicy {
 
     override fun default(within: View) = first(within)
-    override fun first  (within: View) = within.children_.firstOrNull { focusManager.focusable(it) }
-    override fun last   (within: View) = within.children_.lastOrNull  { focusManager.focusable(it) }
+    override fun first  (within: View) = within.children_.firstOrNull { focusabilityChecker(it) }
+    override fun last   (within: View) = within.children_.lastOrNull  { focusabilityChecker(it) }
 
-    override fun next    (within: View, from: View?) = from?.let { first(it) ?: next    (within, it.parent, it) }
-    override fun previous(within: View, from: View?) = from?.let {              previous(within, it.parent, it) }
+    override fun next    (within: View, from: View?) = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
+    override fun previous(within: View, from: View?) = from?.takeIf { within ancestorOf_ it }?.let {              previous(within, it.parent, it) }
 
     override fun default(display: Display) = first(display)
-    override fun first  (display: Display) = display.children.firstOrNull { focusManager.focusable(it) }
-    override fun last   (display: Display) = display.children.lastOrNull  { focusManager.focusable(it) }
+    override fun first  (display: Display) = display.children.firstOrNull { focusabilityChecker(it) }
+    override fun last   (display: Display) = display.children.lastOrNull  { focusabilityChecker(it) }
 
-    override fun next    (display: Display, from: View?) = from?.let { first(it) ?: next    (displayView, it.parent, it) }
-    override fun previous(display: Display, from: View?) = from?.let {              previous(displayView, it.parent, it) }
+    override fun next    (display: Display, from: View?) = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
+    override fun previous(display: Display, from: View?) = from?.takeIf { display ancestorOf it }?.let {              previous(DisplayView(display), it.parent, it) }
 
-    private val displayView: View = object: View() {
-        override val children get() = this@FocusTraversalPolicyImpl.display.children
+    private class DisplayView(val display_: Display): View() {
+        override val children get() = display_.children
     }
 
     private fun next(cycleRoot: View, parentView: View?, current: View): View? {
-        val parent = parentView ?: if (current.displayed) displayView else null
+        val parent = when {
+            parentView != null       -> parentView
+            cycleRoot is DisplayView -> cycleRoot
+            else                     -> current.display?.let { DisplayView(it) }
+        }
 
         if (parent != null) {
             var i           = max(0, parent.children_.indexOfFirst { current === it })
@@ -44,8 +47,8 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
 
                     parent.children_.getOrNull(j)?.also { child ->
                         when {
-                            child.isContainer && !focusManager.focusable(child) -> return first(child)
-                            focusManager.focusable(child)                       -> return child
+                            child.isContainer && !focusabilityChecker(child) -> return first(child)
+                            focusabilityChecker(child)                       -> return child
                         }
                     }
                 } while (j != i)
@@ -53,8 +56,8 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
                 while (++i < numChildren) {
                     parent.children_.getOrNull(i)?.also { child ->
                         when {
-                            child.isContainer && !focusManager.focusable(child) -> return first(child)
-                            focusManager.focusable(child)                       -> return child
+                            child.isContainer && !focusabilityChecker(child) -> return first(child)
+                            focusabilityChecker(child)                       -> return child
                         }
                     }
                 }
@@ -67,7 +70,11 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
     }
 
     private fun previous(cycleRoot: View, parentView: View?, current: View): View? {
-        val parent = parentView ?: if (current.displayed) displayView else null
+        val parent = when {
+            parentView != null       -> parentView
+            cycleRoot is DisplayView -> cycleRoot
+            else                     -> current.display?.let { DisplayView(it) }
+        }
 
         if (parent != null) {
             var i = max(0, parent.children_.indexOfFirst { current === it })
@@ -91,7 +98,7 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
                             }
                         }
 
-                        if (focusManager.focusable(child)) {
+                        if (focusabilityChecker(child)) {
                             return child
                         }
                     }
@@ -111,14 +118,14 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
                             }
                         }
 
-                        if (focusManager.focusable(child)) {
+                        if (focusabilityChecker(child)) {
                             return child
                         }
                     }
                 }
 
                 return when {
-                    focusManager.focusable(parent) -> parent
+                    focusabilityChecker(parent) -> parent
                     else                           -> previous(cycleRoot, parent.parent, parent)
                 }
             }
@@ -131,7 +138,7 @@ class FocusTraversalPolicyImpl(private val display: Display, private val focusMa
         within.children_.reversed().forEach {
             when {
                 it.children_.isNotEmpty()  -> return lastViewInTree(it)
-                focusManager.focusable(it) -> return it
+                focusabilityChecker(it) -> return it
             }
         }
 

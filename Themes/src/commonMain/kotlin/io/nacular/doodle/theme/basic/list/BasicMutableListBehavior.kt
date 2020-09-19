@@ -10,12 +10,8 @@ import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Green
-import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.Backspace

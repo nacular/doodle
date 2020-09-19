@@ -19,6 +19,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.horizontalStripedFill
@@ -202,6 +203,8 @@ open class TextEditOperation<T>(
         fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Origin))
         borderVisible       = false
+        foregroundColor     = current.foregroundColor
+        backgroundColor     = Transparent
         horizontalAlignment = Left
 
         styleChanged += { rerender() }

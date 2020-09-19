@@ -25,6 +25,7 @@ import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.impl.ImageImpl
@@ -48,54 +49,71 @@ class CanvasImplTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-//    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
-//        val rect = Rectangle(100, 100)
-//        val circle = Circle(100.0)
-//
-//        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
-//                { _, fill -> rect(rect, fill) },
-//                { _, fill -> rect(rect, 10.0, fill) },
-//                { stroke, fill -> rect(rect, stroke, fill) },
-//                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
-//
-//                { _, fill -> circle(circle, fill) },
-//                { stroke, fill -> circle(circle, stroke, fill) },
-//
-//                { _, fill -> ellipse(circle, fill) },
-//                { stroke, fill -> ellipse(circle, stroke, fill) },
-//
-//                { _, fill -> text("text", null, Point.Origin, fill) },
-//                { _, fill -> wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
-//        ).forEach {
-//            nothingRendered(it)
-//        }
-//    }
+    @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {
+        val rect = Rectangle(100, 100)
+        val circle = Circle(100.0)
 
-//    @Test @JsName("emptyShapesNoOp")
-//    fun `empty shapes no-op`() {
-//        val stroke    = Stroke()
-//        val fill  = ColorFill(red)
-//        val rect   = Rectangle.Empty
-//        val circle = Circle.Empty
-//
-//        listOf<CanvasImpl.() -> Unit>(
-//            { rect(rect,            fill) },
-//            { rect(rect, 10.0,      fill) },
-//            { rect(rect,       stroke, fill) },
-//            { rect(rect, 10.0, stroke, fill) },
-//
-//            { circle(circle,      fill) },
-//            { circle(circle, stroke, fill) },
-//
-//            { ellipse(circle,      fill) },
-//            { ellipse(circle, stroke, fill) },
-//
-//            { text   ("text", null, Point.Origin,             fill) },
-//            { wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
-//        ).forEach {
-//            nothingRendered(it)
-//        }
-//    }
+        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
+                { _, fill -> rect(rect, fill) },
+                { _, fill -> rect(rect, 10.0, fill) },
+                { stroke, fill -> rect(rect, stroke, fill) },
+                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
+
+                { _, fill -> circle(circle, fill) },
+                { stroke, fill -> circle(circle, stroke, fill) },
+
+                { _, fill -> ellipse(circle, fill) },
+                { stroke, fill -> ellipse(circle, stroke, fill) },
+
+                { _, fill -> text("text", null, Origin, fill) },
+                { _, fill -> wrapped("text", null, Origin, 0.0, 100.0, fill) }
+        ).forEach {
+            nothingRendered(it)
+        }
+    }
+
+    @Test @JsName("emptyShapesNoOp")
+    fun `empty shapes no-op`() {
+        val stroke = Stroke()
+        val fill   = ColorFill(Red)
+        val rect   = Rectangle.Empty
+        val circle = Circle.Empty
+
+        val image  = ImageImpl(mockk<HTMLImageElement>().apply {
+            every { offsetWidth  } returns 10
+            every { offsetHeight } returns 10
+            every { src          } returns "foo.jpg"
+        })
+
+        val zeroSizeImage = ImageImpl(mockk<HTMLImageElement>().apply {
+            every { offsetWidth  } returns 0
+            every { offsetHeight } returns 0
+            every { src          } returns "empty.jpg"
+        })
+
+        listOf<CanvasImpl.() -> Unit>(
+            { rect(rect,               fill) },
+            { rect(rect, 10.0,         fill) },
+            { rect(rect,       stroke, fill) },
+            { rect(rect, 10.0, stroke, fill) },
+
+            { circle(circle,         fill) },
+            { circle(circle, stroke, fill) },
+
+            { ellipse(circle,         fill) },
+            { ellipse(circle, stroke, fill) },
+
+            { text   ("", null, Origin,             fill) },
+            { wrapped("", null, Origin, 0.0, 100.0, fill) },
+
+            { image(zeroSizeImage                       ) },
+            { image(image, opacity     = 0f             ) },
+            { image(image, source      = Rectangle.Empty) },
+            { image(image, destination = Rectangle.Empty) }
+        ).forEach {
+            nothingRendered(it)
+        }
+    }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
         val fill = ColorFill(Red)

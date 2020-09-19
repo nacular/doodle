@@ -1,11 +1,24 @@
 package io.nacular.doodle.geometry
 
 /**
- * Created by Nicholas Eddy on 12/4/17.
+ * Provides a mechanism to measure the size of a [Path].
  */
 interface PathMetrics {
-    fun width (path: Path): Double
+    /**
+     * @param path to measure
+     * @return the bounding width of the path
+     */
+    fun width(path: Path): Double
+
+    /**
+     * @param path to measure
+     * @return the bounding height of the path
+     */
     fun height(path: Path): Double
 
+    /**
+     * @param path to measure
+     * @return the bounding size of the path
+     */
     fun size(path: Path) = Size(width(path), height(path))
 }
