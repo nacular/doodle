@@ -82,10 +82,10 @@ class KeyboardFocusManagerImpl(
         val downwardKeyEvents = if (view.isFocusCycleRoot_) view[Downward] ?: defaultTraversalKeys[Downward] else null
 
         when (keyState) {
-            in forwardKeyEvents  -> focusManager.moveFocusForward (view)
-            in backwardKeyEvents -> focusManager.moveFocusBackward(view)
-            in upwardKeyEvents   -> focusManager.moveFocusUpward  (view)
-            in downwardKeyEvents -> focusManager.moveFocusDownward(view)
+            in forwardKeyEvents  -> { focusManager.moveFocusForward (view); keyEvent.consume() }
+            in backwardKeyEvents -> { focusManager.moveFocusBackward(view); keyEvent.consume() }
+            in upwardKeyEvents   -> { focusManager.moveFocusUpward  (view); keyEvent.consume() }
+            in downwardKeyEvents -> { focusManager.moveFocusDownward(view); keyEvent.consume() }
             else                 -> view.handleKeyEvent_(keyEvent)
         }
     }

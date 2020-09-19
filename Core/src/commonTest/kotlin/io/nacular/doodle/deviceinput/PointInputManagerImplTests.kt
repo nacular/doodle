@@ -479,7 +479,7 @@ class PointInputManagerImplTests {
         }
     }
 
-    @Test
+    @Test @JsName("pointerOutWhenViewDisabled")
     fun `pointer out when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()
         val display        = display()

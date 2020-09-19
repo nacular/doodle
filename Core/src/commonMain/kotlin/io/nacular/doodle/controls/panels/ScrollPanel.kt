@@ -124,6 +124,8 @@ open class ScrollPanel(content: View? = null): View() {
         layout = ViewLayout()
     }
 
+    override var focusable = false
+
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }

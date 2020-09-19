@@ -468,8 +468,8 @@ class RenderManagerImplTests {
 
     @Test @JsName("reflectsVisibilityChange")
     fun `reflects visibility change`() {
-        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
-        val child     = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+        val container = spyk<Box> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = spyk<View>(     ).apply { bounds = Rectangle(size = Size( 10.0,  10.0)) }
 
         container.children += child
 
@@ -510,7 +510,6 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { childSurface.transform = Identity.rotate(57 * degrees) }
     }
-
 
     @Test @JsName("installsThemeForDisplayedViews")
     fun `installs theme for displayed views`() {
@@ -635,7 +634,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test
+    @Test @JsName("updatesTopLevelOnContentDirectionChange")
     fun `updates top-level on content direction change`() {
         val child1  = spyk(view())
         val child2  = spyk(view())
@@ -653,7 +652,7 @@ class RenderManagerImplTests {
         verify { child2.contentDirectionChanged_() }
     }
 
-    @Test
+    @Test @JsName("updatesTopLevelOnMirrorChange")
     fun `updates top-level on mirror change`() {
         val child1  = spyk(view())
         val child2  = spyk(view())
@@ -671,7 +670,7 @@ class RenderManagerImplTests {
         verify { child2.updateNeedsMirror() }
     }
 
-    @Test
+    @Test @JsName("notifiesTopLevelOfDisplayRectChange")
     fun `notifies top level of display rect change`() {
         val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
 
@@ -701,8 +700,8 @@ class RenderManagerImplTests {
         verify { handleDisplayRectEvent(oldRect, newRect) }
     }
 
-    @Test
-    fun `display rect change works if when enabled late`() {
+    @Test @JsName("displayRectChangeWorksWhenEnabledEate")
+    fun `display rect change works when enabled late`() {
         val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
 
         // Cannot use spyk since it has issues https://github.com/mockk/mockk/issues/342
@@ -734,7 +733,7 @@ class RenderManagerImplTests {
         verify { handleDisplayRectEvent(oldRect, newRect) }
     }
 
-    @Test
+    @Test @JsName("displayRectNotificationWorks")
     fun `display rect notification works`() {
         data class Data(
                 val grandParent: Rectangle,
@@ -780,7 +779,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test
+    @Test @JsName("coldDisplayRectCallWorks")
     fun `cold display rect call works`() {
         data class Data(
                 val grandParent: Rectangle,
@@ -812,7 +811,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test
+    @Test @JsName("stopsMonitoringDisplayRectWhenDisabled")
     fun `stops monitoring display rect when disabled`() {
         val boundsChange   = slot<PropertyObserver<View, Rectangle>>()
         val handlingChange = slot<PropertyObserver<View, Boolean>>()

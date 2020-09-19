@@ -17,13 +17,15 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.system.KeyInputService
+import kotlin.js.JsName
 import kotlin.test.Test
 
 /**
  * Created by Nicholas Eddy on 9/15/20.
  */
 class KeyboardFocusManagerTests {
-    @Test fun `stops listening to key input service on shutdown`() {
+    @Test @JsName("stopsListeningToKeyInputServiceOnShutdown")
+    fun `stops listening to key input service on shutdown`() {
         val keyInputService = mockk<KeyInputService>()
 
         val manager = KeyboardFocusManagerImpl(keyInputService, mockk<FocusManager>(), mockk())
@@ -36,7 +38,8 @@ class KeyboardFocusManagerTests {
         }
     }
 
-    @Test fun `notifies of event in correct order`() {
+    @Test  @JsName("notifiesOfEventInCorrectOrder")
+    fun `notifies of event in correct order`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -61,7 +64,8 @@ class KeyboardFocusManagerTests {
         }
     }
 
-    @Test fun `preprocessor suppresses event when consumed`() {
+    @Test  @JsName("preprocessorSuppressesEventWhenConsumed")
+    fun `preprocessor suppresses event when consumed`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -84,14 +88,13 @@ class KeyboardFocusManagerTests {
 
         manager(keyState)
 
-        val keyEvent = KeyEvent(focusedView, keyState)
-
-        verify(exactly = 1) { preprocessor(keyEvent)                }
-        verify(exactly = 0) { focusedView.handleKeyEvent_(keyEvent) }
-        verify(exactly = 0) { postprocessor(keyEvent)               }
+        verify(exactly = 1) { preprocessor(event.captured)       }
+        verify(exactly = 0) { focusedView.handleKeyEvent_(any()) }
+        verify(exactly = 0) { postprocessor(any())               }
     }
 
-    @Test fun `view suppresses event when consumed`() {
+    @Test @JsName("viewSuppressesEventWhenConsumed")
+    fun `view suppresses event when consumed`() {
         val event           = slot<KeyEvent>()
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>().apply {
@@ -112,17 +115,16 @@ class KeyboardFocusManagerTests {
 
         manager(keyState)
 
-        val keyEvent = KeyEvent(focusedView, keyState)
-
         verifyOrder {
-            preprocessor(keyEvent)
-            focusedView.handleKeyEvent_(keyEvent)
+            preprocessor(event.captured)
+            focusedView.handleKeyEvent_(event.captured)
         }
 
-        verify(exactly = 0) { postprocessor(keyEvent) }
+        verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test fun `no notifications when listener removed`() {
+    @Test @JsName("noNotificationsWhenListenerRemoved")
+    fun `no notifications when listener removed`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -148,7 +150,8 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test fun `no notifications when no focus owner`() {
+    @Test @JsName("noNotificationsWhenNoFocusOwner")
+    fun `no notifications when no focus owner`() {
         val keyInputService = mockk<KeyInputService>()
         val focusManager    = focusManager()
         val preprocessor    = mockk<Preprocessor>()
@@ -167,7 +170,8 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test fun `handles focus movement`() {
+    @Test @JsName("handlesFocusMovement")
+    fun `handles focus movement`() {
         val key = mockk<KeyState>()
 
         verifyFocusTraversal(Forward,  key) { view, _ -> every { view[Forward ] } returns setOf(key) }
@@ -180,7 +184,8 @@ class KeyboardFocusManagerTests {
         verifyFocusTraversal(Downward, key) { _, keys ->         keys[Downward]         = setOf(key) }
     }
 
-    @Test fun `no focus downward on non-focus cycle root`() {
+    @Test @JsName("noFocusDownwardOnNonFocusCycleRoot")
+    fun `no focus downward on non-focus cycle root`() {
         val key = mockk<KeyState>()
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>().apply {

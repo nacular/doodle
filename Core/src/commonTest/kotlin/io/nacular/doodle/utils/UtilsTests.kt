@@ -1,5 +1,6 @@
 package io.nacular.doodle.utils
 
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
@@ -8,35 +9,35 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 9/13/20.
  */
 class UtilsTests {
-    @Test
+    @Test @JsName("IntIsEvenWorks")
     fun `Int is even works`() {
         (-100 .. 100 step 2).forEach {
             expect(true) { it.isEven }
         }
     }
 
-    @Test
+    @Test @JsName("IntIsOddWorks")
     fun `Int is odd works`() {
         (-99 .. 99 step 2).forEach {
             expect(true) { it.isOdd }
         }
     }
 
-    @Test
+    @Test @JsName("LongIsEvenWorks")
     fun `Long is even works`() {
         (-100L .. 100L step 2).forEach {
             expect(true) { it.isEven }
         }
     }
 
-    @Test
+    @Test @JsName("LongIsOddWorks")
     fun `Long is odd works`() {
         (-99L .. 99L step 2).forEach {
             expect(true) { it.isOdd }
         }
     }
 
-    @Test
+    @Test @JsName("ifTrueWorks")
     fun `if true works`() {
         var hits = 0
 
@@ -73,7 +74,7 @@ class UtilsTests {
         expect(2) { hits }
     }
 
-    @Test
+    @Test @JsName("roundToNearestWorks")
     fun `round to nearest works`() {
         listOf(
              145.36 to  0.0 to   145.36,
@@ -89,14 +90,14 @@ class UtilsTests {
         }
     }
 
-    @Test
+    @Test @JsName("containsForNullableCollectionWorks")
     fun `contains for nullable collection works`() {
         val collection: Collection<Int>? = null
 
         expect(false) { 40 in collection }
     }
 
-    @Test
+    @Test @JsName("addOrAppendWorks")
     fun `add or append works`() {
         val list = mutableListOf(1,2,3)
 
@@ -106,7 +107,7 @@ class UtilsTests {
         expect(listOf(6,1,2,3,4)) { list }
     }
 
-    @Test
+    @Test @JsName("splittingStringMatchesWorks")
     fun `splitting string matches works`() {
         listOf(
                 "hello, this is a test. how should we proceed?" to "[.]" to (listOf("hello, this is a test" to ".") to " how should we proceed?"),
@@ -118,7 +119,7 @@ class UtilsTests {
         }
     }
 
-    @Test
+    @Test @JsName("splittingStringLimitWorks")
     fun `splitting string limit works`() {
         listOf(
                 ("a b c d e" to """\s""" to 0) to (listOf("a" to " ", "b" to " ", "c" to " ", "d" to " ") to "e"),
@@ -134,7 +135,7 @@ class UtilsTests {
         }
     }
 
-    @Test
+    @Test @JsName("invalidLimitFails")
     fun `invalid limit fails`() {
         assertFailsWith<IllegalArgumentException> {
             "foo bar".splitMatches(".".toRegex(), -2)

@@ -25,12 +25,12 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 5/15/18.
  */
 class ScrollPanelTests {
-    @Test
+    @Test @JsName("cannotAssignPanelToItself")
     fun `cannot assign panel to itself`() {
         assertFailsWith<IllegalArgumentException> { panel().let { it.content = it } }
     }
 
-    @Test
+    @Test @JsName("contentsTrackedProperly")
     fun `contents tracked properly`() {
         val panel    = ScrollPanel()
         val content  = mockk<View>()
@@ -46,7 +46,7 @@ class ScrollPanelTests {
         verify(exactly = 1) { observer(panel, null, content) }
     }
 
-    @Test
+    @Test @JsName("contentsRemovedProperly")
     fun `contents removed properly`() {
         val panel    = ScrollPanel()
         val content  = mockk<View>()
@@ -66,7 +66,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test
+    @Test @JsName("delegatesRenderToBehavior")
     fun `delegates render to behavior`() {
         val behavior = behavior()
         val panel    = panel(behavior)
@@ -83,7 +83,7 @@ class ScrollPanelTests {
         verify { canvas wasNot Called }
     }
 
-    @Test
+    @Test @JsName("delegatesContainsPointToBehavior")
     fun `delegates contains point to behavior`() {
         val behavior = behavior()
         val panel    = panel(behavior).apply { size = Size(100, 100) }
@@ -156,7 +156,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test
+    @Test @JsName("scrollToVisibleRect")
     fun `scroll to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
@@ -178,7 +178,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test
+    @Test @JsName("scrollHorizontallyToVisibleRect")
     fun `scroll horizontally to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
@@ -200,7 +200,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test
+    @Test @JsName("scrollVerticallyToVisibleRect")
     fun `scroll vertically to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
@@ -222,7 +222,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test
+    @Test @JsName("widthConstraintsWork")
     fun `width constraints work`() {
         val content = spyk(Box().apply { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
@@ -235,7 +235,7 @@ class ScrollPanelTests {
         expect(300.0) { content.width }
     }
 
-    @Test
+    @Test @JsName("heightConstraintsWork")
     fun `height constraints work`() {
         val content = spyk(Box().apply { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
@@ -248,7 +248,7 @@ class ScrollPanelTests {
         expect(325.0) { content.height }
     }
 
-    @Test
+    @Test @JsName("idealSizeTracksContent")
     fun `ideal size tracks content`() {
         val content = object: View() {}
         val panel   = ScrollPanel(content)
@@ -264,7 +264,7 @@ class ScrollPanelTests {
         expect(null) { panel.idealSize }
     }
 
-    @Test
+    @Test @JsName("obeysBehaviorOnScroll")
     fun `obeys behavior on-scroll`() {
         val onScroll = CapturingSlot<(Point) -> Unit>()
 
@@ -280,7 +280,7 @@ class ScrollPanelTests {
         expect(point) { panel.scroll }
     }
 
-    @Test
+    @Test @JsName("disconnectsOldBehaviorOnScroll")
     fun `disconnects old behavior on-scroll`() {
         val behavior = object: ScrollPanelBehavior {
             override var onScroll: ((Point) -> Unit)? = null

@@ -11,6 +11,7 @@ import kotlin.math.max
 
 internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Box() {
     init {
+        focusable = false
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 var x          = 0.0
@@ -37,6 +38,7 @@ internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val ren
 
 internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Box() {
     init {
+        focusable = false
         children += columns.map { it.view }
 
         layout = object: Layout {

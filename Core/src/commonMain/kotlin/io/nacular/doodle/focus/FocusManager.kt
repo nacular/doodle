@@ -17,8 +17,11 @@ interface FocusManager {
     fun clearFocus        (          )
     fun moveFocusForward  (          )
     fun moveFocusForward  (from: View)
+    fun moveFocusBackward (          )
     fun moveFocusBackward (from: View)
+    fun moveFocusUpward   (          )
     fun moveFocusUpward   (from: View)
+    fun moveFocusDownward (          )
     fun moveFocusDownward (from: View)
     fun moveFocusToDefault(          )
 }

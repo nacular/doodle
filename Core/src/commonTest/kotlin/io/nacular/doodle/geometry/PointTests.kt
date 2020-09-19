@@ -21,7 +21,7 @@ class PointTests {
         expect(it.second.toDouble()) { rect.y }
     }
 
-    @Test
+    @Test @JsName("multiplyDouble")
     fun `multiply double`() = listOf(
             (10 by 3) to  0.0 to Origin,
             (10 by 3) to  2.0 to ( 20 by  6),
@@ -31,7 +31,7 @@ class PointTests {
         expect(it.second) { it.first.first * it.first.second }
     }
 
-    @Test
+    @Test @JsName("multiplyFloat")
     fun `multiply float`() = listOf(
             (10 by 3) to  0.0f to Origin,
             (10 by 3) to  2.0f to ( 20 by  6),
@@ -41,7 +41,7 @@ class PointTests {
         expect(it.second) { it.first.first * it.first.second }
     }
 
-    @Test
+    @Test @JsName("multiplyInt")
     fun `multiply int`() = listOf(
             (10 by 3) to  0 to Origin,
             (10 by 3) to  2 to ( 20 by  6),
@@ -60,7 +60,7 @@ class PointTests {
         expect(it.second) { it.first.first / it.first.second }
     }
 
-    @Test
+    @Test @JsName("divideFloat")
     fun `divide float`() = listOf(
             (10 by 3) to 1.0f to (10 by 3  ),
             (10 by 3) to 2.0f to (5  by 1.5),
@@ -69,7 +69,7 @@ class PointTests {
         expect(it.second) { it.first.first / it.first.second }
     }
 
-    @Test
+    @Test @JsName("divideInt")
     fun `divide int`() = listOf(
             (10 by 3) to 1 to (10 by   3),
             (10 by 3) to 2 to (5  by 1.5),
@@ -88,7 +88,7 @@ class PointTests {
         expect(it.second) { -it.first }
     }
 
-    @Test
+    @Test @JsName("distanceWorks")
     fun `distance works`() = listOf(
             (0 by 0) to ( 0 by  0) to 0.0,
             (0 by 0) to ( 3 by  4) to 5.0,

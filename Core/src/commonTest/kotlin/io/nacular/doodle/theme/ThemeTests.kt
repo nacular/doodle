@@ -20,6 +20,7 @@ import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
+import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -27,7 +28,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 9/14/20.
  */
 class ThemeTests {
-    @Test
+    @Test @JsName("selectingNewThemeWorks")
     fun `selecting new theme works`() {
         val manager  = ThemeManagerImpl(mockk())
         val newTheme = mockk<Theme>()
@@ -80,7 +81,7 @@ class ThemeTests {
         override fun relayout() {}
     }
 
-    @Test
+    @Test @JsName("installsThemeOnUpdate")
     fun `installs theme on update`() {
         val manager  = ThemeManagerImpl(dummyDisplay)
         val newTheme = mockk<Theme>()
@@ -93,7 +94,7 @@ class ThemeTests {
         verify(exactly = 1) { newTheme.install(dummyDisplay, seqEq(sequenceOf(view))) }
     }
 
-    @Test
+    @Test @JsName("respectsViewAcceptsThemes")
     fun `respects View acceptsThemes`() {
         val manager  = ThemeManagerImpl(dummyDisplay)
         val newTheme = mockk<Theme>()
