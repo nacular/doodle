@@ -7,16 +7,28 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.accessibility.AccessibilityRole
+import io.nacular.doodle.core.ContentDirection.LeftRight
+import io.nacular.doodle.core.ContentDirection.RightLeft
+import io.nacular.doodle.core.LookupResult.Found
+import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
+import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
+import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
+import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
+import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
@@ -50,33 +62,54 @@ class ViewTests {
     fun `defaults valid`() {
         expect("", "View::toolTipText") { object: View() {}.toolTipText }
 
+        expect(true) { object: View() {}.shouldYieldFocus() }
+
         mapOf(
-                View::x                   to 0.0,
-                View::y                   to 0.0,
-                View::font                to null,
-                View::size                to Size.Empty,
-                View::width               to 0.0,
-                View::parent              to null,
-                View::height              to 0.0,
-                View::bounds              to Empty,
-                View::cursor              to null,
-                View::zOrder              to 0,
-                View::enabled             to true,
-                View::visible             to true,
-                View::insets_             to None,
-                View::layout_             to null,
-                View::position            to Origin,
-                View::hasFocus            to false,
-                View::displayed           to false,
-                View::focusable           to true,
-                View::idealSize           to null,
-                View::displayRect         to Empty,
-                View::minimumSize         to Size.Empty,
-                View::acceptsThemes       to true,
-                View::foregroundColor     to null,
-                View::backgroundColor     to null,
-                View::monitorsDisplayRect to false
+                View::x                     to 0.0,
+                View::y                     to 0.0,
+                View::font                  to null,
+                View::size                  to Size.Empty,
+                View::width                 to 0.0,
+                View::parent                to null,
+                View::height                to 0.0,
+                View::bounds                to Empty,
+                View::cursor                to null,
+                View::zOrder                to 0,
+                View::enabled               to true,
+                View::visible               to true,
+                View::insets_               to None,
+                View::layout_               to null,
+                View::position              to Origin,
+                View::hasFocus              to false,
+                View::display               to null,
+                View::displayed             to false,
+                View::focusable             to true,
+                View::idealSize             to null,
+                View::displayRect           to Empty,
+                View::minimumSize           to Size.Empty,
+                View::acceptsThemes         to true,
+                View::focusCycleRoot_       to null,
+                View::foregroundColor       to null,
+                View::backgroundColor       to null,
+                View::contentDirection      to LeftRight,
+                View::isFocusCycleRoot_     to false,
+                View::childrenClipPoly_     to null,
+                View::clipCanvasToBounds_   to true,
+                View::mirrorWhenRightLeft   to true,
+                View::monitorsDisplayRect   to false,
+                View::needsMirrorTransform  to false,
+                View::focusTraversalPolicy_ to null,
+                View::localContentDirection to null
         ).forEach { validateDefault(it.key, it.value) }
+    }
+
+    @Test @JsName("defaultTraversalKeysValid")
+    fun `default traversal keys valid`() {
+        val view = object: View() {}
+
+        listOf(Forward, Backward, Upward, Downward).forEach {
+            expect(null) { view[it] }
+        }
     }
 
     @Test @JsName("settersWork")
@@ -106,6 +139,26 @@ class ViewTests {
         validateSetter(View::foregroundColor,     Red                            )
         validateSetter(View::backgroundColor,     Green                          )
         validateSetter(View::monitorsDisplayRect, false                          )
+    }
+
+    @Test @JsName("traversalKeySettersWork")
+    fun `traversal key setters work`() {
+        val view = object: View() {}
+
+        val key1 = mockk<KeyState>()
+        val key2 = mockk<KeyState>()
+        val key3 = mockk<KeyState>()
+        val key4 = mockk<KeyState>()
+
+        listOf(
+                Forward  to setOf(key1, key2),
+                Backward to setOf(key4),
+                Upward   to setOf(key2, key4),
+                Downward to setOf(key1, key2, key3)).forEach { (type, keys) ->
+            view[type] = keys
+
+            expect(keys) { view[type] }
+        }
     }
 
     @Test @JsName("rerenderWorks")
@@ -169,11 +222,135 @@ class ViewTests {
         verify(exactly = 1) { observer(view, true, false) }
     }
 
-    private class SubView: View() {
-        public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
-        public override fun handlePointerEvent(event: PointerEvent) { super.handlePointerEvent(event) }
-        public override fun handleKeyEvent(event: KeyEvent) { super.handleKeyEvent(event) }
-        public override fun handlePointerMotionEvent(event: PointerEvent) { super.handlePointerMotionEvent(event) }
+    @Test @JsName("displayedWorks")
+    fun `displayed works`() {
+        val view = object: View() {}
+
+        val renderManager = mockk<RenderManager>()
+
+        expect(false) { view.displayed }
+
+        view.addedToDisplay(mockk(), renderManager, null)
+
+        expect(true) { view.displayed }
+
+        view.removedFromDisplay_()
+
+        expect(false) { view.displayed }
+    }
+
+    @Test @JsName("registersAccessibilityWhenDisplayed")
+    fun `registers accessibility role when displayed`() {
+        val role = mockk<AccessibilityRole>()
+        val view = object: View(accessibilityRole = role) {}
+
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        verify(exactly = 1) { accessibilityManager.roleAdopted(view) }
+
+        view.removedFromDisplay_()
+
+        verify(exactly = 1) { accessibilityManager.roleAbandoned(view) }
+    }
+
+    @Test @JsName("childAtPointInsideClipPoly")
+    fun `child at point inside clip poly`() {
+        val child  = view().apply { position = Point(5, 5) }
+        val parent = object: View() {
+            init {
+                children_        += child
+                childrenClipPoly  = Rectangle(6, 6)
+            }
+        }
+
+        expect(child) { parent.child_(Point(5, 5)) }
+    }
+
+    @Test @JsName("childAtPointLayoutReturnsIgnored")
+    fun `child at point layout returns Ignored`() {
+        val child  = view().apply { position = Point(5, 5) }
+        val parent = object: View() {
+            init {
+                children_ += child
+                layout    = mockk<Layout>().apply {
+                    every { child(any(), any()) } returns Ignored
+                }
+            }
+        }
+
+        expect(child) { parent.child_(Point(5, 5)) }
+        expect(null ) { parent.child_(Point(4, 4)) }
+    }
+
+    @Test @JsName("childAtPointLayoutReturnsEmpty")
+    fun `child at point layout returns Empty`() {
+        val child  = view().apply { position = Point(5, 5) }
+        val parent = object: View() {
+            init {
+                children_ += child
+                layout    = mockk<Layout>().apply {
+                    every { child(any(), any()) } returns LookupResult.Empty
+                }
+            }
+        }
+
+        expect(null) { parent.child_(Point(5, 5)) }
+    }
+
+    @Test @JsName("childAtPointLayoutReturnsValue")
+    fun `child at point layout returns value`() {
+        val found  = view()
+        val child  = view().apply { position = Point(5, 5) }
+        val parent = object: View() {
+            init {
+                children_ += child
+                layout    = mockk<Layout>().apply {
+                    every { child(any(), any()) } returns Found(PositionableWrapper(found))
+                }
+            }
+        }
+
+        expect(found) { parent.child_(Point(5, 5)) }
+    }
+
+    @Test @JsName("childAtPointOutsideClipPoly")
+    fun `child at point outside clip poly`() {
+        val child  = view().apply { position = Point(5, 5) }
+        val parent = object: View() {
+            init {
+                children_        += child
+                childrenClipPoly  = Rectangle(3, 3)
+            }
+        }
+
+        expect(null) { parent.child_(Point(5, 5)) }
+    }
+
+    @Test @JsName("childAtPointInvisible")
+    fun `child at point invisible`() {
+        val child  = view().apply { position = Point(5, 5); visible = false }
+        val parent = object: View() {
+            init {
+                children_ += child
+            }
+        }
+
+        expect(null) { parent.child_(Point(5, 5)) }
+    }
+
+    @Test @JsName("displayRectDelegates")
+    fun `display rect delegates to RenderManager`() {
+        val view = object: View() {}
+
+        val renderManager = mockk<RenderManager>()
+
+        view.addedToDisplay(mockk(), renderManager, null)
+
+        view.displayRect
+
+        verify(exactly = 1) { renderManager.displayRect(view) }
     }
 
     @Test @JsName("forwardsDisplayRectToSubclass")
@@ -243,6 +420,68 @@ class ViewTests {
         }
     }
 
+    @Test @JsName("minSizeTriggersSizePreferenceEvent")
+    fun `min size triggers size preference event`() {
+        val view     = object: View() {}
+        val observer = mockk<PropertyObserver<View, SizePreferences>>()
+
+        view.sizePreferencesChanged += observer
+
+        val newSize      = Size(100, 100)
+        view.minimumSize = newSize
+
+        verify(exactly = 1) {
+            observer(view,
+                    match { it.minimumSize == Size.Empty && it.idealSize == null },
+                    match { it.minimumSize == newSize    && it.idealSize == null })
+        }
+    }
+
+    @Test @JsName("idealSizeTriggersSizePreferenceEvent")
+    fun `ideal size triggers size preference event`() {
+        val view     = object: View() {}
+        val observer = mockk<PropertyObserver<View, SizePreferences>>()
+
+        view.sizePreferencesChanged += observer
+
+        val newSize    = Size(100, 100)
+        view.idealSize = newSize
+
+        verify(exactly = 1) {
+            observer(view,
+                    match { it.minimumSize == Size.Empty && it.idealSize == null },
+                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
+        }
+    }
+
+    @Test @JsName("minSizeDelegatesToLayout")
+    fun `min size delegates to layout`() {
+        val size = Size(10, 10)
+        val view = object: View() {
+            init {
+                layout = mockk<Layout>().apply {
+                    every { minimumSize(any(), any()) } returns size
+                }
+            }
+        }
+
+        expect(size) { view.minimumSize }
+    }
+
+    @Test @JsName("idealSizeDelegatesToLayout")
+    fun `ideal size delegates to layout`() {
+        val size = Size(10, 10)
+        val view = object: View() {
+            init {
+                layout = mockk<Layout>().apply {
+                    every { idealSize(any(), any()) } returns size
+                }
+            }
+        }
+
+        expect(size) { view.idealSize }
+    }
+
     @Test @JsName("styleChangeEventsWork")
     fun `style change events work`() {
         validateStyleChanged(View::font,            mockk())
@@ -250,24 +489,54 @@ class ViewTests {
         validateStyleChanged(View::backgroundColor, mockk())
     }
 
-    @Test @JsName("styleChangeSinks")
-    fun `style change sinks to descendants`() {
-        val parent     = Box()
-        val child      = Box()
-        val grandChild = object: View() {}
-        val observer   = mockk<ChangeObserver<View>>()
+    @Test @JsName("fontFallsBackToParent")
+    fun `font falls back to parent`() {
+        val font   = mockk<Font>()
+        val child  = object: View() {}
+        val parent = object: View() {}.apply {
+            this.font = font
+            children_ += child
+        }
 
-        parent.children         += child
-        child.children          += grandChild
-        child.styleChanged      += observer
-        grandChild.styleChanged += observer
+        expect(font) { child.font }
+    }
 
-        val font = mockk<Font>()
+    @Test @JsName("contentDirectionFallsBackToParent")
+    fun `content direction falls back to parent`() {
+        val direction = mockk<ContentDirection>()
+        val child     = object: View() {}
+        val parent    = object: View() {}.apply {
+            localContentDirection = direction
+            children_ += child
+        }
 
-        parent.font = font
+        expect(direction) { child.contentDirection }
+    }
 
-        verify(exactly = 1) { observer(child     ) }
-        verify(exactly = 1) { observer(grandChild) }
+    @Test @JsName("contentDirectionFallsBackToDisplay")
+    fun `content direction falls back to display`() {
+        val direction = mockk<ContentDirection>()
+        val child     = object: View() {}
+        val display   = mockk<Display>().apply {
+            every { contentDirection } returns direction
+        }
+
+        child.addedToDisplay(display, mockk(), mockk())
+
+        expect(direction) { child.contentDirection }
+    }
+
+    @Test @JsName("needsMirrorTransformSinksToDescendants")
+    fun `needs mirror transform sinks to descendants`() {
+        val child       = object: View() {}
+        val parent      = object: View() {}.apply { children_ += child  }
+        val grandParent = object: View() {}.apply { children_ += parent  }
+
+        child.localContentDirection       = LeftRight
+        parent.localContentDirection      = RightLeft
+        grandParent.localContentDirection = RightLeft
+
+        expect(true) { child.needsMirrorTransform }
     }
 
     @Test @JsName("keyDownEventsWorks")
@@ -374,16 +643,22 @@ class ViewTests {
 
     @Test @JsName("cursorChangedWorks")
     fun `cursor changed works`() {
-        val view    = object: View() {}
-        val observer = mockk<PropertyObserver<View, Cursor?>>()
-        val new      = Crosshair
-        val old      = view.cursor
+        val child       = object: View() {}
+        val parent      = object: View() {}.apply { children_ += child  }
+        val grandParent = object: View() {}.apply { children_ += parent }
+        val observer    = mockk<PropertyObserver<View, Cursor?>>()
+        val new         = Crosshair
+        val old         = grandParent.cursor
 
-        view.cursorChanged += observer
-        view.cursor         = new
-        view.cursor         = new
+        child.cursorChanged       += observer
+        parent.cursorChanged      += observer
+        grandParent.cursorChanged += observer
 
-        verify(exactly = 1) { observer(view, old, new) }
+        grandParent.cursor         = new
+
+        verify(exactly = 1) { observer(child,       old, new) }
+        verify(exactly = 1) { observer(parent,      old, new) }
+        verify(exactly = 1) { observer(grandParent, old, new) }
     }
 
     @Test @JsName("zOrderChangeWorks")
@@ -544,6 +819,13 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
+    private class SubView: View() {
+        public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
+        public override fun handlePointerEvent(event: PointerEvent) { super.handlePointerEvent(event) }
+        public override fun handleKeyEvent(event: KeyEvent) { super.handleKeyEvent(event) }
+        public override fun handlePointerMotionEvent(event: PointerEvent) { super.handlePointerMotionEvent(event) }
+    }
+
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
         val view     = object: View() {}
         val observer = mockk<PropertyObserver<View, Boolean>>()
@@ -632,14 +914,26 @@ class ViewTests {
     }
 
     private fun <T: Any?> validateStyleChanged(property: KMutableProperty1<View, T>, value: T) {
-        val view     = object: View() {}
-        val observer = mockk<ChangeObserver<View>>()
+        val grandChild  = object: View() {}
+        val child       = object: View() {}.apply { children_ += grandChild }
+        val parent      = object: View() {}.apply { children_ += child      }
+        val grandParent = object: View() {}.apply { children_ += parent     }
+        val observer    = mockk<ChangeObserver<View>>()
 
-        view.styleChanged += observer
+        // child and grandChild shouldn't trigger event since it has the same property as grandParent will change to
+        property.set(child, value)
 
-        property.set(view, value)
+        grandChild.styleChanged  += observer
+        child.styleChanged       += observer
+        parent.styleChanged      += observer
+        grandParent.styleChanged += observer
 
-        verify(exactly = 1) { observer(view) }
+        property.set(grandParent, value)
+
+        verify(exactly = 0) { observer(grandChild ) }
+        verify(exactly = 0) { observer(child      ) }
+        verify(exactly = 1) { observer(parent     ) }
+        verify(exactly = 1) { observer(grandParent) }
     }
 
     private fun <T> validateDefault(p: KProperty1<View, T>, default: T?) {

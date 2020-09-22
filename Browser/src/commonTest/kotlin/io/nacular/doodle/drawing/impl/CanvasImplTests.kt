@@ -128,7 +128,7 @@ class CanvasImplTests {
             val style = b.style
 
             verify (exactly = 1) { style.setSize           (rect.size                        ) }
-            verify (exactly = 1) { style.setBackgroundColor(fill.color                      ) }
+            verify (exactly = 1) { style.setBackgroundColor(fill.color                       ) }
             verify               { style.setTransform      (Identity.translate(rect.position)) }
 
             verify (exactly = 1) { renderParent.appendChild(b) }

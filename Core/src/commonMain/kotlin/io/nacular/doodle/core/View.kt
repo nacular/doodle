@@ -291,12 +291,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
             actualCursor = new
 
-            (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
-
-            // Notify relevant children that their cursor has changed
-            children.filter { it.actualCursor == null }.forEach {
-                (it.cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
-            }
+            cursorChanged(old, new)
         }
 
     /** Notifies changes to [cursor] */
@@ -312,14 +307,14 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
             actualFont = new
 
-            styleChanged()
+            styleChanged { it.actualFont == null }
         }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
-    var foregroundColor: Color? = null; set(new) { field = new; styleChanged() }
+    var foregroundColor: Color? = null; set(new) { field = new; styleChanged { it.foregroundColor == null } }
 
     /** Optional color that the View could use for its background */
-    var backgroundColor: Color? = null; set(new) { field = new; styleChanged() }
+    var backgroundColor: Color? = null; set(new) { field = new; styleChanged { it.backgroundColor == null } }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
@@ -441,14 +436,26 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
         (contentDirectionChanged as ChangeObserversImpl)()
 
-        notifyChildrenContentDirectionChanged()
+        // Notify relevant children that their content direction has changed
+        children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
     }
 
     @JsName("fireStyleChanged")
-    protected fun styleChanged() {
+    protected fun styleChanged(filter: (View) -> Boolean) {
         (styleChanged as ChangeObserversImpl)()
 
-        notifyChildrenStyleChanged()
+        // Notify relevant children that their style has changed
+        children.filter(filter).forEach { it.styleChanged(filter) }
+    }
+
+    @JsName("fireCursorChanged")
+    protected fun cursorChanged(old: Cursor?, new: Cursor?) {
+        (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
+
+        // Notify relevant children that their cursor has changed
+        children.filter { it.actualCursor == null }.forEach {
+            it.cursorChanged(old, new)
+        }
     }
 
     /**
@@ -461,16 +468,6 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     internal fun updateNeedsMirror() {
         needsMirrorTransform = mirrored != (parent?.mirrored ?: display?.mirrored == true)
-    }
-
-    private fun notifyChildrenContentDirectionChanged() {
-        // Notify relevant children that their content direction has changed
-        children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
-    }
-
-    private fun notifyChildrenStyleChanged() {
-        // Notify relevant children that their style has changed
-        children.filter { it.actualFont == null }.forEach { it.styleChanged() }
     }
 
     // ================= Container ================= //
@@ -869,7 +866,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     internal fun removedFromDisplay_() {
         accessibilityRole?.let {
-            accessibilityManager?.roleAdopted(this)
+            accessibilityManager?.roleAbandoned(this)
         }
 
         display              = null

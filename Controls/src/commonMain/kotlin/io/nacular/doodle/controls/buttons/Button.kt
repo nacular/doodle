@@ -79,21 +79,21 @@ abstract class Button protected constructor(
             }
         }
 
-    var iconTextSpacing = 4.0; set(new) { field = new; styleChanged() }
+    var iconTextSpacing = 4.0; set(new) { field = new; styleChanged { true } }
 
-    var verticalAlignment = Middle; set(new) { field = new; styleChanged() }
+    var verticalAlignment = Middle; set(new) { field = new; styleChanged { true } }
 
-    var horizontalAlignment = Center; set(new) { field = new; styleChanged() }
+    var horizontalAlignment = Center; set(new) { field = new; styleChanged { true } }
 
-    var iconAnchor = Left; set(new) { field = new; styleChanged() }
+    var iconAnchor = Left; set(new) { field = new; styleChanged { true } }
 
-    var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged() }
-    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
-    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
-    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
-    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged() }
-    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon; set(new) { field = new; styleChanged() }
-    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon; set(new) { field = new; styleChanged() }
+    var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged { true } }
+    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon; set(new) { field = new; styleChanged { true } }
+    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon; set(new) { field = new; styleChanged { true } }
 
     var selected: Boolean
         get(   ) = model.selected

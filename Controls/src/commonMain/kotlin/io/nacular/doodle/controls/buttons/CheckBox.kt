@@ -14,6 +14,6 @@ open class CheckBox(text: String = "", icon: Icon<Button>? = null): ToggleButton
 
             field = value
 
-            styleChanged()
+            styleChanged { true }
         }
 }

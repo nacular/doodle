@@ -16,7 +16,7 @@ open class TextField(text: String = ""): TextInput(text) {
     var placeHolder = ""
         set(new) {
             field = new
-            styleChanged()
+            styleChanged { true }
         }
 
     var fitText = emptySet<TextFit>()
@@ -29,7 +29,7 @@ open class TextField(text: String = ""): TextInput(text) {
     var borderVisible = true
         set(new) {
             field = new
-            styleChanged()
+            styleChanged { true }
         }
 
     val masked get() = mask != null
