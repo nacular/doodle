@@ -24,8 +24,9 @@ import kotlin.math.min
 inline val SVGElement.parent get() = parentNode
 
 
-inline fun SVGRectElement.setRX  (value: Double) = setAttribute("rx",     "$value")
-inline fun SVGRectElement.setRY  (value: Double) = setAttribute("ry",     "$value")
+inline fun SVGRectElement.setRX    (value: Double) = setAttribute("rx", "$value")
+inline fun SVGRectElement.setRY    (value: Double) = setAttribute("ry", "$value")
+inline fun SVGRectElement.setRadius(value: Double) { setRX(value); setRY(value) }
 
 inline fun SVGElement.setId      (value: String   ) { setAttributeNS(null, "id", value ); }
 inline fun SVGElement.setX       (value: Double   ) = setAttribute("x",      "$value")

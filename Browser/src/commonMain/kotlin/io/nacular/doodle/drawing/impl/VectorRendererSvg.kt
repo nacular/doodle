@@ -43,6 +43,7 @@ import io.nacular.doodle.dom.setPoints
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setRX
 import io.nacular.doodle.dom.setRY
+import io.nacular.doodle.dom.setRadius
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setStopColor
 import io.nacular.doodle.dom.setStopOffset
@@ -242,11 +243,12 @@ internal open class VectorRendererSvg constructor(
 
     protected fun nextId() = "${id++}"
 
-    protected fun makeRect(rectangle: Rectangle): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
+    protected fun makeRect(rectangle: Rectangle, radius: Double = 0.0): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
         setBounds(rectangle)
 
-        setFill  (null)
-        setStroke(null)
+        setRadius(radius)
+        setFill  (null  )
+        setStroke(null  )
     }
 
     protected fun pushClip(rectangle: Rectangle, radius: Double = 0.0) {
@@ -254,7 +256,7 @@ internal open class VectorRendererSvg constructor(
             renderPosition = this.firstChild
 
             // Here to ensure nested SVG has correct size
-            addIfNotPresent(makeRect(rectangle), 0)
+            addIfNotPresent(makeRect(rectangle, radius), 0)
 
             // FIXME: Support rounding
             renderPosition = renderPosition?.nextSibling
@@ -853,7 +855,7 @@ internal open class VectorRendererSvg constructor(
                 if (source.size == image.size && source.position == Origin) {
                     completeOperation(createImage(image, destination, radius, opacity))
                 } else {
-                    val xRatio = destination.width / source.width
+                    val xRatio = destination.width  / source.width
                     val yRatio = destination.height / source.height
 
                     val imageElement = createImage(image,
@@ -864,7 +866,7 @@ internal open class VectorRendererSvg constructor(
                             0.0,
                             opacity)
 
-                    createClip(destination).let {
+                    createClip(destination, radius).let {
                         completeOperation(it)
                         imageElement.style.clipPath = "url(#${it.id})"
                     }
@@ -907,10 +909,10 @@ internal open class VectorRendererSvg constructor(
             }
         }
 
-        private fun createClip(rectangle: Rectangle) = createOrUse<SVGElement>("clipPath").apply {
+        private fun createClip(rectangle: Rectangle, radius: Double = 0.0) = createOrUse<SVGElement>("clipPath").apply {
             if (id.isBlank()) { setId(nextId()) }
 
-            addIfNotPresent(makeRect(rectangle) ,0)
+            addIfNotPresent(makeRect(rectangle, radius) ,0)
         }
 
         private fun createImage(image: ImageImpl, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {

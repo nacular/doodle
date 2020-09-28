@@ -122,9 +122,9 @@ interface Canvas: Renderer {
      * @param block being transformed
      */
     fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(0.0, around)).
-            scale(1.0, -1.0).
-            translate(Point(0.0, -around)),
+            translate(y = around ).
+            scale    (1.0, -1.0  ).
+            translate(y = -around),
             block)
 
     /**
@@ -141,9 +141,9 @@ interface Canvas: Renderer {
      * @param block being transformed
      */
     fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(around, 0.0)).
-            scale(-1.0, 1.0).
-            translate(Point(-around, 0.0)),
+            translate(x = around ).
+            scale    (-1.0, 1.0  ).
+            translate(x = -around),
             block)
 
     /**

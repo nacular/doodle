@@ -38,13 +38,13 @@ open class Ellipse(val center: Point, val xRadius: Double, val yRadius: Double):
 
     override fun contains(point: Point) = (point - center).run { x.pow(2) / xRadius2 + y.pow(2) / yRadius2 <= 1 }
 
-    override fun contains(rectangle: Rectangle) = rectangle.position in this && Point(rectangle.right, rectangle.bottom) in this
+    override fun contains(rectangle: Rectangle) = rectangle.points.all { it in this }
 
     override fun intersects(rectangle: Rectangle): Boolean = TODO("not implemented")
 
     companion object {
         /** The **unit** ellipse, centered at the [Origin], with x and y radii equal to 1. */
-        val Unit  = Ellipse(1.0, 1.0)
+        val Unit = Ellipse(1.0, 1.0)
 
         /** The **empty** ellipse, centered at the [Origin], with x and y radii equal to 0. */
         val Empty = Ellipse(0.0, 0.0)

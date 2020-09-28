@@ -103,21 +103,21 @@ internal open class CanvasImpl(
 
     override fun line(start: Point, end: Point, stroke: Stroke) = vectorRenderer.line(start, end, stroke)
 
-    override fun path(points: List<Point>, stroke: Stroke                                   ) = vectorRenderer.path(points, stroke                 )
-    override fun path(points: List<Point>,           fill: Fill, fillRule: FillRule?) = vectorRenderer.path(points,      fill, fillRule)
+    override fun path(points: List<Point>, stroke: Stroke                                 ) = vectorRenderer.path(points, stroke                )
+    override fun path(points: List<Point>,                 fill: Fill, fillRule: FillRule?) = vectorRenderer.path(points,         fill, fillRule)
     override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule?) = vectorRenderer.path(points, stroke, fill, fillRule)
 
-    override fun path(path: Path, stroke: Stroke                                   ) = vectorRenderer.path(path, stroke                 )
-    override fun path(path: Path,           fill: Fill, fillRule: FillRule?) = vectorRenderer.path(path,      fill, fillRule)
+    override fun path(path: Path, stroke: Stroke                                 ) = vectorRenderer.path(path, stroke                )
+    override fun path(path: Path,                 fill: Fill, fillRule: FillRule?) = vectorRenderer.path(path,         fill, fillRule)
     override fun path(path: Path, stroke: Stroke, fill: Fill, fillRule: FillRule?) = vectorRenderer.path(path, stroke, fill, fillRule)
 
-    override fun poly(polygon: Polygon,           fill: Fill ) = vectorRenderer.poly(polygon,      fill)
+    override fun poly(polygon: Polygon,                 fill: Fill ) = vectorRenderer.poly(polygon,         fill)
     override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) = vectorRenderer.poly(polygon, stroke, fill)
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           fill: Fill ) = vectorRenderer.arc(center, radius, sweep, rotation,      fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = vectorRenderer.arc(center, radius, sweep, rotation,         fill)
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = vectorRenderer.arc(center, radius, sweep, rotation, stroke, fill)
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,           fill: Fill ) = vectorRenderer.wedge(center, radius, sweep, rotation,      fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
 
 //    override val imageData: ImageData
@@ -160,7 +160,7 @@ internal open class CanvasImpl(
                                                                   at,
                                                                   leftMargin,
                                                                   rightMargin))
-            else                            -> vectorRenderer.text(text, font, at, fill)
+            else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill)
         }
     }
 
@@ -180,20 +180,20 @@ internal open class CanvasImpl(
             if (source.size == image.size && source.position == Origin) {
                 completeOperation(createImage(image, destination, radius, opacity))
             } else {
-
                 getRect(destination)?.let { clipRect ->
                     val oldRenderPosition = renderPosition
 
-                    renderPosition = clipRect.childAt(0)
+                    renderPosition = clipRect.firstChild
 
-                    val xRatio = destination.width / source.width
+                    val xRatio = destination.width  / source.width
                     val yRatio = destination.height / source.height
 
-                    val imageElement = createImage(image,
+                    val imageElement = createImage(
+                            image,
                             Rectangle(0 - xRatio * source.x,
-                                    0 - yRatio * source.y,
-                                    xRatio * image.size.width,
-                                    yRatio * image.size.height),
+                                      0 - yRatio * source.y,
+                                      xRatio * image.size.width,
+                                      yRatio * image.size.height),
                             0.0,
                             opacity)
 
@@ -203,6 +203,7 @@ internal open class CanvasImpl(
 
                     renderPosition = oldRenderPosition
 
+                    clipRect.style.setBorderRadius(radius)
                     completeOperation(clipRect)
                 }
             }
@@ -441,7 +442,7 @@ internal open class CanvasImpl(
 
     private fun configure(element: HTMLElement, fill: ColorFill, position: Point): HTMLElement = element.also {
         it.style.apply {
-            translate (position           )
+            translate (position          )
             setColor  (fill.color        )
             setOpacity(fill.color.opacity)
         }
