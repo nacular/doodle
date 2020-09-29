@@ -31,8 +31,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
     override fun render(canvas: Canvas) {
         // compute each time to account for changes in View's width/height
         canvas.text("hello",
-                Point((width - textSize.width) / 2,
-                    (height - textSize.height) / 2),
+                Point((width - textSize.width) / 2, (height - textSize.height) / 2),
                 ColorFill(Black))
     }
 }

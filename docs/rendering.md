@@ -16,7 +16,7 @@ class RectView: View() {
 
 This `RectView` draws a filled rectangle covering its bounds.
 
-?> `render` is automatically called on `size` changes and `visibile` changing to `true`
+?> `render` is automatically called on `size` changes and `visible` changing to `true`
 
 ## Efficient Rendering
 
@@ -134,4 +134,4 @@ private inner class MyView: View() {
 }
 ``` 
 
-This app shows how a `PatternFill` can be rotated around its center.
+This app shows how a `PatternFill` can be transformed, like rotated around its center for example.

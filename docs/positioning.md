@@ -52,8 +52,8 @@ retains the same `bounds`, but its [`boundingBox`](https://github.com/nacular/do
 
 ## Automatic positioning with Layouts
 
-A [`Layout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) monitors a View
-and automatically updates its children's bounds. This happens whenever View's `size` changes, or one of its children has its bounds change.
+A [`Layout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) keeps track
+of a View and its children and automatically arranges the children as sizes change. This happens whenever View's `size` changes, or one of its children has its `bounds` change.
 
 The View class also `protects` its `layout` property from callers, but sub-classes are free to expose
 it.
@@ -78,8 +78,8 @@ wraps a View's children from left to right within its bounds.
 
 ## Constraint-based Layout
 
-This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right` points of Views. It also allows you to specify values
-for `width` and `height`, This covers many of the common layout use cases and is easy to use.
+This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right`, `centerX`, and `cetnerY` points of Views. It also allows you to
+specify values for `width` and `height`. This covers many of the common layout use cases and is easy to use.
 
 ```kotlin
 val container = Box() // a simple container
@@ -118,5 +118,5 @@ class CustomLayout: Layout {
 }
 ```
 
-?> Layouts do not work with View directly because it does not expose its children. `PositionableContainer` proxies the
+?> Layouts do not work with View directly because it does not expose its children. [`PositionableContainer`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L36) proxies the
 managed View instead.

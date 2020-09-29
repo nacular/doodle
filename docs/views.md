@@ -26,8 +26,7 @@ also keeps the user informed of its state by rendering any changes to its intern
 
 ```kotlin
 class UserInfo(
-        private val textMetrics:
-        TextMetrics,
+        private val textMetrics: TextMetrics,
         name: String,
         age: Int): View() {
 

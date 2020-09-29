@@ -58,6 +58,9 @@ fun main() {
     }
 }
 ```
+## Documentation
+
+Check out the [documentation](https://nacular.github.io/doodle/) site for more details and examples.
 
 ## Feedback
 

@@ -84,7 +84,7 @@ internal open class CanvasImpl(
     private val shadows          = mutableListOf<Shadow>()
     private var renderRegion     = renderParent
     private var renderPosition   = null as Node?
-    private val vectorRenderer   by lazy { rendererFactory(Context()) }
+    private val vectorRenderer   = /*by lazy {*/ rendererFactory(Context()) //}
     private var innerShadowCount = 0
 
     override fun rect(rectangle: Rectangle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)

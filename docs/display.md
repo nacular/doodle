@@ -66,7 +66,7 @@ This is transparent to the app.
 
 ```kotlin
 application(modules = listOf(/*...*/)) {
-    MyApp(instance /*,...*/)
+    MyApp(display = instance() /*,...*/)
 }
 ```
 
@@ -74,7 +74,7 @@ Here the Display will be tied to `someDiv`.
 
 ```kotlin
 application(root = someDiv, modules = listOf(/*...*/)) {
-    MyApp(instance /*,...*/)
+    MyApp(display = instance() /*,...*/)
 }
 ```
 
