@@ -148,8 +148,8 @@ open class MutableList<T, M: MutableListModel<T>>(
                 scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
                 MutableList(mutableListModelOf(*values.toTypedArray()), itemGenerator, selectionModel, fitContent, scrollCache)
 
-
-        operator fun  <T, M: MutableListModel<T>>invoke(model     : M,
+        operator fun  <T, M: MutableListModel<T>>invoke(
+                model         : M,
                 itemGenerator : SelectableItemVisualizer<T>?   = null,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,

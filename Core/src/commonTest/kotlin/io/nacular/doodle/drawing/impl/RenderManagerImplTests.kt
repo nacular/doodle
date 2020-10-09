@@ -527,6 +527,27 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(child    ) }
     }
 
+    @Test @JsName("installsThemeForReAddedViews")
+    fun `installs theme for re-added views`() {
+        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = view()
+
+        container.children += child
+
+        val display      = display(container)
+        val themeManager = mockk<InternalThemeManager>()
+
+        renderManager(display, themeManager = themeManager)
+
+        verify(exactly = 1) { themeManager.update(container) }
+        verify(exactly = 1) { themeManager.update(child    ) }
+
+        container.children -= child
+        container.children += child
+
+        verify(exactly = 2) { themeManager.update(child    ) }
+    }
+
     @Test @JsName("removesWhenReAddedTopLevel")
     fun `renders removed when re-added (top-level)`() {
         val child     = spyk(view())

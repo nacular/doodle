@@ -2,8 +2,17 @@
 --------
 
 Doodle apps can use `Theme`s to create a consistent look and behavior across their Views. Doodle has built-in support for
-a Native and Basic theme. The [`NativeTheme`]() styles controls like buttons, textfields, and scroll panels using the browser
+a Native and Basic theme (which has a light and dark variant). The [`NativeTheme`]() styles controls like buttons, text fields, and scroll panels using the browser
 default styles and behaviors. The [`BasicTheme`]() provides a customizable foundation to further build on.
+
+```doodle
+{
+    "border": false,
+    "height": "400px",
+    "run"   : "DocApps.themes"
+}
+```
+
 
 ## How Themes work
 

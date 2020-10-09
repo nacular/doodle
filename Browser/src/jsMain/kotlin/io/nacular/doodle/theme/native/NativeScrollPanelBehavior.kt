@@ -28,6 +28,12 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
         nativePeer
     }
 
+    override fun install(view: ScrollPanel) {
+        super.install(view)
+
+        view.rerender()
+    }
+
     override fun uninstall(view: ScrollPanel) {
         nativePeer.discard()
     }

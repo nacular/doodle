@@ -17,7 +17,6 @@ import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
-import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
@@ -38,7 +37,7 @@ import io.nacular.doodle.theme.basic.ConstraintWrapper
 import io.nacular.doodle.theme.basic.ParentConstraintWrapper
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
-import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.div
 import io.nacular.measured.units.times
@@ -96,8 +95,8 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
                 // Override the parent for content to confine it within a smaller region
                 ConstraintWrapper(content) { parent ->
                     object: ParentConstraintWrapper(parent) {
-                        override val left   = HorizontalConstraint(this@BasicTab) { 2 * radius }
-                        override val width  = MagnitudeConstraint (this@BasicTab) { it.width - 4 * radius }
+                        override val left  = HorizontalConstraint(this@BasicTab) { 2 * radius }
+                        override val width = MagnitudeConstraint (this@BasicTab) { it.width - 4 * radius }
                     }
                 }
         )
@@ -312,10 +311,11 @@ open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer:
 }
 
 class AnimatingTabContainer<T>(
-        private val animate: Animator,
-        private val panel: TabbedPanel<T>,
+        private val animate    : Animator,
+        private val panel      : TabbedPanel<T>,
         private val tabProducer: TabProducer<T>): SimpleTabContainer<T>(panel, tabProducer) {
-    private val animations = mutableMapOf<View, Cancelable>()
+    private val animations  = mutableMapOf<View, Cancelable>()
+    private val hoverColors = mutableMapOf<View, Color?>()
 
     init {
         childrenChanged += { _,_,added,_ ->
@@ -328,15 +328,35 @@ class AnimatingTabContainer<T>(
     private fun tagTab(panel: TabbedPanel<T>, tab: Tab<T>) = tab.apply {
         var pointerDown     = false
         var initialPosition = null as Point?
+        var pointerOver     = false
 
         pointerChanged += object: PointerListener {
             override fun pressed (event: PointerEvent) {
                 pointerDown     = true
                 initialPosition = toLocal(event.location, event.target)
-                cleanupAnimation(this@apply)
+                cleanupAnimation(tab)
             }
-            override fun entered (event: PointerEvent) { doAnimation(panel, this@apply, 0f, 1f) }
-            override fun exited  (event: PointerEvent) { doAnimation(panel, this@apply, 1f, 0f) }
+
+            override fun entered (event: PointerEvent) {
+                if (panel.selection != tab.index && !pointerOver) {
+                    pointerOver      = true
+                    hoverColors[tab] = tab.backgroundColor
+                    doAnimation(panel, tab, 0f, 1f)
+                }
+            }
+
+            override fun exited(event: PointerEvent) {
+                if (panel.selection != tab.index &&
+                    when (val p = parent) {
+                            null -> event.target.toAbsolute(event.location) !in tab
+                            else -> p.toLocal(event.location, event.target) !in tab
+                    }) {
+                    pointerOver         = false
+                    tab.backgroundColor = hoverColors[tab]
+                    doAnimation(panel, tab, 1f, 0f)
+                }
+            }
+
             override fun released(event: PointerEvent) {
                 if (pointerDown) {
                     pointerDown = false
@@ -466,18 +486,19 @@ class AnimatingTabContainer<T>(
     private fun <T> doAnimation(panel: TabbedPanel<T>, tab: Tab<T>, start: Float, end: Float) {
         cleanupAnimation(tab)
 
-        if (panel.selection == tab.index) {
-            return
-        }
-
         val tabColor = tab.backgroundColor
 
-        animations[tab] = (animate (start to end) using fixedTimeLinear(250 * Time.milliseconds)) {
-            tab.backgroundColor = tabColor?.lighter()?.opacity(it)
+        animations[tab] = (animate (start to end) using fixedTimeLinear(250 * milliseconds)) {
+            tab.backgroundColor = tabColor?.opacity(it)
 
             tab.rerenderNow()
         }.apply {
-            completed += { animations.remove(tab) }
+            completed += {
+                animations.remove(tab)
+                if (tab.backgroundColor?.opacity == 0f) {
+                    tab.backgroundColor = null
+                }
+            }
         }
     }
 }

@@ -105,7 +105,10 @@ open class ScrollPanel(content: View? = null): View() {
     /** Behavior governing how the panel works */
     var behavior: ScrollPanelBehavior? = null
         set(new) {
-            field?.onScroll = null
+            field?.let {
+                it.onScroll = null
+                it.uninstall(this)
+            }
 
             field = new?.also { behavior ->
                 behavior.onScroll = {

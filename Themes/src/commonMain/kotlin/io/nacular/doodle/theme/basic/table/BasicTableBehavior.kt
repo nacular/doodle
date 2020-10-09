@@ -116,9 +116,9 @@ open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private  val patternFill    = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
-    private  val movingColumns  = mutableSetOf<Column<*>>()
-    override val cellGenerator  = BasicCellGenerator<T>()
+    private  val patternFill   = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+    private  val movingColumns = mutableSetOf<Column<*>>()
+    override val cellGenerator = BasicCellGenerator<T>()
 
     override val headerPositioner = object: HeaderPositioner<T> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
@@ -213,7 +213,7 @@ open class BasicTableBehavior<T>(
     override fun install(view: Table<T, *>) {
         view.keyChanged       += this
         view.focusChanged     += focusChanged
-        view.pointerChanged   += this
+        view.pointerFilter    += this
         view.selectionChanged += selectionChanged
 
         bodyDirty?.invoke  ()
@@ -223,7 +223,7 @@ open class BasicTableBehavior<T>(
     override fun uninstall(view: Table<T, *>) {
         view.keyChanged       -= this
         view.focusChanged     -= focusChanged
-        view.pointerChanged   -= this
+        view.pointerFilter    -= this
         view.selectionChanged -= selectionChanged
     }
 

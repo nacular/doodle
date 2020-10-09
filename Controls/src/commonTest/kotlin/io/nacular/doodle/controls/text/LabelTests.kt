@@ -2,6 +2,10 @@
 
 package io.nacular.doodle.controls.text
 
+import io.mockk.every
+import io.mockk.mockk
+import io.nacular.doodle.drawing.Color.Companion.Blue
+import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
@@ -9,11 +13,10 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.text.rangeTo
-import io.mockk.every
-import io.mockk.mockk
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.expect
 
 
 class LabelTests {
@@ -102,6 +105,47 @@ class LabelTests {
             it.size       = Empty
 
             assertEquals(Empty, it.size)
+        }
+    }
+
+    @Test @JsName("foregroundColorFillsStyledTextMissingColor")
+    fun `foreground color fills in styled text missing color`() {
+        Label(createTextMetrics()).apply {
+            val rawStyledText = "blank ".. Red ("red") .. " blank"
+
+            styledText = rawStyledText
+
+            listOf(Red, Blue).forEach {
+                foregroundColor = it
+
+                expect(it { rawStyledText }) { styledText }
+            }
+
+            foregroundColor = null
+
+            expect(rawStyledText) { styledText }
+        }
+    }
+
+    @Test @JsName("fontFillsStyledTextMissingFont")
+    fun `font fills in styled text missing font`() {
+        Label(createTextMetrics()).apply {
+            val font1         = mockk<Font>()
+            val font2         = mockk<Font>()
+            val font3         = mockk<Font>()
+            val rawStyledText = "blank ".. font1 ("font1") .. " blank"
+
+            styledText = rawStyledText
+
+            listOf(font2, font3).forEach {
+                font = it
+
+                expect(it { rawStyledText }) { styledText }
+            }
+
+            font = null
+
+            expect(rawStyledText) { styledText }
         }
     }
 

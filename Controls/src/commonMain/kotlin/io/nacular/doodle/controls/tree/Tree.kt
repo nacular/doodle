@@ -210,20 +210,10 @@ open class Tree<T, out M: TreeModel<T>>(
                 else                          -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            val halfCacheLength = min(children.size, scrollCache) / 2
-
-            pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow + halfCacheLength).y      } }
-            pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
+            pathFromRow(firstVisibleRow)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow).y      } }
+            pathFromRow(lastVisibleRow )?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow ).bottom } }
 
             children.batch {
-                // FIXME: This is a bit of a hack to avoid inserting items into the child list at an index they won't be at as the list grows
-                // this is b/c items are mapped to their % of the list size, so the list growing will lead to different mappings
-                if (this.size <= lastVisibleRow - firstVisibleRow) {
-                    repeat(lastVisibleRow - firstVisibleRow - children.size) {
-                        add(object : View() {}.apply { visible = false })
-                    }
-                }
-
                 if (oldFirst > firstVisibleRow) {
                     val end = min(oldFirst, lastVisibleRow)
 
@@ -244,6 +234,13 @@ open class Tree<T, out M: TreeModel<T>>(
                                 return@forEach
                             }
                         } ?: return@forEach
+                    }
+                }
+
+                // this updates "hashing" of rows into the children list (using % of list size) since the children size has changed
+                if (oldLast - oldFirst != lastVisibleRow - firstVisibleRow) {
+                    (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                        update(children, path, index)
                     }
                 }
             }

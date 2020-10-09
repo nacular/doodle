@@ -52,7 +52,10 @@ interface SelectableTreeKeyHandler {
                         tree.selectAll()
                     }
                 }
+                else               -> return
             }
+
+            event.consume()
         }
     }
 }

@@ -52,7 +52,9 @@ open class ListRow<T>(private var list                           : ListLike,
     }
 
     init {
-        children += itemVisualizer(row, index)
+        val listSelected = list.selected(index)
+
+        children += itemVisualizer(row, index) { listSelected }
 
         styleChanged += { rerender() }
         pointerChanged += object: PointerListener {
@@ -107,7 +109,7 @@ open class ListRow<T>(private var list                           : ListLike,
         children[0] = itemVisualizer(row, index, children.firstOrNull()) { listSelected }
 
         idealSize = children[0].idealSize?.let { Size(it.width, it.height + insetTop) }
-        layout = constrainLayout(children[0])
+        layout    = constrainLayout(children[0])
 
         when {
             listSelected -> {

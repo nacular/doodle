@@ -4,7 +4,6 @@ import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -17,10 +16,10 @@ import io.nacular.doodle.utils.VerticalAlignment.Top
 /**
  * Created by Nicholas Eddy on 9/25/19.
  */
-class LabelBehavior(private val foregroundColor: Color? = null, private val backgroundColor: Color? = null): Behavior<Label> {
+open class LabelBehavior(protected open val foregroundColor: Color? = null, protected open val backgroundColor: Color? = null): Behavior<Label> {
     override fun install(view: Label) {
-        foregroundColor?.let { if (it != Black) view.foregroundColor = it } // FIXME: Check default color instead
-        backgroundColor?.let {                  view.backgroundColor = it }
+        foregroundColor?.let { view.foregroundColor = it }
+        backgroundColor?.let { view.backgroundColor = it }
     }
 
     override fun uninstall(view: Label) {

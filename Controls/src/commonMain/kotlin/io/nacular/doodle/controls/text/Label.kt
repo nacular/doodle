@@ -38,7 +38,7 @@ class LabelFactoryImpl(private val textMetrics: TextMetrics): LabelFactory {
             horizontalAlignment: HorizontalAlignment) = Label(textMetrics, styledText, verticalAlignment, horizontalAlignment)
 }
 
-open class Label internal constructor(
+open class Label protected constructor(
         private val textMetrics        : TextMetrics,
                     styledText         : StyledText          = StyledText(""),
                     verticalAlignment  : VerticalAlignment   = Middle,
@@ -154,4 +154,11 @@ open class Label internal constructor(
     }
 
     override fun render(canvas: Canvas) { behavior?.render(this, canvas) }
+
+    internal companion object {
+        operator fun invoke(textMetrics        : TextMetrics,
+                            styledText         : StyledText          = StyledText(""),
+                            verticalAlignment  : VerticalAlignment   = Middle,
+                            horizontalAlignment: HorizontalAlignment = Center) = Label(textMetrics, styledText, verticalAlignment, horizontalAlignment)
+    }
 }

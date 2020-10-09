@@ -68,18 +68,6 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
         }
 
-        val NativeThemeBehaviors = Module(name = "NativeThemeBehaviors") {
-            importAll(listOf(
-                    NativeButtonBehavior,
-                    NativeSliderBehavior,
-                    NativeCheckBoxBehavior,
-                    NativeTextFieldBehavior,
-                    NativeHyperLinkBehavior,
-                    NativeScrollPanelBehavior,
-                    NativeRadioButtonBehavior),
-                    allowOverride = true)
-        }
-
         val NativeButtonBehavior = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -131,5 +119,15 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
 
             bindBehavior<RadioButton>(NTheme::class) { it.behavior = NativeRadioButtonBehavior(instance(), instance(), it) as Behavior<Button> }
         }
+
+        val nativeThemeBehaviors = listOf(
+                NativeButtonBehavior,
+                NativeSliderBehavior,
+                NativeCheckBoxBehavior,
+                NativeTextFieldBehavior,
+                NativeHyperLinkBehavior,
+                NativeScrollPanelBehavior,
+                NativeRadioButtonBehavior
+        )
     }
 }

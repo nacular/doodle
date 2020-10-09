@@ -14,7 +14,7 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
  */
 interface SelectableListKeyHandler {
     fun keyPressed(event: KeyEvent) {
-        (event.source as Selectable<Int>).let { list ->
+        (event.source as? Selectable<Int>)?.let { list ->
             when (event.key){
                 ArrowUp, ArrowDown -> {
                     when (Shift) {
@@ -36,9 +36,14 @@ interface SelectableListKeyHandler {
                 KeyText("a"), KeyText("A") -> {
                     if (Ctrl in event || Meta in event) {
                         list.selectAll()
+
+                        event.consume()
                     }
                 }
+                else -> return
             }
+
+            event.consume()
         }
     }
 }
