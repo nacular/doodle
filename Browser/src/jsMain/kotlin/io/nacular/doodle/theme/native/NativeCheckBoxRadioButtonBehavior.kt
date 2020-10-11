@@ -10,7 +10,9 @@ import io.nacular.doodle.drawing.impl.Type
 import io.nacular.doodle.drawing.impl.Type.Check
 import io.nacular.doodle.drawing.impl.Type.Radio
 import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.Cursor.Companion.Default
 
 /**
  * Created by Nicholas Eddy on 4/26/19.
@@ -23,6 +25,10 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
     private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
 
+    private lateinit var oldSize     : Size
+    private          var oldCursor   : Cursor? = null
+    private          var oldIdealSize: Size? = null
+
     override fun render(view: ToggleButton, canvas: Canvas) {
         nativePeer.render(canvas)
     }
@@ -30,11 +36,17 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
     override fun install(view: ToggleButton) {
         super.install(view)
 
-        view.cursor    = Cursor.Default
-        view.idealSize = nativePeer.idealSize
-        view.idealSize?.let { view.size = it }
+        view.apply {
+            oldSize      = size
+            oldCursor    = cursor
+            oldIdealSize = idealSize
 
-        view.rerender()
+            cursor    = Default
+            idealSize = nativePeer.idealSize
+            idealSize?.let { view.size = it }
+
+            rerender()
+        }
     }
 
     override fun uninstall(view: ToggleButton) {
@@ -42,12 +54,18 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
         nativePeer.discard()
 
-        view.cursor = null
+        view.apply {
+            if (::oldSize.isInitialized) {
+                size = oldSize
+            }
+            cursor    = oldCursor
+            idealSize = oldIdealSize
+        }
     }
 
-    override fun keyReleased(event: KeyEvent) {}
+    override fun keyReleased(event: KeyEvent) { /* intentional no-op */ }
 
-    override fun keyPressed(event: KeyEvent) {}
+    override fun keyPressed(event: KeyEvent) { /* intentional no-op */ }
 }
 
 internal class NativeCheckBoxBehavior(
@@ -60,3 +78,9 @@ internal class NativeRadioButtonBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
         button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Radio)
+
+
+internal class NativeSwitchBehavior(
+        nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
+        textMetrics                     : TextMetrics,
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Check)

@@ -44,13 +44,13 @@ open class CheckRadioButtonBehavior<T: ToggleButton> protected constructor(
 
         view.icon                = icon as Icon<Button>
         view.iconAnchor          = Anchor.Left
-        view.minimumSize         = iconSize
         view.iconTextSpacing     = spacing
         view.horizontalAlignment = Left
 
         Size(idealWidth, max(iconSize.height, if (!textSize.empty) textSize.height else 0.0)).let {
-            view.idealSize = it
-            view.size      = it
+            view.size        = it
+            view.idealSize   = it
+            view.minimumSize = it
         }
     }
 }

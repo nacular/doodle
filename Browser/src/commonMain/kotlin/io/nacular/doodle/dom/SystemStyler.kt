@@ -48,12 +48,12 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
             insertRule("${prefix("body")} { -webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none }", numStyles)
 
             insertRule("${prefix("html")} { border:0;box-sizing:border-box }", numStyles)
-            insertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0 }", numStyles)
+            insertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
             insertRule("html { height:100%;width:100% }", numStyles)
 
             insertRule("${prefix()} * { box-sizing:inherit }", numStyles)
 
-            insertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
+            insertRule("${prefix("body")} * { position:absolute;overflow:hidden }", numStyles)
             insertRule("${prefix("body")} pre { overflow:visible }", numStyles)
             insertRule("${prefix("body")} div { display:inline }", numStyles)
 

@@ -7,6 +7,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
+import kotlin.math.max
 
 /**
  * Provides a mapping between an item and a View to represent it.
@@ -72,7 +73,7 @@ open class BooleanItemVisualizer(private val defaultSize: Size = Size(16)): Item
     override fun invoke(item: Boolean, previous: View?): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
         else        -> CheckBox().apply { enabled = false; selected = item                   }
-    }.apply { size = defaultSize }
+    }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 
 /**

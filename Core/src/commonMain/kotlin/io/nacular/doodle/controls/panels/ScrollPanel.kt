@@ -80,7 +80,7 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Notifies of changes to [content]. */
-    val contentChanged: PropertyObservers<ScrollPanel, View?> = /*by lazy {*/ PropertyObserversImpl<ScrollPanel, View?>(this) //}
+    val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
     var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }

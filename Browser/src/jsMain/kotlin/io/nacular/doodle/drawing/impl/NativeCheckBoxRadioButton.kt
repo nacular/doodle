@@ -100,8 +100,9 @@ internal class NativeCheckBoxRadioButton(
 
         val block = htmlFactory.create<HTMLElement>().also {
             it.style.setPosition(Static())
-            it.style.fontFamily = "unset"
-            it.style.fontSize   = "unset"
+            it.style.fontFamily = "initial"
+            it.style.fontSize   = "initial"
+            it.style.fontWeight = "initial"
 
             it.add(this)
         }
@@ -111,7 +112,7 @@ internal class NativeCheckBoxRadioButton(
         style.setPosition() // restore absolute
 
         inputEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
-            registerFocusListener         ()
+            registerFocusListener           ()
             startConsumingPointerPressEvents()
         }
     }
@@ -121,8 +122,8 @@ internal class NativeCheckBoxRadioButton(
         style.setHeightPercent(100.0)
 
         rootEventHandler = handlerFactory(this, this@NativeCheckBoxRadioButton).apply {
-            registerFocusListener         ()
-            registerClickListener         ()
+            registerFocusListener           ()
+            registerClickListener           ()
             startConsumingPointerPressEvents()
         }
 
@@ -181,10 +182,10 @@ internal class NativeCheckBoxRadioButton(
             model.selectedChanged -= this@NativeCheckBoxRadioButton.selectionChanged
         }
 
-        rootEventHandler.unregisterFocusListener       ()
+        rootEventHandler.unregisterFocusListener         ()
         rootEventHandler.stopConsumingPointerPressEvents ()
-        inputEventHandler.unregisterFocusListener      ()
-        inputEventHandler.unregisterClickListener      ()
+        inputEventHandler.unregisterFocusListener        ()
+        inputEventHandler.unregisterClickListener        ()
         inputEventHandler.stopConsumingPointerPressEvents()
     }
 
