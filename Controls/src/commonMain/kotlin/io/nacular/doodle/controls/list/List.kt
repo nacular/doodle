@@ -7,6 +7,7 @@ import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectableItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
+import io.nacular.doodle.controls.ViewItemVisualizer
 import io.nacular.doodle.controls.ignoreIndex
 import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
 import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
@@ -316,7 +317,14 @@ open class List<T, out M: ListModel<T>>(
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
                 List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun  <T, M: ListModel<T>>invoke(
+        operator fun invoke(
+                values        : kotlin.collections.List<View>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+                List<View, ListModel<View>>(SimpleListModel(values), ignoreIndex(ViewItemVisualizer), selectionModel, fitContent, scrollCache)
+
+        operator fun <T, M: ListModel<T>>invoke(
                 model         : M,
                 itemGenerator : SelectableItemVisualizer<T>?   = null,
                 selectionModel: SelectionModel<Int>? = null,

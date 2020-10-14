@@ -81,7 +81,7 @@ internal class DragManagerImpl(
         rootElement.ondragover = { event ->
             if (event.target !is HTMLInputElement) {
                 (dataBundle ?: createBundle(event.dataTransfer))?.let {
-                    if (!isIE) {
+                    if (!isIE && ::visualCanvas.isInitialized) {
                         visualCanvas.release()
                     }
 
@@ -108,12 +108,16 @@ internal class DragManagerImpl(
                     createBundle(event.dataTransfer)?.let {
                         currentDropHandler?.let { (view, handler) ->
                             handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(event)), it, action(event.dataTransfer?.dropEffect)))
+
+                            currentDropHandler = null
                         }
                     }
                 }
 
                 event.preventDefault ()
                 event.stopPropagation()
+
+                pointerUp()
             }
         }
     }
@@ -140,20 +144,22 @@ internal class DragManagerImpl(
                     view.dragRecognizer?.dragRecognized(pointerEvent(event, view))?.let { dragOperation ->
                         dataBundle = dragOperation.bundle
 
-                        createVisual(dragOperation.visual)
+                        dragOperation.visual?.let { visual ->
+                            createVisual(visual)
 
-                        visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
+                            visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
 
-                        scheduler.now { visualCanvas.release() } // FIXME: This doesn't happen fast enough
+                            scheduler.now { visualCanvas.release() } // FIXME: This doesn't happen fast enough
 
-                        visualCanvas.rootElement.apply {
-                            ondragstart = {
-                                it.dataTransfer?.apply {
-                                    effectAllowed = allowedActions(dragOperation.allowedActions)
+                            visualCanvas.rootElement.apply {
+                                ondragstart = {
+                                    it.dataTransfer?.apply {
+                                        effectAllowed = allowedActions(dragOperation.allowedActions)
 
-                                    setOf(PlainText, UriList).forEach { mimeType ->
-                                        dragOperation.bundle(mimeType)?.let { text ->
-                                            it.dataTransfer?.setData("$it", text)
+                                        setOf(PlainText, UriList).forEach { mimeType ->
+                                            dragOperation.bundle(mimeType)?.let { text ->
+                                                it.dataTransfer?.setData("$it", text)
+                                            }
                                         }
                                     }
                                 }
@@ -208,11 +214,14 @@ internal class DragManagerImpl(
             rootElement.draggable = true
 
             rootElement.ondragstart = {
-                createVisual(dragOperation.visual)
 
                 it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
 
-                it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
+                dragOperation.visual?.let { visual ->
+                    createVisual(visual)
+
+                    it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
+                }
 
                 setOf(PlainText, UriList).forEach { mimeType ->
                     dragOperation.bundle(mimeType)?.let { text ->
@@ -232,7 +241,7 @@ internal class DragManagerImpl(
     }
 
     private fun pointerUp() {
-        pointerDown               = null
+        pointerDown             = null
         dataBundle              = null
         rootElement.draggable   = false
         rootElement.ondragstart = null
@@ -288,7 +297,7 @@ internal class DragManagerImpl(
             val action = action(it.dataTransfer?.dropEffect)
 
             if (action == null) {
-                dragOperation.canceled ()
+                dragOperation.canceled()
             } else {
                 currentDropHandler?.let { (view, handler) ->
                     if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
@@ -300,6 +309,8 @@ internal class DragManagerImpl(
             }
 
             currentDropHandler = null
+
+            pointerUp()
 
             null
         }
@@ -351,20 +362,18 @@ internal class DragManagerImpl(
         return dropAllowed
     }
 
-    private fun createVisual(visual: Renderable?) {
-        if (visual != null) {
-            // TODO: Make this a general purpose View -> Image generator
-            visualCanvas = graphicsDevice.create()
+    private fun createVisual(visual: Renderable) {
+        // TODO: Make this a general purpose View -> Image generator
+        visualCanvas = graphicsDevice.create()
 
-            visualCanvas.rootElement.style.setTop(-visual.size.height)
+        visualCanvas.rootElement.style.setTop(-visual.size.height)
 
-            visualCanvas.zOrder = -Int.MAX_VALUE
-            visualCanvas.size   = visual.size
+        visualCanvas.zOrder = -Int.MAX_VALUE
+        visualCanvas.size   = visual.size
 
-            visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternFill(visual.size) {
-                visual.render(this)
-            })
-        }
+        visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternFill(visual.size) {
+            visual.render(this)
+        })
     }
 
     private fun getDropEventHandler(view: View?): Pair<View, DropReceiver>? {

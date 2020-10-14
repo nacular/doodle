@@ -222,7 +222,7 @@ val stars = StarRater(displayRounded = 0f, max = 5).apply {
 ---
 ### [List](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/list/List.kt#L51)
 
-The `List` control is a visual analog to the list data structure. It is a **readonly**, ordered collection of items with random
+The `List` control is a visual analog to the list data structure. It is a **readonly**, ordered, generic collection of items with random
 access to its members.
 
 You need 2 things to create a List: a [`ListModel`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ListModel.kt#L10), 
@@ -230,9 +230,10 @@ and [`IndexedItemVisualizer`](https://github.com/nacular/doodle/blob/master/Cont
 
 ?> You also need to provide a Behavior or use a Theme with one since List delegates rendering.
 
-```kotlin
-val textVisualizer: TextItemVisualizer
+The model represents the data within the List, and the visualizer provides a way to translate each item to a `View` that will be rendered within
+the List.
 
+```kotlin
 val list = List(listOf(
     "Alabama",
     "Alaska",
@@ -242,15 +243,19 @@ val list = List(listOf(
     // ...
     ),
     selectionModel = MultiSelectionModel(),
-    itemVisualizer = ignoreIndex(HighlightingTextVisualizer(textMetrics)))
+    itemVisualizer = ignoreIndex(highlightingTextVisualizer))
 ```
 
-This creates a List using a factory that takes a list collection and creates a ListModel from it. The demo also places
-the List in a resizable ScrollPanel; but that code is excluded for simplicity.
+This creates a List using a factory that takes a list collection and creates a ListModel from it.
 
-Lists provide memory optimization by only rendering the contents within their viewport. It then recycles the items to display
+Lists provide memory optimization by only rendering the contents within their viewport, recycling items to display
 new rows. The default setting caches 10 extra items; but this can be changed with the `scrollCache` property when creating 
 the List.
+
+The following shows a [`DynamicList`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/list/DynamicList.kt#L16)
+of countries (a custom data class). `DynamicList`s are useful when the underlying model can change after creation.
+This demo loads images asynchronously and adds new countries to the model as they load. The demo also illustrates a
+custom visualizer that represents each country as a name label and flag image.
 
 ```doodle
 {
@@ -260,15 +265,19 @@ the List.
 }
 ```
 
-?> [`DynamicList`]() supports changes to its model, and [`MutableList`]() allows editing. 
+<div style="font-size:10px;text-align:right;color:gray">Icons made by <a style="color:gray" href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a style="color:gray" href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
+?> [`DynamicList`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/list/DynamicList.kt#L16)
+is readonly (though its models may change), while [`MutableList`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/list/MutableList.kt#L25) is read/write.
 
 ---
-### Tree
+### [Tree](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/tree/Tree.kt#L69)
 
-The Tree control is a visual analog to the tree data structure. It is a **readonly**, hierarchical collection of items that are accessible
-via a numeric path. It is also readonly like the data structure.
+The Tree control is a visual analog to the tree data structure. It is a **readonly**, hierarchical, generic collection of items that are accessible
+via a numeric path.
 
-You need 2 things to create a Tree: a [`TreeModel`](), and [`IndexedItemVisualizer`]().
+You need 2 things to create a Tree: a [`TreeModel`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/TreeModel.kt#L10),
+ and [`IndexedItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41).
 
 ?> You also need to provide a Behavior or use a Theme with one since Tree delegates rendering.
 
@@ -298,7 +307,7 @@ val root = rootNode("") {
 
 val tree = Tree(
     SimpleTreeModel(root), 
-    ignoreIndex(HighlightingTextVisualizer(textMetrics)), 
+    ignoreIndex(highlightingTextVisualizer), 
     MultiSelectionModel()
 )
 ```
@@ -306,7 +315,8 @@ val tree = Tree(
 This creates a Tree from the nodes defined. This demo also places the Tree in a resizable ScrollPanel; but that code is excluded
 for simplicity. Trees--like Lists--provide memory optimized rendering.
 
-?> [`DynamicTree`]() supports changes to its model, and [`MutableTree`]() allows editing. 
+?> [`DynamicTree`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/tree/DynamicTree.kt#L10) 
+is readonly (though its models may change), while [`MutableTree`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/tree/MutableTree.kt#L18) is read/write. 
 
 ```doodle
 {
@@ -317,20 +327,14 @@ for simplicity. Trees--like Lists--provide memory optimized rendering.
 ```
 
 ---
-### Table
+### [Table](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/table/Table.kt#L24)
 
-Tables are very similar to Lists (**readonly** analog to the list data structure). They are like Lists that can display structured
+Tables are very similar to `Lists` (**readonly** analog to the list data structure). They are like Lists that can display structured
 data for each entry they hold.
 
 Tables are strongly typed and homogeneous, like Lists. So each item is of some type `<T>`. The values of each column are therefore
-derivable from each `<T>` in the table. This Table extracts a `name`, `age`, and gender for each item. Columns can also produce
-arbitrary values. The first column here does that by rendering an index for each item.
-
-Each column's [`CellVisualizer`]() ultimately controls what is displayed in it. The visualizer is given the value of each element in
-that column to produce a View. So the Name column gets a `String`, while the Male column gets a `Boolean`. The first column has values 
-of type `Unit`. The RowNumberGenerator just renders the index of each one.
-
-?> Tables require a [`TableBehavior`] for rendering. `BasicTheme` provides one.
+derivable from each `<T>` in the table. The Table below contains a list of `Person` and has columns for the `name`, `age`, and gender
+for each item. Columns can also produce arbitrary values, which is done to show the index of each item.
 
 ```kotlin
 data class Person(val name: String, val age: Int, val isMale: Boolean)
@@ -338,17 +342,31 @@ data class Person(val name: String, val age: Int, val isMale: Boolean)
 fun male  (name: String, age: Int) = Person(name, age, isMale = true )
 fun female(name: String, age: Int) = Person(name, age, isMale = false)
 
+class RowNumberVisualizer(private val delegate: SelectableItemVisualizer<String>): CellVisualizer<Unit> {
+        override fun invoke(
+                column: Column<Unit>,
+                item: Unit,
+                row: Int,
+                previous: View?,
+                isSelected: () -> Boolean
+        ) = delegate("${row + 1}", previous, isSelected)
+    }
+
 val textVisualizer = HighlightingTextVisualizer(textMetrics)
-val itemGenerator  = toString<Any>(textVisualizer)
 
 val table = Table(listOf(female("Alice", 53), male("Bob", 35), male("Jack", 8), female("Jill", 5)), MultiSelectionModel()) {
-    //     header          value      visualizer                                      config
-    column(label("#"   ),             RowNumberGenerator(toString(textVisualizer))) { minWidth =  50.0; width =  50.0; maxWidth = 150.0; cellAlignment = center }
-    column(label("Name"), { name   }, itemGenerator                               ) { minWidth = 100.0;                                                         }
-    column(label("Age" ), { age    }, itemGenerator                               ) { minWidth = 100.0; width = 100.0; maxWidth = 150.0                         }
-    column(label("Male"), { isMale }, ignoreSelection(BooleanItemVisualizer())    ) { minWidth = 100.0; width = 100.0; maxWidth = 150.0; cellAlignment = center }
+    column(label("#"   ),             RowNumberVisualizer(textVisualizer     )) { minWidth =  50.0; width =  50.0; maxWidth = 150.0; cellAlignment = center }
+    column(label("Name"), { name   }, textVisualizer                          ) { minWidth = 100.0;                                                         }
+    column(label("Age" ), { age    }, toString(textVisualizer)                ) { minWidth = 100.0; width = 100.0; maxWidth = 150.0                         }
+    column(label("Male"), { isMale }, ignoreSelection(BooleanItemVisualizer())) { minWidth = 100.0; width = 100.0; maxWidth = 150.0; cellAlignment = center }
 }
 ```
+
+Each column's [`CellVisualizer`]() ultimately controls what is displayed in it. The visualizer is given the value of each element in
+that column to produce a View. So the Name column gets a `String`, while the Male column gets a `Boolean`. The first column has values 
+of type `Unit`. The RowNumberGenerator just renders the index of each one.
+
+?> Tables require a [`TableBehavior`] for rendering. `BasicTheme` provides one.
 
 ```doodle
 {

@@ -53,7 +53,7 @@ internal class SystemStylerImpl(htmlFactory: HtmlFactory, private val document: 
 
             insertRule("${prefix()} * { box-sizing:inherit }", numStyles)
 
-            insertRule("${prefix("body")} * { position:absolute;overflow:hidden }", numStyles)
+            insertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
             insertRule("${prefix("body")} pre { overflow:visible }", numStyles)
             insertRule("${prefix("body")} div { display:inline }", numStyles)
 

@@ -76,6 +76,10 @@ open class BooleanItemVisualizer(private val defaultSize: Size = Size(16)): Item
     }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 
+object ViewItemVisualizer: ItemVisualizer<View> {
+    override fun invoke(item: View, previous: View?) = item
+}
+
 /**
  * Visualizes the item's `toString()` using the delegate.
  *
