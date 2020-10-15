@@ -1,7 +1,6 @@
 package io.nacular.doodle.theme.basic.list
 
-import io.nacular.doodle.controls.TextItemVisualizer
-import io.nacular.doodle.controls.ignoreIndex
+import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
@@ -35,7 +34,7 @@ open class BasicItemGenerator<T>(private val textMetrics          : TextMetrics,
                 list                            = list,
                 row                             = row,
                 index                           = index,
-                itemVisualizer                  = list.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))),
+                itemVisualizer                  = list.itemVisualizer ?: toString(TextVisualizer(textMetrics)),
                 backgroundSelectionColor        = selectionColor,
                 backgroundSelectionBlurredColor = selectionBlurredColor
         )

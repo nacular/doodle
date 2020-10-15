@@ -1,6 +1,8 @@
 package io.nacular.doodle.theme.basic.treecolumns
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -57,7 +59,7 @@ class TreeColumnRow<T>(
                     node                 : T,
                 var path                 : Path<Int>,
         private var index                : Int,
-        private val itemVisualizer       : IndexedItemVisualizer<T>,
+        private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
         private val selectionColor       : Color? = Color.Green,
         private val selectionBlurredColor: Color? = selectionColor,
         private val iconFactory          : () -> TreeColumnRowIcon): View() {
@@ -76,7 +78,7 @@ class TreeColumnRow<T>(
         }
 
     private var icon    = null as TreeColumnRowIcon?
-    private var content = itemVisualizer(node, index, null) { treeColumns.enclosedBySelection(path) }
+    private var content = itemVisualizer.invoke(node, context = SimpleIndexedItem(index, selected = treeColumns.enclosedBySelection(path)))
         private set(new) {
             if (field != new) {
                 children.batch {
@@ -163,7 +165,7 @@ class TreeColumnRow<T>(
         this.path  = path
         this.index = index
 
-        update(itemVisualizer(node, index, content) { tree.enclosedBySelection(path) }, tree)
+        update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, selected = tree.enclosedBySelection(path))), tree)
     }
 
     fun update(content: View, treeColumns: TreeColumns<T, *>) {

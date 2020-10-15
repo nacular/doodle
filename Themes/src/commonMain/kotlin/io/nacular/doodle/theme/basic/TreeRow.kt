@@ -1,6 +1,8 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -75,7 +77,7 @@ class TreeRow<T>(tree                 : TreeLike,
                  node                 : T,
              var path                 : Path<Int>,
      private var index                : Int,
-     private val itemVisualizer       : IndexedItemVisualizer<T>,
+     private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon): View() {
@@ -95,7 +97,7 @@ class TreeRow<T>(tree                 : TreeLike,
 
     private var icon    = null as TreeRowIcon?
     private var depth   = -1
-            var content = itemVisualizer(node, index, null) { tree.selected(path) }
+            var content = itemVisualizer.invoke(node, context = SimpleIndexedItem(index, tree.selected(path)))
         private set(new) {
             if (field != new) {
                 children.batch {
@@ -183,7 +185,7 @@ class TreeRow<T>(tree                 : TreeLike,
         this.path  = path
         this.index = index
 
-        update(itemVisualizer(node, index, content) { tree.selected(path) }, tree)
+        update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, tree.selected(path))), tree)
     }
 
     fun update(content: View, tree: TreeLike) {

@@ -226,7 +226,7 @@ The `List` control is a visual analog to the list data structure. It is a **read
 access to its members.
 
 You need 2 things to create a List: a [`ListModel`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ListModel.kt#L10), 
-and [`IndexedItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41).
+and [`ItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41).
 
 ?> You also need to provide a Behavior or use a Theme with one since List delegates rendering.
 
@@ -243,7 +243,7 @@ val list = List(listOf(
     // ...
     ),
     selectionModel = MultiSelectionModel(),
-    itemVisualizer = ignoreIndex(highlightingTextVisualizer))
+    itemVisualizer = highlightingTextVisualizer)
 ```
 
 This creates a List using a factory that takes a list collection and creates a ListModel from it.
@@ -253,7 +253,7 @@ new rows. The default setting caches 10 extra items; but this can be changed wit
 the List.
 
 The following shows a [`DynamicList`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/list/DynamicList.kt#L16)
-of countries (a custom data class). `DynamicList`s are useful when the underlying model can change after creation.
+of countries (a custom data class). These Lists are useful when the underlying model can change after creation.
 This demo loads images asynchronously and adds new countries to the model as they load. The demo also illustrates a
 custom visualizer that represents each country as a name label and flag image.
 
@@ -277,7 +277,7 @@ The Tree control is a visual analog to the tree data structure. It is a **readon
 via a numeric path.
 
 You need 2 things to create a Tree: a [`TreeModel`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/TreeModel.kt#L10),
- and [`IndexedItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41).
+ and [`ItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41).
 
 ?> You also need to provide a Behavior or use a Theme with one since Tree delegates rendering.
 
@@ -307,7 +307,7 @@ val root = rootNode("") {
 
 val tree = Tree(
     SimpleTreeModel(root), 
-    ignoreIndex(highlightingTextVisualizer), 
+    highlightingTextVisualizer, 
     MultiSelectionModel()
 )
 ```
@@ -342,31 +342,29 @@ data class Person(val name: String, val age: Int, val isMale: Boolean)
 fun male  (name: String, age: Int) = Person(name, age, isMale = true )
 fun female(name: String, age: Int) = Person(name, age, isMale = false)
 
-class RowNumberVisualizer(private val delegate: SelectableItemVisualizer<String>): CellVisualizer<Unit> {
-        override fun invoke(
-                column: Column<Unit>,
-                item: Unit,
-                row: Int,
-                previous: View?,
-                isSelected: () -> Boolean
-        ) = delegate("${row + 1}", previous, isSelected)
-    }
+val textVisualizer  = HighlightingTextVisualizer(textMetrics)
+val indexVisualizer = object: CellVisualizer<Unit> {
+    override fun invoke(item: Unit, previous: View?, context: CellInfo<Unit>) =
+        textVisualizer("${context.index + 1}", previous, context)
+}
 
-val textVisualizer = HighlightingTextVisualizer(textMetrics)
-
-val table = Table(listOf(female("Alice", 53), male("Bob", 35), male("Jack", 8), female("Jill", 5)), MultiSelectionModel()) {
-    column(label("#"   ),             RowNumberVisualizer(textVisualizer     )) { minWidth =  50.0; width =  50.0; maxWidth = 150.0; cellAlignment = center }
-    column(label("Name"), { name   }, textVisualizer                          ) { minWidth = 100.0;                                                         }
-    column(label("Age" ), { age    }, toString(textVisualizer)                ) { minWidth = 100.0; width = 100.0; maxWidth = 150.0                         }
-    column(label("Male"), { isMale }, ignoreSelection(BooleanItemVisualizer())) { minWidth = 100.0; width = 100.0; maxWidth = 150.0; cellAlignment = center }
+val data = listOf(female("Alice", 53), male("Bob", 35), male("Jack", 8), female("Jill", 5))
+            
+val table = Table(data, MultiSelectionModel()) {
+    column(label("#"   ),             indexVisualizer         ) { minWidth =  50.0; width =  50.0; maxWidth = 150.0; cellAlignment = center }
+    column(label("Name"), { name   }, textVisualizer          ) { minWidth = 100.0;                                                         }
+    column(label("Age" ), { age    }, toString(textVisualizer)) { minWidth = 100.0; width = 100.0; maxWidth = 150.0                         }
+    column(label("Male"), { isMale }, BooleanVisualizer()     ) { minWidth = 100.0; width = 100.0; maxWidth = 150.0; cellAlignment = center }
 }
 ```
 
-Each column's [`CellVisualizer`]() ultimately controls what is displayed in it. The visualizer is given the value of each element in
-that column to produce a View. So the Name column gets a `String`, while the Male column gets a `Boolean`. The first column has values 
-of type `Unit`. The RowNumberGenerator just renders the index of each one.
+Each column's [`CellVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/table/ColumnFactory.kt#L36) 
+ultimately controls what is displayed in it. The visualizer is given the value of each element in that column to produce a View. So the
+Name column gets a `String`, while the Male column gets a `Boolean`. The first column has values of type `Unit`, and uses the `RowNumberGenerator` to
+display the index of each item.
 
-?> Tables require a [`TableBehavior`] for rendering. `BasicTheme` provides one.
+?> Tables require a [`TableBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/table/TableBehavior.kt#L17) 
+for rendering. `BasicTheme` provides one.
 
 ```doodle
 {
@@ -376,7 +374,8 @@ of type `Unit`. The RowNumberGenerator just renders the index of each one.
 }
 ```
 
-?> [`DynamicTable`]() supports changes to its model, and [`MutableTable`]() allows editing. 
+?> [`DynamicTable`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/table/DynamicTable.kt#L63) 
+supports changes to its model, and [`MutableTable`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/table/MutableTable.kt#L27) allows editing. 
 
 ---
 ### SplitPanel
@@ -392,15 +391,19 @@ dedicated to either view.
 }
 ```
 
-?> Requires a [`SplitPanelBehavior`] for rendering. `BasicTheme` provides one.
+?> Requires a [`SplitPanelBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/theme/SplitPanelBehavior.kt#L16) 
+for rendering. `BasicTheme` provides one.
 
 ---
 ### TabbedPanel
 
-This control manages a generic list of items and displays them one at a time using an [`ItemVisualizer`](). Each item is generally
+This control manages a generic list of items and displays them one at a time using an [`ItemVisualizer`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ItemVisualizer.kt#L41). Each item is generally
 tracked with a visual "tab" that allows selection of particular items in the list.
 
-?> This control requires a [`TabbedPanelBehavior`]() for rendering.
+?> This control requires a [`TabbedPanelBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/panels/TabbedPanel.kt#L19) 
+for rendering. This demo uses the
+[`basicTabbedPanelBehavior`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L427) 
+module which installs [`BasicTabbedPanelBehavior`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/tabbedpanel/BasicTabbedPanelBehavior.kt#L508)
 
 ```kotlin
 val object1: View
@@ -408,31 +411,32 @@ val object2: View
 val object3: View
 val object4: View
 
-// Each Tab just shows the View
-val visualizer = object: ItemVisualizer<View> {
-    override fun invoke(item: View, previous: View?) = item
+// Each tab preview shows hardcoded names
+val tabVisualizer = object: ItemVisualizer<View, Any> {
+    private val textVisualizer = TextVisualizer(textMetrics)
+    private val mapping = mapOf(
+            object1 to "Circle",
+            object2 to "Second Tab",
+            object3 to "Cool Photo",
+            object4 to "Tab 4"
+    )
+
+    override fun invoke(item: View, previous: View?, context: Any) =
+        textVisualizer(mapping[item] ?: "Unknown")
 }
 
-val panel = TabbedPanel(visualizer, object1, object2, object3, object4).apply {
-    // disable Themes since specifying Behavior directly
-    acceptsThemes = false
+// Each object is displayed within a ScrollPanel
+val panel = TabbedPanel(
+    ScrollPanelVisualizer(), 
+    tabVisualizer, 
+    object1, 
+    object2, 
+    object3, 
+    object4
+).apply {
+    size = Size(500, 300)
 
-    // BasicTabbedPanelBehavior uses text for each tab 
-    behavior = BasicTabbedPanelBehavior(
-        BasicTabProducer(
-            textMetrics,
-            namer = { _,item,_ ->
-                when (item) {
-                    object1 -> "Circle"
-                    object2 -> "Second Tab"
-                    object3 -> "Cool Photo"
-                    object4 -> "Tab 4"
-                    else    -> "Unknown"
-                }
-            })) { panel, producer ->
-                // override the default tab container with one that animates
-                AnimatingTabContainer(animator, panel, producer)
-            }
+    Resizer(this).apply { movable = false }
 }
 ```
 

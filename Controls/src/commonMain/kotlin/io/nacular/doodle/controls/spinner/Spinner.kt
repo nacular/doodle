@@ -40,7 +40,7 @@ abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
 }
 
 @Suppress("PropertyName")
-open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisualizer<T>? = null): View() {
+open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisualizer<T, Any>? = null): View() {
 
     fun next    () = model.next    ()
     fun previous() = model.previous()

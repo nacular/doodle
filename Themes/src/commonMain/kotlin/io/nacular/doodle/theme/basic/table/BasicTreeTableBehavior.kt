@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme.basic.table
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.controls.table.Column
 import io.nacular.doodle.controls.table.ExpansionObserver
@@ -102,16 +103,16 @@ open class BasicTreeTableBehavior<T>(
     private val movingColumns = mutableSetOf<Column<*>>()
 
     override val treeCellGenerator = object: TreeCellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
-            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: IndexedItemVisualizer<A> {
-                override fun invoke(item: A, index: Int, previous: View?, isSelected: () -> Boolean) = itemGenerator(item, index, previous, isSelected)
+            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: ItemVisualizer<A, IndexedIem> {
+                override fun invoke(item: A, previous: View?, context: IndexedIem) = itemGenerator.invoke(item, previous, context)
             }, iconFactory = { SimpleTreeRowIcon(iconColor) })
         }
     }
 
     override val cellGenerator = object: CellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View?): View = when (current) {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
             else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }

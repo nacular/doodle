@@ -1,14 +1,13 @@
 package io.nacular.doodle.controls.list
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
-import io.nacular.doodle.controls.SelectableItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
-import io.nacular.doodle.controls.ViewItemVisualizer
-import io.nacular.doodle.controls.ignoreIndex
+import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
 import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.panels.ScrollPanel
@@ -56,10 +55,10 @@ interface ListLike: Selectable<Int> {
 
 open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemVisualizer: IndexedItemVisualizer<T>? = null,
-        protected      val selectionModel: SelectionModel<Int>?      = null,
-        private        val fitContent    : Boolean                   = true,
-        private        val scrollCache   : Int                       = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+                       val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        protected      val selectionModel: SelectionModel<Int>?           = null,
+        private        val fitContent    : Boolean                        = true,
+        private        val scrollCache   : Int                            = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<Int> = { set,removed,added ->
@@ -287,15 +286,7 @@ open class List<T, out M: ListModel<T>>(
     companion object {
         operator fun invoke(
                 progression    : IntProgression,
-                itemVisualizer : IndexedItemVisualizer<Int>,
-                selectionModel : SelectionModel<Int>? = null,
-                fitContent     : Boolean              = true,
-                scrollCache    : Int                  = 10) =
-                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
-
-        operator fun invoke(
-                progression    : IntProgression,
-                itemVisualizer : SelectableItemVisualizer<Int>,
+                itemVisualizer : ItemVisualizer<Int, IndexedIem>,
                 selectionModel : SelectionModel<Int>? = null,
                 fitContent     : Boolean              = true,
                 scrollCache    : Int                  = 10) =
@@ -303,15 +294,7 @@ open class List<T, out M: ListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemVisualizer: IndexedItemVisualizer<T>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): List<T, ListModel<T>> =
-                List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
-
-        operator fun <T> invoke(
-                values        : kotlin.collections.List<T>,
-                itemVisualizer: SelectableItemVisualizer<T>,
+                itemVisualizer: ItemVisualizer<T, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
@@ -322,14 +305,14 @@ open class List<T, out M: ListModel<T>>(
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<View, ListModel<View>> =
-                List<View, ListModel<View>>(SimpleListModel(values), ignoreIndex(ViewItemVisualizer), selectionModel, fitContent, scrollCache)
+                List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
         operator fun <T, M: ListModel<T>>invoke(
                 model         : M,
-                itemGenerator : SelectableItemVisualizer<T>?   = null,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10) = List(model, itemGenerator?.let { ignoreIndex(it) }, selectionModel, fitContent, scrollCache)
+                itemGenerator : ItemVisualizer<T, IndexedIem>? = null,
+                selectionModel: SelectionModel<Int>?           = null,
+                fitContent    : Boolean                        = true,
+                scrollCache   : Int                            = 10) = List(model, itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }
 

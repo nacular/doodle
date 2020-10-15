@@ -71,3 +71,5 @@ fun main() {
 
 Doodle is still under active development, so there are going to be gaps and bugs. Please report [issues](https://github.com/pusolito/doodle/issues),
 and submit feature requests.
+
+You can also join the discussion on the [#doodle](https://kotlinlang.slack.com/messages/doodle) Kotlin Slack channel.

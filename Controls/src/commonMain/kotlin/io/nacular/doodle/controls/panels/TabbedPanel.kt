@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.panels
 
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -60,8 +61,8 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
  */
 class TabbedPanel<T>(
                orientation  : BoxOrientation = Top,
-        val    visualizer   : ItemVisualizer<T>,
-        val    tabVisualizer: ItemVisualizer<T>,
+        val    visualizer   : ItemVisualizer<T, Any>,
+        val    tabVisualizer: ItemVisualizer<T, Any>,
                item         : T,
         vararg remaining    : T
 ): View(), Iterable<T> {
@@ -74,8 +75,8 @@ class TabbedPanel<T>(
      * @param remaining items in the lest
      */
     constructor(
-                   visualizer   : ItemVisualizer<T>,
-                   tabVisualizer: ItemVisualizer<T>,
+                   visualizer   : ItemVisualizer<T, Any>,
+                   tabVisualizer: ItemVisualizer<T, Any>,
                    item         : T,
             vararg remaining    : T
     ): this(Top, visualizer, tabVisualizer, item, *remaining)
@@ -237,4 +238,18 @@ class TabbedPanel<T>(
      * @param item to replace it with
      */
     operator fun set(at: Int, item: T) = items.set(at, item)
+
+    companion object {
+        operator fun invoke(
+                       orientation  : BoxOrientation = Top,
+                       tabVisualizer: ItemVisualizer<View, Any>,
+                       item         : View,
+                vararg remaining    : View) = TabbedPanel(
+                    orientation   = orientation,
+                    visualizer    = ViewVisualizer,
+                    tabVisualizer = tabVisualizer,
+                    item          = item,
+                    remaining     = *remaining
+            )
+    }
 }

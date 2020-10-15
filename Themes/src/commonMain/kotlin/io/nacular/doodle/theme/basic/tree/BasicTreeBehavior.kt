@@ -1,8 +1,7 @@
 package io.nacular.doodle.theme.basic.tree
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.TextItemVisualizer
-import io.nacular.doodle.controls.ignoreIndex
+import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.controls.theme.TreeBehavior
@@ -78,7 +77,7 @@ open class BasicTreeRowGenerator<T>(private val focusManager         : FocusMana
                                     private val iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) }): RowGenerator<T> {
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
-        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: ignoreIndex(toString(TextItemVisualizer(textMetrics))), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
+        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: toString(TextVisualizer(textMetrics)), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(tree)

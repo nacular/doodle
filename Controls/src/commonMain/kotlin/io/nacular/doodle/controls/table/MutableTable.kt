@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.list.ListEditor
@@ -88,8 +88,8 @@ class MutableTable<T, M: MutableListModel<T>>(
             Comparator<T> { a, b -> it(a).compareTo(it(b)) }
         }
 
-        override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
+        override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
+            override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
         }, selectionModelWrapper, fitContent = false).apply {
             acceptsThemes = false
 

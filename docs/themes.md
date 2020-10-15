@@ -1,9 +1,12 @@
 # Themes
 --------
 
-Doodle apps can use `Theme`s to create a consistent look and behavior across their Views. Doodle has built-in support for
-a Native and Basic theme (which has a light and dark variant). The [`NativeTheme`]() styles controls like buttons, text fields, and scroll panels using the browser
-default styles and behaviors. The [`BasicTheme`]() provides a customizable foundation to further build on.
+Doodle apps can use [`Themes`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/theme/Theme.kt#L16) 
+to create a consistent look and behavior across their Views. Doodle has built-in support for a Native and Basic theme
+(which has a light and dark variant). The [`NativeTheme`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/theme/native/NativeTheme.kt#L47) 
+styles controls like buttons, text fields, and scroll panels using the browser
+default styles and behaviors. The [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L76) 
+provides a customizable foundation to further build on.
 
 ```doodle
 {
@@ -31,8 +34,8 @@ installation. It provides the `Display` and a sequence of displayed Views. The T
 ---
 ## ThemeManager
 
-Themes are handles by the [`ThemeManager`](). It provides an API for selecting the active Theme. Inject it into your app to work
-with Themes.
+Themes are handles by the [`ThemeManager`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/theme/Theme.kt#L31). 
+It provides an API for selecting the active Theme. Inject it into your app to work with Themes.
 
 ```kotlin
 class MyApp(display: Display,
@@ -92,7 +95,8 @@ and Behavior classes it uses.
 
 ## Dynamic Themes
 
-Doodle addresses this concern with the [`DynamicTheme`](). This Theme uses dependency injection to discover the set of
+Doodle addresses this concern with the [`DynamicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/adhoc/DynamicTheme.kt#L9). 
+This Theme uses dependency injection to discover the set of
 Behaviors that have been installed via Kodein Modules. It can filter that list down to those Behaviors associated
 with it. This avoids hard dependencies on Views or Behaviors as a result.
 

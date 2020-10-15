@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.controls.buttons.CheckBox
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.core.View
@@ -10,74 +11,55 @@ import io.nacular.doodle.text.StyledText
 import kotlin.math.max
 
 /**
- * Provides a mapping between an item and a View to represent it.
+ * Provides a mapping between an item and a [View] to represent it.
+ * @param T item type
+ * @param C context about the item
  */
-interface ItemVisualizer<T> {
+interface ItemVisualizer<T, in C> {
     /**
      * Called whenever an item needs to be translated to a View.
      *
      * @param item being represented
      * @param previous View that represented an item
+     * @param context providing more details about the item
      * @return a View to represent this item
      */
-    operator fun invoke(item: T, previous: View? = null): View
+    operator fun invoke(item: T, previous: View? = null, context: C): View
 }
 
-/**
- * Visualizer for items that can be selected, like those in a [List][io.nacular.doodle.controls.list.List].
- */
-interface SelectableItemVisualizer<T> {
-    /**
-     * Called whenever an item needs to be translated to a View.
-     *
-     * @param item being represented
-     * @param previous View that represented an item
-     * @param isSelected indicates whether the item is currently selected
-     * @return a View to represent this item
-     */
-    operator fun invoke(item: T, previous: View? = null, isSelected: () -> Boolean = { false }): View
-}
-
-/**
- * Visualizer for items that have an index and can be selected, like those in a [List][io.nacular.doodle.controls.list.List].
- */
-interface IndexedItemVisualizer<T> {
-    /**
-     * Called whenever an item needs to be translated to a View.
-     *
-     * @param item being represented
-     * @param index of the item
-     * @param previous View that represented an item
-     * @param isSelected indicates whether the item is currently selected
-     * @return a View to represent this item
-     */
-    operator fun invoke(item: T, index: Int, previous: View? = null, isSelected: () -> Boolean = { false }): View
-}
+operator fun <T> ItemVisualizer<T, Any>.invoke(item: T, previous: View? = null): View = invoke(item, previous, Unit)
 
 /**
  * Visualizes Strings using [Label]s.
  */
-open class TextItemVisualizer(private val textMetrics: TextMetrics, private val fitText: Set<TextFit>? = null): ItemVisualizer<String> {
-    override fun invoke(item: String, previous: View?): Label = when (previous) {
-        is Label -> previous.apply { text = item; this@TextItemVisualizer.fitText?.let { fitText = it } }
+open class TextVisualizer(private val textMetrics: TextMetrics, private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
+    override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
+        is Label -> previous.apply { text = item; this@TextVisualizer.fitText?.let { fitText = it } }
         else     -> Label(textMetrics, StyledText(item)).apply {
-            this@TextItemVisualizer.fitText?.let { fitText = it }
+            this@TextVisualizer.fitText?.let { fitText = it }
         }
     }
 }
 
 /**
- * Visualizes Booleans using [CheckBox]s.
+ * Visualizes Booleans using [CheckBox]es.
  */
-open class BooleanItemVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean> {
-    override fun invoke(item: Boolean, previous: View?): CheckBox = when (previous) {
+open class BooleanVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean, Any> {
+    override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
         else        -> CheckBox().apply { enabled = false; selected = item                   }
     }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 
-object ViewItemVisualizer: ItemVisualizer<View> {
-    override fun invoke(item: View, previous: View?) = item
+object ViewVisualizer: ItemVisualizer<View, Any> {
+    override fun invoke(item: View, previous: View?, context: Any) = item
+}
+
+open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
+    override fun invoke(item: View, previous: View?, context: Any) = when (previous) {
+        is ScrollPanel -> previous.also { it.content = item }
+        else           -> ScrollPanel(item)
+    }
 }
 
 /**
@@ -85,51 +67,18 @@ object ViewItemVisualizer: ItemVisualizer<View> {
  *
  * @param delegate to visualize the item's `toString()`
  */
-fun <T> toString(delegate: ItemVisualizer<String>) = object: ItemVisualizer<T> {
-    override fun invoke(item: T, previous: View?) = delegate(item.toString(), previous)
+fun <T, C> toString(delegate: ItemVisualizer<String, C>) = object: ItemVisualizer<T, C> {
+    override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(item.toString(), previous, context)
 }
 
 /**
- * Visualizes the item's `toString()` using the delegate.
- *
- * @param delegate to visualize the item's `toString()`
+ * A selectable item with an index that is often used as the context with [ItemVisualizer].
+ * @property index of the item
+ * @property selected is `true` for selected items
  */
-fun <T> toString(delegate: IndexedItemVisualizer<String>) = object: IndexedItemVisualizer<T> {
-    override fun invoke(item: T, index: Int, previous: View?, isSelected: () -> Boolean) = delegate(item.toString(), index, previous, isSelected)
+interface IndexedIem {
+    val index: Int
+    val selected: Boolean
 }
 
-/**
- * Visualizes the item's `toString()` using the delegate.
- *
- * @param delegate to visualize the item's `toString()`
- */
-fun <T> toString(delegate: SelectableItemVisualizer<String>) = object: SelectableItemVisualizer<T> {
-    override fun invoke(item: T, previous: View?, isSelected: () -> Boolean) = delegate(item.toString(), previous, isSelected)
-}
-
-/**
- * Helper for using an [ItemVisualizer] in place of an [IndexedItemVisualizer].
- *
- * @param delegate used for visualization
- */
-fun <T> ignoreIndex(delegate: ItemVisualizer<T>) = object: IndexedItemVisualizer<T> {
-    override fun invoke(item: T, index: Int, previous: View?, isSelected: () -> Boolean) = delegate(item, previous)
-}
-
-/**
- * Helper for using an [ItemVisualizer] in place of an [SelectableItemVisualizer].
- *
- * @param delegate used for visualization
- */
-fun <T> ignoreSelection(delegate: ItemVisualizer<T>) = object: SelectableItemVisualizer<T> {
-    override fun invoke(item: T, previous: View?, isSelected: () -> Boolean) = delegate(item, previous)
-}
-
-/**
- * Helper for using an [SelectableItemVisualizer] in place of an [IndexedItemVisualizer].
- *
- * @param delegate used for visualization
- */
-fun <T> ignoreIndex(delegate: SelectableItemVisualizer<T>) = object: IndexedItemVisualizer<T> {
-    override fun invoke(item: T, index: Int, previous: View?, isSelected: () -> Boolean) = delegate(item, previous, isSelected)
-}
+class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedIem

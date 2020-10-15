@@ -224,7 +224,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
 }
 
 internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit>(table, null, null, null, object: CellVisualizer<Unit> {
-    override fun invoke(column: Column<Unit>, item: Unit, row: Int, previous: View?, isSelected: () -> Boolean) = previous ?: object: View() {}
+    override fun invoke(item: Unit, previous: View?, context: CellInfo<Unit>) = previous ?: object: View() {}
 }, null, null, 0.0, null) {
     override val view = view ?: object: View() {
         override fun contains(point: Point) = false

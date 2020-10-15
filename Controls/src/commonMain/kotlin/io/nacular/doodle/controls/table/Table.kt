@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
@@ -95,8 +96,8 @@ open class Table<T, M: ListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        override val view: io.nacular.doodle.controls.list.List<R, *> = io.nacular.doodle.controls.list.List(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
+        override val view: io.nacular.doodle.controls.list.List<R, *> = io.nacular.doodle.controls.list.List(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
+            override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
         }, selectionModel, scrollCache = scrollCache, fitContent = false).apply {
             acceptsThemes = false
         }
@@ -105,8 +106,12 @@ open class Table<T, M: ListModel<T>>(
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: IndexedItemVisualizer<R> {
-                            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = this@InternalListColumn.cellGenerator(this@InternalListColumn, item, index, previous, isSelected)
+                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: ItemVisualizer<R, IndexedIem> {
+                            override fun invoke(item: R, previous: View?, context: IndexedIem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
+                                override val column         = this@InternalListColumn
+                                override val index          = index
+                                override val selected get() = context.selected
+                            })
                         }, current)
                     }
 

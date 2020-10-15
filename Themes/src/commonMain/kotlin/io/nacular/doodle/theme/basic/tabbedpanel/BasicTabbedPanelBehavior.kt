@@ -4,6 +4,7 @@ import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.fixedSpeedLinear
 import io.nacular.doodle.animation.fixedTimeLinear
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.panels.TabbedPanelBehavior
 import io.nacular.doodle.core.Layout
@@ -55,7 +56,7 @@ abstract class Tab<T>: View() {
 
 open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
                        override var index              : Int,
-                                    visualizer         : ItemVisualizer<T>,
+                                    visualizer         : ItemVisualizer<T, Any>,
                        private  val radius             : Double,
                        private  val tabColor           : Color,
                        private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
@@ -107,7 +108,7 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
     }
 
     init {
-        children += visualizer.invoke(panel[index]!!)
+        children += visualizer(panel[index]!!)
 
         layout = constrainLayout(children[0])
 

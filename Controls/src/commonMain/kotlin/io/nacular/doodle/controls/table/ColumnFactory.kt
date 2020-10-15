@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
-import io.nacular.doodle.controls.SelectableItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
 
@@ -29,18 +29,12 @@ internal class MutableColumnBuilderImpl<T>: ColumnBuilderImpl(), MutableColumnBu
     override var editor: TableEditor<T>? = null
 }
 
-interface CellVisualizer<T> {
+interface CellInfo<T>: IndexedIem {
     // TODO: Include Table/TreeTable?
-    operator fun invoke(column: Column<T>, item: T, row: Int, previous: View? = null, isSelected: () -> Boolean = { false }): View
+    val column: Column<T>
 }
 
-fun <T> ignoreColumn(itemVisualizer: SelectableItemVisualizer<T>) = object: CellVisualizer<T> {
-    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, previous, isSelected)
-}
-
-fun <T> ignoreColumn(itemVisualizer: IndexedItemVisualizer<T>) = object: CellVisualizer<T> {
-    override fun invoke(column: Column<T>, item: T, row: Int, previous: View?, isSelected: () -> Boolean) = itemVisualizer(item, row, previous, isSelected)
-}
+typealias CellVisualizer<T> = ItemVisualizer<T, CellInfo<T>>
 
 typealias Extractor<T, R>  = T.() -> R
 typealias Sorter<T, S>     = Extractor<T, S> //T.() -> S
@@ -52,18 +46,6 @@ interface ColumnFactory<T> {
             cellVisualizer: CellVisualizer<R>,
             builder       : ColumnBuilder.() -> Unit): Column<R>
 
-    fun <R> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: SelectableItemVisualizer<R>,
-            builder       : ColumnBuilder.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), builder)
-
-    fun <R> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: IndexedItemVisualizer<R>,
-            builder       : ColumnBuilder.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), builder)
-
     fun column(
             header       : View?,
             cellGenerator: CellVisualizer<Unit>,
@@ -71,12 +53,6 @@ interface ColumnFactory<T> {
 }
 
 interface MutableColumnFactory<T> {
-    fun <R> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: IndexedItemVisualizer<R>,
-            builder       : MutableColumnBuilder<T>.() -> Unit): Column<R> = column(header, extractor, ignoreColumn(itemVisualizer), builder)
-
     fun column(
             header       : View?,
             cellGenerator: CellVisualizer<Unit>,
@@ -97,12 +73,6 @@ interface MutableColumnFactory<T> {
             cellVisualizer: CellVisualizer<R>,
             builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header, extractor, cellVisualizer, null, null as Sorter<T, Int>?, builder)
 
-    fun <R> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: SelectableItemVisualizer<R>,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), builder)
-
     fun <R: Comparable<R>> column(
             header        : View?,
             extractor     : Extractor<T, R>,
@@ -110,42 +80,4 @@ interface MutableColumnFactory<T> {
             editor        : TableEditor<T>? = null,
             sortable      : Boolean = false,
             builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header, extractor, cellVisualizer, editor, if (sortable) extractor else null, builder)
-
-    fun <R, S: Comparable<S>> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: SelectableItemVisualizer<R>,
-            editor        : TableEditor<T>? = null,
-            sorter        : Sorter<T, S>? = null,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), editor, sorter, builder)
-
-    fun <R: Comparable<R>> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: SelectableItemVisualizer<R>,
-            editor        : TableEditor<T>? = null,
-            sortable      : Boolean = false,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), editor, if (sortable) extractor else null, builder)
-
-    fun <R, S: Comparable<S>> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: IndexedItemVisualizer<R>,
-            editor        : TableEditor<T>? = null,
-            sorter        : Sorter<T, S>? = null,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), editor, sorter, builder)
-
-    fun <R: Comparable<R>> column(
-            header        : View?,
-            extractor     : Extractor<T, R>,
-            itemVisualizer: IndexedItemVisualizer<R>,
-            editor        : TableEditor<T>? = null,
-            sortable      : Boolean = false,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, extractor, ignoreColumn(itemVisualizer), editor, if (sortable) extractor else null, builder)
-
-    fun <R, S: Comparable<S>> column(
-            header        : View?,
-            itemVisualizer: IndexedItemVisualizer<Unit>,
-            sorter        : Sorter<T, S>? = null,
-            builder       : MutableColumnBuilder<T>.() -> Unit) = column(header, {}, ignoreColumn(itemVisualizer), null, sorter, builder)
 }
