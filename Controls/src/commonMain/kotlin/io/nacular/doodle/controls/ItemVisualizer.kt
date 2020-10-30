@@ -55,6 +55,9 @@ object ViewVisualizer: ItemVisualizer<View, Any> {
     override fun invoke(item: View, previous: View?, context: Any) = item
 }
 
+/**
+ * Places the item (which is a View) within a [ScrollPanel].
+ */
 open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
     override fun invoke(item: View, previous: View?, context: Any) = when (previous) {
         is ScrollPanel -> previous.also { it.content = item }

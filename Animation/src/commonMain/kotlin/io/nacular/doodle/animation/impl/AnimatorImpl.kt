@@ -132,8 +132,6 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             if (broadcast) {
                 listeners.forEach { it.cancelled(this@AnimatorImpl, setOf(this)) }
             }
-
-            animations -= this
         }
     }
 
