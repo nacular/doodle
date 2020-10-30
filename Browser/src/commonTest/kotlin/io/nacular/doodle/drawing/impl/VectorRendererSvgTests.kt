@@ -1,9 +1,12 @@
 package io.nacular.doodle.drawing.impl
 
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.Node
 import io.nacular.doodle.NodeList
 import io.nacular.doodle.SVGCircleElement
@@ -46,7 +49,7 @@ import kotlin.test.expect
 expect inline fun mockkStatic(vararg classes: String)
 
 @Suppress("FunctionName")
-class VectorRendererSvglTests {
+class VectorRendererSvgTests {
     init {
         mockkStatic("io.nacular.doodle.dom.SvgElementKt")
     }
@@ -206,10 +209,12 @@ class VectorRendererSvglTests {
         val element    = slot<Node>()
         val svgFactory = svgFactory()
         val renderer   = renderer(context, svgFactory)
+        val renderPosition = slot<HTMLElement>()
 
         val region = context.renderRegion
 
-        every { context.renderPosition } returns null
+        every { context.renderPosition } returns if (renderPosition.isCaptured) renderPosition.captured else null
+        every { context.renderPosition = capture(renderPosition) } just Runs
 
         every { context.renderPosition = capture(element) } answers { every { context.renderPosition } returns element.captured }
 
@@ -224,7 +229,7 @@ class VectorRendererSvglTests {
         verify (exactly = 1) { region.appendChild      (svg.captured ) }
     }
 
-    @Test @JsName("reusesAllElments") fun `reuses all elements`() {
+    @Test @JsName("reusesAllElements") fun `reuses all elements`() {
         val svgElements = mutableListOf<SVGElement>()
         val context     = mockk<CanvasContext>()
         val element     = slot<Node>()

@@ -61,6 +61,8 @@ private class TestCanvas: Canvas {
 
     override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {}
 
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {}
+
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {}
 
     override fun clear() {}

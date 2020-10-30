@@ -93,15 +93,14 @@ import io.nacular.measured.units.times
 import kotlin.math.max
 
 internal open class VectorRendererSvg constructor(
-                    context    : CanvasContext,
-        private val svgFactory : SvgFactory,
-        private val htmlFactory: HtmlFactory,
-        private val textMetrics: TextMetrics,
-                    rootSvgElement: SVGElement? = null): VectorRenderer {
+        protected var context       : CanvasContext,
+        private   val svgFactory    : SvgFactory,
+        private   val htmlFactory   : HtmlFactory,
+        private   val textMetrics   : TextMetrics,
+                      rootSvgElement: SVGElement? = null): VectorRenderer {
 
-    protected var context = context
-    protected lateinit var svgElement    : SVGElement
-    private lateinit var rootSvgElement: SVGElement
+    protected var svgElement    : SVGElement? = null
+    private   var rootSvgElement: SVGElement? = null
 
     private val region get() = context.renderRegion
 
@@ -111,7 +110,7 @@ internal open class VectorRendererSvg constructor(
         rootSvgElement?.let {
             svgElement          = it
             this.rootSvgElement = svgElement
-            renderPosition      = svgElement.firstChild
+            renderPosition      = svgElement?.firstChild
         }
     }
 
@@ -203,7 +202,7 @@ internal open class VectorRendererSvg constructor(
             is OuterShadow -> outerShadow(shadow)
         }.let {
             completeOperation(it)
-            svgElement.style.filter = "url(#${it.id})"
+            svgElement?.style?.filter = "url(#${it.id})"
         }
     }
 
@@ -216,14 +215,16 @@ internal open class VectorRendererSvg constructor(
     override fun clear() {
         val renderPosition = context.renderPosition
 
+        this.renderPosition = null
+        rootSvgElement      = null
+        svgElement          = null
+
         if (renderPosition != null) {
             findSvgDepthFirst(context.renderRegion)?.let {
-                rootSvgElement = it
-                svgElement = it
+                rootSvgElement      = it
+                svgElement          = it
                 this.renderPosition = it.firstChild
             }
-        } else {
-            this.renderPosition = null
         }
     }
 
@@ -262,7 +263,7 @@ internal open class VectorRendererSvg constructor(
             renderPosition = renderPosition?.nextSibling
         }
 
-        if (!::svgElement.isInitialized || svg.parentNode != svgElement) {
+        if (svgElement == null || svg.parentNode != svgElement) {
             updateRootSvg()
 
             completeOperation(svg)
@@ -275,9 +276,9 @@ internal open class VectorRendererSvg constructor(
         // Clear any remaining items that were previously rendered within the sub-region that won't be rendered anymore
         flush()
 
-        renderPosition = svgElement.nextSibling
+        renderPosition = svgElement?.nextSibling
 
-        svgElement.parentNode?.let {
+        svgElement?.parentNode?.let {
             svgElement = it as SVGElement
         }
     }
@@ -297,25 +298,30 @@ internal open class VectorRendererSvg constructor(
     }
 
     protected fun updateRootSvg() {
-        if (!::rootSvgElement.isInitialized || (context.renderPosition !== rootSvgElement && context.renderPosition !== rootSvgElement.nextSibling)) {
+        if (rootSvgElement == null ||
+            (context.renderPosition !== rootSvgElement /*&&
+//                    (rootSvgLastChild() ||
+                     context.renderPosition !== rootSvgElement?.nextSibling*/)) {
             // Initialize new SVG root if
             // 1) not initialized
             // 2) it is not longer the active element
             svgElement     = createOrUse("svg", context.renderPosition)
             rootSvgElement = svgElement
-            renderPosition = svgElement.firstChild
+            renderPosition = svgElement?.firstChild
         }
     }
 
     protected open fun completeOperation(element: SVGElement) {
-        if (context.renderPosition == null && svgElement.parent == null) {
-            region.add(svgElement)
+        if (context.renderPosition == null && svgElement?.parent == null) {
+            region.add(svgElement!!)
+            context.renderPosition = rootSvgElement
         } else if (context.renderPosition !== rootSvgElement) {
-            context.renderPosition?.parent?.replaceChild(rootSvgElement, context.renderPosition!!)
+            context.renderPosition?.parent?.replaceChild(rootSvgElement!!, context.renderPosition!!)
+            context.renderPosition = rootSvgElement
         }
 
         if (renderPosition == null) {
-            svgElement.add(element)
+            svgElement?.add(element)
         } else {
             if (renderPosition !== element) {
                 renderPosition?.parent?.replaceChild(element, renderPosition!!)
@@ -324,7 +330,7 @@ internal open class VectorRendererSvg constructor(
             renderPosition = element.nextSibling
         }
 
-        context.renderPosition = rootSvgElement.nextSibling
+        context.markDirty()
     }
 
     protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
@@ -813,8 +819,9 @@ internal open class VectorRendererSvg constructor(
                 fill.fill(PatternCanvas(object: CanvasContext {
                     override var size get() = fill.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
                     override val renderRegion = pattern
-                    override var renderPosition: Node? = null
+                    override var renderPosition: Node? = pattern
                     override val shadows get() = context.shadows
+                    override fun markDirty() = context.markDirty()
                 }, svgFactory, htmlFactory, textMetrics, pattern))
 
                 element.setFillPattern(pattern)
@@ -840,7 +847,7 @@ internal open class VectorRendererSvg constructor(
             else -> {
                 pushGroup()
 
-                svgElement.setTransform(transform)
+                svgElement?.setTransform(transform)
 
                 block(this)
 
@@ -883,6 +890,10 @@ internal open class VectorRendererSvg constructor(
         }
 
         override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 

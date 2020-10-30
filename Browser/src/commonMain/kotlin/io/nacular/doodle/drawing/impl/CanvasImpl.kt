@@ -78,14 +78,18 @@ internal open class CanvasImpl(
         override val renderRegion   get() = this@CanvasImpl.renderRegion
         override var renderPosition get() = this@CanvasImpl.renderPosition
             set(new) { this@CanvasImpl.renderPosition = new }
+
+        override fun markDirty() { vectorRenderDirty = true }
     }
 
-    override var size            = Empty
-    private val shadows          = mutableListOf<Shadow>()
-    private var renderRegion     = renderParent
-    private var renderPosition   = null as Node?
-    private val vectorRenderer   = /*by lazy {*/ rendererFactory(Context()) //}
-    private var innerShadowCount = 0
+    override var size             = Empty
+    private val shadows           = mutableListOf<Shadow>()
+    private var renderRegion      = renderParent
+    private var renderPosition    = null as Node?
+    private val vectorRenderer    by lazy { rendererFactory(Context()) }
+
+    private var innerShadowCount  = 0
+    private var vectorRenderDirty = false
 
     override fun rect(rectangle: Rectangle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = vectorRenderer.rect(rectangle, stroke, fill)
@@ -138,7 +142,7 @@ internal open class CanvasImpl(
 
     override fun text(text: StyledText, at: Point) {
         when {
-            isSimple(text) -> completeOperation(createStyledTextGlyph(text, at))
+            isSimple(text) -> { updateRenderPosition(); completeOperation(createStyledTextGlyph(text, at)) }
             else           -> vectorRenderer.text(text, at)
         }
     }
@@ -146,7 +150,7 @@ internal open class CanvasImpl(
     override fun text(text: String, font: Font?, at: Point, fill: Fill) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorFill               -> completeOperation(createTextGlyph(fill, text, font, at))
+            fill is ColorFill               -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at)) }
             else                            -> vectorRenderer.text(text, font, at, fill)
         }
     }
@@ -154,29 +158,31 @@ internal open class CanvasImpl(
     override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorFill               -> completeOperation(createWrappedTextGlyph(fill,
+            fill is ColorFill               -> { updateRenderPosition(); completeOperation(createWrappedTextGlyph(fill,
                                                                   text,
                                                                   font,
                                                                   at,
                                                                   leftMargin,
-                                                                  rightMargin))
+                                                                  rightMargin)) }
             else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill)
         }
     }
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
         when {
-            isSimple(text) -> completeOperation(createWrappedStyleTextGlyph(
+            isSimple(text) -> { updateRenderPosition(); completeOperation(createWrappedStyleTextGlyph(
                     text,
                     at,
                     leftMargin,
-                    rightMargin))
+                    rightMargin)) }
             else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin)
         }
     }
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)) {
+            updateRenderPosition()
+
             if (source.size == image.size && source.position == Origin) {
                 completeOperation(createImage(image, destination, radius, opacity))
             } else {
@@ -222,21 +228,26 @@ internal open class CanvasImpl(
     override fun clear() {
         renderPosition = renderParent.firstChild
 
+        vectorRenderDirty = false
         vectorRenderer.clear()
     }
 
     override fun flush() {
-        renderPosition?.let {
-            val index = renderParent.index(it)
+        clearFromRenderPosition()
 
+        vectorRenderer.flush()
+    }
+
+    private fun clearFromRenderPosition() {
+        updateRenderPosition()
+
+        renderPosition?.let { child -> child.parentNode?.let { it to it.index(child) } }?.let { (parent, index) ->
             if (index >= 0) {
-                while (index < renderParent.numChildren) {
-                    renderParent.remove(renderParent.childAt(index)!!)
+                while (index < parent.numChildren) {
+                    parent.remove(parent.childAt(index)!!)
                 }
             }
         }
-
-        vectorRenderer.flush()
     }
 
     override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) = when (radius) {
@@ -249,6 +260,10 @@ internal open class CanvasImpl(
 
     override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = subFrame(block) {
         it.style.setClipPath(polygon)
+    }
+
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = subFrame(block) {
+        it.style.setClipPath(ellipse)
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
@@ -305,9 +320,11 @@ internal open class CanvasImpl(
     }
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {
+        updateRenderPosition()
+
         // TODO: Not sure if this is causing more element creations than necessary on re-draw
 
-        val clipRect = getRectElement()
+        val clipRect = getRectElement(clear = false)
 
         if (clipRect.parent == null) {
             renderPosition?.let {
@@ -324,6 +341,9 @@ internal open class CanvasImpl(
 
         apply(block)
 
+        // clear potentially unused elements from the clipRect
+        clearFromRenderPosition()
+
         renderRegion   = renderRegion.parent as HTMLElement
         renderPosition = clipRect.nextSibling
     }
@@ -332,13 +352,15 @@ internal open class CanvasImpl(
 
     private fun present(stroke: Stroke? = null, fill: Fill?, block: () -> HTMLElement?) {
         if (visible(stroke, fill)) {
+            updateRenderPosition()
+
             block()?.let {
                 when (fill) {
                     is ColorFill -> it.style.setBackgroundColor(fill.color)
                 }
                 if (stroke != null) {
                     it.style.setBorderWidth(stroke.thickness)
-                    it.style.setBorderStyle(Solid()      )
+                    it.style.setBorderStyle(Solid()         )
                     it.style.setBorderColor(stroke.color    )
                 }
 
@@ -347,8 +369,11 @@ internal open class CanvasImpl(
         }
     }
 
-    private fun getRectElement(): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
-        it.clear()
+    private fun getRectElement(clear: Boolean = true): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
+        if (clear) {
+            it.clear()
+        }
+
         it.style.setTransform()
         it.style.filter = ""
     }
@@ -380,6 +405,14 @@ internal open class CanvasImpl(
 
     private fun roundedRect(rectangle: Rectangle,                   radius: Double) = getRect(rectangle)?.also { it.style.setBorderRadius(radius          ) }
     private fun roundedRect(rectangle: Rectangle, xRadius: Double, yRadius: Double) = getRect(rectangle)?.also { it.style.setBorderRadius(xRadius, yRadius) }
+
+    private fun updateRenderPosition() {
+        if (vectorRenderDirty) {
+            renderPosition = renderPosition?.nextSibling
+
+            vectorRenderDirty = false
+        }
+    }
 
     private fun completeOperation(element: HTMLElement): HTMLElement {
         shadows.forEach {

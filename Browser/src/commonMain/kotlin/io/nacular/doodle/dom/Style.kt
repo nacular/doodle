@@ -8,6 +8,8 @@ import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.geometry.Circle
+import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
@@ -47,6 +49,14 @@ internal fun Style.setClipPath(value: Polygon?) {
     clipPath = when (value) {
         null -> ""
         else -> "polygon(${value.points.joinToString(",") { "${it.x}px ${it.y}px" }})"
+    }
+}
+
+internal fun Style.setClipPath(value: Ellipse?) {
+    clipPath = when (value) {
+        null      -> ""
+        is Circle -> "circle(${value.radius}px at ${value.center.x}px ${value.center.y}px"
+        else      -> "ellipse(${value.xRadius}px ${value.yRadius}px at ${value.center.x}px ${value.center.y}px"
     }
 }
 

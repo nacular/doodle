@@ -3,6 +3,7 @@ package io.nacular.doodle.geometry
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
 
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
@@ -40,7 +41,30 @@ interface PathBuilder {
      */
     fun quadraticTo(point: Point, handle: Point): PathBuilder
 
-    fun arcTo(point: Point, xRadius: Double, yRadius: Double, rotation: Measure<Angle>, largeArch: Boolean, sweep: Boolean): PathBuilder
+    /**
+     * Draws an elliptic curve (described [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths)) from the current point to this one.
+     *
+     * @param point to end at
+     * @param xRadius of the ellipse
+     * @param yRadius of the ellipse
+     * @param rotation of the ellipse
+     * @param largeArch if the arc should have an arc greater than or less than 180°
+     * @param sweep determines if the arc should begin moving at positive angles or negative ones
+     */
+    fun arcTo(point: Point, xRadius: Double, yRadius: Double, rotation: Measure<Angle> = 0 * degrees, largeArch: Boolean, sweep: Boolean): PathBuilder
+
+    /**
+     * Draws a circular curve (described [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths)) from the current point to this one.
+     *
+     * @param point to end at
+     * @param radius of the circle
+     * @param rotation of the ellipse
+     * @param largeArch if the arc should have an arc greater than or less than 180°
+     * @param sweep determines if the arc should begin moving at positive angles or negative ones
+     */
+    fun arcTo(point: Point, radius: Double, rotation: Measure<Angle> = 0 * degrees, largeArch: Boolean, sweep: Boolean): PathBuilder = arcTo(
+            point, radius, radius, rotation, largeArch, sweep
+    )
 
     /** Closes the path. */
     fun close(): Path
