@@ -4,6 +4,8 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLInputElement
 import io.nacular.doodle.core.View
 import io.nacular.doodle.datatransport.DataBundle
+import io.nacular.doodle.datatransport.Files
+import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.datatransport.PlainText
 import io.nacular.doodle.datatransport.UriList
@@ -20,30 +22,41 @@ import io.nacular.doodle.dom.DataTransfer
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.drawing.GraphicsDevice
-import io.nacular.doodle.drawing.PatternFill
 import io.nacular.doodle.drawing.Renderable
+import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Preprocessor
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
+import io.nacular.measured.units.BinarySize.Companion.bytes
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
+import kotlinx.coroutines.CancellationException
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
+import org.w3c.dom.get
+import org.w3c.files.FileReader
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 import io.nacular.doodle.dom.MouseEvent as DomMouseEvent
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-                      private val viewFinder       : ViewFinder,
-                      private val scheduler        : Scheduler,
+                      private val viewFinder         : ViewFinder,
+                      private val scheduler          : Scheduler,
                       private val pointerInputService: PointerInputService,
-                      private val graphicsDevice   : GraphicsDevice<RealGraphicsSurface>,
-                                  htmlFactory      : HtmlFactory): DragManager {
+                      private val graphicsDevice     : GraphicsDevice<RealGraphicsSurface>,
+                                  htmlFactory        : HtmlFactory): DragManager {
     private val isIE                   = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var pointerDown            = null as PointerEvent?
     private var rootElement            = htmlFactory.root
@@ -56,14 +69,108 @@ internal class DragManagerImpl(
 
     private lateinit var visualCanvas: RealGraphicsSurface
 
+    private class SimpleFile(private val delegate: org.w3c.files.File): LocalFile {
+        override val name         get() = delegate.name
+        override val size         get() = delegate.size * bytes
+        override val type         get() = delegate.type
+        override val isClosed     get() = delegate.isClosed
+        override val lastModified get() = delegate.lastModified * milliseconds
+
+        override suspend fun read(progress: (Float) -> Unit): ByteArray? = suspendCoroutine { coroutine ->
+            try {
+                val reader = FileReader()
+
+                reader.onerror = {
+                    coroutine.resume(null)
+                }
+
+                reader.onloadend = {
+                    val uint8Array = Uint8Array(reader.result as ArrayBuffer)
+
+                    coroutine.resume((0 until uint8Array.length).map {
+                        uint8Array[it]
+                    }.toByteArray())
+                }
+
+                reader.onprogress = {
+                    if (it.lengthComputable) {
+                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
+                    }
+                }
+
+                reader.readAsArrayBuffer(delegate)
+            } catch (e: CancellationException) {
+                coroutine.resumeWithException(e)
+            }
+        }
+
+        override suspend fun readText(encoding: String?, progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
+            try {
+                val reader = FileReader()
+
+                reader.onerror = {
+                    coroutine.resume(null)
+                }
+
+                reader.onloadend = {
+                    coroutine.resume(reader.result as String)
+                }
+
+                reader.onprogress = {
+                    if (it.lengthComputable) {
+                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
+                    }
+                }
+
+                when (encoding) {
+                    null -> reader.readAsText(delegate          )
+                    else -> reader.readAsText(delegate, encoding)
+                }
+
+            } catch (e: CancellationException) {
+                coroutine.resumeWithException(e)
+            }
+        }
+    }
+
+    private fun getFiles(dataTransfer: DataTransfer, mimeType: Files): List<LocalFile> {
+        val mimeTypes = mimeType.types.map { it.toString() }
+
+        return (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.filter { it.type in mimeTypes }.mapNotNull {
+            it.getAsFile()?.let { SimpleFile(it) }
+        }
+    }
+
+    private fun contains(dataTransfer: DataTransfer, mimeType: Files): Boolean {
+        if ("Files" !in dataTransfer.types) {
+            return false
+        }
+
+        // Special case to deal with browsers that do not provide file info until drop event.
+        // We simply say that the file types are present to avoid exposing complexity
+        // (like having a custom MimeType that checks for this condition and letting the caller
+        // decide)
+        if (dataTransfer.items.length == 0 && dataTransfer.files.length == 0) {
+            return true
+        }
+
+        val mimeTypes = mimeType.types.map { it.toString() }
+
+        return mimeTypes.isEmpty() || (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.find { it.type in mimeTypes } != null
+    }
+
     private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let {
         object: DataBundle {
             override fun <T> invoke(type: MimeType<T>) = when (type) {
-                in this -> it.getData(type.toString()) as? T
+                is Files -> getFiles(it, type) as? T
+                in this  -> it.getData(type.toString()) as? T
                 else    -> null
             }
 
-            override fun <T> contains(type: MimeType<T>) = type.toString() in it.types
+            override fun <T> contains(type: MimeType<T>) = when (type) {
+                is Files -> contains(it, type)
+                else     -> type.toString() in it.types
+            }
         }
     }
 
@@ -91,12 +198,12 @@ internal class DragManagerImpl(
 
                     dropAllowed = dragUpdate(it, action(event.dataTransfer), pointerLocation(event))
 
-                    if (dropAllowed) {
-                        event.preventDefault ()
-                        event.stopPropagation()
-                    } else {
+                    if (!dropAllowed) {
                         event.dataTransfer?.dropEffect = "none"
                     }
+
+                    event.preventDefault ()
+                    event.stopPropagation()
                 }
             }
         }
@@ -363,6 +470,12 @@ internal class DragManagerImpl(
     }
 
     private fun createVisual(visual: Renderable) {
+        class CanvasWrapper(private val delegate: NativeCanvas): NativeCanvas by delegate {
+            override fun addData(elements: List<HTMLElement>, at: Point) {
+                delegate.addData(elements.map { it.cloneNode(deep = true) as HTMLElement }, at)
+            }
+        }
+
         // TODO: Make this a general purpose View -> Image generator
         visualCanvas = graphicsDevice.create()
 
@@ -371,9 +484,9 @@ internal class DragManagerImpl(
         visualCanvas.zOrder = -Int.MAX_VALUE
         visualCanvas.size   = visual.size
 
-        visualCanvas.canvas.rect(Rectangle(size = visual.size), PatternFill(visual.size) {
-            visual.render(this)
-        })
+        (visualCanvas.canvas as? NativeCanvas)?.let {
+            visual.render(CanvasWrapper(it))
+        }
     }
 
     private fun getDropEventHandler(view: View?): Pair<View, DropReceiver>? {
