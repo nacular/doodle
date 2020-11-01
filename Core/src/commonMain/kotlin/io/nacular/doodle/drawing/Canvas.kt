@@ -350,6 +350,17 @@ interface Canvas: Renderer {
     fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
 }
 
+/**
+ * The width to which the Canvas will clip by default.
+ * @see Canvas.size
+ */
+inline val Canvas.width get () = size.width
+
+/**
+ * The height to which the Canvas will clip by default.
+ * @see Canvas.size
+ */
+inline val Canvas.height get() = size.height
 
 /**
  * Fills a rectangle.

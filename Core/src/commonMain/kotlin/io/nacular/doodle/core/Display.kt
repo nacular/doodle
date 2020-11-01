@@ -119,7 +119,16 @@ interface Display: Iterable<View> {
     fun relayout()
 }
 
+/**
+ * The width of the Display
+ * @see Display.size
+ */
 inline val Display.width  get() = size.width
+
+/**
+ * The height of the Display
+ * @see Display.size
+ */
 inline val Display.height get() = size.height
 
 interface InternalDisplay: Display {

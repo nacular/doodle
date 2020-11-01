@@ -269,12 +269,15 @@ private open class ApplicationHolderImpl protected constructor(
             return
         }
 
+        application?.shutdown()
+
         window.removeEventListener("unload", ::onUnload)
 
         mutations?.disconnect()
 
         initTask?.cancel()
 
+        injector.instance<Scheduler>  ().shutdown()
         injector.instance<DisplayImpl>().shutdown()
 
         if (!isNested) {
@@ -298,8 +301,6 @@ private open class ApplicationHolderImpl protected constructor(
 
             focusManager = null
         }
-
-        application?.shutdown()
 
         injector = Kodein.direct {}
 
