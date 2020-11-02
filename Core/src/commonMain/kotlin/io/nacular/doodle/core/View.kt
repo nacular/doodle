@@ -585,7 +585,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     protected open fun doLayout() = layout?.layout(positionableWrapper)
 
     /**
-     * Gets the View at the given point.
+     * Gets the child (if any) at the given point in the View's coordinate system (relative to the View).
      *
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
@@ -685,7 +685,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     fun toLocal(point: Point, from: View?): Point = when {
         from ==  null        -> fromAbsolute(point)
         from === this        -> point
-        from === this.parent -> (transform.inverse?.invoke(point) ?: point) - position
+        from === this.parent -> (resolvedTransform.inverse?.invoke(point) ?: point) - position
         else                 -> fromAbsolute(from.toAbsolute(point))
     }
 
