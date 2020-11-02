@@ -214,7 +214,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.changed  (animate, setOf(animation2)         ) }
         verify(exactly = 0) { listener.changed  (animate, match { animation1 in it }) }
         verify(exactly = 0) { listener.completed(animate, any()                     ) }
-        verify(exactly = 1) { listener.cancelled(animate, setOf(animation1)         ) }
+        verify(exactly = 1) { listener.canceled(animate, setOf(animation1)         ) }
     }
 
     @Test @JsName("animationBlockCancelsNested") fun `animation block cancels nested`() {
@@ -249,7 +249,7 @@ class AnimatorImplTests {
 
         verify(exactly = 0) { listener.changed  (animate, any  (                          )) }
         verify(exactly = 0) { listener.completed(animate, any  (                          )) }
-        verify(exactly = 1) { listener.cancelled(animate, setOf(animation1!!, animation2!!)) }
+        verify(exactly = 1) { listener.canceled(animate, setOf(animation1!!, animation2!!)) }
     }
 
     @Test @JsName("cancelsNumberAnimationGroup") fun `cancels number animation group`() {
@@ -277,6 +277,6 @@ class AnimatorImplTests {
 
         verify(exactly = 0) { listener.changed  (animate, any()) }
         verify(exactly = 0) { listener.completed(animate, any()) }
-        verify(exactly = 1) { listener.cancelled(animate, match { it.size == 2 }) }
+        verify(exactly = 1) { listener.canceled(animate, match { it.size == 2 }) }
     }
 }
