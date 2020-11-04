@@ -69,7 +69,7 @@ being the root ancestor--though it is not a View. You display a top-level View l
 ```kotlin
 class MyApp(display: Display): View() {
     init {
-        display.children += view
+        display += view
     }
     // ...
 }

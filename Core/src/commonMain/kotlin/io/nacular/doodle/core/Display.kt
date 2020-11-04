@@ -131,6 +131,34 @@ inline val Display.width  get() = size.width
  */
 inline val Display.height get() = size.height
 
+/**
+ * Adds [view] to the Display.
+ *
+ * @param view to be added
+ */
+inline operator fun Display.plusAssign(view: View) = children.plusAssign(view)
+
+/**
+ * Adds the given [views] to the Display.
+ *
+ * @param views to be added
+ */
+inline operator fun Display.plusAssign(views: Iterable<View>) = children.plusAssign(views)
+
+/**
+ * Removes [view] from the Display.
+ *
+ * @param view to be removed
+ */
+inline operator fun Display.minusAssign(view: View) = children.minusAssign(view)
+
+/**
+ * Removes the given [views] from the Display.
+ *
+ * @param views to be removed
+ */
+inline operator fun Display.minusAssign(views: Iterable<View>) = children.minusAssign(views)
+
 interface InternalDisplay: Display {
     fun repaint()
 }

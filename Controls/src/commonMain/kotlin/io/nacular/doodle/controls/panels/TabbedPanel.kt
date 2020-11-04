@@ -19,10 +19,15 @@ import io.nacular.doodle.utils.PropertyObserversImpl
  * Provides presentation and behavior customization for [TabbedPanel].
  */
 abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
-    val TabbedPanel<T>.children         get() = this._children
-    var TabbedPanel<T>.insets           get() = this._insets;           set(new) { _insets           = new }
-    var TabbedPanel<T>.layout           get() = this._layout;           set(new) { _layout           = new }
-    var TabbedPanel<T>.isFocusCycleRoot get() = this._isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+    val TabbedPanel<T>.children         get() = _children
+    var TabbedPanel<T>.insets           get() = _insets;           set(new) { _insets           = new }
+    var TabbedPanel<T>.layout           get() = _layout;           set(new) { _layout           = new }
+    var TabbedPanel<T>.isFocusCycleRoot get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+
+    inline operator fun TabbedPanel<T>.plusAssign (view: View           ) = children.plusAssign (view )
+    inline operator fun TabbedPanel<T>.minusAssign(view: View           ) = children.minusAssign(view )
+    inline operator fun TabbedPanel<T>.plusAssign (views: Iterable<View>) = children.plusAssign (views)
+    inline operator fun TabbedPanel<T>.minusAssign(views: Iterable<View>) = children.minusAssign(views)
 
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that

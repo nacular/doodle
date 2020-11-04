@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
@@ -27,7 +27,7 @@ internal interface TableLike {
     var resizingCol     : Int?
     val internalColumns : MutableList<InternalColumn<*, *, *>>
     val columnSizePolicy: ColumnSizePolicy
-    val header          : Box
+    val header          : Container
 
     val panel: ScrollPanel
 
@@ -102,7 +102,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
                 }
             }
 
-            (table.panel.content as Box).children.batch {
+            (table.panel.content as Container).children.batch {
                 if (new < size) {
                     add(new, removeAt(index))
                 } else {
@@ -210,7 +210,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
                     // Force refresh here to avoid jitter since transform takes affect right away, while layout is deferred
                     // TODO: Can this refresh be more efficient?
                     table.header.children.forEach { it.rerenderNow() }
-                    (table.panel.content as Box).children.forEach { it.rerenderNow() }
+                    (table.panel.content as Container).children.forEach { it.rerenderNow() }
                 }
 
                 table.internalColumns.forEach { it.transform = Identity }

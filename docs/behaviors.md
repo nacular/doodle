@@ -54,6 +54,9 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
     var TabbedPanel<T>.insets           get() = this._insets;           set(new) { _insets           = new }
     var TabbedPanel<T>.layout           get() = this._layout;           set(new) { _layout           = new }
     var TabbedPanel<T>.isFocusCycleRoot get() = this._isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+    
+    inline operator fun TabbedPanel<T>.plusAssign (view: View) = children.plusAssign (view)
+    inline operator fun TabbedPanel<T>.minusAssign(view: View) = children.minusAssign(view)
 }
 
 class TabbedPanel<T> {
@@ -75,7 +78,7 @@ Classes that implement `TabbedPanbleBehavior` are able to directly modify their 
 class MyTabbedPanelBehavior: TabbedPanelBehavior<Any> {
     override fun install(view: TabbedPanel<Any>) {
         // accessible to TabbedPanelBehavior sub classes
-        view.children += object: View() {}
+        view += view {}
         view.layout    = object: Layout {
             override fun layout(container: PositionableContainer) {}
         }

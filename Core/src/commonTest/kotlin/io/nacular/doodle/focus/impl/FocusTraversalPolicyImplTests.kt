@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.ObservableList
@@ -190,7 +190,7 @@ class FocusTraversalPolicyImplTests {
         every { this@apply.iterator()                } returns children.iterator()
     }
 
-    private fun container(numChildren: Int = 5) = spyk(Box()).apply {
+    private fun container(numChildren: Int = 5) = spyk(Container()).apply {
         val display = mockk<Display>()
 
         repeat(numChildren) {

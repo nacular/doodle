@@ -12,7 +12,7 @@ import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
@@ -546,7 +546,7 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
         // Needed b/c width of header isn't constrained
         header.relayout()
-        (panel.content as? Box)?.relayout() // FIXME
+        (panel.content as? Container)?.relayout() // FIXME
     }
 
     internal fun rowsBelow(path: Path<Int>) = tree.rowsBelow(path)

@@ -593,9 +593,9 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     protected open fun child(at: Point): View? = when {
         false == childrenClipPoly?.contains(at) -> null
-        else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
+        else                                       -> when (val result = layout?.child(positionableWrapper, at)) {
             null, Ignored -> {
-                var child = null as View?
+                var child     = null as View?
                 var topZOrder = 0
 
                 children.reversed().forEach {
@@ -936,3 +936,24 @@ class BehaviorDelegate<T: View, B: Behavior<T>>(private val beforeChange: (old: 
         }
     }
 }
+
+/**
+ * Class to enable `panel { ... }` DSL.
+ * @property render operations to perform
+ */
+class ViewBuilder: View() {
+    private var render_: Canvas.() -> Unit = {}
+
+    var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }
+
+    override fun render(canvas: Canvas) {
+        render_(canvas)
+    }
+}
+
+/**
+ * DSL for creating a custom [View].
+ *
+ * @param block used to configure the View
+ */
+fun view(block: ViewBuilder.() -> Unit): View = ViewBuilder().also(block)

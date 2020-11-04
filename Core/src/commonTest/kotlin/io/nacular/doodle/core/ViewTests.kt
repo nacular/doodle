@@ -190,7 +190,7 @@ class ViewTests {
     @Test @JsName("parentChangeWorks")
     fun `parent change works`() {
         val view   = object: View() {}
-        val parent = Box()
+        val parent = container {}
 
         val observer = mockk<PropertyObserver<View, View?>>()
 

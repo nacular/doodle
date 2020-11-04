@@ -7,9 +7,9 @@ Every View has an `x,y` position (in pixels) relative to its parent. This is exa
 a `transform`. Doodle ensures that there is never a disconnect between a View's position, transform and render coordinates.
 
 ```kotlin
-val view = object: View() {}.apply { size = Size(100.0) }
+val panel = view { size = Size(100.0) }
 
-display.children += view // view's position is 0,0
+display += view // view's position is 0,0
 ```
 
 ## Manual positioning
@@ -83,10 +83,10 @@ specify values for `width` and `height`. This covers many of the common layout u
 
 ```kotlin
 val container = Box() // a simple container
-val panel1    = object: View() {}
-val panel2    = object: View() {}
+val panel1    = view {}
+val panel2    = view {}
 
-container.children += listOf(panel1, panel2)
+container += listOf(panel1, panel2)
 
 // use Layout that follows constraints to position items
 container.layout = constrain(panel1, panel2) { panel1, panel2 ->

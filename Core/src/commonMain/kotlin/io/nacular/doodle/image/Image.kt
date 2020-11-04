@@ -13,3 +13,6 @@ interface Image {
     /** The source of the image */
     val source: String
 }
+
+inline val Image.width get () = size.width
+inline val Image.height get() = size.height

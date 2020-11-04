@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.drawing.Canvas
@@ -9,7 +9,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import kotlin.math.max
 
-internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Box() {
+internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
     init {
         focusable = false
         layout = object: Layout {
@@ -36,7 +36,7 @@ internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val ren
     public override fun doLayout() = super.doLayout()
 }
 
-internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Box() {
+internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
     init {
         focusable = false
         children += columns.map { it.view }

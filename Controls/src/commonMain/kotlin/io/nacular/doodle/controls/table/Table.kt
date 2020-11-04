@@ -10,7 +10,7 @@ import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
@@ -43,7 +43,7 @@ open class Table<T, M: ListModel<T>>(
         override val columns          get() = this@Table.columns
         override val internalColumns  get() = this@Table.internalColumns
         override val columnSizePolicy get() = this@Table.columnSizePolicy
-        override val header           get() = this@Table.header as Box
+        override val header           get() = this@Table.header as Container
         override val panel            get() = this@Table.panel
 
         override var resizingCol get() = this@Table.resizingCol

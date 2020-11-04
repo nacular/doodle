@@ -85,7 +85,7 @@ class MyApp(display: Display,
     init {
         manager.selected = theme
 
-        display.children += PushButton()
+        display += PushButton()
     }
 }
 ```

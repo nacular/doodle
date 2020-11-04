@@ -9,8 +9,8 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.container
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -224,7 +224,7 @@ class ScrollPanelTests {
 
     @Test @JsName("widthConstraintsWork")
     fun `width constraints work`() {
-        val content = spyk(Box().apply { size = Size(100, 100) })
+        val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
             contentWidthConstraints = { parent.width }
         }
@@ -237,7 +237,7 @@ class ScrollPanelTests {
 
     @Test @JsName("heightConstraintsWork")
     fun `height constraints work`() {
-        val content = spyk(Box().apply { size = Size(100, 100) })
+        val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
             contentHeightConstraints = { parent.height / 2 }
         }
@@ -296,7 +296,7 @@ class ScrollPanelTests {
     }
 
     private fun panel(behavior: ScrollPanelBehavior = behavior()): ScrollPanel {
-        val content = Box().apply { size = Size(100, 100) }
+        val content = container { size = Size(100, 100) }
 
         return ScrollPanel(content).apply {
             this.behavior = behavior

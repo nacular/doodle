@@ -40,7 +40,7 @@ Add a top-level View like this.
 ```kotlin
 class MyApp(display: Display): View() {
     init {
-        display.children += view
+        display += view
     }
     // ...
 }
@@ -51,7 +51,7 @@ And remove it like this.
 ```kotlin
 class MyApp(display: Display): View() {
     init {
-        display.children -= view
+        display -= view
     }
     // ...
 }
