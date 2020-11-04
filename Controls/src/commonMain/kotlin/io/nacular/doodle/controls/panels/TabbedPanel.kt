@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.utils.BoxOrientation
 import io.nacular.doodle.utils.BoxOrientation.Top
@@ -102,18 +103,11 @@ class TabbedPanel<T>(
     var orientation: BoxOrientation by ObservableProperty(orientation, { this }, orientationChanged as PropertyObserversImpl)
 
     /** Component responsible for controlling the presentation and behavior of the panel. */
-    var behavior: TabbedPanelBehavior<T>? = null
-        set(new) {
-            if (new == field) return
-
-            children.batch {
-                field?.uninstall(this@TabbedPanel)
-
-                clear()
-
-                field = new?.apply { install(this@TabbedPanel) }
-            }
+    var behavior: TabbedPanelBehavior<T>? by behavior { _,_ ->
+        children.batch {
+            clear()
         }
+    }
 
     // Expose container APIs for behavior
     internal val _children         get() = children

@@ -29,6 +29,8 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
     private          var oldCursor   : Cursor? = null
     private          var oldIdealSize: Size? = null
 
+    override fun mirrorWhenRightToLeft(view: ToggleButton) = false
+
     override fun render(view: ToggleButton, canvas: Canvas) {
         nativePeer.render(canvas)
     }

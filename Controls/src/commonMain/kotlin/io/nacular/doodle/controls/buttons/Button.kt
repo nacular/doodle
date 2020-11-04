@@ -4,6 +4,7 @@ import io.nacular.doodle.accessibility.button
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Anchor.Left
@@ -66,18 +67,7 @@ abstract class Button protected constructor(
     val pressedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
     val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
 
-    var behavior: Behavior<Button>? = null
-        set(new) {
-            if (field == new) { return }
-
-            clipCanvasToBounds = true
-            field?.uninstall(this)
-
-            field = new?.also {
-                it.install(this)
-                clipCanvasToBounds = it.clipCanvasToBounds(this)
-            }
-        }
+    var behavior: Behavior<Button>? by behavior()
 
     var iconTextSpacing = 4.0; set(new) { field = new; styleChanged { true } }
 

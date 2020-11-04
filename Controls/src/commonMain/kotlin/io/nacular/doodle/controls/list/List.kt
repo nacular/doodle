@@ -15,6 +15,7 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.mostRecentAncestor
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
@@ -97,23 +98,16 @@ open class List<T, out M: ListModel<T>>(
 
     fun contains(value: T) = value in model
 
-    var behavior: ListBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
+    var behavior: ListBehavior<T>? by behavior { _,new ->
+        new?.also {
+            rowGenerator  = it.generator
+            rowPositioner = it.positioner
 
-            field?.uninstall(this)
+            children.clear()
 
-            field = new?.also {
-                rowGenerator  = it.generator
-                rowPositioner = it.positioner
-
-                children.clear()
-
-                it.install(this)
-
-                updateVisibleHeight()
-            }
+            updateVisibleHeight()
         }
+    }
 
     protected fun updateVisibleHeight() {
         val oldHeight = minHeight

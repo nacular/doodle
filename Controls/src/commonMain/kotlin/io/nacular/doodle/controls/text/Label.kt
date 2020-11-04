@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.text.TextFit.Height
 import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
@@ -98,13 +99,7 @@ open class Label protected constructor(
             if (Height in fitText) height = new.height
         }
 
-    var behavior: Behavior<Label>? = null
-        set(new) {
-            if (field == new) { return }
-
-            field?.uninstall(this)
-            field = new?.apply { install(this@Label) }
-        }
+    var behavior: Behavior<Label>? by behavior { _,_ -> mirrorWhenRightLeft = false }
 
     private fun measureText(): Size {
         val height = when {

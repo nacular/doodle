@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.spinner
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -49,16 +50,7 @@ open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisuali
          val hasNext     get() = model.hasNext
          val hasPrevious get() = model.hasPrevious
 
-    var behavior: SpinnerBehavior<T, M>? = null
-        set(new) {
-            children.clear()
-
-            field?.uninstall(this)
-
-            field = new?.also {
-                it.install(this)
-            }
-        }
+    var behavior: SpinnerBehavior<T, M>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

@@ -15,6 +15,7 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.mostRecentAncestor
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
@@ -94,24 +95,17 @@ open class Tree<T, out M: TreeModel<T>>(
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var behavior: TreeBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
+    var behavior: TreeBehavior<T>? by behavior { _,new ->
+        new?.also {
+            this.generator     = it.generator
+            this.rowPositioner = it.positioner
 
-            field?.uninstall(this)
-
-            field = new?.also {
-                this.generator     = it.generator
-                this.rowPositioner = it.positioner
-
-                children.batch {
-                    clear     ()
-                    refreshAll()
-                }
-
-                it.install(this)
+            children.batch {
+                clear     ()
+                refreshAll()
             }
         }
+    }
 
     val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
     val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }

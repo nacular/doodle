@@ -21,6 +21,8 @@ internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
         nativePeer.render(canvas)
     }
 
+    override fun mirrorWhenRightToLeft(view: Button) = false
+
     override fun install(view: Button) {
         super.install(view)
 

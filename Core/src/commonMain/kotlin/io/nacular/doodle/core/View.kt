@@ -120,8 +120,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
     }
 
-    internal val clipCanvasToBounds_ get() = clipCanvasToBounds
-
+    internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
     /**
      * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to `false` to support
      * things like shadows or glows that aren't intended to be included in the normal bounding box.
@@ -365,7 +364,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /**
      * Indicates whether the framework should notify the View of changes to its visible region as a result of
      * changes to bounds in its ancestor chain.  The events for this require monitoring potentially large sets
-     * of Views in the hierachy and the events can be frequent during layout changes.  So the default value is
+     * of Views in the hierarchy and the events can be frequent during layout changes.  So the default value is
      * `false`.  But it is useful for things like efficient rendering of sub-portions (i.e. long list-like Views)
      * where the cost is outweighed.
      *
@@ -411,6 +410,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
             updateNeedsMirror()
         }
+
+    internal var mirrorWhenRightLeft_ get() = mirrorWhenRightLeft; set(new) { mirrorWhenRightLeft = new }
 
     /**
      * Indicates whether the framework should apply an additional [AffineTransform]
@@ -892,8 +893,15 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 }
 
+/**
+ * The View's center point in its **parent's** coordinate system.
+ */
 val View.center get() = position + Point(width/2, height/2)
 
+/**
+ * @param filter used in search
+ * @return the most recent ancestor that matches the [filter]
+ */
 fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
     var result = parent
 
@@ -902,4 +910,29 @@ fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
     }
 
     return result
+}
+
+fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }) = BehaviorDelegate<T, B>(beforeChange)
+
+class BehaviorDelegate<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit) {
+    private var behavior: B? = null
+
+    operator fun getValue(thisRef: View, property: KProperty<*>): B? = behavior
+
+    operator fun setValue(thisRef: View, property: KProperty<*>, value: B?) {
+        (thisRef as? T)?.let {
+            thisRef.clipCanvasToBounds_  = true
+            thisRef.mirrorWhenRightLeft_ = true
+
+            beforeChange(behavior, value)
+
+            behavior?.uninstall(thisRef)
+
+            behavior = value?.also { behavior ->
+                behavior.install(thisRef)
+                thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
+                thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
+            }
+        }
+    }
 }

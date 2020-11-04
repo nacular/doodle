@@ -2,6 +2,7 @@ package io.nacular.doodle.controls.panels
 
 import io.nacular.doodle.controls.theme.SplitPanelBehavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.constrain
@@ -14,13 +15,11 @@ import io.nacular.doodle.utils.Orientation.Vertical
 
 class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
-    var behavior: SplitPanelBehavior? = null; set(new) {
+    var behavior: SplitPanelBehavior? by behavior { _,new ->
 
             divider?.let { children -= it }
 
-            field?.uninstall(this)
-
-            field = new?.also { behavior ->
+            new?.also { behavior ->
                 divider = behavior.divider(this)
 
                 divider?.let {
@@ -36,8 +35,6 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
                 if (divider != null) {
                     updateLayout()
                 }
-
-                behavior.install(this)
             }
         }
 
