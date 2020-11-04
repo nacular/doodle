@@ -695,7 +695,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
+    fun toAbsolute(point: Point): Point = resolvedTransform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
