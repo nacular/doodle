@@ -59,9 +59,9 @@ The View class also `protects` its `layout` property from callers, but sub-class
 it.
 
 ```kotlin
-val box = Box()
+val container = container {}
 
-box.layout = HorizontalFlowLayout() // Box exposes its layout
+container.layout = HorizontalFlowLayout() // Container exposes its layout
 ```
 
 ```doodle
@@ -82,7 +82,7 @@ This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right`, `cen
 specify values for `width` and `height`. This covers many of the common layout use cases and is easy to use.
 
 ```kotlin
-val container = Box() // a simple container
+val container = container {}
 val panel1    = view {}
 val panel2    = view {}
 

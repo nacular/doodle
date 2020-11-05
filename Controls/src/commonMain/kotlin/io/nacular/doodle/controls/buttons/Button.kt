@@ -11,10 +11,10 @@ import io.nacular.doodle.utils.Anchor.Left
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.VerticalAlignment.Middle
+import io.nacular.doodle.utils.observable
 
 /**
  * Created by Nicholas Eddy on 11/10/17.
@@ -59,7 +59,7 @@ abstract class Button protected constructor(
 
     val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl<Button, String>(this) }
 
-    var text by ObservableProperty(text, { this }, textChanged as PropertyObserversImpl<Button, String>)
+    var text by observable(text, textChanged as PropertyObserversImpl<Button, String>)
 
     val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
 

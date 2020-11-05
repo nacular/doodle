@@ -45,13 +45,14 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
+import kotlin.properties.Delegates.observable
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
@@ -112,12 +113,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    var bounds: Rectangle by object: ObservableProperty<View, Rectangle>(Empty, { this }, boundsChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: Rectangle, newValue: Rectangle) {
-            boundingBox = transform(newValue).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
+    var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
+        boundingBox = transform(new).boundingRectangle
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
@@ -164,12 +161,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
-    open var transform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
-            boundingBox = newValue(bounds).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
+    open var transform by observable(Identity, transformChanged as PropertyObserversImpl) { _, new ->
+        boundingBox = new(bounds).boundingRectangle
     }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
@@ -218,31 +211,31 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
-    var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
+    var zOrder by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Notifies changes to [visible] */
     val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is visible.  The default is `true`. */
-    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+    var visible by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [enabled] */
     val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is enabled.  The default is `true`.  */
-    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
+    var enabled by observable(true, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
     val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is focusable  The default is `true`.  */
-    open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
+    open var focusable by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether the View has focus or not.  The default is `false`.  */
-    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
+    var hasFocus by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
     /**
@@ -371,7 +364,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
-    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
+    var monitorsDisplayRect by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
     /**
      * Indicates the direction of content within the View; used to support right-to-left locales.
@@ -912,27 +905,31 @@ fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
     return result
 }
 
-fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }) = BehaviorDelegate<T, B>(beforeChange)
+/**
+ * Delegate that manages installation and uninstallation of a [Behavior] and calls [beforeChange]
+ * before applying changes.
+ *
+ * @param beforeChange is called before a change is applied
+ */
+fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange)
 
-class BehaviorDelegate<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit) {
+private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit): ReadWriteProperty<T, B?> {
     private var behavior: B? = null
 
-    operator fun getValue(thisRef: View, property: KProperty<*>): B? = behavior
+    override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
 
-    operator fun setValue(thisRef: View, property: KProperty<*>, value: B?) {
-        (thisRef as? T)?.let {
-            thisRef.clipCanvasToBounds_  = true
-            thisRef.mirrorWhenRightLeft_ = true
+    override operator fun setValue(thisRef: T, property: KProperty<*>, value: B?) {
+        thisRef.clipCanvasToBounds_  = true
+        thisRef.mirrorWhenRightLeft_ = true
 
-            beforeChange(behavior, value)
+        beforeChange(behavior, value)
 
-            behavior?.uninstall(thisRef)
+        behavior?.uninstall(thisRef)
 
-            behavior = value?.also { behavior ->
-                behavior.install(thisRef)
-                thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
-                thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
-            }
+        behavior = value?.also { behavior ->
+            behavior.install(thisRef)
+            thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
+            thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
         }
     }
 }

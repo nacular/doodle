@@ -7,16 +7,21 @@ Views are the building blocks of Doodle apps. They encapsulate state, display co
 typically contain many View classes and have lots of View instances at runtime.
 
 You create a new View by extending the [`View`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L61)
-base class or instantiating an inline object:
+base class or instantiating an inline object directly or through the [`view`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L959) DSL.
 
 ```kotlin
 class MyView: View() {
     // ...
 }
 
-val view = object: View() {
+val view1 = object: View() {
     // ...
 }
+
+val view2 = view {
+    // ...
+}
+
 ```
 
 ## State and rendering

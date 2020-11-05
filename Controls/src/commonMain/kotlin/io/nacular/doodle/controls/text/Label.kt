@@ -17,7 +17,7 @@ import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
-import io.nacular.doodle.utils.observable
+import kotlin.properties.Delegates.observable
 
 
 interface LabelFactory {

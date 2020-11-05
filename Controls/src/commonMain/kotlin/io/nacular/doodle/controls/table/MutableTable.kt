@@ -8,13 +8,12 @@ import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
 import io.nacular.doodle.utils.SortOrder.Ascending
 import io.nacular.doodle.utils.SortOrder.Descending
-import kotlin.reflect.KProperty
+import io.nacular.doodle.utils.observable
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -119,11 +118,8 @@ class MutableTable<T, M: MutableListModel<T>>(
     val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }
 
     /** current sorting for the table default is ```emptyList()```.  */
-    var sorting by object: ObservableProperty<MutableTable<T, M>, List<Sorting<T>>>(emptyList(), { this }, sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) {
-        override fun afterChange(property: KProperty<*>, oldValue: List<Sorting<T>>, newValue: List<Sorting<T>>) {
-            updateSort()
-            super.afterChange(property, oldValue, newValue)
-        }
+    var sorting: List<Sorting<T>> by observable(emptyList(), sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) { _,_ ->
+        updateSort()
     }
 
     val editing get() = editingColumn != null

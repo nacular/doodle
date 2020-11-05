@@ -3,12 +3,11 @@ package io.nacular.doodle.controls.text
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Left
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.reflect.KProperty
 
 
 class Selection(val position: Int, val anchor: Int) {
@@ -22,16 +21,12 @@ abstract class TextInput(text: String = ""): View() {
 
     val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
-    var horizontalAlignment: HorizontalAlignment by ObservableProperty(Left, { this }, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
+    var horizontalAlignment: HorizontalAlignment by observable(Left, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
 
     val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(this) }
 
-    open var text: String by object: ObservableProperty<TextInput, String>(text, { this }, textChanged as PropertyObserversImpl<TextInput, String>) {
-        override fun afterChange(property: KProperty<*>, oldValue: String, newValue: String) {
-            super.afterChange(property, oldValue, validator(newValue))
-
-            select(min(text.length, selection.position) .. min(text.length, selection.anchor))
-        }
+    open var text: String by observable(text, textChanged as PropertyObserversImpl<TextInput, String>) { _,_ ->
+        select(min(text.length, selection.position) .. min(text.length, selection.anchor))
     }
 
     var cursorVisible = true
@@ -44,7 +39,7 @@ abstract class TextInput(text: String = ""): View() {
 
     val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(this) }
 
-    var selection: Selection by ObservableProperty(Selection(0, 0), { this }, selectionChanged as PropertyObserversImpl<TextInput, Selection>)
+    var selection: Selection by observable(Selection(0, 0), selectionChanged as PropertyObserversImpl<TextInput, Selection>)
         private set
 
     init {

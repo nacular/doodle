@@ -16,8 +16,8 @@ val textField = TextField().apply {
 Sometimes a View needs to support more complex customization. Take a TabbedPanel for example. The number of configurations is
 fairly open-ended; and the API would be needlessly complex if it tried to encompass everything.
 
-This is where [`Behavior`s](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
-come in. Views can offer deep customization by delegating rendering, hit detection and anything else to Behaviors. TabbedPanel--along
+This is where a [`Behavior`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Behavior.kt#L6)
+comes in handy. Views can offer deep customization by delegating rendering, hit detection and anything else to Behaviors. TabbedPanel--along
 with Textfield and many other controls--actually does this.
 
 ### Implementing a Behavior
@@ -31,13 +31,31 @@ class MyBehavior: Behavior<Button> {
     override fun render(view: Button, canvas: Canvas) {}
     override fun contains(view: Button, point: Point) = point in view.bounds
     override fun clipCanvasToBounds(view: Button) = true
+    override fun mirrorWhenRightToLeft(view: T) = view.mirrorWhenRightLeft
     override fun uninstall(view: Button) {}
 }
 ``` 
 
 ?> The methods on `Behavior` are all optional
 
-Behaviors support installation into a View. This gives the Behavior a chance to configure the View upon first assignment.
+Behaviors support installation and uninstallation to and from Views. This gives each Behavior a chance to configure the target
+View upon first assignment and cleanup when removed.
+
+### Delegating to a Behavior
+
+View subtypes need to manage behaviors directly. Kotlin does not have self types, so the `View` base class cannot have a
+`behavior<Self>` to make this easier.
+
+```kotlin
+class MyView: View() {
+// ...
+    var behavior: Behavior<MyView>? by behavior()
+}
+```
+
+However, View subtypes can use the [`behvaior`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L914)
+delegate to guarantee proper installation and uninstallation. This delegate also ensures a Behavior's overrides for things like
+`clipCanvasToBounds` or `mirrorWhenRightToLeft` are not missed during installation.
 
 ## Specialized Behaviors
 
@@ -79,7 +97,7 @@ class MyTabbedPanelBehavior: TabbedPanelBehavior<Any> {
     override fun install(view: TabbedPanel<Any>) {
         // accessible to TabbedPanelBehavior sub classes
         view += view {}
-        view.layout    = object: Layout {
+        view.layout = object: Layout {
             override fun layout(container: PositionableContainer) {}
         }
     }

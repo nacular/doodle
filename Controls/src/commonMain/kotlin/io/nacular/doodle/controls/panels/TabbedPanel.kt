@@ -10,10 +10,10 @@ import io.nacular.doodle.utils.BoxOrientation
 import io.nacular.doodle.utils.BoxOrientation.Top
 import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
 
 /**
  * Provides presentation and behavior customization for [TabbedPanel].
@@ -102,10 +102,10 @@ class TabbedPanel<T>(
     val numItems: Int get() = items.size
 
     /** The currently selected item/tab. Defaults to `0`. */
-    var selection: Int? by ObservableProperty(0, { this }, selectionChanged as PropertyObserversImpl)
+    var selection: Int? by observable(0, selectionChanged as PropertyObserversImpl)
 
     /** The location of the tabs. */
-    var orientation: BoxOrientation by ObservableProperty(orientation, { this }, orientationChanged as PropertyObserversImpl)
+    var orientation: BoxOrientation by observable(orientation, orientationChanged as PropertyObserversImpl)
 
     /** Component responsible for controlling the presentation and behavior of the panel. */
     var behavior: TabbedPanelBehavior<T>? by behavior { _,_ ->

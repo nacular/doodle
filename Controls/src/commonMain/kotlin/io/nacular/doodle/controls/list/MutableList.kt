@@ -9,12 +9,12 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
 import io.nacular.doodle.utils.SortOrder.Ascending
 import io.nacular.doodle.utils.SortOrder.Descending
+import io.nacular.doodle.utils.observable
 
 
 interface ListEditor<T> {
@@ -36,7 +36,7 @@ open class MutableList<T, M: MutableListModel<T>>(
     val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> by lazy { PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this) }
 
     /** current sorting for the list default is ```null```.  */
-    var sortOrder: SortOrder? by ObservableProperty(null, { this }, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
+    var sortOrder: SortOrder? by observable(null, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
         private set
 
     private var editingRow = null as Int?

@@ -2,7 +2,6 @@ package io.nacular.doodle.utils
 
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -293,21 +292,23 @@ open class ObservableSet<E> private constructor(protected val set: MutableSet<E>
     }
 }
 
-open class ObservableProperty<S, T>(initial: T, private val owner: () -> S, private val observers: Iterable<PropertyObserver<S, T>>): ObservableProperty<T>(initial) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
+fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial, observers) { _,_ -> }
+fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial, observers, onChange)
 
-    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
-        super.afterChange(property, oldValue, newValue)
+private class ObservableProperty<S, T>(initial: T, private val observers: Iterable<PropertyObserver<S, T>>, private val onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> {
+    private var value: T = initial
 
-        if (oldValue != newValue) {
-            observers.forEach { it(owner(), oldValue, newValue) }
+    override operator fun getValue(thisRef: S, property: KProperty<*>): T = value
+
+    override operator fun setValue(thisRef: S, property: KProperty<*>, value: T) {
+        if (value != this.value) {
+            val old = this.value
+
+            this.value = value
+
+            onChange(old, this.value)
+
+            observers.forEach { it(thisRef, old, this.value) }
         }
     }
 }
-
-open class OverridableProperty<T>(initialValue: T, private val changed: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ObservableProperty<T>(initialValue) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T) = newValue != oldValue
-    override fun afterChange (property: KProperty<*>, oldValue: T, newValue: T) = changed(property, oldValue, newValue)
-}
-
-fun <T> observable(initialValue: T, onChange: (property: KProperty<*>, oldValue: T, newValue: T) -> Unit): ReadWriteProperty<Any?, T> = OverridableProperty(initialValue, onChange)
