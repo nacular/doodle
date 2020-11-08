@@ -123,7 +123,7 @@ interface Display: Iterable<View> {
  * The width of the Display
  * @see Display.size
  */
-inline val Display.width  get() = size.width
+inline val Display.width get() = size.width
 
 /**
  * The height of the Display
