@@ -78,7 +78,7 @@ open class MimeType<T> internal constructor(private val primary: String, private
 /**
  * text [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-open class TextType internal constructor(type: String, charSet: String? = null): MimeType<String>("text", type, charSet?.let { mapOf("charset" to it) } ?: emptyMap())
+open class TextType(type: String, charSet: String? = null): MimeType<String>("text", type, charSet?.let { mapOf("charset" to it) } ?: emptyMap())
 
 /**
  * text/plain [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
@@ -139,7 +139,7 @@ interface DataBundle {
      *
      * @return the associated data if any
      */
-    operator fun <T> invoke(type: MimeType<T>): T?
+    operator fun <T> get(type: MimeType<T>): T?
 
     /**
      * Check whether data for the given [MimeType] is contained in this bundle
@@ -157,15 +157,15 @@ interface DataBundle {
     operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(sequenceOf(this, other))
 }
 
-inline operator fun <reified T: Any> DataBundle.invoke(): T? = this.invoke(ReferenceType(T::class))
+inline operator fun <reified T: Any> DataBundle.invoke(): T? = this[ReferenceType(T::class)]
 
-inline fun <reified T: Any> DataBundle.contains(): Boolean = this.contains(ReferenceType(T::class))
+inline fun <reified T: Any> DataBundle.contains(): Boolean = ReferenceType(T::class) in this
 
 /**
  * Simple bundle holding a single item.
  */
 class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
-    override fun <T> invoke  (type: MimeType<T>) = if (type in this) item as? T else null
+    override fun <T> get     (type: MimeType<T>) = if (type in this) item as? T else null
     override fun <T> contains(type: MimeType<T>) = this.type.assignableTo(type)
 }
 
@@ -175,7 +175,7 @@ class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item:
 class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
     constructor(vararg bundles: DataBundle): this(sequenceOf(*bundles))
 
-    override fun <T> invoke  (type: MimeType<T>) = bundles.find { type in it }?.let { it(type) }
+    override fun <T> get     (type: MimeType<T>) = bundles.find { type in it }?.let { it[type] }
     override fun <T> contains(type: MimeType<T>) = bundles.find { type in it }?.let { true } ?: false
 
     override operator fun plus(other: DataBundle) = CompositeBundle(bundles + other)

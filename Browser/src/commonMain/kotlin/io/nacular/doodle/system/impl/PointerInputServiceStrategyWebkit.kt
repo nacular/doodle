@@ -31,7 +31,24 @@ import io.nacular.doodle.utils.ifFalse
 import io.nacular.doodle.utils.ifTrue
 
 
-internal open class PointerInputServiceStrategyWebkit(private val document: Document, private val htmlFactory: HtmlFactory): PointerInputServiceStrategy {
+internal class PointerLocationResolverImpl(private val document: Document, private val htmlFactory: HtmlFactory): PointerLocationResolver {
+    var nested = false
+
+    override fun invoke(event: MouseEvent): Point = when {
+        !nested && htmlFactory.root != document.body -> {
+            val rect = htmlFactory.root.getBoundingClientRect()
+
+            Point(event.clientX - (rect.x), event.clientY - (rect.y))
+        }
+        else -> Point(event.pageX, event.pageY)
+    }
+}
+
+internal open class PointerInputServiceStrategyWebkit(
+        private val document               : Document,
+        private val htmlFactory            : HtmlFactory,
+        private val pointerLocationResolver: PointerLocationResolver
+): PointerInputServiceStrategy {
 
     override var toolTipText: String = ""
         set(new) {
@@ -50,8 +67,6 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
 
     override var pointerLocation = Origin
         protected set
-
-    override var nested = false
 
     private var inputDevice  = null as HTMLElement?
     private var eventHandler = null as EventHandler?
@@ -94,15 +109,17 @@ internal open class PointerInputServiceStrategyWebkit(private val document: Docu
         }
     }
 
-    private fun updatePointer(event: MouseEvent) {
-        pointerLocation = when {
-            !nested && inputDevice != document.body -> {
-                val rect = inputDevice?.getBoundingClientRect()
+//    override fun pointerLocation(event: MouseEvent) = when {
+//        !nested && inputDevice != document.body -> {
+//            val rect = inputDevice?.getBoundingClientRect()
+//
+//            Point(event.clientX - (rect?.x ?: 0.0), event.clientY - (rect?.y ?: 0.0))
+//        }
+//        else -> Point(event.pageX, event.pageY)
+//    }
 
-                Point(event.clientX - (rect?.x ?: 0.0), event.clientY - (rect?.y ?: 0.0))
-            }
-            else -> Point(event.pageX, event.pageY)
-        }
+    private fun updatePointer(event: MouseEvent) {
+        pointerLocation = pointerLocationResolver(event)
     }
 
     private fun mouseDown(event: MouseEvent): Boolean {

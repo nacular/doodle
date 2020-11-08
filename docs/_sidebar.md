@@ -12,5 +12,6 @@
 * [Pointer Input](pointer.md)
     * [Pointer Motion](pointermotion.md)
 * [Keyboard Input](keyboard.md)
+* [Drag & Drop](dragdrop.md)
 * [UI Components](controls.md)
 * [Themes](themes.md)

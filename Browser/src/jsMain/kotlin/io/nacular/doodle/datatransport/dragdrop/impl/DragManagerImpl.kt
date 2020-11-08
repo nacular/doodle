@@ -34,6 +34,7 @@ import io.nacular.doodle.system.PointerInputService.Preprocessor
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
+import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.measured.units.BinarySize.Companion.bytes
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
@@ -47,16 +48,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
-import io.nacular.doodle.dom.MouseEvent as DomMouseEvent
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-                      private val viewFinder         : ViewFinder,
-                      private val scheduler          : Scheduler,
-                      private val pointerInputService: PointerInputService,
-                      private val graphicsDevice     : GraphicsDevice<RealGraphicsSurface>,
-                                  htmlFactory        : HtmlFactory): DragManager {
+                      private val viewFinder             : ViewFinder,
+                      private val scheduler              : Scheduler,
+                      private val pointerInputService    : PointerInputService,
+                      private val pointerLocationResolver: PointerLocationResolver,
+                      private val graphicsDevice         : GraphicsDevice<RealGraphicsSurface>,
+                                  htmlFactory            : HtmlFactory): DragManager {
     private val isIE                   = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var pointerDown            = null as PointerEvent?
     private var rootElement            = htmlFactory.root
@@ -161,7 +162,7 @@ internal class DragManagerImpl(
 
     private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let {
         object: DataBundle {
-            override fun <T> invoke(type: MimeType<T>) = when (type) {
+            override fun <T> get(type: MimeType<T>) = when (type) {
                 is Files -> getFiles(it, type) as? T
                 in this  -> it.getData(type.toString()) as? T
                 else    -> null
@@ -196,7 +197,7 @@ internal class DragManagerImpl(
                         dropAllowed = false
                     }
 
-                    dropAllowed = dragUpdate(it, action(event.dataTransfer), pointerLocation(event))
+                    dropAllowed = dragUpdate(it, action(event.dataTransfer), pointerLocationResolver(event))
 
                     if (!dropAllowed) {
                         event.dataTransfer?.dropEffect = "none"
@@ -214,7 +215,7 @@ internal class DragManagerImpl(
                 if (dataBundle == null) {
                     createBundle(event.dataTransfer)?.let {
                         currentDropHandler?.let { (view, handler) ->
-                            handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(event)), it, action(event.dataTransfer?.dropEffect)))
+                            handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(event)), it, action(event.dataTransfer?.dropEffect)))
 
                             currentDropHandler = null
                         }
@@ -264,7 +265,7 @@ internal class DragManagerImpl(
                                         effectAllowed = allowedActions(dragOperation.allowedActions)
 
                                         setOf(PlainText, UriList).forEach { mimeType ->
-                                            dragOperation.bundle(mimeType)?.let { text ->
+                                            dragOperation.bundle[mimeType]?.let { text ->
                                                 it.dataTransfer?.setData("$it", text)
                                             }
                                         }
@@ -331,7 +332,7 @@ internal class DragManagerImpl(
                 }
 
                 setOf(PlainText, UriList).forEach { mimeType ->
-                    dragOperation.bundle(mimeType)?.let { text ->
+                    dragOperation.bundle[mimeType]?.let { text ->
                         it.dataTransfer?.setData("$mimeType", text)
                     }
                 }
@@ -370,7 +371,7 @@ internal class DragManagerImpl(
         }
     }
 
-    private fun pointerLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
+//    private fun pointerLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
 
     private fun action(name: String?) = when {
         name == null            -> null
@@ -407,7 +408,7 @@ internal class DragManagerImpl(
                 dragOperation.canceled()
             } else {
                 currentDropHandler?.let { (view, handler) ->
-                    if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocation(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
+                    if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
                         dragOperation.completed(action)
                     } else {
                         dragOperation.canceled()

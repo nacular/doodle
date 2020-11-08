@@ -33,7 +33,6 @@
           --heading-h3-margin            : 0.5m;
           --heading-h2-border-width      : 0;
         }
-
     </style>
 </head>
 <body>
@@ -58,6 +57,27 @@
 <script src="https://unpkg.com/docsify/lib/plugins/search.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 
+<script src="//unpkg.com/mermaid/dist/mermaid.js"></script>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        sequence: {
+            diagramMarginX: 0,
+            diagramMarginY: 0,
+            boxTextMargin: 0,
+            noteMargin: 0,
+            messageMargin: 35,
+            messageFontSize: 16,
+            messageFontFamily: "Open-Sans, sans-serif",
+            actorFontSize: 18,
+            messageFontWeight: 100,
+            mirrorActors: true
+        }, theme: 'neutral'
+    });
+</script>
+
+<script src="//unpkg.com/docsify-mermaid@latest/dist/docsify-mermaid.js"></script>
 <script src="DocApps.js"></script>
 <script src="doodle_plugin.js"></script>
 </body>

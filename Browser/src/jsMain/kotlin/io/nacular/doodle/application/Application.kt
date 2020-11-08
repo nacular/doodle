@@ -46,6 +46,7 @@ import io.nacular.doodle.stopMonitoringSize
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
+import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
 import org.kodein.di.Copy
@@ -124,9 +125,8 @@ private class NestedApplicationHolder(
         modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
+        injector.instanceOrNull<PointerLocationResolverImpl>()?.let { it.nested = true } // TODO: Find better way to handle this
         injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
-            // TODO: Find better way to handle this
-            it.nested = true
             injector = Kodein.direct {
                 extend(injector, copy = Copy.All)
 
