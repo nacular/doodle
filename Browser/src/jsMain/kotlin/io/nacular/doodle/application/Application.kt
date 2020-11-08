@@ -238,7 +238,7 @@ private open class ApplicationHolderImpl protected constructor(
         }
         injector.instance<RenderManager>()
 
-        injector.instanceOrNull<PointerInputManager>   ()
+        injector.instanceOrNull<PointerInputManager> ()
         injector.instanceOrNull<KeyboardFocusManager>()
         injector.instanceOrNull<DragManager>         ()
 
@@ -261,6 +261,10 @@ private open class ApplicationHolderImpl protected constructor(
                     }
                 }.also { focusListener = it }
             }
+        }
+
+        if (root != document.body) {
+            (focusManager as? FocusManagerImpl)?.enabled = false
         }
     }
 
