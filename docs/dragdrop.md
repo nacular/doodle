@@ -14,6 +14,25 @@ The operation occurs when the user pressed and drags the mouse within a drag-and
 onto a target and releases the button. Data will be captured from the source and provided to the target, where it can decide
 whether and how to accept it.
 
+## Required Module
+
+You must include the [`DragDropModule`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L87)
+in your application in order to enable drag-and-drop. This module imports the [`PointerModule`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L62)
+as well, so you do not need to do so.
+
+```kotlin
+import io.nacular.doodle.application.Modules.Companion.DragDropModule
+
+// ...
+
+fun main() {
+    // Launch MyApp with drag-drop enabled
+    application(modules = setOf(DragDropModule /*,...*/)) {
+        MyApp(/*...*/)
+    }
+}
+```
+
 ## Creating A Source
 
 You can create a drag source by attaching a `DragRecognizer` to any `View`. The recognizer is responsible for initiating
