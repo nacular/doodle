@@ -1,10 +1,14 @@
 package io.nacular.doodle.controls.buttons
 
-class ButtonGroup(var allowDeselectAll: Boolean = false) {
+class ButtonGroup(var allowDeselectAll: Boolean = false, vararg buttons: Button) {
     val size: Int get() = buttons.size
 
     private val buttons by lazy { mutableSetOf<Button>() }
     private var selectedModel: ButtonModel? = null
+
+    init {
+        buttons.forEach { this += it }
+    }
 
     operator fun plusAssign(button: Button) {
         buttons += button

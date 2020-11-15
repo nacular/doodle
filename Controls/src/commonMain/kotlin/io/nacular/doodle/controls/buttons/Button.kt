@@ -31,18 +31,6 @@ abstract class Button protected constructor(
     private val pointerOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (pointerOverChanged as PropertyObserversImpl)(old, new) }
     private val modelFired          = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
 
-    override fun addedToDisplay() {
-        super.addedToDisplay()
-
-        registerModel(model)
-    }
-
-    override fun removedFromDisplay() {
-        super.removedFromDisplay()
-
-        unregisterModel(model)
-    }
-
     private fun registerModel(model: ButtonModel) {
         model.fired              += modelFired
         model.armedChanged       += armedChanged_
@@ -99,10 +87,12 @@ abstract class Button protected constructor(
 
             field = new
 
-            if (displayed) {
-                registerModel(field)
-            }
+            registerModel(field)
         }
+
+    init {
+        registerModel(model)
+    }
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

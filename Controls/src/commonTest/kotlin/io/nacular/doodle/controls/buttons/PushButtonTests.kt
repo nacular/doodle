@@ -1,9 +1,8 @@
 package io.nacular.doodle.controls.buttons
 
-import io.mockk.Called
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifySequence
+import io.mockk.verifyOrder
 import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
@@ -28,7 +27,7 @@ class PushButtonTests {
         PushButton(model = model).apply {
             click()
 
-            verifySequence {
+            verifyOrder {
                 model.armed   = true
                 model.pressed = true
                 model.pressed = false
@@ -39,13 +38,14 @@ class PushButtonTests {
 
     @Test @JsName("cannotClickDisabled")
     fun `cannot click disabled`() {
-        val model = mockk<ButtonModel>()
+        val model = mockk<ButtonModel>(relaxed = true)
 
         PushButton(model = model).apply {
             enabled = false
             click()
 
-            verify { model wasNot Called }
+            verify(exactly = 0) { model.armed   = any() }
+            verify(exactly = 0) { model.pressed = any() }
         }
     }
 
