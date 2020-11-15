@@ -62,6 +62,10 @@ fun main() {
 
 Check out the [documentation](https://nacular.github.io/doodle/) site for more details and examples.
 
+## Tutorials
+
+You can find helpful tutorials as [doodle-tutorials](https://nacular.github.io/doodle-tutorials).
+
 ## Feedback
 
 Doodle is still under active development, so there are going to be gaps and bugs. Please report [issues](https://github.com/pusolito/doodle/issues),
