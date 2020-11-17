@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.range
 import io.nacular.doodle.controls.BasicConfinedValueModel
 import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Orientation
@@ -32,13 +33,7 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
 
     val changed: PropertyObservers<Slider, Double> = changed_
 
-    var behavior: Behavior<Slider>? = null
-        set(new) {
-            if (field == new) { return }
-
-            field?.uninstall(this)
-            field = new?.apply { install(this@Slider) }
-        }
+    var behavior: Behavior<Slider>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

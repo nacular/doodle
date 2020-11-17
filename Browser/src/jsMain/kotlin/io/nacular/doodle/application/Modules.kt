@@ -39,6 +39,8 @@ import io.nacular.doodle.system.impl.KeyInputStrategyWebkit
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
+import io.nacular.doodle.system.impl.PointerLocationResolver
+import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
@@ -60,9 +62,10 @@ class Modules {
         /** Enables pointer use. */
         val PointerModule = Module(allowSilentOverride = true, name = "Pointer") {
             bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
+            bind<PointerLocationResolver>    () with singleton { PointerLocationResolverImpl      (document,   instance()            ) }
             bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
             bind<PointerInputManager>        () with singleton { PointerInputManagerImpl          (instance(), instance(), instance()) }
-            bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document,   instance()            ) }
+            bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document,   instance(), instance()) }
         }
 
         /** Enables keyboard use. Includes [FocusModule]. */
@@ -87,7 +90,7 @@ class Modules {
         val DragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
             importOnce(PointerModule)
 
-            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
         }
 
         /** Enables use of [Document]s */

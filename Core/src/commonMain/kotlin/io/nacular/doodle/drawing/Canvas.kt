@@ -122,9 +122,9 @@ interface Canvas: Renderer {
      * @param block being transformed
      */
     fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(0.0, around)).
-            scale(1.0, -1.0).
-            translate(Point(0.0, -around)),
+            translate(y = around ).
+            scale    (1.0, -1.0  ).
+            translate(y = -around),
             block)
 
     /**
@@ -141,9 +141,9 @@ interface Canvas: Renderer {
      * @param block being transformed
      */
     fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
-            translate(Point(around, 0.0)).
-            scale(-1.0, 1.0).
-            translate(Point(-around, 0.0)),
+            translate(x = around ).
+            scale    (-1.0, 1.0  ).
+            translate(x = -around),
             block)
 
     /**
@@ -231,7 +231,7 @@ interface Canvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    fun text(text: String, at: Point, fill: Fill) = text(text, null, at, fill)
+    fun text(text: String, at: Point = Origin, fill: Fill) = text(text, null, at, fill)
 
     /**
      * Draws unwrapped plain text.
@@ -249,7 +249,7 @@ interface Canvas: Renderer {
      * @param text to draw
      * @param at this point
      */
-    fun text(text: StyledText, at: Point)
+    fun text(text: StyledText, at: Point = Origin)
 
     /**
      * Draws wrapped plain text.
@@ -261,7 +261,7 @@ interface Canvas: Renderer {
      * @param rightMargin where text wraps
      * @param fill to fill with
      */
-    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill)
+    fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Fill)
 
     /**
      * Draws wrapped styled text.
@@ -271,7 +271,7 @@ interface Canvas: Renderer {
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
      */
-    fun wrapped(text: StyledText, at: Point, leftMargin : Double, rightMargin: Double)
+    fun wrapped(text: StyledText, at: Point = Origin, leftMargin: Double, rightMargin: Double)
 
     /**
      * Draws an image.
@@ -283,6 +283,17 @@ interface Canvas: Renderer {
      * @param source rectangle within the image to draw into destination
      */
     fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
+
+    /**
+     * Draws an image.
+     *
+     * @param image to draw
+     * @param at this point on the Canvas
+     * @param opacity of the drawn image
+     * @param radius of image corners if rounding
+     * @param source rectangle within the image to draw into destination
+     */
+    fun image(image: Image, at: Point, opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size)) = image(image, Rectangle(position = at, size = image.size), opacity, radius, source)
 
     /**
      * Clips the operations within [block] within the given rectangle.
@@ -299,6 +310,14 @@ interface Canvas: Renderer {
      * @param block to be clipped
      */
     fun clip(polygon: Polygon, block: Canvas.() -> Unit)
+
+    /**
+     * Clips the operations within [block] within the given ellipse.
+     *
+     * @param ellipse to clip within
+     * @param block to be clipped
+     */
+    fun clip(ellipse: Ellipse, block: Canvas.() -> Unit)
 
     /**
      * Adds a shadow to the operations within [block].
@@ -330,3 +349,116 @@ interface Canvas: Renderer {
      */
     fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
 }
+
+/**
+ * The width to which the Canvas will clip by default.
+ * @see Canvas.size
+ */
+inline val Canvas.width get () = size.width
+
+/**
+ * The height to which the Canvas will clip by default.
+ * @see Canvas.size
+ */
+inline val Canvas.height get() = size.height
+
+/**
+ * Fills a rectangle.
+ *
+ * @param rectangle to draw
+ * @param color to fill with
+ */
+inline fun Canvas.rect(rectangle: Rectangle, color: Color) = rect(rectangle, ColorFill(color))
+
+/**
+ * Fills and outlines a rectangle.
+ *
+ * @param rectangle to draw
+ * @param stroke to outline with
+ * @param color to fill with
+ */
+inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color) = rect(rectangle, stroke, ColorFill(color))
+
+/**
+ * Fills a rounded rectangle.
+ *
+ * @param rectangle to draw
+ * @param radius for corners
+ * @param color to fill with
+ */
+inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color) = rect(rectangle, radius, ColorFill(color))
+
+/**
+ * Fills and outlines a rounded rectangle.
+ *
+ * @param rectangle to draw
+ * @param radius for corners
+ * @param stroke to outline with
+ * @param color to fill with
+ */
+inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, color: Color) = rect(rectangle, radius, stroke, ColorFill(color))
+
+/**
+ * Fills a circle.
+ *
+ * @param circle to draw
+ * @param color to fill with
+ */
+inline fun Canvas.circle(circle: Circle, color: Color) = circle(circle, ColorFill(color))
+
+/**
+ * Fills and outlines a circle.
+ *
+ * @param circle to draw
+ * @param stroke to outline with
+ * @param color to fill with
+ */
+inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color) = circle(circle, stroke, ColorFill(color))
+
+/**
+ * Fills an ellipse.
+ *
+ * @param ellipse to draw
+ * @param color to fill with
+ */
+inline fun Canvas.ellipse(ellipse: Ellipse, color: Color) = ellipse(ellipse, ColorFill(color))
+
+/**
+ * Fills and outlines an ellipse.
+ *
+ * @param ellipse to draw
+ * @param stroke to outline with
+ * @param color to fill with
+ */
+inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color) = ellipse(ellipse, stroke, ColorFill(color))
+
+/**
+ * Draws unwrapped plain text in the default [Font].
+ *
+ * @param text to draw
+ * @param at this point
+ * @param color to fill with
+ */
+inline fun Canvas.text(text: String, at: Point = Origin, color: Color) = text(text, at, ColorFill(color))
+
+/**
+ * Draws unwrapped plain text.
+ *
+ * @param text to draw
+ * @param font to use
+ * @param at this point
+ * @param color to fill with
+ */
+inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Color) = text(text, font, at, ColorFill(color))
+
+/**
+ * Draws wrapped plain text.
+ *
+ * @param text to draw
+ * @param font to use
+ * @param at this point
+ * @param leftMargin where text wraps
+ * @param rightMargin where text wraps
+ * @param color to fill with
+ */
+inline fun Canvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color) = wrapped(text, font, at, leftMargin, rightMargin, ColorFill(color))

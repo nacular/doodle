@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -16,7 +17,6 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
 import kotlin.math.min
-
 
 /**
  * Configures how a [ScrollPanel] behaves.
@@ -80,7 +80,7 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Notifies of changes to [content]. */
-    val contentChanged: PropertyObservers<ScrollPanel, View?> = /*by lazy {*/ PropertyObserversImpl<ScrollPanel, View?>(this) //}
+    val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
     var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
@@ -103,18 +103,14 @@ open class ScrollPanel(content: View? = null): View() {
         private set
 
     /** Behavior governing how the panel works */
-    var behavior: ScrollPanelBehavior? = null
-        set(new) {
-            field?.onScroll = null
+    var behavior: ScrollPanelBehavior? by behavior { old, new ->
+        mirrorWhenRightLeft = false
 
-            field = new?.also { behavior ->
-                behavior.onScroll = {
-                    scrollTo(it, force = true)
-                }
-
-                behavior.install(this)
-            }
+        old?.onScroll = null
+        new?.onScroll = {
+            scrollTo(it, force = true)
         }
+    }
 
     init {
         mirrorWhenRightLeft = false

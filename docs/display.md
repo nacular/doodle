@@ -40,7 +40,7 @@ Add a top-level View like this.
 ```kotlin
 class MyApp(display: Display): View() {
     init {
-        display.children += view
+        display += view
     }
     // ...
 }
@@ -51,7 +51,7 @@ And remove it like this.
 ```kotlin
 class MyApp(display: Display): View() {
     init {
-        display.children -= view
+        display -= view
     }
     // ...
 }
@@ -66,7 +66,7 @@ This is transparent to the app.
 
 ```kotlin
 application(modules = listOf(/*...*/)) {
-    MyApp(instance /*,...*/)
+    MyApp(display = instance() /*,...*/)
 }
 ```
 
@@ -74,7 +74,7 @@ Here the Display will be tied to `someDiv`.
 
 ```kotlin
 application(root = someDiv, modules = listOf(/*...*/)) {
-    MyApp(instance /*,...*/)
+    MyApp(display = instance() /*,...*/)
 }
 ```
 

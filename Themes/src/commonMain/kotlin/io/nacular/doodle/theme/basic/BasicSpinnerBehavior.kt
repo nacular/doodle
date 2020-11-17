@@ -1,8 +1,9 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.controls.TextItemVisualizer
+import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
@@ -92,7 +93,7 @@ class BasicSpinnerBehavior(
         }
     }
 
-    private val itemVisualizer by lazy { toString<Any>(TextItemVisualizer(textMetrics, fitText = emptySet())) }
+    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer(fitText = emptySet())) }
 
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 

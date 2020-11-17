@@ -8,7 +8,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.PointerEvent
@@ -215,7 +215,7 @@ class PointInputManagerImplTests {
     fun `pointer down, disabled goes to parent`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
-        val parent       = spyk(Box())
+        val parent       = spyk(Container())
         val child        = spyk(view())
 
         every { display.child(any()) } returns parent

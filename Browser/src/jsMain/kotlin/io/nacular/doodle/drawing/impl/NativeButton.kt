@@ -83,7 +83,7 @@ internal class NativeButtonFactoryImpl internal constructor(
 
         // TODO: Get values for each side properly
         (Size(s.width - size.width, s.height - size.height) / 2.0).run {
-            Insets(height, width, height, width)
+            Insets(top = height, left = width, bottom = height, right = width)
         }
     }
 
@@ -93,9 +93,8 @@ internal class NativeButtonFactoryImpl internal constructor(
 
             add(htmlFactory.createText("foo"))
         }
-        val button = htmlFactory.createButton().apply {
-            textContent = "foo"
-        }
+
+        val button = htmlFactory.createButton()
 
         val s = elementRuler.size(block)
 
@@ -105,7 +104,10 @@ internal class NativeButtonFactoryImpl internal constructor(
 
         // TODO: Get values for each side properly
         (Size(size.width - s.width, size.height - s.height) / 2.0).run {
-            Insets(height, width, height, width)
+            Insets(top    = height - buttonBorder.top,
+                   left   = width  - buttonBorder.left,
+                   bottom = height - buttonBorder.bottom,
+                   right  = width  - buttonBorder.right)
         }
     }
 }
@@ -288,8 +290,8 @@ class NativeButton internal constructor(
 
     init {
         nativeEventHandler = handlerFactory(buttonElement, this).apply {
-            registerFocusListener         ()
-            registerClickListener         ()
+            registerFocusListener()
+            registerClickListener()
         }
 
         button.apply {

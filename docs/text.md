@@ -6,7 +6,17 @@ Doodle is explicit about text rendering, and requires a location for all text dr
 ```kotlin
 class TextView: View() {
     override fun render(canvas: Canvas) {
-        canvas.text("hello", Origin, ColorFill(Black))
+        canvas.text("hello", Origin, color = Black)
+    }
+}
+```
+
+The above can also be achiEved with the following:
+
+```kotlin
+val textView = view {
+    render = {
+        text("hello", Origin, color = Black)
     }
 }
 ```
@@ -31,8 +41,7 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
     override fun render(canvas: Canvas) {
         // compute each time to account for changes in View's width/height
         canvas.text("hello",
-                Point((width - textSize.width) / 2,
-                    (height - textSize.height) / 2),
+                Point((width - textSize.width) / 2, (height - textSize.height) / 2),
                 ColorFill(Black))
     }
 }
@@ -79,7 +88,7 @@ import kotlinx.coroutines.GlobalScope
 
 class MyApp(fonts: FontDetector, scheduler: Scheduler): Application {
     init {
-        val view: View = object: View() {}
+        val view = view {}
         
         // launch a new coroutine for async font lookup
         val fontJob = GlobalScope.launch {

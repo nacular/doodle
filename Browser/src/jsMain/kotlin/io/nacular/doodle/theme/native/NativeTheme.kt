@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.buttons.RadioButton
+import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.text.TextField
@@ -68,18 +69,6 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
         }
 
-        val NativeThemeBehaviors = Module(name = "NativeThemeBehaviors") {
-            importAll(listOf(
-                    NativeButtonBehavior,
-                    NativeSliderBehavior,
-                    NativeCheckBoxBehavior,
-                    NativeTextFieldBehavior,
-                    NativeHyperLinkBehavior,
-                    NativeScrollPanelBehavior,
-                    NativeRadioButtonBehavior),
-                    allowOverride = true)
-        }
-
         val NativeButtonBehavior = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -131,5 +120,22 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
 
             bindBehavior<RadioButton>(NTheme::class) { it.behavior = NativeRadioButtonBehavior(instance(), instance(), it) as Behavior<Button> }
         }
+
+        val NativeSwitchBehavior = Module(name = "NativeSwitchBehavior") {
+            importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
+
+            bindBehavior<Switch>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), it) as Behavior<Button> }
+        }
+
+        val nativeThemeBehaviors = listOf(
+                NativeButtonBehavior,
+                NativeSliderBehavior,
+                NativeSwitchBehavior,
+                NativeCheckBoxBehavior,
+                NativeTextFieldBehavior,
+                NativeHyperLinkBehavior,
+                NativeScrollPanelBehavior,
+                NativeRadioButtonBehavior
+        )
     }
 }

@@ -13,7 +13,7 @@ class ThemePicker(themeManager: ThemeManager): View() {
     private val spinner = MutableSpinner(model)
 
     init {
-        updateAvailableThemes(emptySet(), setOf(null) + themeManager.themes)
+        updateAvailableThemes(emptySet(), themeManager.themes)
 
         updateSelected(themeManager.selected)
 

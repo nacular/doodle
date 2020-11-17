@@ -1,10 +1,11 @@
 package io.nacular.doodle.text
 
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.text.Target.*
+import io.nacular.doodle.text.Target.Background
+import io.nacular.doodle.text.Target.Foreground
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
@@ -35,9 +36,10 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
 
     operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
-    operator fun rangeTo(font : Font  ) = this.also { add(MutablePair("",   StyleImpl(font))) }
-    operator fun rangeTo(color: Color ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
-    operator fun rangeTo(text : String) = this.also { add(MutablePair(text, StyleImpl())) }
+    operator fun rangeTo(font : Font      ) = this.also { add(MutablePair("",   StyleImpl(font))) }
+    operator fun rangeTo(color: Color     ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
+    operator fun rangeTo(text : String    ) = this.also { add(MutablePair(text, StyleImpl())) }
+    operator fun rangeTo(text : StyledText) = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 
     fun copy() = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
 

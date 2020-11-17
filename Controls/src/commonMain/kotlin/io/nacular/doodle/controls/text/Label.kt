@@ -4,45 +4,33 @@ import io.nacular.doodle.controls.text.TextFit.Height
 import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import io.nacular.doodle.utils.VerticalAlignment.Top
-import io.nacular.doodle.utils.observable
+import kotlin.properties.Delegates.observable
 
 
-interface LabelFactory {
-    operator fun invoke(
-            styledText         : StyledText          = StyledText(""),
-            verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment = Center): Label
+interface LabelBehavior: Behavior<Label> {
+    val Label.textSize get() = _textSize
 
-    operator fun invoke(
+    fun measureText(label: Label): Size
+}
+
+open class Label(styledText         : StyledText          = StyledText(""),
+                 verticalAlignment  : VerticalAlignment   = Middle,
+                 horizontalAlignment: HorizontalAlignment = Center): View() {
+
+    constructor(
             text               : String,
             verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment = Center) = this(StyledText(text), verticalAlignment, horizontalAlignment)
-}
-
-class LabelFactoryImpl(private val textMetrics: TextMetrics): LabelFactory {
-    override operator fun invoke(
-            styledText         : StyledText,
-            verticalAlignment  : VerticalAlignment,
-            horizontalAlignment: HorizontalAlignment) = Label(textMetrics, styledText, verticalAlignment, horizontalAlignment)
-}
-
-open class Label internal constructor(
-        private val textMetrics        : TextMetrics,
-                    styledText         : StyledText          = StyledText(""),
-                    verticalAlignment  : VerticalAlignment   = Middle,
-                    horizontalAlignment: HorizontalAlignment = Center): View() {
+            horizontalAlignment: HorizontalAlignment = Center): this(StyledText(text), verticalAlignment, horizontalAlignment)
 
     var fitText = setOf(Width, Height)
         set(new) {
@@ -90,34 +78,24 @@ open class Label internal constructor(
     var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
     var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
 
-    var textSize = Empty
-        private set(new) {
+    internal val _textSize get() = textSize
+
+    private var textSize = Empty
+        set(new) {
             field = new
             idealSize = new
             if (Width  in fitText) width  = new.width
             if (Height in fitText) height = new.height
         }
 
-    var behavior: Behavior<Label>? = null
-        set(new) {
-            if (field == new) { return }
+    var behavior: LabelBehavior? by behavior { _,new ->
+        mirrorWhenRightLeft = false
 
-            field?.uninstall(this)
-            field = new?.apply { install(this@Label) }
-        }
+        new?.measureText(this)?.also { textSize = it }
+    }
 
     private fun measureText(): Size {
-        val height = when {
-            Height in fitText || verticalAlignment != Top -> if (wrapsWords) textMetrics.height(styledText, width) else textMetrics.height(styledText)
-            else                                          -> 0.0
-        }
-
-        val width = when {
-            Width in fitText || horizontalAlignment != Left -> if (wrapsWords) textMetrics.width(styledText, width) else textMetrics.width(styledText)
-            else                                            -> 0.0
-        }
-
-        return Size(width, height).also { textSize = it }
+        return behavior?.measureText(this)?.also { textSize = it } ?: Empty
     }
 
     init {

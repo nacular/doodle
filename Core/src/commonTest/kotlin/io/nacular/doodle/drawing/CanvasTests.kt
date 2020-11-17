@@ -17,7 +17,9 @@ import io.nacular.doodle.geometry.div
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
 import kotlin.js.JsName
 import kotlin.test.Test
 
@@ -58,6 +60,8 @@ private class TestCanvas: Canvas {
     override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {}
 
     override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {}
+
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {}
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {}
 
@@ -142,30 +146,79 @@ class CanvasTests {
         verify { canvas.transform(Identity.translate(point).scale(x, y).translate(-point), block) }
     }
 
-//    @Test @JsName("rotate")
-//    fun `rotate works`() {
-//        val canvas = spyk(TestCanvas())
-//        val block  = mockk<Canvas.() -> Unit>()
-//
-//        canvas.rotate(by = 56 * degrees, block = block)
-//
-//        verify { block(canvas) }
-//    }
-//
-//    @Test @JsName("rotateAround")
-//    fun `rotate around works`() {
-//        val canvas = spyk(TestCanvas()).apply {
-//            every { size } returns Size(457)
-//        }
-//        val x      = 45.0
-//        val y      = 1.0
-//        val around = Point(4.0, 2.9)
-//        val block  = mockk<Canvas.() -> Unit>()
-//
-//        canvas.rotate(around = around, by = 56 * degrees, block = block)
-//
-//        val point = around - (Size(457) / 2.0).run { Point(width, height) }
-//
-//        verify { canvas.transform(Identity.translate(point).scale(x, y).translate(-point), block) }
-//    }
+    @Test @JsName("rotate")
+    fun `rotate works`() {
+        val canvas = spyk(TestCanvas())
+        val block  = mockk<Canvas.() -> Unit>()
+        val by     = 56 * degrees
+
+        canvas.rotate(by = by, block = block)
+
+        verify { canvas.transform(Identity.rotate(by), block) }
+    }
+
+    @Test @JsName("rotateAround")
+    fun `rotate around works`() {
+        val canvas = spyk(TestCanvas())
+        val by     = 56 * degrees
+        val around = Point(4.0, 2.9)
+        val block  = mockk<Canvas.() -> Unit>()
+
+        canvas.rotate(around = around, by = by, block = block)
+
+        verify { canvas.transform(Identity.translate(around).rotate(by).translate(-around), block) }
+    }
+
+    @Test @JsName("translateAround")
+    fun `translate works`() {
+        val canvas = spyk(TestCanvas())
+        val by     = Point(4.0, 2.9)
+        val block  = mockk<Canvas.() -> Unit>()
+
+        canvas.translate(by = by, block = block)
+
+        verify { canvas.transform(Identity.translate(by), block) }
+    }
+
+    @Test @JsName("flipVertically")
+    fun `flip vertically works`() {
+        val canvas = spyk(TestCanvas())
+        val block  = mockk<Canvas.() -> Unit>()
+
+        canvas.flipVertically(block)
+
+        verify { canvas.scale(1.0, -1.0, block) }
+    }
+
+    @Test @JsName("flipVerticallyAround")
+    fun `flip vertically around works`() {
+        val canvas = spyk(TestCanvas())
+        val block  = mockk<Canvas.() -> Unit>()
+        val around = 4.5
+
+        canvas.flipVertically(around, block)
+
+        verify { canvas.transform(Identity.translate(y = around).scale(1.0, -1.0).translate(y = -around), block) }
+    }
+
+    @Test @JsName("flipHorizontally")
+    fun `flip horizontally works`() {
+        val canvas = spyk(TestCanvas())
+        val block  = mockk<Canvas.() -> Unit>()
+
+        canvas.flipHorizontally(block)
+
+        verify { canvas.scale(-1.0, 1.0, block) }
+    }
+
+    @Test @JsName("flipHorizontallyAround")
+    fun `flip horizontally around works`() {
+        val canvas = spyk(TestCanvas())
+        val block  = mockk<Canvas.() -> Unit>()
+        val around = 4.5
+
+        canvas.flipHorizontally(around, block)
+
+        verify { canvas.transform(Identity.translate(x = around).scale(-1.0, 1.0).translate(x = -around), block) }
+    }
 }

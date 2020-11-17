@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -16,7 +17,7 @@ data class HeaderGeometry(val y: Double, val height: Double)
 
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View? = null): View
+        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
     interface RowPositioner<T> {
@@ -63,11 +64,11 @@ interface TableBehavior<T>: Behavior<Table<T, *>> {
 
 interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
     interface TreeCellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
     interface CellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: IndexedItemVisualizer<A>, current: View? = null): View
+        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
     abstract class RowPositioner<T> {

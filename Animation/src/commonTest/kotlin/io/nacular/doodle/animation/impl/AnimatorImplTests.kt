@@ -1,5 +1,7 @@
 package io.nacular.doodle.animation.impl
 
+import io.mockk.mockk
+import io.mockk.verify
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator.Listener
 import io.nacular.doodle.animation.fixedTimeLinear
@@ -14,8 +16,6 @@ import io.nacular.measured.units.Time.Companion.hours
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.times
-import io.mockk.mockk
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
@@ -78,7 +78,7 @@ class AnimatorImplTests {
         }
     }
 
-    @Test @JsName("animatesNumberProperty") fun `animates number property`() {
+    @Test @JsName("animatesIncreasingNumberProperty") fun `animates increasing number property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -98,6 +98,32 @@ class AnimatorImplTests {
         animationScheduler.runToCompletion()
 
         expect(listOf(0f, 2/3f, 1f)) { outputs }
+
+        verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
+        verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
+        verify(exactly = 1) { onCompleted(animation) }
+    }
+
+    @Test @JsName("animatesDecreasingNumberProperty") fun `animates decreasing number property`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        val animation = (animate (1f to 0f) using fixedTimeLinear(3 * milliseconds)) {
+            outputs += it
+        }.apply {
+            completed += onCompleted
+        }
+
+        animationScheduler.runToCompletion()
+
+        expect(listOf(1f, 1/3f, 0f)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
@@ -188,7 +214,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.changed  (animate, setOf(animation2)         ) }
         verify(exactly = 0) { listener.changed  (animate, match { animation1 in it }) }
         verify(exactly = 0) { listener.completed(animate, any()                     ) }
-        verify(exactly = 1) { listener.cancelled(animate, setOf(animation1)         ) }
+        verify(exactly = 1) { listener.canceled(animate, setOf(animation1)         ) }
     }
 
     @Test @JsName("animationBlockCancelsNested") fun `animation block cancels nested`() {
@@ -223,7 +249,7 @@ class AnimatorImplTests {
 
         verify(exactly = 0) { listener.changed  (animate, any  (                          )) }
         verify(exactly = 0) { listener.completed(animate, any  (                          )) }
-        verify(exactly = 1) { listener.cancelled(animate, setOf(animation1!!, animation2!!)) }
+        verify(exactly = 1) { listener.canceled(animate, setOf(animation1!!, animation2!!)) }
     }
 
     @Test @JsName("cancelsNumberAnimationGroup") fun `cancels number animation group`() {
@@ -251,6 +277,6 @@ class AnimatorImplTests {
 
         verify(exactly = 0) { listener.changed  (animate, any()) }
         verify(exactly = 0) { listener.completed(animate, any()) }
-        verify(exactly = 1) { listener.cancelled(animate, match { it.size == 2 }) }
+        verify(exactly = 1) { listener.canceled(animate, match { it.size == 2 }) }
     }
 }

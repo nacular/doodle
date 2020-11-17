@@ -15,6 +15,7 @@ import io.nacular.doodle.time.Timer
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.CompletableImpl
 import io.nacular.doodle.utils.CompletableImpl.State.Active
+import io.nacular.doodle.utils.CompletableImpl.State.Canceled
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.SetPool
 import io.nacular.measured.units.Measure
@@ -85,6 +86,8 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
 
         private var previousPosition = property.value.position
 
+        val isCanceled get() = state == Canceled
+
         fun run(currentTime: Measure<Time>): Result<T> {
             if (!::startTime.isInitialized) {
                 startTime = currentTime
@@ -130,10 +133,8 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             super.cancel()
 
             if (broadcast) {
-                listeners.forEach { it.cancelled(this@AnimatorImpl, setOf(this)) }
+                listeners.forEach { it.canceled(this@AnimatorImpl, setOf(this)) }
             }
-
-            animations -= this
         }
     }
 
@@ -232,7 +233,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             override fun cancel() {
                 newAnimations.forEach { it.cancel(broadcast = false) }
 
-                listeners.forEach { it.cancelled(this@AnimatorImpl, newAnimations) }
+                listeners.forEach { it.canceled(this@AnimatorImpl, newAnimations) }
 
                 super.cancel()
             }
@@ -256,15 +257,20 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         while (iterator.hasNext()) {
             val it = iterator.next()
 
-            val result = it.run(timer.now).also { result ->
-                if (!result.active) {
-                    completed += it
-                    iterator.remove()
-                }
-            }
+            when {
+                it.isCanceled -> iterator.remove()
+                else          -> {
+                    val result = it.run(timer.now).also { result ->
+                        if (!result.active) {
+                            completed += it
+                            iterator.remove()
+                        }
+                    }
 
-            if (result.new != result.old) {
-                changed += it
+                    if (result.new != result.old) {
+                        changed += it
+                    }
+                }
             }
         }
 
@@ -274,12 +280,11 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             }
         }
 
-        if (animations.isNotEmpty()) {
-            task = animationScheduler.onNextFrame {
+        when {
+            animations.isNotEmpty() -> task = animationScheduler.onNextFrame {
                 onAnimate()
             }
-        } else {
-            listeners.forEach { it.completed(this, completed) }
+            completed.isNotEmpty()  -> listeners.forEach { it.completed(this, completed) }
         }
     }
 }

@@ -16,7 +16,7 @@ import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.text.Label
-import io.nacular.doodle.controls.theme.LabelBehavior
+import io.nacular.doodle.controls.theme.CommonLabelBehavior
 import io.nacular.doodle.controls.tree.MutableTree
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeModel
@@ -42,7 +42,7 @@ import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.SimpleTabContainer
-import io.nacular.doodle.theme.basic.tabbedpanel.TabContainerFactory
+import io.nacular.doodle.theme.basic.tabbedpanel.TabContainer
 import io.nacular.doodle.theme.basic.tabbedpanel.TabProducer
 import io.nacular.doodle.theme.basic.table.BasicMutableTableBehavior
 import io.nacular.doodle.theme.basic.table.BasicTableBehavior
@@ -51,6 +51,7 @@ import io.nacular.doodle.theme.basic.tree.BasicTreeBehavior
 import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
 import io.nacular.doodle.theme.basic.treecolumns.SimpleTreeColumnRowIcon
 import io.nacular.doodle.theme.basic.treecolumns.TreeColumnRowIcon
+import org.kodein.di.DKodein
 import org.kodein.di.Kodein
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
@@ -67,6 +68,9 @@ private typealias ListModel<T>        = io.nacular.doodle.controls.ListModel<T>
 private typealias SpinnerModel<T>     = io.nacular.doodle.controls.spinner.Model<T>
 private typealias MutableTreeModel<T> = io.nacular.doodle.controls.tree.MutableTreeModel<T>
 private typealias BTheme              = BasicTheme
+
+private typealias TabContainerFactory<T> = DKodein.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
+
 
 @Suppress("UNCHECKED_CAST")
 open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
@@ -131,7 +135,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicListBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
@@ -152,7 +155,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMutableListBehavior(
                         focusManager          = instanceOrNull(),
-                        textMetrics           = instance(),
                         evenRowColor          = evenRowColor          ?: this.evenRowColor,
                         oddRowColor           = oddRowColor           ?: this.oddRowColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
@@ -173,7 +175,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicTreeBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             rowHeight             = rowHeight             ?: 20.0,
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
@@ -196,7 +197,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMutableTreeBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             rowHeight             = rowHeight             ?: 20.0,
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
@@ -209,7 +209,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         fun basicLabelBehavior(foregroundColor: Color? = null) = basicThemeModule(name = "BasicLabelBehavior") {
             bindBehavior<Label>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { LabelBehavior(foregroundColor ?: this.foregroundColor) }
+                it.behavior = instance<BasicThemeConfig>().run { CommonLabelBehavior(instance(), foregroundColor ?: this.foregroundColor) }
             }
         }
 
@@ -263,7 +263,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             bindBehavior<TreeColumns<Any, *>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTreeColumnsBehavior (
                         focusManager          = instanceOrNull(),
-                        textMetrics           = instance(),
                         rowHeight             = rowHeight             ?: 20.0,
                         columnSeparatorColor  = columnSeparatorColor  ?: this.backgroundColor,
                         backgroundColor       = backgroundColor       ?: this.oddRowColor,
@@ -433,32 +432,32 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                                     selectedColorMapper = { foregroundColor.inverted }
                             ),
                             backgroundColor ?: this.backgroundColor,
-                            tabContainer    ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) })
+                            tabContainer?.let { { panel: TabbedPanel<Any>, tabProducer: TabProducer<Any> ->
+                                it(this@bindBehavior, panel, tabProducer)
+                            } } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) })
                 }
             }
         }
 
-        val BasicThemeBehaviors = Module(name = "BasicThemeBehaviors") {
-            importAll(listOf(
-                    basicListBehavior(),
-                    basicTreeBehavior(),
-                    basicLabelBehavior(),
-                    basicTableBehavior(),
-                    basicButtonBehavior(),
-                    basicSwitchBehavior(),
-                    basicSliderBehavior(),
-                    basicSpinnerBehavior(),
-                    basicCheckBoxBehavior(),
-                    basicSplitPanelBehavior(),
-                    basicRadioButtonBehavior(),
-                    basicMutableListBehavior(),
-                    basicProgressBarBehavior(),
-                    basicMutableTreeBehavior(),
-                    basicTreeColumnsBehavior(),
-                    basicTabbedPanelBehavior(),
-                    basicMutableTableBehavior()),
-                    allowOverride = true)
-        }
+        val basicThemeBehaviors = listOf(
+                basicListBehavior(),
+                basicTreeBehavior(),
+                basicLabelBehavior(),
+                basicTableBehavior(),
+                basicButtonBehavior(),
+                basicSwitchBehavior(),
+                basicSliderBehavior(),
+                basicSpinnerBehavior(),
+                basicCheckBoxBehavior(),
+                basicSplitPanelBehavior(),
+                basicRadioButtonBehavior(),
+                basicMutableListBehavior(),
+                basicProgressBarBehavior(),
+                basicMutableTreeBehavior(),
+                basicTreeColumnsBehavior(),
+                basicTabbedPanelBehavior(),
+                basicMutableTableBehavior()
+        )
     }
 }
 

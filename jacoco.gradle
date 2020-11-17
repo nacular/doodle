@@ -1,7 +1,7 @@
 apply plugin: 'jacoco'
 
 jacoco {
-    toolVersion = '0.8.5'
+    toolVersion = '0.8.6'
 }
 
 project.afterEvaluate {
@@ -13,10 +13,13 @@ project.afterEvaluate {
         description = "Generate Jacoco coverage reports on the common module build."
 
         def excludes = [
+            "**/*commonTest/**",
+            "**/*jvmTest/**",
+            "**/*jsTest/**",
             "**/*Test*.*",
             "**/io/nacular/doodle/ManualScheduler*.*",
             "**/io/nacular/doodle/event/KeyText*.*",
-            "**/io/nacular/doodle/event/KeyCode*.*"
+            "**/io/nacular/doodle/event/KeyCode*.*",
         ]
 
         getClassDirectories().from(fileTree(

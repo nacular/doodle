@@ -1,10 +1,15 @@
 package io.nacular.doodle.controls.buttons
 
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Anchor.Left
@@ -15,17 +20,9 @@ import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.VerticalAlignment.Bottom
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import io.mockk.Called
-import io.mockk.Runs
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -105,7 +102,7 @@ class ButtonTests {
             enabled  = false
             selected = true
 
-            verify { model wasNot Called }
+            verify (exactly = 0) { model.selected }
         }
     }
 
@@ -135,7 +132,8 @@ class ButtonTests {
         button.model = model1
         button.model = model2
 
-        verify(exactly = 1) { model1.fired -= any() }
+        verify(atLeast = 1) { model1.fired += any() }
+        verify(atLeast = 1) { model1.fired -= any() }
     }
 
     @Test @JsName("notifiesOfTextChange")
@@ -150,7 +148,7 @@ class ButtonTests {
         verify(exactly = 1) { listener(button, "", "foo") }
     }
 
-    @Ignore @Test @JsName("notifiesWhenModelFires")
+    @Test @JsName("notifiesWhenModelFires")
     fun `notifies when model fires`() {
         val listener = slot<ChangeObserver<ButtonModel>>()
 
@@ -158,29 +156,15 @@ class ButtonTests {
             every { fired += capture(listener) } just Runs
         }
 
-        val myListener = mockk<ChangeObserver<Button>>()
+        val myListener = mockk<ChangeObserver<Button>>(relaxed = true)
 
         val button = TestButton(model = model).apply {
             fired += myListener
         }
 
-        // FIXME: Update once re-usable test components (i.e. DoodleTest) are figured out
-//        button.addedToDisplay(renderManager)
-
         listener.captured.invoke(model)
 
         verify(exactly = 1) { myListener.invoke(button) }
-    }
-
-    @Ignore @Test @JsName("stopsMonitoringModelWhenNotDisplayed")
-    fun `stops monitoring model when not displayed`() {
-        val model = mockk<ButtonModel>(relaxed = true)
-        val renderManager = mockk<RenderManager>(relaxed = true)
-
-        val button: Button = TestButton(model = model)
-
-        // FIXME: Update once re-usable test components (i.e. DoodleTest) are figured out
-//        button.addedToDisplay(renderManager)
     }
 
     @Test @JsName("renderWithoutBehaviorNoOp")

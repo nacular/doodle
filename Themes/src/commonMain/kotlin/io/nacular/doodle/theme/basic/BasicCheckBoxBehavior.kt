@@ -119,4 +119,6 @@ class BasicCheckBoxBehavior(
         ),
         iconSpacing,
         disabledColorMapper
-)
+) {
+    override fun mirrorWhenRightToLeft(view: CheckBox) = false
+}

@@ -30,7 +30,7 @@ class FocusManagerImpl(
 
     override var focusCycleRoot: View? = null; private set
 
-    override val focusChanged: PropertyObservers<FocusManager, View?> = /*by lazy {*/ PropertyObserversImpl<FocusManager, View?>(this) //}
+    override val focusChanged: PropertyObservers<FocusManager, View?> by lazy { PropertyObserversImpl<FocusManager, View?>(this) }
 
     override fun focusable(view: View) = focusabilityChecker(view)
 
@@ -52,6 +52,10 @@ class FocusManagerImpl(
 
     var enabled = true
         set(new) {
+            if (field == new) {
+                return
+            }
+
             if (!new) {
                 // do this before updating field since it is checked in requestFocusInternal
                 // and won't do the full clear.
@@ -104,9 +108,12 @@ class FocusManagerImpl(
                 }
             }
 
+            if (finalFocusOwner == null || !enabled) {
+                finalFocusOwner = view
+            }
+
             // short-circuit (and record intended view) if disabled
             if (!enabled) {
-                finalFocusOwner = view
                 return
             }
 

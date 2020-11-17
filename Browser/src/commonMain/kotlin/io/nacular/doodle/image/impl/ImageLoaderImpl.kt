@@ -27,10 +27,10 @@ class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val schedule
 
         scheduler.delayUntil { source in images }
 
-        return images[source]!!
+        return images[source]
     }
 
     override fun unload(image: Image) {
-        images.remove (image.source)
+        images.remove(image.source)
     }
 }

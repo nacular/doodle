@@ -7,9 +7,9 @@ Every View has an `x,y` position (in pixels) relative to its parent. This is exa
 a `transform`. Doodle ensures that there is never a disconnect between a View's position, transform and render coordinates.
 
 ```kotlin
-val view = object: View() {}.apply { size = Size(100.0) }
+val panel = view { size = Size(100.0) }
 
-display.children += view // view's position is 0,0
+display += view // view's position is 0,0
 ```
 
 ## Manual positioning
@@ -52,16 +52,16 @@ retains the same `bounds`, but its [`boundingBox`](https://github.com/nacular/do
 
 ## Automatic positioning with Layouts
 
-A [`Layout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) monitors a View
-and automatically updates its children's bounds. This happens whenever View's `size` changes, or one of its children has its bounds change.
+A [`Layout`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L75) keeps track
+of a View and its children and automatically arranges the children as sizes change. This happens whenever View's `size` changes, or one of its children has its `bounds` change.
 
 The View class also `protects` its `layout` property from callers, but sub-classes are free to expose
 it.
 
 ```kotlin
-val box = Box()
+val container = container {}
 
-box.layout = HorizontalFlowLayout() // Box exposes its layout
+container.layout = HorizontalFlowLayout() // Container exposes its layout
 ```
 
 ```doodle
@@ -78,15 +78,15 @@ wraps a View's children from left to right within its bounds.
 
 ## Constraint-based Layout
 
-This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right` points of Views. It also allows you to specify values
-for `width` and `height`, This covers many of the common layout use cases and is easy to use.
+This Layout uses anchor points to pin the `top`, `left`, `bottom`, `right`, `centerX`, and `cetnerY` points of Views. It also allows you to
+specify values for `width` and `height`. This covers many of the common layout use cases and is easy to use.
 
 ```kotlin
-val container = Box() // a simple container
-val panel1    = object: View() {}
-val panel2    = object: View() {}
+val container = container {}
+val panel1    = view {}
+val panel2    = view {}
 
-container.children += listOf(panel1, panel2)
+container += listOf(panel1, panel2)
 
 // use Layout that follows constraints to position items
 container.layout = constrain(panel1, panel2) { panel1, panel2 ->
@@ -118,5 +118,5 @@ class CustomLayout: Layout {
 }
 ```
 
-?> Layouts do not work with View directly because it does not expose its children. `PositionableContainer` proxies the
+?> Layouts do not work with View directly because it does not expose its children. [`PositionableContainer`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/Layout.kt#L36) proxies the
 managed View instead.

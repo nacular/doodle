@@ -11,7 +11,6 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.Backspace
@@ -29,10 +28,7 @@ import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.ObservableSet
 
 
-open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
-                                        textMetrics          : TextMetrics,
-                                        selectionColor       : Color?,
-                                        selectionBlurredColor: Color?): BasicItemGenerator<T>(focusManager, textMetrics, selectionColor, selectionBlurredColor) {
+open class MutableBasicItemGenerator<T>(selectionColor: Color?, selectionBlurredColor: Color?): BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -49,19 +45,20 @@ open class MutableBasicItemGenerator<T>(focusManager         : FocusManager?,
     }
 }
 
-open class BasicMutableListBehavior<T>(generator   : RowGenerator<T>,
+open class BasicMutableListBehavior<T>(focusManager: FocusManager?,
+                                       generator   : RowGenerator<T>,
                                        evenRowColor: Color?,
                                        oddRowColor : Color?,
-                                       rowHeight   : Double): BasicListBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
+                                       rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, evenRowColor, oddRowColor, rowHeight) {
 
     constructor(focusManager         : FocusManager?,
-                textMetrics          : TextMetrics,
                 evenRowColor         : Color?,
                 oddRowColor          : Color?,
                 selectionColor       : Color?,
                 selectionBlurredColor: Color?,
                 rowHeight            : Double): this(
-            generator    = MutableBasicItemGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor),
+            focusManager = focusManager,
+            generator    = MutableBasicItemGenerator(selectionColor, selectionBlurredColor),
             evenRowColor = evenRowColor,
             oddRowColor  = oddRowColor,
             rowHeight    = rowHeight

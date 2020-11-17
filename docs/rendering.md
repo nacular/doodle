@@ -16,7 +16,7 @@ class RectView: View() {
 
 This `RectView` draws a filled rectangle covering its bounds.
 
-?> `render` is automatically called on `size` changes and `visibile` changing to `true`
+?> `render` is automatically called on `size` changes and `visible` changing to `true`
 
 ## Efficient Rendering
 
@@ -28,23 +28,22 @@ below renders the epoch time every millisecond. However, Doodle only updates the
 ```kotlin
 class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
     init {
-        display.children += object: View() {
-            init {
-                size = Size(200)
+        display += view {
+            size = Size(200)
 
-                scheduler.every(1 * milliseconds) {
-                    rerender()
-                }
+            scheduler.every(1 * milliseconds) {
+                rerender()
             }
 
-            override fun render(canvas: Canvas) {
-                canvas.rect(bounds.atOrigin, Stroke(Red))
-                canvas.text("${clock.epoch}", Origin, ColorFill(Black))
-                canvas.rect(bounds.at(y = 20.0), ColorFill(Green))
+            render = {
+                rect(bounds.atOrigin, Stroke(Red))
+                text("${clock.epoch}", color = Black)
+                rect(bounds.at(y = 20.0), color = Green)
             }
         }
     }
-    //..
+    
+    override fun shutdown() {}
 }
 ```
 
@@ -134,4 +133,4 @@ private inner class MyView: View() {
 }
 ``` 
 
-This app shows how a `PatternFill` can be rotated around its center.
+This app shows how a `PatternFill` can be transformed, like rotated around its center for example.

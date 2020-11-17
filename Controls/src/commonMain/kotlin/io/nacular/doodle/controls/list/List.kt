@@ -1,11 +1,13 @@
 package io.nacular.doodle.controls.list
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
+import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
 import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.panels.ScrollPanel
@@ -13,11 +15,13 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.mostRecentAncestor
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
@@ -52,17 +56,10 @@ interface ListLike: Selectable<Int> {
 
 open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemVisualizer: IndexedItemVisualizer<T>? = null,
-        protected      val selectionModel: SelectionModel<Int>?      = null,
-        private        val fitContent    : Boolean                   = true,
-        private        val scrollCache   : Int                       = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
-
-    val numRows get() = model.size
-    val isEmpty get() = model.isEmpty
-
-    fun contains(value: T) = value in model
-
-    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
+                       val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        protected      val selectionModel: SelectionModel<Int>?           = null,
+        private        val fitContent    : Boolean                        = true,
+        private        val scrollCache   : Int                            = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<Int> = { set,removed,added ->
@@ -92,23 +89,25 @@ open class List<T, out M: ListModel<T>>(
     protected var firstVisibleRow =  0
     protected var lastVisibleRow  = -1
 
-    var behavior: ListBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
+    val numRows get() = model.size
+    val isEmpty get() = model.isEmpty
 
-            field?.uninstall(this)
+    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
 
-            field = new?.also {
-                rowGenerator  = it.generator
-                rowPositioner = it.positioner
+    var cellAlignment: (Constraints.() -> Unit)? = null
 
-                children.clear()
+    fun contains(value: T) = value in model
 
-                it.install(this)
+    var behavior: ListBehavior<T>? by behavior { _,new ->
+        new?.also {
+            rowGenerator  = it.generator
+            rowPositioner = it.positioner
 
-                updateVisibleHeight()
-            }
+            children.clear()
+
+            updateVisibleHeight()
         }
+    }
 
     protected fun updateVisibleHeight() {
         val oldHeight = minHeight
@@ -189,10 +188,8 @@ open class List<T, out M: ListModel<T>>(
                 else                          -> min(model.size - 1, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            val halfCacheLength = min(children.size, scrollCache) / 2
-
-            model[firstVisibleRow + halfCacheLength]?.let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow + halfCacheLength).y      }
-            model[lastVisibleRow  - halfCacheLength]?.let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow  - halfCacheLength).bottom }
+            model[firstVisibleRow]?.let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
+            model[lastVisibleRow ]?.let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
 
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
@@ -207,6 +204,13 @@ open class List<T, out M: ListModel<T>>(
                 }
 
                 (start..lastVisibleRow).forEach { insert(children, it) }
+            }
+
+            // this updates "hashing" of rows into the children list (using % of list size) since the children size has changed
+            if (oldLast - oldFirst != lastVisibleRow - firstVisibleRow) {
+                (firstVisibleRow .. lastVisibleRow).forEach {
+                    update(children, it)
+                }
             }
         }
     }
@@ -276,7 +280,7 @@ open class List<T, out M: ListModel<T>>(
     companion object {
         operator fun invoke(
                 progression    : IntProgression,
-                itemVisualizer : IndexedItemVisualizer<Int>,
+                itemVisualizer : ItemVisualizer<Int, IndexedIem>,
                 selectionModel : SelectionModel<Int>? = null,
                 fitContent     : Boolean              = true,
                 scrollCache    : Int                  = 10) =
@@ -284,11 +288,25 @@ open class List<T, out M: ListModel<T>>(
 
         operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemVisualizer: IndexedItemVisualizer<T>,
+                itemVisualizer: ItemVisualizer<T, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
                 List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
+
+        operator fun invoke(
+                values        : kotlin.collections.List<View>,
+                selectionModel: SelectionModel<Int>? = null,
+                fitContent    : Boolean              = true,
+                scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+                List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
+
+        operator fun <T, M: ListModel<T>>invoke(
+                model         : M,
+                itemGenerator : ItemVisualizer<T, IndexedIem>? = null,
+                selectionModel: SelectionModel<Int>?           = null,
+                fitContent    : Boolean                        = true,
+                scrollCache   : Int                            = 10) = List(model, itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }
 

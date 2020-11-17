@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.text
 
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.PropertyObservers
@@ -16,7 +17,7 @@ open class TextField(text: String = ""): TextInput(text) {
     var placeHolder = ""
         set(new) {
             field = new
-            styleChanged()
+            styleChanged { true }
         }
 
     var fitText = emptySet<TextFit>()
@@ -29,7 +30,7 @@ open class TextField(text: String = ""): TextInput(text) {
     var borderVisible = true
         set(new) {
             field = new
-            styleChanged()
+            styleChanged { true }
         }
 
     val masked get() = mask != null
@@ -50,20 +51,11 @@ open class TextField(text: String = ""): TextInput(text) {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-    var behavior: TextFieldBehavior? = null
-        set(new) {
-            if (field == new) { return }
+    var behavior: TextFieldBehavior? by behavior { _,_ ->
+        mirrorWhenRightLeft = false
 
-            clipCanvasToBounds = true
-            field?.uninstall(this)
-
-            field = new?.also {
-                it.install(this)
-                clipCanvasToBounds = it.clipCanvasToBounds(this)
-            }
-
-            fitText()
-        }
+        fitText()
+    }
 
     init {
         boundsChanged += { _,_,_ ->

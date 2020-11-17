@@ -7,27 +7,31 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeButtonFactory
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
 
 internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, textMetrics: TextMetrics, button: Button): CommonTextButtonBehavior<Button>(textMetrics) {
 
     private val nativePeer by lazy { nativeButtonFactory(button) }
+    private var oldCursor   : Cursor? = null
+    private var oldIdealSize: Size? = null
 
     override fun render(view: Button, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 
+    override fun mirrorWhenRightToLeft(view: Button) = false
+
     override fun install(view: Button) {
         super.install(view)
 
-        view.cursor    = Default
-        view.idealSize = nativePeer.idealSize
+        view.apply {
+            cursor    = Default
+            idealSize = nativePeer.idealSize
 
-//        view.idealSize?.let {
-//            view.size = it
-//        }
-
-        view.rerender()
+            rerender()
+        }
     }
 
     override fun uninstall(view: Button) {
@@ -35,7 +39,10 @@ internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
 
         nativePeer.discard()
 
-        view.cursor = null
+        view.apply {
+            cursor    = oldCursor
+            idealSize = oldIdealSize
+        }
     }
 
     override fun released(event: PointerEvent) {

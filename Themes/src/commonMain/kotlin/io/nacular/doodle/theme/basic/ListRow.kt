@@ -1,6 +1,8 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -26,7 +28,7 @@ import kotlin.math.max
 open class ListRow<T>(private var list                           : ListLike,
                       private var row                            : T,
                               var index                          : Int,
-                      private val itemVisualizer                 : IndexedItemVisualizer<T>,
+                      private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
                       private val backgroundSelectionColor       : Color? = Blue,
                       private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
@@ -52,7 +54,9 @@ open class ListRow<T>(private var list                           : ListLike,
     }
 
     init {
-        children += itemVisualizer(row, index)
+        val listSelected = list.selected(index)
+
+        children += itemVisualizer.invoke(row, context = SimpleIndexedItem(index, listSelected))
 
         styleChanged += { rerender() }
         pointerChanged += object: PointerListener {
@@ -104,10 +108,10 @@ open class ListRow<T>(private var list                           : ListLike,
 
         val listSelected = list.selected(index)
 
-        children[0] = itemVisualizer(row, index, children.firstOrNull()) { listSelected }
+        children[0] = itemVisualizer.invoke(row, children.firstOrNull(), SimpleIndexedItem(index, listSelected))
 
         idealSize = children[0].idealSize?.let { Size(it.width, it.height + insetTop) }
-        layout = constrainLayout(children[0])
+        layout    = constrainLayout(children[0])
 
         when {
             listSelected -> {

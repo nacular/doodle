@@ -14,7 +14,7 @@ class SimpleImageApp(display: Display, imageLoader: ImageLoader): Application {
             
             // won't get here until load resolves
             image?.let {
-                display.children += Photo(it)
+                display += Photo(it)
             }
         }
     }

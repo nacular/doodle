@@ -3,7 +3,8 @@
 package io.nacular.doodle.controls.tree
 
 import io.nacular.doodle.JvmName
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.panels.ScrollPanel
@@ -14,6 +15,7 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.mostRecentAncestor
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
@@ -68,9 +70,9 @@ interface TreeLike: Selectable<Path<Int>> {
 
 open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
-                       val itemVisualizer: IndexedItemVisualizer<T>?  = null,
-        protected      val selectionModel: SelectionModel<Path<Int>>? = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-        private        val scrollCache   : Int                        = 10): View(), TreeLike {
+                       val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        protected      val selectionModel: SelectionModel<Path<Int>>?     = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
+        private        val scrollCache   : Int                            = 10): View(), TreeLike {
 
     override var rootVisible = false
         set(new) {
@@ -93,24 +95,17 @@ open class Tree<T, out M: TreeModel<T>>(
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var behavior: TreeBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
+    var behavior: TreeBehavior<T>? by behavior { _,new ->
+        new?.also {
+            this.generator     = it.generator
+            this.rowPositioner = it.positioner
 
-            field?.uninstall(this)
-
-            field = new?.also {
-                this.generator     = it.generator
-                this.rowPositioner = it.positioner
-
-                children.batch {
-                    clear     ()
-                    refreshAll()
-                }
-
-                it.install(this)
+            children.batch {
+                clear     ()
+                refreshAll()
             }
         }
+    }
 
     val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
     val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
@@ -210,20 +205,10 @@ open class Tree<T, out M: TreeModel<T>>(
                 else                          -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            val halfCacheLength = min(children.size, scrollCache) / 2
-
-            pathFromRow(firstVisibleRow + halfCacheLength)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow + halfCacheLength).y      } }
-            pathFromRow(lastVisibleRow  - halfCacheLength)?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow  - halfCacheLength).bottom } }
+            pathFromRow(firstVisibleRow)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow).y      } }
+            pathFromRow(lastVisibleRow )?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow ).bottom } }
 
             children.batch {
-                // FIXME: This is a bit of a hack to avoid inserting items into the child list at an index they won't be at as the list grows
-                // this is b/c items are mapped to their % of the list size, so the list growing will lead to different mappings
-                if (this.size <= lastVisibleRow - firstVisibleRow) {
-                    repeat(lastVisibleRow - firstVisibleRow - children.size) {
-                        add(object : View() {}.apply { visible = false })
-                    }
-                }
-
                 if (oldFirst > firstVisibleRow) {
                     val end = min(oldFirst, lastVisibleRow)
 
@@ -244,6 +229,13 @@ open class Tree<T, out M: TreeModel<T>>(
                                 return@forEach
                             }
                         } ?: return@forEach
+                    }
+                }
+
+                // this updates "hashing" of rows into the children list (using % of list size) since the children size has changed
+                if (oldLast - oldFirst != lastVisibleRow - firstVisibleRow) {
+                    (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                        update(children, path, index)
                     }
                 }
             }

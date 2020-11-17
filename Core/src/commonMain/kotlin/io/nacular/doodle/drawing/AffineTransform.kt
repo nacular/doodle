@@ -143,8 +143,6 @@ class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
         val sin = sin(by)
         val cos = cos(by)
 
-        println("sin: $sin, cos: $cos")
-
         return AffineTransform(
                 matrix * AffineMatrix3D(
                         cos, -sin, 0.0,

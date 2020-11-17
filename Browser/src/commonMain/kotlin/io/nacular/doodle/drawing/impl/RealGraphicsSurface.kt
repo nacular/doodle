@@ -30,8 +30,8 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.MutableTreeSet
-import io.nacular.doodle.utils.observable
 import kotlin.math.max
+import kotlin.properties.Delegates.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
 private fun canvasElement(view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()

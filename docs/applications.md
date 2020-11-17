@@ -65,7 +65,7 @@ OuterApp.kt
 
 class OuterApp(display: Display, appView: ApplicationViewFactory): Application {
     init {
-        display.children += appView {
+        display += appView {
             InnerApp(display = instance()) // inner app initialization 
         }
     }

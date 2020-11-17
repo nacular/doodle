@@ -1,26 +1,33 @@
 package io.nacular.doodle.controls.panels
 
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.utils.BoxOrientation
 import io.nacular.doodle.utils.BoxOrientation.Top
 import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
 
 /**
  * Provides presentation and behavior customization for [TabbedPanel].
  */
 abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
-    val TabbedPanel<T>.children         get() = this._children
-    var TabbedPanel<T>.insets           get() = this._insets;           set(new) { _insets           = new }
-    var TabbedPanel<T>.layout           get() = this._layout;           set(new) { _layout           = new }
-    var TabbedPanel<T>.isFocusCycleRoot get() = this._isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+    val TabbedPanel<T>.children         get() = _children
+    var TabbedPanel<T>.insets           get() = _insets;           set(new) { _insets           = new }
+    var TabbedPanel<T>.layout           get() = _layout;           set(new) { _layout           = new }
+    var TabbedPanel<T>.isFocusCycleRoot get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+
+    inline operator fun TabbedPanel<T>.plusAssign (view: View           ) = children.plusAssign (view )
+    inline operator fun TabbedPanel<T>.minusAssign(view: View           ) = children.minusAssign(view )
+    inline operator fun TabbedPanel<T>.plusAssign (views: Iterable<View>) = children.plusAssign (views)
+    inline operator fun TabbedPanel<T>.minusAssign(views: Iterable<View>) = children.minusAssign(views)
 
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
@@ -60,8 +67,8 @@ abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
  */
 class TabbedPanel<T>(
                orientation  : BoxOrientation = Top,
-        val    visualizer   : ItemVisualizer<T>,
-        val    tabVisualizer: ItemVisualizer<T>,
+        val    visualizer   : ItemVisualizer<T, Any>,
+        val    tabVisualizer: ItemVisualizer<T, Any>,
                item         : T,
         vararg remaining    : T
 ): View(), Iterable<T> {
@@ -74,8 +81,8 @@ class TabbedPanel<T>(
      * @param remaining items in the lest
      */
     constructor(
-                   visualizer   : ItemVisualizer<T>,
-                   tabVisualizer: ItemVisualizer<T>,
+                   visualizer   : ItemVisualizer<T, Any>,
+                   tabVisualizer: ItemVisualizer<T, Any>,
                    item         : T,
             vararg remaining    : T
     ): this(Top, visualizer, tabVisualizer, item, *remaining)
@@ -95,24 +102,17 @@ class TabbedPanel<T>(
     val numItems: Int get() = items.size
 
     /** The currently selected item/tab. Defaults to `0`. */
-    var selection: Int? by ObservableProperty(0, { this }, selectionChanged as PropertyObserversImpl)
+    var selection: Int? by observable(0, selectionChanged as PropertyObserversImpl)
 
     /** The location of the tabs. */
-    var orientation: BoxOrientation by ObservableProperty(orientation, { this }, orientationChanged as PropertyObserversImpl)
+    var orientation: BoxOrientation by observable(orientation, orientationChanged as PropertyObserversImpl)
 
     /** Component responsible for controlling the presentation and behavior of the panel. */
-    var behavior: TabbedPanelBehavior<T>? = null
-        set(new) {
-            if (new == field) return
-
-            children.batch {
-                field?.uninstall(this@TabbedPanel)
-
-                clear()
-
-                field = new?.apply { install(this@TabbedPanel) }
-            }
+    var behavior: TabbedPanelBehavior<T>? by behavior { _,_ ->
+        children.batch {
+            clear()
         }
+    }
 
     // Expose container APIs for behavior
     internal val _children         get() = children
@@ -237,4 +237,18 @@ class TabbedPanel<T>(
      * @param item to replace it with
      */
     operator fun set(at: Int, item: T) = items.set(at, item)
+
+    companion object {
+        operator fun invoke(
+                       orientation  : BoxOrientation = Top,
+                       tabVisualizer: ItemVisualizer<View, Any>,
+                       item         : View,
+                vararg remaining    : View) = TabbedPanel(
+                    orientation   = orientation,
+                    visualizer    = ViewVisualizer,
+                    tabVisualizer = tabVisualizer,
+                    item          = item,
+                    remaining     = *remaining
+            )
+    }
 }

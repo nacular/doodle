@@ -1,13 +1,14 @@
 package io.nacular.doodle.controls.tree
 
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.utils.Path
 
 /**
  * Created by Nicholas Eddy on 9/29/19.
  */
-open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: IndexedItemVisualizer<T>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
+open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }

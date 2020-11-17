@@ -45,7 +45,7 @@ interface Animation: Completable
 interface Animator {
     interface Listener {
         fun changed  (animator: Animator, animations: Set<Animation>) {}
-        fun cancelled(animator: Animator, animations: Set<Animation>) {}
+        fun canceled (animator: Animator, animations: Set<Animation>) {}
         fun completed(animator: Animator, animations: Set<Animation>) {}
     }
 

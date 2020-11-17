@@ -45,13 +45,14 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.ObservableProperty
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
+import kotlin.properties.Delegates.observable
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
@@ -112,16 +113,11 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    var bounds: Rectangle by object: ObservableProperty<View, Rectangle>(Empty, { this }, boundsChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: Rectangle, newValue: Rectangle) {
-            boundingBox = transform(newValue).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
+    var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
+        boundingBox = transform(new).boundingRectangle
     }
 
-    internal val clipCanvasToBounds_ get() = clipCanvasToBounds
-
+    internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
     /**
      * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to `false` to support
      * things like shadows or glows that aren't intended to be included in the normal bounding box.
@@ -165,12 +161,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
-    open var transform by object: ObservableProperty<View, AffineTransform>(Identity, { this }, transformChanged as PropertyObserversImpl) {
-        override fun afterChange(property: KProperty<*>, oldValue: AffineTransform, newValue: AffineTransform) {
-            boundingBox = newValue(bounds).boundingRectangle
-
-            super.afterChange(property, oldValue, newValue)
-        }
+    open var transform by observable(Identity, transformChanged as PropertyObserversImpl) { _, new ->
+        boundingBox = new(bounds).boundingRectangle
     }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
@@ -219,31 +211,31 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
-    var zOrder by ObservableProperty(0, { this }, zOrderChanged as PropertyObserversImpl<View, Int>)
+    var zOrder by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Notifies changes to [visible] */
     val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is visible.  The default is `true`. */
-    var visible by ObservableProperty(true, { this }, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+    var visible by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [enabled] */
     val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is enabled.  The default is `true`.  */
-    var enabled by ObservableProperty(true, { this }, enabledChanged as PropertyObserversImpl<View, Boolean>)
+    var enabled by observable(true, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
     val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is focusable  The default is `true`.  */
-    open var focusable by ObservableProperty(true, { this }, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
+    open var focusable by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
     val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether the View has focus or not.  The default is `false`.  */
-    var hasFocus by ObservableProperty(false, { this }, focusChanged as PropertyObserversImpl<View, Boolean>)
+    var hasFocus by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
     /**
@@ -291,12 +283,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
             actualCursor = new
 
-            (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
-
-            // Notify relevant children that their cursor has changed
-            children.filter { it.actualCursor == null }.forEach {
-                (it.cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
-            }
+            cursorChanged(old, new)
         }
 
     /** Notifies changes to [cursor] */
@@ -312,14 +299,14 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
             actualFont = new
 
-            styleChanged()
+            styleChanged { it.actualFont == null }
         }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
-    var foregroundColor: Color? = null; set(new) { field = new; styleChanged() }
+    var foregroundColor: Color? = null; set(new) { field = new; styleChanged { it.foregroundColor == null } }
 
     /** Optional color that the View could use for its background */
-    var backgroundColor: Color? = null; set(new) { field = new; styleChanged() }
+    var backgroundColor: Color? = null; set(new) { field = new; styleChanged { it.backgroundColor == null } }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
@@ -370,14 +357,14 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     /**
      * Indicates whether the framework should notify the View of changes to its visible region as a result of
      * changes to bounds in its ancestor chain.  The events for this require monitoring potentially large sets
-     * of Views in the hierachy and the events can be frequent during layout changes.  So the default value is
+     * of Views in the hierarchy and the events can be frequent during layout changes.  So the default value is
      * `false`.  But it is useful for things like efficient rendering of sub-portions (i.e. long list-like Views)
      * where the cost is outweighed.
      *
      * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
-    var monitorsDisplayRect by ObservableProperty(false, { this }, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
+    var monitorsDisplayRect by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
 
     /**
      * Indicates the direction of content within the View; used to support right-to-left locales.
@@ -417,6 +404,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
             updateNeedsMirror()
         }
 
+    internal var mirrorWhenRightLeft_ get() = mirrorWhenRightLeft; set(new) { mirrorWhenRightLeft = new }
+
     /**
      * Indicates whether the framework should apply an additional [AffineTransform]
      * to ensure the View is properly oriented based on its [mirrored] state relative
@@ -441,14 +430,26 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
         (contentDirectionChanged as ChangeObserversImpl)()
 
-        notifyChildrenContentDirectionChanged()
+        // Notify relevant children that their content direction has changed
+        children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
     }
 
     @JsName("fireStyleChanged")
-    protected fun styleChanged() {
+    protected fun styleChanged(filter: (View) -> Boolean) {
         (styleChanged as ChangeObserversImpl)()
 
-        notifyChildrenStyleChanged()
+        // Notify relevant children that their style has changed
+        children.filter(filter).forEach { it.styleChanged(filter) }
+    }
+
+    @JsName("fireCursorChanged")
+    protected fun cursorChanged(old: Cursor?, new: Cursor?) {
+        (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
+
+        // Notify relevant children that their cursor has changed
+        children.filter { it.actualCursor == null }.forEach {
+            it.cursorChanged(old, new)
+        }
     }
 
     /**
@@ -461,16 +462,6 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     internal fun updateNeedsMirror() {
         needsMirrorTransform = mirrored != (parent?.mirrored ?: display?.mirrored == true)
-    }
-
-    private fun notifyChildrenContentDirectionChanged() {
-        // Notify relevant children that their content direction has changed
-        children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
-    }
-
-    private fun notifyChildrenStyleChanged() {
-        // Notify relevant children that their style has changed
-        children.filter { it.actualFont == null }.forEach { it.styleChanged() }
     }
 
     // ================= Container ================= //
@@ -588,16 +579,16 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     protected open fun doLayout() = layout?.layout(positionableWrapper)
 
     /**
-     * Gets the View at the given point.
+     * Gets the child (if any) at the given point in the View's coordinate system (relative to the View).
      *
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
     protected open fun child(at: Point): View? = when {
         false == childrenClipPoly?.contains(at) -> null
-        else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
+        else                                       -> when (val result = layout?.child(positionableWrapper, at)) {
             null, Ignored -> {
-                var child = null as View?
+                var child     = null as View?
                 var topZOrder = 0
 
                 children.reversed().forEach {
@@ -688,7 +679,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     fun toLocal(point: Point, from: View?): Point = when {
         from ==  null        -> fromAbsolute(point)
         from === this        -> point
-        from === this.parent -> (transform.inverse?.invoke(point) ?: point) - position
+        from === this.parent -> (resolvedTransform.inverse?.invoke(point) ?: point) - position
         else                 -> fromAbsolute(from.toAbsolute(point))
     }
 
@@ -698,7 +689,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    fun toAbsolute(point: Point): Point = transform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
+    fun toAbsolute(point: Point): Point = resolvedTransform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
@@ -869,7 +860,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     internal fun removedFromDisplay_() {
         accessibilityRole?.let {
-            accessibilityManager?.roleAdopted(this)
+            accessibilityManager?.roleAbandoned(this)
         }
 
         display              = null
@@ -895,8 +886,15 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 }
 
+/**
+ * The View's center point in its **parent's** coordinate system.
+ */
 val View.center get() = position + Point(width/2, height/2)
 
+/**
+ * @param filter used in search
+ * @return the most recent ancestor that matches the [filter]
+ */
 fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
     var result = parent
 
@@ -906,3 +904,53 @@ fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
 
     return result
 }
+
+/**
+ * Delegate that manages installation and uninstallation of a [Behavior] and calls [beforeChange]
+ * before applying changes.
+ *
+ * @param beforeChange is called before a change is applied
+ */
+fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange)
+
+private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit): ReadWriteProperty<T, B?> {
+    private var behavior: B? = null
+
+    override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
+
+    override operator fun setValue(thisRef: T, property: KProperty<*>, value: B?) {
+        thisRef.clipCanvasToBounds_  = true
+        thisRef.mirrorWhenRightLeft_ = true
+
+        beforeChange(behavior, value)
+
+        behavior?.uninstall(thisRef)
+
+        behavior = value?.also { behavior ->
+            behavior.install(thisRef)
+            thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
+            thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
+        }
+    }
+}
+
+/**
+ * Class to enable `panel { ... }` DSL.
+ * @property render operations to perform
+ */
+class ViewBuilder: View() {
+    private var render_: Canvas.() -> Unit = {}
+
+    var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }
+
+    override fun render(canvas: Canvas) {
+        render_(canvas)
+    }
+}
+
+/**
+ * DSL for creating a custom [View].
+ *
+ * @param block used to configure the View
+ */
+fun view(block: ViewBuilder.() -> Unit): View = ViewBuilder().also(block)

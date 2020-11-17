@@ -1,14 +1,20 @@
 package io.nacular.doodle.core.impl
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.core.Box
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.PositionableWrapper
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.container
 import io.nacular.doodle.core.height
+import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
@@ -21,10 +27,6 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.PropertyObserver
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlin.js.JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
@@ -118,10 +120,10 @@ class DisplayImplTests {
         val child2  = view().apply { x += 20.0; y += 12.0 }
         val child3  = view().apply { x += 10.0; y += 23.0; width = 0.0 }
 
-        display.children += child0
-        display.children += child1
-        display.children += child2
-        display.children += child3
+        display += child0
+        display += child1
+        display += child2
+        display += child3
 
         expect(child1) { display.child(at = Point(11.0, 13.0)) }
         expect(child2) { display.child(at = Point(20.0, 12.0)) }
@@ -154,8 +156,8 @@ class DisplayImplTests {
 
     @Test @JsName("isAncestorWorks") fun `is-ancestor works`() {
         val display = display()
-        val parent  = object: Box() {}
-        val child   = object: View() {}
+        val parent  = container {}
+        val child   = view {}
 
         expect(false) { display ancestorOf mockk() }
         expect(false) { display ancestorOf child   }

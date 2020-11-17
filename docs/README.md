@@ -3,11 +3,9 @@
 
 ----
 
-[![Kotlin 1.3.72](https://img.shields.io/badge/Kotlin-1.3.72-blue.svg?style=flat&logo=kotlin)](http://kotlinlang.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pusolito/doodle/blob/master/LICENSE)
-
-----
-## Why Doodle?
+[![Kotlin 1.3.72](https://img.shields.io/badge/Kotlin-1.3.72-blue.svg?style=for-the-badge&logo=kotlin)](http://kotlinlang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
+[![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
 ### Single-language
 Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle [Applications](applications.md) do not use HTML,
@@ -36,15 +34,19 @@ with bundle size. Apps written with Doodle are also dependency-injected; and the
 
 ## Hello World
 ```kotlin
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.view
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.text
+
 class HelloWorld(display: Display): Application {
     init {
-        display.children += object: View() {
-            init { size = display.size }
-
-            override fun render(canvas: Canvas) {
-                canvas.text("Hello, world!",
-                    at = Origin, 
-                    fill = ColorFill(Black))
+        display += view {
+            size   = display.size
+            render = {
+                text("Hello, world!", color = Black)
             }
         }
     }
@@ -71,3 +73,5 @@ fun main() {
 
 Doodle is still under active development, so there are going to be gaps and bugs. Please report [issues](https://github.com/pusolito/doodle/issues),
 and submit feature requests.
+
+You can also join the discussion on the [#doodle](https://kotlinlang.slack.com/messages/doodle) Kotlin Slack channel.

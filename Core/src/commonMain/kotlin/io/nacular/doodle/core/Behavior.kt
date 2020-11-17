@@ -17,6 +17,14 @@ interface Behavior<in T: View> {
     fun clipCanvasToBounds(view: T): Boolean = view.clipCanvasToBounds_
 
     /**
+     * Allows the Behavior to override the View's [View.mirrorWhenRightLeft] property.
+     *
+     * @param view being controlled
+     * @see View.mirrorWhenRightLeft
+     */
+    fun mirrorWhenRightToLeft(view: T): Boolean = view.mirrorWhenRightLeft
+
+    /**
      * Invoked to render the given [View].
      *
      * @param view being controlled

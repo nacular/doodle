@@ -1,7 +1,8 @@
 package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.DynamicListModel
-import io.nacular.doodle.controls.IndexedItemVisualizer
+import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.SelectionModel
@@ -120,8 +121,8 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
 
         protected val selectionModelWrapper = selectionModel?.let { SelectionModelWrapper(it) }
 
-        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: IndexedItemVisualizer<R> {
-            override fun invoke(item: R, index: Int, previous: View?, isSelected: () -> Boolean) = object: View() {}
+        override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: ItemVisualizer<R, IndexedIem> {
+            override fun invoke(item: R, previous: View?, context: IndexedIem) = object: View() {}
         }, selectionModelWrapper, fitContent = false).apply {
             acceptsThemes = false
         }

@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Orientation
@@ -25,13 +26,7 @@ class ProgressBar(
      */
     constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
-    var behavior: Behavior<ProgressBar>? = null
-        set(new) {
-            if (field == new) { return }
-
-            field?.uninstall(this)
-            field = new?.apply { install(this@ProgressBar) }
-        }
+    var behavior: Behavior<ProgressBar>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

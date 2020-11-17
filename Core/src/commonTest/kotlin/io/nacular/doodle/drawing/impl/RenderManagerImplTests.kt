@@ -10,7 +10,7 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.nacular.doodle.accessibility.AccessibilityManager
-import io.nacular.doodle.core.Box
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
@@ -162,7 +162,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("removesTopLevelViews")
     fun `removes top-level views`() {
-        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -182,8 +182,8 @@ class RenderManagerImplTests {
 
     @Test @JsName("noopRemoveAddTopLevelViews")
     fun `no-op remove, add top-level views`() {
-        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
         val surface1   = mockk<GraphicsSurface>()
         val surface2   = mockk<GraphicsSurface>()
@@ -207,8 +207,8 @@ class RenderManagerImplTests {
 
     @Test @JsName("zOrderChangeTopLevelViews")
     fun `z-order change top-level views`() {
-        val container1 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val container2 = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
         val surface1   = mockk<GraphicsSurface>()
         val surface2   = mockk<GraphicsSurface>()
@@ -232,7 +232,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("removesNestedViews")
     fun `removes nested views`() {
-        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -443,7 +443,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("revalidatesParentWhenNewViews")
     fun `revalidates parent out when new views`() {
-        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         val display = display(container)
@@ -468,7 +468,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("reflectsVisibilityChange")
     fun `reflects visibility change`() {
-        val container = spyk<Box> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = spyk<View>(     ).apply { bounds = Rectangle(size = Size( 10.0,  10.0)) }
 
         container.children += child
@@ -513,7 +513,7 @@ class RenderManagerImplTests {
 
     @Test @JsName("installsThemeForDisplayedViews")
     fun `installs theme for displayed views`() {
-        val container = spyk<Box>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         container.children += child
@@ -525,6 +525,27 @@ class RenderManagerImplTests {
 
         verify(exactly = 1) { themeManager.update(container) }
         verify(exactly = 1) { themeManager.update(child    ) }
+    }
+
+    @Test @JsName("installsThemeForReAddedViews")
+    fun `installs theme for re-added views`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child     = view()
+
+        container.children += child
+
+        val display      = display(container)
+        val themeManager = mockk<InternalThemeManager>()
+
+        renderManager(display, themeManager = themeManager)
+
+        verify(exactly = 1) { themeManager.update(container) }
+        verify(exactly = 1) { themeManager.update(child    ) }
+
+        container.children -= child
+        container.children += child
+
+        verify(exactly = 2) { themeManager.update(child    ) }
     }
 
     @Test @JsName("removesWhenReAddedTopLevel")
@@ -841,7 +862,7 @@ class RenderManagerImplTests {
     }
 
     private fun verifyLayout(block: (View) -> Unit) {
-        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         container.layout    = mockk()
@@ -868,7 +889,7 @@ class RenderManagerImplTests {
     }
 
     private fun view     (): View = object: View() {}.apply { size = Size(10, 10) }
-    private fun container(): Box  = Box().apply             { size = Size(10, 10) }
+    private fun container(): Container = io.nacular.doodle.core.container { size = Size(10, 10) }
 
     private fun doesNotRender(view: View) {
         renderManager(display(view))
@@ -877,7 +898,7 @@ class RenderManagerImplTests {
     }
 
     private fun doesNotRenderChild(view: View) {
-        val container = spyk<Box>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
         container.children += view
 

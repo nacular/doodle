@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.treecolumns
 
-import io.nacular.doodle.controls.TextItemVisualizer
-import io.nacular.doodle.controls.ignoreIndex
+import io.nacular.doodle.controls.TextVisualizer
+import io.nacular.doodle.controls.toString
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior.CellGenerator
@@ -13,7 +13,6 @@ import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Stroke
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -41,13 +40,12 @@ import io.nacular.doodle.utils.Path
 
 open class BasicTreeColumnRowGenerator<T>(
         private val focusManager         : FocusManager?,
-        private val textMetrics          : TextMetrics,
         private val selectionColor       : Color? = Green.lighter(),
         private val selectionBlurredColor: Color? = Lightgray,
         private val iconFactory          : () -> TreeColumnRowIcon = { SimpleTreeColumnRowIcon() }): CellGenerator<T> {
     override fun invoke(treeColumns: TreeColumns<T, *>, node: T, path: Path<Int>, row: Int, current: View?): View = when (current) {
         is TreeColumnRow<*> -> (current as TreeColumnRow<T>).apply { update(treeColumns, node, path, row) }
-        else                -> TreeColumnRow(treeColumns, node, path, row, treeColumns.itemVisualizer ?: ignoreIndex(io.nacular.doodle.controls.toString(TextItemVisualizer(textMetrics))), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
+        else                -> TreeColumnRow(treeColumns, node, path, row, treeColumns.itemVisualizer ?: toString(TextVisualizer()), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(treeColumns)
@@ -65,14 +63,13 @@ class BasicTreeColumnsBehavior<T>(
 
     constructor(
             focusManager         : FocusManager?,
-            textMetrics          : TextMetrics,
             rowHeight            : Double = 20.0,
             columnSeparatorColor : Color? = Lightgray.lighter().lighter(),
             selectionColor       : Color? = Green.lighter(),
             selectionBlurredColor: Color? = Lightgray,
             backgroundColor      : Color? = Lightgray,
             iconFactory          : () -> TreeColumnRowIcon = { SimpleTreeColumnRowIcon() }
-    ): this(BasicTreeColumnRowGenerator(focusManager, textMetrics, selectionColor, selectionBlurredColor, iconFactory), columnSeparatorColor, backgroundColor, rowHeight)
+    ): this(BasicTreeColumnRowGenerator(focusManager, selectionColor, selectionBlurredColor, iconFactory), columnSeparatorColor, backgroundColor, rowHeight)
 
     private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
         override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.rowBounds(columnWidth, Insets(right = VERTICAL_LINE_THICKNESS), index, current)
