@@ -16,7 +16,7 @@ import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.text.Label
-import io.nacular.doodle.controls.theme.LabelBehavior
+import io.nacular.doodle.controls.theme.CommonLabelBehavior
 import io.nacular.doodle.controls.tree.MutableTree
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeModel
@@ -135,7 +135,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicListBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
@@ -156,7 +155,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMutableListBehavior(
                         focusManager          = instanceOrNull(),
-                        textMetrics           = instance(),
                         evenRowColor          = evenRowColor          ?: this.evenRowColor,
                         oddRowColor           = oddRowColor           ?: this.oddRowColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
@@ -177,7 +175,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicTreeBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             rowHeight             = rowHeight             ?: 20.0,
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
@@ -200,7 +197,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMutableTreeBehavior(
                             focusManager          = instanceOrNull(),
-                            textMetrics           = instance(),
                             rowHeight             = rowHeight             ?: 20.0,
                             evenRowColor          = evenRowColor          ?: this.evenRowColor,
                             oddRowColor           = oddRowColor           ?: this.oddRowColor,
@@ -213,7 +209,7 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
 
         fun basicLabelBehavior(foregroundColor: Color? = null) = basicThemeModule(name = "BasicLabelBehavior") {
             bindBehavior<Label>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { LabelBehavior(foregroundColor ?: this.foregroundColor) }
+                it.behavior = instance<BasicThemeConfig>().run { CommonLabelBehavior(instance(), foregroundColor ?: this.foregroundColor) }
             }
         }
 
@@ -267,7 +263,6 @@ open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Ite
             bindBehavior<TreeColumns<Any, *>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTreeColumnsBehavior (
                         focusManager          = instanceOrNull(),
-                        textMetrics           = instance(),
                         rowHeight             = rowHeight             ?: 20.0,
                         columnSeparatorColor  = columnSeparatorColor  ?: this.backgroundColor,
                         backgroundColor       = backgroundColor       ?: this.oddRowColor,

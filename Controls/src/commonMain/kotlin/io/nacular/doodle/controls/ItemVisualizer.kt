@@ -5,7 +5,6 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
 import kotlin.math.max
@@ -32,10 +31,10 @@ operator fun <T> ItemVisualizer<T, Any>.invoke(item: T, previous: View? = null):
 /**
  * Visualizes Strings using [Label]s.
  */
-open class TextVisualizer(private val textMetrics: TextMetrics, private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
+open class TextVisualizer(private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { text = item; this@TextVisualizer.fitText?.let { fitText = it } }
-        else     -> Label(textMetrics, StyledText(item)).apply {
+        else     -> Label(StyledText(item)).apply {
             this@TextVisualizer.fitText?.let { fitText = it }
         }
     }

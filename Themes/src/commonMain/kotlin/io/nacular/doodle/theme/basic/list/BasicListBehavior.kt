@@ -9,7 +9,6 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -24,8 +23,7 @@ import io.nacular.doodle.theme.basic.SelectableListKeyHandler
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-open class BasicItemGenerator<T>(private val textMetrics          : TextMetrics,
-                                 private val selectionColor       : Color?,
+open class BasicItemGenerator<T>(private val selectionColor       : Color?,
                                  private val selectionBlurredColor: Color?): RowGenerator<T> {
 
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
@@ -34,7 +32,7 @@ open class BasicItemGenerator<T>(private val textMetrics          : TextMetrics,
                 list                            = list,
                 row                             = row,
                 index                           = index,
-                itemVisualizer                  = list.itemVisualizer ?: toString(TextVisualizer(textMetrics)),
+                itemVisualizer                  = list.itemVisualizer ?: toString(TextVisualizer()),
                 backgroundSelectionColor        = selectionColor,
                 backgroundSelectionBlurredColor = selectionBlurredColor
         )
@@ -57,12 +55,11 @@ open class BasicListBehavior<T>(private  val focusManager: FocusManager?,
                                              oddRowColor : Color?,
                                              rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
     constructor(focusManager         : FocusManager?,
-                textMetrics          : TextMetrics,
                 rowHeight            : Double,
                 evenRowColor         : Color?,
                 oddRowColor          : Color?,
                 selectionColor       : Color?,
-                selectionBlurredColor: Color?): this(focusManager, BasicItemGenerator(textMetrics, selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
+                selectionBlurredColor: Color?): this(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
 
     private val patternFill = when {
         evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)

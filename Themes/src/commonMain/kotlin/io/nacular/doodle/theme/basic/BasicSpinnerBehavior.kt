@@ -93,7 +93,7 @@ class BasicSpinnerBehavior(
         }
     }
 
-    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer(textMetrics, fitText = emptySet())) }
+    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer(fitText = emptySet())) }
 
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 

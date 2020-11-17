@@ -22,7 +22,7 @@ import kotlin.test.expect
 class LabelTests {
     @Test @JsName("setText")
     fun `set text`() {
-        Label(createTextMetrics()).let { label ->
+        Label().let { label ->
             "foo bar some simple text".let {
                 label.text = it
 
@@ -33,7 +33,7 @@ class LabelTests {
 
     @Test @JsName("setStyledText")
     fun `set styled text`() {
-        Label(createTextMetrics()).let { label ->
+        Label().let { label ->
             styledText().let {
                 label.styledText = it
 
@@ -47,7 +47,8 @@ class LabelTests {
     fun `sets size to text size`() {
         val textSize = Size(100.0, 345.0)
 
-        Label(createTextMetrics(textSize)).let {
+        Label().let {
+            it.behavior   = createBehavior(textSize)
             it.styledText = styledText()
 
             assertEquals(textSize, it.size)
@@ -59,7 +60,8 @@ class LabelTests {
         val textSize = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
-        Label(createTextMetrics(textSize, wrappedSize)).let {
+        Label().let {
+            it.behavior   = createBehavior(wrappedSize)
             it.styledText = styledText()
             it.wrapsWords = true
 
@@ -71,7 +73,8 @@ class LabelTests {
     fun `keeps size to text size`() {
         val textSize = Size(100.0, 345.0)
 
-        Label(createTextMetrics(textSize)).let {
+        Label().let {
+            it.behavior   = createBehavior(textSize)
             it.styledText = styledText()
             it.size       = Empty
 
@@ -84,7 +87,8 @@ class LabelTests {
         val textSize    = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
-        Label(createTextMetrics(textSize, wrappedSize)).let {
+        Label().let {
+            it.behavior   = createBehavior(wrappedSize)
             it.styledText = styledText()
             it.wrapsWords = true
             it.size       = Empty
@@ -98,7 +102,8 @@ class LabelTests {
         val textSize    = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
-        Label(createTextMetrics(textSize, wrappedSize)).let {
+        Label().let {
+            it.behavior   = createBehavior(wrappedSize)
             it.styledText = styledText()
             it.fitText    = emptySet()
             it.wrapsWords = true
@@ -110,7 +115,7 @@ class LabelTests {
 
     @Test @JsName("foregroundColorFillsStyledTextMissingColor")
     fun `foreground color fills in styled text missing color`() {
-        Label(createTextMetrics()).apply {
+        Label().apply {
             val rawStyledText = "blank ".. Red ("red") .. " blank"
 
             styledText = rawStyledText
@@ -129,7 +134,7 @@ class LabelTests {
 
     @Test @JsName("fontFillsStyledTextMissingFont")
     fun `font fills in styled text missing font`() {
-        Label(createTextMetrics()).apply {
+        Label().apply {
             val font1         = mockk<Font>()
             val font2         = mockk<Font>()
             val font3         = mockk<Font>()
@@ -153,6 +158,10 @@ class LabelTests {
         val font = mockk<Font>()
 
         return "foo bar "..font("some simple").." text"
+    }
+
+    private fun createBehavior(size: Size = Empty) = mockk<LabelBehavior>(relaxed = true).apply {
+        every { measureText(any()) } returns size
     }
 
     private fun createTextMetrics(size: Size = Empty, wrappedSize: Size = Empty) = mockk<TextMetrics>(relaxed = true).apply {
