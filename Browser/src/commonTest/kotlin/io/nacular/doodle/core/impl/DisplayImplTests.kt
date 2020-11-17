@@ -13,6 +13,7 @@ import io.nacular.doodle.core.PositionableWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.height
+import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
@@ -119,10 +120,10 @@ class DisplayImplTests {
         val child2  = view().apply { x += 20.0; y += 12.0 }
         val child3  = view().apply { x += 10.0; y += 23.0; width = 0.0 }
 
-        display.children += child0
-        display.children += child1
-        display.children += child2
-        display.children += child3
+        display += child0
+        display += child1
+        display += child2
+        display += child3
 
         expect(child1) { display.child(at = Point(11.0, 13.0)) }
         expect(child2) { display.child(at = Point(20.0, 12.0)) }
