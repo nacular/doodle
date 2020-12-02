@@ -38,7 +38,7 @@ them for the controls you use.
 
 ### [Label](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/text/Label.kt#L41)
 
-Holds and displays static text with support for basic styling. You can construct it using the [`LableFactory`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/text/Label.kt#L22).
+Holds and displays static text with support for basic styling. You can construct it using the [`LabelFactory`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/text/Label.kt#L22).
 
 ```kotlin
 val Label: LabelFactory // injectable to app and Views
