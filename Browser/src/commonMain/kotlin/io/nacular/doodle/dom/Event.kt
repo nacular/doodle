@@ -37,7 +37,9 @@ expect open class MouseEvent: UIEvent {
     open val buttons : Short
 }
 
-expect open class PointerEvent: MouseEvent
+expect open class PointerEvent: MouseEvent {
+    val pointerType: String
+}
 
 expect open class WheelEvent: MouseEvent {
     val deltaY: Double

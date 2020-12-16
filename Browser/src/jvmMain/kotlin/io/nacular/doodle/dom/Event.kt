@@ -41,6 +41,8 @@ actual open class WheelEvent: MouseEvent() {
     actual val deltaX = 0.0
 }
 
-actual open class PointerEvent: MouseEvent()
+actual open class PointerEvent: MouseEvent() {
+    actual val pointerType = ""
+}
 
 actual open class TouchEvent: UIEvent()
