@@ -104,15 +104,16 @@ private class NestedPointerInputStrategy(private val view: ApplicationView, priv
     override fun startUp(handler: EventHandler) {
         // Provide an adapter to handle mapping pointer location correctly based on ApplicationView's orientation
         delegate.startUp(object: EventHandler {
-            override fun handle(event: SystemPointerEvent) {
-                handler.handle(SystemPointerEvent(
-                        event.type,
-                        view.fromAbsolute(pointerLocation),
-                        event.buttons,
-                        event.clickCount,
-                        event.modifiers,
-                        event.nativeScrollPanel))
-            }
+            override fun handle(event: SystemPointerEvent) = handler.handle(
+                SystemPointerEvent(
+                    event.type,
+                    view.fromAbsolute(pointerLocation),
+                    event.buttons,
+                    event.clickCount,
+                    event.modifiers,
+                    event.nativeScrollPanel
+                )
+            )
         })
     }
 }

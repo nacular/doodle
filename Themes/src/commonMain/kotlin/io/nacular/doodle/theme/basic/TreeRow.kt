@@ -230,6 +230,7 @@ class TreeRow<T>(tree                 : TreeLike,
                     override fun pressed(event: PointerEvent) {
                         pressed     = true
                         pointerOver = true
+                        event.consume()
                     }
 
                     override fun released(event: PointerEvent) {

@@ -5,6 +5,7 @@ import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
+import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.WheelEvent
 
 /**
@@ -129,6 +130,8 @@ expect abstract class HTMLElement: Element {
 
 internal expect fun HTMLElement.stopMonitoringSize ()
 internal expect fun HTMLElement.startMonitoringSize()
+
+internal expect var HTMLElement.ontouchmove: ((TouchEvent  ) -> Any)?
 
 expect var HTMLElement.role: String?
 

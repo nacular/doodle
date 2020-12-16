@@ -44,3 +44,4 @@ expect open class WheelEvent: MouseEvent {
     val deltaX: Double
 }
 
+expect open class TouchEvent: UIEvent

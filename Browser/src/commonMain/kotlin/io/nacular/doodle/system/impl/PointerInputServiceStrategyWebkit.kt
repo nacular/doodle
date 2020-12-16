@@ -8,6 +8,7 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.ontouchmove
 import io.nacular.doodle.removeEventListener
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemInputEvent.Modifier
@@ -101,6 +102,8 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun mouseUp(event: MouseEvent): Boolean {
+        inputDevice?.ontouchmove = null
+
         eventHandler?.handle(createPointerEvent(event, Up, 1))
 
         return isNativeElement(event.target).ifFalse {
@@ -127,7 +130,11 @@ internal open class PointerInputServiceStrategyWebkit(
         // unless touch is dragged
         updatePointer(event)
 
-        eventHandler?.handle(createPointerEvent(event, Down, 1))
+        val consumed = eventHandler?.handle(createPointerEvent(event, Down, 1))
+
+        if (consumed == true) {
+            inputDevice?.ontouchmove = { it.preventDefault(); it.stopPropagation() }
+        }
 
         return true
     }

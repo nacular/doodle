@@ -42,3 +42,5 @@ actual open class WheelEvent: MouseEvent() {
 }
 
 actual open class PointerEvent: MouseEvent()
+
+actual open class TouchEvent: UIEvent()
