@@ -36,7 +36,7 @@ open class BasicButtonBehavior(
 
     private var insets = Insets(insets)
 
-    protected data class RenderColors(val fillColor: Color, val textColor: Color, val borderColor: Color?)
+    protected class RenderColors(val fillColor: Color, val textColor: Color, val borderColor: Color?)
 
     protected fun colors(view: Button): RenderColors {
         val model       = view.model

@@ -392,4 +392,4 @@ private fun UInt.toRgb(): RGB {
             (this and 0x0000ffu       ).toUByte())
 }
 
-private data class RGB(val red: UByte, var green: UByte, var blue: UByte)
+private class RGB(val red: UByte, var green: UByte, var blue: UByte)

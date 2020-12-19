@@ -19,8 +19,47 @@ import org.w3c.dom.HTMLCanvasElement
 import kotlin.math.max
 
 
-private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?)
-private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double                 )
+private class WrappedInfo(val text: String, val width: Double, val indent: Double, val font: Font?) {
+    override fun hashCode(): Int {
+        var result = text.hashCode()
+        result = 31 * result + width.hashCode()
+        result = 31 * result + indent.hashCode()
+        result = 31 * result + (font?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is WrappedInfo) return false
+
+        if (text != other.text) return false
+        if (width != other.width) return false
+        if (indent != other.indent) return false
+        if (font != other.font) return false
+
+        return true
+    }
+}
+
+private class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is WrappedStyleInfo) return false
+
+        if (text != other.text) return false
+        if (width != other.width) return false
+        if (indent != other.indent) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = text.hashCode()
+        result = 31 * result + width.hashCode()
+        result = 31 * result + indent.hashCode()
+        return result
+    }
+}
 
 class TextMetricsImpl(private val textFactory: TextFactory, private val htmlFactory: HtmlFactory, private val elementRuler: ElementRuler): TextMetrics {
     // FIXME: Use Canvas for all text measurements (heights are tricky)

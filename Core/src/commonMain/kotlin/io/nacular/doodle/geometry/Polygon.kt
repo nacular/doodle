@@ -63,7 +63,7 @@ abstract class Polygon: Shape {
  * A Polygon with internal angles all <= 180°
  */
 abstract class ConvexPolygon: Polygon() {
-    private data class Line(val start: Point, val end: Point)
+    private class Line(val start: Point, val end: Point)
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
     override val area: Double by lazy {
@@ -244,7 +244,7 @@ fun Polygon.rounded(config: (index: Int, Point) -> Double): Path {
     return builder.close()
 }
 
-private data class PointRelationShip(
+private class PointRelationShip(
         val previous: Point,
         val point   : Point,
         val next    : Point,

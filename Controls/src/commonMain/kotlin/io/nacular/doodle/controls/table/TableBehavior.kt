@@ -13,7 +13,7 @@ import io.nacular.doodle.utils.Path
 /**
  * Created by Nicholas Eddy on 4/6/19.
  */
-data class HeaderGeometry(val y: Double, val height: Double)
+class HeaderGeometry(val y: Double, val height: Double)
 
 interface TableBehavior<T>: Behavior<Table<T, *>> {
     interface CellGenerator<T> {
