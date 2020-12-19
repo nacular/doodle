@@ -8,6 +8,7 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.ontouchmove
 import io.nacular.doodle.removeEventListener
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemInputEvent.Modifier
@@ -68,8 +69,9 @@ internal open class PointerInputServiceStrategyWebkit(
     override var pointerLocation = Origin
         protected set
 
-    private var inputDevice  = null as HTMLElement?
-    private var eventHandler = null as EventHandler?
+    private var inputDevice   = null as HTMLElement?
+    private var eventHandler  = null as EventHandler?
+    private var preventScroll = false
 
     override fun startUp(handler: EventHandler) {
         eventHandler = handler
@@ -101,7 +103,9 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun mouseUp(event: MouseEvent): Boolean {
-        eventHandler?.handle(createPointerEvent(event, Up, 1))
+        preventScroll = false
+
+        eventHandler?.handle(createPointerEvent(event, Up, 1, (event as? io.nacular.doodle.dom.PointerEvent)?.pointerType == "touch"))
 
         return isNativeElement(event.target).ifFalse {
             event.preventDefault ()
@@ -127,7 +131,7 @@ internal open class PointerInputServiceStrategyWebkit(
         // unless touch is dragged
         updatePointer(event)
 
-        eventHandler?.handle(createPointerEvent(event, Down, 1))
+        preventScroll = eventHandler?.handle(createPointerEvent(event, Down, 1)) == true
 
         return true
     }
@@ -150,7 +154,7 @@ internal open class PointerInputServiceStrategyWebkit(
         return true
     }
 
-    private fun createPointerEvent(event: MouseEvent, type: Type, clickCount: Int): SystemPointerEvent {
+    private fun createPointerEvent(event: MouseEvent, type: Type, clickCount: Int, fromPointer: Boolean = false): SystemPointerEvent {
         val buttons    = mutableSetOf<SystemPointerEvent.Button>()
         val buttonsInt = event.buttons.toInt()
 
@@ -167,7 +171,8 @@ internal open class PointerInputServiceStrategyWebkit(
                 buttons,
                 clickCount,
                 createModifiers(event),
-                nativeScrollPanel(event.target))
+                nativeScrollPanel(event.target),
+                fromPointer)
     }
 
     private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().also {
@@ -184,6 +189,12 @@ internal open class PointerInputServiceStrategyWebkit(
         ondblclick    = { doubleClick(it)                      }
         onpointerdown = { mouseDown  (it); followPointer(this) }
         onpointerover = { mouseEnter (it)                      }
+        ontouchmove   = {
+            if (preventScroll) {
+                it.preventDefault ()
+                it.stopPropagation()
+            }
+        }
 
         registerMouseCallbacks(this)
     }

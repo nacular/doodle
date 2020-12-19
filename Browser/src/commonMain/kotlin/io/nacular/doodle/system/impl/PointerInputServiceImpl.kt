@@ -34,9 +34,7 @@ internal class PointerInputServiceImpl(private val strategy: PointerInputService
     private fun startUp() {
         if (!started) {
             strategy.startUp(object: PointerInputServiceStrategy.EventHandler {
-                override fun handle(event: SystemPointerEvent) {
-                    notifyPointerEvent(event)
-                }
+                override fun handle(event: SystemPointerEvent) = notifyPointerEvent(event)
             })
 
             started = true
@@ -51,8 +49,10 @@ internal class PointerInputServiceImpl(private val strategy: PointerInputService
         }
     }
 
-    private fun notifyPointerEvent(event: SystemPointerEvent) {
+    private fun notifyPointerEvent(event: SystemPointerEvent): Boolean {
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
+
+        return event.consumed
     }
 }

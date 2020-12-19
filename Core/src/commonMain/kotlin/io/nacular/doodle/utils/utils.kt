@@ -59,8 +59,8 @@ fun <T> MutableList<T>.addOrAppend(at: Int, value: T) = when {
  */
 fun CharSequence.splitMatches(regex: Regex, limit: Int = 0) = regex.splitMatches(this, limit)
 
-data class MatchResult(val matches: List<MatchedChunk>, val remaining: String)
-data class MatchedChunk(val match: String, val delimiter: String)
+class MatchResult(val matches: List<MatchedChunk>, val remaining: String)
+class MatchedChunk(val match: String, val delimiter: String)
 
 /**
  * Splits the given character sequence based on this regex into a set of [MatchedChunk]s.

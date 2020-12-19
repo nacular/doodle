@@ -5,6 +5,7 @@ import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
+import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.WheelEvent
 
 /**
@@ -136,6 +137,9 @@ actual fun HTMLElement.startMonitoringSize() {}
 
 actual var HTMLElement.role get() = role_
     set(new) { role_ = new }
+
+actual var HTMLElement.ontouchmove: ((TouchEvent) -> Any)? get() = null
+    set(new) {}
 
 actual interface ElementCreationOptions
 

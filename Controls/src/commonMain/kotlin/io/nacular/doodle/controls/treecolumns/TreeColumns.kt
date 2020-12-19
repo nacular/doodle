@@ -194,7 +194,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
             }
         }
 
-    private data class Column<T>(var path: Path<Int>, val list: CustomMutableList<T>)
+    private class Column<T>(var path: Path<Int>, val list: CustomMutableList<T>)
 
     private fun installBehavior(column: Column<T>, behavior: TreeColumnsBehavior<T>) {
         column.list.behavior = object: ListBehavior<T> {

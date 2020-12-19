@@ -8,7 +8,8 @@ class SystemPointerEvent(
         val buttons          : Set<Button>,
         val clickCount       : Int,
             modifiers        : Set<Modifier>,
-        val nativeScrollPanel: Boolean = false): SystemInputEvent(modifiers) {
+        val nativeScrollPanel: Boolean = false,
+        val fromTouch        : Boolean = false): SystemInputEvent(modifiers) {
 
     constructor(
             type             : Type,

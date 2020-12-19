@@ -315,8 +315,9 @@ class AnimatingTabContainer<T>(
         private val animate    : Animator,
         private val panel      : TabbedPanel<T>,
         private val tabProducer: TabProducer<T>): SimpleTabContainer<T>(panel, tabProducer) {
-    private val animations  = mutableMapOf<View, Cancelable>()
-    private val hoverColors = mutableMapOf<View, Color?>()
+    private val moveAnimations  = mutableMapOf<View, Cancelable>()
+    private val colorAnimations = mutableMapOf<View, Cancelable>()
+    private val hoverColors     = mutableMapOf<View, Color?>()
 
     init {
         childrenChanged += { _,_,added,_ ->
@@ -332,13 +333,13 @@ class AnimatingTabContainer<T>(
         var pointerOver     = false
 
         pointerChanged += object: PointerListener {
-            override fun pressed (event: PointerEvent) {
+            override fun pressed(event: PointerEvent) {
                 pointerDown     = true
                 initialPosition = toLocal(event.location, event.target)
                 cleanupAnimation(tab)
             }
 
-            override fun entered (event: PointerEvent) {
+            override fun entered(event: PointerEvent) {
                 if (panel.selection != tab.index && !pointerOver) {
                     pointerOver      = true
                     hoverColors[tab] = tab.backgroundColor
@@ -384,9 +385,9 @@ class AnimatingTabContainer<T>(
     }
 
     private fun cleanupAnimation(tab: View) {
-        animations[tab]?.let {
+        colorAnimations[tab]?.let {
             it.cancel()
-            animations.remove(tab)
+            colorAnimations.remove(tab)
         }
     }
 
@@ -421,7 +422,9 @@ class AnimatingTabContainer<T>(
                         val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
 //                        tab.animation = behavior?.moveColumn(this@Table) {
-                        animate { (0f to 1f using fixedSpeedLinear(10 / seconds)) {
+                        moveAnimations[tab]?.cancel()
+
+                        moveAnimations[tab] = animate { (0f to 1f using fixedSpeedLinear(10 / seconds)) {
                             tab.transform = oldTransform.translate(translate * it) //1.0)
                         } }
                     }
@@ -478,7 +481,10 @@ class AnimatingTabContainer<T>(
                         panel[movingIndex]?.let { panel.move(it, to = myNewIndex) }
                     }
 
-                    children.forEach { it.transform = Identity }
+                    children.forEach {
+                        moveAnimations.remove(it)?.cancel()
+                        it.transform = Identity
+                    }
 //                }
 //            }
         }
@@ -489,13 +495,13 @@ class AnimatingTabContainer<T>(
 
         val tabColor = tab.backgroundColor
 
-        animations[tab] = (animate (start to end) using fixedTimeLinear(250 * milliseconds)) {
+        colorAnimations[tab] = (animate (start to end) using fixedTimeLinear(250 * milliseconds)) {
             tab.backgroundColor = tabColor?.opacity(it)
 
             tab.rerenderNow()
         }.apply {
             completed += {
-                animations.remove(tab)
+                colorAnimations.remove(tab)
                 if (tab.backgroundColor?.opacity == 0f) {
                     tab.backgroundColor = null
                 }

@@ -15,7 +15,7 @@ internal interface PointerInputServiceStrategy {
     fun shutdown()
 
     interface EventHandler {
-        fun handle(event: SystemPointerEvent)
+        fun handle(event: SystemPointerEvent): Boolean
     }
 }
 

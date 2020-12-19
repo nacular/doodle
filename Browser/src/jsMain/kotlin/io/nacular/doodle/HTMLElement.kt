@@ -1,6 +1,7 @@
 package io.nacular.doodle
 
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.TouchEvent
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
@@ -51,6 +52,9 @@ actual fun HTMLElement.startMonitoringSize() {
 actual fun HTMLElement.stopMonitoringSize() {
     SIZE_OBSERVERS.remove(this)?.disconnect()
 }
+
+actual var HTMLElement.ontouchmove: ((TouchEvent) -> Any)? get() = this.asDynamic()["ontouchmove"]
+    set(new) { this.asDynamic()["ontouchmove"] = new }
 
 actual var HTMLElement.role: String? get() = this.getAttribute("role")
     set(new) { this.setAttribute("role", new ?: "") }
