@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.form
+package io.nacular.doodle.controls.inspector
 
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
@@ -36,7 +36,7 @@ class NamedField<T, C>(private val name           : String,
                     height = 50.0 //max(children[0].height, children[1].height)
                 }
                 else -> {
-                    object : Layout {
+                    object: Layout {
                         val delegate = constrain(children[0], children[1], l)
 
                         override fun layout(container: PositionableContainer) {
@@ -59,16 +59,14 @@ interface FieldFactory<T> {
 }
 
 interface FieldPositioner<T> {
-    fun invoke(form: Form<T>, fields: List<Field<*>>)
+    fun invoke(inspector: Inspector<T>, fields: List<Field<*>>)
 }
 
-open class Form<T>(val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
+open class Inspector<T>(val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
     private class FieldImpl<T>(override val view: View): Field<T>()
 
     private inner class FieldFactoryImpl: FieldFactory<T> {
-        override fun <R> field(extractor: Extractor<T, R>,
-                              visualizer: ItemVisualizer<R, Any>
-        ): Field<R> = FieldImpl<R>(visualizer(extractor(value), null, Unit)).also {
+        override fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>) = FieldImpl<R>(visualizer(extractor(value), null, Unit)).also {
             fields += it
         }
     }
@@ -77,7 +75,7 @@ open class Form<T>(val value: T, private val block: FieldFactory<T>.() -> Unit):
 
     var fieldPositioner: FieldPositioner<T>? = null
 
-    var behavior: Behavior<Form<T>>? by behavior { _, new ->
+    var behavior: Behavior<Inspector<T>>? by behavior { _, new ->
         new?.also {
             if (children.isEmpty()) {
                 factory.apply(block)
