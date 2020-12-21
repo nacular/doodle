@@ -64,8 +64,8 @@ import org.w3c.dom.Node
 import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.events.FocusEvent
-import kotlin.browser.document
-import kotlin.browser.window
+import kotlinx.browser.document
+import kotlinx.browser.window
 
 /**
  * Created by Nicholas Eddy on 1/22/20.

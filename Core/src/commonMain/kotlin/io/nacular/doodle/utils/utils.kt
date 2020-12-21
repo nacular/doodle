@@ -59,8 +59,41 @@ fun <T> MutableList<T>.addOrAppend(at: Int, value: T) = when {
  */
 fun CharSequence.splitMatches(regex: Regex, limit: Int = 0) = regex.splitMatches(this, limit)
 
-class MatchResult(val matches: List<MatchedChunk>, val remaining: String)
-class MatchedChunk(val match: String, val delimiter: String)
+class MatchResult(val matches: List<MatchedChunk>, val remaining: String) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MatchResult) return false
+
+        if (matches != other.matches) return false
+        if (remaining != other.remaining) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = matches.hashCode()
+        result = 31 * result + remaining.hashCode()
+        return result
+    }
+}
+
+class MatchedChunk(val match: String, val delimiter: String) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MatchedChunk) return false
+
+        if (match != other.match) return false
+        if (delimiter != other.delimiter) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = match.hashCode()
+        result = 31 * result + delimiter.hashCode()
+        return result
+    }
+}
 
 /**
  * Splits the given character sequence based on this regex into a set of [MatchedChunk]s.
