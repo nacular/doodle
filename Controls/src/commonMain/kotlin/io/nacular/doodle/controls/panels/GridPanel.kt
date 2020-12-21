@@ -16,7 +16,7 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 5/1/20.
  */
 interface SizingPolicy {
-    data class OverlappingView(val span: Int, val size: Double, val idealSize: Double?)
+    class OverlappingView(val span: Int, val size: Double, val idealSize: Double?)
 
     operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
 }
@@ -40,8 +40,41 @@ class FitPanel: SizingPolicy {
 }
 
 open class GridPanel: View() {
-    private data class Location  (val row: Int, val column: Int)
-    private data class Dimensions(var offset: Double = 0.0, var size: Double = 0.0)
+    private class Location(val row: Int, val column: Int) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Location) return false
+
+            if (row != other.row) return false
+            if (column != other.column) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = row
+            result = 31 * result + column
+            return result
+        }
+    }
+
+    private class Dimensions(var offset: Double = 0.0, var size: Double = 0.0) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Dimensions) return false
+
+            if (offset != other.offset) return false
+            if (size != other.size) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = offset.hashCode()
+            result = 31 * result + size.hashCode()
+            return result
+        }
+    }
 
     private val locations        = mutableMapOf<View, Set<Location>>()
     private val rowSpans         = mutableMapOf<View, Int>().withDefault { 1 }
@@ -88,12 +121,12 @@ open class GridPanel: View() {
 
             // Calculate row and column sizes
             children.forEach { child ->
-                locations[child]?.forEach { (row, col) ->
+                locations[child]?.forEach {
                     val rowSpan = rowSpans.getValue   (child)
                     val colSpan = columnSpans.getValue(child)
 
-                    rowLanes.getOrPut(row) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, child.idealSize?.height) }
-                    colLanes.getOrPut(col) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  child.idealSize?.width ) }
+                    rowLanes.getOrPut(it.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, child.idealSize?.height) }
+                    colLanes.getOrPut(it.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  child.idealSize?.width ) }
                 }
             }
 
@@ -122,9 +155,9 @@ open class GridPanel: View() {
                 val widths  = mutableSetOf<Dimensions>()
                 val heights = mutableSetOf<Dimensions>()
 
-                locations[child]?.forEach { (row, col) ->
-                    val rowDim = rowDimensions.getValue   (row)
-                    val colDim = columnDimensions.getValue(col)
+                locations[child]?.forEach {
+                    val rowDim = rowDimensions.getValue   (it.row   )
+                    val colDim = columnDimensions.getValue(it.column)
 
                     x = min(x ?: colDim.offset, colDim.offset)
                     y = min(y ?: rowDim.offset, rowDim.offset)

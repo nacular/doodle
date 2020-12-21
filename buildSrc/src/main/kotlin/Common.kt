@@ -23,7 +23,7 @@ fun KotlinMultiplatformExtension.jsTargets() {
             }
         }
         browser {
-            browser.testTask {
+            testTask {
                 enabled = false
             }
         }

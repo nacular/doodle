@@ -193,7 +193,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
 
     /** Indicates the minimum and ideal sizes for a View. */
-    data class SizePreferences(val idealSize: Size?, val minimumSize: Size)
+    class SizePreferences(val idealSize: Size?, val minimumSize: Size)
 
     /** Notifies changes to [idealSize] or [minimumSize] */
     val sizePreferencesChanged: PropertyObservers<View, SizePreferences> by lazy { PropertyObserversImpl<View, SizePreferences>(this) }

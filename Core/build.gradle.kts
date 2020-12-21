@@ -20,8 +20,7 @@ kotlin {
             dependencies {
                 api ("io.nacular.measured:measured:$measuredVersion")
 
-                implementation(kotlin("stdlib-common"))
-                implementation(kotlin("reflect"      ))
+                implementation(kotlin("reflect"))
             }
         }
 
@@ -33,11 +32,7 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-        }
+        jvm().compilations["main"].defaultSourceSet {}
 
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
@@ -51,9 +46,7 @@ kotlin {
         }
 
         js().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation(kotlin("stdlib-js"))
-            }
+            dependencies {}
         }
 
         js().compilations["test"].defaultSourceSet {

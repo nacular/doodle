@@ -7,7 +7,6 @@ import io.mockk.mockk
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
@@ -57,7 +56,6 @@ class LabelTests {
 
     @Test @JsName("setsSizeToWrappedTextSize")
     fun `sets size to wrapped text size`() {
-        val textSize = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
         Label().let {
@@ -84,7 +82,6 @@ class LabelTests {
 
     @Test @JsName("setsWidthToWrappedTextWhenFitting")
     fun `sets width to wrapped text when fitting`() {
-        val textSize    = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
         Label().let {
@@ -99,7 +96,6 @@ class LabelTests {
 
     @Test @JsName("setsWidthWhenNotFitting")
     fun `sets width when not fitting`() {
-        val textSize    = Size(100.0, 345.0)
         val wrappedSize = Size(10.0, 1000.0)
 
         Label().let {
@@ -162,21 +158,5 @@ class LabelTests {
 
     private fun createBehavior(size: Size = Empty) = mockk<LabelBehavior>(relaxed = true).apply {
         every { measureText(any()) } returns size
-    }
-
-    private fun createTextMetrics(size: Size = Empty, wrappedSize: Size = Empty) = mockk<TextMetrics>(relaxed = true).apply {
-        every { size(any<String>      ()               ) } returns size
-        every { width(any<String>     ()               ) } returns size.width
-        every { height(any<String>    ()               ) } returns size.height
-        every { size(any<String>      (), any<Double>()) } returns wrappedSize
-        every { width(any<String>     (), any<Double>()) } returns wrappedSize.width
-        every { height(any<String>    (), any<Double>()) } returns wrappedSize.height
-
-        every { size(any<StyledText>  ()                 ) } returns size
-        every { width(any<StyledText> ()                 ) } returns size.width
-        every { height(any<StyledText>()                 ) } returns size.height
-        every { size(any<StyledText>  (), any()          ) } returns wrappedSize
-        every { width(any<StyledText> (), any()          ) } returns wrappedSize.width
-        every { height(any<StyledText>(), any()          ) } returns wrappedSize.height
     }
 }

@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import io.nacular.doodle.drawing.LinearGradientFill.Stop
 import io.nacular.doodle.geometry.Point
 
 /**
@@ -17,7 +18,7 @@ import io.nacular.doodle.geometry.Point
  * @param end of the line along which the gradient flows
  */
 class LinearGradientFill(val colors: List<Stop>, val start: Point, val end: Point): Fill() {
-    data class Stop(val color: Color, val offset: Float)
+    class Stop(val color: Color, val offset: Float)
 
     /**
      * Creates a fill with a gradient between the given colors.

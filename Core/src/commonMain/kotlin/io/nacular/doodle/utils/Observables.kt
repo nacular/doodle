@@ -102,7 +102,7 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
 
     fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
 
-    private data class Move<T>(val from: Int, val to:Int, val value: T) {
+    private class Move<T>(val from: Int, val to:Int, val value: T) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Move<*>) return false

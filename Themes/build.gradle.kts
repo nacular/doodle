@@ -25,9 +25,8 @@ kotlin {
                 implementation(project(":controls" ))
                 implementation(project(":animation"))
 
-                implementation(kotlin("stdlib-common"))
                 implementation("org.kodein.di:kodein-di-erased:$kodeinVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
 
@@ -39,12 +38,7 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-            }
-        }
+        jvm().compilations["main"].defaultSourceSet {}
 
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
@@ -59,9 +53,7 @@ kotlin {
 
         js().compilations["main"].defaultSourceSet {
             dependencies {
-                implementation(kotlin("stdlib-js"))
                 implementation("org.kodein.di:kodein-di-erased-js:$kodeinVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutinesVersion")
             }
         }
 

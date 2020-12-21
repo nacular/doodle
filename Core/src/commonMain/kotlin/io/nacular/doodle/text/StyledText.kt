@@ -32,7 +32,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
 
     private var hashCode = data.hashCode()
 
-    override fun iterator() = data.map { it.first to it.second }.iterator()
+    override fun iterator(): Iterator<Pair<String, Style>> = data.map { it.first to it.second }.iterator()
 
     operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
 
@@ -75,7 +75,7 @@ class StyledText private constructor(val data: MutableList<MutablePair<String, S
         return text
     }
 
-    data class StyleImpl(override var font: Font? = null, override var foreground: Fill? = null, override var background: Fill? = null): Style
+    internal data class StyleImpl(override var font: Font? = null, override var foreground: Fill? = null, override var background: Fill? = null): Style
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)

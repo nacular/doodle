@@ -17,8 +17,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-common"))
-
                 api(project(":core"))
             }
         }
@@ -31,11 +29,7 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-        }
+        jvm().compilations["main"].defaultSourceSet {}
 
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
@@ -48,11 +42,7 @@ kotlin {
             }
         }
 
-        js().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation(kotlin("stdlib-js"))
-            }
-        }
+        js().compilations["main"].defaultSourceSet {}
 
         js().compilations["test"].defaultSourceSet {
             dependencies {

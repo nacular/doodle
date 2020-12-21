@@ -112,7 +112,7 @@ class MutableTable<T, M: MutableListModel<T>>(
         MutableColumnFactoryImpl().apply(block)
     }
 
-    data class Sorting<T>(val column: MutableColumn<T, *>, val order: SortOrder)
+    class Sorting<T>(val column: MutableColumn<T, *>, val order: SortOrder)
 
     /** Notifies changes to [sorting] */
     val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }

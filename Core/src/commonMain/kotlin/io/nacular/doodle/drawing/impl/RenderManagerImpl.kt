@@ -296,7 +296,7 @@ class RenderManagerImpl(
         return true
     }
 
-    data class RenderResult(val rendered: Boolean, val renderable: Boolean)
+    private class RenderResult(val rendered: Boolean, val renderable: Boolean)
 
     private fun performRender(view: View): RenderResult {
         var rendered           = false

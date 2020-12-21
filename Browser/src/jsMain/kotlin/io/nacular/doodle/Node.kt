@@ -1,7 +1,7 @@
 package io.nacular.doodle
 
 import org.w3c.dom.get
-import kotlin.dom.clear
+import kotlinx.dom.clear
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
