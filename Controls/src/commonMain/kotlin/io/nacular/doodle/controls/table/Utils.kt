@@ -55,9 +55,7 @@ internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val rend
                     totalWidth += view.width
                 }
 
-                container.parent?.let {
-                    container.size = Size(max(it.width, totalWidth), max(it.height, height))
-                }
+                container.idealSize = Size(totalWidth, height)
 
                 container.children.forEach {
                     it.height = container.height

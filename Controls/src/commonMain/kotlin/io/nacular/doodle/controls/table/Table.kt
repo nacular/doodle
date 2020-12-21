@@ -17,6 +17,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
@@ -241,7 +242,10 @@ open class Table<T, M: ListModel<T>>(
                     header.x = new.x
                 }
             }
-        })
+        }).apply {
+            contentWidthConstraints  = { max(idealWidth  or width,  parent.width ) }
+            contentHeightConstraints = { max(idealHeight or height, parent.height) }
+        }
     }
 
     @Suppress("PrivatePropertyName")

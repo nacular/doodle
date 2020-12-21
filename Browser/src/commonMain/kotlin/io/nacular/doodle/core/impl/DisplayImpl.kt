@@ -12,7 +12,6 @@ import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.PositionableContainer
-import io.nacular.doodle.core.PositionableWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
@@ -55,7 +54,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override var insets = None
 
-    override var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
+    override var layout: Layout? by observable(null) { _,_,_ ->
         relayout()
     }
 
@@ -211,7 +210,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
                 child
             }
-            is Found      -> (result.child as io.nacular.doodle.core.PositionableWrapper).view
+            is Found      -> result.child as? View
             is Empty      -> null
         }
     }
@@ -289,7 +288,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         override val insets      get() = this@DisplayImpl.insets
         override val layout      get() = this@DisplayImpl.layout
-        override val parent      get() = null as PositionableContainer?
-        override val children    get() = this@DisplayImpl.children.map { PositionableWrapper(it) }
+        override val children    get() = this@DisplayImpl.children
     }
 }

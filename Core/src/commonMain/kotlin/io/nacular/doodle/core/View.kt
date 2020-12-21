@@ -71,33 +71,33 @@ internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added
  * @constructor
  * @property accessibilityRole indicates the View's role for screen readers
  */
-abstract class View protected constructor(val accessibilityRole: AccessibilityRole? = null): Renderable {
+abstract class View protected constructor(val accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
 
     /** Left edge of [bounds] */
-    var x: Double
+    override var x: Double
         get( ) = bounds.x
         set(x) = setBounds(x, y, width, height)
 
     /** Top edge of [bounds] */
-    var y: Double
+    override var y: Double
         get( ) = bounds.y
         set(y) = setBounds(x, y, width, height)
 
     /** Top-left corner of [bounds] */
-    var position: Point
+    override var position: Point
         get(        ) = bounds.position
         set(position) = setBounds(position.x, position.y, width, height)
 
     /** Horizontal extent of [bounds] */
-    var width: Double
+    override var width: Double
         get(     ) = bounds.width
         set(width) = setBounds(x, y, width, height)
 
     /** Vertical extent of [bounds] */
-    var height: Double
+    override var height: Double
         get(      ) = bounds.height
         set(height) = setBounds(x, y, width, height)
 
@@ -113,7 +113,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
+    override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
         boundingBox = transform(new).boundingRectangle
     }
 
@@ -169,7 +169,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     var boundingBox = bounds; private set
 
     /** Size that would best display this View, or `null` if no preference */
-    var idealSize: Size? = null
+    override var idealSize: Size? = null
         get(   ) = layout?.idealSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
@@ -181,7 +181,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
-    var minimumSize = Size.Empty
+    override var minimumSize = Size.Empty
         get(   ) = layout?.minimumSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
@@ -217,7 +217,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
 
     /** Whether this View is visible.  The default is `true`. */
-    var visible by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+    override var visible by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [enabled] */
     val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
@@ -600,7 +600,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
 
                 child
             }
-            is Found      -> (result.child as PositionableWrapper).view
+            is Found      -> result.child as? View
             is Empty      -> null
         }
     }
@@ -644,7 +644,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      * @param point The point to check
      * @return `true` IFF the point falls within the View
      */
-    open operator fun contains(point: Point) = resolvedTransform.inverse?.invoke(point)?.let { it in bounds } ?: false
+    override operator fun contains(point: Point) = resolvedTransform.inverse?.invoke(point)?.let { it in bounds } ?: false
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.

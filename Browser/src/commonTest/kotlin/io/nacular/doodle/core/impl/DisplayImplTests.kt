@@ -9,7 +9,6 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
-import io.nacular.doodle.core.PositionableWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.height
@@ -138,7 +137,7 @@ class DisplayImplTests {
         val at     = Point(11.0, 13.0)
         val result = mockk<View>()
         val layout = mockk<Layout>().apply {
-            every { child(any(), at = at) } returns Found(PositionableWrapper(result))
+            every { child(any(), at = at) } returns Found(result)
         }
 
         display().apply {

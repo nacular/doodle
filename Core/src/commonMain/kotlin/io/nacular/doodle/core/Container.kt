@@ -7,7 +7,7 @@ import io.nacular.doodle.layout.Insets
 /**
  * Represents a View that can have children and [Layout].
  */
-open class Container: View(), Iterable<View> {
+open class Container: View(), PositionableContainer, Iterable<View> {
     /** Hint to [layout] that children within the Container should be inset from the edges */
     public override var insets: Insets
         get(   ) = super.insets

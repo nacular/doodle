@@ -307,7 +307,7 @@ class ViewTests {
             init {
                 children_ += child
                 layout    = mockk<Layout>().apply {
-                    every { child(any(), any()) } returns Found(PositionableWrapper(found))
+                    every { child(any(), any()) } returns Found(found)
                 }
             }
         }

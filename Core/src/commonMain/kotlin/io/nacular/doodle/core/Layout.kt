@@ -9,10 +9,6 @@ import io.nacular.doodle.layout.Insets
 
 /**
  * Represents an item within a [PositionableContainer] that a [Layout] can position.
- * This interface avoids exposing the broad API surface of [View] to Layout.
- *
- * [View] does not implement this interface simply because [parent] conflicts with
- * [View.parent].
  *
  * @see View
  */
@@ -23,7 +19,6 @@ interface Positionable {
     var width      : Double
     var height     : Double
     var bounds     : Rectangle
-    val parent     : PositionableContainer?
     val visible    : Boolean
     var position   : Point
     var idealSize  : Size?
@@ -44,43 +39,20 @@ interface PositionableContainer {
     var height     : Double
     val insets     : Insets
     val layout     : Layout?
-    val parent     : PositionableContainer?
     val children   : List<Positionable>
     var idealSize  : Size?
     var minimumSize: Size
 }
 
-/**
- * Convenience class to treat a [View] as a [Positionable].
- */
-open class PositionableWrapper(val view: View): Positionable {
-    override var x           get() = view.x;           set(value) { view.x           = value }
-    override var y           get() = view.y;           set(value) { view.y           = value }
+internal class PositionableContainerWrapper(val view: View): PositionableContainer {
     override var size        get() = view.size;        set(value) { view.size        = value }
     override var width       get() = view.width;       set(value) { view.width       = value }
     override var height      get() = view.height;      set(value) { view.height      = value }
-    override var bounds      get() = view.bounds;      set(value) { view.bounds      = value }
-    override val parent      get() = view.parent?.let { PositionableContainerWrapper(it) as PositionableContainer }
-    override val visible     get() = view.visible
-    override var position    get() = view.position;    set(value) { view.position    = value }
     override var idealSize   get() = view.idealSize;   set(value) { view.idealSize   = value }
     override var minimumSize get() = view.minimumSize; set(value) { view.minimumSize = value }
-
-    override fun hashCode() = view.hashCode()
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PositionableContainerWrapper) return false
-        return view == other.view
-    }
-
-    override operator fun contains(point: Point) = point in view
-}
-
-internal class PositionableContainerWrapper(view: View): PositionableWrapper(view), PositionableContainer {
     override val insets      get() = view.insets_
     override val layout      get() = view.layout_
-    override val children    get() = view.children_.map { PositionableWrapper(it) }
+    override val children    get() = view.children_
 }
 
 /**

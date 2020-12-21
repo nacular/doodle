@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.inspector
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -17,9 +18,7 @@ import kotlin.math.max
 // FIXME: Centralize
 typealias Extractor<T, R>  = T.() -> R
 
-abstract class Field<T> {
-    internal abstract val view: View
-}
+abstract class Field<T>: Positionable
 
 class NamedField<T, C>(private val name           : String,
                        private val nameVisualizer : ItemVisualizer<String, Any>,
@@ -58,12 +57,8 @@ interface FieldFactory<T> {
     fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>): Field<R>
 }
 
-interface FieldPositioner<T> {
-    fun invoke(inspector: Inspector<T>, fields: List<Field<*>>)
-}
-
 open class Inspector<T>(val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
-    private class FieldImpl<T>(override val view: View): Field<T>()
+    private class FieldImpl<T>(val view: View): Field<T>(), Positionable by view
 
     private inner class FieldFactoryImpl: FieldFactory<T> {
         override fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>) = FieldImpl<R>(visualizer(extractor(value), null, Unit)).also {
@@ -73,7 +68,7 @@ open class Inspector<T>(val value: T, private val block: FieldFactory<T>.() -> U
 
     private val fields = mutableListOf<FieldImpl<*>>()
 
-    var fieldPositioner: FieldPositioner<T>? = null
+    override var layout: Layout? = null
 
     var behavior: Behavior<Inspector<T>>? by behavior { _, new ->
         new?.also {

@@ -35,12 +35,8 @@ class ListLayout constructor(private val spacing: Int = 0, private val widthSour
 
         val size = Size(width + insets.left + insets.right, y + insets.bottom)
 
-        container.idealSize   = size // FIXME: Do we need this?
+        container.idealSize   = size
         container.minimumSize = size
-
-        if (container.parent?.layout == null) {
-            container.size = size
-        }
     }
 
     override fun idealSize(container: PositionableContainer, default: Size?): Size? {
