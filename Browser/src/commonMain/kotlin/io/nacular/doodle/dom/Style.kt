@@ -8,6 +8,9 @@ import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.Font.Style.Italic
+import io.nacular.doodle.drawing.Font.Style.Normal
+import io.nacular.doodle.drawing.Font.Style.Oblique
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
@@ -15,6 +18,7 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
+import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
 internal val defaultFontWeight = 500
@@ -84,16 +88,23 @@ internal fun Style.setFont(value: Font?) {
     when (value) {
         null -> font = "inherit"
         else -> value.also {
-            setFontSize(it.size)
+            setFontSize  (it.size  )
             setFontFamily(it.family)
-            if(it.italic) setFontStyle(FontStyle.Italic())
+            setFontStyle (it.style )
             setFontWeight(it.weight)
         }
     }
 }
 
-internal inline fun Style.setFontStyle (value: FontStyle) { fontStyle  = value.value }
-internal inline fun Style.setFontWeight(value: Int      ) { fontWeight = "$value"    }
+internal inline fun Style.setFontStyle(value: Font.Style) { fontStyle = value.styleText }
+
+internal val Font.Style.styleText: String get() = when (this) {
+    Normal     -> "normal"
+    Italic     -> "italic"
+    is Oblique -> "oblique${angle?.let { " ${it `in` degrees}deg" } ?: ""}"
+}
+
+internal inline fun Style.setFontWeight(value: Int       ) { fontWeight = "$value"    }
 
 internal inline fun Style.setFontSize  (value: Int   ) { fontSize   = em(max(0, value)) }
 internal inline fun Style.setFontFamily(value: String) { fontFamily = value            }
@@ -185,12 +196,6 @@ internal sealed class Overflow(val value: String) {
     internal class Scroll : Overflow("scroll" )
     internal class Hidden : Overflow("hidden" )
     internal class Visible: Overflow("visible")
-}
-
-internal sealed class FontStyle(val value: String) {
-    internal class Normal : FontStyle("normal" )
-    internal class Italic : FontStyle("italic" )
-    internal class Oblique: FontStyle("oblique")
 }
 
 internal sealed class Visibility(val value: String) {

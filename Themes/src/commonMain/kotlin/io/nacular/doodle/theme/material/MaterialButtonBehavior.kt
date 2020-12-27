@@ -15,7 +15,7 @@ import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Font.Companion.Thick
-import io.nacular.doodle.drawing.FontDetector
+import io.nacular.doodle.drawing.FontLoader
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.PointerEvent
@@ -23,6 +23,9 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.theme.material.MaterialTheme.Companion.FontConfig
+import io.nacular.doodle.utils.Cancelable
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
 import kotlinx.coroutines.GlobalScope
@@ -47,12 +50,23 @@ fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
 class MaterialButtonBehavior(
                     textMetrics    : TextMetrics,
         private val animate        : Animator,
-        private val fontDetector   : FontDetector,
+        private val scheduler      : Scheduler,
+        private val fontConfig     : FontConfig?,
+        private val fonts          : FontLoader,
         private val textColor      : Color,
         private val backgroundColor: Color,
         private val cornerRadius   : Double = 0.0): CommonTextButtonBehavior<Button>(textMetrics), PointerListener {
 
-    private var fontLoadJob          = null as Job?; set(new) { field?.cancel(); field = new }
+    private var fontTimer          = null as Cancelable?; set(new) { field?.cancel(); field = new }
+    private var fontLoadJob        = null as Job?; set(new) {
+        field?.cancel()
+        fontTimer?.cancel()
+        field = new?.also { job ->
+            fontTimer = scheduler.after(fontConfig!!.timeout) {
+                job.cancel()
+            }
+        }
+    }
     private var shadow1Blur          = 1.0
     private var rippleOpacity        = 0.24f
     private var rippleProgress       = 0f
@@ -83,12 +97,14 @@ class MaterialButtonBehavior(
     override fun install(view: Button) {
         super.install(view)
 
-        // FIXME: Centralize
-        fontLoadJob = GlobalScope.launch {
-            view.font = fontDetector {
-                family = "Roboto"
-                size   = 14
-                weight = Thick
+        // FIXME: Centralize, Handle cancellation errors
+        fontLoadJob = fontConfig?.source?.let {
+            GlobalScope.launch {
+                view.font = fonts(it) {
+                    family = "Roboto"
+                    size   = 14
+                    weight = Thick
+                }
             }
         }
 
@@ -154,6 +170,10 @@ class MaterialButtonBehavior(
     }
 
     override fun render(view: Button, canvas: Canvas) {
+        if (fontLoadJob?.isActive == true) {
+            return
+        }
+
         val bounds = view.bounds.atOrigin
 
         canvas.outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {

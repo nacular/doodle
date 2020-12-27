@@ -1,5 +1,7 @@
 package io.nacular.doodle.application
 
+import io.nacular.doodle.FontSerializer
+import io.nacular.doodle.FontSerializerImpl
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.core.Display
@@ -49,6 +51,8 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
+import kotlinx.browser.document
+import kotlinx.browser.window
 import org.kodein.di.Copy
 import org.kodein.di.DKodein
 import org.kodein.di.Kodein
@@ -64,8 +68,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.events.FocusEvent
-import kotlinx.browser.document
-import kotlinx.browser.window
 
 /**
  * Created by Nicholas Eddy on 1/22/20.
@@ -186,11 +188,10 @@ private open class ApplicationHolderImpl protected constructor(
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                        ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance()                                    ) }
+        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                            ) }
-        if (!isNested) {
-            bind<SystemStyler>() with singleton { SystemStylerImpl(instance(), document, allowDefaultDarkMode) }
-        }
+        bind<FontSerializer>           () with singleton { FontSerializerImpl        (instance()                                                            ) }
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, isNested, allowDefaultDarkMode                ) }
         bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                        ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }

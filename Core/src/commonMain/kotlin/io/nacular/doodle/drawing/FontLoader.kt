@@ -10,17 +10,15 @@ import io.nacular.doodle.drawing.Font.Style
  * @property family of the Font, NOTE: should only be a single family and NOT a comma-separated list
  */
 class FontInfo(
-        var size  : Int        = -1,
-        var style : Set<Style> = setOf(),
-        var weight: Int        = Normal,
-        var family: String     = "")
+        var size  : Int    = 12,
+        var style : Style  = Style.Normal,
+        var weight: Int    = Normal,
+        var family: String = "")
 
 /**
- * Provides a way of determining whether a Font has been loaded.  Callers simply
- * provide a [FontInfo] and wait for the [Font] to be returned--or abandon based on an external
- * timer.
+ * Provides a mechanism to load or lookup [Font]s.
  */
-interface FontDetector {
+interface FontLoader {
     /**
      * Tries to find a loaded font matching the given info.
      *
@@ -35,7 +33,7 @@ interface FontDetector {
      * ```kotlin
      * val font = ...
      *
-     * detector(font) {
+     * loader(font) {
      *  weight = 700 // looks for variant of font with weight == 700
      * }
      * ```
@@ -43,11 +41,20 @@ interface FontDetector {
      * @param info of the font
      * @return the font IFF found
      */
-    suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit) = invoke {
+    suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit): Font = invoke {
         size   = font.size
         style  = font.style
         weight = font.weight
         family = font.family
         apply(info)
     }
+
+    /**
+     * Tries to loaded a font matching the given info.
+     *
+     * @param source where the font is located (i.e. a filename or url)
+     * @param info of the font
+     * @return the font IFF found
+     */
+    suspend operator fun invoke(source: String, info: FontInfo.() -> Unit): Font
 }

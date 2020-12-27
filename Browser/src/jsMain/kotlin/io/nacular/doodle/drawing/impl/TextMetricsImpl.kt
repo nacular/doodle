@@ -1,19 +1,15 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.FontSerializer
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.defaultFontFamily
-import io.nacular.doodle.dom.defaultFontSize
-import io.nacular.doodle.dom.defaultFontWeight
-import io.nacular.doodle.dom.setFontFamily
-import io.nacular.doodle.dom.setFontSize
-import io.nacular.doodle.dom.setFontWeight
 import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.math.max
@@ -61,36 +57,21 @@ private class WrappedStyleInfo(val text: StyledText, val width: Double, val inde
     }
 }
 
-class TextMetricsImpl(private val textFactory: TextFactory, private val htmlFactory: HtmlFactory, private val elementRuler: ElementRuler): TextMetrics {
-    // FIXME: Use Canvas for all text measurements (heights are tricky)
-    private interface CSSFontSerializer {
-        operator fun invoke(font: Font?): String
-    }
+internal class TextMetricsImpl(
+        private val textFactory   : TextFactory,
+        private val htmlFactory   : HtmlFactory,
+        private val elementRuler  : ElementRuler,
+        private val fontSerializer: FontSerializer,
+                    cacheLength   : Int
+): TextMetrics {
 
-    private class CSSFontSerializerImpl(htmlFactory: HtmlFactory): CSSFontSerializer {
-        private val element = htmlFactory.create<org.w3c.dom.HTMLElement>()
-
-        override fun invoke(font: Font?): String = when {
-            font != null -> element.run {
-                style.setFontSize  (font.size                )
-                style.setFontFamily(font.family.toLowerCase())
-                style.setFontWeight(font.weight              )
-
-                style.run { "$fontStyle $fontVariant $fontWeight $fontSize $fontFamily" }
-            }
-            else -> "$defaultFontWeight ${defaultFontSize}px $defaultFontFamily"
-        }
-    }
-
-    // FIXME: These should be caches with limited storage
-    private val widths              = mutableMapOf<Pair<String, Font?>, Double>()
-    private val styledWidths        = mutableMapOf<StyledText, Double>()
-    private val wrappedWidths       = mutableMapOf<WrappedInfo, Double>()
-    private val wrappedStyledWidths = mutableMapOf<WrappedStyleInfo, Double>()
+    private val widths              = LeastRecentlyUsedCache<Pair<String, Font?>, Double>(maxSize = cacheLength)
+    private val styledWidths        = LeastRecentlyUsedCache<StyledText, Double>         (maxSize = cacheLength)
+    private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo, Double>        (maxSize = cacheLength)
+    private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double>   (maxSize = cacheLength)
 
     private val fontHeights = mutableMapOf<Font?, Double>()
 
-    private val fontSerializer   = CSSFontSerializerImpl(htmlFactory)
     private val renderingContext = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 
     private fun textWidth(text: String, font: Font?): Double {
@@ -122,9 +103,9 @@ class TextMetricsImpl(private val textFactory: TextFactory, private val htmlFact
     }
 
     override fun width(text: StyledText) = styledWidths.getOrPut(text) {
-        textWidth(text).also {
-//            fontHeights[font] = it.height
-        }
+        textWidth(text)/*.also {
+            fontHeights[font] = it.height
+        }*/
     }
 
     override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {

@@ -1,34 +1,43 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.SystemStyler
+import io.nacular.doodle.dom.styleText
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.Font.Style
-import io.nacular.doodle.drawing.FontDetector
 import io.nacular.doodle.drawing.FontInfo
+import io.nacular.doodle.drawing.FontLoader
 import io.nacular.doodle.drawing.TextFactory
-import io.nacular.doodle.drawing.impl.FontDetectorImpl.State.Found
-import io.nacular.doodle.drawing.impl.FontDetectorImpl.State.Pending
+import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Found
+import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Pending
 import io.nacular.doodle.scheduler.Scheduler
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Created by Nicholas Eddy on 10/4/18.
+ * This implementation is intended to be replaced with [FontLoaderImpl] once there is wider browser adoption of the FontFaceSet APIs (https://caniuse.com/?search=fontfaceset).
  */
-class FontDetectorImpl(
+internal class FontLoaderLegacy(
+        private val systemStyler: SystemStyler,
         private val textFactory : TextFactory,
         private val elementRuler: ElementRuler,
-        private val scheduler   : Scheduler): FontDetector {
+        private val scheduler   : Scheduler): FontLoader {
 
-    private class FontImpl(override val size: Int, override val weight: Int, override val style: Set<Style>, override val family: String): Font
+    private val loadedFonts = mutableSetOf<Pair<String, FontInfo>>()
 
-    private enum class State { Pending, Found }
+    override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font = FontInfo().apply(info).let {
+        if (source to it !in loadedFonts) {
+            systemStyler.insertRule("""
+            @font-face {
+                font-family: "${it.family}";
+                font-style: ${it.style.styleText};
+                font-weight: ${it.weight};
+                src: url($source)
+            }""".trimIndent())
+        }
 
-    private val fonts     = mutableMapOf<Int, State>()
-    private val suspended = mutableMapOf<Int, MutableList<Continuation<State?>>>()
-
-    private fun getHash(family: String, weight: Int, size: Int, style: Set<Style>) = arrayOf(family, weight, size, style).contentHashCode()
+        this(info)
+    }
 
     override suspend operator fun invoke(info: FontInfo.() -> Unit): Font {
         FontInfo().apply(info).apply {
@@ -38,7 +47,7 @@ class FontDetectorImpl(
                 // Only one coroutine will get here at a time. It will either load the Font or be canceled.  On success, all queued
                 // loads will be resolved and return.  Otherwise, the next in line is allowed to take a shot.
                 Found -> FontImpl(size, weight, style, family)
-                else  -> {
+                else        -> {
                     try {
                         if (family == DEFAULT_FAMILY || family.isBlank()) {
                             return FontImpl(size, weight, style, family)
@@ -48,14 +57,6 @@ class FontDetectorImpl(
 
                         val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
                         val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
-
-//                        var loadedSize: Size
-
-//                        text.onresize = {
-//                            println("onresize")
-//                            loadedSize = elementRuler.size(text)
-//                            Unit
-//                        }
 
                         scheduler.delayUntil { elementRuler.size(text) != defaultSize } // FIXME: Use approach that adds element and observes size/scroll like: https://github.com/bramstein/fontfaceobserver/blob/master/src/ruler.js
 
@@ -82,6 +83,13 @@ class FontDetectorImpl(
             }
         }
     }
+
+    private enum class State { Pending, Found }
+
+    private val fonts     = mutableMapOf<Int, State>()
+    private val suspended = mutableMapOf<Int, MutableList<Continuation<State?>>>()
+
+    private fun getHash(family: String, weight: Int, size: Int, style: Font.Style) = arrayOf(family, weight, size, style).contentHashCode()
 
     private suspend fun waitIfLoading(hash: Int): State? = suspendCoroutine {
         when (fonts[hash]) {

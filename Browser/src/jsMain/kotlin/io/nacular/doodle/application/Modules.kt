@@ -13,6 +13,8 @@ import io.nacular.doodle.deviceinput.PointerInputManagerImpl
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.deviceinput.ViewFinderImpl
 import io.nacular.doodle.document.impl.DocumentImpl
+import io.nacular.doodle.drawing.FontLoader
+import io.nacular.doodle.drawing.impl.FontLoaderLegacy
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
 import io.nacular.doodle.drawing.impl.NativeEventHandlerImpl
 import io.nacular.doodle.drawing.impl.NativeEventListener
@@ -41,13 +43,13 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
+import kotlinx.browser.document
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
 import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
-import kotlinx.browser.document
 
 class Modules {
     companion object {
@@ -117,6 +119,10 @@ class Modules {
         /** Enables use of [UrlView]s */
         val UrlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
             bind<UrlView>() with provider { UrlView(instance()) }
+        }
+
+        val FontModule = Module(allowSilentOverride = true, name = "Font") {
+            bind<FontLoader>() with singleton { FontLoaderLegacy(instance(), instance(), instance(), instance()) }
         }
     }
 }

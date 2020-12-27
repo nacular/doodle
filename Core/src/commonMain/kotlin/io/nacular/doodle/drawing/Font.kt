@@ -1,24 +1,27 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.drawing.Font.Style.Italic
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Measure
 
 
 /**
- * Represents a font used to render text.
+ * Represents a font used to render text. NOTE: this interface is only intended
+ * to be implemented by the framework. This ensures that instances always
+ * represent a loaded Font that can be used to render text without issue.
  *
  * @author Nicholas Eddy
  * @see Canvas.text
  */
 interface Font {
     val size  : Int
-    val style : Set<Style>
+    val style : Style
     val weight: Int
     val family: String
 
-    val italic get() = Italic in style
-
-    enum class Style {
-        Italic
+    sealed class Style {
+        object Normal: Style()
+        object Italic: Style()
+        class  Oblique(val angle: Measure<Angle>? = null): Style()
     }
 
     companion object {
