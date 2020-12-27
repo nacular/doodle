@@ -299,7 +299,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
                 }
 
                 if (width > 0) {
-                    container.width = max(container.width, width + container.insets.run { left + right })
+                    width = max(container.width, width + container.insets.run { left + right })
                 }
             }
         }

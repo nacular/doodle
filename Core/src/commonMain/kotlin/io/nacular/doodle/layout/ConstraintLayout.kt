@@ -5,7 +5,6 @@ package io.nacular.doodle.layout
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
-import io.nacular.doodle.core.PositionableContainerWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import kotlin.math.max
@@ -157,8 +156,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         processed.clear ()
         processing.clear()
 
-        // FIXME: This check is pretty inefficient; but it.key.parent == positionable won't work
-        constraints.filter { it.key.parent == (container as? PositionableContainerWrapper?)?.view && it.key !in processed }.forEach { (child, constraints) ->
+        constraints.filter { it.key in container.children && it.key !in processed }.forEach { (child, constraints) ->
             layoutChild(child, constraints)
         }
     }

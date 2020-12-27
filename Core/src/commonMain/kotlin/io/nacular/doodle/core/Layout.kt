@@ -21,38 +21,43 @@ interface Positionable {
     var bounds     : Rectangle
     val visible    : Boolean
     var position   : Point
-    var idealSize  : Size?
-    var minimumSize: Size
+    val idealSize  : Size?
+    val minimumSize: Size
 
     operator fun contains(point: Point): Boolean
 }
 
 /**
  * Represents an item whose children ([Positionable]s) are being manipulated by a [Layout].
- * This interface avoids exposing the broad API surface of [View] to Layout.
  *
- * @see View
+ * @see Container
  */
 interface PositionableContainer {
-    var size       : Size
-    var width      : Double
-    var height     : Double
+    val size       : Size
+    val width      : Double
+    val height     : Double
     val insets     : Insets
-    val layout     : Layout?
     val children   : List<Positionable>
     var idealSize  : Size?
     var minimumSize: Size
 }
 
 internal class PositionableContainerWrapper(val view: View): PositionableContainer {
-    override var size        get() = view.size;        set(value) { view.size        = value }
-    override var width       get() = view.width;       set(value) { view.width       = value }
-    override var height      get() = view.height;      set(value) { view.height      = value }
+    override val size        get() = view.size
+    override val width       get() = view.width
+    override val height      get() = view.height
     override var idealSize   get() = view.idealSize;   set(value) { view.idealSize   = value }
     override var minimumSize get() = view.minimumSize; set(value) { view.minimumSize = value }
     override val insets      get() = view.insets_
-    override val layout      get() = view.layout_
     override val children    get() = view.children_
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is View                         -> view == other
+        is PositionableContainerWrapper -> view == other.view
+        else                            -> false
+    }
+
+    override fun hashCode(): Int = view.hashCode()
 }
 
 /**
@@ -63,7 +68,7 @@ sealed class LookupResult {
     object Ignored: LookupResult()
 
     /** Indicates that nothing was found */
-    object Empty : LookupResult()
+    object Empty: LookupResult()
 
     /** The item that was found */
     class Found(val child: Positionable): LookupResult()

@@ -280,14 +280,13 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     }
 
     private inner class PositionableWrapper: PositionableContainer {
-        override var size        get() = this@DisplayImpl.size;   set(_) {}
-        override var width       get() = this@DisplayImpl.width;  set(_) {}
-        override var height      get() = this@DisplayImpl.height; set(_) {}
+        override val size        get() = this@DisplayImpl.size
+        override val width       get() = this@DisplayImpl.width
+        override val height      get() = this@DisplayImpl.height
         override var idealSize   get() = null as Size?;           set(_) {}
         override var minimumSize get() = Empty;                   set(_) {}
 
         override val insets      get() = this@DisplayImpl.insets
-        override val layout      get() = this@DisplayImpl.layout
         override val children    get() = this@DisplayImpl.children
     }
 }
