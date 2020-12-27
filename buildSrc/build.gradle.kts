@@ -3,8 +3,8 @@ plugins {
 }
 
 repositories {
-    jcenter()
-    mavenLocal()
+    mavenCentral()
+    jcenter     ()
 }
 
 val kotlinVersion = "1.4.21" //: String by System.getProperties()
