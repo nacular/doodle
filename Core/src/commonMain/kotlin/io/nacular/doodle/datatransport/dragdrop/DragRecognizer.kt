@@ -74,3 +74,12 @@ interface DragRecognizer {
      */
     fun dragRecognized(event: PointerEvent): DragOperation?
 }
+
+/**
+ * Helper to create a simple [DragRecognizer] that delegates to the given [handler].
+ *
+ * @param handler that is delegated to
+ */
+fun dragRecognized(handler: (event: PointerEvent) -> DragOperation?) = object: DragRecognizer {
+    override fun dragRecognized(event: PointerEvent) = handler(event)
+}
