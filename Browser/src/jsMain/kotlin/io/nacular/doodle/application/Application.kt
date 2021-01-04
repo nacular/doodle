@@ -46,6 +46,7 @@ import io.nacular.doodle.stopMonitoringSize
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
+import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
@@ -71,7 +72,14 @@ import kotlin.browser.window
  * Created by Nicholas Eddy on 1/22/20.
  */
 inline fun <reified T: Application> application(
-                 root                : HTMLElement = document.body!!,
+                 allowDefaultDarkMode: Boolean     = false,
+                 modules             : List<Module> = emptyList(),
+        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
+    bind<Application>() with singleton(creator = creator)
+}, allowDefaultDarkMode, modules)
+
+inline fun <reified T: Application> application(
+                 root                : HTMLElement,
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
@@ -80,12 +88,17 @@ inline fun <reified T: Application> application(
 
 inline fun <reified T: Application> nestedApplication(
                  view                : ApplicationView,
-                 root                : HTMLElement  = document.body!!,
+                 root                : HTMLElement,
                  allowDefaultDarkMode: Boolean      = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createNestedApplication(view, Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
+
+fun createApplication(
+        injector            : DKodein,
+        allowDefaultDarkMode: Boolean,
+        modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
 fun createApplication(
         injector            : DKodein,
@@ -121,12 +134,12 @@ private class NestedPointerInputStrategy(private val view: ApplicationView, priv
 private class NestedApplicationHolder(
         view                : ApplicationView,
         previousInjector    : DKodein,
-        root                : HTMLElement = document.body!!,
+        root                : HTMLElement,
         allowDefaultDarkMode: Boolean = false,
         modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
-        injector.instanceOrNull<PointerLocationResolverImpl>()?.let { it.nested = true } // TODO: Find better way to handle this
+        (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.let { it.nested = true } // TODO: Find better way to handle this
         injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
             injector = Kodein.direct {
                 extend(injector, copy = Copy.All)
@@ -149,7 +162,7 @@ private class NestedApplicationHolder(
 
 private open class ApplicationHolderImpl protected constructor(
                     previousInjector    : DKodein,
-        private val root                : HTMLElement  = document.body!!,
+        private val root                : HTMLElement,
                     allowDefaultDarkMode: Boolean      = false,
                     modules             : List<Module> = emptyList(),
         private val isNested            : Boolean      = false): Application {
@@ -312,11 +325,38 @@ private open class ApplicationHolderImpl protected constructor(
         isShutdown = true
     }
 
+    private class AsyncAppWrapper(previousInjector: DKodein, allowDefaultDarkMode: Boolean= false, modules: List<Module> = emptyList()): Application {
+        private  var jobId : Int
+        lateinit var holder: ApplicationHolderImpl
+
+        init {
+            jobId = window.setTimeout({
+                holder = ApplicationHolderImpl(previousInjector, document.body!!, allowDefaultDarkMode, modules)
+                holder.run()
+            })
+        }
+
+        override fun shutdown() {
+            when {
+                ::holder.isInitialized -> holder.shutdown()
+                else                   -> window.clearTimeout(jobId)
+            }
+        }
+    }
+
     companion object {
+        operator fun invoke(previousInjector: DKodein, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
+            return when (val body = document.body) {
+                // This is the case when the Javascript is loaded in the document header
+                null -> AsyncAppWrapper(previousInjector,       allowDefaultDarkMode, modules)
+                else -> invoke         (previousInjector, body, allowDefaultDarkMode, modules)
+            }
+        }
+
         operator fun invoke(previousInjector    : DKodein,
-                            root                : HTMLElement  = document.body!!,
+                            root                : HTMLElement,
                             allowDefaultDarkMode: Boolean      = false,
-                            modules             : List<Module> = emptyList()): ApplicationHolderImpl {
+                            modules             : List<Module> = emptyList()): Application {
             return ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules).apply { run() }
         }
     }
