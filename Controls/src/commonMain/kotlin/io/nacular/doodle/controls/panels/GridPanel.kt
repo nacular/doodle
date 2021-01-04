@@ -21,6 +21,8 @@ interface SizingPolicy {
     operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
 }
 
+typealias SpacingPolicy = (panelSize: Double) -> Double
+
 class FitContent: SizingPolicy {
     override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
         var size = 0.0
@@ -83,8 +85,8 @@ open class GridPanel: View() {
     private var columnDimensions = mapOf<Int, Dimensions>()
 
     var cellAlignment     : Constraints.() -> Unit = fill //center
-    var verticalSpacing                            = 0.0
-    var horizontalSpacing                          = 0.0
+    var verticalSpacing   : SpacingPolicy          = { 0.0 }
+    var horizontalSpacing : SpacingPolicy          = { 0.0 }
     var rowSizingPolicy   : SizingPolicy           = FitContent
     var columnSizingPolicy: SizingPolicy           = FitContent
 
@@ -103,6 +105,20 @@ open class GridPanel: View() {
         if (columnSpan > 1) columnSpans[child] = columnSpan
 
         children += child
+    }
+
+    fun remove(child: View) {
+        locations   -= child
+        rowSpans    -= child
+        columnSpans -= child
+        children    -= child
+    }
+
+    fun clear() {
+        locations.clear  ()
+        rowSpans.clear   ()
+        columnSpans.clear()
+        children.clear   ()
     }
 
     private inner class GridLayout: Layout {
@@ -129,6 +145,9 @@ open class GridPanel: View() {
                     colLanes.getOrPut(it.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  child.idealSize?.width ) }
                 }
             }
+
+            val verticalSpacing   = verticalSpacing  (height)
+            val horizontalSpacing = horizontalSpacing(width )
 
             rowDimensions    = rowSizingPolicy   (height, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }
             columnDimensions = columnSizingPolicy(width,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }
