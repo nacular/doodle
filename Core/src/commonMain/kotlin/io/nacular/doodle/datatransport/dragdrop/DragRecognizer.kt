@@ -59,7 +59,6 @@ interface DragOperation {
     fun canceled() {}
 }
 
-
 /**
  * Defines how drag recognition works for [View]s.  Adding drag support to a [View] requires registering
  * a DragHandler that will determine when to initiate a [DragOperation] in response to a [PointerEvent].
@@ -73,4 +72,13 @@ interface DragRecognizer {
      * @return a [DragOperation] to begin drag-drop, or ```null``` to ignore
      */
     fun dragRecognized(event: PointerEvent): DragOperation?
+}
+
+/**
+ * Helper to create a simple [DragRecognizer] that delegates to the given [handler].
+ *
+ * @param handler that is delegated to
+ */
+fun dragRecognized(handler: (event: PointerEvent) -> DragOperation?) = object: DragRecognizer {
+    override fun dragRecognized(event: PointerEvent) = handler(event)
 }
