@@ -33,4 +33,12 @@ interface PointerListener {
      * @param event The event
      */
     fun released(event: PointerEvent) {}
+
+    /**
+     * Informs listener that the pointer was "clicked": pressed and released
+     * inside the same target.
+     *
+     * @param event The Event
+     */
+    fun clicked(event: PointerEvent) {}
 }

@@ -88,6 +88,8 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
                 } else {
                     backgroundColor = headerColor?.darker()
                 }
+
+                event.consume()
             }
 
             override fun released(event: PointerEvent) {

@@ -117,6 +117,7 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
                 pointerDown     = true
                 panel.selection = index
                 initialPosition = toLocal(event.location, event.target)
+                event.consume()
             }
 
             override fun entered (event: PointerEvent) { if (!pointerOver) pointerOver = true  }

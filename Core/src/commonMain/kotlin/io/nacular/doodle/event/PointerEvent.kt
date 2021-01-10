@@ -3,11 +3,12 @@ package io.nacular.doodle.event
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.SystemInputEvent.Modifier
+import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Type
 
 
-class PointerEvent(
+open class PointerEvent internal constructor(
         source        : View,
         val target    : View,
         val type      : Type,
@@ -16,7 +17,7 @@ class PointerEvent(
         val clickCount: Int,
         modifiers     : Set<Modifier>): InputEvent(source, modifiers) {
 
-    constructor(
+    internal constructor(
             source    : View,
             target    : View,
             type      : Type,
@@ -25,29 +26,16 @@ class PointerEvent(
             clickCount: Int,
             modifiers : Set<Modifier>): this(source, target, type, location, setOf(button), clickCount, modifiers)
 
-    override fun toString() = "${this::class.simpleName} -> ${source::class.simpleName}: $type $location $buttons"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PointerEvent) return false
-        if (!super.equals(other)) return false
-
-        if (type       != other.type      ) return false
-        if (location   != other.location  ) return false
-        if (buttons    != other.buttons   ) return false
-        if (clickCount != other.clickCount) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + type.hashCode    ()
-        result = 31 * result + location.hashCode()
-        result = 31 * result + buttons.hashCode ()
-        result = 31 * result + clickCount
-        return result
+    companion object {
+        operator fun invoke(target: View, systemPointerEvent: SystemPointerEvent) = PointerEvent(
+            target,
+            target,
+            systemPointerEvent.type,
+            target.fromAbsolute(systemPointerEvent.location),
+            systemPointerEvent.buttons,
+            systemPointerEvent.clickCount,
+            systemPointerEvent.modifiers)
     }
 }
 
-fun PointerEvent.with(source: View) = PointerEvent(source, target, type, location, buttons, clickCount, modifiers)
+internal fun PointerEvent.with(source: View) = PointerEvent(source, target, type, location, buttons, clickCount, modifiers)

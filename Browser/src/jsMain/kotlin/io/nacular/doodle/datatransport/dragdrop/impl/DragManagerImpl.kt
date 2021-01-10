@@ -235,14 +235,7 @@ internal class DragManagerImpl(
         rootElement.ondrop     = null
     }
 
-    private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(
-            view,
-            view,
-            event.type,
-            view.fromAbsolute(event.location),
-            event.buttons,
-            event.clickCount,
-            event.modifiers)
+    private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(view, event)
 
     private fun pointerDrag(event: SystemPointerEvent) {
         pointerDown?.let {

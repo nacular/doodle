@@ -36,6 +36,7 @@ import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
@@ -770,6 +771,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
             Down  -> it.pressed (event)
             Exit  -> it.exited  (event)
             Enter -> it.entered (event)
+            Click -> it.clicked (event)
             else  -> return
         }
     }
@@ -938,7 +940,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
  * Class to enable `panel { ... }` DSL.
  * @property render operations to perform
  */
-class ViewBuilder: View() {
+class ViewBuilder internal constructor(): View() {
     private var render_: Canvas.() -> Unit = {}
 
     var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }

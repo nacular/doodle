@@ -50,10 +50,10 @@ abstract class Polygon: Shape {
      * ```
      */
     override val boundingRectangle: Rectangle by lazy {
-        val minX = points.minBy { it.x }!!.x
-        val minY = points.minBy { it.y }!!.y
-        val maxX = points.maxBy { it.x }!!.x
-        val maxY = points.maxBy { it.y }!!.y
+        val minX = points.minByOrNull { it.x }!!.x
+        val minY = points.minByOrNull { it.y }!!.y
+        val maxX = points.minByOrNull { it.x }!!.x
+        val maxY = points.minByOrNull { it.y }!!.y
 
         Rectangle(Point(minX, minY), Size(maxX - minX, maxY - minY))
     }

@@ -78,7 +78,8 @@ private class BasicCheckBoxIcon(
     }
 
     companion object {
-        val CHECK_POLY = ConvexPolygon(
+        // This isn't really a convex polygon, but none of the operations done to it cause issues
+        private val CHECK_POLY = ConvexPolygon(
                 Point(3, 5),
                 Point(5, 7),
                 Point(9, 3),
@@ -87,9 +88,9 @@ private class BasicCheckBoxIcon(
                 Point(3, 7)
         )
 
-        val CHECK_BOUNDING_BOX = CHECK_POLY.boundingRectangle
+        private val CHECK_BOUNDING_BOX = CHECK_POLY.boundingRectangle
 
-        val INDETERMINATE_RECT_SIZE = Size(7.0, 1.5)
+        private val INDETERMINATE_RECT_SIZE = Size(7.0, 1.5)
     }
 }
 

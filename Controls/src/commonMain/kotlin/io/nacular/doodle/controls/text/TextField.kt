@@ -8,7 +8,6 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
 
-
 interface TextFieldBehavior: Behavior<TextField> {
     fun fitTextSize(textField: TextField): Size
 }
