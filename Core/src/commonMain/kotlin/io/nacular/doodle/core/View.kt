@@ -127,14 +127,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * The default is `true`
      */
-    protected var clipCanvasToBounds = true
-        set(new) {
-            if (field != new) {
-                field = new
-
-                rerender() // TODO: Should this notify instead?
-            }
-        }
+    protected var clipCanvasToBounds: Boolean by renderProperty(true)
 
     /**
      * A [Polygon] used to further clip the View's children within its [bounds]. The View's children cannot extend
@@ -142,14 +135,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      *
      * The default is `null`.
      */
-    protected var childrenClipPoly: Polygon? = null
-        set(new) {
-            if (field != new) {
-                field = new
-
-                rerender() // TODO: Should this notify instead?
-            }
-        }
+    protected var childrenClipPoly: Polygon? by renderProperty(null)
 
     internal val childrenClipPoly_ get() = childrenClipPoly
 
@@ -886,7 +872,15 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     }
 
     private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
+
+    companion object {
+        fun <T> styleProperty(initial: T, filter: (View) -> Boolean = { true }): ReadWriteProperty<View, T> = observable(initial) { _,_ ->
+            styleChanged(filter)
+        }
+    }
 }
+
+inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }) = observable(initial, onChange)
 
 /**
  * The View's center point in its **parent's** coordinate system.

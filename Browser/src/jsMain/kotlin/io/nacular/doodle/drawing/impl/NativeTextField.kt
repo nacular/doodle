@@ -1,11 +1,15 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.FontSerializer
 import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.SystemStyler
+import io.nacular.doodle.dom.SystemStyler.Style
+import io.nacular.doodle.dom.rgba
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBorderWidth
 import io.nacular.doodle.dom.setColor
@@ -21,6 +25,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
+import io.nacular.doodle.utils.IdGenerator
 import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
@@ -30,6 +35,9 @@ internal interface NativeTextFieldFactory {
 }
 
 internal class NativeTextFieldFactoryImpl internal constructor(
+        private val idGenerator        : IdGenerator,
+        private val fontSerializer     : FontSerializer,
+        private val systemStyler       : SystemStyler,
         private val htmlFactory        : HtmlFactory,
         private val elementRuler       : ElementRuler,
         private val eventHandlerFactory: NativeEventHandlerFactory,
@@ -53,6 +61,9 @@ internal class NativeTextFieldFactoryImpl internal constructor(
 
     override fun invoke(textField: TextField) = NativeTextField(
             eventHandlerFactory,
+            idGenerator,
+            systemStyler,
+            fontSerializer,
             htmlFactory,
             focusManager,
             nativeFocusManager,
@@ -64,6 +75,9 @@ internal class NativeTextFieldFactoryImpl internal constructor(
 @Suppress("PrivatePropertyName")
 internal class NativeTextField(
                     eventHandlerFactory: NativeEventHandlerFactory,
+        private val idGenerator        : IdGenerator,
+        private val systemStyler       : SystemStyler,
+        private val fontSerializer     : FontSerializer,
                     htmlFactory        : HtmlFactory,
         private val focusManager       : FocusManager?,
         private val nativeFocusManager : NativeFocusManager?,
@@ -116,21 +130,45 @@ internal class NativeTextField(
         inputElement.disabled = !new
     }
 
-    private val styleChanged = { _: View ->
-        inputElement.placeholder = textField.placeHolder
+    private var style: Style? = null
+        set(new) {
+            if (new?.css != field?.css) {
+                field?.delete()
 
-        inputElement.style.setFont           (textField.font               )
-        inputElement.style.setColor          (textField.foregroundColor    )
-        inputElement.style.setBackgroundColor(textField.backgroundColor    )
-        inputElement.style.textAlign = when  (textField.horizontalAlignment) {
-            Center -> "center"
-            Right  -> "right"
-            else   -> ""
+                field = new
+            }
         }
 
-        inputElement.style.outline = if (textField.borderVisible) "" else "none"
-        inputElement.style.setBorderWidth (if (textField.borderVisible) null else 0.0)
-        inputElement.style.setOutlineWidth(if (textField.borderVisible) null else 0.0)
+    private val styleChanged = { _: View ->
+        inputElement.run {
+            placeholder = textField.placeHolder
+
+            if (textField.placeHolderColor ?: textField.placeHolderFont != null) {
+                if (this.id == "") {
+                    this.id = "tf${idGenerator.nextId()}"
+                }
+
+                val css = """#${this.id}::placeholder {
+                    |${textField.placeHolderColor?.let { "color:${rgba(it)};" }}
+                    |${textField.placeHolderFont?.let { "font:${fontSerializer(it)}" }}
+                |}""".trimMargin()
+
+                this@NativeTextField.style = systemStyler.insertRule(css)
+            }
+
+            style.setFont(textField.font)
+            style.setColor(textField.foregroundColor)
+            style.setBackgroundColor(textField.backgroundColor)
+            style.textAlign = when (textField.horizontalAlignment) {
+                Center -> "center"
+                Right  -> "right"
+                else   -> ""
+            }
+
+            style.outline = if (textField.borderVisible) "" else "none"
+            style.setBorderWidth(if (textField.borderVisible) null else 0.0)
+            style.setOutlineWidth(if (textField.borderVisible) null else 0.0)
+        }
     }
 
     private val focusabilityChanged = { _: View, _: Boolean, new: Boolean ->
@@ -186,6 +224,8 @@ internal class NativeTextField(
             selectionChanged    -= this@NativeTextField.selectionChanged
             focusabilityChanged -= this@NativeTextField.focusabilityChanged
         }
+
+        style = null
     }
 
     fun render(canvas: Canvas) {

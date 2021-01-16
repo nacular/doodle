@@ -251,7 +251,7 @@ open class List<T, out M: ListModel<T>>(
                     uiGenerator(this, row, index).also { ui ->
                         when {
                             index > children.lastIndex -> children.add(ui)
-                            else                       -> children.add(index, ui)
+                            else                       -> children[index] = ui
                         }
 
                         layout(ui, row, index)

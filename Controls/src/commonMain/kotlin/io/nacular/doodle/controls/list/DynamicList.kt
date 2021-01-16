@@ -10,7 +10,11 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.size
+
+typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 
 open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
@@ -39,7 +43,9 @@ open class DynamicList<T, M: DynamicListModel<T>>(
             val numToRemove = oldVisibleRange.size - (firstVisibleRow..lastVisibleRow).size
             children.batch {
                 for (it in 0 until numToRemove) {
-                    removeAt(0)
+                    if (size > 0) {
+                        removeAt(size - 1)
+                    }
                 }
             }
         }
@@ -51,7 +57,11 @@ open class DynamicList<T, M: DynamicListModel<T>>(
             // These are the edited rows
             added.keys.filter { it in removed }.forEach { update(children, it) }
         }
+
+        (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
     }
+
+    val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
     init {
         model.changed += modelChanged

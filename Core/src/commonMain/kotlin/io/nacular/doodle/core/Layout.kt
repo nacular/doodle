@@ -121,3 +121,7 @@ interface Layout {
      */
     fun child(of: PositionableContainer, at: Point): LookupResult = Ignored
 }
+
+inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit) = object: Layout {
+    override fun layout(container: PositionableContainer) = layout(container)
+}

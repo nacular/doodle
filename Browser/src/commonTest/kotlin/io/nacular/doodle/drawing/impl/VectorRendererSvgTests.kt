@@ -37,6 +37,7 @@ import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.utils.IdGenerator
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.expect
@@ -580,5 +581,6 @@ class VectorRendererSvgTests {
             context     : CanvasContext = mockk(),
             svgFactory  : SvgFactory = mockk(),
             htmleFactory: HtmlFactory = mockk(),
-            textMetrics : TextMetrics = mockk()) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics)
+            textMetrics : TextMetrics = mockk(),
+            idGenerator : IdGenerator = mockk()) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics, idGenerator)
 }

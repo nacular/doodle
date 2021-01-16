@@ -9,6 +9,7 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.PatternFill
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -23,8 +24,8 @@ import io.nacular.doodle.theme.basic.SelectableListKeyHandler
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-open class BasicItemGenerator<T>(private val selectionColor       : Color?,
-                                 private val selectionBlurredColor: Color?): RowGenerator<T> {
+open class BasicItemGenerator<T>(private val selectionColor       : Color? = null,
+                                 private val selectionBlurredColor: Color? = null): RowGenerator<T> {
 
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
@@ -41,6 +42,16 @@ open class BasicItemGenerator<T>(private val selectionColor       : Color?,
     }
 }
 
+fun <T> basicItemGenerator(
+        selectionColor       : Color? = null,
+        selectionBlurredColor: Color? = null,
+        configure            : ListRow<T>.() -> Unit
+): RowGenerator<T> = object: BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
+    override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).apply {
+        if (current != this) configure(this as ListRow<T>)
+    }
+}
+
 private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
     override fun row(of: List<T, *>, atY: Double) = super.rowFor(of.insets, atY)
 
@@ -49,23 +60,10 @@ private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): Lis
     override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = super.rowBounds(of.width, of.insets, index, view)
 }
 
-open class BasicListBehavior<T>(private  val focusManager: FocusManager?,
+open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
                                 override val generator   : RowGenerator<T>,
-                                             evenRowColor: Color?,
-                                             oddRowColor : Color?,
+                                private  val patternFill : PatternFill? = null,
                                              rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
-    constructor(focusManager         : FocusManager?,
-                rowHeight            : Double,
-                evenRowColor         : Color?,
-                oddRowColor          : Color?,
-                selectionColor       : Color?,
-                selectionBlurredColor: Color?): this(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
-
-    private val patternFill = when {
-        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
-        else                                        -> null
-    }
-
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
     override fun install(view: List<T, *>) {
@@ -90,5 +88,29 @@ open class BasicListBehavior<T>(private  val focusManager: FocusManager?,
 
     override fun pressed(event: PointerEvent) {
         focusManager?.requestFocus(event.source)
+    }
+
+    companion object {
+        operator fun <T> invoke(
+                focusManager: FocusManager?,
+                generator   : RowGenerator<T>,
+                evenRowColor: Color?,
+                oddRowColor : Color?,
+                rowHeight   : Double) = BasicListBehavior(
+                    focusManager,
+                    generator,
+                    when {
+                        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+                        else                                        -> null
+                    },
+                    rowHeight)
+
+        operator fun <T> invoke(
+                focusManager         : FocusManager? = null,
+                evenRowColor         : Color?        = null,
+                oddRowColor          : Color?        = null,
+                selectionColor       : Color?        = null,
+                selectionBlurredColor: Color?        = null,
+                rowHeight            : Double) = BasicListBehavior<T>(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
     }
 }

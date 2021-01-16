@@ -96,7 +96,7 @@ class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors
         val NativeTextFieldBehavior = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }

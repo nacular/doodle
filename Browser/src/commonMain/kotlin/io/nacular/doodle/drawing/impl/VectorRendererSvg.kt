@@ -82,6 +82,7 @@ import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.IdGenerator
 import io.nacular.doodle.utils.isEven
 import io.nacular.doodle.utils.splitMatches
 import io.nacular.measured.units.Angle
@@ -97,6 +98,7 @@ internal open class VectorRendererSvg constructor(
         private   val svgFactory    : SvgFactory,
         private   val htmlFactory   : HtmlFactory,
         private   val textMetrics   : TextMetrics,
+        private   val idGenerator   : IdGenerator,
                       rootSvgElement: SVGElement? = null): VectorRenderer {
 
     protected var svgElement    : SVGElement? = null
@@ -242,7 +244,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = null
     }
 
-    protected fun nextId() = "${id++}"
+    protected fun nextId() = "${idGenerator.nextId()}"
 
     protected fun makeRect(rectangle: Rectangle, radius: Double = 0.0): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
         setBounds(rectangle)
@@ -822,7 +824,7 @@ internal open class VectorRendererSvg constructor(
                     override var renderPosition: Node? = pattern
                     override val shadows get() = context.shadows
                     override fun markDirty() = context.markDirty()
-                }, svgFactory, htmlFactory, textMetrics, pattern))
+                }, svgFactory, htmlFactory, textMetrics, idGenerator, pattern))
 
                 element.setFillPattern(pattern)
             }
@@ -833,7 +835,14 @@ internal open class VectorRendererSvg constructor(
         override val shadows: MutableList<Shadow> = mutableListOf()
     }
 
-    private class PatternCanvas(context: CanvasContext, svgFactory: SvgFactory, htmlFactory: HtmlFactory, textMetrics: TextMetrics, patternElement: SVGElement): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, patternElement), NativeCanvas {
+    private class PatternCanvas(
+            context       : CanvasContext,
+            svgFactory    : SvgFactory,
+            htmlFactory   : HtmlFactory,
+            textMetrics   : TextMetrics,
+            idGenerator   : IdGenerator,
+            patternElement: SVGElement
+    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), NativeCanvas {
         private val contextWrapper = ContextWrapper(context)
 
         init {
@@ -971,7 +980,6 @@ internal open class VectorRendererSvg constructor(
     }
 
     private companion object {
-        private var id                = 0
         private val containerElements = setOf("svg", "filter")
     }
 }

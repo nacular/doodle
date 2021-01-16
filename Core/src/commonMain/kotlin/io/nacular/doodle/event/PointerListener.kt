@@ -42,3 +42,23 @@ interface PointerListener {
      */
     fun clicked(event: PointerEvent) {}
 }
+
+inline fun exited(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+    override fun exited(event: PointerEvent) = block(event)
+}
+
+inline fun entered(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+    override fun entered(event: PointerEvent) = block(event)
+}
+
+inline fun pressed(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+    override fun pressed(event: PointerEvent) = block(event)
+}
+
+inline fun released(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+    override fun released(event: PointerEvent) = block(event)
+}
+
+inline fun clicked(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+    override fun clicked(event: PointerEvent) = block(event)
+}

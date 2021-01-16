@@ -11,8 +11,22 @@ import io.nacular.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
+actual abstract class CSSRule {
+    actual var cssText = ""
+}
+
+actual abstract class CSSRuleList {
+    actual abstract val length: Int
+
+    actual fun item(index: Int): CSSRule? = null
+}
+
 actual abstract class CSSStyleSheet: StyleSheet() {
     actual fun insertRule(rule: String, index: Int) = 0
+    actual val cssRules: CSSRuleList
+        get() = TODO("Not yet implemented")
+
+    actual fun deleteRule(index: Int) {}
 }
 
 actual val CSSStyleSheet.numStyles: Int get() = 0

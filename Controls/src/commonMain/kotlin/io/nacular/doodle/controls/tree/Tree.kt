@@ -560,7 +560,7 @@ open class Tree<T, out M: TreeModel<T>>(
                     it(this, value, path, index).also {
                         when {
                             index > children.lastIndex -> children.add(it)
-                            else                       -> children.add(index, it)
+                            else                       -> children[index] = it
                         }
 
                         layout(it, value, path, index)

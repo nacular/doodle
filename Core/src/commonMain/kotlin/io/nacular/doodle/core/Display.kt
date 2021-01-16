@@ -3,6 +3,8 @@ package io.nacular.doodle.core
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
@@ -130,6 +132,8 @@ inline val Display.width get() = size.width
  * @see Display.size
  */
 inline val Display.height get() = size.height
+
+inline fun Display.fill(color: Color) = fill(ColorFill(color))
 
 /**
  * Adds [view] to the Display.

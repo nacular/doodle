@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.KeyCode.Companion.Space
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -158,4 +159,8 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
             else              -> button.icon
         }
     }
+}
+
+inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit) = object: CommonButtonBehavior<T>() {
+    override fun render(view: T, canvas: Canvas) = render(view, canvas)
 }

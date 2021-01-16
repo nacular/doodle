@@ -11,12 +11,13 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyText
 import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Delete
-import io.nacular.doodle.event.KeyText.Companion.Enter
-import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
@@ -28,7 +29,7 @@ import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.ObservableSet
 
 
-open class MutableBasicItemGenerator<T>(selectionColor: Color?, selectionBlurredColor: Color?): BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
+open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, selectionBlurredColor: Color? = null): BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = super.invoke(list, row, index, current).also {
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
@@ -45,25 +46,10 @@ open class MutableBasicItemGenerator<T>(selectionColor: Color?, selectionBlurred
     }
 }
 
-open class BasicMutableListBehavior<T>(focusManager: FocusManager?,
+open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null,
                                        generator   : RowGenerator<T>,
-                                       evenRowColor: Color?,
-                                       oddRowColor : Color?,
-                                       rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, evenRowColor, oddRowColor, rowHeight) {
-
-    constructor(focusManager         : FocusManager?,
-                evenRowColor         : Color?,
-                oddRowColor          : Color?,
-                selectionColor       : Color?,
-                selectionBlurredColor: Color?,
-                rowHeight            : Double): this(
-            focusManager = focusManager,
-            generator    = MutableBasicItemGenerator(selectionColor, selectionBlurredColor),
-            evenRowColor = evenRowColor,
-            oddRowColor  = oddRowColor,
-            rowHeight    = rowHeight
-    )
-
+                                       patternFill : PatternFill? = null,
+                                       rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, patternFill, rowHeight) {
     override fun keyPressed(event: KeyEvent) {
         when (event.key) {
             Delete, Backspace -> (event.source as MutableList<*, *>).let { list ->
@@ -72,24 +58,46 @@ open class BasicMutableListBehavior<T>(focusManager: FocusManager?,
             else              -> super.keyPressed(event)
         }
     }
+
+    companion object {
+        operator fun <T> invoke(
+                focusManager: FocusManager?,
+                generator   : RowGenerator<T>,
+                evenRowColor: Color?,
+                oddRowColor : Color?,
+                rowHeight   : Double) = BasicMutableListBehavior(
+                    focusManager,
+                    generator,
+                    when {
+                        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+                        else                                        -> null
+                    },
+                    rowHeight)
+
+        operator fun <T> invoke(
+                focusManager         : FocusManager? = null,
+                evenRowColor         : Color?        = null,
+                oddRowColor          : Color?        = null,
+                selectionColor       : Color?        = null,
+                selectionBlurredColor: Color?        = null,
+                rowHeight            : Double) = BasicMutableListBehavior<T>(focusManager, BasicMutableItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
+    }
 }
 
 open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
-        private val encoder     : Encoder<T, String>,
+        private val mapper      : Encoder<T, String>,
         private val list        : MutableList<T, *>,
                     row         : T,
-        private var index       : Int,
-                    current     : View): TextField(), EditOperation<T> {
+                    current     : View): EditOperation<T> {
 
-    private val listSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
-        list.cancelEditing()
-    }
+    protected open val cancelOnFocusLost = true
 
-    init {
-        text                = encoder.encode(row) ?: ""
+    protected val textField = TextField().apply {
+        text                = mapper.encode(row) ?: ""
         fitText             = setOf(Width)
         borderVisible       = false
+        font                = current.font
         foregroundColor     = current.foregroundColor
         backgroundColor     = current.backgroundColor
         horizontalAlignment = HorizontalAlignment.Left
@@ -97,7 +105,7 @@ open class TextEditOperation<T>(
         styleChanged += { rerender() }
 
         focusChanged += { _,_,_ ->
-            if (!hasFocus) {
+            if (!hasFocus && cancelOnFocusLost) {
                 list.cancelEditing()
             }
         }
@@ -105,36 +113,44 @@ open class TextEditOperation<T>(
         keyChanged += object: KeyListener {
             override fun keyReleased(event: KeyEvent) {
                 when (event.key) {
-                    Enter  -> { list.completeEditing(); focusManager?.requestFocus(list) }
-                    Escape -> { list.cancelEditing  (); focusManager?.requestFocus(list) }
+                    KeyText.Enter  -> { list.completeEditing(); focusManager?.requestFocus(list) }
+                    KeyText.Escape -> { list.cancelEditing  (); focusManager?.requestFocus(list) }
                 }
             }
         }
 
-        list.selectionChanged += listSelectionChanged
+        displayChange += { _,_, displayed ->
+            if (displayed) {
+                focusManager?.requestFocus(this)
+                selectAll()
+            }
+        }
     }
 
-    override fun addedToDisplay() {
-        focusManager?.requestFocus(this)
-        selectAll()
+    private val listSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+        list.cancelEditing()
+    }
+
+    init {
+        list.selectionChanged += listSelectionChanged
     }
 
     override fun invoke() = object: View() {
         init {
-            children += this@TextEditOperation
+            children += textField
 
-            layout = constrain(this@TextEditOperation) {
+            layout = constrain(textField) {
                 it.height = parent.height - 1
                 it.bottom = parent.bottom
             }
         }
 
         override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
+            textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
         }
     }
 
-    override fun complete() = encoder.decode(text)
+    override fun complete() = mapper.decode(textField.text)
 
     override fun cancel() {
         list.selectionChanged -= listSelectionChanged
@@ -142,5 +158,5 @@ open class TextEditOperation<T>(
 }
 
 open class ListTextEditor<T>(private val focusManager: FocusManager?, private val encoder: Encoder<T, String>): ListEditor<T> {
-    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, index, current)
+    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, current)
 }

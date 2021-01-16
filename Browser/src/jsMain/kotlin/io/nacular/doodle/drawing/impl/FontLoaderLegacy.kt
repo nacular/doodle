@@ -47,7 +47,7 @@ internal class FontLoaderLegacy(
                 // Only one coroutine will get here at a time. It will either load the Font or be canceled.  On success, all queued
                 // loads will be resolved and return.  Otherwise, the next in line is allowed to take a shot.
                 Found -> FontImpl(size, weight, style, family)
-                else        -> {
+                else  -> {
                     try {
                         if (family == DEFAULT_FAMILY || family.isBlank()) {
                             return FontImpl(size, weight, style, family)

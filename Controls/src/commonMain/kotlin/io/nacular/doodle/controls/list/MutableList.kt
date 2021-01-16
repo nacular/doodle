@@ -21,6 +21,10 @@ interface ListEditor<T> {
     fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>
 }
 
+inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>) = object: ListEditor<T> {
+    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
+}
+
 open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
@@ -65,6 +69,8 @@ open class MutableList<T, M: MutableListModel<T>>(
     fun clear    (                                  ) = model.clear()
 
     fun startEditing(index: Int) {
+        cancelEditing()
+
         editor?.let {
             model[index]?.let { row ->
                 val i = index % children.size

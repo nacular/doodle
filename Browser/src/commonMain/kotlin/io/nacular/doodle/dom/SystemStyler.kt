@@ -4,28 +4,37 @@ import io.nacular.doodle.CSSStyleSheet
 import io.nacular.doodle.Document
 import io.nacular.doodle.HTMLMetaElement
 import io.nacular.doodle.HTMLStyleElement
+import io.nacular.doodle.dom.SystemStyler.Style
 import io.nacular.doodle.numStyles
+import io.nacular.doodle.utils.IdGenerator
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
 internal interface SystemStyler {
-    fun insertRule(css: String)
+    interface Style {
+        var css: String
+
+        fun delete()
+    }
+
+    fun insertRule(css: String): Style?
 
     fun shutdown()
 }
 
 internal class SystemStylerImpl(
         htmlFactory: HtmlFactory,
+        idGenerator: IdGenerator,
         private val document: Document,
-        private val isNested: Boolean,
+        isNested: Boolean,
         allowDefaultDarkMode: Boolean
 ): SystemStyler {
     private val style: HTMLStyleElement = htmlFactory.create("style")
 
     private val meta: HTMLMetaElement?  = when(htmlFactory.root) {
-        document.body -> htmlFactory.create<HTMLMetaElement>("meta" ).apply {
-            name    = "viewport"
+        document.body -> htmlFactory.create<HTMLMetaElement>("meta").apply {
+            name = "viewport"
             content = "width=device-width, initial-scale=1"
         }
         else -> null
@@ -34,7 +43,7 @@ internal class SystemStylerImpl(
     private val id = when(htmlFactory.root) {
         document.body -> null
         else          -> "#${when (val i = htmlFactory.root.id) {
-            ""        -> "__doodle__${currentId++}".also { htmlFactory.root.id = it }
+            "" -> "__doodle__${idGenerator.nextId()}".also { htmlFactory.root.id = it }
             else      -> i
         }}"
     }
@@ -86,15 +95,34 @@ internal class SystemStylerImpl(
         }
     }
 
-    override fun insertRule(css: String) {
-        sheet?.apply { insertRule(css, numStyles) }
+    private val ruleIndexes = mutableListOf<Int>()
+
+    override fun insertRule(css: String): Style? = sheet?.run {
+        val offset     = ruleIndexes.size
+        val styleIndex = insertRule(css, numStyles)
+
+        ruleIndexes += styleIndex
+
+        val sheet = this
+
+        cssRules.item(styleIndex)?.let { rule ->
+            object: Style {
+                override var css get() = rule.cssText; set(new) { rule.cssText = new }
+
+                override fun delete() {
+                    sheet.deleteRule(ruleIndexes[offset])
+
+                    ruleIndexes[offset] = -1
+
+                    for (i in offset + 1 until ruleIndexes.size) {
+                        ruleIndexes[i] = ruleIndexes[i] - 1
+                    }
+                }
+            }
+        }
     }
 
     override fun shutdown() {
         document.head?.remove(style)
-    }
-
-    private companion object {
-        private var currentId = 0
     }
 }

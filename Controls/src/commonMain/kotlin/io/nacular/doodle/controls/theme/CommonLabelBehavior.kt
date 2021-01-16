@@ -5,8 +5,8 @@ import io.nacular.doodle.controls.text.LabelBehavior
 import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.rect
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -48,7 +48,7 @@ open class CommonLabelBehavior(
             }
 
             backgroundColor?.let {
-                canvas.rect(bounds.atOrigin, ColorFill(it))
+                canvas.rect(bounds.atOrigin, color = it)
             }
 
             if (wrapsWords) {

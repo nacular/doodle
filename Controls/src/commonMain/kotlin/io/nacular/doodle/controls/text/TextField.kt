@@ -3,6 +3,8 @@ package io.nacular.doodle.controls.text
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -13,11 +15,12 @@ interface TextFieldBehavior: Behavior<TextField> {
 }
 
 open class TextField(text: String = ""): TextInput(text) {
-    var placeHolder = ""
-        set(new) {
-            field = new
-            styleChanged { true }
-        }
+
+    var placeHolder: String by styleProperty("")
+
+    var placeHolderFont: Font? by styleProperty(font)
+
+    var placeHolderColor: Color? by styleProperty(foregroundColor)
 
     var fitText = emptySet<TextFit>()
         set(new) {
@@ -26,11 +29,7 @@ open class TextField(text: String = ""): TextInput(text) {
             fitText()
         }
 
-    var borderVisible = true
-        set(new) {
-            field = new
-            styleChanged { true }
-        }
+    var borderVisible: Boolean by styleProperty(true)
 
     val masked get() = mask != null
 

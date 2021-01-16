@@ -4,10 +4,15 @@ import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.utils.Path
+import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.SetPool
 
 /**
  * Created by Nicholas Eddy on 9/29/19.
  */
+
+typealias ItemsObserver<T> = (source: Tree<T, *>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
+
 open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
@@ -28,7 +33,9 @@ open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: Item
             if (children.size == lastVisibleRow - 1) {
                 children.batch {
                     for (it in 0..trueRemoved.size - trueAdded.size) {
-                        children.removeAt(0)
+                        if (size > 0) {
+                            removeAt(size - 1)
+                        }
                     }
                 }
             }
@@ -41,7 +48,11 @@ open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: Item
             // These are the edited rows
             added.keys.filter { it in removed }.forEach { update(children, it) }
         }
+
+        (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
     }
+
+    val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
     init {
         model.changed += modelChanged

@@ -292,10 +292,19 @@ open class ObservableSet<E> private constructor(protected val set: MutableSet<E>
     }
 }
 
-fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial, observers) { _,_ -> }
-fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial, observers, onChange)
+fun <S, T> observable(initial: T, onChange: S.(old: T, new: T) ->Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+    onChange(thisRef, old, new)
+}
 
-private class ObservableProperty<S, T>(initial: T, private val observers: Iterable<PropertyObserver<S, T>>, private val onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> {
+fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+    observers.forEach { it(thisRef, old, new) }
+}
+fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+    onChange(old, new)
+    observers.forEach { it(thisRef, old, new) }
+}
+
+private class ObservableProperty<S, T>(initial: T, private val onChange: (thisRef: S, old: T, new: T) -> Unit): ReadWriteProperty<S, T> {
     private var value: T = initial
 
     override operator fun getValue(thisRef: S, property: KProperty<*>): T = value
@@ -306,9 +315,7 @@ private class ObservableProperty<S, T>(initial: T, private val observers: Iterab
 
             this.value = value
 
-            onChange(old, this.value)
-
-            observers.forEach { it(thisRef, old, this.value) }
+            onChange(thisRef, old, this.value)
         }
     }
 }

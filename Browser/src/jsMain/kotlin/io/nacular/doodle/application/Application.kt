@@ -52,6 +52,8 @@ import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
+import io.nacular.doodle.utils.IdGenerator
+import io.nacular.doodle.utils.SimpleIdGenerator
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.kodein.di.Copy
@@ -199,13 +201,14 @@ private open class ApplicationHolderImpl protected constructor(
         bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                        ) }
+        bind<IdGenerator>              () with singleton { SimpleIdGenerator         (                                                                      ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
         bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
         bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                            ) }
         bind<FontSerializer>           () with singleton { FontSerializerImpl        (instance()                                                            ) }
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), document, isNested, allowDefaultDarkMode                ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance()                        ) }
+        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
+        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
         bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
         bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported

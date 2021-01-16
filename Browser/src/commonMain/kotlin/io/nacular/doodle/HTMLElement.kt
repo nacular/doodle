@@ -11,8 +11,20 @@ import io.nacular.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
+expect abstract class CSSRule {
+    var cssText: String
+}
+
+expect abstract class CSSRuleList {
+    abstract val length: Int
+    fun item(index: Int): CSSRule?
+}
+
 expect abstract class CSSStyleSheet: StyleSheet {
+    val cssRules: CSSRuleList
+
     fun insertRule(rule: String, index: Int): Int
+    fun deleteRule(index: Int)
 }
 
 expect val CSSStyleSheet.numStyles: Int
@@ -61,8 +73,8 @@ expect abstract class CSSStyleDeclaration {
     var backgroundColor: String
 }
 
-expect var CSSStyleDeclaration.clipPath   : String
-expect var CSSStyleDeclaration.willChange : String
+expect var CSSStyleDeclaration.clipPath  : String
+expect var CSSStyleDeclaration.willChange: String
 
 expect class DOMRect {
     var x     : Double

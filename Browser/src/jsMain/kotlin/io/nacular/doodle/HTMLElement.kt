@@ -6,6 +6,8 @@ import io.nacular.doodle.dom.TouchEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
+actual typealias CSSRule       = org.w3c.dom.css.CSSRule
+actual typealias CSSRuleList   = org.w3c.dom.css.CSSRuleList
 actual typealias CSSStyleSheet = org.w3c.dom.css.CSSStyleSheet
 
 actual val CSSStyleSheet.numStyles: Int get() = this.cssRules.length

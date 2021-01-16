@@ -25,8 +25,8 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-open class ListRow<T>(private var list                           : ListLike,
-                      private var row                            : T,
+open class ListRow<T>(        var list                           : ListLike,
+                              var row                            : T,
                               var index                          : Int,
                       private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
                       private val backgroundSelectionColor       : Color? = Blue,
