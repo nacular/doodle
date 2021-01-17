@@ -50,6 +50,7 @@ import io.nacular.doodle.dom.setStopOffset
 import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setStrokeDash
 import io.nacular.doodle.dom.setStrokeWidth
+import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setX1
@@ -342,7 +343,8 @@ internal open class VectorRendererSvg constructor(
             element == null || element.nodeName != tag -> svgFactory(tag)
             element is SVGElement                      -> {
                 if (tag !in containerElements) { element.clear() }
-                element.style.filter = ""
+                element.style.filter         = ""
+                element.style.textDecoration = ""
                 element.removeTransform()
                 @Suppress("UNCHECKED_CAST")
                 element as T
@@ -404,9 +406,11 @@ internal open class VectorRendererSvg constructor(
             add(htmlFactory.createText(text))
         }
 
-        setFill             (null          )
-        setStroke           (null          )
+        setFill            (null          )
+        setStroke          (null          )
         setDominantBaseline(TextBeforeEdge)
+
+        this.style.setTextDecoration(style.decoration)
 
         this.style.whiteSpace = "pre"
 
@@ -414,7 +418,7 @@ internal open class VectorRendererSvg constructor(
             this.style.setFont(it)
         }
 
-        // TODO: Support Background
+        // TODO: Support Background, TextDecoration
 
         style.foreground?.let {
             fillElement(this, it, true)
@@ -455,7 +459,7 @@ internal open class VectorRendererSvg constructor(
         }
 
         lines.filter { it.first.isNotBlank() }.forEach { (text, at) ->
-            text(StyledText(text, style.font, foreground = style.foreground, background = style.background), at)
+            text(StyledText(text, style.font, foreground = style.foreground, background = style.background, decoration = style.decoration), at)
         }
 
         return Point(endX, currentPoint.y)

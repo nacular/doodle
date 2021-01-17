@@ -13,6 +13,7 @@ import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setPosition
+import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent
 import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.drawing.ColorFill
@@ -32,6 +33,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         font?.let {
             element.style.setFont(it)
+        }
+
+        if (element == possible) {
+            element.style.textDecoration = ""
         }
 
         return element
@@ -107,6 +112,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         } ?: {
             element.style.setBackgroundColor(null)
         }()
+
+        element.style.setTextDecoration(style.decoration)
     }
 
     private companion object {

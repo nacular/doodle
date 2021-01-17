@@ -30,51 +30,56 @@ expect abstract class CSSStyleSheet: StyleSheet {
 expect val CSSStyleSheet.numStyles: Int
 
 expect abstract class CSSStyleDeclaration {
-    var top            : String
-    var font           : String
-    var left           : String
-    var right          : String
-    var width          : String
-    var color          : String
-    var cursor         : String
-    var height         : String
-    var margin         : String
-    var bottom         : String
-    var filter         : String
-    var border         : String
-    var padding        : String
-    var zIndex         : String
-    var display        : String
-    var opacity        : String
-    var fontSize       : String
-    var position       : String
-    var transform      : String
-    var marginTop      : String
-    var overflowX      : String
-    var overflowY      : String
-    var boxShadow      : String
-    var fontStyle      : String
-    var textShadow     : String
-    var textIndent     : String
-    var fontFamily     : String
-    var fontWeight     : String
-    var background     : String
-    var marginLeft     : String
-    var whiteSpace     : String
-    var marginRight    : String
-    var borderStyle    : String
-    var borderColor    : String
-    var borderWidth    : String
-    var borderRadius   : String
-    var marginBottom   : String
-    var outlineWidth   : String
-    var backgroundSize : String
-    var backgroundImage: String
-    var backgroundColor: String
+    var top                : String
+    var font               : String
+    var left               : String
+    var right              : String
+    var width              : String
+    var color              : String
+    var cursor             : String
+    var height             : String
+    var margin             : String
+    var bottom             : String
+    var filter             : String
+    var border             : String
+    var padding            : String
+    var zIndex             : String
+    var display            : String
+    var opacity            : String
+    var fontSize           : String
+    var position           : String
+    var transform          : String
+    var marginTop          : String
+    var overflowX          : String
+    var overflowY          : String
+    var boxShadow          : String
+    var fontStyle          : String
+    var textShadow         : String
+    var textIndent         : String
+    var fontFamily         : String
+    var fontWeight         : String
+    var background         : String
+    var marginLeft         : String
+    var whiteSpace         : String
+    var marginRight        : String
+    var borderStyle        : String
+    var borderColor        : String
+    var borderWidth        : String
+    var borderRadius       : String
+    var marginBottom       : String
+    var outlineWidth       : String
+    var backgroundSize     : String
+    var textDecoration     : String
+    var backgroundImage    : String
+    var backgroundColor    : String
+    var textDecorationLine : String
+    var textDecorationColor: String
+    var textDecorationStyle: String
 }
 
-expect var CSSStyleDeclaration.clipPath  : String
-expect var CSSStyleDeclaration.willChange: String
+expect var CSSStyleDeclaration.clipPath               : String
+expect var CSSStyleDeclaration.willChange             : String
+expect var CSSStyleDeclaration.textDecorationThickness: String
 
 expect class DOMRect {
     var x     : Double

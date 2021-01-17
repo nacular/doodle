@@ -19,6 +19,12 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.text.TextDecoration
+import io.nacular.doodle.text.TextDecoration.Line
+import io.nacular.doodle.text.TextDecoration.Line.Over
+import io.nacular.doodle.text.TextDecoration.Line.Through
+import io.nacular.doodle.text.TextDecoration.Line.Under
+import io.nacular.doodle.textDecorationThickness
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
@@ -84,6 +90,29 @@ internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)"
 internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) } ?: "" }
 internal inline fun Style.setCursor (value: Cursor?     ) { cursor  = value?.let { "$it" } ?: "" }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = if (value != 1f) value.toString() else "" }
+
+internal fun Style.setTextDecoration(value: TextDecoration?) {
+    when (value) {
+        null -> textDecoration = ""
+        else -> {
+            textDecorationColor     = value.color?.let { rgba(it) } ?: ""
+            textDecorationLine      = value.lines.joinToString(" ") { it.styleText }.takeUnless { it == "" } ?: ""
+            textDecorationStyle     = "${value.style}".toLowerCase()
+            textDecorationThickness = when (val t = value.thickNess) {
+                TextDecoration.ThickNess.FromFont    -> "from-font"
+                is TextDecoration.ThickNess.Percent  -> "${t.value}%"
+                is TextDecoration.ThickNess.Absolute -> em(t.value)
+                null                                 -> ""
+            }
+        }
+    }
+}
+
+private val Line.styleText: String get() = when (this) {
+    Under   -> "underline"
+    Over    -> "overline"
+    Through -> "line-through"
+}
 
 internal fun Style.setFont(value: Font?) {
     when (value) {

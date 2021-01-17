@@ -24,6 +24,13 @@ actual var CSSStyleDeclaration.willChange: String get() = try { this.asDynamic()
         } catch (ignore: Exception) {}
     }
 
+actual var CSSStyleDeclaration.textDecorationThickness: String get() = try { this.asDynamic()["text-decoration-thickness"] as String } catch (ignore: Exception) { "" }
+    set(new) {
+        try {
+            this.asDynamic()["text-decoration-thickness"] = new
+        } catch (ignore: Exception) {}
+    }
+
 actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle
 
 actual typealias DOMRect   = org.w3c.dom.DOMRect
