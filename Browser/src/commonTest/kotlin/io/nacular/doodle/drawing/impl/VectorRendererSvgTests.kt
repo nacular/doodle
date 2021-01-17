@@ -60,25 +60,19 @@ class VectorRendererSvgTests {
         val poly   = ConvexPolygon(Origin, Origin + Point(100, 100), Origin + Point(-100, 100))
         val circle = Circle(100.0)
 
-        listOf<VectorRendererSvg.(Stroke, Fill) -> Unit>(
-            { stroke, _     -> line(Origin, Origin + Point(100, 0), stroke) },
+        nothingRendered2 { stroke, _ -> line(Origin, Origin + Point(100, 0), stroke) }
+        nothingRendered2 { _,      fill -> rect(rect,               fill) }
+        nothingRendered2 { _,      fill -> rect(rect, 10.0,         fill) }
+        nothingRendered2 { stroke, fill -> rect(rect, stroke,       fill) }
+        nothingRendered2 { stroke, fill -> rect(rect, 10.0, stroke, fill) }
 
-            { _,      fill -> rect(rect,               fill) },
-            { _,      fill -> rect(rect, 10.0,         fill) },
-            { stroke, fill -> rect(rect, stroke,       fill) },
-            { stroke, fill -> rect(rect, 10.0, stroke, fill) },
+        nothingRendered2 { _,      fill -> circle(circle,         fill) }
+        nothingRendered2 { stroke, fill -> circle(circle, stroke, fill) }
+        nothingRendered2 { _,      fill -> poly(poly,         fill) }
+        nothingRendered2 { stroke, fill -> poly(poly, stroke, fill) }
 
-            { _,      fill -> circle(circle,         fill) },
-            { stroke, fill -> circle(circle, stroke, fill) },
-
-            { _,      fill -> poly(poly,         fill) },
-            { stroke, fill -> poly(poly, stroke, fill) },
-
-            { _,      fill -> ellipse(circle,         fill) },
-            { stroke, fill -> ellipse(circle, stroke, fill) }
-        ).forEach {
-            nothingRendered(it)
-        }
+        nothingRendered2 { _,      fill -> ellipse(circle,         fill) }
+        nothingRendered2 { stroke, fill -> ellipse(circle, stroke, fill) }
     }
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
@@ -88,26 +82,22 @@ class VectorRendererSvgTests {
         val poly   = ConvexPolygon(Origin, Origin, Origin)
         val circle = Circle.Empty
 
-        listOf<VectorRendererSvg.() -> Unit>(
-            { rect(rect,               fill) },
-            { rect(rect, 10.0,         fill) },
-            { rect(rect,       stroke, fill) },
-            { rect(rect, 10.0, stroke, fill) },
+        nothingRendered { rect(rect,               fill) }
+        nothingRendered { rect(rect, 10.0,         fill) }
+        nothingRendered { rect(rect,       stroke, fill) }
+        nothingRendered { rect(rect, 10.0, stroke, fill) }
 
-            { circle(circle,         fill) },
-            { circle(circle, stroke, fill) },
+        nothingRendered { circle(circle,         fill) }
+        nothingRendered { circle(circle, stroke, fill) }
 
-            { poly(poly,         fill) },
-            { poly(poly, stroke, fill) },
+        nothingRendered { poly(poly,         fill) }
+        nothingRendered { poly(poly, stroke, fill) }
 
-            { ellipse(circle,         fill) },
-            { ellipse(circle, stroke, fill) }//,
+        nothingRendered { ellipse(circle,         fill) }
+        nothingRendered { ellipse(circle, stroke, fill) }
 
-//            { text   ("text", null, Point.Origin,             fill) },
-//            { wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
-        ).forEach {
-            nothingRendered(it)
-        }
+//      nothingRendered { text   ("text", null, Point.Origin,             fill) }
+//      nothingRendered { wrapped("text", null, Point.Origin, 0.0, 100.0, fill) }
     }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
@@ -551,7 +541,7 @@ class VectorRendererSvgTests {
         }
     }
 
-    private fun nothingRendered(block: VectorRendererSvg.(Stroke, Fill) -> Unit) {
+    private fun nothingRendered2(block: VectorRendererSvg.(Stroke, Fill) -> Unit) {
         val context = mockk<CanvasContext>()
         val factory = mockk<SvgFactory>   ()
 

@@ -76,23 +76,19 @@ class CanvasImplTests {
         val rect = Rectangle(100, 100)
         val circle = Circle(100.0)
 
-        listOf<CanvasImpl.(Stroke, Fill) -> Unit>(
-                { _, fill -> rect(rect, fill) },
-                { _, fill -> rect(rect, 10.0, fill) },
-                { stroke, fill -> rect(rect, stroke, fill) },
-                { stroke, fill -> rect(rect, 10.0, stroke, fill) },
+        nothingRendered2 { _,      fill -> rect(rect, fill              ) }
+        nothingRendered2 { _,      fill -> rect(rect, 10.0, fill        ) }
+        nothingRendered2 { stroke, fill -> rect(rect, stroke, fill      ) }
+        nothingRendered2 { stroke, fill -> rect(rect, 10.0, stroke, fill) }
 
-                { _, fill -> circle(circle, fill) },
-                { stroke, fill -> circle(circle, stroke, fill) },
+        nothingRendered2 { _,      fill -> circle(circle, fill        ) }
+        nothingRendered2 { stroke, fill -> circle(circle, stroke, fill) }
 
-                { _, fill -> ellipse(circle, fill) },
-                { stroke, fill -> ellipse(circle, stroke, fill) },
+        nothingRendered2 { _,      fill -> ellipse(circle, fill        ) }
+        nothingRendered2 { stroke, fill -> ellipse(circle, stroke, fill) }
 
-                { _, fill -> text("text", null, Origin, fill) },
-                { _, fill -> wrapped("text", null, Origin, 0.0, 100.0, fill) }
-        ).forEach {
-            nothingRendered(it)
-        }
+        nothingRendered2 { _, fill -> text   ("text", null, Origin, fill            ) }
+        nothingRendered2 { _, fill -> wrapped("text", null, Origin, 0.0, 100.0, fill) }
     }
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
@@ -113,28 +109,24 @@ class CanvasImplTests {
             every { src          } returns "empty.jpg"
         })
 
-        listOf<CanvasImpl.() -> Unit>(
-            { rect(rect,               fill) },
-            { rect(rect, 10.0,         fill) },
-            { rect(rect,       stroke, fill) },
-            { rect(rect, 10.0, stroke, fill) },
+        nothingRendered { rect(rect,               fill) }
+        nothingRendered { rect(rect, 10.0,         fill) }
+        nothingRendered { rect(rect,       stroke, fill) }
+        nothingRendered { rect(rect, 10.0, stroke, fill) }
 
-            { circle(circle,         fill) },
-            { circle(circle, stroke, fill) },
+        nothingRendered { circle(circle,         fill) }
+        nothingRendered { circle(circle, stroke, fill) }
 
-            { ellipse(circle,         fill) },
-            { ellipse(circle, stroke, fill) },
+        nothingRendered { ellipse(circle,         fill) }
+        nothingRendered { ellipse(circle, stroke, fill) }
 
-            { text   ("", null, Origin,             fill) },
-            { wrapped("", null, Origin, 0.0, 100.0, fill) },
+        nothingRendered { text   ("", null, Origin,             fill) }
+        nothingRendered { wrapped("", null, Origin, 0.0, 100.0, fill) }
 
-            { image(zeroSizeImage                       ) },
-            { image(image, opacity     = 0f             ) },
-            { image(image, source      = Rectangle.Empty) },
-            { image(image, destination = Rectangle.Empty) }
-        ).forEach {
-            nothingRendered(it)
-        }
+        nothingRendered { image(zeroSizeImage                       ) }
+        nothingRendered { image(image, opacity     = 0f             ) }
+        nothingRendered { image(image, source      = Rectangle.Empty) }
+        nothingRendered { image(image, destination = Rectangle.Empty) }
     }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
@@ -758,7 +750,7 @@ class CanvasImplTests {
         verify(exactly = 0) { renderParent.appendChild(any()) }
     }
 
-    private fun nothingRendered(block: CanvasImpl.(Stroke, Fill) -> Unit) {
+    private fun nothingRendered2(block: CanvasImpl.(Stroke, Fill) -> Unit) {
         val renderParent = spyk<HTMLElement>()
         val renderer     = mockk<VectorRenderer>()
 
