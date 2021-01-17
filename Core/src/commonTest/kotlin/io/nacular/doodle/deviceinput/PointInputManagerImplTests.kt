@@ -17,7 +17,6 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
-import io.nacular.doodle.system.Cursor.Companion.Default
 import io.nacular.doodle.system.Cursor.Companion.Help
 import io.nacular.doodle.system.Cursor.Companion.Move
 import io.nacular.doodle.system.Cursor.Companion.Progress
@@ -48,7 +47,7 @@ class PointInputManagerImplTests {
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         verify(exactly = 1) { inputService        += manager }
-        verify(exactly = 1) { inputService.cursor  = Default }
+        verify(exactly = 1) { inputService.cursor  = null    }
     }
 
     @Test @JsName("displayCursorOnInit")
@@ -93,7 +92,7 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        verify(exactly = 1) { inputService.cursor = Default }
+        verify(exactly = 1) { inputService.cursor = null }
 
         manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
@@ -101,7 +100,7 @@ class PointInputManagerImplTests {
 
         manager.changed(SystemPointerEvent(Type.Move, Point(11.0, 10.0), emptySet(), 0, emptySet()))
 
-        verify(exactly = 2) { inputService.cursor = Default }
+        verify(exactly = 2) { inputService.cursor = null }
     }
 
     @Test @JsName("correctCursorOnCoveredViewCursorChanged")
@@ -117,7 +116,7 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        verify(exactly = 1) { inputService.cursor = Default }
+        verify(exactly = 1) { inputService.cursor = null }
 
         manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
@@ -129,7 +128,7 @@ class PointInputManagerImplTests {
 
         child.cursor = null
 
-        verify(exactly = 2) { inputService.cursor = Default }
+        verify(exactly = 2) { inputService.cursor = null }
 
         child.cursor = Crosshair
 
