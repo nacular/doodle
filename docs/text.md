@@ -53,13 +53,13 @@ class CenteredTextView(textMetrics: TextMetrics): View() {
 You can specify a font when drawing text or have Doodle fallback to the default. Fonts can be tricky, since
 they may not be present on the system at render time. This presents a race-condition for drawing text.
 
-Doodle provides a [`FontDetector`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/FontDetector.kt#L18)
+Doodle provides a [`FontLoader`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/FontLoader.kt#L18)
 to help with this. It checks the system asynchronously for a given font and returns only when it has been found.
 
 ```kotlin
 import kotlinx.coroutines.GlobalScope
 
-class MyApp(fonts: FontDetector): Application {
+class MyApp(fonts: FontLoader): Application {
     init {
         // launch a new coroutine for async font lookup
         val font = GlobalScope.async {
@@ -79,14 +79,14 @@ class MyApp(fonts: FontDetector): Application {
 }
 ```
 
-`FontDetector` uses Kotlin's `suspend` functions for its async methods. [Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
+`FontLoader` uses Kotlin's `suspend` functions for its async methods. [Coroutines](https://kotlinlang.org/docs/reference/coroutines-overview.html)
 are a flexible way of dealing with async/await semantics. You can support timeouts using `launch` and canceling the resulting Job
 after some duration.
 
 ```kotlin
 import kotlinx.coroutines.GlobalScope
 
-class MyApp(fonts: FontDetector, scheduler: Scheduler): Application {
+class MyApp(fonts: FontLoader, scheduler: Scheduler): Application {
     init {
         val view = view {}
         

@@ -245,7 +245,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = null
     }
 
-    protected fun nextId() = "${idGenerator.nextId()}"
+    protected fun nextId() = idGenerator.nextId()
 
     protected fun makeRect(rectangle: Rectangle, radius: Double = 0.0): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
         setBounds(rectangle)

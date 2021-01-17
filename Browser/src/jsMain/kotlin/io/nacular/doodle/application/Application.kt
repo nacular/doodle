@@ -71,6 +71,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.events.FocusEvent
+import kotlin.random.Random
 
 /**
  * Created by Nicholas Eddy on 1/22/20.
@@ -194,6 +195,11 @@ private open class ApplicationHolderImpl protected constructor(
             root.tabIndex = 0
         }
 
+        val idPrefix = when (root) {
+            document.body -> ""
+            else          -> root.id.takeIf { it.isNotBlank() } ?: Random.nextInt().toString()
+        }
+
         bind<Window>                   () with instance  ( window )
 
         bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                                    ) }
@@ -201,7 +207,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
         bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
         bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                        ) }
-        bind<IdGenerator>              () with singleton { SimpleIdGenerator         (                                                                      ) }
+        bind<IdGenerator>              () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
         bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
         bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
         bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }

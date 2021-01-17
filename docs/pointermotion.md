@@ -23,4 +23,10 @@ view.pointerMotionChanged += object: PointerMotionListener {
     }
 }
 ```
- 
+There are also short-hand functions for cases where you only consume one of the events.
+
+```kotlin
+view.pointerMotionChanged += moved { event: PointerEvent ->
+    // ..
+}
+```

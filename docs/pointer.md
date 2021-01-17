@@ -72,6 +72,7 @@ Pointer listeners are notified whenever the pointer:
 - **Enters** a View
 - **Pressed** within a View
 - **Released** within a View
+- **Clicked** (Pressed then Released) within a View
 - **Exits** a View
 
 You get these notifications by registering with a View's [`pointerChanged`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L294)
@@ -85,8 +86,16 @@ view.pointerChanged += object: PointerListener {
 }
 ```
 
+There are also short-hand functions for cases where you only consume one of the events.
+
+```kotlin
+view.pointerChanged += pressed { event ->
+    // ..
+}
+```
+
 ?> [`PointerListener`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/event/PointerListener.kt#L3)
-has no-op defaults for the 4 events, so you only need to implement the ones you need.
+has no-op defaults for each event, so you only need to implement the ones you need.
 
 Notice that `pointerChanged`--like other observable properties--supports many observers and enables you to add/remove
 an observer any time.

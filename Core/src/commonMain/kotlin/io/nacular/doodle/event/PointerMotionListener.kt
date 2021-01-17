@@ -21,3 +21,11 @@ interface PointerMotionListener {
      */
     fun dragged(event: PointerEvent) {}
 }
+
+inline fun moved(crossinline block: (event: PointerEvent) -> Unit) = object: PointerMotionListener {
+    override fun moved(event: PointerEvent) = block(event)
+}
+
+inline fun dragged(crossinline block: (event: PointerEvent) -> Unit) = object: PointerMotionListener {
+    override fun dragged(event: PointerEvent) = block(event)
+}

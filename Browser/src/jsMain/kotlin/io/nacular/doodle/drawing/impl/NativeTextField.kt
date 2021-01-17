@@ -145,7 +145,7 @@ internal class NativeTextField(
 
             if (textField.placeHolderColor ?: textField.placeHolderFont != null) {
                 if (this.id == "") {
-                    this.id = "tf${idGenerator.nextId()}"
+                    this.id = idGenerator.nextId()
                 }
 
                 val css = """#${this.id}::placeholder {

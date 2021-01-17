@@ -21,3 +21,11 @@ interface KeyListener {
      */
     fun keyReleased(event: KeyEvent) {}
 }
+
+inline fun keyPressed(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
+    override fun keyPressed(event: KeyEvent) = block(event)
+}
+
+inline fun keyReleased(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
+    override fun keyReleased(event: KeyEvent) = block(event)
+}

@@ -5,11 +5,11 @@ package io.nacular.doodle.utils
  * single app instance.
  */
 internal interface IdGenerator {
-    fun nextId(): Int
+    fun nextId(): String
 }
 
-internal class SimpleIdGenerator: IdGenerator {
+internal class SimpleIdGenerator(private val seed: String): IdGenerator {
     private var currentId = 0
 
-    override fun nextId(): Int = currentId++
+    override fun nextId(): String = "i$seed${currentId++}"
 }

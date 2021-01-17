@@ -43,7 +43,7 @@ internal class SystemStylerImpl(
     private val id = when(htmlFactory.root) {
         document.body -> null
         else          -> "#${when (val i = htmlFactory.root.id) {
-            "" -> "__doodle__${idGenerator.nextId()}".also { htmlFactory.root.id = it }
+            "" -> idGenerator.nextId().also { htmlFactory.root.id = it }
             else      -> i
         }}"
     }
