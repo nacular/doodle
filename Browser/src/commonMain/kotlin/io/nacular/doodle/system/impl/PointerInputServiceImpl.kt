@@ -13,7 +13,7 @@ internal class PointerInputServiceImpl(private val strategy: PointerInputService
     override val pointerLocation: Point
         get() = strategy.pointerLocation
 
-    override var cursor: Cursor
+    override var cursor: Cursor?
         get(     ) = strategy.cursor
         set(value) { strategy.cursor = value }
 

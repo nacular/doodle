@@ -6,6 +6,7 @@ import io.nacular.doodle.addEventListener
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
+import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.ontouchmove
@@ -57,10 +58,10 @@ internal open class PointerInputServiceStrategyWebkit(
             inputDevice?.title = new
         }
 
-    override var cursor: Cursor = Cursor.Default
+    override var cursor: Cursor? = null
         set(new) {
             if (new != field) {
-                inputDevice?.style?.cursor = new.toString()
+                inputDevice?.style?.setCursor(new)
 
                 field = new
             }

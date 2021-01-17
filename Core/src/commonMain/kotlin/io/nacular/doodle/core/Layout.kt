@@ -125,3 +125,9 @@ interface Layout {
 inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit) = object: Layout {
     override fun layout(container: PositionableContainer) = layout(container)
 }
+
+infix fun Layout.then(onLayout: (PositionableContainer) -> Unit) = simpleLayout { container ->
+    layout(container)
+
+    onLayout(container)
+}

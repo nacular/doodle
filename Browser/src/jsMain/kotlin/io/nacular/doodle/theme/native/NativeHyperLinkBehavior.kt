@@ -8,7 +8,6 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
-import io.nacular.doodle.system.Cursor.Companion.Default
 
 internal class NativeHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFactory, textMetrics: TextMetrics, hyperLink: HyperLink): CommonTextButtonBehavior<HyperLink>(textMetrics) {
 
@@ -21,7 +20,6 @@ internal class NativeHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFa
     override fun install(view: HyperLink) {
         super.install(view)
 
-        view.cursor    = Default
         view.idealSize = nativePeer.idealSize
 
         view.idealSize?.let {

@@ -18,6 +18,7 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
+import io.nacular.doodle.system.Cursor
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
@@ -81,7 +82,7 @@ internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "
 internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)" }
 
 internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) } ?: "" }
-//internal inline fun Style.setCursor (value: Cursor      ) { cursor  = value.toString() }
+internal inline fun Style.setCursor (value: Cursor?     ) { cursor  = value?.let { "$it" } ?: "" }
 internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = if (value != 1f) value.toString() else "" }
 
 internal fun Style.setFont(value: Font?) {
