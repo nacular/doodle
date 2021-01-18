@@ -14,7 +14,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform"      ) apply   false
-    id    ("org.jetbrains.dokka") version "0.10.0"
+    id    ("org.jetbrains.dokka") version "0.10.1"
     signing
 }
 
@@ -43,9 +43,9 @@ allprojects {
 
     tasks {
         val dokka by getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
-            outputFormat = "html"
+            outputFormat    = "html"
             outputDirectory = "$buildDir/javadoc"
-            subProjects = listOf("Animation", "Browser", "Controls", "Core", "Themes")
+            subProjects     = listOf("Animation", "Browser", "Controls", "Core", "Themes")
 
             multiplatform {
                 val global by creating {
@@ -61,9 +61,6 @@ allprojects {
                     // Do not create index pages for empty packages
                     skipEmptyPackages = true
                 }
-
-                val js  by creating {}
-                val jvm by creating {}
             }
         }
     }
