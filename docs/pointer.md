@@ -53,7 +53,7 @@ This view renders a circle and provides precise hit detection for it.
 
 ```doodle
 {
-    "height": "200px",
+    "height": "220px",
     "border": false,
     "run"   : "DocApps.hitDetection"
 }

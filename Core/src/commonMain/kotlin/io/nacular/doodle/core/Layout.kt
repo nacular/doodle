@@ -1,5 +1,6 @@
 package io.nacular.doodle.core
 
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -120,12 +121,32 @@ interface Layout {
      * @return a result with a child, empty, or [Ignored]
      */
     fun child(of: PositionableContainer, at: Point): LookupResult = Ignored
+
+    companion object {
+        /**
+         * @param layout delegated to for positioning
+         * @return a Layout that delegates to [layout]
+         */
+        inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit) = object: Layout {
+            override fun layout(container: PositionableContainer) = layout(container)
+        }
+    }
 }
 
-inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit) = object: Layout {
-    override fun layout(container: PositionableContainer) = layout(container)
-}
-
+/**
+ * Provides a way to get notified each time a [Layout] is done positioning.
+ *
+ * ```kotlin
+ *
+ * val layout = MyLayout then { justLayedOutContainer ->
+ *     // do something
+ * }
+ *
+ * ```
+ *
+ * @param onLayout is called after laying out a container
+ * @return a Layout that performs the positioning of the original and then calls [onLayout]
+ */
 infix fun Layout.then(onLayout: (PositionableContainer) -> Unit) = simpleLayout { container ->
     layout(container)
 

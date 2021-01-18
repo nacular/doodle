@@ -12,20 +12,30 @@ interface KeyListener {
      *
      * @param event The event
      */
-    fun keyPressed(event: KeyEvent) {}
+    fun pressed(event: KeyEvent) {}
 
     /**
      * Informs listener that a key was released.
      *
      * @param event The event
      */
-    fun keyReleased(event: KeyEvent) {}
-}
+    fun released(event: KeyEvent) {}
 
-inline fun keyPressed(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
-    override fun keyPressed(event: KeyEvent) = block(event)
-}
+    companion object {
+        /**
+         * @param block invoked on key-pressed
+         * @return a Listener that calls [block] on key-pressed.
+         */
+        inline fun pressed(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
+            override fun pressed(event: KeyEvent) = block(event)
+        }
 
-inline fun keyReleased(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
-    override fun keyReleased(event: KeyEvent) = block(event)
+        /**
+         * @param block invoked on key-released
+         * @return a Listener that calls [block] on key-released.
+         */
+        inline fun released(crossinline block: (event: KeyEvent) -> Unit) = object: KeyListener {
+            override fun released(event: KeyEvent) = block(event)
+        }
+    }
 }

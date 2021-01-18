@@ -57,7 +57,7 @@ internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
 
     override fun pointerChanged(button: Button) {}
 
-    override fun keyReleased(event: KeyEvent) {}
+    override fun released(event: KeyEvent) {}
 
-    override fun keyPressed(event: KeyEvent) {}
+    override fun pressed(event: KeyEvent) {}
 }

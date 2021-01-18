@@ -65,9 +65,9 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
         }
     }
 
-    override fun keyReleased(event: KeyEvent) { /* intentional no-op */ }
+    override fun released(event: KeyEvent) { /* intentional no-op */ }
 
-    override fun keyPressed(event: KeyEvent) { /* intentional no-op */ }
+    override fun pressed(event: KeyEvent) { /* intentional no-op */ }
 }
 
 internal class NativeCheckBoxBehavior(

@@ -82,8 +82,8 @@ open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
         patternFill?.let { canvas.rect(view.bounds.atOrigin, it) }
     }
 
-    override fun keyPressed(event: KeyEvent) {
-        super<SelectableListKeyHandler>.keyPressed(event)
+    override fun pressed(event: KeyEvent) {
+        super<SelectableListKeyHandler>.pressed(event)
     }
 
     override fun pressed(event: PointerEvent) {

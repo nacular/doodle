@@ -73,7 +73,7 @@ abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior
         lastPointerPosition = -1.0
     }
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         val slider    = event.source as Slider
         val increment = slider.range.size / 100
 

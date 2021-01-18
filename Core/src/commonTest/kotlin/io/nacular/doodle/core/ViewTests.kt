@@ -121,24 +121,27 @@ class ViewTests {
             expect(value, "toolTipText set to $value") { it.toolTipText }
         }
 
-        validateSetter(View::x,                   -5.0                           )
-        validateSetter(View::y,                   6.0                            )
-        validateSetter(View::font,                null                           )
-        validateSetter(View::size,                Size.Empty                     )
-        validateSetter(View::width,               99.0                           )
-        validateSetter(View::zOrder,              56                             )
-        validateSetter(View::height,              45.0                           )
-        validateSetter(View::bounds,              Rectangle(4.5, -3.0, 2.0, 45.5))
-        validateSetter(View::cursor,              Crosshair                      )
-        validateSetter(View::enabled,             false                          )
-        validateSetter(View::visible,             false                          )
-        validateSetter(View::position,            Origin                         )
-        validateSetter(View::focusable,           false                          )
-        validateSetter(View::idealSize,           Size(20.0, 37.6)               )
-        validateSetter(View::minimumSize,         Size.Empty                     )
-        validateSetter(View::foregroundColor,     Red                            )
-        validateSetter(View::backgroundColor,     Green                          )
-        validateSetter(View::monitorsDisplayRect, false                          )
+        validateSetter(View::x,                     -5.0                           )
+        validateSetter(View::y,                     6.0                            )
+        validateSetter(View::font,                  null                           )
+        validateSetter(View::size,                  Size.Empty                     )
+        validateSetter(View::width,                 99.0                           )
+        validateSetter(View::zOrder,                56                             )
+        validateSetter(View::height,                45.0                           )
+        validateSetter(View::bounds,                Rectangle(4.5, -3.0, 2.0, 45.5))
+        validateSetter(View::cursor,                Crosshair                      )
+        validateSetter(View::enabled,               false                          )
+        validateSetter(View::visible,               false                          )
+        validateSetter(View::position,              Origin                         )
+        validateSetter(View::focusable,             false                          )
+        validateSetter(View::idealSize,             Size(20.0, 37.6)               )
+        validateSetter(View::minimumSize,           Size.Empty                     )
+        validateSetter(View::foregroundColor,       Red                            )
+        validateSetter(View::backgroundColor,       Green                          )
+        validateSetter(View::isFocusCycleRoot_,     true                           )
+        validateSetter(View::clipCanvasToBounds_,   false, shouldRerender = true   )
+        validateSetter(View::monitorsDisplayRect,   true                           )
+        validateSetter(View::localContentDirection, RightLeft                      )
     }
 
     @Test @JsName("traversalKeySettersWork")
@@ -185,6 +188,19 @@ class ViewTests {
         view.rerenderNow()
 
         verify(exactly = 1) { renderManager.renderNow(view) }
+    }
+
+    @Test @JsName("clipCanvasToBoundsRerenders")
+    fun `rerenders on clipCanvasToBounds change`() {
+        val display       = mockk<Display>()
+        val renderManager = mockk<RenderManager>()
+        val view          = view {}
+
+        view.addedToDisplay(display, renderManager, null)
+
+        view.clipCanvasToBounds_ = false
+
+        verify(exactly = 1) { renderManager.render(view) }
     }
 
     @Test @JsName("parentChangeWorks")
@@ -541,12 +557,12 @@ class ViewTests {
 
     @Test @JsName("keyDownEventsWorks")
     fun `key down events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Down }) { listener, event ->
-        verify(exactly = 1) { listener.keyPressed(event) }
+        verify(exactly = 1) { listener.pressed(event) }
     }
 
     @Test @JsName("keyUpEventsWorks")
     fun `key up events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Up }) { listener, event ->
-        verify(exactly = 1) { listener.keyReleased(event) }
+        verify(exactly = 1) { listener.released(event) }
     }
 
     @Test @JsName("pointerEventsWorks")
@@ -940,11 +956,23 @@ class ViewTests {
         expect(default, "$p defaults to $default") { p.get(object: View() {}) }
     }
 
-    private fun <T> validateSetter(p: KMutableProperty1<View, T>, value: T) {
-        object: View() {}.also {
-            p.set(it, value)
+    private fun <T> validateSetter(p: KMutableProperty1<View, T>, value: T, shouldRerender: Boolean = false) {
+        view {}.also { view ->
+            val renderManager = if (shouldRerender) {
+                val display       = mockk<Display>()
+                val renderManager = mockk<RenderManager>()
 
-            expect(value, "$p set to $value") { p.get(it) }
+                view.addedToDisplay(display, renderManager, null)
+                renderManager
+            } else null
+
+            p.set(view, value)
+
+            expect(value, "$p set to $value") { p.get(view) }
+
+            renderManager?.let {
+                verify(exactly = 1) { it.render(view) }
+            }
         }
     }
 

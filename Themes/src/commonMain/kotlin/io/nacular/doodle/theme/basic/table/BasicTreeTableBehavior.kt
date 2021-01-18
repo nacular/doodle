@@ -233,8 +233,8 @@ open class BasicTreeTableBehavior<T>(
         focusManager?.requestFocus(event.source)
     }
 
-    override fun keyPressed(event: KeyEvent) {
-        super<SelectableTreeKeyHandler>.keyPressed(event)
+    override fun pressed(event: KeyEvent) {
+        super<SelectableTreeKeyHandler>.pressed(event)
     }
 
     override fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {

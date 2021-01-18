@@ -50,12 +50,12 @@ open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null,
                                        generator   : RowGenerator<T>,
                                        patternFill : PatternFill? = null,
                                        rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, patternFill, rowHeight) {
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         when (event.key) {
             Delete, Backspace -> (event.source as MutableList<*, *>).let { list ->
                 list.selection.sortedByDescending { it }.forEach { list.removeAt(it) }
             }
-            else              -> super.keyPressed(event)
+            else              -> super.pressed(event)
         }
     }
 
@@ -111,7 +111,7 @@ open class TextEditOperation<T>(
         }
 
         keyChanged += object: KeyListener {
-            override fun keyReleased(event: KeyEvent) {
+            override fun released(event: KeyEvent) {
                 when (event.key) {
                     KeyText.Enter  -> { list.completeEditing(); focusManager?.requestFocus(list) }
                     KeyText.Escape -> { list.cancelEditing  (); focusManager?.requestFocus(list) }

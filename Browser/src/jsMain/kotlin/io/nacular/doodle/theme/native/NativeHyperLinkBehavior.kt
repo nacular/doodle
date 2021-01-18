@@ -49,7 +49,7 @@ internal class NativeHyperLinkBehavior(nativeHyperLinkFactory: NativeHyperLinkFa
 
     override fun pointerChanged(button: HyperLink) {}
 
-    override fun keyReleased(event: KeyEvent) {}
+    override fun released(event: KeyEvent) {}
 
-    override fun keyPressed(event: KeyEvent) {}
+    override fun pressed(event: KeyEvent) {}
 }

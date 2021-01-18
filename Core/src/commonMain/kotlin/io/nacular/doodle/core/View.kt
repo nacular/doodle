@@ -1,4 +1,4 @@
-@file:Suppress("NestedLambdaShadowedImplicitParameter", "FunctionName", "PropertyName")
+@file:Suppress("NestedLambdaShadowedImplicitParameter", "FunctionName", "PropertyName", "PrivatePropertyName")
 
 package io.nacular.doodle.core
 
@@ -108,7 +108,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         set(size) = setBounds(x, y, size.width, size.height)
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
-    val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl<View, Rectangle>(this) }
+    val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
@@ -140,7 +140,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     internal val childrenClipPoly_ get() = childrenClipPoly
 
     /** Notifies changes to [transform] */
-    val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl<View, AffineTransform>(this) }
+    val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl(this) }
 
     /**
      * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [Layout].
@@ -183,7 +183,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     class SizePreferences(val idealSize: Size?, val minimumSize: Size)
 
     /** Notifies changes to [idealSize] or [minimumSize] */
-    val sizePreferencesChanged: PropertyObservers<View, SizePreferences> by lazy { PropertyObserversImpl<View, SizePreferences>(this) }
+    val sizePreferencesChanged: PropertyObservers<View, SizePreferences> by lazy { PropertyObserversImpl(this) }
 
     /**
      * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,
@@ -192,7 +192,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     val displayRect get() = renderManager?.displayRect(this) ?: Empty
 
     /** Notifies changes to [zOrder] */
-    internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl<View, Int>(this) }
+    internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl(this) }
 
     /**
      * Rendering order of this View within it's [parent], or [Display] if top-level.
@@ -201,25 +201,25 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     var zOrder by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>)
 
     /** Notifies changes to [visible] */
-    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible.  The default is `true`. */
     override var visible by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [enabled] */
-    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is enabled.  The default is `true`.  */
     var enabled by observable(true, enabledChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [focusable] */
-    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is focusable  The default is `true`.  */
     open var focusable by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
-    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val focusChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether the View has focus or not.  The default is `false`.  */
     var hasFocus by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
@@ -247,10 +247,10 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
 
     /** Notifies changes to [parent] */
-    val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl<View, View?>(this) }
+    val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Notifies changes to [displayed] */
-    val displayChange: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val displayChange: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Is `true` if the View is currently within the [Display] */
     val displayed get() = renderManager != null
@@ -274,7 +274,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
         }
 
     /** Notifies changes to [cursor] */
-    val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl<View, Cursor?>(this) }
+    val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl(this) }
 
     private var actualFont: Font? = null
 
@@ -339,7 +339,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     var dropReceiver = null as DropReceiver?
 
     /** Notifies changes to [monitorsDisplayRect] */
-    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl<View, Boolean>(this) }
+    val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /**
      * Indicates whether the framework should notify the View of changes to its visible region as a result of
@@ -460,7 +460,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     internal val layout_ get() = layout
 
     /** Layout responsible for positioning of this View's children */
-    protected open var layout: Layout? by observable<Layout?>(null) { _,_,_ ->
+    protected open var layout: Layout? by observable(null) { _,_,_ ->
         // TODO: Have RenderManager manage the layout?
         relayout()
     }
@@ -540,7 +540,7 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     private  var renderManager       : RenderManager?        = null
     private  var accessibilityManager: AccessibilityManager? = null
 
-    private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf<TraversalType, Set<KeyState>>() }
+    private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf() }
 
     internal fun revalidate_() = revalidate()
 
@@ -722,8 +722,8 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
      */
     protected open fun handleKeyEvent(event: KeyEvent) = keyChanged_.forEach {
         when(event.type) {
-            Type.Up   -> it.keyReleased(event)
-            Type.Down -> it.keyPressed (event)
+            Type.Up   -> it.released(event)
+            Type.Down -> it.pressed (event)
         }
     }
 
@@ -874,13 +874,28 @@ abstract class View protected constructor(val accessibilityRole: AccessibilityRo
     private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 
     companion object {
+        /**
+         * Delegate for properties that should trigger [View.styleChanged] when changed.
+         *
+         * @param initial value of the property
+         * @param filter passed to [View.styleChanged] when it is called
+         */
         fun <T> styleProperty(initial: T, filter: (View) -> Boolean = { true }): ReadWriteProperty<View, T> = observable(initial) { _,_ ->
             styleChanged(filter)
         }
     }
 }
 
-inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }) = observable(initial, onChange)
+/**
+ * Delegate for properties that should trigger [View.rerender] when changed.
+ *
+ * @param initial value of the property
+ * @param onChange called when the property changes. There's no need to call rerender in [onChange].
+ */
+inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }) = observable<View, T>(initial) { old, new ->
+    rerender()
+    onChange(old, new)
+}
 
 /**
  * The View's center point in its **parent's** coordinate system.

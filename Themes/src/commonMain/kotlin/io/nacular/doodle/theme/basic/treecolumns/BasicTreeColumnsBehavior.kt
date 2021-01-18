@@ -89,7 +89,7 @@ class BasicTreeColumnsBehavior<T>(
         view.keyChanged -= this
     }
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         (event.source as? TreeColumns<*,*>)?.let { tree ->
             val (expandKey, collapseKey) = when (tree.contentDirection) {
                 LeftRight -> ArrowRight to ArrowLeft

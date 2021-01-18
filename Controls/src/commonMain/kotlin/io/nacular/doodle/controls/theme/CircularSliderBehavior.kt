@@ -65,7 +65,7 @@ abstract class CircularSliderBehavior(
         event.consume()
     }
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         val slider    = event.source as CircularSlider
         val increment = slider.range.size / 100
 

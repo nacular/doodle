@@ -5,7 +5,9 @@ package io.nacular.doodle.event
  * [PointerEvent]s when they register with a source that fires
  * these events.
  */
-interface PointerListener {
+interface
+
+PointerListener {
     /**
      * Informs listener that the pointer has exited the source.
      *
@@ -41,24 +43,46 @@ interface PointerListener {
      * @param event The Event
      */
     fun clicked(event: PointerEvent) {}
-}
 
-inline fun exited(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
-    override fun exited(event: PointerEvent) = block(event)
-}
+    companion object {
+        /**
+         * @param block invoked on pointer-exited
+         * @return a Listener that calls [block] on pointer-exited.
+         */
+        inline fun exited(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+            override fun exited(event: PointerEvent) = block(event)
+        }
 
-inline fun entered(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
-    override fun entered(event: PointerEvent) = block(event)
-}
+        /**
+         * @param block invoked on pointer-entered
+         * @return a Listener that calls [block] on pointer-entered.
+         */
+        inline fun entered(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+            override fun entered(event: PointerEvent) = block(event)
+        }
 
-inline fun pressed(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
-    override fun pressed(event: PointerEvent) = block(event)
-}
+        /**
+         * @param block invoked on pointer-pressed
+         * @return a Listener that calls [block] on pointer-pressed.
+         */
+        inline fun pressed(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+            override fun pressed(event: PointerEvent) = block(event)
+        }
 
-inline fun released(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
-    override fun released(event: PointerEvent) = block(event)
-}
+        /**
+         * @param block invoked on pointer-released
+         * @return a Listener that calls [block] on pointer-released.
+         */
+        inline fun released(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+            override fun released(event: PointerEvent) = block(event)
+        }
 
-inline fun clicked(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
-    override fun clicked(event: PointerEvent) = block(event)
+        /**
+         * @param block invoked on pointer-clicked
+         * @return a Listener that calls [block] on pointer-clicked.
+         */
+        inline fun clicked(crossinline block: (event: PointerEvent) -> Unit) = object: PointerListener {
+            override fun clicked(event: PointerEvent) = block(event)
+        }
+    }
 }

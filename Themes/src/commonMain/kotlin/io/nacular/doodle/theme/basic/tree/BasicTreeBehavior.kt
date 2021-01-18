@@ -135,8 +135,8 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
         view.keyChanged -= this
     }
 
-    override fun keyPressed(event: KeyEvent) {
-        super<SelectableTreeKeyHandler>.keyPressed(event)
+    override fun pressed(event: KeyEvent) {
+        super<SelectableTreeKeyHandler>.pressed(event)
     }
 }
 
@@ -162,11 +162,11 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
             rowHeight
     )
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         (event.source as MutableTree<*, *>).let { tree ->
             when (event.key) {
                 Delete, Backspace -> tree.selection.forEach { tree.removeAt(it) }
-                else              -> super.keyPressed(event)
+                else              -> super.pressed(event)
             }
         }
     }
@@ -209,7 +209,7 @@ open class TextEditOperation<T>(
         }
 
         keyChanged += object: KeyListener {
-            override fun keyReleased(event: KeyEvent) {
+            override fun released(event: KeyEvent) {
                 when (event.key) {
                     Enter  -> { tree.completeEditing(); focusManager?.requestFocus(tree) }
                     Escape -> { tree.cancelEditing  (); focusManager?.requestFocus(tree) }

@@ -55,7 +55,7 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
 
 //    fun keyTyped(aKeyEvent: KeyEvent) {}
 //
-    override fun keyReleased(event: KeyEvent) {
+    override fun released(event: KeyEvent) {
         val button = event.source as Button
 
         if (button.enabled && (event.key == Enter || event.code == Space)) {
@@ -66,7 +66,7 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
         }
     }
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         val button = event.source as Button
 
         if (button.enabled && (event.key == Enter || event.code == Space)) {

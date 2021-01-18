@@ -232,8 +232,8 @@ open class BasicTableBehavior<T>(
         focusManager?.requestFocus(event.source)
     }
 
-    override fun keyPressed(event: KeyEvent) {
-        super<SelectableListKeyHandler>.keyPressed(event)
+    override fun pressed(event: KeyEvent) {
+        super<SelectableListKeyHandler>.pressed(event)
     }
 
     override fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {
@@ -322,7 +322,7 @@ open class TextEditOperation<T>(
         }
 
         keyChanged += object: KeyListener {
-            override fun keyReleased(event: KeyEvent) {
+            override fun released(event: KeyEvent) {
                 when (event.key) {
                     Enter  -> { table.completeEditing(); focusManager?.requestFocus(table) }
                     Escape -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
@@ -411,7 +411,7 @@ open class ColorEditOperation<T>(
         colorPicker.focusChanged -= focusChanged
     }
 
-    override fun keyPressed(event: KeyEvent) {
+    override fun pressed(event: KeyEvent) {
         when (event.key) {
             Enter  -> table.completeEditing()
             Escape -> table.cancelEditing  ()

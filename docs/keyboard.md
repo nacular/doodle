@@ -65,9 +65,17 @@ property.
 
 ```kotlin
 view.keyChanged += object: KeyListener {
-    override fun keyPressed(event: MouseEvent) {
+    override fun pressed(event: MouseEvent) {
         // ..
     }
+}
+```
+
+There are also short-hand functions for cases where you only consume one of the events.
+
+```kotlin
+view.keyChanged += pressed { event ->
+    // ..
 }
 ```
 
@@ -86,7 +94,7 @@ listeners from receiving it.
 
 ```kotlin
 // ...
-override fun keyPressed(event: KeyEvent) {
+override fun pressed(event: KeyEvent) {
     // ... take action based on event
 
     event.consume() // indicate that no other listeners should be notified
@@ -106,7 +114,7 @@ Most key handling use-cases should use this property to compare keys.
 import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Enter
 
-override fun keyPressed(event: KeyEvent) {
+override fun pressed(event: KeyEvent) {
     when (event.key) {
         Enter     -> { /* ... */ }
         Backspace -> { /* ... */ }
@@ -115,7 +123,7 @@ override fun keyPressed(event: KeyEvent) {
 }
 ```
 ```kotlin
-override fun keyPressed(event: KeyEvent) {
+override fun pressed(event: KeyEvent) {
     // this will be user-appropriate text when the key pressed is not
     // one of the "named" keys (i.e. Tab, Shift, Enter, ...)
     inputText += event.key.text
@@ -133,7 +141,7 @@ import io.nacular.doodle.event.KeyCode.Companion.AltLeft
 import io.nacular.doodle.event.KeyCode.Companion.AltRight
 import io.nacular.doodle.event.KeyCode.Companion.Backspace 
 
-override fun keyPressed(event: KeyEvent) {
+override fun pressed(event: KeyEvent) {
     when (event.code) {
         AltLeft   -> { /* ... */ }
         AltRight  -> { /* ... */ }

@@ -16,7 +16,7 @@ You can set up a pure Javascript app with the following build scripts.
 
 ```kotlin
 plugins {
-    id ("org.jetbrains.kotlin.js") version "1.3.72"
+    id ("org.jetbrains.kotlin.js") version "1.4.21"
 }
 
 version = "1.0.0"
@@ -48,7 +48,7 @@ kotlin {
 
 ```groovy
 plugins {
-    id 'org.jetbrains.kotlin.js' version '1.3.72'
+    id 'org.jetbrains.kotlin.js' version '1.4.21'
 }
 
 version = '1.0.0'
@@ -92,7 +92,7 @@ is that you can write your app entirely (except for `main`) in `common` code and
 
 ```kotlin
 plugins {
-    id ("org.jetbrains.kotlin.multiplatform") version "1.3.72"
+    id ("org.jetbrains.kotlin.multiplatform") version "1.4.21"
 }
 
 version = "1.0.0"
@@ -132,7 +132,7 @@ kotlin {
 
 ```groovy
 plugins {
-    id 'org.jetbrains.kotlin.multiplatform' version '1.3.72'
+    id 'org.jetbrains.kotlin.multiplatform' version '1.4.21'
 }
 
 version = '1.0.0'
