@@ -1,11 +1,16 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.focus.NativeFocusManager
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
 
 
-internal class NativeEventHandlerImpl(private val element: HTMLElement, private val listener: NativeEventListener): NativeEventHandler {
+internal class NativeEventHandlerImpl(
+        private val focusManager: NativeFocusManager?,
+        private val element     : HTMLElement,
+        private val listener    : NativeEventListener
+): NativeEventHandler {
 
     override fun startConsumingPointerMoveEvents(onlySelf: Boolean) { element.onpointermove = { muteEvent(it, onlySelf) } }
     override fun stopConsumingPointerMoveEvents (                 ) { element.onpointermove = null                        }
@@ -86,8 +91,8 @@ internal class NativeEventHandlerImpl(private val element: HTMLElement, private 
         return false
     }
 
-    private fun onBlur    (target: EventTarget?) = true.also { listener.onFocusLost  (target) }
-    private fun onFocus   (target: EventTarget?) = true.also { listener.onFocusGained(target) }
+    private fun onBlur    (target: EventTarget?) = true.also { listener.onFocusLost  (target); focusManager?.hasFocusOwner = false }
+    private fun onFocus   (target: EventTarget?) = true.also { listener.onFocusGained(target); focusManager?.hasFocusOwner = true  }
     private fun onKeyUp   (target: EventTarget?) = true.also { listener.onKeyUp      (target) }
     private fun onKeyDown (target: EventTarget?) = true.also { listener.onKeyDown    (target) }
     private fun onKeyPress(target: EventTarget?) = true.also { listener.onKeyPress   (target) }
@@ -96,7 +101,6 @@ internal class NativeEventHandlerImpl(private val element: HTMLElement, private 
     private fun onChange  (target: EventTarget?) = true.also { listener.onChange     (target) }
     private fun onInput   (target: EventTarget?) = true.also { listener.onInput      (target) }
 
-    private fun onFocusIn (target: EventTarget?) = true.also { listener.onFocusGained(target) }
-    private fun onFocusOut(target: EventTarget?) = true.also { listener.onFocusLost  (target) }
-
+    private fun onFocusIn (target: EventTarget?) = true.also { listener.onFocusGained(target); focusManager?.hasFocusOwner = true  }
+    private fun onFocusOut(target: EventTarget?) = true.also { listener.onFocusLost  (target); focusManager?.hasFocusOwner = false }
 }

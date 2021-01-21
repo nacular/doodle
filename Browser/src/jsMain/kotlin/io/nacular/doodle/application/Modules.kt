@@ -47,6 +47,7 @@ import kotlinx.browser.document
 import org.kodein.di.Kodein.Module
 import org.kodein.di.erased.bind
 import org.kodein.di.erased.instance
+import org.kodein.di.erased.instanceOrNull
 import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
@@ -55,10 +56,10 @@ class Modules {
     companion object {
         /** Enables focus management by providing access to [FocusManager]. */
         val FocusModule = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusabilityChecker> () with singleton { DefaultFocusabilityChecker(                                  ) }
-            bind<FocusTraversalPolicy>() with singleton { FocusTraversalPolicyImpl  (instance()                        ) }
-            bind<FocusManager>        () with singleton { FocusManagerImpl          (instance(), instance(), instance()) }
-            bind<NativeFocusManager>  () with singleton { NativeFocusManagerImpl    (                                  ) }
+            bind<FocusabilityChecker> () with singleton { DefaultFocusabilityChecker(                                            ) }
+            bind<FocusTraversalPolicy>() with singleton { FocusTraversalPolicyImpl  (instance()                                  ) }
+            bind<FocusManager>        () with singleton { FocusManagerImpl          (instance(), instance(), instance()          ) }
+            bind<NativeFocusManager>  () with singleton { NativeFocusManagerImpl    (instance<FocusManager>() as FocusManagerImpl) }
         }
 
         /** Enables pointer use. */
@@ -108,7 +109,7 @@ class Modules {
             bind<KeyInputServiceImpl>() with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
 
             // FIXME: Centralize
-            bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(element, listener) } }
+            bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(instanceOrNull(), element, listener) } }
 
             bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
 

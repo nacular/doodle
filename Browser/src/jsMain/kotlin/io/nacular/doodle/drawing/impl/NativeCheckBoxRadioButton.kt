@@ -22,7 +22,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
@@ -46,8 +45,7 @@ internal class NativeCheckBoxRadioButtonFactoryImpl internal constructor(
         private val htmlFactory              : HtmlFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?,
-        private val nativeFocusManager       : NativeFocusManager?
+        private val focusManager             : FocusManager?
 ): NativeCheckBoxRadioButtonFactory {
 
     override fun invoke(button: Button, type: Type) = NativeCheckBoxRadioButton(
@@ -57,7 +55,6 @@ internal class NativeCheckBoxRadioButtonFactoryImpl internal constructor(
             elementRuler,
             nativeEventHandlerFactory,
             focusManager,
-            nativeFocusManager,
             htmlFactory,
             type
     )
@@ -70,7 +67,6 @@ internal class NativeCheckBoxRadioButton(
         private val elementRuler      : ElementRuler,
         private val handlerFactory    : NativeEventHandlerFactory,
         private val focusManager      : FocusManager?,
-        private val nativeFocusManager: NativeFocusManager?,
                     htmlFactory       : HtmlFactory,
                     type              : Type
 ): NativeEventListener {
@@ -137,8 +133,6 @@ internal class NativeCheckBoxRadioButton(
             new  -> inputElement.focus()
             else -> inputElement.blur ()
         }
-
-        nativeFocusManager?.hasFocusOwner = new
     }
 
     private val styleChanged: (View) -> Unit = {

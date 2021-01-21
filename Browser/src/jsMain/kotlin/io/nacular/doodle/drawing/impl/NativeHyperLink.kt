@@ -14,7 +14,6 @@ import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Size
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.events.EventTarget
@@ -30,15 +29,13 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
         private val textMetrics              : TextMetrics,
         private val htmlFactory              : HtmlFactory,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?,
-        private val nativeFocusManager       : NativeFocusManager?
+        private val focusManager             : FocusManager?
 ): NativeHyperLinkFactory {
     override fun invoke(hyperLink: HyperLink) = NativeHyperLink(
             textMetrics,
             htmlFactory,
             nativeEventHandlerFactory,
             focusManager,
-            nativeFocusManager,
             hyperLink)
 }
 
@@ -47,7 +44,6 @@ class NativeHyperLink internal constructor(
                     htmlFactory           : HtmlFactory,
                     handlerFactory        : NativeEventHandlerFactory,
         private val focusManager          : FocusManager?,
-        private val nativeFocusManager    : NativeFocusManager?,
         private val hyperLink             : HyperLink): NativeEventListener {
 
     var idealSize: Size? = null
@@ -75,8 +71,6 @@ class NativeHyperLink internal constructor(
             true -> linkElement.focus()
             else -> linkElement.blur ()
         }
-
-        nativeFocusManager?.hasFocusOwner = new
     }
 
 //    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->

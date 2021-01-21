@@ -24,7 +24,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
@@ -54,8 +53,7 @@ internal class NativeButtonFactoryImpl internal constructor(
         private val graphicsSurfaceFactory   : RealGraphicsSurfaceFactory,
         private val elementRuler             : ElementRuler,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager             : FocusManager?,
-        private val nativeFocusManager       : NativeFocusManager?
+        private val focusManager             : FocusManager?
 ): NativeButtonFactory {
 
     override fun invoke(button: Button) = NativeButton(
@@ -65,7 +63,6 @@ internal class NativeButtonFactoryImpl internal constructor(
             graphicsSurfaceFactory,
             nativeEventHandlerFactory,
             focusManager,
-            nativeFocusManager,
             button,
             buttonInsets,
             buttonBorder)
@@ -119,7 +116,6 @@ class NativeButton internal constructor(
         private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
                     handlerFactory        : NativeEventHandlerFactory,
         private val focusManager          : FocusManager?,
-        private val nativeFocusManager    : NativeFocusManager?,
         private val button                : Button,
         private val insets                : Insets,
         private val border                : Insets
@@ -150,8 +146,6 @@ class NativeButton internal constructor(
             true -> buttonElement.focus()
             else -> buttonElement.blur ()
         }
-
-        nativeFocusManager?.hasFocusOwner = new
     }
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
