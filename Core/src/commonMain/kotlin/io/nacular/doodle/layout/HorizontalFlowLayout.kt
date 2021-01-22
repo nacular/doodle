@@ -13,9 +13,9 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 3/17/19.
  */
-class HorizontalFlowLayout(private val justification    : HorizontalAlignment = Left,
-                           private val verticalSpacing  : Double              = 1.0,
-                           private val horizontalSpacing: Double              = 1.0): Layout {
+public class HorizontalFlowLayout(private val justification    : HorizontalAlignment = Left,
+                                  private val verticalSpacing  : Double              = 1.0,
+                                  private val horizontalSpacing: Double              = 1.0): Layout {
 
 
     override fun layout(container: PositionableContainer) {

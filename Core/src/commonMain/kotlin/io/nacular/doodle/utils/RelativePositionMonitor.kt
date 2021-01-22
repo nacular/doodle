@@ -10,22 +10,22 @@ import io.nacular.doodle.utils.RelativePositionMonitor.PairMonitor
 /**
  * Created by Nicholas Eddy on 12/26/18.
  */
-typealias AbsoluteBoundsListener = (view: View,                   old: Rectangle, new: Rectangle) -> Unit
-typealias RelativeBoundsListener = (view: View, relativeTo: View, old: Rectangle, new: Rectangle) -> Unit
+public typealias AbsoluteBoundsListener = (view: View,                   old: Rectangle, new: Rectangle) -> Unit
+public typealias RelativeBoundsListener = (view: View, relativeTo: View, old: Rectangle, new: Rectangle) -> Unit
 
-interface RelativePositionMonitor {
-    interface AbsoluteMonitor {
-        operator fun plusAssign (listener: AbsoluteBoundsListener)
-        operator fun minusAssign(listener: AbsoluteBoundsListener)
+public interface RelativePositionMonitor {
+    public interface AbsoluteMonitor {
+        public operator fun plusAssign (listener: AbsoluteBoundsListener)
+        public operator fun minusAssign(listener: AbsoluteBoundsListener)
     }
 
-    interface PairMonitor {
-        operator fun plusAssign (listener: RelativeBoundsListener)
-        operator fun minusAssign(listener: RelativeBoundsListener)
+    public interface PairMonitor {
+        public operator fun plusAssign (listener: RelativeBoundsListener)
+        public operator fun minusAssign(listener: RelativeBoundsListener)
     }
 
-    operator fun get(view: View                  ): AbsoluteMonitor
-    operator fun get(view: View, relativeTo: View): PairMonitor
+    public operator fun get(view: View                  ): AbsoluteMonitor
+    public operator fun get(view: View, relativeTo: View): PairMonitor
 }
 
 private class AbsoluteMonitorImpl(
@@ -53,14 +53,14 @@ private class PairMonitorImpl(
     }
 }
 
-class RelativePositionMonitorImpl: RelativePositionMonitor {
+public class RelativePositionMonitorImpl: RelativePositionMonitor {
     private val absoluteMapping   = mutableMapOf<View, MutableList<AbsoluteBoundsListener>>()
     private val relativeMapping   = mutableMapOf<View, MutableMap<View, MutableSet<RelativeBoundsListener>>>()
     private val absolutePositions = mutableMapOf<View, Point>()
     private val listenerCounts    = mutableMapOf<View, Int>  ()
     private val boundsChanged_    = ::boundsChanged
 
-    fun add(view: View, listener: AbsoluteBoundsListener) {
+    public fun add(view: View, listener: AbsoluteBoundsListener) {
         absolutePositions.getOrPut(view) {
             view.toAbsolute(Origin)
         }
@@ -79,7 +79,7 @@ class RelativePositionMonitorImpl: RelativePositionMonitor {
         }
     }
 
-    fun remove(view: View, listener: AbsoluteBoundsListener) {
+    public fun remove(view: View, listener: AbsoluteBoundsListener) {
         absoluteMapping[view]?.let {
             it -= listener
 
@@ -102,7 +102,7 @@ class RelativePositionMonitorImpl: RelativePositionMonitor {
         }
     }
 
-    fun add(view: View, relativeTo: View, listener: RelativeBoundsListener) {
+    public fun add(view: View, relativeTo: View, listener: RelativeBoundsListener) {
         listOf(view, relativeTo).forEach {
             absolutePositions.getOrPut(it) {
                 it.toAbsolute(Origin)
@@ -158,7 +158,7 @@ class RelativePositionMonitorImpl: RelativePositionMonitor {
         secondAncestors.forEach { it.boundsChanged += boundsChanged_ }
     }
 
-    fun remove(view: View, relativeTo: View, listener: RelativeBoundsListener) {
+    public fun remove(view: View, relativeTo: View, listener: RelativeBoundsListener) {
         // FIXME: Implement
     }
 

@@ -6,20 +6,20 @@ package io.nacular.doodle.utils
 /**
  * A node within a tree.
  */
-interface Node<T> {
-    val value   : T
-    val children: Sequence<Node<T>>
+public interface Node<T> {
+    public val value   : T
+    public val children: Sequence<Node<T>>
 }
 
 /**
  * Iterator that traverses the nodes of a tree in breadth-first order.
  */
-class BreadthFirstTreeIterator<out T>(root: Node<T>): Iterator<T> {
+public class BreadthFirstTreeIterator<out T>(root: Node<T>): Iterator<T> {
 
     private var previous = null as Node<T>?
     private val queue    = mutableListOf(root)
 
-    override fun hasNext() = queue.isNotEmpty() || previous?.children?.none() == false
+    override fun hasNext(): Boolean = queue.isNotEmpty() || previous?.children?.none() == false
 
     override fun next(): T {
         if (!hasNext()) {

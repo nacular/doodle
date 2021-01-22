@@ -1,11 +1,12 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
 
-
-class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
+@Internal
+public class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
 
     private val viewSurfaceMap = mutableMapOf<View, GraphicsSurface>()
     private val surfaceViewMap = mutableMapOf<GraphicsSurface, View>()
@@ -26,7 +27,7 @@ class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<Grap
         surface
     }
 
-    override fun create() = surfaceFactory().apply { index = 0 }
+    override fun create(): GraphicsSurface = surfaceFactory().apply { index = 0 }
 
     override fun release(view: View) {
         viewSurfaceMap[view]?.let {

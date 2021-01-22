@@ -13,19 +13,19 @@ import io.nacular.doodle.layout.Insets
  *
  * @see View
  */
-interface Positionable {
-    var x          : Double
-    var y          : Double
-    var size       : Size
-    var width      : Double
-    var height     : Double
-    var bounds     : Rectangle
-    val visible    : Boolean
-    var position   : Point
-    val idealSize  : Size?
-    val minimumSize: Size
+public interface Positionable {
+    public var x          : Double
+    public var y          : Double
+    public var size       : Size
+    public var width      : Double
+    public var height     : Double
+    public var bounds     : Rectangle
+    public val visible    : Boolean
+    public var position   : Point
+    public val idealSize  : Size?
+    public val minimumSize: Size
 
-    operator fun contains(point: Point): Boolean
+    public operator fun contains(point: Point): Boolean
 }
 
 /**
@@ -33,14 +33,14 @@ interface Positionable {
  *
  * @see Container
  */
-interface PositionableContainer {
-    val size       : Size
-    val width      : Double
-    val height     : Double
-    val insets     : Insets
-    val children   : List<Positionable>
-    var idealSize  : Size?
-    var minimumSize: Size
+public interface PositionableContainer {
+    public val size       : Size
+    public val width      : Double
+    public val height     : Double
+    public val insets     : Insets
+    public val children   : List<Positionable>
+    public var idealSize  : Size?
+    public var minimumSize: Size
 }
 
 internal class PositionableContainerWrapper(val view: View): PositionableContainer {
@@ -64,15 +64,15 @@ internal class PositionableContainerWrapper(val view: View): PositionableContain
 /**
  * The result of [Layout.child].
  */
-sealed class LookupResult {
+public sealed class LookupResult {
     /** Indicates the Layout ignores the call */
-    object Ignored: LookupResult()
+    public object Ignored: LookupResult()
 
     /** Indicates that nothing was found */
-    object Empty: LookupResult()
+    public object Empty: LookupResult()
 
     /** The item that was found */
-    class Found(val child: Positionable): LookupResult()
+    public class Found(public val child: Positionable): LookupResult()
 }
 
 /**
@@ -85,13 +85,13 @@ sealed class LookupResult {
  *
  * @author Nicholas Eddy
  */
-interface Layout {
+public interface Layout {
     /**
      * Lays out the children of the given [Positionable].
      *
      * @param container to be laid out
      */
-    fun layout(container: PositionableContainer)
+    public fun layout(container: PositionableContainer)
 
     /**
      * Returns the minimum size of the Positionable based on its contents.
@@ -100,7 +100,7 @@ interface Layout {
      * @param  default The size to use if one can't be calculated
      * @return the minimum size
      */
-    fun minimumSize(container: PositionableContainer, default: Size = Empty): Size = default
+    public fun minimumSize(container: PositionableContainer, default: Size = Empty): Size = default
 
     /**
      * Returns the ideal size of the Positionable based on its contents.
@@ -109,7 +109,7 @@ interface Layout {
      * @param  default The size to use if one can't be calculated
      * @return the ideal size
      */
-    fun idealSize(container: PositionableContainer, default: Size? = null): Size? = default
+    public fun idealSize(container: PositionableContainer, default: Size? = null): Size? = default
 
     /**
      * Gets the child within the Positionable at the given point.  The default is to ignore these
@@ -120,14 +120,14 @@ interface Layout {
      * @param at The point
      * @return a result with a child, empty, or [Ignored]
      */
-    fun child(of: PositionableContainer, at: Point): LookupResult = Ignored
+    public fun child(of: PositionableContainer, at: Point): LookupResult = Ignored
 
-    companion object {
+    public companion object {
         /**
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit) = object: Layout {
+        public inline fun simpleLayout(crossinline layout: (container: PositionableContainer) -> Unit): Layout = object: Layout {
             override fun layout(container: PositionableContainer) = layout(container)
         }
     }
@@ -147,7 +147,7 @@ interface Layout {
  * @param onLayout is called after laying out a container
  * @return a Layout that performs the positioning of the original and then calls [onLayout]
  */
-infix fun Layout.then(onLayout: (PositionableContainer) -> Unit) = simpleLayout { container ->
+public infix fun Layout.then(onLayout: (PositionableContainer) -> Unit): Layout = simpleLayout { container ->
     layout(container)
 
     onLayout(container)

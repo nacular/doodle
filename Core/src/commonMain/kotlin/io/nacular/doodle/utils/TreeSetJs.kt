@@ -3,14 +3,14 @@ package io.nacular.doodle.utils
 /**
  * Created by Nicholas Eddy on 4/11/18.
  */
-class BstNode<E>(var value: E) {
-    var left  = null as BstNode<E>?
-    var right = null as BstNode<E>?
+public class BstNode<E>(public var value: E) {
+    public var left : BstNode<E>? = null
+    public var right: BstNode<E>? = null
 }
 
 @Suppress("PrivatePropertyName", "FunctionName")
-open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
-    constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
+public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
+    public constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
     private var root = null as BstNode<E>?
 
@@ -18,15 +18,15 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         elements.forEach { add(it) }
     }
 
-    override val size get() = size_
+    override val size: Int get() = size_
 
     private var size_ = 0
 
-    override fun isEmpty() = root == null
+    override fun isEmpty(): Boolean = root == null
 
-    override fun contains(element: E) = if (isEmpty()) false else contains(root, element)
+    override fun contains(element: E): Boolean = if (isEmpty()) false else contains(root, element)
 
-    override fun containsAll(elements: Collection<E>) = if (isEmpty()) false else elements.all { contains(it) }
+    override fun containsAll(elements: Collection<E>): Boolean = if (isEmpty()) false else elements.all { contains(it) }
 
     override fun iterator(): Iterator<E> = BstIterator()
 
@@ -133,7 +133,7 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
             }
         }
 
-        override fun hasNext() = stack.isNotEmpty()
+        override fun hasNext(): Boolean = stack.isNotEmpty()
 
         override fun next(): E {
             if (!hasNext()) {
@@ -161,8 +161,8 @@ open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, eleme
         }
     }
 
-    companion object {
-        operator fun <T: Comparable<T>> invoke(                       ): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }          )
-        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
+    public companion object {
+        public operator fun <T: Comparable<T>> invoke(                       ): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }          )
+        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
     }
 }

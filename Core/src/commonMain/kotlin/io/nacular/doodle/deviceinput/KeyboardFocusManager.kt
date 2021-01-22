@@ -1,5 +1,6 @@
 package io.nacular.doodle.deviceinput
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyState
@@ -17,23 +18,25 @@ import io.nacular.doodle.utils.contains
  * Created by Nicholas Eddy on 3/10/18.
  */
 
-interface Listener {
-    operator fun invoke(keyEvent: KeyEvent)
+public interface Listener {
+    public operator fun invoke(keyEvent: KeyEvent)
 }
 
-interface Preprocessor {
-    operator fun invoke(keyEvent: KeyEvent)
+public interface Preprocessor {
+    public operator fun invoke(keyEvent: KeyEvent)
 }
 
-interface Postprocessor {
-    operator fun invoke(keyEvent: KeyEvent)
+public interface Postprocessor {
+    public operator fun invoke(keyEvent: KeyEvent)
 }
 
-interface KeyboardFocusManager {
-    fun shutdown()
+@Internal
+public interface KeyboardFocusManager {
+    public fun shutdown()
 }
 
-class KeyboardFocusManagerImpl(
+@Internal
+public class KeyboardFocusManagerImpl(
         private val keyInputService     : KeyInputService,
         private val focusManager        : FocusManager,
         private val defaultTraversalKeys: Map<TraversalType, Set<KeyState>>): KeyboardFocusManager, Listener {
@@ -69,11 +72,11 @@ class KeyboardFocusManagerImpl(
         return false
     }
 
-    operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.add   (preprocessor) }
-    operator fun minusAssign(preprocessor: Preprocessor) { preprocessors.remove(preprocessor) }
+    public operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.add   (preprocessor) }
+    public operator fun minusAssign(preprocessor: Preprocessor) { preprocessors.remove(preprocessor) }
 
-    operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
-    operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
+    public operator fun plusAssign (postprocessor: Postprocessor) { postprocessors.add   (postprocessor) }
+    public operator fun minusAssign(postprocessor: Postprocessor) { postprocessors.remove(postprocessor) }
 
     private fun handleKeyEvent(view: View, keyState: KeyState, keyEvent: KeyEvent) {
         val upwardKeyEvents   = view[Upward  ] ?: defaultTraversalKeys[Upward  ]

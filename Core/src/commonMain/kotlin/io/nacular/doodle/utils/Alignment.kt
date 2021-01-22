@@ -1,13 +1,13 @@
 package io.nacular.doodle.utils
 
 
-enum class VerticalAlignment {
+public enum class VerticalAlignment {
     Top,
     Middle,
     Bottom
 }
 
-enum class HorizontalAlignment {
+public enum class HorizontalAlignment {
     Left,
     Center,
     Right

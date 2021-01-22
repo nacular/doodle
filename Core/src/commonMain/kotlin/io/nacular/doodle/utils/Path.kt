@@ -5,21 +5,21 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 3/23/18.
  */
-class Path<T>(private val items: List<T>): Iterable<T> {
-    constructor(item: T): this(listOf(item))
-    constructor(       ): this(listOf()    )
+public class Path<T>(private val items: List<T>): Iterable<T> {
+    public constructor(item: T): this(listOf(item))
+    public constructor(       ): this(listOf()    )
 
-    val top    = items.firstOrNull()
-    val bottom = items.lastOrNull ()
-    val depth  = items.size
+    public val top   : T?  = items.firstOrNull()
+    public val bottom: T?  = items.lastOrNull ()
+    public val depth : Int = items.size
 
-    val parent by lazy { if (items.isNotEmpty()) Path(items.dropLast(1)) else null }
+    public val parent: Path<T>? by lazy { if (items.isNotEmpty()) Path(items.dropLast(1)) else null }
 
     private val hashCode = items.hashCode()
 
-    operator fun get(index: Int) = items[index]
+    public operator fun get(index: Int): T = items[index]
 
-    infix fun ancestorOf(path: Path<T>): Boolean {
+    public infix fun ancestorOf(path: Path<T>): Boolean {
         if (depth >= path.depth) {
             return false
         }
@@ -33,7 +33,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return true
     }
 
-    operator fun plus(node: T) = Path(items + node)
+    public operator fun plus(node: T): Path<T> = Path(items + node)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -43,7 +43,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return items.size == other.items.size && items == other.items
     }
 
-    fun overlappingRoot(other: Path<T>): Path<T> {
+    public fun overlappingRoot(other: Path<T>): Path<T> {
         val result = mutableListOf<T>()
 
         val depth = min(depth, other.depth)
@@ -57,7 +57,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return Path(result)
     }
 
-    fun nonOverlappingStem(other: Path<T>): List<T> {
+    public fun nonOverlappingStem(other: Path<T>): List<T> {
         val result = mutableListOf<T>()
 
         val smallestDepth = min(depth, other.depth)
@@ -75,7 +75,7 @@ class Path<T>(private val items: List<T>): Iterable<T> {
         return result
     }
 
-    override fun hashCode() = hashCode
-    override fun iterator() = items.iterator()
-    override fun toString() = items.toString()
+    override fun hashCode(): Int         = hashCode
+    override fun iterator(): Iterator<T> = items.iterator()
+    override fun toString(): String      = items.toString()
 }

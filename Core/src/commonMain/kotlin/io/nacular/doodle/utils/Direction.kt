@@ -1,7 +1,7 @@
 package io.nacular.doodle.utils
 
 
-enum class Direction {
+public enum class Direction {
     North,
     South,
     East,

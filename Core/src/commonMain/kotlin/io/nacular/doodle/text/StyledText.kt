@@ -11,31 +11,31 @@ import io.nacular.doodle.text.TextDecoration.Style.Solid
 /**
  * Created by Nicholas Eddy on 10/31/17.
  */
-class TextDecoration(
-        val lines    : Set<Line> = emptySet(),
-        val color    : Color? = null,
-        val style    : Style = Solid,
-        val thickNess: ThickNess? = null
+public class TextDecoration(
+        public val lines    : Set<Line> = emptySet(),
+        public val color    : Color? = null,
+        public val style    : Style = Solid,
+        public val thickNess: ThickNess? = null
 ) {
-    enum class Line { Under, Over, Through }
-    enum class Style { Solid, Double, Dotted, Dashed, Wavy }
-    sealed class ThickNess {
-        object FromFont: ThickNess()
-        class Absolute(val value: Double): ThickNess()
-        class Percent (val value: Float ): ThickNess()
+    public enum class Line { Under, Over, Through }
+    public enum class Style { Solid, Double, Dotted, Dashed, Wavy }
+    public sealed class ThickNess {
+        public object FromFont: ThickNess()
+        public class Absolute(public val value: Double): ThickNess()
+        public class Percent (public val value: Float ): ThickNess()
     }
 
 }
 
-interface Style {
-    val font      : Font?
-    val foreground: Fill?
-    val background: Fill?
-    val decoration: TextDecoration?
+public interface Style {
+    public val font      : Font?
+    public val foreground: Fill?
+    public val background: Fill?
+    public val decoration: TextDecoration?
 }
 
-class StyledText private constructor(internal val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
-    constructor(
+public class StyledText private constructor(internal val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
+    public constructor(
         text      : String,
         font      : Font?           = null,
         foreground: Fill?           = null,
@@ -47,25 +47,25 @@ class StyledText private constructor(internal val data: MutableList<MutablePair<
             decoration = decoration
     ))))
 
-    data class MutablePair<A, B>(var first: A, var second: B) {
-        override fun toString() = "($first, $second)"
+    public data class MutablePair<A, B>(var first: A, var second: B) {
+        override fun toString(): String = "($first, $second)"
     }
 
-    val text  get() = data.joinToString { it.first }
-    val count get() = data.size
+    public val text : String get() = data.joinToString { it.first }
+    public val count: Int    get() = data.size
 
     private var hashCode = data.hashCode()
 
     override fun iterator(): Iterator<Pair<String, Style>> = data.map { it.first to it.second }.iterator()
 
-    operator fun plus(other: StyledText) = this.also { other.data.forEach { style -> add(style) } }
+    public operator fun plus(other: StyledText): StyledText = this.also { other.data.forEach { style -> add(style) } }
 
-    operator fun rangeTo(font : Font      ) = this.also { add(MutablePair("",   StyleImpl(font))) }
-    operator fun rangeTo(color: Color     ) = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
-    operator fun rangeTo(text : String    ) = this.also { add(MutablePair(text, StyleImpl())) }
-    operator fun rangeTo(text : StyledText) = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
+    public operator fun rangeTo(font : Font      ): StyledText = this.also { add(MutablePair("",   StyleImpl(font))) }
+    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
+    public operator fun rangeTo(text : String    ): StyledText = this.also { add(MutablePair(text, StyleImpl())) }
+    public operator fun rangeTo(text : StyledText): StyledText = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 
-    fun copy() = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
+    public fun copy(): StyledText = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
 
     private fun add(pair: MutablePair<String, StyleImpl>) {
         val (_, style) = data.last()
@@ -78,7 +78,7 @@ class StyledText private constructor(internal val data: MutableList<MutablePair<
         }
     }
 
-    override fun hashCode() = hashCode
+    override fun hashCode(): Int = hashCode
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -89,7 +89,7 @@ class StyledText private constructor(internal val data: MutableList<MutablePair<
         return true
     }
 
-    operator fun Font.invoke(text: StyledText): StyledText {
+    public operator fun Font.invoke(text: StyledText): StyledText {
         text.data.forEach { (_, style) ->
             if (style.font == null) {
                 style.font = this
@@ -108,8 +108,8 @@ class StyledText private constructor(internal val data: MutableList<MutablePair<
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Font?.invoke(text: String          ) = StyledText(text = text, font = this)
-operator fun Font?.invoke(text: () -> StyledText) = text().apply {
+public operator fun Font?.invoke(text: String          ): StyledText = StyledText(text = text, font = this)
+public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.font == null) {
             style.font = this@invoke
@@ -127,16 +127,16 @@ operator fun Font?.invoke(text: () -> StyledText) = text().apply {
 //}
 
 
-enum class Target {
+public enum class Target {
     Background,
     Foreground
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun Color?.invoke(text: String, target: Target = Foreground) = this?.let { ColorFill(it) }.let {
+public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorFill(it) }.let {
     StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
-operator fun Color?.invoke(text: () -> StyledText) = text().apply {
+public operator fun Color?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null && this@invoke != null) {
             style.foreground = ColorFill(this@invoke)
@@ -156,8 +156,8 @@ operator fun Color?.invoke(text: () -> StyledText) = text().apply {
 //}
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-operator fun TextDecoration?.invoke(text: String          ) = StyledText(text = text, decoration = this)
-operator fun TextDecoration?.invoke(text: () -> StyledText) = text().apply {
+public operator fun TextDecoration?.invoke(text: String          ): StyledText = StyledText(text = text, decoration = this)
+public operator fun TextDecoration?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.decoration == null) {
             style.decoration = this@invoke
@@ -166,6 +166,6 @@ operator fun TextDecoration?.invoke(text: () -> StyledText) = text().apply {
 }
 
 
-operator fun String.rangeTo(styled: StyledText) = StyledText(this) + styled
+public operator fun String.rangeTo(styled: StyledText): StyledText = StyledText(this) + styled
 
 // "foo" .. font {  } + color { }

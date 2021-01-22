@@ -13,7 +13,7 @@ import kotlin.math.sqrt
  * @property x position
  * @property y position
  */
-open class Point(val x: Double = 0.0, val y: Double = 0.0) {
+public open class Point(public val x: Double = 0.0, public val y: Double = 0.0) {
 
     /**
      * Creates a new Point.
@@ -21,7 +21,7 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param x position
      * @param y position
      */
-    constructor(x: Int = 0, y: Int = 0 ): this(x.toDouble(), y.toDouble())
+    public constructor(x: Int = 0, y: Int = 0 ): this(x.toDouble(), y.toDouble())
 
     /**
      * Creates a new Point.
@@ -29,7 +29,7 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param x position
      * @param y position
      */
-    constructor(x: Float = 0f, y: Float = 0f): this(x.toDouble(), y.toDouble())
+    public constructor(x: Float = 0f, y: Float = 0f): this(x.toDouble(), y.toDouble())
 
     /**
      * Calculates the [vector sum](https://en.wikipedia.org/wiki/Euclidean_vector#Addition_and_subtraction) of two Points.
@@ -37,7 +37,7 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param other point being added to this
      * @return the resulting point
      */
-    operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+    public operator fun plus(other: Point): Point = Point(x + other.x, y + other.y)
 
     /**
      * Calculates the [vector difference](https://en.wikipedia.org/wiki/Euclidean_vector#Addition_and_subtraction) of two Points.
@@ -45,7 +45,7 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param other point being added to this
      * @return the resulting point
      */
-    operator fun minus(other: Point) = Point(x - other.x, y - other.y)
+    public operator fun minus(other: Point): Point = Point(x - other.x, y - other.y)
 
     /**
      * Calculates the [scalar product](https://en.wikipedia.org/wiki/Scalar_multiplication) of this Point and a value.
@@ -53,9 +53,9 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param value to scale by
      * @return the resulting point
      */
-    operator fun times(value: Int   ) = Point(x * value, y * value)
-    operator fun times(value: Float ) = Point(x * value, y * value)
-    operator fun times(value: Double) = Point(x * value, y * value)
+    public operator fun times(value: Int   ): Point = Point(x * value, y * value)
+    public operator fun times(value: Float ): Point = Point(x * value, y * value)
+    public operator fun times(value: Double): Point = Point(x * value, y * value)
 
     /**
      * Calculates the [scalar product](https://en.wikipedia.org/wiki/Scalar_multiplication) of this Point
@@ -64,14 +64,14 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param value to scale by
      * @return the resulting point
      */
-    operator fun div(value: Int   ) = Point(x / value, y / value)
-    operator fun div(value: Float ) = Point(x / value, y / value)
-    operator fun div(value: Double) = Point(x / value, y / value)
+    public operator fun div(value: Int   ): Point = Point(x / value, y / value)
+    public operator fun div(value: Float ): Point = Point(x / value, y / value)
+    public operator fun div(value: Double): Point = Point(x / value, y / value)
 
     /**
      * Performs a negation of this point, resulting in a new point with inverted x and y directions.
      */
-    operator fun unaryMinus() = Point(-x, -y)
+    public operator fun unaryMinus(): Point = Point(-x, -y)
 
     /**
      * Calculates the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between two points.
@@ -79,11 +79,11 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
      * @param other point to compare
      * @return distance between the points
      */
-    infix fun distanceFrom(other: Point) = sqrt((x - other.x).pow(2) + (y - other.y).pow(2))
+    public infix fun distanceFrom(other: Point): Double = sqrt((x - other.x).pow(2) + (y - other.y).pow(2))
 
-    override fun hashCode() = hashCode_
+    override fun hashCode(): Int = hashCode_
 
-    override fun toString() = "[$x,$y]"
+    override fun toString(): String = "[$x,$y]"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -95,17 +95,17 @@ open class Point(val x: Double = 0.0, val y: Double = 0.0) {
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { arrayOf(x, y).contentHashCode() }
 
-    companion object {
+    public companion object {
         /** Point at 0,0 */
-        val Origin = Point(0, 0)
+        public val Origin: Point = Point(0, 0)
     }
 }
 
 /** @see Point.times */
-operator fun Int.times   (value: Point) = value * this
+public operator fun Int.times(value: Point): Point = value * this
 
 /** @see Point.times */
-operator fun Float.times (value: Point) = value * this
+public operator fun Float.times(value: Point): Point = value * this
 
 /** @see Point.times */
-operator fun Double.times(value: Point) = value * this
+public operator fun Double.times(value: Point): Point = value * this

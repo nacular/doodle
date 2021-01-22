@@ -10,36 +10,36 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
  * @param center point of the circle
  * @param radius of the circle
  */
-class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
+public class Circle(center: Point, radius: Double): Ellipse(center, radius, radius) {
 
     /**
      * Creates a Circle centered at the [Origin].
      *
      * @param radius of the circle
      */
-    constructor(radius: Double = 0.0): this(Origin, radius)
+    public constructor(radius: Double = 0.0): this(Origin, radius)
 
     /** The circle's radius */
-    val radius get() = xRadius
+    public val radius: Double get() = xRadius
 
-    override fun toString() = "$center, $radius"
+    override fun toString(): String = "$center, $radius"
 
-    companion object {
-        val Unit  = Circle(1.0)
-        val Empty = Circle(   )
+    public companion object {
+        public val Unit: Circle  = Circle(1.0)
+        public val Empty: Circle = Circle(   )
     }
 }
 
 /**
  * @return a Circle with the same attributes as this, but centered at the [Origin].
  */
-fun Circle.atOrigin() = at(Origin)
+public fun Circle.atOrigin(): Circle = at(Origin)
 
 /**
  * @param point to center the returned circle at
  * @return a Circle with the same attributes as this, but centered at [point].
  */
-fun Circle.at(point: Point) = when(center) {
+public fun Circle.at(point: Point): Circle = when(center) {
     point -> this
     else  -> Circle(point, radius)
 }
@@ -48,10 +48,10 @@ fun Circle.at(point: Point) = when(center) {
  * @param radius of the returned circle
  * @return a Circle with the same attributes as this, but with the given radius.
  */
-fun Circle.withRadius(radius: Double) = Circle(center, radius)
+public fun Circle.withRadius(radius: Double): Circle = Circle(center, radius)
 
 /**
  * @param inset to shorten radius by
  * @return a Circle with the same attributes as this, but with the radius shortened by [inset].
  */
-fun Circle.inset(inset: Double) = Circle(center, radius - inset)
+public fun Circle.inset(inset: Double): Circle = Circle(center, radius - inset)

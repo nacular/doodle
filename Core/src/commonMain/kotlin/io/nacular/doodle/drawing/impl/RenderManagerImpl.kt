@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform
@@ -23,8 +24,9 @@ private object AncestorComparator: Comparator<View> {
     }
 }
 
+@Internal
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
-class RenderManagerImpl(
+public class RenderManagerImpl(
         private val display             : InternalDisplay,
         private val scheduler           : AnimationScheduler,
         private val themeManager        : InternalThemeManager?,

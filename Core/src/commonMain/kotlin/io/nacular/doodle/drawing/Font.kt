@@ -12,27 +12,27 @@ import io.nacular.measured.units.Measure
  * @author Nicholas Eddy
  * @see Canvas.text
  */
-interface Font {
-    val size  : Int
-    val style : Style
-    val weight: Int
-    val family: String
+public interface Font {
+    public val size  : Int
+    public val style : Style
+    public val weight: Int
+    public val family: String
 
-    sealed class Style {
-        object Normal: Style()
-        object Italic: Style()
-        class  Oblique(val angle: Measure<Angle>? = null): Style()
+    public sealed class Style {
+        public object Normal: Style()
+        public object Italic: Style()
+        public class  Oblique(public val angle: Measure<Angle>? = null): Style()
     }
 
-    companion object {
-        const val Thinnest = 100
-        const val Thinner  = 200
-        const val Thin     = 300
-        const val Normal   = 400
-        const val Thick    = 500
-        const val Thicker  = 600
-        const val Bold     = 700
-        const val Bolder   = 800
-        const val Boldest  = 900
+    public companion object {
+        public const val Thinnest: Int = 100
+        public const val Thinner: Int  = 200
+        public const val Thin: Int     = 300
+        public const val Normal: Int   = 400
+        public const val Thick: Int    = 500
+        public const val Thicker: Int  = 600
+        public const val Bold: Int     = 700
+        public const val Bolder: Int   = 800
+        public const val Boldest: Int  = 900
     }
 }

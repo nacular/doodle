@@ -18,7 +18,6 @@ import kotlin.reflect.KClass
 /**
  * Created by Nicholas Eddy on 4/15/20.
  */
-
 class Modules {
     enum class BehaviorResult { Matched, NotMatched }
 

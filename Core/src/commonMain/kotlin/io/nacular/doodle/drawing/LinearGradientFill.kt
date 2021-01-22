@@ -17,8 +17,8 @@ import io.nacular.doodle.geometry.Point
  * @param start of the line along which the gradient flows
  * @param end of the line along which the gradient flows
  */
-class LinearGradientFill(val colors: List<Stop>, val start: Point, val end: Point): Fill() {
-    class Stop(val color: Color, val offset: Float)
+public class LinearGradientFill(public val colors: List<Stop>, public val start: Point, public val end: Point): Fill() {
+    public class Stop(public val color: Color, public val offset: Float)
 
     /**
      * Creates a fill with a gradient between the given colors.
@@ -28,8 +28,8 @@ class LinearGradientFill(val colors: List<Stop>, val start: Point, val end: Poin
      * @param start of the line along which the gradient flows
      * @param end of the line along which the gradient flows
      */
-    constructor(color1: Color, color2: Color, start: Point, end: Point): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
+    public constructor(color1: Color, color2: Color, start: Point, end: Point): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
 
     /** `true` IFF any one of [colors] is visible */
-    override val visible = colors.any { it.color.visible }
+    override val visible: Boolean = colors.any { it.color.visible }
 }

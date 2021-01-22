@@ -3,6 +3,6 @@ package io.nacular.doodle.utils
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
-enum class Orientation {
+public enum class Orientation {
     Horizontal, Vertical
 }

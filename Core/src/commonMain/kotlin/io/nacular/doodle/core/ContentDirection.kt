@@ -3,7 +3,7 @@ package io.nacular.doodle.core
 /**
  * Created by Nicholas Eddy on 8/12/20.
  */
-enum class ContentDirection {
+public enum class ContentDirection {
     /** Content flows from left to right. */
     LeftRight,
 

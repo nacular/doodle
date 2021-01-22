@@ -1,19 +1,19 @@
 package io.nacular.doodle.event
 
-abstract class Event<out T> protected constructor(val source: T) {
+public abstract class Event<out T> protected constructor(public val source: T) {
     /**
      * Indicates whether the event has been consumed.
      *
      * @return true if consumed
      */
-    var consumed = false
+    public var consumed: Boolean = false
         private set
 
     /**
      * Sets an event's state to consumed.  Consuming an event prevents the default
      * handling by its source.
      */
-    fun consume() {
+    public fun consume() {
         consumed = true
     }
 
@@ -33,5 +33,5 @@ abstract class Event<out T> protected constructor(val source: T) {
         return result
     }
 
-    override fun toString() = "${this::class.simpleName} from $source"
+    override fun toString(): String = "${this::class.simpleName} from $source"
 }

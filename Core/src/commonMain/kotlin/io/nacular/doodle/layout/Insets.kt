@@ -17,7 +17,7 @@ import io.nacular.doodle.geometry.Rectangle
  *
  * @author Nicholas Eddy
  */
-class Insets
+public class Insets
     /**
      * Creates a Insets with the specified value for each side.
      *
@@ -27,7 +27,7 @@ class Insets
      * @param right  The right offset
      * @return a Insets with the respective values
      */
-    constructor(val top: Double = 0.0, val left: Double = 0.0, val bottom: Double = 0.0, val right: Double = 0.0) {
+    constructor(public val top: Double = 0.0, public val left: Double = 0.0, public val bottom: Double = 0.0, public val right: Double = 0.0) {
 
     /**
      * Creates a Insets with equal offset from all edges.
@@ -36,7 +36,7 @@ class Insets
      * @param all The offset to use for top, left, bottom, and right
      * @return a Insets with equal offset from all edges
      */
-    constructor(all: Double): this(all, all, all, all)
+    public constructor(all: Double): this(all, all, all, all)
 
     override fun hashCode(): Int = arrayOf(top, left, right, bottom).contentHashCode()
 
@@ -55,9 +55,9 @@ class Insets
         return false
     }
 
-    override fun toString() = "[$top, $left, $bottom, $right]"
+    override fun toString(): String = "[$top, $left, $bottom, $right]"
 
-    companion object {
-        val None = Insets()
+    public companion object {
+        public val None: Insets = Insets()
     }
 }

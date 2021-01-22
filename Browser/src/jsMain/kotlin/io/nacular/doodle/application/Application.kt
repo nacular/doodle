@@ -305,7 +305,7 @@ private open class ApplicationHolderImpl protected constructor(
 
         initTask?.cancel()
 
-        injector.instance<Scheduler>  ().shutdown()
+        (injector.instance<Scheduler> () as? SchedulerImpl)?.shutdown()
         injector.instance<DisplayImpl>().shutdown()
 
         if (!isNested) {

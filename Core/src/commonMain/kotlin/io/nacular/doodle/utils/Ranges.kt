@@ -4,9 +4,9 @@ package io.nacular.doodle.utils
  * Created by Nicholas Eddy on 2/12/18.
  */
 
-infix fun <T: Comparable<T>> ClosedRange<T>.intersect (other: ClosedRange<T>) = maxOf(start, other.start) .. minOf(endInclusive, other.endInclusive)
-infix fun <T: Comparable<T>> ClosedRange<T>.intersects(other: ClosedRange<T>) = start in other || endInclusive in other
+public infix fun <T: Comparable<T>> ClosedRange<T>.intersect (other: ClosedRange<T>): ClosedRange<T> = maxOf(start, other.start) .. minOf(endInclusive, other.endInclusive)
+public infix fun <T: Comparable<T>> ClosedRange<T>.intersects(other: ClosedRange<T>): Boolean        = start in other || endInclusive in other
 
-val ClosedRange<Int   >.size get() = endInclusive - start
-val ClosedRange<Double>.size get() = endInclusive - start
-val ClosedRange<Float >.size get() = endInclusive - start
+public val ClosedRange<Int   >.size: Int    get() = endInclusive - start
+public val ClosedRange<Double>.size: Double get() = endInclusive - start
+public val ClosedRange<Float >.size: Float  get() = endInclusive - start

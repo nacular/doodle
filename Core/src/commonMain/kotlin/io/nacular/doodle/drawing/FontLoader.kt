@@ -9,23 +9,23 @@ import io.nacular.doodle.drawing.Font.Style
  * @property weight of the Font
  * @property family of the Font, NOTE: should only be a single family and NOT a comma-separated list
  */
-class FontInfo(
-        var size  : Int    = 12,
-        var style : Style  = Style.Normal,
-        var weight: Int    = Normal,
-        var family: String = "")
+public class FontInfo(
+        public var size  : Int    = 12,
+        public var style : Style  = Style.Normal,
+        public var weight: Int    = Normal,
+        public var family: String = "")
 
 /**
  * Provides a mechanism to load or lookup [Font]s.
  */
-interface FontLoader {
+public interface FontLoader {
     /**
      * Tries to find a loaded font matching the given info.
      *
      * @param info of the font
      * @return the font IFF found
      */
-    suspend operator fun invoke(info: FontInfo.() -> Unit): Font
+    public suspend operator fun invoke(info: FontInfo.() -> Unit): Font
 
     /**
      * Tries to find a loaded font matching the given font with info overrides.
@@ -41,7 +41,7 @@ interface FontLoader {
      * @param info of the font
      * @return the font IFF found
      */
-    suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit): Font = invoke {
+    public suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit): Font = invoke {
         size   = font.size
         style  = font.style
         weight = font.weight
@@ -56,5 +56,5 @@ interface FontLoader {
      * @param info of the font
      * @return the font IFF found
      */
-    suspend operator fun invoke(source: String, info: FontInfo.() -> Unit): Font
+    public suspend operator fun invoke(source: String, info: FontInfo.() -> Unit): Font
 }

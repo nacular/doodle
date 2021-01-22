@@ -3,23 +3,22 @@ package io.nacular.doodle.system
 
 import io.nacular.doodle.geometry.Point
 
+public interface PointerInputService {
+    public var cursor         : Cursor?
+    public var toolTipText    : String
+    public val pointerLocation: Point
 
-interface PointerInputService {
-    var cursor         : Cursor?
-    var toolTipText    : String
-    val pointerLocation: Point
+    public operator fun plusAssign (listener: Listener)
+    public operator fun minusAssign(listener: Listener)
 
-    operator fun plusAssign (listener: Listener)
-    operator fun minusAssign(listener: Listener)
+    public operator fun plusAssign (preprocessor: Preprocessor)
+    public operator fun minusAssign(preprocessor: Preprocessor)
 
-    operator fun plusAssign (preprocessor: Preprocessor)
-    operator fun minusAssign(preprocessor: Preprocessor)
-
-    interface Listener {
-        fun changed(event: SystemPointerEvent)
+    public interface Listener {
+        public fun changed(event: SystemPointerEvent)
     }
 
-    interface Preprocessor {
-        fun preprocess(event: SystemPointerEvent) {}
+    public interface Preprocessor {
+        public fun preprocess(event: SystemPointerEvent) {}
     }
 }

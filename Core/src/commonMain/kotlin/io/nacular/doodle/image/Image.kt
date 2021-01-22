@@ -6,13 +6,13 @@ import io.nacular.doodle.geometry.Size
 /**
  * An image that has been loaded into the application.
  */
-interface Image {
+public interface Image {
     /** The width, height of the image */
-    val size: Size
+    public val size: Size
 
     /** The source of the image */
-    val source: String
+    public val source: String
 }
 
-inline val Image.width get () = size.width
-inline val Image.height get() = size.height
+public inline val Image.width: Double get () = size.width
+public inline val Image.height: Double get() = size.height

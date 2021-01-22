@@ -12,10 +12,10 @@ package io.nacular.doodle.geometry
  * @param width Horizontal extent; cannot be negative
  * @param height Vertical extent; cannot be negative
  */
-class Size(val width: Double = 0.0, val height: Double = width) {
+public class Size(public val width: Double = 0.0, public val height: Double = width) {
 
-    constructor(width: Int   = 0,  height: Int   = width): this(width.toDouble(), height.toDouble())
-    constructor(width: Float = 0f, height: Float = width): this(width.toDouble(), height.toDouble())
+    public constructor(width: Int   = 0,  height: Int   = width): this(width.toDouble(), height.toDouble())
+    public constructor(width: Float = 0f, height: Float = width): this(width.toDouble(), height.toDouble())
 
     init {
         require(width  >= 0) { "Width cannot be negative"  }
@@ -23,15 +23,15 @@ class Size(val width: Double = 0.0, val height: Double = width) {
     }
 
     /** The area represented: [width] * [height] */
-    val area = width * height
+    public val area: Double = width * height
 
     /** `true` IFF [area] == `0` */
-    val empty = area == 0.0
+    public val empty: Boolean = area == 0.0
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { arrayOf(width, height).contentHashCode() }
 
-    override fun toString() = "[$width,$height]"
+    override fun toString(): String = "[$width,$height]"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -40,11 +40,11 @@ class Size(val width: Double = 0.0, val height: Double = width) {
         return width == other.width && height == other.height
     }
 
-    override fun hashCode() = hashCode_
+    override fun hashCode(): Int = hashCode_
 
-    companion object {
+    public companion object {
         /** The size with [width] and [height] equal to `0` */
-        val Empty = Size(0.0)
+        public val Empty: Size = Size(0.0)
     }
 }
 
@@ -53,15 +53,15 @@ class Size(val width: Double = 0.0, val height: Double = width) {
  *
  * @param value to multiply by
  */
-operator fun Size.times(value: Int   ) = Size(width * value, height * value)
-operator fun Size.times(value: Float ) = Size(width * value, height * value)
-operator fun Size.times(value: Double) = Size(width * value, height * value)
+public operator fun Size.times(value: Int   ): Size = Size(width * value, height * value)
+public operator fun Size.times(value: Float ): Size = Size(width * value, height * value)
+public operator fun Size.times(value: Double): Size = Size(width * value, height * value)
 
 /**
  * Returns a [Size] with [width][Size.width] / value and [height][Size.height] / value
  *
  * @param value to divide by
  */
-operator fun Size.div(value: Int   ) = Size(width / value, height / value)
-operator fun Size.div(value: Double) = Size(width / value, height / value)
-operator fun Size.div(value: Float ) = Size(width / value, height / value)
+public operator fun Size.div(value: Int   ): Size = Size(width / value, height / value)
+public operator fun Size.div(value: Double): Size = Size(width / value, height / value)
+public operator fun Size.div(value: Float ): Size = Size(width / value, height / value)

@@ -7,7 +7,7 @@ import io.nacular.doodle.geometry.Rectangle
 /**
  * Created by Nicholas Eddy on 2/22/19.
  */
-class TileLayout(private val spacing: Double = 0.0): Layout {
+public class TileLayout(private val spacing: Double = 0.0): Layout {
     override fun layout(container: PositionableContainer) {
         if (container.size.empty || container.children.isEmpty()) {
             return

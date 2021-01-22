@@ -18,6 +18,6 @@ import io.nacular.doodle.image.Image
  * @param size Size to draw the image when repeating
  * @param opacity The opacity to draw the image with when repeating
  */
-class ImageFill(val image: Image, val size: Size = image.size, val opacity: Float = 1f): Fill() {
-    override val visible = opacity > 0 && !size.empty && !image.size.empty
+public class ImageFill(public val image: Image, public val size: Size = image.size, public val opacity: Float = 1f): Fill() {
+    public override val visible: Boolean = opacity > 0 && !size.empty && !image.size.empty
 }

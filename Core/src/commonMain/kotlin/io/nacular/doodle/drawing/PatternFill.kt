@@ -18,12 +18,12 @@ import io.nacular.measured.units.times
  * @property transform applied to the fill
  * @property fill operations for the Canvas
  */
-class PatternFill(val bounds: Rectangle, val transform: AffineTransform = Identity, val fill: Canvas.() -> Unit): Fill() {
-    constructor(size: Size, transform: AffineTransform = Identity, fill: Canvas.() -> Unit): this(Rectangle(size = size), transform, fill)
+public class PatternFill(public val bounds: Rectangle, public val transform: AffineTransform = Identity, public val fill: Canvas.() -> Unit): Fill() {
+    public constructor(size: Size, transform: AffineTransform = Identity, fill: Canvas.() -> Unit): this(Rectangle(size = size), transform, fill)
 
-    val size get() = bounds.size
+    public val size: Size get() = bounds.size
 
-    override val visible = !bounds.empty
+    override val visible: Boolean = !bounds.empty
 }
 
 /**
@@ -33,10 +33,10 @@ class PatternFill(val bounds: Rectangle, val transform: AffineTransform = Identi
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun stripedFill(stripeWidth : Double,
+public fun stripedFill(stripeWidth : Double,
                  evenRowColor: Color? = null,
                  oddRowColor : Color? = null,
-                 transform   : AffineTransform = Identity) = PatternFill(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
+                 transform   : AffineTransform = Identity): PatternFill = PatternFill(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
     evenRowColor?.let { rect(Rectangle(                 stripeWidth, stripeWidth), ColorFill(it)) }
     oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorFill(it)) }
 }
@@ -49,7 +49,7 @@ fun stripedFill(stripeWidth : Double,
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun horizontalStripedFill(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = stripedFill(
+public fun horizontalStripedFill(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternFill = stripedFill(
         rowHeight, evenRowColor, oddRowColor
 )
 
@@ -60,7 +60,7 @@ fun horizontalStripedFill(rowHeight: Double, evenRowColor: Color? = null, oddRow
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-fun verticalStripedFill(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null) = stripedFill(
+public fun verticalStripedFill(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternFill = stripedFill(
         colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees)
 )
 
@@ -71,7 +71,7 @@ fun verticalStripedFill(colWidth: Double, evenRowColor: Color? = null, oddRowCol
  * @param firstColor of the first rectangle, left-to-right
  * @param secondColor of the second rectangle, left-to-right
  */
-fun checkerFill(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null) = PatternFill(if (firstColor.visible || secondColor.visible) checkerSize * 2 else Empty) {
+public fun checkerFill(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null): PatternFill = PatternFill(if (firstColor.visible || secondColor.visible) checkerSize * 2 else Empty) {
     val w  = checkerSize.width
     val h  = checkerSize.height
     val b1 = firstColor?.let  { ColorFill(it) }

@@ -20,6 +20,10 @@ kotlin {
     val coroutinesVersion: String by project
 
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("io.nacular.doodle.core.Internal")
+        }
+
         val commonMain by getting {
             dependencies {
                 implementation(project(":controls" ))

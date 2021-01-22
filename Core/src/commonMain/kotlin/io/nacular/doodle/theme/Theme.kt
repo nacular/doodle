@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme
 
 import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.BreadthFirstTreeIterator
 import io.nacular.doodle.utils.Node
@@ -13,14 +14,14 @@ import io.nacular.doodle.utils.PropertyObserversImpl
  * Themes are able to visually style [View]s within the [Display]. Installing one will trigger an update and provide the full set of [View]s
  * to the [Theme.install] method, allowing it to update any subset of [View]s it chooses.
  */
-interface Theme {
+public interface Theme {
     /**
      * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s present in the [Display].
      *
      * @param display
      * @param all the Views (recursively) within the Display
      */
-    fun install(display: Display, all: Sequence<View>)
+    public fun install(display: Display, all: Sequence<View>)
 
     // FIXME: Add uninstall once there's a clean way to support that given ad hoc behavior registration
 }
@@ -28,30 +29,32 @@ interface Theme {
 /**
  * This manager keeps track of available [Theme]s and manages the application of new ones via [ThemeManager.selected].
  */
-interface ThemeManager {
+public interface ThemeManager {
     /** Convenient set of [Theme]s that an application can manage */
-    val themes: ObservableSet<Theme>
+    public val themes: ObservableSet<Theme>
 
     /**
      * The currently selected [Theme]. Setting this will cause the new Theme to update the [Display] and [View]s therein.
      * A theme that is set as selected is also added to the [themes] set.
      */
-    var selected: Theme?
+    public var selected: Theme?
 
     /**
      * Notifies of changes to [selected]
      */
-    val selectionChanged: PropertyObservers<ThemeManager, Theme?>
+    public val selectionChanged: PropertyObservers<ThemeManager, Theme?>
 }
 
-abstract class InternalThemeManager: ThemeManager {
+@Internal
+public abstract class InternalThemeManager internal constructor(): ThemeManager {
     internal abstract fun update(view: View)
 }
 
-class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
-    override val themes by lazy { ObservableSet<Theme>() }
+@Internal
+public class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
+    override val themes: ObservableSet<Theme> by lazy { ObservableSet<Theme>() }
 
-    override var selected = null as Theme?
+    override var selected: Theme? = null as Theme?
         set(new) {
             if (field == new) return
 

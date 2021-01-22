@@ -8,10 +8,10 @@ package io.nacular.doodle.drawing
  *
  * @property color The fill's color
  */
-class ColorFill(val color: Color): Fill() {
+public class ColorFill(public val color: Color): Fill() {
 
     /** `false` if [color].[opacity][Color.opacity] == 0 */
-    override val visible = color.opacity > 0
+    override val visible: Boolean = color.opacity > 0
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -22,5 +22,5 @@ class ColorFill(val color: Color): Fill() {
         return true
     }
 
-    override fun hashCode() = color.hashCode()
+    override fun hashCode(): Int = color.hashCode()
 }

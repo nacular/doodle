@@ -5,11 +5,11 @@ package io.nacular.doodle.drawing
  *
  * @author Nicholas Eddy
  */
-abstract class Fill internal constructor() {
+public abstract class Fill internal constructor() {
     /**
      * `true` if the fill is visible.  This could be be false if the Fill's attributes (i.e. color) make it
      * invisible if used for rendering.  Returning `false` in such a case allows the rendering system to avoid
      * unnecessary operations that won't be visible to the user.
      */
-    abstract val visible: Boolean
+    public abstract val visible: Boolean
 }

@@ -3,26 +3,26 @@ package io.nacular.doodle.system
 import io.nacular.doodle.event.KeyState
 
 
-interface KeyInputService {
+public interface KeyInputService {
 
-    operator fun plusAssign (listener: Listener)
-    operator fun minusAssign(listener: Listener)
+    public operator fun plusAssign (listener: Listener)
+    public operator fun minusAssign(listener: Listener)
 
-    operator fun plusAssign (processor: Preprocessor)
-    operator fun minusAssign(processor: Preprocessor)
+    public operator fun plusAssign (processor: Preprocessor)
+    public operator fun minusAssign(processor: Preprocessor)
 
-    operator fun plusAssign (processor: Postprocessor)
-    operator fun minusAssign(processor: Postprocessor)
+    public operator fun plusAssign (processor: Postprocessor)
+    public operator fun minusAssign(processor: Postprocessor)
 
-    interface Listener {
-        operator fun invoke(keyState: KeyState): Boolean
+    public interface Listener {
+        public operator fun invoke(keyState: KeyState): Boolean
     }
 
-    interface Preprocessor {
-        operator fun invoke(keyState: KeyState): Boolean
+    public interface Preprocessor {
+        public operator fun invoke(keyState: KeyState): Boolean
     }
 
-    interface Postprocessor {
-        operator fun invoke(keyState: KeyState): Boolean
+    public interface Postprocessor {
+        public operator fun invoke(keyState: KeyState): Boolean
     }
 }

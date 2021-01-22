@@ -96,7 +96,7 @@ class TreeColumnRow<T>(
 
     private lateinit var constraintLayout: ConstraintLayout
 
-    private val columnsFocusChanged = { _:View, old:Boolean, new:Boolean ->
+    private val columnsFocusChanged = { _:View, _:Boolean, _:Boolean ->
         backgroundColor = backgroundColor(treeColumns)
     }
 

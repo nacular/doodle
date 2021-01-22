@@ -10,9 +10,9 @@ import io.nacular.measured.units.Time
  *
  * Created by Nicholas Eddy on 10/19/17.
  */
-interface Clock {
+public interface Clock {
     /** Current epoch time */
-    val epoch: Measure<Time>
+    public val epoch: Measure<Time>
 }
 
 /**
@@ -20,6 +20,6 @@ interface Clock {
  * that are not affected by the user's clock (i.e. time rollbacks).  The resolution of this
  * time is expected to be higher than [Clock.epoch].
  */
-interface Timer {
-    val now: Measure<Time>
+public interface Timer {
+    public val now: Measure<Time>
 }

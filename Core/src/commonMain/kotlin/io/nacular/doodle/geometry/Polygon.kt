@@ -15,10 +15,10 @@ import kotlin.math.sqrt
 /**
  * A [Shape] defined by a set of line segments that connect to enclose a region.
  */
-abstract class Polygon: Shape {
+public abstract class Polygon: Shape {
 
     /** Points representing the vertices */
-    abstract val points: List<Point>
+    public abstract val points: List<Point>
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -29,7 +29,7 @@ abstract class Polygon: Shape {
         return true
     }
 
-    override fun hashCode() = points.hashCode()
+    override fun hashCode(): Int = points.hashCode()
 
     /**
      * Gives the smallest [Rectangle] that fully contains this Polygon.
@@ -62,7 +62,7 @@ abstract class Polygon: Shape {
 /**
  * A Polygon with internal angles all <= 180°
  */
-abstract class ConvexPolygon: Polygon() {
+public abstract class ConvexPolygon: Polygon() {
     private class Line(val start: Point, val end: Point)
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
@@ -113,19 +113,19 @@ abstract class ConvexPolygon: Polygon() {
     }
 
     /** @return ```true``` IFF the given rectangle falls within the boundaries of this Polygon */
-    override fun contains(rectangle: Rectangle) = rectangle.points.all { contains(it) }
+    override fun contains(rectangle: Rectangle): Boolean = rectangle.points.all { contains(it) }
 
     override fun intersects(rectangle: Rectangle): Boolean = TODO("not implemented")
 
     private fun isLeft(line: Line, point: Point): Int = ((line.end.x - line.start.x) * (point.y - line.start.y) - (point.x - line.start.x) * (line.end.y - line.start.y)).toInt()
 
-    companion object {
-        operator fun invoke(first: Point, second: Point, third: Point): ConvexPolygon {
+    public companion object {
+        public operator fun invoke(first: Point, second: Point, third: Point): ConvexPolygon {
             return ConvexPolygonImpl(first, second, third)
         }
 
         // FIXME: Make this internal to avoid invalid "convex" poly creation
-        operator fun invoke(first: Point, second: Point, third: Point, vararg remaining: Point): ConvexPolygon {
+        public operator fun invoke(first: Point, second: Point, third: Point, vararg remaining: Point): ConvexPolygon {
             return ConvexPolygonImpl(first, second, third, *remaining)
         }
     }
@@ -143,7 +143,7 @@ private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon
  * @param rotation of the polygon's first point around the circle
  * @return the polygon
  */
-fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
+public fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
     if (sides < 3) return null
 
     val interPointSweep = 360 / sides * degrees
@@ -172,7 +172,7 @@ fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees
  * @param innerCircle defining the radius of the inner points
  * @return a star shaped polygon
  */
-fun star(circle     : Circle,
+public fun star(circle     : Circle,
          points     : Int            = 5,
          rotation   : Measure<Angle> = 0 * degrees,
          innerCircle: Circle         = Circle(center = circle.center, radius = circle.radius * 2 / (3 + sqrt(5.0)))
@@ -191,7 +191,7 @@ fun star(circle     : Circle,
  * @param filter deciding which points to apply the radius to
  * @return a [Path] for the new shape
  */
-fun Polygon.rounded(radius: Double, filter: (index: Int, Point) -> Boolean = { _,_ -> true }): Path = rounded { index, point ->
+public fun Polygon.rounded(radius: Double, filter: (index: Int, Point) -> Boolean = { _,_ -> true }): Path = rounded { index, point ->
     when (filter(index, point)) {
         true -> radius
         else -> 0.0
@@ -205,7 +205,7 @@ fun Polygon.rounded(radius: Double, filter: (index: Int, Point) -> Boolean = { _
  * @param config determining the radius for each point in the polygon (with the given index)
  * @return a [Path] for the new shape
  */
-fun Polygon.rounded(config: (index: Int, Point) -> Double): Path {
+public fun Polygon.rounded(config: (index: Int, Point) -> Double): Path {
     val newPoints = mutableListOf<PointRelationShip>()
     val radii     = mutableListOf<Double>()
 

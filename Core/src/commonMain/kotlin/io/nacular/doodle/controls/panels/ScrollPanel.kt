@@ -21,13 +21,13 @@ import kotlin.math.min
 /**
  * Configures how a [ScrollPanel] behaves.
  */
-interface ScrollPanelBehavior: Behavior<ScrollPanel> {
+public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
     /**
      * Listener registered by [ScrollPanel] to listen for scroll events from
      * the behavior.  Behaviors should be used this instead of [ScrollPanel.scrollTo]
      * since it bi-passes validation to support things like bouncing.
      */
-    var onScroll: ((Point) -> Unit)?
+    public var onScroll: ((Point) -> Unit)?
 
     /**
      * Called by the [ScrollPanel] that this behavior is installed in whenever
@@ -36,7 +36,7 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
      * @param panel being scrolled
      * @param point being scrolled to
      */
-    fun scrollTo(panel: ScrollPanel, point: Point)
+    public fun scrollTo(panel: ScrollPanel, point: Point)
 }
 
 /**
@@ -45,14 +45,14 @@ interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  * @constructor
  * @param content to host in the panel
  */
-open class ScrollPanel(content: View? = null): View() {
+public open class ScrollPanel(content: View? = null): View() {
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
         idealSize = new.idealSize
         relayout()
     }
 
     /** The content being shown within the panel */
-    var content = null as View?
+    public var content: View? = null
         set(new) {
             if (new == this) {
                 throw IllegalArgumentException("ScrollPanel cannot be added to its self")
@@ -80,10 +80,10 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Notifies of changes to [content]. */
-    val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
+    public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl<ScrollPanel, View?>(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
+    public var contentWidthConstraints: Constraints.() -> MagnitudeConstraint = { idealWidth or width }
         set(new) {
             field = new
 
@@ -91,7 +91,7 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Determines how the [content] height changes as the panel resizes */
-    var contentHeightConstraints: Constraints.() -> MagnitudeConstraint = { idealHeight or height }
+    public var contentHeightConstraints: Constraints.() -> MagnitudeConstraint = { idealHeight or height }
         set(new) {
             field = new
 
@@ -99,11 +99,11 @@ open class ScrollPanel(content: View? = null): View() {
         }
 
     /** The current scroll offset. */
-    var scroll = Origin
+    public var scroll: Point = Origin
         private set
 
     /** Behavior governing how the panel works */
-    var behavior: ScrollPanelBehavior? by behavior { old, new ->
+    public var behavior: ScrollPanelBehavior? by behavior { old, new ->
         mirrorWhenRightLeft = false
 
         old?.onScroll = null
@@ -120,20 +120,20 @@ open class ScrollPanel(content: View? = null): View() {
         layout = ViewLayout()
     }
 
-    override var focusable = false
+    public override var focusable: Boolean = false
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
     /**
      * Scrolls the viewport so the top-left is at point, or as close as possible.
      *
      * @param point
      */
-    fun scrollTo(point: Point) {
+    public fun scrollTo(point: Point) {
         scrollTo(point, false)
 
         behavior?.scrollTo(this, point)
@@ -144,35 +144,35 @@ open class ScrollPanel(content: View? = null): View() {
      *
      * @param delta
      */
-    fun scrollBy(delta: Point) = scrollTo(scroll + delta)
+    public fun scrollBy(delta: Point): Unit = scrollTo(scroll + delta)
 
     /**
      * Scrolls the viewport so the given point is visible.
      *
      * @param point
      */
-    fun scrollToVisible(point: Point) = moveToVisible(point)
+    public fun scrollToVisible(point: Point): Unit = moveToVisible(point)
 
     /**
      * Scrolls the viewport so the given rectangle is visible.
      *
      * @param rect
      */
-    fun scrollToVisible(rect: Rectangle) = moveToVisible(rect)
+    public fun scrollToVisible(rect: Rectangle): Unit = moveToVisible(rect)
 
     /**
      * Scrolls the viewport horizontally so the given range is visible.
      *
      * @param range
      */
-    fun scrollHorizontallyToVisible(range: ClosedRange<Double>) = moveHorizontallyToVisible(range)
+    public fun scrollHorizontallyToVisible(range: ClosedRange<Double>): Unit = moveHorizontallyToVisible(range)
 
     /**
      * Scrolls the viewport vertically so the given range is visible.
      *
      * @param range
      */
-    fun scrollVerticallyToVisible(range: ClosedRange<Double>) = moveVerticallyToVisible(range)
+    public fun scrollVerticallyToVisible(range: ClosedRange<Double>): Unit = moveVerticallyToVisible(range)
 
     private fun moveToVisible(point: Point) {
         var farSide = scroll.x + width

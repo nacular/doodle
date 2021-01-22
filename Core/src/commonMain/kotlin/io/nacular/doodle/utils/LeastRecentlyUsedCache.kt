@@ -4,7 +4,7 @@ package io.nacular.doodle.utils
 /**
  * Created by Nicholas Eddy on 3/22/20.
  */
-class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
+public class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
     private inner class Entry(var value: V, var key: K) {
         var left : Entry? = null
         var right: Entry? = null
@@ -35,15 +35,15 @@ class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<K, V> {
         }
     }.toMutableSet()
 
-    override val keys   get() = hashMap.keys
-    override val size   get() = hashMap.size
-    override val values get() = hashMap.values.map { it.value }.toMutableList()
+    override val keys  : MutableSet<K>  get() = hashMap.keys
+    override val size  : Int            get() = hashMap.size
+    override val values: MutableList<V> get() = hashMap.values.map { it.value }.toMutableList()
 
-    override fun containsKey(key: K) = hashMap.containsKey(key)
+    override fun containsKey(key: K): Boolean = hashMap.containsKey(key)
 
-    override fun containsValue(value: V) = value in values
+    override fun containsValue(value: V): Boolean = value in values
 
-    override fun isEmpty() = hashMap.isEmpty()
+    override fun isEmpty(): Boolean = hashMap.isEmpty()
 
     override fun clear() {
         hashMap.clear()

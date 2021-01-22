@@ -1,17 +1,19 @@
 package io.nacular.doodle.system
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.geometry.Point
 
-class SystemPointerEvent(
-        val type             : Type,
-        val location         : Point,
-        val buttons          : Set<Button>,
-        val clickCount       : Int,
-            modifiers        : Set<Modifier>,
-        val nativeScrollPanel: Boolean = false,
-        val fromTouch        : Boolean = false): SystemInputEvent(modifiers) {
+public class SystemPointerEvent @Internal constructor(
+        public val type             : Type,
+        public val location         : Point,
+        public val buttons          : Set<Button>,
+        public val clickCount       : Int,
+                   modifiers        : Set<Modifier>,
+        public val nativeScrollPanel: Boolean = false,
+        public val fromTouch        : Boolean = false): SystemInputEvent(modifiers) {
 
-    constructor(
+    @Internal
+    public constructor(
             type             : Type,
             location         : Point,
             button           : Button,
@@ -19,7 +21,7 @@ class SystemPointerEvent(
             modifiers        : Set<Modifier>,
             nativeScrollPanel: Boolean = false): this(type, location, setOf(button), clickCount, modifiers, nativeScrollPanel)
 
-    enum class Type { Up, Down, Move, Exit, Drag, Click, Enter }
+    public enum class Type { Up, Down, Move, Exit, Drag, Click, Enter }
 
-    enum class Button { Button1, Button2, Button3 }
+    public enum class Button { Button1, Button2, Button3 }
 }

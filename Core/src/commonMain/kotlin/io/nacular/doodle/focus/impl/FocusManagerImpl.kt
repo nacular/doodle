@@ -1,6 +1,7 @@
 package io.nacular.doodle.focus.impl
 
 import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.FocusTraversalPolicy
@@ -12,15 +13,18 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
-interface FocusabilityChecker {
-    operator fun invoke(view: View): Boolean
+@Internal
+public interface FocusabilityChecker {
+    public operator fun invoke(view: View): Boolean
 }
 
-class DefaultFocusabilityChecker: FocusabilityChecker {
-    override fun invoke(view: View) = view.run { focusable && enabled && visible }
+@Internal
+public class DefaultFocusabilityChecker: FocusabilityChecker {
+    override fun invoke(view: View): Boolean = view.run { focusable && enabled && visible }
 }
 
-class FocusManagerImpl(
+@Internal
+public class FocusManagerImpl(
         private val display                    : Display,
         private val defaultFocusTraversalPolicy: FocusTraversalPolicy,
         private val focusabilityChecker        : FocusabilityChecker
@@ -32,25 +36,25 @@ class FocusManagerImpl(
 
     override val focusChanged: PropertyObservers<FocusManager, View?> by lazy { PropertyObserversImpl<FocusManager, View?>(this) }
 
-    override fun focusable(view: View) = focusabilityChecker(view)
+    override fun focusable(view: View): Boolean = focusabilityChecker(view)
 
-    override fun requestFocus(view: View) = requestFocusInternal(view)
+    override fun requestFocus(view: View): Unit = requestFocusInternal(view)
 
-    override fun clearFocus        (          ) = requestFocusInternal(null)
-    override fun moveFocusForward  (          ) = moveFocus(null, Forward )
-    override fun moveFocusForward  (from: View) = moveFocus(from, Forward )
-    override fun moveFocusBackward (          ) = moveFocus(null, Backward)
-    override fun moveFocusBackward (from: View) = moveFocus(from, Backward)
-    override fun moveFocusUpward   (          ) = moveFocus(null, Upward  )
-    override fun moveFocusUpward   (from: View) = moveFocus(from, Upward  )
-    override fun moveFocusDownward (          ) = moveFocus(null, Downward)
-    override fun moveFocusDownward (from: View) = moveFocus(from, Downward)
-    override fun moveFocusToDefault(          ) = requestFocusInternal(getTraversalPolicy(null).default(display))
+    override fun clearFocus        (          ): Unit = requestFocusInternal(null)
+    override fun moveFocusForward  (          ): Unit = moveFocus(null, Forward )
+    override fun moveFocusForward  (from: View): Unit = moveFocus(from, Forward )
+    override fun moveFocusBackward (          ): Unit = moveFocus(null, Backward)
+    override fun moveFocusBackward (from: View): Unit = moveFocus(from, Backward)
+    override fun moveFocusUpward   (          ): Unit = moveFocus(null, Upward  )
+    override fun moveFocusUpward   (from: View): Unit = moveFocus(from, Upward  )
+    override fun moveFocusDownward (          ): Unit = moveFocus(null, Downward)
+    override fun moveFocusDownward (from: View): Unit = moveFocus(from, Downward)
+    override fun moveFocusToDefault(          ): Unit = requestFocusInternal(getTraversalPolicy(null).default(display))
 
     // used to track focus owner before disabled
     private var finalFocusOwner: View? = null
 
-    var enabled = true
+    public var enabled: Boolean = true
         set(new) {
             if (field == new) {
                 return

@@ -6,9 +6,9 @@ import io.nacular.doodle.utils.CompletableImpl.State.Completed
 import kotlin.js.JsName
 
 
-interface Completable: Cancelable {
-    val completed: Pool<(source: Completable) -> Unit>
-    val canceled : Pool<(source: Completable) -> Unit>
+public interface Completable: Cancelable {
+    public val completed: Pool<(source: Completable) -> Unit>
+    public val canceled : Pool<(source: Completable) -> Unit>
 }
 
 internal class NoOpPool<T>: Pool<(source: T) -> Unit> {
@@ -25,8 +25,8 @@ internal class InstantPool<T>(private val source: T): Pool<(source: T) -> Unit> 
     override fun minusAssign(item: (source: T) -> Unit) {}
 }
 
-open class CompletableImpl: Completable {
-    enum class State { Active, Completed, Canceled }
+public open class CompletableImpl: Completable {
+    public enum class State { Active, Completed, Canceled }
 
     protected var state: State = Active
         private set(new) {
@@ -65,12 +65,12 @@ open class CompletableImpl: Completable {
     protected open fun completed() { state = Completed }
 }
 
-val NoOpCompletable: Completable = object: CompletableImpl() {
+public val NoOpCompletable: Completable = object: CompletableImpl() {
     init {
         completed()
     }
 }
 
-interface Cancelable {
-    fun cancel()
+public interface Cancelable {
+    public fun cancel()
 }

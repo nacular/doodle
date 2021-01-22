@@ -3,11 +3,12 @@ package io.nacular.doodle.core
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.utils.ObservableList
 
 /**
  * Represents a View that can have children and [Layout].
  */
-open class Container: View(), PositionableContainer, Iterable<View> {
+public open class Container: View(), PositionableContainer, Iterable<View> {
     /** Hint to [layout] that children within the Container should be inset from the edges */
     public override var insets: Insets
         get(   ) = super.insets
@@ -27,23 +28,23 @@ open class Container: View(), PositionableContainer, Iterable<View> {
         set(new) { super.isFocusCycleRoot = new }
 
     /** The list of children within the Container */
-    public override val children = super.children
+    public override val children: ObservableList<View> = super.children
 
     /**
      * @param view in question
      * @return `true` IFF [view] is a descendant of this Container
      */
-    public override fun ancestorOf(view: View) = super.ancestorOf(view)
+    public override fun ancestorOf(view: View): Boolean = super.ancestorOf(view)
 
     /**
      * @param at the x,y within the Container's coordinate-space
      * @return a View if one is found to contain the given point
      */
-    public override fun child(at: Point) = super.child(at)
+    public override fun child(at: Point): View? = super.child(at)
 
     public override fun relayout() { super.relayout() }
 
-    override fun iterator() = children.iterator()
+    override fun iterator(): MutableIterator<View> = children.iterator()
 }
 
 /**
@@ -51,7 +52,7 @@ open class Container: View(), PositionableContainer, Iterable<View> {
  *
  * @param view to be added
  */
-inline operator fun Container.plusAssign(view: View) = children.plusAssign(view)
+public inline operator fun Container.plusAssign(view: View): Unit = children.plusAssign(view)
 
 
 /**
@@ -59,30 +60,30 @@ inline operator fun Container.plusAssign(view: View) = children.plusAssign(view)
  *
  * @param views to be added
  */
-inline operator fun Container.plusAssign(views: Iterable<View>) = children.plusAssign(views)
+public inline operator fun Container.plusAssign(views: Iterable<View>): Unit = children.plusAssign(views)
 
 /**
  * Removes [view] from the Container.
  *
  * @param view to be removed
  */
-inline operator fun Container.minusAssign(view: View) = children.minusAssign(view)
+public inline operator fun Container.minusAssign(view: View): Unit = children.minusAssign(view)
 
 /**
  * Removes the given [views] from the Container.
  *
  * @param views to be removed
  */
-inline operator fun Container.minusAssign(views: Iterable<View>) = children.minusAssign(views)
+public inline operator fun Container.minusAssign(views: Iterable<View>): Unit = children.minusAssign(views)
 
 /**
  * Class to enable `container { ... }` DSL.
  * @property render operations to perform
  */
-class ContainerBuilder: Container() {
+public class ContainerBuilder: Container() {
     private var render_: Canvas.() -> Unit = {}
 
-    var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }
+    public var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }
 
     override fun render(canvas: Canvas) {
         render_(canvas)
@@ -94,4 +95,4 @@ class ContainerBuilder: Container() {
  *
  * @param block used to configure the View
  */
-fun container(block: ContainerBuilder.() -> Unit): Container = ContainerBuilder().also(block)
+public fun container(block: ContainerBuilder.() -> Unit): Container = ContainerBuilder().also(block)

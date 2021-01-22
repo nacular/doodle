@@ -8,14 +8,14 @@ import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Type
 
 
-open class PointerEvent internal constructor(
-        source        : View,
-        val target    : View,
-        val type      : Type,
-        val location  : Point,
-        val buttons   : Set<Button>,
-        val clickCount: Int,
-        modifiers     : Set<Modifier>): InputEvent(source, modifiers) {
+public open class PointerEvent internal constructor(
+        source               : View,
+        public val target    : View,
+        public val type      : Type,
+        public val location  : Point,
+        public val buttons   : Set<Button>,
+        public val clickCount: Int,
+        modifiers            : Set<Modifier>): InputEvent(source, modifiers) {
 
     internal constructor(
             source    : View,
@@ -26,8 +26,8 @@ open class PointerEvent internal constructor(
             clickCount: Int,
             modifiers : Set<Modifier>): this(source, target, type, location, setOf(button), clickCount, modifiers)
 
-    companion object {
-        operator fun invoke(target: View, systemPointerEvent: SystemPointerEvent) = PointerEvent(
+    public companion object {
+        public operator fun invoke(target: View, systemPointerEvent: SystemPointerEvent): PointerEvent = PointerEvent(
             target,
             target,
             systemPointerEvent.type,

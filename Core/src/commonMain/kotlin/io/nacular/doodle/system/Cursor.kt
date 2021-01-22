@@ -1,39 +1,39 @@
 package io.nacular.doodle.system
 
 
-class Cursor private constructor(private val type: String) {
+public class Cursor private constructor(private val type: String) {
 
-    override fun toString() = type
+    override fun toString(): String = type
 
-    companion object {
-        val None      = Cursor("none"      )
-        val Text      = Cursor("text"      )
-        val Wait      = Cursor("wait"      )
-        val Help      = Cursor("help"      )
-        val Move      = Cursor("move"      )
-        val Grab      = Cursor("grab"      )
-        val Copy      = Cursor("copy"      )
-        val Alias     = Cursor("alias"     )
-        val ZoomIn    = Cursor("zoom-in"   )
-        val NoDrop    = Cursor("no-drop"   )
-        val ZoomOut   = Cursor("zoom-out"  )
-        val Default   = Cursor("default"   )
-        val Pointer   = Cursor("pointer"   )
-        val NResize   = Cursor("n-resize"  )
-        val SResize   = Cursor("s-resize"  )
-        val EResize   = Cursor("e-resize"  )
-        val WResize   = Cursor("w-resize"  )
-        val EWResize  = Cursor("ew-resize" )
-        val Grabbing  = Cursor("grabbing"  )
-        val Progress  = Cursor("progress"  )
-        val NeResize  = Cursor("ne-resize" )
-        val NwResize  = Cursor("nw-resize" )
-        val SeResize  = Cursor("se-resize" )
-        val SwResize  = Cursor("sw-resize" )
-        val Crosshair = Cursor("crosshair" )
-        val ColResize = Cursor("col-resize")
-        val RowResize = Cursor("row-resize")
+    public companion object {
+        public val None: Cursor      = Cursor("none"      )
+        public val Text: Cursor      = Cursor("text"      )
+        public val Wait: Cursor      = Cursor("wait"      )
+        public val Help: Cursor      = Cursor("help"      )
+        public val Move: Cursor      = Cursor("move"      )
+        public val Grab: Cursor      = Cursor("grab"      )
+        public val Copy: Cursor      = Cursor("copy"      )
+        public val Alias: Cursor     = Cursor("alias"     )
+        public val ZoomIn: Cursor    = Cursor("zoom-in"   )
+        public val NoDrop: Cursor    = Cursor("no-drop"   )
+        public val ZoomOut: Cursor   = Cursor("zoom-out"  )
+        public val Default: Cursor   = Cursor("default"   )
+        public val Pointer: Cursor   = Cursor("pointer"   )
+        public val NResize: Cursor   = Cursor("n-resize"  )
+        public val SResize: Cursor   = Cursor("s-resize"  )
+        public val EResize: Cursor   = Cursor("e-resize"  )
+        public val WResize: Cursor   = Cursor("w-resize"  )
+        public val EWResize: Cursor  = Cursor("ew-resize" )
+        public val Grabbing: Cursor  = Cursor("grabbing"  )
+        public val Progress: Cursor  = Cursor("progress"  )
+        public val NeResize: Cursor  = Cursor("ne-resize" )
+        public val NwResize: Cursor  = Cursor("nw-resize" )
+        public val SeResize: Cursor  = Cursor("se-resize" )
+        public val SwResize: Cursor  = Cursor("sw-resize" )
+        public val Crosshair: Cursor = Cursor("crosshair" )
+        public val ColResize: Cursor = Cursor("col-resize")
+        public val RowResize: Cursor = Cursor("row-resize")
 
-        fun custom(url: String, or: Cursor) = Cursor("url('$url'), $or")
+        public fun custom(url: String, or: Cursor): Cursor = Cursor("url('$url'), $or")
     }
 }

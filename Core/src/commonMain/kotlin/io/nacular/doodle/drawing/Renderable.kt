@@ -7,8 +7,8 @@ import io.nacular.doodle.geometry.Size
  *
  * @author Nicholas Eddy
  */
-interface Renderable {
-    val size: Size
+public interface Renderable {
+    public val size: Size
 
-    fun render(canvas: Canvas)
+    public fun render(canvas: Canvas)
 }

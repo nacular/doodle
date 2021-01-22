@@ -28,7 +28,7 @@ class KeyboardFocusManagerTests {
     fun `stops listening to key input service on shutdown`() {
         val keyInputService = mockk<KeyInputService>()
 
-        val manager = KeyboardFocusManagerImpl(keyInputService, mockk<FocusManager>(), mockk())
+        val manager = KeyboardFocusManagerImpl(keyInputService, mockk(), mockk())
 
         manager.shutdown()
 

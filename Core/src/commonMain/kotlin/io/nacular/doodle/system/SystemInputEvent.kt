@@ -2,12 +2,12 @@ package io.nacular.doodle.system
 
 import io.nacular.doodle.event.Event
 
-abstract class SystemInputEvent internal constructor(val modifiers: Set<Modifier>): Event<Any?>(null) {
+public abstract class SystemInputEvent internal constructor(public val modifiers: Set<Modifier>): Event<Any?>(null) {
 
-    operator fun contains(modifiers: Set<Modifier>) = this.modifiers.containsAll(modifiers)
-    operator fun contains(modifier : Modifier     ) = modifier in modifiers
+    public operator fun contains(modifiers: Set<Modifier>): Boolean = this.modifiers.containsAll(modifiers)
+    public operator fun contains(modifier : Modifier     ): Boolean = modifier in modifiers
 
-    enum class Modifier {
+    public enum class Modifier {
         Alt, Ctrl, Shift, Meta
     }
 }

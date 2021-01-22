@@ -8,21 +8,21 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 5/11/18.
  */
-class FocusTraversalPolicyImpl(private val focusabilityChecker: FocusabilityChecker): FocusTraversalPolicy {
+public class FocusTraversalPolicyImpl(private val focusabilityChecker: FocusabilityChecker): FocusTraversalPolicy {
 
-    override fun default(within: View) = first(within)
-    override fun first  (within: View) = within.children_.firstOrNull { focusabilityChecker(it) }
-    override fun last   (within: View) = within.children_.lastOrNull  { focusabilityChecker(it) }
+    override fun default(within: View): View? = first(within)
+    override fun first  (within: View): View? = within.children_.firstOrNull { focusabilityChecker(it) }
+    override fun last   (within: View): View? = within.children_.lastOrNull  { focusabilityChecker(it) }
 
-    override fun next    (within: View, from: View?) = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
-    override fun previous(within: View, from: View?) = from?.takeIf { within ancestorOf_ it }?.let {              previous(within, it.parent, it) }
+    override fun next    (within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
+    override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let {              previous(within, it.parent, it) }
 
-    override fun default(display: Display) = first(display)
-    override fun first  (display: Display) = display.children.firstOrNull { focusabilityChecker(it) }
-    override fun last   (display: Display) = display.children.lastOrNull  { focusabilityChecker(it) }
+    override fun default(display: Display): View? = first(display)
+    override fun first  (display: Display): View? = display.children.firstOrNull { focusabilityChecker(it) }
+    override fun last   (display: Display): View? = display.children.lastOrNull  { focusabilityChecker(it) }
 
-    override fun next    (display: Display, from: View?) = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
-    override fun previous(display: Display, from: View?) = from?.takeIf { display ancestorOf it }?.let {              previous(DisplayView(display), it.parent, it) }
+    override fun next    (display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
+    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let {              previous(DisplayView(display), it.parent, it) }
 
     private class DisplayView(val display_: Display): View() {
         override val children get() = display_.children

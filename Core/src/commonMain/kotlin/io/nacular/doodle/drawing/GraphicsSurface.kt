@@ -5,21 +5,21 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 
-interface GraphicsSurface {
-    var position           : Point
-    var size               : Size
-    var bounds             : Rectangle
+public interface GraphicsSurface {
+    public var position           : Point
+    public var size               : Size
+    public var bounds             : Rectangle
         get(   )           = Rectangle(position, size)
         set(new)           { position = new.position; size = new.size }
-    var index              : Int
-    var zOrder             : Int
-    var visible            : Boolean
-    var transform          : AffineTransform
-    var mirrored           : Boolean
-    var clipCanvasToBounds : Boolean
-    var childdrenClipPoly  : Polygon?
+    public var index              : Int
+    public var zOrder             : Int
+    public var visible            : Boolean
+    public var transform          : AffineTransform
+    public var mirrored           : Boolean
+    public var clipCanvasToBounds : Boolean
+    public var childdrenClipPoly  : Polygon?
 
-    fun render(block: (Canvas) -> Unit)
+    public fun render(block: (Canvas) -> Unit)
 
-    fun release()
+    public fun release()
 }

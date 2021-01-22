@@ -17,12 +17,12 @@ import kotlin.reflect.KClass
  * @property isClosed indicates whether the file can be read
  * @property lastModified epoch time of the file
  */
-interface LocalFile {
-    val name        : String
-    val size        : Measure<BinarySize>
-    val type        : String
-    val isClosed    : Boolean
-    val lastModified: Measure<Time>
+public interface LocalFile {
+    public val name        : String
+    public val size        : Measure<BinarySize>
+    public val type        : String
+    public val isClosed    : Boolean
+    public val lastModified: Measure<Time>
 
     /**
      * Reads the file contents as a [ByteArray].
@@ -30,7 +30,7 @@ interface LocalFile {
      * @param progress listener
      * @return the file contents or null if there was an error
      */
-    suspend fun read(progress: (Float) -> Unit = {}): ByteArray?
+    public suspend fun read(progress: (Float) -> Unit = {}): ByteArray?
 
     /**
      * Reads the file contents as a String.
@@ -38,16 +38,16 @@ interface LocalFile {
      * @param progress listener
      * @return the file contents or null if there was an error
      */
-    suspend fun readText(encoding: String? = null, progress: (Float) -> Unit = {}): String?
+    public suspend fun readText(encoding: String? = null, progress: (Float) -> Unit = {}): String?
 }
 
 /**
  * Represents a [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml).
  */
-open class MimeType<T> internal constructor(private val primary: String, private val secondary: String, private val parameters: Map<String, String> = emptyMap()) {
-    override fun toString() = "$primary/$secondary${if (parameters.isNotEmpty()) ";${parameters.entries.joinToString(";")}" else ""}"
+public open class MimeType<T> internal constructor(private val primary: String, private val secondary: String, private val parameters: Map<String, String> = emptyMap()) {
+    override fun toString(): String = "$primary/$secondary${if (parameters.isNotEmpty()) ";${parameters.entries.joinToString(";")}" else ""}"
 
-    open fun assignableTo(other: MimeType<*>) = this.primary == other.primary && this.secondary == other.secondary
+    public open fun assignableTo(other: MimeType<*>): Boolean = this.primary == other.primary && this.secondary == other.secondary
 
     override fun equals(other: Any?): Boolean {
         if (this === other       ) return true
@@ -67,8 +67,8 @@ open class MimeType<T> internal constructor(private val primary: String, private
         return result
     }
 
-    companion object {
-        operator fun <T> invoke(primary   : String,
+    public companion object {
+        public operator fun <T> invoke(primary   : String,
                                 secondary : String,
                                 parameters: Map<String, String> = emptyMap()
         ): MimeType<T> = MimeType(primary, secondary, parameters)
@@ -78,38 +78,38 @@ open class MimeType<T> internal constructor(private val primary: String, private
 /**
  * text [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-open class TextType(type: String, charSet: String? = null): MimeType<String>("text", type, charSet?.let { mapOf("charset" to it) } ?: emptyMap())
+public open class TextType(type: String, charSet: String? = null): MimeType<String>("text", type, charSet?.let { mapOf("charset" to it) } ?: emptyMap())
 
 /**
  * text/plain [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-object PlainText: TextType("plain") {
-    operator fun invoke(charSet: String) = TextType("plain", charSet)
+public object PlainText: TextType("plain") {
+    public operator fun invoke(charSet: String): TextType = TextType("plain", charSet)
 }
 
-object UriList: TextType("uri-list")
+public object UriList: TextType("uri-list")
 
 /**
  * json [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-object Json: ApplicationType<String>("json")
+public object Json: ApplicationType<String>("json")
 
 /**
  * Internal mime-type to indicate a collection of files
  */
-class Files(vararg val types: MimeType<*>): ApplicationType<List<LocalFile>>("files")
+public class Files(public vararg val types: MimeType<*>): ApplicationType<List<LocalFile>>("files")
 
 /**
  * Primary portion of the application [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-open class ApplicationType<T> internal constructor(type: String): MimeType<T>("application", type)
+public open class ApplicationType<T> internal constructor(type: String): MimeType<T>("application", type)
 
 /**
  * Primary portion of the image [MIME type](https://www.iana.org/assignments/media-types/media-types.xhtml)
  */
-class Image(type: String): MimeType<LocalFile>("image", type)
+public class Image(type: String): MimeType<LocalFile>("image", type)
 
-class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>("reference<${type.simpleName}>") {
+public class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>("reference<${type.simpleName}>") {
     override fun equals(other: Any?): Boolean {
         if (this === other            ) return true
         if (other !is ReferenceType<*>) return false
@@ -124,8 +124,8 @@ class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>
         return result
     }
 
-    companion object {
-        inline operator fun <reified T: Any> invoke() = ReferenceType(T::class)
+    public companion object {
+        public inline operator fun <reified T: Any> invoke(): ReferenceType<T> = ReferenceType(T::class)
     }
 }
 
@@ -133,20 +133,20 @@ class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>
  * Represents a set of data keyed by [MimeType].  These bundles are used in drag-drop operations since they
  * allow arbitrary data to be encoded for data-transfer.
  */
-interface DataBundle {
+public interface DataBundle {
     /**
      * Read data for the given [MimeType]
      *
      * @return the associated data if any
      */
-    operator fun <T> get(type: MimeType<T>): T?
+    public operator fun <T> get(type: MimeType<T>): T?
 
     /**
      * Check whether data for the given [MimeType] is contained in this bundle
      *
      * @return true if data contained
      */
-    operator fun <T> contains(type: MimeType<T>): Boolean
+    public operator fun <T> contains(type: MimeType<T>): Boolean
 
     /**
      * Creates a [CompositeBundle] by joining this with the given bundle
@@ -154,34 +154,34 @@ interface DataBundle {
      * @param other bundle to combine with this
      * @return a new [CompositeBundle] with the data of both bundles
      */
-    operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(sequenceOf(this, other))
+    public operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(sequenceOf(this, other))
 }
 
-inline operator fun <reified T: Any> DataBundle.invoke(): T? = this[ReferenceType(T::class)]
+public inline operator fun <reified T: Any> DataBundle.invoke(): T? = this[ReferenceType(T::class)]
 
-inline fun <reified T: Any> DataBundle.contains(): Boolean = ReferenceType(T::class) in this
+public inline fun <reified T: Any> DataBundle.contains(): Boolean = ReferenceType(T::class) in this
 
 /**
  * Simple bundle holding a single item.
  */
-class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
-    override fun <T> get     (type: MimeType<T>) = if (type in this) item as? T else null
-    override fun <T> contains(type: MimeType<T>) = this.type.assignableTo(type)
+public class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
+    override fun <T> get     (type: MimeType<T>): T? = if (type in this) item as? T else null
+    override fun <T> contains(type: MimeType<T>): Boolean = this.type.assignableTo(type)
 }
 
 /**
  * A bundle that combines several other bundles into one.
  */
-class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
-    constructor(vararg bundles: DataBundle): this(sequenceOf(*bundles))
+public class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
+    public constructor(vararg bundles: DataBundle): this(sequenceOf(*bundles))
 
-    override fun <T> get     (type: MimeType<T>) = bundles.find { type in it }?.let { it[type] }
-    override fun <T> contains(type: MimeType<T>) = bundles.find { type in it }?.let { true } ?: false
+    override fun <T> get     (type: MimeType<T>): T? = bundles.find { type in it }?.let { it[type] }
+    override fun <T> contains(type: MimeType<T>): Boolean = bundles.find { type in it }?.let { true } ?: false
 
-    override operator fun plus(other: DataBundle) = CompositeBundle(bundles + other)
+    override operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(bundles + other)
 }
 
-fun textBundle(text: String) = SingleItemBundle(PlainText, text)
-fun uriBundle (uri : String) = SingleItemBundle(UriList,    uri)
+public inline fun textBundle(text: String): SingleItemBundle<String> = SingleItemBundle(PlainText, text)
+public inline fun uriBundle (uri : String): SingleItemBundle<String> = SingleItemBundle(UriList,    uri)
 
-inline fun <reified T: Any> refBundle(item: T) = SingleItemBundle(ReferenceType(), item)
+public inline fun <reified T: Any> refBundle(item: T): SingleItemBundle<T> = SingleItemBundle(ReferenceType(), item)

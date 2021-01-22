@@ -3,9 +3,9 @@ package io.nacular.doodle.application
 /**
  * Interface that all Doodle apps must implement.
  */
-interface Application {
+public interface Application {
     /**
      * Called whenever the app is being torn down.
      */
-    fun shutdown()
+    public fun shutdown()
 }

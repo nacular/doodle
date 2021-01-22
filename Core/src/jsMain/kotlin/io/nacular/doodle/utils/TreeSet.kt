@@ -1,4 +1,8 @@
 package io.nacular.doodle.utils
 
-actual typealias TreeSet<E>        = TreeSetJs<E>
-actual typealias MutableTreeSet<E> = MutableTreeSetJs<E>
+import io.nacular.doodle.core.Internal
+
+public actual typealias TreeSet<E> = TreeSetJs<E>
+
+@OptIn(Internal::class)
+public actual typealias MutableTreeSet<E> = MutableTreeSetJs<E>

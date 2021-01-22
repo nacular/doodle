@@ -17,7 +17,7 @@ import kotlin.math.round
  * @property blue component
  * @property opacity of the color
  */
-class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Float = 1f) {
+public class Color(public val red: UByte, public val green: UByte, public val blue: UByte, public val opacity: Float = 1f) {
 
     private constructor(rgb: RGB, opacity: Float = 1f): this(rgb.red, rgb.green, rgb.blue, opacity)
 
@@ -33,7 +33,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
      * @param hex representation of the color
      * @param opacity of the color
      */
-    constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
+    public constructor(hex: UInt, opacity: Float = 1f): this(hex.toRgb(), opacity)
 
     private val decimal: UInt by lazy { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }
 
@@ -42,17 +42,17 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
     }
 
     /** `true` if [opacity] > 0 */
-    val visible = opacity > 0
+    public val visible: Boolean = opacity > 0
 
     /** Hex string representation of this Color */
-    val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
+    public val hexString: String by lazy { decimal.toHex().padStart(6, '0') }
 
     /** the inversion of this Color */
-    val inverted get() = Color(0xffffffu xor decimal)
+    public val inverted: Color get() = Color(0xffffffu xor decimal)
 
-    override fun hashCode() = arrayOf(decimal, opacity).contentHashCode()
+    override fun hashCode(): Int = arrayOf(decimal, opacity).contentHashCode()
 
-    override fun toString() = "$hexString: $opacity"
+    override fun toString(): String = "$hexString: $opacity"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -64,24 +64,24 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
         return true
     }
 
-    companion object {
-        val Red         = Color(0xff0000u)
-        val Pink        = Color(0xffc0cbu)
-        val Blue        = Color(0x0000ffu)
-        val Cyan        = Color(0x00ffffu)
-        val Gray        = Color(0xa9a9a9u)
-        val Black       = Color(0x000000u)
-        val White       = Color(0xffffffu)
-        val Green       = Color(0x00ff00u)
-        val Brown       = Color(0xA52A2Au)
-        val Yellow      = Color(0xffff00u)
-        val Orange      = Color(0xffa500u)
-        val Magenta     = Color(0xff00ffu)
-        val Darkgray    = Color(0x808080u)
-        val Lightgray   = Color(0xd3d3d3u)
-        val Transparent = Black opacity 0f
+    public companion object {
+        public val Red: Color         = Color(0xff0000u)
+        public val Pink: Color        = Color(0xffc0cbu)
+        public val Blue: Color        = Color(0x0000ffu)
+        public val Cyan: Color        = Color(0x00ffffu)
+        public val Gray: Color        = Color(0xa9a9a9u)
+        public val Black: Color       = Color(0x000000u)
+        public val White: Color       = Color(0xffffffu)
+        public val Green: Color       = Color(0x00ff00u)
+        public val Brown: Color       = Color(0xA52A2Au)
+        public val Yellow: Color      = Color(0xffff00u)
+        public val Orange: Color      = Color(0xffa500u)
+        public val Magenta: Color     = Color(0xff00ffu)
+        public val Darkgray: Color    = Color(0x808080u)
+        public val Lightgray: Color   = Color(0xd3d3d3u)
+        public val Transparent: Color = Black opacity 0f
 
-        fun blackOrWhiteContrast(color: Color): Color {
+        public fun blackOrWhiteContrast(color: Color): Color {
             val y = (299u * color.red + 587u * color.green + 114u * color.blue) / 1000u
             return if (y >= 128u) Black else White
         }
@@ -94,7 +94,7 @@ class Color(val red: UByte, val green: UByte, val blue: UByte, val opacity: Floa
  * @param value of the new opacity
  * @return the new color
  */
-infix fun Color.opacity(value: Float) = Color(red, green, blue, value)
+public infix fun Color.opacity(value: Float): Color = Color(red, green, blue, value)
 
 /**
  * Makes this Color lighter by the given percent.
@@ -102,7 +102,7 @@ infix fun Color.opacity(value: Float) = Color(red, green, blue, value)
  * @param percent to lighted the color
  * @return the new color
  */
-fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
+public fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
 
 /**
  * Makes this Color darker by the given percent.
@@ -110,12 +110,12 @@ fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent
  * @param percent to darken the color
  * @return the new color
  */
-fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(percent).toRgb()
+public fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(percent).toRgb()
 
 /**
  * @return a gray scale version of this Color
  */
-fun Color.grayScale(): Color {
+public fun Color.grayScale(): Color {
     val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toInt().toUByte()
     return Color(gray, gray, gray)
 }
@@ -129,13 +129,13 @@ fun Color.grayScale(): Color {
  * @property lightness component
  * @property opacity of the color
  */
-class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float, val opacity: Float = 1f) {
+public class HslColor(hue: Measure<Angle>, public val saturation: Float, public val lightness: Float, public val opacity: Float = 1f) {
 
     /** Hue component */
-    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+    public val hue: Measure<Angle> = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
     /** `true` if [opacity] > 0 */
-    val visible = opacity > 0
+    public val visible: Boolean = opacity > 0
 
     override fun equals(other: Any?): Boolean {
         if (this === other    ) return true
@@ -157,15 +157,15 @@ class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float,
         return result
     }
 
-    override fun toString() = "$hue, $saturation, $lightness"
+    override fun toString(): String = "$hue, $saturation, $lightness"
 
-    companion object {
+    public companion object {
         /**
          * Create a new [HslColor] from an RGB [Color].
          *
          * @param rgb color to convert
          */
-        operator fun invoke(rgb: Color): HslColor {
+        public operator fun invoke(rgb: Color): HslColor {
             val r     = rgb.red.toFloat()   / 255.0
             val g     = rgb.green.toFloat() / 255.0
             val b     = rgb.blue.toFloat()  / 255.0
@@ -195,7 +195,7 @@ class HslColor(hue: Measure<Angle>, val saturation: Float, val lightness: Float,
  * @param percent to lighted the color
  * @return the new color
  */
-fun HslColor.lighter(percent: Float = 0.5f): HslColor {
+public fun HslColor.lighter(percent: Float = 0.5f): HslColor {
     require(percent in 0f .. 1f)
 
     return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
@@ -207,14 +207,14 @@ fun HslColor.lighter(percent: Float = 0.5f): HslColor {
  * @param percent to darken the color
  * @return the new color
  */
-fun HslColor.darker(percent: Float = 0.5f): HslColor {
+public fun HslColor.darker(percent: Float = 0.5f): HslColor {
     require(percent in 0f .. 1f)
 
     return if (percent == 0f) this else HslColor(hue, saturation, lightness * (1f - percent), opacity)
 }
 
 /** @return an RGB version of this Color */
-fun HslColor.toRgb(): Color {
+public fun HslColor.toRgb(): Color {
     val c = (1.0 - abs(2 * lightness - 1)) * saturation
     val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
     val m = lightness - c / 2
@@ -245,13 +245,13 @@ fun HslColor.toRgb(): Color {
  * @property value component
  * @property opacity of the color
  */
-class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val opacity: Float = 1f) {
+public class HsvColor(hue: Measure<Angle>, public val saturation: Float, public val value: Float, public val opacity: Float = 1f) {
 
     /** Hue component */
-    val hue = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
+    public val hue: Measure<Angle> = ((((hue `in` degrees) % 360) + 360) % 360) * degrees
 
     /** `true` if [opacity] > 0 */
-    val visible = opacity > 0
+    public val visible: Boolean = opacity > 0
 
     override fun equals(other: Any?): Boolean {
         if (this === other    ) return true
@@ -273,15 +273,15 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
         return result
     }
 
-    override fun toString() = "$hue, $saturation, $value"
+    override fun toString(): String = "$hue, $saturation, $value"
 
-    companion object {
+    public companion object {
         /**
          * Create a new [HsvColor] from an RGB [Color].
          *
          * @param rgb color to convert
          */
-        operator fun invoke(rgb: Color): HsvColor {
+        public operator fun invoke(rgb: Color): HsvColor {
             val r     = rgb.red.toFloat  () / 255.0
             val g     = rgb.green.toFloat() / 255.0
             val b     = rgb.blue.toFloat () / 255.0
@@ -311,10 +311,10 @@ class HsvColor(hue: Measure<Angle>, val saturation: Float, val value: Float, val
  * @param value of the new opacity
  * @return the new color
  */
-fun HsvColor.opacity(value: Float) = HsvColor(hue, saturation, this.value, value)
+public fun HsvColor.opacity(value: Float): HsvColor = HsvColor(hue, saturation, this.value, value)
 
 /** @return an RGB version of this Color */
-fun HsvColor.toRgb(): Color {
+public fun HsvColor.toRgb(): Color {
     val c = (value * saturation).toDouble()
     val x = c * (1.0 - abs((hue / (60 * degrees)) % 2 - 1))
     val m = value - c
@@ -344,7 +344,7 @@ fun HsvColor.toRgb(): Color {
  * @param percent from start to end
  * @return the color
  */
-fun interpolate(start: Color, end: Color, percent: Float) = when (percent) {
+public fun interpolate(start: Color, end: Color, percent: Float): Color = when (percent) {
     0f   -> start
     1f   -> end
     else -> {
@@ -357,9 +357,9 @@ fun interpolate(start: Color, end: Color, percent: Float) = when (percent) {
     }
 }
 
-val Color?.visible   : Boolean get() = this?.visible ?: false
-val HslColor?.visible: Boolean get() = this?.visible ?: false
-val HsvColor?.visible: Boolean get() = this?.visible ?: false
+public val Color?.visible   : Boolean get() = this?.visible ?: false
+public val HslColor?.visible: Boolean get() = this?.visible ?: false
+public val HsvColor?.visible: Boolean get() = this?.visible ?: false
 
 private operator fun ClosedRange<Int>.contains(value: Double) = value.toIntExactOrNull().let { if (it != null) contains(it) else false }
 

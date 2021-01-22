@@ -11,14 +11,14 @@ import io.nacular.doodle.geometry.Size
  *
  * @author Nicholas Eddy
  */
-interface Icon<in T: View> {
+public interface Icon<in T: View> {
 
     /**
      * The icon's size for the given view.
      *
      * @param view to get size for
      */
-    fun size(view: T): Size
+    public fun size(view: T): Size
 
     /**
      * Renders the icon onto the surface of the given [View],
@@ -29,5 +29,5 @@ interface Icon<in T: View> {
      * @param canvas The View's Canvas
      * @param at     Where the top-left corner of the icon should be rendered
      */
-    fun render(view: T, canvas: Canvas, at: Point)
+    public fun render(view: T, canvas: Canvas, at: Point)
 }

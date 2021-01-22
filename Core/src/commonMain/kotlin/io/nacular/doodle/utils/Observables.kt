@@ -8,38 +8,38 @@ import kotlin.reflect.KProperty
 /**
  * Created by Nicholas Eddy on 10/21/17.
  */
-typealias SetObserver     <T>    = (source: ObservableSet<T>,  removed: Set<T>,      added: Set<T>                                    ) -> Unit
-typealias ListObserver    <T>    = (source: ObservableList<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
-typealias ChangeObserver  <S>    = (source: S                                                                                         ) -> Unit
-typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                         ) -> Unit
+public typealias SetObserver     <T>    = (source: ObservableSet<T>,  removed: Set<T>,      added: Set<T>                                    ) -> Unit
+public typealias ListObserver    <T>    = (source: ObservableList<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ChangeObserver  <S>    = (source: S                                                                                         ) -> Unit
+public typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                         ) -> Unit
 
-interface Pool<in T> {
-    operator fun plusAssign (item: T)
-    operator fun minusAssign(item: T)
+public interface Pool<in T> {
+    public operator fun plusAssign (item: T)
+    public operator fun minusAssign(item: T)
 }
 
-typealias ChangeObservers<S>      = Pool<ChangeObserver<S>>
-typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
+public typealias ChangeObservers<S>      = Pool<ChangeObserver<S>>
+public typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
 
-open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
+public open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
     override fun plusAssign (item: T) { delegate += item }
     override fun minusAssign(item: T) { delegate -= item }
 }
 
-class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
-    operator fun invoke() = delegate.forEach { it(source) }
+public class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
+    public operator fun invoke(): Unit = delegate.forEach { it(source) }
 }
 
-class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
-    operator fun invoke(old: T, new: T) = delegate.forEach { it(source, old, new) }
+public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
+    public operator fun invoke(old: T, new: T): Unit = delegate.forEach { it(source, old, new) }
 }
 
-class ObservableList<E> private constructor(private val list: MutableList<E>): MutableList<E> by list {
+public class ObservableList<E> private constructor(private val list: MutableList<E>): MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<E>>()
-    val changed: Pool<ListObserver<E>> = changed_
+    public val changed: Pool<ListObserver<E>> = changed_
 
-    fun move(element: E, to: Int): Boolean {
+    public fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
 
         if (to !in 0 until size || oldIndex < 0 || oldIndex == to) return false
@@ -54,7 +54,7 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         return true
     }
 
-    override fun iterator() = list.iterator().let {
+    override fun iterator(): MutableIterator<E> = list.iterator().let {
         object: MutableIterator<E> by it {
             private var index = -1
 
@@ -70,15 +70,15 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    operator fun plusAssign(element: E) {
+    public operator fun plusAssign(element: E) {
         add(element)
     }
 
-    operator fun minusAssign(element: E) {
+    public operator fun minusAssign(element: E) {
         remove(element)
     }
 
-    override fun add(element: E) = list.add(element).ifTrue {
+    override fun add(element: E): Boolean = list.add(element).ifTrue {
         changed_.forEach {
             it(this, mapOf(), mapOf(list.size - 1 to element), mapOf())
         }
@@ -93,14 +93,14 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
+    public override fun addAll(elements: Collection<E>): Boolean = batch { addAll(elements) }
 
-    override fun addAll(index: Int, elements: Collection<E>) = batch { addAll(index, elements) }
+    public override fun addAll(index: Int, elements: Collection<E>): Boolean = batch { addAll(index, elements) }
 
-    override fun removeAll(elements: Collection<E>) = batch { removeAll(elements) }
-    override fun retainAll(elements: Collection<E>) = batch { retainAll(elements) }
+    public override fun removeAll(elements: Collection<E>): Boolean = batch { removeAll(elements) }
+    public override fun retainAll(elements: Collection<E>): Boolean = batch { retainAll(elements) }
 
-    fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
+    public fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
 
     private class Move<T>(val from: Int, val to:Int, val value: T) {
         override fun equals(other: Any?): Boolean {
@@ -125,7 +125,7 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
+    public fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
         list.run(block)
     } else {
         // TODO: Can this be optimized?
@@ -200,7 +200,7 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    override operator fun set(index: Int, element: E) = list.set(index, element).also { old ->
+    override operator fun set(index: Int, element: E): E = list.set(index, element).also { old ->
         if (old != element) {
             changed_.forEach {
                 it(this, mapOf(index to old), mapOf(index to element), mapOf())
@@ -208,7 +208,7 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    fun notifyChanged(index: Int) {
+    public fun notifyChanged(index: Int) {
         changed_.forEach {
             it(this, mapOf(index to this[index]), mapOf(index to this[index]), mapOf())
         }
@@ -222,46 +222,46 @@ class ObservableList<E> private constructor(private val list: MutableList<E>): M
         }
     }
 
-    override fun removeAt(index: Int) = list.removeAt(index).also { removed ->
+    override fun removeAt(index: Int): E = list.removeAt(index).also { removed ->
         changed_.forEach {
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
 
-    companion object {
-        operator fun <E> invoke(             ): ObservableList<E> = ObservableList(mutableListOf     ())
-        operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableList(list.toMutableList())
+    public companion object {
+        public operator fun <E> invoke(             ): ObservableList<E> = ObservableList(mutableListOf     ())
+        public operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableList(list.toMutableList())
     }
 }
 
-fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
+public fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
     batch { sortWith(comparator) }
 }
 
-fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
+public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
     batch { sortWith(comparator.reversed()) }
 }
 
-open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
+public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<E>>()
-    val changed: Pool<SetObserver<E>> = changed_
+    public val changed: Pool<SetObserver<E>> = changed_
 
-    override fun add(element: E) = set.add(element).ifTrue {
+    override fun add(element: E): Boolean = set.add(element).ifTrue {
         changed_.forEach {
             it(this, emptySet(), setOf(element))
         }
     }
 
-    override fun remove(element: E) = set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
+    public override fun remove(element: E): Boolean = set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
 
-    override fun addAll(elements: Collection<E>) = batch { addAll(elements) }
+    public override fun addAll(elements: Collection<E>): Boolean = batch { addAll(elements) }
 
-    override fun removeAll (elements: Collection<E>) = batch { removeAll(elements) }
-    override fun retainAll (elements: Collection<E>) = batch { retainAll(elements) }
+    public override fun removeAll(elements: Collection<E>): Boolean = batch { removeAll(elements) }
+    public override fun retainAll(elements: Collection<E>): Boolean = batch { retainAll(elements) }
 
-    fun replaceAll(elements: Collection<E>) = batch { clear(); addAll(elements) }
+    public fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
 
-    fun <T> batch(block: MutableSet<E>.() -> T): T = if (changed_.isEmpty()) {
+    public fun <T> batch(block: MutableSet<E>.() -> T): T = if (changed_.isEmpty()) {
         set.run(block)
     } else {
         // TODO: Can this be optimized?
@@ -286,20 +286,20 @@ open class ObservableSet<E> private constructor(protected val set: MutableSet<E>
         }
     }
 
-    companion object {
-        operator fun <E> invoke(           ): ObservableSet<E> = ObservableSet(mutableSetOf())
-        operator fun <E> invoke(set: Set<E>): ObservableSet<E> = ObservableSet(set.toMutableSet())
+    public companion object {
+        public operator fun <E> invoke(           ): ObservableSet<E> = ObservableSet(mutableSetOf())
+        public operator fun <E> invoke(set: Set<E>): ObservableSet<E> = ObservableSet(set.toMutableSet())
     }
 }
 
-fun <S, T> observable(initial: T, onChange: S.(old: T, new: T) ->Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+public fun <S, T> observable(initial: T, onChange: S.(old: T, new: T) ->Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
     onChange(thisRef, old, new)
 }
 
-fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
     observers.forEach { it(thisRef, old, new) }
 }
-fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
     onChange(old, new)
     observers.forEach { it(thisRef, old, new) }
 }

@@ -5,13 +5,13 @@ import kotlin.math.round
 /**
  * Created by Nicholas Eddy on 10/20/17.
  */
-val Int.isEven  get() = this % 2  == 0
-val Long.isEven get() = this % 2L == 0L
+public val Int.isEven : Boolean get() = this % 2  == 0
+public val Long.isEven: Boolean get() = this % 2L == 0L
 
-inline val Int.isOdd  get() = !isEven
-inline val Long.isOdd get() = !isEven
+public inline val Int.isOdd : Boolean get() = !isEven
+public inline val Long.isOdd: Boolean get() = !isEven
 
-fun Boolean.ifTrue(block: () -> Unit): Boolean {
+public fun Boolean.ifTrue(block: () -> Unit): Boolean {
     if (this) {
         block()
     }
@@ -19,7 +19,7 @@ fun Boolean.ifTrue(block: () -> Unit): Boolean {
     return this
 }
 
-fun Boolean.ifFalse(block: () -> Unit): Boolean {
+public fun Boolean.ifFalse(block: () -> Unit): Boolean {
     if (!this) {
         block()
     }
@@ -34,7 +34,7 @@ fun Boolean.ifFalse(block: () -> Unit): Boolean {
  * @param at this index
  * @param value to insert or append
  */
-fun <T> MutableList<T>.addOrAppend(at: Int, value: T) = when {
+public fun <T> MutableList<T>.addOrAppend(at: Int, value: T): Unit = when {
     at < size -> add(at, value)
     else      -> add(    value).run { Unit }
 }
@@ -57,9 +57,9 @@ fun <T> MutableList<T>.addOrAppend(at: Int, value: T) = when {
  * @param regex to split by
  * @param limit number of chunks to return
  */
-fun CharSequence.splitMatches(regex: Regex, limit: Int = 0) = regex.splitMatches(this, limit)
+public fun CharSequence.splitMatches(regex: Regex, limit: Int = 0): MatchResult = regex.splitMatches(this, limit)
 
-class MatchResult(val matches: List<MatchedChunk>, val remaining: String) {
+public class MatchResult(public val matches: List<MatchedChunk>, public val remaining: String) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MatchResult) return false
@@ -77,7 +77,7 @@ class MatchResult(val matches: List<MatchedChunk>, val remaining: String) {
     }
 }
 
-class MatchedChunk(val match: String, val delimiter: String) {
+public class MatchedChunk(public val match: String, public val delimiter: String) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MatchedChunk) return false
@@ -102,7 +102,7 @@ class MatchedChunk(val match: String, val delimiter: String) {
  * @param input sequence
  * @param limit number of chunks to return
  */
-fun Regex.splitMatches(input: CharSequence, limit: Int = 0): MatchResult {
+public fun Regex.splitMatches(input: CharSequence, limit: Int = 0): MatchResult {
     require(limit >= 0) { "Limit must be non-negative, but was $limit" }
 
     val matches = findAll(input).let { if (limit == 0) it else it.take(limit - 1) }
@@ -121,14 +121,14 @@ fun Regex.splitMatches(input: CharSequence, limit: Int = 0): MatchResult {
  * Nullable helper
  * @see Collection.contains
  */
-operator fun <E> Collection<E>?.contains(element: E): Boolean = this?.contains(element) == true
+public operator fun <E> Collection<E>?.contains(element: E): Boolean = this?.contains(element) == true
 
 /**
  * Rounds this number to the nearest value.
  *
  * @param value to round to
  */
-fun Double.roundToNearest(value: Double): Double = when (value) {
+public fun Double.roundToNearest(value: Double): Double = when (value) {
     0.0  -> this
     else -> round(this / value) * value
 }

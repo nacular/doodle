@@ -5,90 +5,90 @@ import io.nacular.doodle.core.View
 /**
  * Created by Nicholas Eddy on 3/28/20.
  */
-interface AccessibilityManager {
-    fun roleAdopted  (view: View)
-    fun roleAbandoned(view: View)
+public interface AccessibilityManager {
+    public fun roleAdopted  (view: View)
+    public fun roleAbandoned(view: View)
 }
 
-sealed class AccessibilityRole {
-    var busy    : Boolean? = null
-    var disabled: Boolean? = null
+public sealed class AccessibilityRole {
+    public var busy    : Boolean? = null
+    public var disabled: Boolean? = null
 }
 
-open class RangeRole: AccessibilityRole() {
-    var valueMax : Int?    = null
-    var valueMin : Int?    = null
-    var valueNow : Int?    = null
-    var valueText: String? = null
+public open class RangeRole: AccessibilityRole() {
+    public var valueMax : Int?    = null
+    public var valueMin : Int?    = null
+    public var valueNow : Int?    = null
+    public var valueText: String? = null
 }
 
-class alert: AccessibilityRole()
-class alertdialog: AccessibilityRole()
-class button: AccessibilityRole()
-class checkbox: AccessibilityRole()
-class dialog: AccessibilityRole()
-class gridcell: AccessibilityRole()
-class link: AccessibilityRole()
-class log: AccessibilityRole()
-class marquee: AccessibilityRole()
-class menuitem: AccessibilityRole()
-class menuitemcheckbox: AccessibilityRole()
-class menuitemradio: AccessibilityRole()
-class option: AccessibilityRole()
+public class alert: AccessibilityRole()
+public class alertdialog: AccessibilityRole()
+public class button: AccessibilityRole()
+public class checkbox: AccessibilityRole()
+public class dialog: AccessibilityRole()
+public class gridcell: AccessibilityRole()
+public class link: AccessibilityRole()
+public class log: AccessibilityRole()
+public class marquee: AccessibilityRole()
+public class menuitem: AccessibilityRole()
+public class menuitemcheckbox: AccessibilityRole()
+public class menuitemradio: AccessibilityRole()
+public class option: AccessibilityRole()
 
-class progressbar: RangeRole()
+public class progressbar: RangeRole()
 
-class radio: AccessibilityRole()
+public class radio: AccessibilityRole()
 
-class scrollbar: RangeRole()
+public class scrollbar: RangeRole()
 
-class slider: RangeRole()
+public class slider: RangeRole()
 
-class spinbutton: RangeRole()
+public class spinbutton: RangeRole()
 
-class status: AccessibilityRole()
-class tab: AccessibilityRole()
-class tabpanel: AccessibilityRole()
-class textbox: AccessibilityRole()
-class timer: AccessibilityRole()
-class tooltip: AccessibilityRole()
-class treeitem: AccessibilityRole()
+public class status: AccessibilityRole()
+public class tab: AccessibilityRole()
+public class tabpanel: AccessibilityRole()
+public class textbox: AccessibilityRole()
+public class timer: AccessibilityRole()
+public class tooltip: AccessibilityRole()
+public class treeitem: AccessibilityRole()
 
-class combobox: AccessibilityRole()
-class grid: AccessibilityRole()
-class listbox: AccessibilityRole()
-class menu: AccessibilityRole()
-class menubar: AccessibilityRole()
-class radiogroup: AccessibilityRole()
-class tablist: AccessibilityRole()
-class tree: AccessibilityRole()
-class treegrid: AccessibilityRole()
+public class combobox: AccessibilityRole()
+public class grid: AccessibilityRole()
+public class listbox: AccessibilityRole()
+public class menu: AccessibilityRole()
+public class menubar: AccessibilityRole()
+public class radiogroup: AccessibilityRole()
+public class tablist: AccessibilityRole()
+public class tree: AccessibilityRole()
+public class treegrid: AccessibilityRole()
 
-class article: AccessibilityRole()
-class columnheader: AccessibilityRole()
-class definition: AccessibilityRole()
-class directory: AccessibilityRole()
-class document: AccessibilityRole()
-class group: AccessibilityRole()
-class heading: AccessibilityRole()
-class img: AccessibilityRole()
-class list: AccessibilityRole()
-class listitem: AccessibilityRole()
-class math: AccessibilityRole()
-class note: AccessibilityRole()
-class presentation: AccessibilityRole()
-class region: AccessibilityRole()
-class row: AccessibilityRole()
-class rowgroup: AccessibilityRole()
-class rowheader: AccessibilityRole()
-class separator: AccessibilityRole()
-class toolbar: AccessibilityRole()
+public class article: AccessibilityRole()
+public class columnheader: AccessibilityRole()
+public class definition: AccessibilityRole()
+public class directory: AccessibilityRole()
+public class document: AccessibilityRole()
+public class group: AccessibilityRole()
+public class heading: AccessibilityRole()
+public class img: AccessibilityRole()
+public class list: AccessibilityRole()
+public class listitem: AccessibilityRole()
+public class math: AccessibilityRole()
+public class note: AccessibilityRole()
+public class presentation: AccessibilityRole()
+public class region: AccessibilityRole()
+public class row: AccessibilityRole()
+public class rowgroup: AccessibilityRole()
+public class rowheader: AccessibilityRole()
+public class separator: AccessibilityRole()
+public class toolbar: AccessibilityRole()
 
-class application: AccessibilityRole()
-class banner: AccessibilityRole()
-class complementary: AccessibilityRole()
-class contentinfo: AccessibilityRole()
-class form: AccessibilityRole()
-class main: AccessibilityRole()
-class navigation: AccessibilityRole()
-class search: AccessibilityRole()
+public class application: AccessibilityRole()
+public class banner: AccessibilityRole()
+public class complementary: AccessibilityRole()
+public class contentinfo: AccessibilityRole()
+public class form: AccessibilityRole()
+public class main: AccessibilityRole()
+public class navigation: AccessibilityRole()
+public class search: AccessibilityRole()

@@ -4,15 +4,15 @@ package io.nacular.doodle.geometry
 /**
  * Objects implementing this interface represent shapes.
  */
-interface Shape {
+public interface Shape {
     /** @return The bounding rectangle */
-    val boundingRectangle: Rectangle
+    public val boundingRectangle: Rectangle
 
     /** @return The Shape's area */
-    val area: Double
+    public val area: Double
 
     /** @return true if the Shape's area is zero */
-    val empty: Boolean
+    public val empty: Boolean
 
     /**
      * Checks whether the Shape contains a given point.
@@ -20,7 +20,7 @@ interface Shape {
      * @param  point The point
      * @return true if the point is within the Shape
      */
-    operator fun contains(point: Point): Boolean
+    public operator fun contains(point: Point): Boolean
 
     /**
      * Checks whether the Shape contains a given rectangle.
@@ -28,7 +28,7 @@ interface Shape {
      * @param  rectangle The rectangle
      * @return true if the rectangle is within the Shape
      */
-    operator fun contains(rectangle: Rectangle): Boolean
+    public operator fun contains(rectangle: Rectangle): Boolean
 
     /**
      * Checks whether the Shape intersects a rectangle.
@@ -36,5 +36,5 @@ interface Shape {
      * @param  rectangle The rectangle
      * @return true if the Shape intersects the rectangle
      */
-    infix fun intersects(rectangle: Rectangle): Boolean
+    public infix fun intersects(rectangle: Rectangle): Boolean
 }

@@ -16,9 +16,9 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 
 
-sealed class Shadow(val horizontal: Double, val vertical: Double, val blurRadius: Double, val color: Color)
-class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
-class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
+public sealed class Shadow(public val horizontal: Double, public val vertical: Double, public val blurRadius: Double, public val color: Color)
+public class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
+public class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
 
 /**
  * All rendering operations are done using Canvases. A canvas represents an "infinite", 2-D surface that can be
@@ -30,12 +30,12 @@ class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: 
  *
  * @author Nicholas Eddy
  */
-interface Canvas: Renderer {
+public interface Canvas: Renderer {
     /**
      * The size to which the Canvas will clip to by default.  A View's Canvas won't clip if
      * [View.clipCanvasToBounds][io.nacular.doodle.core.View.clipCanvasToBounds] == `false`
      */
-    var size: Size
+    public var size: Size
 
     /**
      * Linearly scales the operations within [block].
@@ -50,7 +50,7 @@ interface Canvas: Renderer {
      * @param y amount to scale vertically
      * @param block being transformed
      */
-    fun scale(x: Double = 1.0, y: Double = 1.0, block: Canvas.() -> Unit) = when {
+    public fun scale(x: Double = 1.0, y: Double = 1.0, block: Canvas.() -> Unit): Unit = when {
         x == 1.0 && y == 1.0 -> block()
         else                 -> transform(Identity.scale(x, y), block)
     }
@@ -69,7 +69,7 @@ interface Canvas: Renderer {
      * @param y amount to scale vertically
      * @param block being transformed
      */
-    fun scale(around: Point, x: Double = 1.0, y: Double = 1.0, block: Canvas.() -> Unit) = when {
+    public fun scale(around: Point, x: Double = 1.0, y: Double = 1.0, block: Canvas.() -> Unit): Unit = when {
         x == 1.0 && y == 1.0 -> block()
         else                 -> {
             val point = around - (size / 2.0).run { Point(width, height) }
@@ -84,7 +84,7 @@ interface Canvas: Renderer {
      * @param by this angle
      * @param block being transformed
      */
-    fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit) = transform(Identity.rotate(by), block)
+    public fun rotate(by: Measure<Angle>, block: Canvas.() -> Unit): Unit = transform(Identity.rotate(by), block)
 
     /**
      * Rotates the operations within [block] around the given point by the given angle.
@@ -93,7 +93,7 @@ interface Canvas: Renderer {
      * @param by this angle
      * @param block being transformed
      */
-    fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
+    public fun rotate(around: Point, by: Measure<Angle>, block: Canvas.() -> Unit) {
         transform(Identity.translate(around).rotate(by).translate(-around), block)
     }
 
@@ -103,7 +103,7 @@ interface Canvas: Renderer {
      * @param by this amount
      * @param block being transformed
      */
-    fun translate(by: Point, block: Canvas.() -> Unit) = when (by) {
+    public fun translate(by: Point, block: Canvas.() -> Unit): Unit = when (by) {
         Origin -> block()
         else   -> transform(Identity.translate(by), block)
     }
@@ -113,7 +113,7 @@ interface Canvas: Renderer {
      *
      * @param block being transformed
      */
-    fun flipVertically(block: Canvas.() -> Unit) = scale(1.0, -1.0, block = block)
+    public fun flipVertically(block: Canvas.() -> Unit): Unit = scale(1.0, -1.0, block = block)
 
     /**
      * Flips the operations within [block] vertically around the given y-coordinate.
@@ -121,7 +121,7 @@ interface Canvas: Renderer {
      * @param around this y coordinate
      * @param block being transformed
      */
-    fun flipVertically(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+    public fun flipVertically(around: Double, block: Canvas.() -> Unit): Unit = transform(Identity.
             translate(y = around ).
             scale    (1.0, -1.0  ).
             translate(y = -around),
@@ -132,7 +132,7 @@ interface Canvas: Renderer {
      *
      * @param block being transformed
      */
-    fun flipHorizontally(block: Canvas.() -> Unit) = scale(-1.0, 1.0, block = block)
+    public fun flipHorizontally(block: Canvas.() -> Unit): Unit = scale(-1.0, 1.0, block = block)
 
     /**
      * Flips the operations within [block] horizontally around the given x-coordinate.
@@ -140,7 +140,7 @@ interface Canvas: Renderer {
      * @param around this x coordinate
      * @param block being transformed
      */
-    fun flipHorizontally(around: Double, block: Canvas.() -> Unit) = transform(Identity.
+    public fun flipHorizontally(around: Double, block: Canvas.() -> Unit): Unit = transform(Identity.
             translate(x = around ).
             scale    (-1.0, 1.0  ).
             translate(x = -around),
@@ -152,7 +152,7 @@ interface Canvas: Renderer {
      * @param transform to use
      * @param block being transformed
      */
-    fun transform(transform: AffineTransform, block: Canvas.() -> Unit)
+    public fun transform(transform: AffineTransform, block: Canvas.() -> Unit)
 
     /**
      * Fills a rectangle.
@@ -160,7 +160,7 @@ interface Canvas: Renderer {
      * @param rectangle to draw
      * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, fill: Fill)
+    public fun rect(rectangle: Rectangle, fill: Fill)
 
     /**
      * Fills and outlines a rectangle.
@@ -169,7 +169,7 @@ interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
+    public fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills a rounded rectangle.
@@ -178,7 +178,7 @@ interface Canvas: Renderer {
      * @param radius for corners
      * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, radius: Double, fill: Fill)
+    public fun rect(rectangle: Rectangle, radius: Double, fill: Fill)
 
     /**
      * Fills and outlines a rounded rectangle.
@@ -188,7 +188,7 @@ interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
+    public fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills a circle.
@@ -196,7 +196,7 @@ interface Canvas: Renderer {
      * @param circle to draw
      * @param fill to fill with
      */
-    fun circle(circle: Circle, fill: Fill)
+    public fun circle(circle: Circle, fill: Fill)
 
     /**
      * Fills and outlines a circle.
@@ -205,7 +205,7 @@ interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
+    public fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Fills an ellipse.
@@ -213,7 +213,7 @@ interface Canvas: Renderer {
      * @param ellipse to draw
      * @param fill to fill with
      */
-    fun ellipse(ellipse: Ellipse, fill: Fill)
+    public fun ellipse(ellipse: Ellipse, fill: Fill)
 
     /**
      * Fills and outlines an ellipse.
@@ -222,7 +222,7 @@ interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
+    public fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
 
     /**
      * Draws unwrapped plain text in the default [Font].
@@ -231,7 +231,7 @@ interface Canvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    fun text(text: String, at: Point = Origin, fill: Fill) = text(text, null, at, fill)
+    public fun text(text: String, at: Point = Origin, fill: Fill): Unit = text(text, null, at, fill)
 
     /**
      * Draws unwrapped plain text.
@@ -241,7 +241,7 @@ interface Canvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    fun text(text: String, font: Font?, at: Point, fill: Fill)
+    public fun text(text: String, font: Font?, at: Point, fill: Fill)
 
     /**
      * Draws styled text.
@@ -249,7 +249,7 @@ interface Canvas: Renderer {
      * @param text to draw
      * @param at this point
      */
-    fun text(text: StyledText, at: Point = Origin)
+    public fun text(text: StyledText, at: Point = Origin)
 
     /**
      * Draws wrapped plain text.
@@ -261,7 +261,7 @@ interface Canvas: Renderer {
      * @param rightMargin where text wraps
      * @param fill to fill with
      */
-    fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Fill)
+    public fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Fill)
 
     /**
      * Draws wrapped styled text.
@@ -271,7 +271,7 @@ interface Canvas: Renderer {
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
      */
-    fun wrapped(text: StyledText, at: Point = Origin, leftMargin: Double, rightMargin: Double)
+    public fun wrapped(text: StyledText, at: Point = Origin, leftMargin: Double, rightMargin: Double)
 
     /**
      * Draws an image.
@@ -282,7 +282,7 @@ interface Canvas: Renderer {
      * @param radius of image corners if rounding
      * @param source rectangle within the image to draw into destination
      */
-    fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
+    public fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
 
     /**
      * Draws an image.
@@ -293,7 +293,7 @@ interface Canvas: Renderer {
      * @param radius of image corners if rounding
      * @param source rectangle within the image to draw into destination
      */
-    fun image(image: Image, at: Point, opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size)) = image(image, Rectangle(position = at, size = image.size), opacity, radius, source)
+    public fun image(image: Image, at: Point, opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size)): Unit = image(image, Rectangle(position = at, size = image.size), opacity, radius, source)
 
     /**
      * Clips the operations within [block] within the given rectangle.
@@ -301,7 +301,7 @@ interface Canvas: Renderer {
      * @param rectangle to clip within
      * @param block to be clipped
      */
-    fun clip(rectangle: Rectangle, radius: Double = 0.0, block: Canvas.() -> Unit)
+    public fun clip(rectangle: Rectangle, radius: Double = 0.0, block: Canvas.() -> Unit)
 
     /**
      * Clips the operations within [block] within the given polygon.
@@ -309,7 +309,7 @@ interface Canvas: Renderer {
      * @param polygon to clip within
      * @param block to be clipped
      */
-    fun clip(polygon: Polygon, block: Canvas.() -> Unit)
+    public fun clip(polygon: Polygon, block: Canvas.() -> Unit)
 
     /**
      * Clips the operations within [block] within the given ellipse.
@@ -317,7 +317,7 @@ interface Canvas: Renderer {
      * @param ellipse to clip within
      * @param block to be clipped
      */
-    fun clip(ellipse: Ellipse, block: Canvas.() -> Unit)
+    public fun clip(ellipse: Ellipse, block: Canvas.() -> Unit)
 
     /**
      * Adds a shadow to the operations within [block].
@@ -325,7 +325,7 @@ interface Canvas: Renderer {
      * @param shadow to add
      * @param block with operations
      */
-    fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
+    public fun shadow(shadow: Shadow, block: Canvas.() -> Unit)
 
     /**
      * Adds an inner shadow to the operations within [block].
@@ -336,7 +336,7 @@ interface Canvas: Renderer {
      * @param color of the shadow
      * @param block shadow applied to
      */
-    fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
+    public fun innerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit): Unit = shadow(InnerShadow(horizontal, vertical, blurRadius, color), block)
 
     /**
      * Adds an outer shadow to the operations within [block].
@@ -347,20 +347,20 @@ interface Canvas: Renderer {
      * @param color of the shadow
      * @param block shadow applied to
      */
-    fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit) = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
+    public fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit): Unit = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
 }
 
 /**
  * The width to which the Canvas will clip by default.
  * @see Canvas.size
  */
-inline val Canvas.width get () = size.width
+public inline val Canvas.width: Double get() = size.width
 
 /**
  * The height to which the Canvas will clip by default.
  * @see Canvas.size
  */
-inline val Canvas.height get() = size.height
+public inline val Canvas.height: Double get() = size.height
 
 /**
  * Fills a rectangle.
@@ -368,7 +368,7 @@ inline val Canvas.height get() = size.height
  * @param rectangle to draw
  * @param color to fill with
  */
-inline fun Canvas.rect(rectangle: Rectangle, color: Color) = rect(rectangle, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, color: Color): Unit = rect(rectangle, ColorFill(color))
 
 /**
  * Fills and outlines a rectangle.
@@ -377,7 +377,7 @@ inline fun Canvas.rect(rectangle: Rectangle, color: Color) = rect(rectangle, Col
  * @param stroke to outline with
  * @param color to fill with
  */
-inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color) = rect(rectangle, stroke, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color): Unit = rect(rectangle, stroke, ColorFill(color))
 
 /**
  * Fills a rounded rectangle.
@@ -386,7 +386,7 @@ inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color) = rec
  * @param radius for corners
  * @param color to fill with
  */
-inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color) = rect(rectangle, radius, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color): Unit = rect(rectangle, radius, ColorFill(color))
 
 /**
  * Fills and outlines a rounded rectangle.
@@ -396,7 +396,7 @@ inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color) = rec
  * @param stroke to outline with
  * @param color to fill with
  */
-inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, color: Color) = rect(rectangle, radius, stroke, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, color: Color): Unit = rect(rectangle, radius, stroke, ColorFill(color))
 
 /**
  * Fills a circle.
@@ -404,7 +404,7 @@ inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, col
  * @param circle to draw
  * @param color to fill with
  */
-inline fun Canvas.circle(circle: Circle, color: Color) = circle(circle, ColorFill(color))
+public inline fun Canvas.circle(circle: Circle, color: Color): Unit = circle(circle, ColorFill(color))
 
 /**
  * Fills and outlines a circle.
@@ -413,7 +413,7 @@ inline fun Canvas.circle(circle: Circle, color: Color) = circle(circle, ColorFil
  * @param stroke to outline with
  * @param color to fill with
  */
-inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color) = circle(circle, stroke, ColorFill(color))
+public inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color): Unit = circle(circle, stroke, ColorFill(color))
 
 /**
  * Fills an ellipse.
@@ -421,7 +421,7 @@ inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color) = circle(
  * @param ellipse to draw
  * @param color to fill with
  */
-inline fun Canvas.ellipse(ellipse: Ellipse, color: Color) = ellipse(ellipse, ColorFill(color))
+public inline fun Canvas.ellipse(ellipse: Ellipse, color: Color): Unit = ellipse(ellipse, ColorFill(color))
 
 /**
  * Fills and outlines an ellipse.
@@ -430,7 +430,7 @@ inline fun Canvas.ellipse(ellipse: Ellipse, color: Color) = ellipse(ellipse, Col
  * @param stroke to outline with
  * @param color to fill with
  */
-inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color) = ellipse(ellipse, stroke, ColorFill(color))
+public inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color): Unit = ellipse(ellipse, stroke, ColorFill(color))
 
 /**
  * Draws unwrapped plain text in the default [Font].
@@ -439,7 +439,7 @@ inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color) = elli
  * @param at this point
  * @param color to fill with
  */
-inline fun Canvas.text(text: String, at: Point = Origin, color: Color) = text(text, at, ColorFill(color))
+public inline fun Canvas.text(text: String, at: Point = Origin, color: Color): Unit = text(text, at, ColorFill(color))
 
 /**
  * Draws unwrapped plain text.
@@ -449,7 +449,7 @@ inline fun Canvas.text(text: String, at: Point = Origin, color: Color) = text(te
  * @param at this point
  * @param color to fill with
  */
-inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Color) = text(text, font, at, ColorFill(color))
+public inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Color): Unit = text(text, font, at, ColorFill(color))
 
 /**
  * Draws wrapped plain text.
@@ -461,4 +461,4 @@ inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Col
  * @param rightMargin where text wraps
  * @param color to fill with
  */
-inline fun Canvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color) = wrapped(text, font, at, leftMargin, rightMargin, ColorFill(color))
+public inline fun Canvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color): Unit = wrapped(text, font, at, leftMargin, rightMargin, ColorFill(color))

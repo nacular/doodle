@@ -16,9 +16,9 @@ import io.nacular.doodle.drawing.Color.Companion.Black
  * @param thickness of outline
  * @param dashes if lines are segmented
  */
-class Stroke(val color: Color = Black, val thickness: Double = 1.0, val dashes: IntArray? = null) {
-    constructor(color: Color = Black, thickness: Double = 1.0, dash: Int, vararg remainingDashes: Int): this(color, thickness, intArrayOf(dash) + remainingDashes)
+public class Stroke(public val color: Color = Black, public val thickness: Double = 1.0, public val dashes: IntArray? = null) {
+    public constructor(color: Color = Black, thickness: Double = 1.0, dash: Int, vararg remainingDashes: Int): this(color, thickness, intArrayOf(dash) + remainingDashes)
 
     /** `true` IFF [thickness] > 0 and [color] visible */
-    val visible = thickness > 0 && color.visible
+    public val visible: Boolean = thickness > 0 && color.visible
 }

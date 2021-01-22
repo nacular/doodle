@@ -5,6 +5,8 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
+
     jsTargets ()
     jvmTargets()
 
@@ -16,6 +18,10 @@ kotlin {
     val measuredVersion: String by project
 
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("io.nacular.doodle.core.Internal")
+        }
+
         val commonMain by getting {
             dependencies {
                 api ("io.nacular.measured:measured:$measuredVersion")

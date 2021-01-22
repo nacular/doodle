@@ -3,9 +3,9 @@ package io.nacular.doodle.utils
 /**
  * Created by Nicholas Eddy on 4/11/18.
  */
-expect class TreeSet<E>: Set<E> {
-    constructor(comparator: Comparator<E>)
-    constructor(comparator: Comparator<E>, elements: Collection<E>)
+public expect class TreeSet<E>: Set<E> {
+    public constructor(comparator: Comparator<E>)
+    public constructor(comparator: Comparator<E>, elements: Collection<E>)
 
     // From Set
     override val size: Int
@@ -14,15 +14,15 @@ expect class TreeSet<E>: Set<E> {
     override fun containsAll(elements: Collection<E>): Boolean
     override fun iterator(): Iterator<E>
 
-    companion object {
-        operator fun <T: Comparable<T>> invoke(): TreeSet<T>
-        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSet<T>
+    public companion object {
+        public operator fun <T: Comparable<T>> invoke(): TreeSet<T>
+        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSet<T>
     }
 }
 
-expect class MutableTreeSet<E>: MutableSet<E> {
-    constructor(comparator: Comparator<E>)
-    constructor(comparator: Comparator<E>, elements: Collection<E>)
+public expect class MutableTreeSet<E>: MutableSet<E> {
+    public constructor(comparator: Comparator<E>)
+    public constructor(comparator: Comparator<E>, elements: Collection<E>)
 
     // From Set
     override val size: Int
@@ -39,8 +39,8 @@ expect class MutableTreeSet<E>: MutableSet<E> {
     override fun retainAll(elements: Collection<E>): Boolean
     override fun clear()
 
-    companion object {
-        operator fun <T: Comparable<T>> invoke(): MutableTreeSet<T>
-        operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T>
+    public companion object {
+        public operator fun <T: Comparable<T>> invoke(): MutableTreeSet<T>
+        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSet<T>
     }
 }
