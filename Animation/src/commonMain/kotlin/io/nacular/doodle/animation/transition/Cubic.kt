@@ -12,7 +12,7 @@ import kotlin.math.pow
 /**
  * Created by Nicholas Eddy on 10/29/18.
  */
-class Cubic<T: Units>(private val duration: Measure<Time>, private val endValue: Measure<T>, private val endVelocity: Measure<Velocity<T>>): Transition<T> {
+public class Cubic<T: Units>(private val duration: Measure<Time>, private val endValue: Measure<T>, private val endVelocity: Measure<Velocity<T>>): Transition<T> {
 
     private val deltaTime = duration * 0.1
 
@@ -36,9 +36,9 @@ class Cubic<T: Units>(private val duration: Measure<Time>, private val endValue:
         return Moment(result, endVelocity) // FIXME: Calculate instantaneous velocity
     }
 
-    override fun duration(initial: Moment<T>) = duration
+    override fun duration(initial: Moment<T>): Measure<Time> = duration
 
-    override fun endState(initial: Moment<T>) = Moment(endValue, endVelocity)
+    override fun endState(initial: Moment<T>): Moment<T> = Moment(endValue, endVelocity)
 
     // TODO: Is there a faster way?
     private infix fun Int.choose(value: Int): Int {

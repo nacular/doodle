@@ -10,10 +10,10 @@ import io.nacular.measured.units.times
 /**
  * Created by Nicholas Eddy on 3/30/18.
  */
-abstract class FixedDuration<T: Units>(private val duration: Measure<Time>): Transition<T> {
+public abstract class FixedDuration<T: Units>(private val duration: Measure<Time>): Transition<T> {
     init {
         (0 * milliseconds).let { require(duration >= it) { "duration must be >= $it" } }
     }
 
-    override fun duration(initial: Moment<T>) = duration
+    override fun duration(initial: Moment<T>): Measure<Time> = duration
 }

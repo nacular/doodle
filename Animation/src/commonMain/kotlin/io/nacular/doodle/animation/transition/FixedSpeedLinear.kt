@@ -14,7 +14,7 @@ import io.nacular.measured.units.times
  * Created by Nicholas Eddy on 3/30/18.
  */
 
-class FixedSpeedLinear<T: Units>(private val speed: Measure<Velocity<T>>, private val endValue: Measure<T>): Transition<T> {
+public class FixedSpeedLinear<T: Units>(private val speed: Measure<Velocity<T>>, private val endValue: Measure<T>): Transition<T> {
 
     override fun duration(initial: Moment<T>): Measure<Time> = (endValue - initial.position) / speed
 
@@ -25,5 +25,5 @@ class FixedSpeedLinear<T: Units>(private val speed: Measure<Velocity<T>>, privat
         return Moment(initial.position + minOf(abs(delta), abs(speed * timeOffset)) * sign, speed * sign)
     }
 
-    override fun endState(initial: Moment<T>) = Moment(endValue, speed * if ((endValue - initial.position).amount < 0) -1 else 1)
+    override fun endState(initial: Moment<T>): Moment<T> = Moment(endValue, speed * if ((endValue - initial.position).amount < 0) -1 else 1)
 }

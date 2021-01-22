@@ -14,7 +14,7 @@ import io.nacular.measured.units.Units
  *
  * @author Nicholas Eddy (neddy@zinoti.com)
  */
-class NoChange<T: Units>(duration: Measure<Time>): FixedDuration<T>(duration) {
-    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = initial
-    override fun endState(initial: Moment<T>                           ) = initial
+public class NoChange<T: Units>(duration: Measure<Time>): FixedDuration<T>(duration) {
+    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>): Moment<T> = initial
+    override fun endState(initial: Moment<T>                           ): Moment<T> = initial
 }

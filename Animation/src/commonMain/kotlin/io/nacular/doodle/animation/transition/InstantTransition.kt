@@ -14,7 +14,7 @@ import io.nacular.measured.units.times
 /**
  * A transition that instantly jumps to the final value.
  */
-class InstantTransition<T: Units>(private val finalValue: Measure<T>): FixedDuration<T>(0 * milliseconds) {
-    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>) = endState(initial)
-    override fun endState(initial: Moment<T>                           ) = Moment(finalValue, initial.velocity)
+public class InstantTransition<T: Units>(private val finalValue: Measure<T>): FixedDuration<T>(0 * milliseconds) {
+    override fun value   (initial: Moment<T>, timeOffset: Measure<Time>): Moment<T> = endState(initial)
+    override fun endState(initial: Moment<T>                           ): Moment<T> = Moment(finalValue, initial.velocity)
 }

@@ -11,7 +11,7 @@ import io.nacular.measured.units.times
 /**
  * Created by Nicholas Eddy on 10/29/18.
  */
-class SpeedUpSlowDown<T: Units>(duration            : Measure<Time>,
+public class SpeedUpSlowDown<T: Units>(duration            : Measure<Time>,
                    private val endValue            : Measure<T>,
                    private val accelerationFraction: Float = 0.5f): FixedDuration<T>(duration)
 {
@@ -41,5 +41,5 @@ class SpeedUpSlowDown<T: Units>(duration            : Measure<Time>,
         return Moment(position + velocity * timeOffset2 + acceleration2 * timeOffset2 * timeOffset2 / 2, outputVelocity )
     }
 
-    override fun endState(initial: Moment<T>) = Moment(endValue, 0 * endValue / (1 * milliseconds))
+    override fun endState(initial: Moment<T>): Moment<T> = Moment(endValue, 0 * endValue / (1 * milliseconds))
 }

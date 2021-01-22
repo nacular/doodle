@@ -17,6 +17,7 @@ import io.nacular.doodle.utils.CompletableImpl
 import io.nacular.doodle.utils.CompletableImpl.State.Active
 import io.nacular.doodle.utils.CompletableImpl.State.Canceled
 import io.nacular.doodle.utils.ObservableSet
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
@@ -29,7 +30,7 @@ import io.nacular.measured.units.times
  * Created by Nicholas Eddy on 1/12/20.
  */
 
-class AnimatorImpl(private val timer: Timer, private val animationScheduler: AnimationScheduler): Animator {
+public class AnimatorImpl(private val timer: Timer, private val animationScheduler: AnimationScheduler): Animator {
 
     private class KeyFrame {
         var time = 0 * milliseconds
@@ -133,7 +134,7 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             super.cancel()
 
             if (broadcast) {
-                listeners.forEach { it.canceled(this@AnimatorImpl, setOf(this)) }
+                (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, setOf(this)) }
             }
         }
     }
@@ -233,14 +234,14 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
             override fun cancel() {
                 newAnimations.forEach { it.cancel(broadcast = false) }
 
-                listeners.forEach { it.canceled(this@AnimatorImpl, newAnimations) }
+                (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, newAnimations) }
 
                 super.cancel()
             }
         }
     }
 
-    override val listeners = SetPool<Listener>()
+    override val listeners: Pool<Listener> = SetPool<Listener>()
 
     private fun startAnimation() {
         task = animationScheduler.onNextFrame {
@@ -275,16 +276,14 @@ class AnimatorImpl(private val timer: Timer, private val animationScheduler: Ani
         }
 
         if (changed.isNotEmpty()) {
-            listeners.forEach {
-                it.changed(this, changed)
-            }
+            (listeners as? SetPool)?.forEach { it.changed(this, changed) }
         }
 
         when {
             animations.isNotEmpty() -> task = animationScheduler.onNextFrame {
                 onAnimate()
             }
-            completed.isNotEmpty()  -> listeners.forEach { it.completed(this, completed) }
+            completed.isNotEmpty()  -> (listeners as? SetPool)?.forEach { it.completed(this, completed) }
         }
     }
 }
