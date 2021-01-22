@@ -14,7 +14,7 @@ import kotlin.math.max
  * @param T item type
  * @param C context about the item
  */
-interface ItemVisualizer<T, in C> {
+public interface ItemVisualizer<T, in C> {
     /**
      * Called whenever an item needs to be translated to a View.
      *
@@ -23,19 +23,19 @@ interface ItemVisualizer<T, in C> {
      * @param context providing more details about the item
      * @return a View to represent this item
      */
-    operator fun invoke(item: T, previous: View? = null, context: C): View
+    public operator fun invoke(item: T, previous: View? = null, context: C): View
 }
 
-operator fun <T> ItemVisualizer<T, Any>.invoke(item: T, previous: View? = null): View = invoke(item, previous, Unit)
+public operator fun <T> ItemVisualizer<T, Any>.invoke(item: T, previous: View? = null): View = invoke(item, previous, Unit)
 
-inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: View?, context: C) -> View) = object: ItemVisualizer<T, C> {
+public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: View?, context: C) -> View): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C) = block(item, previous, context)
 }
 
 /**
  * Visualizes Strings using [Label]s.
  */
-open class TextVisualizer(private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
+public open class TextVisualizer(private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { text = item; this@TextVisualizer.fitText?.let { fitText = it } }
         else     -> Label(StyledText(item)).apply {
@@ -47,22 +47,22 @@ open class TextVisualizer(private val fitText: Set<TextFit>? = null): ItemVisual
 /**
  * Visualizes Booleans using [CheckBox]es.
  */
-open class BooleanVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean, Any> {
+public open class BooleanVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean, Any> {
     override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
         else        -> CheckBox().apply { enabled = false; selected = item                   }
     }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 
-object ViewVisualizer: ItemVisualizer<View, Any> {
-    override fun invoke(item: View, previous: View?, context: Any) = item
+public object ViewVisualizer: ItemVisualizer<View, Any> {
+    override fun invoke(item: View, previous: View?, context: Any): View = item
 }
 
 /**
  * Places the item (which is a View) within a [ScrollPanel].
  */
-open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
-    override fun invoke(item: View, previous: View?, context: Any) = when (previous) {
+public open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
+    override fun invoke(item: View, previous: View?, context: Any): ScrollPanel = when (previous) {
         is ScrollPanel -> previous.also { it.content = item }
         else           -> ScrollPanel(item)
     }
@@ -73,7 +73,7 @@ open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
  *
  * @param delegate to visualize the item's `toString()`
  */
-fun <T, C> toString(delegate: ItemVisualizer<String, C>) = object: ItemVisualizer<T, C> {
+public fun <T, C> toString(delegate: ItemVisualizer<String, C>): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(item.toString(), previous, context)
 }
 
@@ -82,9 +82,9 @@ fun <T, C> toString(delegate: ItemVisualizer<String, C>) = object: ItemVisualize
  * @property index of the item
  * @property selected is `true` for selected items
  */
-interface IndexedIem {
-    val index: Int
-    val selected: Boolean
+public interface IndexedIem {
+    public val index: Int
+    public val selected: Boolean
 }
 
-class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedIem
+public class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedIem

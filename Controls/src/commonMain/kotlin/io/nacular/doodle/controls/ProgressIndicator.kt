@@ -1,9 +1,6 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.size
@@ -11,8 +8,8 @@ import io.nacular.doodle.utils.size
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
+public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
+    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
     private val changedHandler: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
         changed_(old, new)
@@ -22,7 +19,7 @@ abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
         model.valueChanged += changedHandler
     }
 
-    var model =  model
+    public var model: ConfinedValueModel<Double> =  model
         set(new) {
             field.valueChanged -= changedHandler
 
@@ -31,24 +28,24 @@ abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
             }
         }
 
-    var progress: Double
+    public var progress: Double
         get() = (model.value - model.limits.start) / (model.limits.size)
         set(new) {
             model.value = model.limits.start + new * (model.limits.size)
         }
 
-    var value: Double
+    public var value: Double
         get(   ) = model.value
         set(new) { model.value = new }
 
-    var range: ClosedRange<Double>
+    public var range: ClosedRange<Double>
         get(   ) = model.limits
         set(new) { model.limits = new }
 
-    override var focusable = false
+    override var focusable: Boolean = false
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }
 
-    val changed: PropertyObservers<ProgressIndicator, Double> = changed_
+    public val changed: PropertyObservers<ProgressIndicator, Double> = changed_
 }

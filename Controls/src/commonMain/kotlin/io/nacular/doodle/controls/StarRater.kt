@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -20,54 +21,37 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.roundToNearest
+import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.properties.Delegates.observable
 
 /**
  * Created by Nicholas Eddy on 4/25/20.
  */
-class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
-    var max = max(0, max)
+public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
+    public var max: Int = max(0, max)
         set(new) {
             field = max(0, new)
             updateStar()
             value = min(field.toDouble(), value)
         }
 
-    var innerRadiusRatio = null as Float?
-        set(new) {
-            field = new
-            updateStar()
-        }
+    public var innerRadiusRatio: Float? by observable(null) { _, _,_ -> updateStar() }
 
-    var minSpacing = 0.0
-        set(new) {
-            field = new
-            updateStar()
-        }
+    public var minSpacing: Double by observable(0.0) { _, _,_ -> updateStar() }
 
-    var numStarPoints = 5
-        set(new) {
-            field = new
-            updateStar()
-        }
+    public var numStarPoints: Int by observable(5) { _, _,_ -> updateStar() }
 
-    var starRotation = 0 * degrees
-        set(new) {
-            field = new
-            updateStar()
-        }
+    public var starRotation: Measure<Angle> by observable(0 * degrees) { _, _,_ -> updateStar() }
 
-    var shadowColor: Color? = Black opacity 0.2f
-        set(new) {
-            field = new
-            rerender()
-        }
+    public var shadowColor: Color? by renderProperty(Black opacity 0.2f)
 
-    var value = 0.0
+    public var value: Double = 0.0
         set(new) {
             val old = field
             field = max(0.0, min(max.toDouble(), new))
@@ -76,20 +60,12 @@ class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
             changed_(old, new)
         }
 
-    private var displayValue = value.roundToNearest(displayRounded.toDouble())
-        set(new) {
-            val old = field
-            field = new
-
-            if (field != old) {
-                rerender()
-            }
-        }
+    private var displayValue by renderProperty(value.roundToNearest(displayRounded.toDouble()))
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<StarRater, Double>(this) }
 
-    val changed: PropertyObservers<StarRater, Double> = changed_
+    public val changed: PropertyObservers<StarRater, Double> = changed_
 
     private lateinit var star: Polygon
 

@@ -16,16 +16,16 @@ import io.nacular.doodle.layout.constrain
 import kotlin.math.max
 
 // FIXME: Centralize
-typealias Extractor<T, R>  = T.() -> R
+public typealias Extractor<T, R>  = T.() -> R
 
-abstract class Field<T>: Positionable
+public abstract class Field<T>: Positionable
 
-class NamedField<T, C>(private val name           : String,
+public class NamedField<T, C>(private val name           : String,
                        private val nameVisualizer : ItemVisualizer<String, Any>,
                        private val valueVisualizer: ItemVisualizer<T, C>,
                        private val layout         : (ConstraintBlockContext.(Constraints, Constraints) -> Unit)?
 ): ItemVisualizer<T, C> {
-    override fun invoke(item: T, previous: View?, context: C) = object: View() {
+    override fun invoke(item: T, previous: View?, context: C): View = object: View() {
         init {
             children += listOf(nameVisualizer(name, null, Unit), valueVisualizer(item, previous, context))
 
@@ -53,11 +53,11 @@ class NamedField<T, C>(private val name           : String,
     }
 }
 
-interface FieldFactory<T> {
-    fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>): Field<R>
+public interface FieldFactory<T> {
+    public fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>): Field<R>
 }
 
-open class Inspector<T>(val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
+public open class Inspector<T>(public val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
     private class FieldImpl<T>(val view: View): Field<T>(), Positionable by view
 
     private inner class FieldFactoryImpl: FieldFactory<T> {
@@ -70,7 +70,7 @@ open class Inspector<T>(val value: T, private val block: FieldFactory<T>.() -> U
 
     override var layout: Layout? = null
 
-    var behavior: Behavior<Inspector<T>>? by behavior { _, new ->
+    public var behavior: Behavior<Inspector<T>>? by behavior { _, new ->
         new?.also {
             if (children.isEmpty()) {
                 factory.apply(block)

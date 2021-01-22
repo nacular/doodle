@@ -1,28 +1,27 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
 
-interface Column<T> {
-    val header         : View?
-    val width          : Double
+public interface Column<T> {
+    public val header         : View?
+    public val width          : Double
 
-    var minWidth       : Double
-    var maxWidth       : Double?
-    var preferredWidth : Double?
-    var cellAlignment  : (Constraints.() -> Unit)?
-    var headerAlignment: (Constraints.() -> Unit)?
+    public var minWidth       : Double
+    public var maxWidth       : Double?
+    public var preferredWidth : Double?
+    public var cellAlignment  : (Constraints.() -> Unit)?
+    public var headerAlignment: (Constraints.() -> Unit)?
 
-    fun moveBy(x: Double)
-    fun resetPosition()
+    public fun moveBy(x: Double)
+    public fun resetPosition()
 
-    val alignmentChanged: Pool<ChangeObserver<Column<T>>>
+    public val alignmentChanged: Pool<ChangeObserver<Column<T>>>
 }
 
-interface MutableColumn<T, R>: Column<R> {
-    var editor    : TableEditor<T>?
-    var comparator: Comparator<T>?
+public interface MutableColumn<T, R>: Column<R> {
+    public var editor    : TableEditor<T>?
+    public var comparator: Comparator<T>?
 }

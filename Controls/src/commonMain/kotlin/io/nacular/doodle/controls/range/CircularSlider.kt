@@ -9,21 +9,21 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
-open class CircularSlider(model: ConfinedValueModel<Double>): ValueSlider(model) {
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
+public open class CircularSlider(model: ConfinedValueModel<Double>): ValueSlider(model) {
+    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<CircularSlider, Double>(this) }
 
-    val changed: PropertyObservers<CircularSlider, Double> = changed_
+    public val changed: PropertyObservers<CircularSlider, Double> = changed_
 
-    var behavior: Behavior<CircularSlider>? by behavior()
+    public var behavior: Behavior<CircularSlider>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
     override fun changed(old: Double, new: Double) {
         changed_(old, new)

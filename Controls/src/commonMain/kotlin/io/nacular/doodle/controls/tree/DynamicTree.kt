@@ -11,9 +11,9 @@ import io.nacular.doodle.utils.SetPool
  * Created by Nicholas Eddy on 9/29/19.
  */
 
-typealias ItemsObserver<T> = (source: Tree<T, *>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
+public typealias ItemsObserver<T> = (source: Tree<T, *>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
 
-open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
+public open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }
@@ -52,7 +52,7 @@ open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: Item
         (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
     }
 
-    val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
+    public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
     init {
         model.changed += modelChanged

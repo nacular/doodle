@@ -2,8 +2,8 @@ package io.nacular.doodle.controls.spinner
 
 import io.nacular.doodle.utils.ObservableList
 
-open class ListModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
-    protected var index = 0
+public open class ListModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
+    protected var index: Int = 0
         private set(new) {
             if (new == field) { return }
 
@@ -12,16 +12,16 @@ open class ListModel<T, out L: List<T>>(protected open val values: L): CommonSpi
             changed_()
         }
 
-    override val hasNext     get() = index < values.lastIndex
-    override val hasPrevious get() = index > 0
+    override val hasNext    : Boolean get() = index < values.lastIndex
+    override val hasPrevious: Boolean get() = index > 0
 
     override fun next    () { if (hasNext    ) { ++index } }
     override fun previous() { if (hasPrevious) { --index } }
 
-    override val value get() = values[index]
+    override val value: T get() = values[index]
 }
 
-class MutableListModel<T>(values: List<T> = emptyList()): ListModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableModel<T> {
+public class MutableListModel<T>(values: List<T> = emptyList()): ListModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableModel<T> {
     init {
         super.values.changed += { _, _, _, _ ->
             changed_()
@@ -30,7 +30,7 @@ class MutableListModel<T>(values: List<T> = emptyList()): ListModel<T, Observabl
 
     public override val values: ObservableList<T> = super.values
 
-    override var value
+    override var value: T
         get(   ) = super.value
         set(new) {
             if (new == super.value) { return }

@@ -8,12 +8,12 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 4/30/18.
  */
-interface MenuSelectionManager {
-    var selectedPath    : Path<MenuItem>?
-    val selectionChanged: PropertyObservers<MenuSelectionManager, Path<MenuItem>?>
+public interface MenuSelectionManager {
+    public var selectedPath    : Path<MenuItem>?
+    public val selectionChanged: PropertyObservers<MenuSelectionManager, Path<MenuItem>?>
 }
 
-class MenuSelectionManagerImpl: MenuSelectionManager {
+public class MenuSelectionManagerImpl: MenuSelectionManager {
     override val selectionChanged: PropertyObservers<MenuSelectionManager, Path<MenuItem>?> by lazy { PropertyObserversImpl<MenuSelectionManager, Path<MenuItem>?>(this) }
 
     override var selectedPath: Path<MenuItem>? = null

@@ -8,25 +8,25 @@ import kotlin.properties.Delegates.observable
 /**
  * Created by Nicholas Eddy on 11/10/17.
  */
-open class ButtonModelImpl: ButtonModel {
-    override val fired by lazy { ChangeObserversImpl(this) }
+public open class ButtonModelImpl: ButtonModel {
+    override val fired: ChangeObserversImpl<ButtonModelImpl> by lazy { ChangeObserversImpl(this) }
 
-    override val selectedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
-    override var selected        by observable(false, selectedChanged)
+    override val selectedChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl(this) }
+    override var selected       : Boolean                                     by observable(false, selectedChanged)
 
-    override val armedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
-    override var armed        by observable(false, armedChanged)
+    override val armedChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl(this) }
+    override var armed       : Boolean                                     by observable(false, armedChanged)
 
-    override val pressedChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
-    override var pressed        by observable(false) { _,old,new ->
+    override val pressedChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl(this) }
+    override var pressed: Boolean by observable(false) { _,old,new ->
         // TODO: should this just call fire()?  It's strange that armed remains true after this
         if (!new && armed) { fired() }
 
         pressedChanged(old, new)
     }
 
-    override val pointerOverChanged by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
-    override var pointerOver        by observable(false, pointerOverChanged)
+    override val pointerOverChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
+    override var pointerOver       : Boolean by observable(false, pointerOverChanged)
 
     override var buttonGroup: ButtonGroup? = null
 

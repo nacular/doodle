@@ -14,9 +14,9 @@ import io.nacular.doodle.utils.Orientation.Horizontal
  * @param model containing range and value
  * @param orientation of the control
  */
-class ProgressBar(
-            model      : ConfinedValueModel<Double> = BasicConfinedValueModel(0.0 .. 100.0),
-        val orientation: Orientation                = Horizontal): ProgressIndicator(model) {
+public class ProgressBar(
+                   model      : ConfinedValueModel<Double> = BasicConfinedValueModel(0.0 .. 100.0),
+        public val orientation: Orientation                = Horizontal): ProgressIndicator(model) {
     /**
      * Creates a ProgressBar with a given range and starting value.
      *
@@ -24,13 +24,13 @@ class ProgressBar(
      * @param value to start with
      * @param orientation of the control
      */
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
+    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
-    var behavior: Behavior<ProgressBar>? by behavior()
+    public var behavior: Behavior<ProgressBar>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 }

@@ -4,12 +4,12 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
-interface ToggleButtonModel: ButtonModel
+public interface ToggleButtonModel: ButtonModel
 
 @Suppress("PrivatePropertyName")
-open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: ToggleButtonModel = ToggleButtonModelImpl()): PushButton(text, icon, model) {
+public open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: ToggleButtonModel = ToggleButtonModelImpl()): PushButton(text, icon, model) {
     protected class ToggleButtonModelImpl: ButtonModelImpl(), ToggleButtonModel {
-        override var selected
+        override var selected: Boolean
             get(   ) = super.selected
             set(new) {
                 if (tempSelected != new) {
@@ -32,7 +32,7 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: To
         private var callCount    = 0
         private var tempSelected = super.selected
 
-        override var pressed
+        override var pressed: Boolean
             get(   ) = super.pressed
             set(new) {
                 if (super.pressed != new) {
@@ -45,7 +45,7 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: To
             }
     }
 
-    val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
+    public val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
 
     private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
 
@@ -62,7 +62,8 @@ open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: To
     }
 
     // FIXME: It is possible to assign a non-ToggleButtonModel to these types.  Is that desirable?
-    override var model get() = super.model
+    override var model: ButtonModel
+        get() = super.model
         set(new) {
             super.model.selectedChanged -= selectedChanged_
 

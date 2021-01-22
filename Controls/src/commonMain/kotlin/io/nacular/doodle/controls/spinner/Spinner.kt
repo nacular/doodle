@@ -2,34 +2,37 @@ package io.nacular.doodle.controls.spinner
 
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.doodle.utils.ObservableList
 
 
-interface Model<T> {
-    fun next    ()
-    fun previous()
+public interface Model<T> {
+    public fun next    ()
+    public fun previous()
 
-    val value      : T
-    val hasNext    : Boolean
-    val hasPrevious: Boolean
-    val changed    : ChangeObservers<Model<T>>
+    public val value      : T
+    public val hasNext    : Boolean
+    public val hasPrevious: Boolean
+    public val changed    : ChangeObservers<Model<T>>
 }
 
-interface MutableModel<T>: Model<T> {
-    override var value: T
+public interface MutableModel<T>: Model<T> {
+    public override var value: T
 }
 
 /**
  * Provides presentation and behavior customization for [Spinner].
  */
-abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
-    val Spinner<T, M>.children get() = this._children
-    var Spinner<T, M>.insets   get() = this._insets; set(new) { _insets = new }
-    var Spinner<T, M>.layout   get() = this._layout; set(new) { _layout = new }
+public abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
+    public val Spinner<T, M>.children: ObservableList<View> get() = this._children
+    public var Spinner<T, M>.insets  : Insets               get() = this._insets; set(new) { _insets = new }
+    public var Spinner<T, M>.layout  : Layout?              get() = this._layout; set(new) { _layout = new }
 
     /**
      * Called whenever the Spinner's selection changes. This is an explicit API to ensure that
@@ -37,20 +40,20 @@ abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
      *
      * @param spinner with change
      */
-    abstract fun changed(spinner: Spinner<T, M>)
+    public abstract fun changed(spinner: Spinner<T, M>)
 }
 
 @Suppress("PropertyName")
-open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisualizer<T, Any>? = null): View() {
+public open class Spinner<T, M: Model<T>>(public val model: M, public val itemVisualizer: ItemVisualizer<T, Any>? = null): View() {
 
-    fun next    () = model.next    ()
-    fun previous() = model.previous()
+    public fun next    (): Unit = model.next    ()
+    public fun previous(): Unit = model.previous()
 
-    open val value       get() = model.value
-         val hasNext     get() = model.hasNext
-         val hasPrevious get() = model.hasPrevious
+    public open val value      : T       get() = model.value
+    public      val hasPrevious: Boolean get() = model.hasPrevious
+    public      val hasNext    : Boolean get() = model.hasNext
 
-    var behavior: SpinnerBehavior<T, M>? by behavior()
+    public var behavior: SpinnerBehavior<T, M>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -64,7 +67,7 @@ open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisuali
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { ChangeObserversImpl(this) }
 
-    val changed: ChangeObservers<Spinner<T, M>> = changed_
+    public val changed: ChangeObservers<Spinner<T, M>> = changed_
 
     private val modelChanged: (Model<T>) -> Unit = {
         changed_()
@@ -74,13 +77,13 @@ open class Spinner<T, M: Model<T>>(val model: M, val itemVisualizer: ItemVisuali
         this.model.changed += modelChanged
     }
 
-    companion object {
-        operator fun invoke(progression: IntProgression) = Spinner(IntModel (progression))
-        operator fun <T> invoke(values: List<T>)         = Spinner(ListModel(values     ))
+    public companion object {
+        public operator fun     invoke(progression: IntProgression): Spinner<Int, IntModel>            = Spinner(IntModel (progression))
+        public operator fun <T> invoke(values: List<T>            ): Spinner<T, ListModel<T, List<T>>> = Spinner(ListModel(values     ))
     }
 }
 
-class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(model) {
+public class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(model) {
     override var value: T
         get(   ) = super.value
         set(new) { model.value = new }
@@ -141,7 +144,7 @@ class MutableSpinner<T>(model: MutableModel<T>): Spinner<T, MutableModel<T>>(mod
 //        private Label mLabel
 //    }
 
-    companion object {
-        operator fun <T> invoke(values: MutableList<T> = mutableListOf()) = MutableSpinner(MutableListModel(values))
+    public companion object {
+        public operator fun <T> invoke(values: MutableList<T> = mutableListOf()): MutableSpinner<T> = MutableSpinner(MutableListModel(values))
     }
 }

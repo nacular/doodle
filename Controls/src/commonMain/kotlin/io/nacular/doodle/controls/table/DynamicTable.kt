@@ -61,7 +61,7 @@ internal class SelectionModelWrapper(private val delegate: SelectionModel<Int>):
     }
 }
 
-open class DynamicTable<T, M: DynamicListModel<T>>(
+public open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
         scrollCache   : Int                  = 10,
@@ -130,8 +130,8 @@ open class DynamicTable<T, M: DynamicListModel<T>>(
 
     override val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
-    companion object {
-        inline operator fun <reified T> invoke(
+    public companion object {
+        public inline operator fun <reified T> invoke(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
                 scrollCache   : Int                  = 10,

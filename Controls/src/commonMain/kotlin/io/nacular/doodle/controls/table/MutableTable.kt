@@ -19,11 +19,11 @@ import io.nacular.doodle.utils.observable
  * Created by Nicholas Eddy on 5/19/19.
  */
 
-interface TableEditor<T> {
-    operator fun <R> invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T>
+public interface TableEditor<T> {
+    public operator fun <R> invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T>
 }
 
-class MutableTable<T, M: MutableListModel<T>>(
+public class MutableTable<T, M: MutableListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
         scrollCache   : Int                  = 10,
@@ -112,34 +112,34 @@ class MutableTable<T, M: MutableListModel<T>>(
         MutableColumnFactoryImpl().apply(block)
     }
 
-    class Sorting<T>(val column: MutableColumn<T, *>, val order: SortOrder)
+    public class Sorting<T>(public val column: MutableColumn<T, *>, public val order: SortOrder)
 
     /** Notifies changes to [sorting] */
-    val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }
+    public val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }
 
     /** current sorting for the table default is ```emptyList()```.  */
-    var sorting: List<Sorting<T>> by observable(emptyList(), sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) { _,_ ->
+    public var sorting: List<Sorting<T>> by observable(emptyList(), sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) { _,_ ->
         updateSort()
     }
 
-    val editing get() = editingColumn != null
+    public val editing: Boolean get() = editingColumn != null
 
     private var editingColumn = null as MutableInternalListColumn<T, *>?
 
-    operator fun set(index: Int, value: T) { model[index] = value }
+    public operator fun set(index: Int, value: T) { model[index] = value }
 
-    fun add      (value : T                         ) = model.add      (value        )
-    fun add      (index : Int, values: T            ) = model.add      (index, values)
-    fun remove   (value : T                         ) = model.remove   (value        )
-    fun removeAt (index : Int                       ) = model.removeAt (index        )
-    fun addAll   (values: Collection<T>             ) = model.addAll   (values       )
-    fun addAll   (index : Int, values: Collection<T>) = model.addAll   (index, values)
-    fun removeAll(values: Collection<T>             ) = model.removeAll(values       )
-    fun retainAll(values: Collection<T>             ) = model.retainAll(values       )
+    public fun add      (value : T                         ): Unit = model.add      (value        )
+    public fun add      (index : Int, values: T            ): Unit = model.add      (index, values)
+    public fun remove   (value : T                         ): Unit = model.remove   (value        )
+    public fun removeAt (index : Int                       ): T?   = model.removeAt (index        )
+    public fun addAll   (values: Collection<T>             ): Unit = model.addAll   (values       )
+    public fun addAll   (index : Int, values: Collection<T>): Unit = model.addAll   (index, values)
+    public fun removeAll(values: Collection<T>             ): Unit = model.removeAll(values       )
+    public fun retainAll(values: Collection<T>             ): Unit = model.retainAll(values       )
 
-    fun clear() = model.clear()
+    public fun clear(): Unit = model.clear()
 
-    fun toggleSort(by: MutableColumn<T, *>) {
+    public fun toggleSort(by: MutableColumn<T, *>) {
         sorting.find { it.column == by }?.let {
             when (it.order) {
                 Ascending -> {
@@ -153,11 +153,11 @@ class MutableTable<T, M: MutableListModel<T>>(
         sort(by)
     }
 
-    fun sort(by: MutableColumn<T, *>) {
+    public fun sort(by: MutableColumn<T, *>) {
         sorting = listOf(Sorting(by, order = Ascending))
     }
 
-    fun sortDescending(by: MutableColumn<T, *>) {
+    public fun sortDescending(by: MutableColumn<T, *>) {
         sorting = listOf(Sorting(by, order = Descending))
     }
 
@@ -179,22 +179,22 @@ class MutableTable<T, M: MutableListModel<T>>(
         comparator?.let { model.sortWith(it) }
     }
 
-    fun startEditing(index: Int, column: MutableColumn<T, *>) {
+    public fun startEditing(index: Int, column: MutableColumn<T, *>) {
         (column as? MutableInternalListColumn<T, *>)?.let {
             editingColumn = it
             it.view.startEditing(index)
         }
     }
 
-    fun completeEditing() {
+    public fun completeEditing() {
         editingColumn?.view?.completeEditing()
     }
 
-    fun cancelEditing() {
+    public fun cancelEditing() {
         editingColumn?.view?.cancelEditing()
     }
 
-    companion object {
+    public companion object {
 //        operator fun invoke(
 //                strand        : Strand,
 //                progression   : IntProgression,

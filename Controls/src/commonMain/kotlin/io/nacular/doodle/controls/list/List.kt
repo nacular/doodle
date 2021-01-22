@@ -22,6 +22,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
@@ -32,31 +33,31 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 3/19/18.
  */
-interface ListBehavior<T>: Behavior<List<T, *>> {
-    interface RowGenerator<T> {
-        operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
+public interface ListBehavior<T>: Behavior<List<T, *>> {
+    public interface RowGenerator<T> {
+        public operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
     }
 
-    interface RowPositioner<T> {
-        fun rowBounds(of: List<T, *>, row: T, index: Int, view: View? = null): Rectangle
+    public interface RowPositioner<T> {
+        public fun rowBounds(of: List<T, *>, row: T, index: Int, view: View? = null): Rectangle
 
-        fun row(of: List<T, *>, atY: Double): Int
+        public fun row(of: List<T, *>, atY: Double): Int
 
-        fun totalRowHeight(of: List<T, *>): Double
+        public fun totalRowHeight(of: List<T, *>): Double
     }
 
-    val generator : RowGenerator<T>
-    val positioner: RowPositioner<T>
+    public val generator : RowGenerator<T>
+    public val positioner: RowPositioner<T>
 }
 
-interface ListLike: Selectable<Int> {
-    val hasFocus    : Boolean
-    val focusChanged: PropertyObservers<View, Boolean>
+public interface ListLike: Selectable<Int> {
+    public val hasFocus    : Boolean
+    public val focusChanged: PropertyObservers<View, Boolean>
 }
 
-open class List<T, out M: ListModel<T>>(
+public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-                       val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         protected      val selectionModel: SelectionModel<Int>?           = null,
         private        val fitContent    : Boolean                        = true,
         private        val scrollCache   : Int                            = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
@@ -80,25 +81,25 @@ open class List<T, out M: ListModel<T>>(
     private   var rowPositioner: RowPositioner<T>? = null
     private   var minVisibleY  = 0.0
     private   var maxVisibleY  = 0.0
-    protected var minHeight    = 0.0
+    protected var minHeight: Double = 0.0
         set(new) {
             field  = new
             height = field
         }
 
-    protected var firstVisibleRow =  0
-    protected var lastVisibleRow  = -1
+    protected var firstVisibleRow: Int =  0
+    protected var lastVisibleRow : Int = -1
 
-    val numRows get() = model.size
-    val isEmpty get() = model.isEmpty
+    public val numRows: Int     get() = model.size
+    public val isEmpty: Boolean get() = model.isEmpty
 
-    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<Int>> = SetPool()
 
-    var cellAlignment: (Constraints.() -> Unit)? = null
+    public var cellAlignment: (Constraints.() -> Unit)? = null
 
-    fun contains(value: T) = value in model
+    public fun contains(value: T): Boolean = value in model
 
-    var behavior: ListBehavior<T>? by behavior { _,new ->
+    public var behavior: ListBehavior<T>? by behavior { _,new ->
         new?.also {
             rowGenerator  = it.generator
             rowPositioner = it.positioner
@@ -125,7 +126,7 @@ open class List<T, out M: ListModel<T>>(
         handleDisplayRectEvent(Empty, displayRect)
     }
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { super.insets = new }
 
@@ -151,9 +152,9 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    operator fun get(index: Int) = model[index]
+    public operator fun get(index: Int): T? = model[index]
 
-    override var isFocusCycleRoot = true
+    override var isFocusCycleRoot: Boolean = true
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -265,7 +266,7 @@ open class List<T, out M: ListModel<T>>(
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.row(this, y) ?: nearbyRow)
 
-    fun scrollToSelection() {
+    public fun scrollToSelection() {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 this[lastSelection]?.let {
@@ -277,16 +278,16 @@ open class List<T, out M: ListModel<T>>(
         }
     }
 
-    companion object {
-        operator fun invoke(
+    public companion object {
+        public operator fun invoke(
                 progression    : IntProgression,
                 itemVisualizer : ItemVisualizer<Int, IndexedIem>,
                 selectionModel : SelectionModel<Int>? = null,
                 fitContent     : Boolean              = true,
-                scrollCache    : Int                  = 10) =
+                scrollCache    : Int                  = 10): List<Int, ListModel<Int>> =
                 List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun <T> invoke(
+        public operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemVisualizer: ItemVisualizer<T, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
@@ -294,19 +295,20 @@ open class List<T, out M: ListModel<T>>(
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
                 List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun invoke(
+        public operator fun invoke(
                 values        : kotlin.collections.List<View>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<View, ListModel<View>> =
                 List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun <T, M: ListModel<T>>invoke(
+        public operator fun <T, M: ListModel<T>>invoke(
                 model         : M,
                 itemGenerator : ItemVisualizer<T, IndexedIem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10) = List(model, itemGenerator, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                            = 10): List<T, M> =
+                List(model, itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }
 

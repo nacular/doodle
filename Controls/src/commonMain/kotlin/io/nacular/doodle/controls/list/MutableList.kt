@@ -17,30 +17,30 @@ import io.nacular.doodle.utils.SortOrder.Descending
 import io.nacular.doodle.utils.observable
 
 
-interface ListEditor<T> {
-    fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>
+public interface ListEditor<T> {
+    public fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>
 }
 
-inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>) = object: ListEditor<T> {
-    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
+public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>): ListEditor<T> = object: ListEditor<T> {
+    public override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
 }
 
-open class MutableList<T, M: MutableListModel<T>>(
+public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         selectionModel: SelectionModel<Int>?           = null,
         fitContent    : Boolean                        = true,
         scrollCache   : Int                            = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
 
-    val editing get() = editingRow != null
+    public val editing: Boolean get() = editingRow != null
 
-    var editor = null as ListEditor<T>?
+    public var editor: ListEditor<T>? = null
 
     /** Notifies changes to [sortOrder] */
-    val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> by lazy { PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this) }
+    public val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> by lazy { PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this) }
 
     /** current sorting for the list default is ```null```.  */
-    var sortOrder: SortOrder? by observable(null, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
+    public var sortOrder: SortOrder? by observable(null, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
         private set
 
     private var editingRow = null as Int?
@@ -50,7 +50,7 @@ open class MutableList<T, M: MutableListModel<T>>(
 
     private var editOperation = null as EditOperation<T>?
 
-    operator fun set(index: Int, value: T) {
+    public operator fun set(index: Int, value: T) {
         if (value == model.set(index, value)) {
             // This is the case that the "new" value is the same as what was there
             // so need to explicitly update since the model won't fire a change
@@ -58,17 +58,17 @@ open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
-    fun add      (value : T                         ) = model.add      (value        )
-    fun add      (index : Int, values: T            ) = model.add      (index, values)
-    fun remove   (value : T                         ) = model.remove   (value        )
-    fun removeAt (index : Int                       ) = model.removeAt (index        )
-    fun addAll   (values: Collection<T>             ) = model.addAll   (values       )
-    fun addAll   (index : Int, values: Collection<T>) = model.addAll   (index, values)
-    fun removeAll(values: Collection<T>             ) = model.removeAll(values       )
-    fun retainAll(values: Collection<T>             ) = model.retainAll(values       )
-    fun clear    (                                  ) = model.clear()
+    public fun add      (value : T                         ): Unit = model.add      (value        )
+    public fun add      (index : Int, values: T            ): Unit = model.add      (index, values)
+    public fun remove   (value : T                         ): Unit = model.remove   (value        )
+    public fun removeAt (index : Int                       ): T?   = model.removeAt (index        )
+    public fun addAll   (values: Collection<T>             ): Unit = model.addAll   (values       )
+    public fun addAll   (index : Int, values: Collection<T>): Unit = model.addAll   (index, values)
+    public fun removeAll(values: Collection<T>             ): Unit = model.removeAll(values       )
+    public fun retainAll(values: Collection<T>             ): Unit = model.retainAll(values       )
+    public fun clear    (                                  ): Unit = model.clear()
 
-    fun startEditing(index: Int) {
+    public fun startEditing(index: Int) {
         cancelEditing()
 
         editor?.let {
@@ -85,7 +85,7 @@ open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
-    fun completeEditing() {
+    public fun completeEditing() {
         editOperation?.let { operation ->
             editingRow?.let { index ->
                 val result = operation.complete() ?: return
@@ -98,17 +98,17 @@ open class MutableList<T, M: MutableListModel<T>>(
     }
 
     // FIXME: Cancel editing on selection/focus change
-    fun cancelEditing() {
+    public fun cancelEditing() {
         cleanupEditing()?.let { update(children, it) }
     }
 
-    fun sort(with: Comparator<T>) {
+    public fun sort(with: Comparator<T>) {
         model.sortWith(with)
 
         sortOrder = Ascending
     }
 
-    fun sortDescending(with: Comparator<T>) {
+    public fun sortDescending(with: Comparator<T>) {
         model.sortWithDescending(with)
 
         sortOrder = Descending
@@ -122,16 +122,16 @@ open class MutableList<T, M: MutableListModel<T>>(
         return result
     }
 
-    companion object {
-        operator fun invoke(
+    public companion object {
+        public operator fun invoke(
                 progression   : IntProgression,
                 itemVisualizer: ItemVisualizer<Int, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10) =
+                scrollCache   : Int                  = 10): MutableList<Int, MutableListModel<Int>> =
                 MutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        inline operator fun <reified T> invoke(
+        public inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemVisualizer: ItemVisualizer<T, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
@@ -139,19 +139,20 @@ open class MutableList<T, M: MutableListModel<T>>(
                 scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
                 MutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun invoke(
+        public operator fun invoke(
                 values        : kotlin.collections.List<View>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<View, ListModel<View>> =
                 MutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun  <T, M: MutableListModel<T>>invoke(
+        public operator fun  <T, M: MutableListModel<T>>invoke(
                 model         : M,
                 itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10) = MutableList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
+                scrollCache   : Int                            = 10): MutableList<T, M> =
+                MutableList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
 
     }
 }

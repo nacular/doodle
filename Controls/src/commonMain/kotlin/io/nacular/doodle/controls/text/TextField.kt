@@ -10,32 +10,32 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
 
-interface TextFieldBehavior: Behavior<TextField> {
-    fun fitTextSize(textField: TextField): Size
+public interface TextFieldBehavior: Behavior<TextField> {
+    public fun fitTextSize(textField: TextField): Size
 }
 
-open class TextField(text: String = ""): TextInput(text) {
+public open class TextField(text: String = ""): TextInput(text) {
 
-    var placeHolder: String by styleProperty("")
+    public var placeHolder: String by styleProperty("")
 
-    var placeHolderFont: Font? by styleProperty(font)
+    public var placeHolderFont: Font? by styleProperty(font)
 
-    var placeHolderColor: Color? by styleProperty(foregroundColor)
+    public var placeHolderColor: Color? by styleProperty(foregroundColor)
 
-    var fitText = emptySet<TextFit>()
+    public var fitText: Set<TextFit> = emptySet<TextFit>()
         set(new) {
             field = new
 
             fitText()
         }
 
-    var borderVisible: Boolean by styleProperty(true)
+    public var borderVisible: Boolean by styleProperty(true)
 
-    val masked get() = mask != null
+    public val masked: Boolean get() = mask != null
 
-    val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
+    public val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
 
-    var mask: Char? = null
+    public var mask: Char? = null
         set(new) {
             if (field == new) return
 
@@ -49,7 +49,7 @@ open class TextField(text: String = ""): TextInput(text) {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-    var behavior: TextFieldBehavior? by behavior { _,_ ->
+    public var behavior: TextFieldBehavior? by behavior { _,_ ->
         mirrorWhenRightLeft = false
 
         fitText()
@@ -65,7 +65,7 @@ open class TextField(text: String = ""): TextInput(text) {
         behavior?.render(this, canvas)
     }
 
-    override var text
+    override var text: String
         get(   ) = super.text
         set(new) {
             super.text = new
@@ -82,11 +82,11 @@ open class TextField(text: String = ""): TextInput(text) {
             }
         }
 
-    override fun cut() = copy().also { deleteSelected() }
+    override fun cut(): String = copy().also { deleteSelected() }
 
-    override fun copy() = displayText.substring(selection.start, selection.end)
+    override fun copy(): String = displayText.substring(selection.start, selection.end)
 
-    var displayText = text
+    public var displayText: String = text
         private set(new) {
             field = new
             fitText()

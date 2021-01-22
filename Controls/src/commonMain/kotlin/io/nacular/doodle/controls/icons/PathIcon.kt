@@ -5,9 +5,9 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
@@ -16,7 +16,7 @@ import io.nacular.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 12/5/17.
  */
-open class PathIcon<in T: View>(
+public open class PathIcon<in T: View>(
         private val path       : Path,
         private val size       : Size?    = null,
                     fill       : Color?   = null,
@@ -25,7 +25,7 @@ open class PathIcon<in T: View>(
                     pathMetrics: PathMetrics): Icon<T> {
 
     private val pathSize = pathMetrics.size(path)
-    override fun size(view: T) = size ?: pathSize
+    override fun size(view: T): Size = size ?: pathSize
 
     private val stroke   = outline?.let { Stroke       (it) }
     private val fill = fill?.let    { ColorFill(it) }

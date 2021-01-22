@@ -18,7 +18,7 @@ import io.nacular.doodle.utils.PropertyObserversImpl
  * @param model containing range and value
  * @param orientation of the control
  */
-open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientation = Horizontal): ValueSlider(model) {
+public open class Slider(model: ConfinedValueModel<Double>, public val orientation: Orientation = Horizontal): ValueSlider(model) {
     /**
      * Creates a Slider with a given range and starting value.
      *
@@ -26,20 +26,20 @@ open class Slider(model: ConfinedValueModel<Double>, val orientation: Orientatio
      * @param value to start with
      * @param orientation of the control
      */
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
+    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value), orientation)
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<Slider, Double>(this) }
 
-    val changed: PropertyObservers<Slider, Double> = changed_
+    public val changed: PropertyObservers<Slider, Double> = changed_
 
-    var behavior: Behavior<Slider>? by behavior()
+    public var behavior: Behavior<Slider>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
     override fun changed(old: Double, new: Double) {
         changed_(old, new)

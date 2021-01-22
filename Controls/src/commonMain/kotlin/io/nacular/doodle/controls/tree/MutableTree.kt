@@ -12,11 +12,11 @@ import io.nacular.doodle.utils.Path
  * Created by Nicholas Eddy on 12/13/18.
  */
 
-interface TreeEditor<T> {
-    fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
+public interface TreeEditor<T> {
+    public fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
-class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, itemVisualizer, selectionModel) {
+public class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, itemVisualizer, selectionModel) {
     init {
         selectionChanged += { _,_,_ ->
             editingRect?.let {
@@ -37,13 +37,13 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisua
         }
     }
 
-    val editing get() = editingPath != null
+    public val editing: Boolean get() = editingPath != null
 
-    var editor = null as TreeEditor<T>?
+    public var editor: TreeEditor<T>? = null
 
-    operator fun set(path: Path<Int>, value: T) { model[path] = value }
+    public operator fun set(path: Path<Int>, value: T) { model[path] = value }
 
-    operator fun set(row: Int, value: T) { pathFromRow(row)?.let { updateModel(it, value) } }
+    public operator fun set(row: Int, value: T) { pathFromRow(row)?.let { updateModel(it, value) } }
 
     private var editingPath = null as Path<Int>?
         set(new) {
@@ -64,10 +64,10 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisua
     private var editingRect   = null as Rectangle?
     private var editOperation = null as EditOperation<T>?
 
-    fun add     (path: Path<Int>, values: T            ) = model.add     (path, values)
-    fun removeAt(path: Path<Int>                       ) = model.removeAt(path        )
-    fun addAll  (path: Path<Int>, values: Collection<T>) = model.addAll  (path, values)
-    fun clear   (                                      ) = model.clear   (            )
+    public fun add     (path: Path<Int>, values: T            ): Unit = model.add     (path, values)
+    public fun removeAt(path: Path<Int>                       ): T?   = model.removeAt(path        )
+    public fun addAll  (path: Path<Int>, values: Collection<T>): Unit = model.addAll  (path, values)
+    public fun clear   (                                      ): Unit = model.clear   (            )
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         super.handleDisplayRectEvent(old, new)
@@ -79,7 +79,7 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisua
         }
     }
 
-    fun startEditing(path: Path<Int>) {
+    public fun startEditing(path: Path<Int>) {
         if (!visible(path)) {
             return
         }
@@ -102,7 +102,7 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisua
         }
     }
 
-    fun completeEditing() {
+    public fun completeEditing() {
         editOperation?.let { operation ->
             editingPath?.let { path ->
                 val result = operation.complete() ?: return
@@ -114,7 +114,7 @@ class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisua
         }
     }
 
-    fun cancelEditing() {
+    public fun cancelEditing() {
         preEditValue?.let { oldValue -> cleanupEditing()?.let { path -> updateModel(path, oldValue) } }
     }
 

@@ -10,36 +10,36 @@ import kotlin.math.max
 import kotlin.math.min
 
 
-class Selection(val position: Int, val anchor: Int) {
-    val start get() = min(position, anchor)
-    val end   get() = max(position, anchor)
+public class Selection(public val position: Int, public val anchor: Int) {
+    public val start: Int get() = min(position, anchor)
+    public val end  : Int get() = max(position, anchor)
 }
 
-typealias Validator = (String) -> String
+public typealias Validator = (String) -> String
 
-abstract class TextInput(text: String = ""): View() {
+public abstract class TextInput(text: String = ""): View() {
 
-    val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
+    public val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 
-    var horizontalAlignment: HorizontalAlignment by observable(Left, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
+    public var horizontalAlignment: HorizontalAlignment by observable(Left, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
 
-    val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(this) }
+    public val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl<TextInput, String>(this) }
 
-    open var text: String by observable(text, textChanged as PropertyObserversImpl<TextInput, String>) { _,_ ->
+    public open var text: String by observable(text, textChanged as PropertyObserversImpl<TextInput, String>) { _,_ ->
         select(min(text.length, selection.position) .. min(text.length, selection.anchor))
     }
 
-    var cursorVisible = true
+    public var cursorVisible: Boolean = true
 
-    var validator: Validator = { it }
+    public var validator: Validator = { it }
         set(new) {
             field = new
             text  = text /* re-validate text */
         }
 
-    val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(this) }
+    public val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl<TextInput, Selection>(this) }
 
-    var selection: Selection by observable(Selection(0, 0), selectionChanged as PropertyObserversImpl<TextInput, Selection>)
+    public var selection: Selection by observable(Selection(0, 0), selectionChanged as PropertyObserversImpl<TextInput, Selection>)
         private set
 
     init {
@@ -56,15 +56,15 @@ abstract class TextInput(text: String = ""): View() {
         mirrorWhenRightLeft = false
     }
 
-    fun selectAll() = select(0 .. text.length)
+    public fun selectAll(): Unit = select(0 .. text.length)
 
-    open fun cut() = copy().also {
+    public open fun cut(): String = copy().also {
         deleteSelected()
     }
 
-    open fun copy() = text.substring(selection.start, selection.end)
+    public open fun copy(): String = text.substring(selection.start, selection.end)
 
-    fun paste(text: String) {
+    public fun paste(text: String) {
         deleteSelected()
 
         insert(text, selection.start)
@@ -74,13 +74,13 @@ abstract class TextInput(text: String = ""): View() {
         select(selectionStart .. selectionStart)
     }
 
-    fun insert(text: String, at: Int) {
+    public fun insert(text: String, at: Int) {
         this.text = text.substring(0, at) + text + text.substring(at)
     }
 
-    fun deleteSelected() = delete(selection.start .. selection.end)
+    public fun deleteSelected(): Unit = delete(selection.start .. selection.end)
 
-    fun delete(range: ClosedRange<Int>) {
+    public fun delete(range: ClosedRange<Int>) {
         if (range.start >= 0 && range.endInclusive <= text.length) {
             val newText = text.substring(0, range.start) + text.substring(range.endInclusive)
 
@@ -90,7 +90,7 @@ abstract class TextInput(text: String = ""): View() {
         }
     }
 
-    fun select(range: ClosedRange<Int>) {
+    public fun select(range: ClosedRange<Int>) {
         val start = range.start
         val end   = range.endInclusive
 

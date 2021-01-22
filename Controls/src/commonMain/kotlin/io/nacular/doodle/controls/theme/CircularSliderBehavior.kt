@@ -24,12 +24,12 @@ import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlin.math.abs
 
-abstract class CircularSliderBehavior(
+public abstract class CircularSliderBehavior(
         private val focusManager: FocusManager?,
         private val startAngle  : Measure<Angle> = _270): Behavior<CircularSlider>, PointerListener, PointerMotionListener, KeyListener {
 
     private   var lastStart           = -1.0
-    protected var lastPointerPosition = _0
+    protected var lastPointerPosition: Measure<Angle> = _0
         private set
 
     private val changed: (CircularSlider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
@@ -89,7 +89,7 @@ abstract class CircularSliderBehavior(
         event.consume()
     }
 
-    protected fun handleAngle(slider: CircularSlider) = when {
+    protected fun handleAngle(slider: CircularSlider): Measure<Angle> = when {
         slider.range.isEmpty() -> startAngle
         else                   -> startAngle + ((slider.value - slider.range.start) / slider.range.size) * _360
     }.normalize()
@@ -107,10 +107,10 @@ abstract class CircularSliderBehavior(
     }
 
     protected companion object {
-        val   _0 =   0 * degrees
-        val  _90 =  90 * degrees
-        val _180 = 180 * degrees
-        val _270 = 270 * degrees
-        val _360 = 360 * degrees
+        public val   _0: Measure<Angle> =   0 * degrees
+        public val  _90: Measure<Angle> =  90 * degrees
+        public val _180: Measure<Angle> = 180 * degrees
+        public val _270: Measure<Angle> = 270 * degrees
+        public val _360: Measure<Angle> = 360 * degrees
     }
 }

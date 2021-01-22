@@ -13,105 +13,105 @@ import io.nacular.doodle.utils.Path
 /**
  * Created by Nicholas Eddy on 4/6/19.
  */
-class HeaderGeometry(val y: Double, val height: Double)
+public class HeaderGeometry(public val y: Double, public val height: Double)
 
-interface TableBehavior<T>: Behavior<Table<T, *>> {
-    interface CellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
+public interface TableBehavior<T>: Behavior<Table<T, *>> {
+    public interface CellGenerator<T> {
+        public operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
-    interface RowPositioner<T> {
-        fun rowBounds(of: Table<T, *>, row: T, index: Int): Rectangle
+    public interface RowPositioner<T> {
+        public fun rowBounds(of: Table<T, *>, row: T, index: Int): Rectangle
 
-        fun row(of: Table<T, *>, y: Double): Int
+        public fun row(of: Table<T, *>, y: Double): Int
 
-        fun totalRowHeight(of: Table<T, *>): Double
+        public fun totalRowHeight(of: Table<T, *>): Double
     }
 
-    interface HeaderPositioner<T> {
-        operator fun invoke(table: Table<T, *>): HeaderGeometry
+    public interface HeaderPositioner<T> {
+        public operator fun invoke(table: Table<T, *>): HeaderGeometry
     }
 
-    interface HeaderCellGenerator<T> {
-        operator fun <A> invoke(table: Table<T, *>, column: Column<A>): View
+    public interface HeaderCellGenerator<T> {
+        public operator fun <A> invoke(table: Table<T, *>, column: Column<A>): View
     }
 
-    interface OverflowColumnConfig<T> {
-        fun header(table: Table<T, *>): View? = null
-        fun body  (table: Table<T, *>): View? = null
+    public interface OverflowColumnConfig<T> {
+        public fun header(table: Table<T, *>): View? = null
+        public fun body  (table: Table<T, *>): View? = null
     }
 
-    val cellGenerator       : CellGenerator<T>
-    val rowPositioner       : RowPositioner<T>
-    val headerPositioner    : HeaderPositioner<T>
-    val headerCellGenerator : HeaderCellGenerator<T>
-    val overflowColumnConfig: OverflowColumnConfig<T>?
+    public val cellGenerator       : CellGenerator<T>
+    public val rowPositioner       : RowPositioner<T>
+    public val headerPositioner    : HeaderPositioner<T>
+    public val headerCellGenerator : HeaderCellGenerator<T>
+    public val overflowColumnConfig: OverflowColumnConfig<T>?
 
-    var bodyDirty  : ((         ) -> Unit)?
-    var headerDirty: ((         ) -> Unit)?
-    var columnDirty: ((Column<*>) -> Unit)?
+    public var bodyDirty  : ((         ) -> Unit)?
+    public var headerDirty: ((         ) -> Unit)?
+    public var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    public fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
-    fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
-    fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
-    fun <A> columnMoveEnd  (table: Table<T, *>, column: Column<A>) {}
+    public fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
+    public fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
+    public fun <A> columnMoveEnd  (table: Table<T, *>, column: Column<A>) {}
 
-    fun renderHeader        (table: Table<T, *>,                    canvas: Canvas) {}
-    fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
-    fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
+    public fun renderHeader        (table: Table<T, *>,                    canvas: Canvas) {}
+    public fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
+    public fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
 }
 
-interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
-    interface TreeCellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
+public interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {
+    public interface TreeCellGenerator<T> {
+        public operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
-    interface CellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
+    public interface CellGenerator<T> {
+        public operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
     }
 
-    abstract class RowPositioner<T> {
-        fun TreeTable<T, *>.rowsBelow(path: Path<Int>): Int = this.rowsBelow(path)
+    public abstract class RowPositioner<T> {
+        public fun TreeTable<T, *>.rowsBelow(path: Path<Int>): Int = this.rowsBelow(path)
 
-        abstract fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int): Rectangle
+        public abstract fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int): Rectangle
 
-        abstract fun rowFor(of: TreeTable<T, *>, y: Double): Int
+        public abstract fun rowFor(of: TreeTable<T, *>, y: Double): Int
 
-        abstract fun height(of: TreeTable<T, *>, below: Path<Int>): Double
+        public abstract fun height(of: TreeTable<T, *>, below: Path<Int>): Double
     }
 
-    interface HeaderPositioner<T> {
-        operator fun invoke(table: TreeTable<T, *>): HeaderGeometry
+    public interface HeaderPositioner<T> {
+        public operator fun invoke(table: TreeTable<T, *>): HeaderGeometry
     }
 
-    interface HeaderCellGenerator<T> {
-        operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>): View
+    public interface HeaderCellGenerator<T> {
+        public operator fun <A> invoke(table: TreeTable<T, *>, column: Column<A>): View
     }
 
-    interface OverflowColumnConfig<T> {
-        fun header(table: TreeTable<T, *>): View? = null
-        fun body  (table: TreeTable<T, *>): View? = null
+    public interface OverflowColumnConfig<T> {
+        public fun header(table: TreeTable<T, *>): View? = null
+        public fun body  (table: TreeTable<T, *>): View? = null
     }
 
-    val treeCellGenerator   : TreeCellGenerator<T>
-    val cellGenerator       : CellGenerator<T>
-    val rowPositioner       : RowPositioner<T>
-    val headerPositioner    : HeaderPositioner<T>
-    val headerCellGenerator : HeaderCellGenerator<T>
-    val overflowColumnConfig: OverflowColumnConfig<T>?
+    public val treeCellGenerator   : TreeCellGenerator<T>
+    public val cellGenerator       : CellGenerator<T>
+    public val rowPositioner       : RowPositioner<T>
+    public val headerPositioner    : HeaderPositioner<T>
+    public val headerCellGenerator : HeaderCellGenerator<T>
+    public val overflowColumnConfig: OverflowColumnConfig<T>?
 
-    var bodyDirty  : ((         ) -> Unit)?
-    var headerDirty: ((         ) -> Unit)?
-    var columnDirty: ((Column<*>) -> Unit)?
+    public var bodyDirty  : ((         ) -> Unit)?
+    public var headerDirty: ((         ) -> Unit)?
+    public var columnDirty: ((Column<*>) -> Unit)?
 
-    fun moveColumn(table: TreeTable<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    public fun moveColumn(table: TreeTable<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
-    fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {}
-    fun <A> columnMoved    (table: TreeTable<T, *>, column: Column<A>) {}
-    fun <A> columnMoveEnd  (table: TreeTable<T, *>, column: Column<A>) {}
+    public fun <A> columnMoveStart(table: TreeTable<T, *>, column: Column<A>) {}
+    public fun <A> columnMoved    (table: TreeTable<T, *>, column: Column<A>) {}
+    public fun <A> columnMoveEnd  (table: TreeTable<T, *>, column: Column<A>) {}
 
-    fun renderHeader        (table: TreeTable<T, *>, canvas: Canvas) {}
-    fun renderBody          (table: TreeTable<T, *>, canvas: Canvas) {}
-    fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {}
+    public fun renderHeader        (table: TreeTable<T, *>, canvas: Canvas) {}
+    public fun renderBody          (table: TreeTable<T, *>, canvas: Canvas) {}
+    public fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {}
 }

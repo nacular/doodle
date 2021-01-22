@@ -1,25 +1,25 @@
 package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.panels.SplitPanel
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.system.Cursor.Companion.ColResize
 import io.nacular.doodle.system.Cursor.Companion.RowResize
-import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
 import kotlin.math.max
 import kotlin.math.min
 
-interface SplitPanelBehavior: Behavior<SplitPanel> {
-    fun divider(panel: SplitPanel): View?
+public interface SplitPanelBehavior: Behavior<SplitPanel> {
+    public fun divider(panel: SplitPanel): View?
 
-    val dividerVisible: Boolean
+    public val dividerVisible: Boolean
 }
 
-abstract class CommonSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
+public abstract class CommonSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var orientation     = Vertical

@@ -11,7 +11,7 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 /**
  * Created by Nicholas Eddy on 4/30/18.
  */
-class Menu(
+public class Menu(
         private val menuSelectionManager: MenuSelectionManager,
                     popupFactory        : PopupFactory,
                     text                : String = "",
@@ -22,7 +22,7 @@ class Menu(
 
     override var parentMenu: MenuItem? = null
 
-    override var menuSelected
+    override var menuSelected: Boolean
         get(   ) = selected
         set(new) { selected = new }
 
@@ -46,7 +46,7 @@ class Menu(
         }
     }
 
-    override val subMenus = popup.subMenus
+    override val subMenus: Iterator<MenuItem> = popup.subMenus
 
     override val selectedChanged: PropertyObservers<MenuItem, Boolean> by lazy { PropertyObserversImpl<MenuItem, Boolean>(this) }
 
@@ -62,7 +62,7 @@ class Menu(
         }
     }
 
-    fun add(menu: Menu) = popup.add(menu)
+    public fun add(menu: Menu): Unit = popup.add(menu)
 }
 
 private fun getPath(menuItem: MenuItem): Path<MenuItem> {

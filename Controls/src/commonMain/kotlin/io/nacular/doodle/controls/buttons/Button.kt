@@ -7,12 +7,15 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.Anchor.Left
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.observable
 
@@ -21,7 +24,7 @@ import io.nacular.doodle.utils.observable
  */
 
 @Suppress("PrivatePropertyName")
-abstract class Button protected constructor(
+public abstract class Button protected constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
             model: ButtonModel  = ButtonModelImpl()): View(accessibilityRole = button()) {
@@ -45,35 +48,35 @@ abstract class Button protected constructor(
         model.pointerOverChanged -= pointerOverChanged_
     }
 
-    val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl<Button, String>(this) }
+    public val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl(this) }
 
-    var text by observable(text, textChanged as PropertyObserversImpl<Button, String>)
+    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>)
 
-    val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
+    public val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
 
-    val armedChanged      : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
-    val pressedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
-    val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl<Button, Boolean>(this) }
+    public val armedChanged      : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
+    public val pressedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
+    public val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
 
-    var behavior: Behavior<Button>? by behavior()
+    public var behavior: Behavior<Button>? by behavior()
 
-    var iconTextSpacing = 4.0; set(new) { field = new; styleChanged { true } }
+    public var iconTextSpacing: Double by styleProperty(4.0) { true }
 
-    var verticalAlignment = Middle; set(new) { field = new; styleChanged { true } }
+    public var verticalAlignment: VerticalAlignment by styleProperty(Middle) { true }
 
-    var horizontalAlignment = Center; set(new) { field = new; styleChanged { true } }
+    public var horizontalAlignment: HorizontalAlignment by styleProperty(Center) { true }
 
-    var iconAnchor = Left; set(new) { field = new; styleChanged { true } }
+    public var iconAnchor: Anchor by styleProperty(Left) { true }
 
-    var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged { true } }
-    var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
-    var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
-    var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
-    var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
-    var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon; set(new) { field = new; styleChanged { true } }
-    var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon; set(new) { field = new; styleChanged { true } }
+    public var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged { true } }
+    public var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    public var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    public var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    public var pointerOverIcon        : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
+    public var disabledSelectedIcon   : Icon<Button>? = null; get() = field ?: disabledIcon; set(new) { field = new; styleChanged { true } }
+    public var pointerOverSelectedIcon: Icon<Button>? = null; get() = field ?: selectedIcon; set(new) { field = new; styleChanged { true } }
 
-    var selected: Boolean
+    public var selected: Boolean
         get(   ) = model.selected
         set(new) {
             if (enabled) {
@@ -81,7 +84,7 @@ abstract class Button protected constructor(
             }
         }
 
-    open var model: ButtonModel = model
+    public open var model: ButtonModel = model
         set(new) {
             unregisterModel(field)
 
@@ -98,7 +101,7 @@ abstract class Button protected constructor(
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
-    abstract fun click()
+    public abstract fun click()
 }

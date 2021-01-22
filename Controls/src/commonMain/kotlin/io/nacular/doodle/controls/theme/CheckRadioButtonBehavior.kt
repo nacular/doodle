@@ -17,14 +17,14 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/25/19.
  */
-open class CheckRadioButtonBehavior<T: ToggleButton> protected constructor(
+public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructor(
         private val textMetrics        : TextMetrics,
         private val textColor          : Color,
         private val icon               : Icon<T>,
         private val spacing            : Double = 2.0,
         private val disabledColorMapper: (Color) -> Color = { it.lighter() }): CommonTextButtonBehavior<T>(textMetrics) {
 
-    protected val insets = Insets()
+    protected val insets: Insets = Insets()
 
     override fun render(view: T, canvas: Canvas) {
         val icon      = icon(view)

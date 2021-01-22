@@ -3,7 +3,6 @@ package io.nacular.doodle.controls.list
 import io.nacular.doodle.controls.DynamicListModel
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
-import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.SelectionModel
@@ -14,9 +13,9 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.size
 
-typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 
-open class DynamicList<T, M: DynamicListModel<T>>(
+public open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         selectionModel: SelectionModel<Int>?           = null,
@@ -61,7 +60,7 @@ open class DynamicList<T, M: DynamicListModel<T>>(
         (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
     }
 
-    val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
+    public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
     init {
         model.changed += modelChanged
@@ -109,16 +108,16 @@ open class DynamicList<T, M: DynamicListModel<T>>(
         }
     }
 
-    companion object {
-        operator fun invoke(
+    public companion object {
+        public operator fun invoke(
                 progression   : IntProgression,
                 itemVisualizer: ItemVisualizer<Int, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10) =
+                scrollCache   : Int                  = 10): DynamicList<Int, MutableListModel<Int>> =
                 DynamicList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        inline operator fun <reified T> invoke(
+        public inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
                 itemVisualizer: ItemVisualizer<T, IndexedIem>,
                 selectionModel: SelectionModel<Int>? = null,
@@ -126,19 +125,19 @@ open class DynamicList<T, M: DynamicListModel<T>>(
                 scrollCache   : Int                  = 10): DynamicList<T, MutableListModel<T>> =
                 DynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun invoke(
+        public operator fun invoke(
                 values        : kotlin.collections.List<View>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+                scrollCache   : Int                  = 10): DynamicList<View, MutableListModel<View>> =
                 DynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
-        operator fun <T, M: DynamicListModel<T>> invoke(
+        public operator fun <T, M: DynamicListModel<T>> invoke(
                 model         : M,
                 itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10) =
+                scrollCache   : Int                            = 10): DynamicList<T, M> =
                 DynamicList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
 
     }

@@ -16,7 +16,7 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 
 
-abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
+public abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)
@@ -144,9 +144,9 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
         }
     }
 
-    protected open fun stylesChanged (button: T) = button.rerender()
-    protected open fun pointerChanged(button: T) = button.rerender()
-    protected open fun enabledChanged(button: T) = button.rerender()
+    protected open fun stylesChanged (button: T): Unit = button.rerender()
+    protected open fun pointerChanged(button: T): Unit = button.rerender()
+    protected open fun enabledChanged(button: T): Unit = button.rerender()
 
     protected fun icon(button: Button): Icon<Button>? {
         val model = button.model
@@ -161,6 +161,6 @@ abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, Po
     }
 }
 
-inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit) = object: CommonButtonBehavior<T>() {
+public inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>() {
     override fun render(view: T, canvas: Canvas) = render(view, canvas)
 }

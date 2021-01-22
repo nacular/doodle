@@ -1,19 +1,19 @@
 package io.nacular.doodle.controls.table
 
-interface ColumnSizePolicy {
-    interface Column {
-        var width         : Double
-        val minWidth      : Double
-        val maxWidth      : Double?
-        val preferredWidth: Double?
+public interface ColumnSizePolicy {
+    public interface Column {
+        public var width         : Double
+        public val minWidth      : Double
+        public val maxWidth      : Double?
+        public val preferredWidth: Double?
     }
 
-    fun layout(width: Double, columns: List<Column>, startIndex: Int = 0): Double
+    public fun layout(width: Double, columns: List<Column>, startIndex: Int = 0): Double
 
-    fun widthChanged(width: Double, columns: List<Column>, index: Int, to: Double)
+    public fun widthChanged(width: Double, columns: List<Column>, index: Int, to: Double)
 }
 
-class ConstrainedSizePolicy: ColumnSizePolicy {
+public class ConstrainedSizePolicy: ColumnSizePolicy {
     override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
         var remainingWidth = width
 

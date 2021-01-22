@@ -15,6 +15,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.layout.max
@@ -23,7 +24,7 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
 
-open class Table<T, M: ListModel<T>>(
+public open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
         private   val scrollCache   : Int                  = 10,
@@ -134,17 +135,17 @@ open class Table<T, M: ListModel<T>>(
         }
     }
 
-    val numRows get() = model.size
-    val isEmpty get() = model.isEmpty
+    public val numRows: Int     get() = model.size
+    public val isEmpty: Boolean get() = model.isEmpty
 
-    var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
         set(new) {
             field = new
 
             doLayout()
         }
 
-    var behavior = null as TableBehavior<T>?
+    public var behavior: TableBehavior<T>? = null
         set(new) {
             if (new == behavior) { return }
 
@@ -210,11 +211,11 @@ open class Table<T, M: ListModel<T>>(
             }
         }
 
-    val columns: List<Column<*>> get() = internalColumns.dropLast(1)
+    public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    val selectionChanged: Pool<SetObserver<Int>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<Int>> = SetPool()
 
-    fun contains(value: T) = value in model
+    public fun contains(value: T): Boolean = value in model
 
     internal val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
@@ -263,7 +264,7 @@ open class Table<T, M: ListModel<T>>(
     private val headerDirty: (         ) -> Unit = { header.rerender        () }
     private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
-    operator fun get(index: Int) = model[index]
+    public operator fun get(index: Int): T? = model[index]
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }
@@ -271,7 +272,7 @@ open class Table<T, M: ListModel<T>>(
         super.removedFromDisplay()
     }
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { super.insets = new }
 
@@ -290,8 +291,8 @@ open class Table<T, M: ListModel<T>>(
         resizingCol = null
     }
 
-    companion object {
-        operator fun <T> invoke(
+    public companion object {
+        public operator fun <T> invoke(
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
                        scrollCache   : Int                  = 10,

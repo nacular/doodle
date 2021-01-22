@@ -15,6 +15,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.West
@@ -36,14 +37,14 @@ private interface Focusable {
 }
 
 // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-open class TreeColumns<T, M: TreeModel<T>>(
+public open class TreeColumns<T, M: TreeModel<T>>(
         protected val model         : M,
-                  val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        public    val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
                       selectionModel: SelectionModel<Path<Int>>?     = null): View(), Selectable<Path<Int>>, Focusable {
 
     protected class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
-        var root     = null as Path<Int>?
-        val children = mutableListOf<Int>()
+        public var root: Path<Int>? = null as Path<Int>?
+        public val children: kotlin.collections.MutableList<Int> = mutableListOf()
 
         init {
             // FIXME: There are still bugs around toggling
@@ -84,7 +85,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
 
     private val columns = mutableListOf<Column<T>>()
 
-    protected val selectionModel = selectionModel?.let { FilteringSelectionModel(it) }
+    protected val selectionModel: FilteringSelectionModel? = selectionModel?.let { FilteringSelectionModel(it) }
 
     private class LocalSelectionModel(var root: Path<Int>, private val delegate: SelectionModel<Path<Int>>): SelectionModel<Int> { //MultiSelectionModel<Int>() {
 
@@ -175,7 +176,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
         }
     }
 
-    var behavior = null as TreeColumnsBehavior<T>?
+    public var behavior: TreeColumnsBehavior<T>? = null
         set(new) {
             if (new == behavior) {
                 return
@@ -228,7 +229,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
         }
     }
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { super.insets = new }
 
@@ -305,19 +306,19 @@ open class TreeColumns<T, M: TreeModel<T>>(
         }
     }
 
-    fun visible(path: Path<Int>) = path.parent?.let { selected(it) }
+    public fun visible(path: Path<Int>): Boolean? = path.parent?.let { selected(it) }
 
-    fun isLeaf(path: Path<Int>) = model.isLeaf(path)
+    public fun isLeaf(path: Path<Int>): Boolean = model.isLeaf(path)
 
-    fun children(parent: Path<Int>) = model.children(parent)
+    public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    fun child       (of    : Path<Int>, path : Int) = model.child       (of,     path )
-    fun numChildren (of    : Path<Int>            ) = model.numChildren (of           )
-    fun indexOfChild(parent: Path<Int>, child: T  ) = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
 
-    override fun selected(item: Path<Int>) = selectionModel?.contains(item) ?: false
+    override fun selected(item: Path<Int>): Boolean = selectionModel?.contains(item) ?: false
 
-    fun enclosedBySelection(item: Path<Int>) = selectionModel?.root?.let {
+    public fun enclosedBySelection(item: Path<Int>): Boolean = selectionModel?.root?.let {
         item == it || item ancestorOf it || item in selectionModel
     } ?: false
 
@@ -339,7 +340,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
 
     override fun clearSelection() { selectionModel?.clear() }
 
-    override fun next(after: Path<Int>) = after.parent?.let { parent ->
+    override fun next(after: Path<Int>): Path<Int>? = after.parent?.let { parent ->
         val numChildren = model.numChildren(parent)
 
         after.bottom?.let { bottom ->
@@ -350,7 +351,7 @@ open class TreeColumns<T, M: TreeModel<T>>(
         }
     }
 
-    override fun previous(before: Path<Int>) = before.parent?.let { parent ->
+    override fun previous(before: Path<Int>): Path<Int>? = before.parent?.let { parent ->
         before.bottom?.let { bottom ->
             when {
                 bottom > 0 -> parent + (bottom - 1)
@@ -359,10 +360,10 @@ open class TreeColumns<T, M: TreeModel<T>>(
         }
     }
 
-    override val firstSelection  get() = selectionModel?.first
-    override val lastSelection   get() = selectionModel?.last
-    override val selectionAnchor get() = selectionModel?.anchor
-    override val selection       get() = selectionModel?.toSet() ?: emptySet()
+    override val firstSelection : Path<Int>?     get() = selectionModel?.first
+    override val lastSelection  : Path<Int>?     get() = selectionModel?.last
+    override val selectionAnchor: Path<Int>?     get() = selectionModel?.anchor
+    override val selection      : Set<Path<Int>> get() = selectionModel?.toSet() ?: emptySet()
 
     internal fun columnDirty(path: Path<Int>) {
         // FIXME: IMPLEMENT

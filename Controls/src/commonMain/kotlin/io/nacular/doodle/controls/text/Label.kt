@@ -17,28 +17,28 @@ import io.nacular.doodle.utils.VerticalAlignment.Middle
 import kotlin.properties.Delegates.observable
 
 
-interface LabelBehavior: Behavior<Label> {
-    val Label.textSize get() = _textSize
+public interface LabelBehavior: Behavior<Label> {
+    public val Label.textSize: Size get() = _textSize
 
-    fun measureText(label: Label): Size
+    public fun measureText(label: Label): Size
 }
 
-open class Label(styledText         : StyledText          = StyledText(""),
+public open class Label(styledText         : StyledText          = StyledText(""),
                  verticalAlignment  : VerticalAlignment   = Middle,
                  horizontalAlignment: HorizontalAlignment = Center): View() {
 
-    constructor(
+    public constructor(
             text               : String,
             verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment = Center): this(StyledText(text), verticalAlignment, horizontalAlignment)
 
-    var fitText = setOf(Width, Height)
+    public var fitText: Set<TextFit> = setOf(Width, Height)
         set(new) {
             field = new
             measureText()
         }
 
-    var text: String get() = styledText.text
+    public var text: String get() = styledText.text
         set(new) {
             styledText = StyledText(new)
         }
@@ -62,12 +62,13 @@ open class Label(styledText         : StyledText          = StyledText(""),
             rerender()
         }
 
-    var styledText get() = visibleStyledText
+    public var styledText: StyledText
+        get() = visibleStyledText
         set(new) {
             actualStyledText = new
         }
 
-    var wrapsWords = false
+    public var wrapsWords: Boolean = false
         set(new) {
             if (field != new) {
                 field = new
@@ -75,8 +76,8 @@ open class Label(styledText         : StyledText          = StyledText(""),
             }
         }
 
-    var verticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
-    var horizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
+    public var verticalAlignment  : VerticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
+    public var horizontalAlignment: HorizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
 
     internal val _textSize get() = textSize
 
@@ -88,7 +89,7 @@ open class Label(styledText         : StyledText          = StyledText(""),
             if (Height in fitText) height = new.height
         }
 
-    var behavior: LabelBehavior? by behavior { _,new ->
+    public var behavior: LabelBehavior? by behavior { _,new ->
         mirrorWhenRightLeft = false
 
         new?.measureText(this)?.also { textSize = it }
@@ -120,7 +121,7 @@ open class Label(styledText         : StyledText          = StyledText(""),
         size = textSize
     }
 
-    override var focusable = false
+    override var focusable: Boolean = false
 
     override fun addedToDisplay() {
         if (textSize.empty) {

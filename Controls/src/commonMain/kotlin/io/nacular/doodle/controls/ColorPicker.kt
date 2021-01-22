@@ -48,10 +48,10 @@ import kotlin.math.min
  * @constructor
  * @param color to select by default
  */
-class ColorPicker(color: Color): View() {
+public class ColorPicker(color: Color): View() {
 
     /** The selected color */
-    var color
+    public var color: Color
         get(   ) = colorRect.color.toRgb()
         set(new) {
             colorRect.color = HsvColor(new)
@@ -60,7 +60,7 @@ class ColorPicker(color: Color): View() {
     private val changed_ by lazy { PropertyObserversImpl<ColorPicker, Color>(this) }
 
     /** Notifies of changes to [color]. */
-    val changed: PropertyObservers<ColorPicker, Color> = changed_
+    public val changed: PropertyObservers<ColorPicker, Color> = changed_
 
     private class ColorRect(color: HsvColor): View() {
         var color = color

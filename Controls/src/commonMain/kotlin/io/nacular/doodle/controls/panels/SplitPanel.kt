@@ -5,6 +5,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.layout.fill
 import io.nacular.doodle.utils.ChangeObservers
@@ -13,9 +14,9 @@ import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Vertical
 
 
-class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
+public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
-    var behavior: SplitPanelBehavior? by behavior { _,new ->
+    public var behavior: SplitPanelBehavior? by behavior { _,new ->
 
             divider?.let { children -= it }
 
@@ -38,7 +39,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
             }
         }
 
-    var firstItem: View? = null; set(new) {
+    public var firstItem: View? = null; set(new) {
         if (new == field) { return }
 
         field?.let { children -= it }
@@ -50,7 +51,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         fireChanged()
     }
 
-    var lastItem: View? = null; set(new) {
+    public var lastItem: View? = null; set(new) {
         if (new == field) { return }
 
         field?.let { children -= it }
@@ -62,9 +63,9 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         fireChanged()
     }
 
-    var orientation = orientation; set(new) { if (new != field) { field = new; fireChanged() } }
+    public var orientation: Orientation = orientation; set(new) { if (new != field) { field = new; fireChanged() } }
 
-    var ratio = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
+    public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
     private var divider      = null as View?
     private var panelSpacing = 0.0
@@ -72,9 +73,9 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
     @Suppress("PrivatePropertyName")
     private val changed_ = ChangeObserversImpl(this)
 
-    val changed: ChangeObservers<SplitPanel> = changed_
+    public val changed: ChangeObservers<SplitPanel> = changed_
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { if (new != super.insets) { super.insets = new; relayout() } }
 
@@ -86,7 +87,7 @@ class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point) = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
     private fun fireChanged() {
         updateLayout()

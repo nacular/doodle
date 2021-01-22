@@ -20,7 +20,7 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 10/3/18.
  */
-abstract class CommonTextButtonBehavior<T: Button>(
+public abstract class CommonTextButtonBehavior<T: Button>(
         private val textMetrics: TextMetrics,
         private val defaultFont: Font?  = null,
         private val insets     : Insets = Insets.None): CommonButtonBehavior<T>() {
@@ -119,5 +119,5 @@ abstract class CommonTextButtonBehavior<T: Button>(
         return Point(x, y) + bounds.position
     }
 
-    protected fun font(button: Button) = button.font ?: defaultFont
+    protected fun font(button: Button): Font? = button.font ?: defaultFont
 }

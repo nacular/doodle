@@ -8,31 +8,31 @@ import io.nacular.doodle.utils.intersect
  * Created by Nicholas Eddy on 2/12/18.
  */
 
-interface ConfinedRangeModel<T: Comparable<T>> {
-    var range : ClosedRange<T>
-    var limits: ClosedRange<T>
+public interface ConfinedRangeModel<T: Comparable<T>> {
+    public var range : ClosedRange<T>
+    public var limits: ClosedRange<T>
 
-    val atLowerLimit get() = range.start        == limits.start
-    val atUpperLimit get() = range.endInclusive == limits.endInclusive
+    public val atLowerLimit: Boolean get() = range.start        == limits.start
+    public val atUpperLimit: Boolean get() = range.endInclusive == limits.endInclusive
 
-    val rangeChanged : PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
-    val limitsChanged: PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
+    public val rangeChanged : PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
+    public val limitsChanged: PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>>
 }
 
-interface ConfinedValueModel<T: Comparable<T>> {
-    var value : T
-    var limits: ClosedRange<T>
+public interface ConfinedValueModel<T: Comparable<T>> {
+    public var value : T
+    public var limits: ClosedRange<T>
 
-    val atLowerLimit get() = value == limits.start
-    val atUpperLimit get() = value == limits.endInclusive
+    public val atLowerLimit: Boolean get() = value == limits.start
+    public val atUpperLimit: Boolean get() = value == limits.endInclusive
 
-    val valueChanged : PropertyObservers<ConfinedValueModel<T>, T>
-    val limitsChanged: PropertyObservers<ConfinedValueModel<T>, ClosedRange<T>>
+    public val valueChanged : PropertyObservers<ConfinedValueModel<T>, T>
+    public val limitsChanged: PropertyObservers<ConfinedValueModel<T>, ClosedRange<T>>
 }
 
 @Suppress("PrivatePropertyName")
-class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: ClosedRange<T> = limit): ConfinedRangeModel<T> {
-    override var range = range
+public class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: ClosedRange<T> = limit): ConfinedRangeModel<T> {
+    override var range: ClosedRange<T> = range
         set(new) {
             val old = field
             field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
@@ -42,7 +42,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
             }
         }
 
-    override var limits = limit
+    override var limits: ClosedRange<T> = limit
         set(new) {
             val old = field
             field = new
@@ -68,7 +68,7 @@ class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, range: Cl
 }
 
 @Suppress("PrivatePropertyName")
-class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, value: T = limit.start): ConfinedValueModel<T> {
+public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, value: T = limit.start): ConfinedValueModel<T> {
 
     private val valueChanged_  = PropertyObserversImpl<ConfinedValueModel<T>, T>             (this)
     private val limitsChanged_ = PropertyObserversImpl<ConfinedValueModel<T>, ClosedRange<T>>(this)

@@ -22,10 +22,10 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
+public abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
 
-    private   var lastStart           = -1.0
-    protected var lastPointerPosition = -1.0
+    private   var lastStart          : Double = -1.0
+    protected var lastPointerPosition: Double = -1.0
         private set
 
     private val changed: (Slider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
@@ -109,7 +109,7 @@ abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior
         return if (!slider.range.isEmpty()) (size / slider.range.size).toFloat() else 0f
     }
 
-    protected fun barPosition(slider: Slider) = round((slider.value - slider.range.start) * scaleFactor(slider))
+    protected fun barPosition(slider: Slider): Double = round((slider.value - slider.range.start) * scaleFactor(slider))
 
-    protected fun barSize(slider: Slider) = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun barSize(slider: Slider): Double = if (slider.orientation === Horizontal) slider.height else slider.width
 }

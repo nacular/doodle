@@ -9,23 +9,23 @@ import io.nacular.doodle.utils.Path
 /**
  * Created by Nicholas Eddy on 7/25/20.
  */
-abstract class TreeColumnsBehavior<T>: Behavior<TreeColumns<T, *>> {
-    interface CellGenerator<T> {
-        operator fun invoke(treeColumns: TreeColumns<T, *>, node: T, path: Path<Int>, row: Int, current: View? = null): View
+public abstract class TreeColumnsBehavior<T>: Behavior<TreeColumns<T, *>> {
+    public interface CellGenerator<T> {
+        public operator fun invoke(treeColumns: TreeColumns<T, *>, node: T, path: Path<Int>, row: Int, current: View? = null): View
     }
 
-    interface RowPositioner<T> {
-        fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View? = null): Rectangle
+    public interface RowPositioner<T> {
+        public fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View? = null): Rectangle
 
-        fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double): Int
+        public fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double): Int
 
-        fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>): Double
+        public fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>): Double
     }
 
-    abstract val generator : CellGenerator<T>
-    abstract val positioner: RowPositioner<T>
+    public abstract val generator : CellGenerator<T>
+    public abstract val positioner: RowPositioner<T>
 
-    fun TreeColumns<T, *>.columnDirty(path: Path<Int>) { this.columnDirty(path) }
+    public fun TreeColumns<T, *>.columnDirty(path: Path<Int>) { this.columnDirty(path) }
 
-    open fun renderColumnBody(treeColumns: TreeColumns<T, *>, path: Path<Int>, canvas: Canvas) {}
+    public open fun renderColumnBody(treeColumns: TreeColumns<T, *>, path: Path<Int>, canvas: Canvas) {}
 }

@@ -15,15 +15,16 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 5/1/20.
  */
-interface SizingPolicy {
-    class OverlappingView(val span: Int, val size: Double, val idealSize: Double?)
+public interface SizingPolicy {
+    public class OverlappingView(public val span: Int, public val size: Double, public val idealSize: Double?)
 
-    operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
+    public operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
 }
 
-typealias SpacingPolicy = (panelSize: Double) -> Double
+public typealias SpacingPolicy = (panelSize: Double) -> Double
 
-class FitContent: SizingPolicy {
+@Deprecated(message = "Use constant instead", replaceWith = ReplaceWith("GridPanel.Companion.FitContent"))
+public class FitContent: SizingPolicy {
     override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
         var size = 0.0
 
@@ -35,13 +36,14 @@ class FitContent: SizingPolicy {
     }
 }
 
-class FitPanel: SizingPolicy {
-    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>) = views.mapValues {
+@Deprecated(message = "Use constant instead", replaceWith = ReplaceWith("GridPanel.Companion.FitPanel"))
+public class FitPanel: SizingPolicy {
+    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues {
         max(0.0, (panelSize - spacing * (views.size - 1)) / views.size)
     }
 }
 
-open class GridPanel: View() {
+public open class GridPanel: View() {
     private class Location(val row: Int, val column: Int) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -84,15 +86,15 @@ open class GridPanel: View() {
     private var rowDimensions    = mapOf<Int, Dimensions>()
     private var columnDimensions = mapOf<Int, Dimensions>()
 
-    var cellAlignment     : Constraints.() -> Unit = fill //center
-    var verticalSpacing   : SpacingPolicy          = { 0.0 }
-    var horizontalSpacing : SpacingPolicy          = { 0.0 }
-    var rowSizingPolicy   : SizingPolicy           = FitContent
-    var columnSizingPolicy: SizingPolicy           = FitContent
+    public var cellAlignment     : Constraints.() -> Unit = fill //center
+    public var verticalSpacing   : SpacingPolicy          = { 0.0 }
+    public var horizontalSpacing : SpacingPolicy          = { 0.0 }
+    public var rowSizingPolicy   : SizingPolicy           = FitContent
+    public var columnSizingPolicy: SizingPolicy           = FitContent
 
     final override var layout: Layout? = GridLayout()
 
-    fun add(child: View, row: Int = 0, column: Int = 0, rowSpan: Int = 1, columnSpan: Int = 1) {
+    public fun add(child: View, row: Int = 0, column: Int = 0, rowSpan: Int = 1, columnSpan: Int = 1) {
         locations[child] = mutableSetOf<Location>().apply {
             repeat(rowSpan) { r ->
                 repeat(columnSpan) { c ->
@@ -107,14 +109,14 @@ open class GridPanel: View() {
         children += child
     }
 
-    fun remove(child: View) {
+    public fun remove(child: View) {
         locations   -= child
         rowSpans    -= child
         columnSpans -= child
         children    -= child
     }
 
-    fun clear() {
+    public fun clear() {
         locations.clear  ()
         rowSpans.clear   ()
         columnSpans.clear()
@@ -197,8 +199,8 @@ open class GridPanel: View() {
         }
     }
 
-    companion object {
-        val FitPanel   = FitPanel  ()
-        val FitContent = FitContent()
+    public companion object {
+        public val FitPanel  : SizingPolicy = FitPanel  ()
+        public val FitContent: SizingPolicy = FitContent()
     }
 }

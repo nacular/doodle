@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.buttons
 
-class ButtonGroup(var allowDeselectAll: Boolean = false, vararg buttons: Button) {
-    val size: Int get() = buttons.size
+public class ButtonGroup(public var allowDeselectAll: Boolean = false, vararg buttons: Button) {
+    public val size: Int get() = buttons.size
 
     private val buttons by lazy { mutableSetOf<Button>() }
     private var selectedModel: ButtonModel? = null
@@ -10,7 +10,7 @@ class ButtonGroup(var allowDeselectAll: Boolean = false, vararg buttons: Button)
         buttons.forEach { this += it }
     }
 
-    operator fun plusAssign(button: Button) {
+    public operator fun plusAssign(button: Button) {
         buttons += button
 
         button.model.buttonGroup = this
@@ -24,7 +24,7 @@ class ButtonGroup(var allowDeselectAll: Boolean = false, vararg buttons: Button)
         }
     }
 
-    operator fun minusAssign(button: Button) {
+    public operator fun minusAssign(button: Button) {
         if (buttons.remove(button)) {
             button.model.buttonGroup = null
 
@@ -34,7 +34,7 @@ class ButtonGroup(var allowDeselectAll: Boolean = false, vararg buttons: Button)
         }
     }
 
-    fun clear() {
+    public fun clear() {
         buttons.forEach {
             it.model.buttonGroup = null
         }

@@ -21,6 +21,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -34,47 +35,47 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 3/23/18.
  */
 
-typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) -> Unit
-typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
+public typealias ExpansionObserver<T>  = (source: Tree<T, *>, paths: Set<Path<Int>>) -> Unit
+public typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
-interface TreeLike: Selectable<Path<Int>> {
-    val numRows    : Int
-    val hasFocus   : Boolean
-    val rootVisible: Boolean
+public interface TreeLike: Selectable<Path<Int>> {
+    public val numRows    : Int
+    public val hasFocus   : Boolean
+    public val rootVisible: Boolean
 
-    val focusChanged: PropertyObservers<View, Boolean>
+    public val focusChanged: PropertyObservers<View, Boolean>
 
-    val contentDirection: ContentDirection
+    public val contentDirection: ContentDirection
 
-    fun visible(row: Int): Boolean
-    fun visible(path: Path<Int>): Boolean
+    public fun visible(row: Int): Boolean
+    public fun visible(path: Path<Int>): Boolean
 
-    fun isLeaf(path: Path<Int>): Boolean
+    public fun isLeaf(path: Path<Int>): Boolean
 
-    fun expanded(path: Path<Int>): Boolean
+    public fun expanded(path: Path<Int>): Boolean
 
-    fun pathFromRow(index: Int): Path<Int>?
-    fun rowFromPath(path: Path<Int>): Int?
+    public fun pathFromRow(index: Int): Path<Int>?
+    public fun rowFromPath(path: Path<Int>): Int?
 
-    fun selected       (row : Int     ) = pathFromRow(row)?.let { selected(it) } ?: false
+    public fun selected       (row : Int     ): Boolean = pathFromRow(row)?.let { selected(it) } ?: false
     // FIXME: Hack to work around https://youtrack.jetbrains.com/issue/KT-32032
-    fun addSelection   (rows: Set<Int>, jvmWorkaround: Int = 0) = addSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun toggleSelection(rows: Set<Int>, jvmWorkaround: Int = 0) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun setSelection   (rows: Set<Int>, jvmWorkaround: Int = 0) = setSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun removeSelection(rows: Set<Int>, jvmWorkaround: Int = 0) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
-    fun collapse(path: Path<Int>)
-    fun expand(path: Path<Int>)
-    fun expandAll()
-    fun collapseAll()
+    public fun addSelection   (rows: Set<Int>, jvmWorkaround: Int = 0): Unit = addSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    public fun toggleSelection(rows: Set<Int>, jvmWorkaround: Int = 0): Unit = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    public fun setSelection   (rows: Set<Int>, jvmWorkaround: Int = 0): Unit = setSelection   (rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    public fun removeSelection(rows: Set<Int>, jvmWorkaround: Int = 0): Unit = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    public fun collapse(path: Path<Int>)
+    public fun expand(path: Path<Int>)
+    public fun expandAll()
+    public fun collapseAll()
 }
 
-open class Tree<T, out M: TreeModel<T>>(
+public open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
-                       val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+        public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         protected      val selectionModel: SelectionModel<Path<Int>>?     = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
         private        val scrollCache   : Int                            = 10): View(), TreeLike {
 
-    override var rootVisible = false
+    override var rootVisible: Boolean = false
         set(new) {
             if (field == new) { return }
 
@@ -89,13 +90,13 @@ open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-    override var numRows = 0
+    override var numRows: Int = 0
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { super.insets = new }
 
-    var behavior: TreeBehavior<T>? by behavior { _,new ->
+    public var behavior: TreeBehavior<T>? by behavior { _,new ->
         new?.also {
             this.generator     = it.generator
             this.rowPositioner = it.positioner
@@ -107,17 +108,17 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
-    val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
-    val selectionChanged: Pool<SetObserver<Path<Int>>> by lazy { SetPool<SetObserver<Path<Int>>>() }
+    public val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
+    public val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
+    public val selectionChanged: Pool<SetObserver<Path<Int>>> by lazy { SetPool<SetObserver<Path<Int>>>() }
 
-    override val firstSelection  get() = selectionModel?.first
-    override val lastSelection   get() = selectionModel?.last
-    override val selectionAnchor get() = selectionModel?.anchor
-    override val selection       get() = selectionModel?.toSet() ?: emptySet()
+    override val firstSelection : Path<Int>?     get() = selectionModel?.first
+    override val lastSelection  : Path<Int>?     get() = selectionModel?.last
+    override val selectionAnchor: Path<Int>?     get() = selectionModel?.anchor
+    override val selection      : Set<Path<Int>> get() = selectionModel?.toSet() ?: emptySet()
 
-    private   var generator     = null as RowGenerator<T>?
-    protected var rowPositioner = null as RowPositioner<T>?
+    private   var generator    : RowGenerator<T>? = null
+    protected var rowPositioner: RowPositioner<T>? = null
     private   val expandedPaths = mutableSetOf<Path<Int>>()
     private   val rowToPath     = mutableMapOf<Int, Path<Int>>()
     private   var minVisibleY   = 0.0
@@ -130,8 +131,8 @@ open class Tree<T, out M: TreeModel<T>>(
 
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
 
-    protected var firstVisibleRow =  0
-    protected var lastVisibleRow  = -1
+    protected var firstVisibleRow: Int =  0
+    protected var lastVisibleRow : Int = -1
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
@@ -170,7 +171,7 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    override var isFocusCycleRoot = true
+    override var isFocusCycleRoot: Boolean = true
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -242,26 +243,26 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    operator fun get(path: Path<Int>): T? = model[path]
+    public operator fun get(path: Path<Int>): T? = model[path]
 
-    operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
+    public operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
 
-    override fun isLeaf(path: Path<Int>) = model.isLeaf(path)
+    override fun isLeaf(path: Path<Int>): Boolean = model.isLeaf(path)
 
-    fun children(parent: Path<Int>) = model.children(parent)
+    public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    fun child       (of    : Path<Int>, path : Int) = model.child       (of,     path )
-    fun numChildren (of    : Path<Int>            ) = model.numChildren (of           )
-    fun indexOfChild(parent: Path<Int>, child: T  ) = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
 
-    override fun expanded(path: Path<Int>) = path in expandedPaths
+    override fun expanded(path: Path<Int>): Boolean = path in expandedPaths
 
-    @JvmName("expandRows") fun expand(row : Int     ) = expand(setOf(row))
-    @JvmName("expandRows") fun expand(rows: Set<Int>) = expand(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    @JvmName("expandRows") public fun expand(row : Int     ): Unit = expand(setOf(row))
+    @JvmName("expandRows") public fun expand(rows: Set<Int>): Unit = expand(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
 
-    override fun expand(path: Path<Int>) = expand(setOf(path))
+    override fun expand(path: Path<Int>): Unit = expand(setOf(path))
 
-    fun expand(paths: Set<Path<Int>>) {
+    public fun expand(paths: Set<Path<Int>>) {
         val pathSet = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
 
         val pathsToUpdate = mutableSetOf<Path<Int>>()
@@ -308,11 +309,11 @@ open class Tree<T, out M: TreeModel<T>>(
         expand(pathsToExpand)
     }
 
-    @JvmName("collapseRows") fun collapse(row : Int     ) = collapse(setOf(row))
-    @JvmName("collapseRows") fun collapse(rows: Set<Int>) = collapse(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
+    @JvmName("collapseRows") public fun collapse(row : Int     ): Unit = collapse(setOf(row))
+    @JvmName("collapseRows") public fun collapse(rows: Set<Int>): Unit = collapse(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
 
-    override fun collapse(path : Path<Int>     ) = collapse(setOf(path))
-    fun collapse(paths: Set<Path<Int>>) {
+    override fun collapse(path : Path<Int>): Unit = collapse(setOf(path))
+    public fun collapse(paths: Set<Path<Int>>) {
         var empty   = true
         val pathSet = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
 
@@ -367,10 +368,10 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    override fun collapseAll() = collapse(expandedPaths)
+    override fun collapseAll(): Unit = collapse(expandedPaths)
 
-    override fun selected(row: Int) = pathFromRow(row)?.let { selected(it) } ?: false
-    override fun selected(item: Path<Int>) = selectionModel?.contains(item) ?: false
+    override fun selected(row : Int      ): Boolean = pathFromRow(row)?.let { selected(it) } ?: false
+    override fun selected(item: Path<Int>): Boolean = selectionModel?.contains(item) ?: false
 
     override fun selectAll() {
         selectionModel?.addAll((0 .. numRows).mapNotNull {
@@ -408,13 +409,13 @@ open class Tree<T, out M: TreeModel<T>>(
         selectionModel?.removeAll(items)
     }
 
-    override fun clearSelection() = selectionModel?.clear().let { Unit }
+    override fun clearSelection(): Unit = selectionModel?.clear().let { Unit }
 
-    override fun next(after: Path<Int>) = rowFromPath(after)?.let { it + 1 }?.let { pathFromRow(it) }
+    override fun next(after: Path<Int>): Path<Int>? = rowFromPath(after)?.let { it + 1 }?.let { pathFromRow(it) }
 
-    override fun previous(before: Path<Int>) = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it) }
+    override fun previous(before: Path<Int>): Path<Int>? = rowFromPath(before)?.let { it - 1 }?.let { pathFromRow(it) }
 
-    override fun visible(row: Int) = pathFromRow(row)?.let { visible(it) } ?: false
+    override fun visible(row: Int): Boolean = pathFromRow(row)?.let { visible(it) } ?: false
 
     override fun visible(path: Path<Int>): Boolean = when (path.depth) {
         0    -> rootVisible
@@ -429,7 +430,7 @@ open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    fun makeVisible(path: Path<Int>) {
+    public fun makeVisible(path: Path<Int>) {
         var parent = path.parent
 
         while (parent != null) {
@@ -726,7 +727,7 @@ open class Tree<T, out M: TreeModel<T>>(
         return if (newIndex == 0) newPath to newIndex else null
     }
 
-    fun scrollToSelection() {
+    public fun scrollToSelection() {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             lastSelection?.let { lastSelection ->
                 val item  = this[lastSelection]

@@ -5,15 +5,6 @@ import io.nacular.doodle.core.Icon
 /**
  * Created by Nicholas Eddy on 2/2/18.
  */
-open class CheckBox(text: String = "", icon: Icon<Button>? = null): ToggleButton(text, icon) {
-    var indeterminate = false
-        set(value) {
-            if (field == value) {
-                return
-            }
-
-            field = value
-
-            styleChanged { true }
-        }
+public open class CheckBox(text: String = "", icon: Icon<Button>? = null): ToggleButton(text, icon) {
+    public var indeterminate: Boolean by styleProperty(false) { true }
 }

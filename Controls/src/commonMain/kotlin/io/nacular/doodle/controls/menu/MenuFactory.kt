@@ -7,18 +7,18 @@ import io.nacular.doodle.core.Icon
 /**
  * Created by Nicholas Eddy on 4/30/18.
  */
-interface PopupFactory {
-    operator fun invoke(): PopupMenu
+public interface PopupFactory {
+    public operator fun invoke(): PopupMenu
 }
 
-class PopupFactoryImpl(private val display: Display): PopupFactory {
-    override fun invoke() = PopupMenu(display)
+public class PopupFactoryImpl(private val display: Display): PopupFactory {
+    override fun invoke(): PopupMenu = PopupMenu(display)
 }
 
-interface MenuFactory {
-    operator fun invoke(text: String = "", icon: Icon<Button>? = null): Menu
+public interface MenuFactory {
+    public operator fun invoke(text: String = "", icon: Icon<Button>? = null): Menu
 }
 
-class MenuFactoryImpl(private val menuSelectionManager: MenuSelectionManager, private val popupFactory: PopupFactory): MenuFactory {
-    override fun invoke(text: String, icon: Icon<Button>?) = Menu(menuSelectionManager, popupFactory, text, icon)
+public class MenuFactoryImpl(private val menuSelectionManager: MenuSelectionManager, private val popupFactory: PopupFactory): MenuFactory {
+    override fun invoke(text: String, icon: Icon<Button>?): Menu = Menu(menuSelectionManager, popupFactory, text, icon)
 }

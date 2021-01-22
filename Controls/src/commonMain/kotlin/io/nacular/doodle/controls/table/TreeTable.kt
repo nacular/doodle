@@ -17,6 +17,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Completable
@@ -30,9 +31,8 @@ import io.nacular.doodle.utils.SetPool
  * Created by Nicholas Eddy on 5/5/19.
  */
 
-typealias ExpansionObserver<T>  = (source: TreeTable<T, *>, paths: Set<Path<Int>>) -> Unit
-typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
-
+public typealias ExpansionObserver<T>  = (source: TreeTable<T, *>, paths: Set<Path<Int>>) -> Unit
+public typealias ExpansionObservers<T> = SetPool<ExpansionObserver<T>>
 
 private class TreePathIterator(private val tree: TreeLike): Iterator<Path<Int>> {
     private var index = 0
@@ -48,15 +48,15 @@ private class TreeModelIterator<T>(private val model: TreeModel<T>, private val 
     override fun next() = model[iterator.next()]!!
 }
 
-fun <T, R> Iterator<T>.map(mapper: (T) -> R) = object: Iterator<R> {
+public fun <T, R> Iterator<T>.map(mapper: (T) -> R): Iterator<R> = object: Iterator<R> {
     override fun hasNext() = this@map.hasNext()
 
     override fun next() = mapper(this@map.next())
 }
 
-fun <T, R: Any> Iterator<T>.mapNotNull(mapper: (T) -> R?) = this.asSequence().mapNotNull(mapper).iterator()
+public fun <T, R: Any> Iterator<T>.mapNotNull(mapper: (T) -> R?): Iterator<R> = this.asSequence().mapNotNull(mapper).iterator()
 
-fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
+public fun <T, R> TreeModel<T>.map(mapper: (T) -> R): TreeModel<R> = object: TreeModel<R> {
     override fun get(path: Path<Int>): R? = this@map[path]?.let(mapper)
 
     override fun isEmpty() = this@map.isEmpty()
@@ -72,7 +72,7 @@ fun <T, R> TreeModel<T>.map(mapper: (T) -> R) = object: TreeModel<R> {
     override fun indexOfChild(parent: Path<Int>, child: R) = children(parent).asSequence().indexOf(child)
 }
 
-fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T?) = object: SelectionModel<R> {
+public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T?): SelectionModel<R> = object: SelectionModel<R> {
     override val first   get() = this@map.first?.let(mapper)
     override val last    get() = this@map.last?.let(mapper)
     override val anchor  get() = this@map.anchor?.let(mapper)
@@ -114,48 +114,47 @@ fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (R) -> T
     }
 }
 
-open class TreeTable<T, M: TreeModel<T>>(model        : M,
+public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                            protected val selectionModel: SelectionModel<Path<Int>>? = null,
                            private   val scrollCache   : Int                        = 10,
                                          block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
 
-    override val rootVisible get() = tree.rootVisible
+    override val rootVisible: Boolean get() = tree.rootVisible
 
-    override fun visible(row : Int      ) = tree.visible(row )
-    override fun visible(path: Path<Int>) = tree.visible(path)
+    override fun visible(row : Int      ): Boolean = tree.visible(row )
+    override fun visible(path: Path<Int>): Boolean = tree.visible(path)
+    override fun isLeaf (path: Path<Int>): Boolean = model.isLeaf(path)
 
-    override fun isLeaf  (path: Path<Int>) = model.isLeaf(path)
+    public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    fun children(parent: Path<Int>) = model.children(parent)
+    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
 
-    fun child       (of    : Path<Int>, path : Int) = model.child       (of,     path )
-    fun numChildren (of    : Path<Int>            ) = model.numChildren (of           )
-    fun indexOfChild(parent: Path<Int>, child: T  ) = model.indexOfChild(parent, child)
+    override fun expanded(path: Path<Int>): Boolean = tree.expanded(path)
+    override fun collapse(path: Path<Int>): Unit    = tree.collapse(path)
+    override fun expand  (path: Path<Int>): Unit    = tree.expand  (path)
 
-    override fun expanded(path: Path<Int>) = tree.expanded(path)
-    override fun collapse(path: Path<Int>) = tree.collapse(path)
-    override fun expand  (path: Path<Int>) = tree.expand  (path)
+    override fun expandAll  (): Unit = tree.expandAll()
+    override fun collapseAll(): Unit = tree.collapseAll()
 
-    override fun expandAll  () = tree.expandAll()
-    override fun collapseAll() = tree.collapseAll()
+    override fun selectAll      (                      ): Unit       = tree.selectAll      (      )
+    override fun selected       (item  : Path<Int>     ): Boolean    = tree.selected       (item  )
+    override fun addSelection   (items : Set<Path<Int>>): Unit       = tree.addSelection   (items )
+    override fun setSelection   (items : Set<Path<Int>>): Unit       = tree.setSelection   (items )
+    override fun removeSelection(items : Set<Path<Int>>): Unit       = tree.removeSelection(items )
+    override fun toggleSelection(items : Set<Path<Int>>): Unit       = tree.toggleSelection(items )
+    override fun clearSelection (                      ): Unit       = tree.clearSelection (      )
+    override fun next           (after : Path<Int>     ): Path<Int>? = tree.next           (after )
+    override fun previous       (before: Path<Int>     ): Path<Int>? = tree.previous       (before)
 
-    override fun selectAll      (                      ) = tree.selectAll      (      )
-    override fun selected       (item  : Path<Int>     ) = tree.selected       (item  )
-    override fun addSelection   (items : Set<Path<Int>>) = tree.addSelection   (items )
-    override fun setSelection   (items : Set<Path<Int>>) = tree.setSelection   (items )
-    override fun removeSelection(items : Set<Path<Int>>) = tree.removeSelection(items )
-    override fun toggleSelection(items : Set<Path<Int>>) = tree.toggleSelection(items )
-    override fun clearSelection (                      ) = tree.clearSelection (      )
-    override fun next           (after : Path<Int>     ) = tree.next           (after )
-    override fun previous       (before: Path<Int>     ) = tree.previous       (before)
+    override val selection      : Set<Path<Int>> get() = tree.selection
+    override val lastSelection  : Path<Int>?     get() = tree.lastSelection
+    override val firstSelection : Path<Int>?     get() = tree.firstSelection
+    override val selectionAnchor: Path<Int>?     get() = tree.selectionAnchor
 
-    override val selection       get() = tree.selection
-    override val lastSelection   get() = tree.lastSelection
-    override val firstSelection  get() = tree.firstSelection
-    override val selectionAnchor get() = tree.selectionAnchor
-
-    val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
-    val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    public val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    public val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
 
     private lateinit var tree: Tree<*, TreeModel<*>>
 
@@ -391,27 +390,27 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
         }
     }
 
-    var model = model
+    public var model: M = model
         private set
 
     override val numRows: Int get() = tree.numRows
 
-    operator fun get(path: Path<Int>): T? = model[path]
+    public operator fun get(path: Path<Int>): T? = model[path]
 
-    operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
+    public operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
 
-    override fun pathFromRow(index: Int) = tree.pathFromRow(index)
+    override fun pathFromRow(index: Int): Path<Int>? = tree.pathFromRow(index)
 
-    override fun rowFromPath(path: Path<Int>) = tree.rowFromPath(path)
+    override fun rowFromPath(path: Path<Int>): Int? = tree.rowFromPath(path)
 
-    var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
         set(new) {
             field = new
 
             relayout()
         }
 
-    var behavior = null as TreeTableBehavior<T>?
+    public var behavior: TreeTableBehavior<T>? = null
         set(new) {
             if (new == behavior) { return }
 
@@ -477,9 +476,9 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
             }
         }
 
-    val columns: List<Column<*>> get() = internalColumns.dropLast(1)
+    public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    val selectionChanged: Pool<SetObserver<Path<Int>>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<Path<Int>>> = SetPool()
 
     private val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
@@ -531,7 +530,7 @@ open class TreeTable<T, M: TreeModel<T>>(model        : M,
         super.removedFromDisplay()
     }
 
-    public override var insets
+    public override var insets: Insets
         get(   ) = super.insets
         set(new) { super.insets = new }
 

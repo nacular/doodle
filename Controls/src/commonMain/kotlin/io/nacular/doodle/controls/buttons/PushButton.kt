@@ -5,7 +5,7 @@ import io.nacular.doodle.core.Icon
 /**
  * Created by Nicholas Eddy on 11/14/17.
  */
-open class PushButton(
+public open class PushButton(
         text : String        = "",
         icon : Icon<Button>? = null,
         model: ButtonModel   = ButtonModelImpl()): Button(text, icon, model) {

@@ -5,4 +5,4 @@ package io.nacular.doodle
  */
 
 // This annotation makes nothing on JS
-actual annotation class JvmName actual constructor(actual val name: String)
+public actual annotation class JvmName actual constructor(actual val name: String)

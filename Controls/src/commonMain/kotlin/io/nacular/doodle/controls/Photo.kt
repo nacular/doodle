@@ -8,7 +8,7 @@ import io.nacular.doodle.image.Image
  * A simple wrapper around an [Image]. The image is scaled to fit within the
  * bounds of this Photo when drawn.
  */
-class Photo(private var image: Image): View() {
+public class Photo(private var image: Image): View() {
     init {
         size = image.size
     }

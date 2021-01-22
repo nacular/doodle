@@ -19,7 +19,7 @@ import io.nacular.doodle.utils.VerticalAlignment.Top
 /**
  * Created by Nicholas Eddy on 9/25/19.
  */
-open class CommonLabelBehavior(
+public open class CommonLabelBehavior(
         private        val textMetrics    : TextMetrics,
         protected open val foregroundColor: Color? = null,
         protected open val backgroundColor: Color? = null

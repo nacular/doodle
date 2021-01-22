@@ -8,23 +8,23 @@ import io.nacular.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.round
 
-abstract class ValueSlider(model: ConfinedValueModel<Double>): View(accessibilityRole = slider().apply {
+public abstract class ValueSlider(model: ConfinedValueModel<Double>): View(accessibilityRole = slider().apply {
     valueMin = model.limits.start.toInt()
     valueMax = model.limits.endInclusive.toInt()
     valueNow = model.value.toInt()
 }) {
-    constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
+    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
-    var snapToTicks = false
+    public var snapToTicks: Boolean = false
 
-    var ticks = 0
+    public var ticks: Int = 0
         set(new) {
             field = max(0, new)
 
             snapSize = if (field > 0) range.size / field else 0.0
         }
 
-    var model =  model
+    public var model: ConfinedValueModel<Double> =  model
         set(new) {
             field.valueChanged  -= modelChanged
             field.limitsChanged -= modelLimitsChanged
@@ -35,13 +35,13 @@ abstract class ValueSlider(model: ConfinedValueModel<Double>): View(accessibilit
             }
         }
 
-    var value: Double
+    public var value: Double
         get(   ) = model.value
         set(new) {
             model.value = if (snapToTicks && snapSize > 0) round(new/snapSize) * snapSize else new
         }
 
-    var range: ClosedRange<Double>
+    public var range: ClosedRange<Double>
         get(   ) = model.limits
         set(new) { model.limits = new }
 

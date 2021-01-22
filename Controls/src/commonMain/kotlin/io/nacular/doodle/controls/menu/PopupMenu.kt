@@ -56,13 +56,13 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 //}
 
 
-class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel<MenuItem>>(mutableListModelOf(), selectionModel = SingleItemSelectionModel()), MenuItem {
+public class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel<MenuItem>>(mutableListModelOf(), selectionModel = SingleItemSelectionModel()), MenuItem {
 
     // View has an internal display property so have to create new one
-    private  val _display       = display
-    override val subMenus get() = model.iterator()
-    override var parentMenu     = null as MenuItem?
-    override var menuSelected   = false
+    private  val _display                               = display
+    override val subMenus    : Iterator<MenuItem> get() = model.iterator()
+    override var parentMenu  : MenuItem?                = null as MenuItem?
+    override var menuSelected: Boolean                  = false
         set(new) {
             if (field != new) {
                 (selectedChanged as PropertyObserversImpl)(old = field, new = new)
@@ -77,7 +77,7 @@ class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel<MenuIt
         visible = false
     }
 
-    fun add(menu: Menu) {
+    public fun add(menu: Menu) {
         if (menu.parentMenu !== this) {
             size = Size(100.0, 4.0) // FIXME: remove
 
@@ -87,7 +87,7 @@ class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel<MenuIt
         }
     }
 
-    fun show(owner: View, at: Point) {
+    public fun show(owner: View, at: Point) {
         visible = true
 
         // FIXME: IMPLEMENT
