@@ -24,7 +24,7 @@ import io.nacular.doodle.theme.basic.SelectableListKeyHandler
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-open class BasicItemGenerator<T>(private val selectionColor       : Color? = null,
+public open class BasicItemGenerator<T>(private val selectionColor       : Color? = null,
                                  private val selectionBlurredColor: Color? = null): RowGenerator<T> {
 
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
@@ -42,7 +42,7 @@ open class BasicItemGenerator<T>(private val selectionColor       : Color? = nul
     }
 }
 
-fun <T> basicItemGenerator(
+public fun <T> basicItemGenerator(
         selectionColor       : Color? = null,
         selectionBlurredColor: Color? = null,
         configure            : ListRow<T>.() -> Unit
@@ -60,9 +60,9 @@ private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): Lis
     override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = super.rowBounds(of.width, of.insets, index, view)
 }
 
-open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
-                                override val generator   : RowGenerator<T>,
-                                private  val patternFill : PatternFill? = null,
+public open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
+                                       override val generator   : RowGenerator<T>,
+                                       private  val patternFill : PatternFill? = null,
                                              rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
@@ -90,13 +90,13 @@ open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
         focusManager?.requestFocus(event.source)
     }
 
-    companion object {
-        operator fun <T> invoke(
+    public companion object {
+        public operator fun <T> invoke(
                 focusManager: FocusManager?,
                 generator   : RowGenerator<T>,
                 evenRowColor: Color?,
                 oddRowColor : Color?,
-                rowHeight   : Double) = BasicListBehavior(
+                rowHeight   : Double): BasicListBehavior<T> = BasicListBehavior(
                     focusManager,
                     generator,
                     when {
@@ -105,12 +105,12 @@ open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
                     },
                     rowHeight)
 
-        operator fun <T> invoke(
+        public operator fun <T> invoke(
                 focusManager         : FocusManager? = null,
                 evenRowColor         : Color?        = null,
                 oddRowColor          : Color?        = null,
                 selectionColor       : Color?        = null,
                 selectionBlurredColor: Color?        = null,
-                rowHeight            : Double) = BasicListBehavior<T>(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
+                rowHeight            : Double): BasicListBehavior<T> = BasicListBehavior<T>(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
     }
 }

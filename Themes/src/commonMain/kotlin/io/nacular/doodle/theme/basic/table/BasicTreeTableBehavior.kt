@@ -48,7 +48,7 @@ import io.nacular.doodle.utils.SetObserver
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int) = object: ListLike {
+public fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int): ListLike = object: ListLike {
     override val hasFocus     get() = this@map.hasFocus
     override val focusChanged get() = this@map.focusChanged
 
@@ -70,7 +70,7 @@ fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int) = obj
     override val selectionAnchor: Int?     get() = this@map.selectionAnchor?.let(unmapper)
 }
 
-open class BasicTreeTableBehavior<T>(
+public open class BasicTreeTableBehavior<T>(
         private val focusManager         : FocusManager?,
         private val rowHeight            : Double = 20.0,
         private val headerColor          : Color? = Lightgray,
@@ -102,7 +102,7 @@ open class BasicTreeTableBehavior<T>(
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
-    override val treeCellGenerator = object: TreeCellGenerator<T> {
+    override val treeCellGenerator: TreeCellGenerator<T> = object: TreeCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: ItemVisualizer<A, IndexedIem> {
@@ -111,18 +111,18 @@ open class BasicTreeTableBehavior<T>(
         }
     }
 
-    override val cellGenerator = object: CellGenerator<T> {
+    override val cellGenerator: CellGenerator<T> = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
             is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
             else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
-    override val headerPositioner = object: HeaderPositioner<T> {
+    override val headerPositioner: HeaderPositioner<T> = object: HeaderPositioner<T> {
         override fun invoke(table: TreeTable<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
     }
 
-    override val rowPositioner = object: RowPositioner<T>() {
+    override val rowPositioner: RowPositioner<T> = object: RowPositioner<T>() {
         private val delegate = ListPositioner(rowHeight)
 
         override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
@@ -130,11 +130,11 @@ open class BasicTreeTableBehavior<T>(
         override fun height(of: TreeTable<T, *>, below: Path<Int>)                    = delegate.totalHeight(of.rowsBelow(below), of.insets)
     }
 
-    override val headerCellGenerator = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
-    override val overflowColumnConfig = object: OverflowColumnConfig<T> {
+    override val overflowColumnConfig: OverflowColumnConfig<T> = object: OverflowColumnConfig<T> {
         override fun body(table: TreeTable<T, *>): View? = object: View() {
             init {
                 pointerChanged += object: PointerListener {

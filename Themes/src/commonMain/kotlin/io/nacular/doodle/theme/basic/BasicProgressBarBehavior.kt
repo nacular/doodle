@@ -2,9 +2,9 @@ package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.Orientation.Vertical
@@ -12,7 +12,7 @@ import io.nacular.doodle.utils.Orientation.Vertical
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-class BasicProgressBarBehavior(
+public class BasicProgressBarBehavior(
         private val background  : Fill,
         private val foreground  : Fill,
         private val outlineColor: Color? = null,

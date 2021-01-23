@@ -18,14 +18,14 @@ import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
 
 
-open class BasicSwitchBehavior(
+public open class BasicSwitchBehavior(
         private val onBackground      : Color = Blue,
         private val onForeground      : Color = White,
         private val offBackground     : Color = Lightgray,
         private val offForeground     : Color = onForeground): CommonButtonBehavior<Switch>() {
 
-    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
-    var disabledColorMapper: ColorMapper = { it.lighter()    }
+    public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     private var progress  = 0f
     private var activeTransition = null as Completable?
@@ -34,7 +34,7 @@ open class BasicSwitchBehavior(
             field = new
         }
 
-    open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    public open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
     override val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button, _, new ->
         val start = progress

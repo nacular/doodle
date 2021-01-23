@@ -14,7 +14,7 @@ import io.nacular.doodle.utils.Orientation.Horizontal
 import kotlin.math.max
 import kotlin.math.min
 
-class BasicSliderBehavior(
+public class BasicSliderBehavior(
         private val barColor            : Color = Lightgray,
         private val knobColor           : Color = Blue,
                     grooveThicknessRatio: Float = 0.6f,

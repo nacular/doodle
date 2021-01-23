@@ -12,8 +12,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-interface SelectableListKeyHandler {
-    fun pressed(event: KeyEvent) {
+public interface SelectableListKeyHandler {
+    public fun pressed(event: KeyEvent) {
         (event.source as? Selectable<Int>)?.let { list ->
             when (event.key){
                 ArrowUp, ArrowDown -> {

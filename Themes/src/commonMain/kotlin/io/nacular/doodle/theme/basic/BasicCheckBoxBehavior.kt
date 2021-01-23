@@ -94,7 +94,7 @@ private class BasicCheckBoxIcon(
     }
 }
 
-class BasicCheckBoxBehavior(
+public class BasicCheckBoxBehavior(
         textMetrics        : TextMetrics,
         foregroundColor    : Color  = Black,
         backgroundColor    : Color  = Lightgray,
@@ -121,5 +121,5 @@ class BasicCheckBoxBehavior(
         iconSpacing,
         disabledColorMapper
 ) {
-    override fun mirrorWhenRightToLeft(view: CheckBox) = false
+    override fun mirrorWhenRightToLeft(view: CheckBox): Boolean = false
 }

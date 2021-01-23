@@ -50,19 +50,19 @@ import kotlin.math.sqrt
  * Created by Nicholas Eddy on 3/14/19.
  */
 
-abstract class Tab<T>: View() {
-    abstract var index: Int
+public abstract class Tab<T>: View() {
+    public abstract var index: Int
 }
 
-open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
-                       override var index              : Int,
-                                    visualizer         : ItemVisualizer<T, Any>,
-                       private  val radius             : Double,
-                       private  val tabColor           : Color,
-                       private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
-                       private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
-                       private  var selectedColorMapper: ColorMapper,
-                       private  var hoverColorMapper   : ColorMapper): Tab<T>() {
+public open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
+                              override var index              : Int,
+                                           visualizer         : ItemVisualizer<T, Any>,
+                              private  val radius             : Double,
+                              private  val tabColor           : Color,
+                              private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
+                              private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
+                              private  var selectedColorMapper: ColorMapper,
+                              private  var hoverColorMapper   : ColorMapper): Tab<T>() {
 
     private var pointerOver = false
         set(new) {
@@ -89,7 +89,7 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
         }
     }
 
-    var cellAlignment: (Constraints.() -> Unit) = { left = parent.left; centerY = parent.centerY }
+    public var cellAlignment: (Constraints.() -> Unit) = { left = parent.left; centerY = parent.centerY }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
         cellAlignment(
@@ -184,7 +184,7 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
         }
     }
 
-    override fun contains(point: Point) = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
+    override fun contains(point: Point): Boolean = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
         in Rectangle(radius, 0.0, width - 2 * radius, height) -> when (localPoint) {
             in Rectangle(            radius, 0.0, radius, radius)     -> sqrt((Point(        2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
             in Rectangle(width - 2 * radius, 0.0, radius, radius)     -> sqrt((Point(width - 2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
@@ -208,22 +208,22 @@ open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
     }
 }
 
-interface TabProducer<T> {
-    val spacing  : Double
-    val tabHeight: Double
+public interface TabProducer<T> {
+    public val spacing  : Double
+    public val tabHeight: Double
 
-    operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): Tab<T>
+    public operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): Tab<T>
 }
 
-open class BasicTabProducer<T>(override  val tabHeight          : Double = 40.0,
-                               protected val tabRadius          : Double = 10.0,
-                               protected val tabColor           : Color  = Color(0xdee1e6u),
-                               protected val selectedColorMapper: ColorMapper = { White           },
-                               protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+public open class BasicTabProducer<T>(override  val tabHeight          : Double = 40.0,
+                                      protected val tabRadius          : Double = 10.0,
+                                      protected val tabColor           : Color  = Color(0xdee1e6u),
+                                      protected val selectedColorMapper: ColorMapper = { White           },
+                                      protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
 ): TabProducer<T> {
-    override val spacing = -2 * tabRadius
+    override val spacing: Double = -2 * tabRadius
 
-    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int) = BasicTab(
+    override fun invoke(panel: TabbedPanel<T>, item: T, index: Int): BasicTab<T> = BasicTab(
             panel,
             index,
             panel.tabVisualizer,
@@ -235,9 +235,9 @@ open class BasicTabProducer<T>(override  val tabHeight          : Double = 40.0,
             hoverColorMapper
     ).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
 
-    protected open val move = { _: TabbedPanel<T>, _: Int,_: Double -> }
+    protected open val move: (TabbedPanel<T>, Int, Double) -> Unit = { _,_,_ -> }
 
-    protected open val cancelMove = { _: TabbedPanel<T>, _: Int -> }
+    protected open val cancelMove: (TabbedPanel<T>, Int) -> Unit = { _,_ -> }
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
@@ -256,7 +256,7 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
     }
 }
 
-abstract class TabContainer<T>: View() {
+public abstract class TabContainer<T>: View() {
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
      * behaviors receive the notification before listeners to [TabbedPanel.selectionChanged].
@@ -265,7 +265,7 @@ abstract class TabContainer<T>: View() {
      * @param newIndex of the selected item
      * @param oldIndex of previously selected item
      */
-    abstract fun selectionChanged(panel: TabbedPanel<T>, newIndex: Int?, oldIndex: Int?)
+    public abstract fun selectionChanged(panel: TabbedPanel<T>, newIndex: Int?, oldIndex: Int?)
 
     /**
      * Called whenever the items within the TabbedPanel change.
@@ -275,10 +275,10 @@ abstract class TabContainer<T>: View() {
      * @param added items
      * @param moved items (changed index)
      */
-    abstract fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
+    public abstract fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
 }
 
-open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer: TabProducer<T>): TabContainer<T>() {
+public open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer: TabProducer<T>): TabContainer<T>() {
     init {
         children.addAll(panel.mapIndexed { index, item ->
             tabProducer(panel, item, index)
@@ -312,10 +312,10 @@ open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer:
     }
 }
 
-class AnimatingTabContainer<T>(
-        private val animate    : Animator,
-        private val panel      : TabbedPanel<T>,
-        private val tabProducer: TabProducer<T>): SimpleTabContainer<T>(panel, tabProducer) {
+public class AnimatingTabContainer<T>(
+    private val animate         : Animator,
+    private val panel           : TabbedPanel<T>,
+    private val tabProducer     : TabProducer<T>): SimpleTabContainer<T>(panel, tabProducer) {
     private val moveAnimations  = mutableMapOf<View, Cancelable>()
     private val colorAnimations = mutableMapOf<View, Cancelable>()
     private val hoverColors     = mutableMapOf<View, Color?>()
@@ -511,9 +511,9 @@ class AnimatingTabContainer<T>(
     }
 }
 
-typealias TabContainerFactory<T> = (TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
+public typealias TabContainerFactory<T> = (TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
-open class BasicTabbedPanelBehavior<T>(
+public open class BasicTabbedPanelBehavior<T>(
         private val tabProducer    : TabProducer<T>,
         private val backgroundColor: Color = Color(0xdee1e6u),
         private val tabContainer   : TabContainerFactory<T> = { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) }): TabbedPanelBehavior<T>() {

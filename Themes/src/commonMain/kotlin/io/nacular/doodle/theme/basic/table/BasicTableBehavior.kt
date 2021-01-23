@@ -89,14 +89,14 @@ private class TableListRow<T>(
     }
 }
 
-open class BasicCellGenerator<T>: CellGenerator<T> {
+public open class BasicCellGenerator<T>: CellGenerator<T> {
     override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
         is ListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
         else          -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
     }
 }
 
-open class BasicTableBehavior<T>(
+public open class BasicTableBehavior<T>(
         private   val focusManager         : FocusManager?,
         protected val rowHeight            : Double = 20.0,
         protected val headerColor          : Color? = Lightgray,
@@ -119,13 +119,13 @@ open class BasicTableBehavior<T>(
 
     private  val patternFill   = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
     private  val movingColumns = mutableSetOf<Column<*>>()
-    override val cellGenerator = BasicCellGenerator<T>()
+    override val cellGenerator: BasicCellGenerator<T> = BasicCellGenerator<T>()
 
-    override val headerPositioner = object: HeaderPositioner<T> {
+    override val headerPositioner: HeaderPositioner<T> = object: HeaderPositioner<T> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
     }
 
-    override val rowPositioner = object: RowPositioner<T> {
+    override val rowPositioner: RowPositioner<T> = object: RowPositioner<T> {
         private val delegate = ListPositioner(rowHeight)
 
         override fun rowBounds(of: Table<T, *>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
@@ -133,11 +133,11 @@ open class BasicTableBehavior<T>(
         override fun totalRowHeight(of: Table<T, *>)                = delegate.totalHeight(of.numRows, of.insets   )
     }
 
-    override val headerCellGenerator = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
-    override val overflowColumnConfig = object: OverflowColumnConfig<T> {
+    override val overflowColumnConfig: OverflowColumnConfig<T> = object: OverflowColumnConfig<T> {
         override fun body(table: Table<T, *>): View? = object: View() {
             init {
                 pointerChanged += object: PointerListener {
@@ -257,7 +257,7 @@ open class BasicTableBehavior<T>(
     }
 }
 
-open class BasicMutableTableBehavior<T>(
+public open class BasicMutableTableBehavior<T>(
         focusManager         : FocusManager?,
         rowHeight            : Double = 20.0,
         headerColor          : Color? = Lightgray,
@@ -266,7 +266,7 @@ open class BasicMutableTableBehavior<T>(
         selectionColor       : Color? = Blue,
         selectionBlurredColor: Color? = Lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
-    override val headerCellGenerator = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
             toggled += {
                 if (table is MutableTable && column is MutableColumn<*,*>) {
@@ -276,7 +276,7 @@ open class BasicMutableTableBehavior<T>(
         }
     }
 
-    override val cellGenerator = object: BasicCellGenerator<T>() {
+    override val cellGenerator: BasicCellGenerator<T> = object: BasicCellGenerator<T>() {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
             if (current !is ListRow<*>) {
                 val result = it as ListRow<*>
@@ -293,7 +293,7 @@ open class BasicMutableTableBehavior<T>(
     }
 }
 
-open class TextEditOperation<T>(
+public open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
         private val encoder     : Encoder<T, String>,
         private val table       : MutableTable<*, *>,
@@ -338,7 +338,7 @@ open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke() = object: View() {
+    override fun invoke(): View = object: View() {
         init {
             children += this@TextEditOperation
 
@@ -352,22 +352,22 @@ open class TextEditOperation<T>(
         }
     }
 
-    override fun complete() = encoder.decode(text).also { cancel() }
+    override fun complete(): T? = encoder.decode(text).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged
     }
 
-    companion object {
-        operator fun invoke(focusManager: FocusManager?,
+    public companion object {
+        public operator fun invoke(focusManager: FocusManager?,
                             table       : MutableTable<*, *>,
                             row         : String,
                             index       : Int,
-                            current     : View) = TextEditOperation(focusManager, PassThroughEncoder(), table, row, index, current)
+                            current     : View): TextEditOperation<String> = TextEditOperation(focusManager, PassThroughEncoder(), table, row, index, current)
     }
 }
 
-open class ColorEditOperation<T>(
+public open class ColorEditOperation<T>(
         private val display     : Display,
         private val focusManager: FocusManager,
         private val table       : MutableTable<T, *>,
@@ -400,7 +400,7 @@ open class ColorEditOperation<T>(
         colorPicker.focusChanged += focusChanged
     }
 
-    override fun complete() = colorPicker.color.also {
+    override fun complete(): Color = colorPicker.color.also {
         cancel()
     }
 
@@ -419,7 +419,7 @@ open class ColorEditOperation<T>(
     }
 }
 
-open class BooleanEditOperation<T>(
+public open class BooleanEditOperation<T>(
         private val focusManager: FocusManager,
         private val table       : MutableTable<T, *>,
                     column      : Column<*>,
@@ -457,7 +457,7 @@ open class BooleanEditOperation<T>(
 
     override fun invoke(): View? = this
 
-    override fun complete() = checkBox.selected.also { cancel() }
+    override fun complete(): Boolean = checkBox.selected.also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged

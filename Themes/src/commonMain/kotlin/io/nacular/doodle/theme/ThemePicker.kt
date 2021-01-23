@@ -8,7 +8,7 @@ import io.nacular.doodle.layout.constrain
 /**
  * Created by Nicholas Eddy on 8/30/18.
  */
-class ThemePicker(themeManager: ThemeManager): View() {
+public class ThemePicker(themeManager: ThemeManager): View() {
     private val model   = MutableListModel<Theme?>()
     private val spinner = MutableSpinner(model)
 

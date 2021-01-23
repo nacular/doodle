@@ -21,7 +21,7 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 3/17/18.
  */
-open class BasicButtonBehavior(
+public open class BasicButtonBehavior(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color  = Lightgray,
         private val darkBackgroundColor: Color  = backgroundColor.darker(),
@@ -31,12 +31,12 @@ open class BasicButtonBehavior(
         private val cornerRadius       : Double = 4.0,
                     insets             : Double = 4.0): CommonTextButtonBehavior<Button>(textMetrics) {
 
-    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
-    var disabledColorMapper: ColorMapper = { it.lighter()    }
+    public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     private var insets = Insets(insets)
 
-    protected class RenderColors(val fillColor: Color, val textColor: Color, val borderColor: Color?)
+    protected class RenderColors(public val fillColor: Color, public val textColor: Color, public val borderColor: Color?)
 
     protected fun colors(view: Button): RenderColors {
         val model       = view.model

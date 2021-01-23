@@ -18,22 +18,22 @@ import kotlin.reflect.KClass
 /**
  * Created by Nicholas Eddy on 4/15/20.
  */
-class Modules {
-    enum class BehaviorResult { Matched, NotMatched }
+public class Modules {
+    public enum class BehaviorResult { Matched, NotMatched }
 
-    interface BehaviorResolver {
-        val theme: KClass<out Theme>? get() = null
+    public interface BehaviorResolver {
+        public val theme: KClass<out Theme>? get() = null
 
-        operator fun invoke(view: View): BehaviorResult
+        public operator fun invoke(view: View): BehaviorResult
     }
 
-    companion object {
-        val ThemeModule = Module(allowSilentOverride = true, name = "Theme") {
+    public companion object {
+        public val ThemeModule: Module = Module(allowSilentOverride = true, name = "Theme") {
             bind<ThemeManager>        () with singleton { instance<InternalThemeManager>() }
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl(instance()) }
         }
 
-        val DynamicThemeModule = Module(name = "DynamicThemeModule") {
+        public val DynamicThemeModule: Module = Module(name = "DynamicThemeModule") {
             importOnce(ThemeModule, allowOverride = true)
 
             bind() from setBinding<BehaviorResolver>()
@@ -41,13 +41,13 @@ class Modules {
             bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
         }
 
-        inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit) = bindConditionalBehavior<T>(theme) {
+        public inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit): Unit = bindConditionalBehavior<T>(theme) {
             block(this, it)
             Matched
         }
 
         // TODO: Can this be renamed to bindBehavior in 1.4?
-        inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
+        public inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
             importOnce(DynamicThemeModule, allowOverride = true)
 
             bind<BehaviorResolver>().inSet() with singleton {

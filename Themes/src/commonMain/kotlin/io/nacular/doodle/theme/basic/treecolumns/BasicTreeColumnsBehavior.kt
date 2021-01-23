@@ -38,7 +38,7 @@ import io.nacular.doodle.utils.Path
  */
 
 
-open class BasicTreeColumnRowGenerator<T>(
+public open class BasicTreeColumnRowGenerator<T>(
         private val focusManager         : FocusManager?,
         private val selectionColor       : Color? = Green.lighter(),
         private val selectionBlurredColor: Color? = Lightgray,
@@ -55,13 +55,13 @@ open class BasicTreeColumnRowGenerator<T>(
     }
 }
 
-class BasicTreeColumnsBehavior<T>(
+public class BasicTreeColumnsBehavior<T>(
         override val generator           : CellGenerator<T>,
         private  val columnSeparatorColor: Color? = Lightgray.lighter().lighter(),
         private  val backgroundColor     : Color? = Lightgray,
-        rowHeight                        : Double = 20.0): TreeColumnsBehavior<T>(), KeyListener {
+                     rowHeight           : Double = 20.0): TreeColumnsBehavior<T>(), KeyListener {
 
-    constructor(
+    public constructor(
             focusManager         : FocusManager?,
             rowHeight            : Double = 20.0,
             columnSeparatorColor : Color? = Lightgray.lighter().lighter(),
@@ -143,7 +143,7 @@ class BasicTreeColumnsBehavior<T>(
 //        patternFill?.let { canvas.rect(Rectangle(size = canvas.size), it) }
     }
 
-    companion object {
+    private companion object {
         private const val VERTICAL_LINE_THICKNESS = 1.0
     }
 }

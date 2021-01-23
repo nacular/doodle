@@ -25,15 +25,15 @@ import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Anchor
 
-class BasicSpinnerBehavior(
+public class BasicSpinnerBehavior(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val cornerRadius       : Double): SpinnerBehavior<Any, Model<Any>>() {
 
-    var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
-    var disabledColorMapper: ColorMapper = { it.lighter()    }
+    public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     private inner class ButtonIcon(private val isUp: Boolean): Icon<Button> {
         override fun size(view: Button) = Size(view.width * 0.3, view.height * 0.3)

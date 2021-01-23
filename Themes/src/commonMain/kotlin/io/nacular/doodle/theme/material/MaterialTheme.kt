@@ -17,17 +17,17 @@ import org.kodein.di.erasedSet
 /**
  * Created by Nicholas Eddy on 1/8/20.
  */
-class MaterialTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
-    override fun toString() = this::class.simpleName ?: ""
+public class MaterialTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
+    override fun toString(): String = this::class.simpleName ?: ""
 
-    companion object {
-        class FontConfig(val source: String, val timeout: Measure<Time>)
+    public companion object {
+        public class FontConfig(public val source: String, public val timeout: Measure<Time>)
 
-        val materialTheme = Module(name = "MaterialTheme") {
+        public val materialTheme: Module = Module(name = "MaterialTheme") {
             bind<MaterialTheme>() with singleton { MaterialTheme(Instance(erasedSet())) }
         }
 
-        fun materialButtonBehavior(config: FontConfig? = null) = Module(name = "MaterialButtonBehavior") {
+        public fun materialButtonBehavior(config: FontConfig? = null): Module = Module(name = "MaterialButtonBehavior") {
             bindBehavior<Button>(MaterialTheme::class) { it.behavior = MaterialButtonBehavior(
                     instance(),
                     instance(),

@@ -34,12 +34,12 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 7/25/20.
  */
-abstract class TreeColumnRowIcon: View() {
-    abstract var selected: Boolean
+public abstract class TreeColumnRowIcon: View() {
+    public abstract var selected: Boolean
 }
 
-class SimpleTreeColumnRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeColumnRowIcon() {
-    override var selected = false
+public class SimpleTreeColumnRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeColumnRowIcon() {
+    override var selected: Boolean = false
 
     override fun render(canvas: Canvas) {
         val centeredRect = bounds.atOrigin
@@ -54,19 +54,19 @@ class SimpleTreeColumnRowIcon(private val color: Color = Black, private val sele
     }
 }
 
-class TreeColumnRow<T>(
+public class TreeColumnRow<T>(
                     treeColumns          : TreeColumns<T, *>,
                     node                 : T,
-                var path                 : Path<Int>,
+        public  var path                 : Path<Int>,
         private var index                : Int,
         private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
         private val selectionColor       : Color? = Color.Green,
         private val selectionBlurredColor: Color? = selectionColor,
         private val iconFactory          : () -> TreeColumnRowIcon): View() {
 
-    var insetTop = 1.0
+    public var insetTop: Double = 1.0
 
-    var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
+    public var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -161,14 +161,14 @@ class TreeColumnRow<T>(
         )
     }
 
-    fun update(tree: TreeColumns<T, *>, node: T, path: Path<Int>, index: Int) {
+    public fun update(tree: TreeColumns<T, *>, node: T, path: Path<Int>, index: Int) {
         this.path  = path
         this.index = index
 
         update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, selected = tree.enclosedBySelection(path))), tree)
     }
 
-    fun update(content: View, treeColumns: TreeColumns<T, *>) {
+    public fun update(content: View, treeColumns: TreeColumns<T, *>) {
         this.content = content
 
         idealSize = Size(

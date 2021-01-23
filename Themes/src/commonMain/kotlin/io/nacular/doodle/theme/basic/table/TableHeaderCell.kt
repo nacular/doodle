@@ -26,7 +26,7 @@ import io.nacular.doodle.utils.Pool
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-class TableHeaderCell(private val column: Column<*>, private val headerColor: Color?): View() {
+public class TableHeaderCell(private val column: Column<*>, private val headerColor: Color?): View() {
 
     private var positioner: Constraints.() -> Unit = column.headerAlignment ?: center
         set(new) {
@@ -147,7 +147,7 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
         }
     }
 
-    val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
+    public val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
 
     override fun addedToDisplay() {
         super.addedToDisplay()
@@ -168,7 +168,7 @@ class TableHeaderCell(private val column: Column<*>, private val headerColor: Co
         canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(headerColor?.inverted ?: Gray, lineThickness))
     }
 
-    companion object {
+    private companion object {
         private const val lineIndent    = 3.0
         private const val lineThickness = 1.0
     }

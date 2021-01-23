@@ -37,19 +37,19 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 5/7/19.
  */
 
-abstract class TreeRowIcon: View() {
-    abstract var expanded: Boolean
-    abstract var selected: Boolean
+public abstract class TreeRowIcon: View() {
+    public abstract var expanded: Boolean
+    public abstract var selected: Boolean
 }
 
-class SimpleTreeRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeRowIcon() {
-    override var expanded = false
+public class SimpleTreeRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeRowIcon() {
+    override var expanded: Boolean = false
         set (new) {
             field = new
             rerender()
         }
 
-    override var selected = false
+    override var selected: Boolean = false
         set (new) {
             field = new
             rerender()
@@ -73,18 +73,19 @@ class SimpleTreeRowIcon(private val color: Color = Black, private val selectedCo
     }
 }
 
-class TreeRow<T>(tree                 : TreeLike,
+public class TreeRow<T>(
+                 tree                 : TreeLike,
                  node                 : T,
-             var path                 : Path<Int>,
+     public  var path                 : Path<Int>,
      private var index                : Int,
      private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon): View() {
 
-    var insetTop = 1.0
+    public var insetTop: Double = 1.0
 
-    var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
+    public var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -97,7 +98,7 @@ class TreeRow<T>(tree                 : TreeLike,
 
     private var icon    = null as TreeRowIcon?
     private var depth   = -1
-            var content = itemVisualizer.invoke(node, context = SimpleIndexedItem(index, tree.selected(path)))
+    public  var content: View = itemVisualizer.invoke(node, context = SimpleIndexedItem(index, tree.selected(path)))
         private set(new) {
             if (field != new) {
                 children.batch {
@@ -181,14 +182,14 @@ class TreeRow<T>(tree                 : TreeLike,
         )
     }
 
-    fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
+    public fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
         this.path  = path
         this.index = index
 
         update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, tree.selected(path))), tree)
     }
 
-    fun update(content: View, tree: TreeLike) {
+    public fun update(content: View, tree: TreeLike) {
         this.content = content
 
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)

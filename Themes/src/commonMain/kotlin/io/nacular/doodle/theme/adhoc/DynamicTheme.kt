@@ -6,12 +6,12 @@ import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.BehaviorResult.Matched
 import io.nacular.doodle.theme.Theme
 
-open class DynamicTheme protected constructor(behaviors: Iterable<BehaviorResolver>): Theme {
+public open class DynamicTheme protected constructor(behaviors: Iterable<BehaviorResolver>): Theme {
     private val behaviors = behaviors.reversed()
 
-    override fun install(display: Display, all: Sequence<View>) = all.forEach { view ->
+    override fun install(display: Display, all: Sequence<View>): Unit = all.forEach { view ->
         behaviors.firstOrNull { it(view) == Matched }
     }
 
-    override fun toString() = this::class.simpleName ?: ""
+    override fun toString(): String = this::class.simpleName ?: ""
 }

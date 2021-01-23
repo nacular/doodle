@@ -69,7 +69,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
     override fun height(of: Tree<T, *>, below: Path<Int>) = of.rowsBelow(below) * height + of.insets.run { top + bottom }
 }
 
-open class BasicTreeRowGenerator<T>(private val focusManager         : FocusManager?,
+public open class BasicTreeRowGenerator<T>(private val focusManager         : FocusManager?,
                                     private val selectionColor       : Color? = Green.lighter(),
                                     private val selectionBlurredColor: Color? = Lightgray,
                                     private val iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon(Black) }): RowGenerator<T> {
@@ -85,11 +85,11 @@ open class BasicTreeRowGenerator<T>(private val focusManager         : FocusMana
     }
 }
 
-class BasicMutableTreeRowGenerator<T>(focusManager         : FocusManager?,
+public class BasicMutableTreeRowGenerator<T>(focusManager         : FocusManager?,
                                       selectionColor       : Color? = Green.lighter(),
                                       selectionBlurredColor: Color? = Lightgray,
                                       iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }): BasicTreeRowGenerator<T>(focusManager, selectionColor, selectionBlurredColor, iconFactory) {
-    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = super.invoke(tree, node, path, index, current).also {
+    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = super.invoke(tree, node, path, index, current).also {
         if (current !is TreeRow<*>) {
             val result = it as TreeRow<*>
 
@@ -104,11 +104,11 @@ class BasicMutableTreeRowGenerator<T>(focusManager         : FocusManager?,
     }
 }
 
-open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
-                                             evenRowColor: Color? = White,
-                                             oddRowColor : Color? = Lightgray.lighter().lighter(),
-                                             rowHeight   : Double = 20.0): TreeBehavior<T>, KeyListener, SelectableTreeKeyHandler {
-    constructor(focusManager         : FocusManager?,
+public open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
+                                                    evenRowColor: Color? = White,
+                                                    oddRowColor : Color? = Lightgray.lighter().lighter(),
+                                                    rowHeight   : Double = 20.0): TreeBehavior<T>, KeyListener, SelectableTreeKeyHandler {
+    public constructor(focusManager         : FocusManager?,
                 rowHeight            : Double = 20.0,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
@@ -140,11 +140,11 @@ open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T>,
     }
 }
 
-class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
-                                  evenRowColor: Color? = White,
-                                  oddRowColor : Color? = Lightgray.lighter().lighter(),
-                                  rowHeight   : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
-    constructor(focusManager         : FocusManager?,
+public class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
+                                         evenRowColor: Color? = White,
+                                         oddRowColor : Color? = Lightgray.lighter().lighter(),
+                                         rowHeight   : Double = 20.0): BasicTreeBehavior<T>(generator, evenRowColor, oddRowColor, rowHeight) {
+    public constructor(focusManager         : FocusManager?,
                 rowHeight            : Double = 20.0,
                 evenRowColor         : Color? = White,
                 oddRowColor          : Color? = Lightgray.lighter().lighter(),
@@ -173,7 +173,7 @@ class BasicMutableTreeBehavior<T>(generator   : RowGenerator<T>,
 }
 
 @Suppress("PrivatePropertyName", "unused")
-open class TextEditOperation<T>(
+public open class TextEditOperation<T>(
         private val focusManager   : FocusManager?,
         private val encoder        : Encoder<T, String>,
                     display        : Display,
@@ -236,7 +236,7 @@ open class TextEditOperation<T>(
         }
     }
 
-    override fun complete() = encoder.decode(text).also {
+    override fun complete(): T? = encoder.decode(text).also {
         cancel()
     }
 
@@ -246,15 +246,15 @@ open class TextEditOperation<T>(
     }
 }
 
-class TreeTextEditor<T>(
+public class TreeTextEditor<T>(
         private val focusManager   : FocusManager?,
         private val encoder        : Encoder<T, String>,
         private val display        : Display,
         private val positionMonitor: RelativePositionMonitor): TreeEditor<T> {
     override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
 
-    companion object {
-        operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {
+    public companion object {
+        public operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {
             return TreeTextEditor(focusManager, object: Encoder<String, String> {
                 override fun decode(b: String) = b
                 override fun encode(a: String) = a

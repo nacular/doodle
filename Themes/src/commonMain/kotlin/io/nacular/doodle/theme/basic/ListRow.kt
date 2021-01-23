@@ -25,16 +25,17 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
-open class ListRow<T>(        var list                           : ListLike,
-                              var row                            : T,
-                              var index                          : Int,
-                      private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
-                      private val backgroundSelectionColor       : Color? = Blue,
-                      private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
+public open class ListRow<T>(
+        public  var list                           : ListLike,
+        public  var row                            : T,
+        public  var index                          : Int,
+        private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
+        private val backgroundSelectionColor       : Color? = Blue,
+        private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
 
-    var insetTop = 1.0
+    public var insetTop: Double = 1.0
 
-    var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
+    public var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -101,7 +102,7 @@ open class ListRow<T>(        var list                           : ListLike,
         update(list, row, index)
     }
 
-    fun update(list: ListLike, row: T, index: Int) {
+    public fun update(list: ListLike, row: T, index: Int) {
         this.list  = list
         this.row   = row
         this.index = index
@@ -143,12 +144,12 @@ open class ListRow<T>(        var list                           : ListLike,
     }
 }
 
-open class ListPositioner(private val height: Double, private val spacing: Double = 0.0) {
-    fun rowFor(insets: Insets, y: Double) = max(0, ((y - insets.top) / (height + spacing)).toInt())
+public open class ListPositioner(private val height: Double, private val spacing: Double = 0.0) {
+    public fun rowFor(insets: Insets, y: Double): Int = max(0, ((y - insets.top) / (height + spacing)).toInt())
 
-    fun totalHeight(numItems: Int, insets: Insets) = numItems * height + insets.run { top + bottom }
+    public fun totalHeight(numItems: Int, insets: Insets): Double = numItems * height + insets.run { top + bottom }
 
-    fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null) = Rectangle(
+    public fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
             insets.left,
             insets.top + index * height + (index + 1) * spacing,
             max(0.0, width - insets.run { left + right }),

@@ -15,8 +15,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-interface SelectableTreeKeyHandler {
-    fun pressed(event: KeyEvent) {
+public interface SelectableTreeKeyHandler {
+    public fun pressed(event: KeyEvent) {
         (event.source as? TreeLike)?.let { tree ->
             val (expandKey, collapseKey) = when (tree.contentDirection) {
                 LeftRight -> ArrowRight to ArrowLeft

@@ -38,7 +38,7 @@ import kotlin.math.sqrt
 /**
  * Created by Nicholas Eddy on 12/10/19.
  */
-fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
+internal fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
     val x = max(at.x, on.size.width  - at.x)
     val y = max(at.y, on.size.height - at.y)
 
@@ -47,7 +47,7 @@ fun drawRipple(on: Canvas, at: Point, opacity: Float, progress: Float) {
     on.circle(Circle(radius = maxRadius * progress, center = at), ColorFill(White opacity opacity))
 }
 
-class MaterialButtonBehavior(
+public class MaterialButtonBehavior(
                     textMetrics    : TextMetrics,
         private val animate        : Animator,
         private val scheduler      : Scheduler,
@@ -92,7 +92,7 @@ class MaterialButtonBehavior(
         overlayAnimation = (animate (overlayOpacity to overlayEnd    ) using fixedTimeLinear(hoverAnimationTime)) { overlayOpacity = it }
     }
 
-    override fun clipCanvasToBounds(view: Button) = false
+    override fun clipCanvasToBounds(view: Button): Boolean = false
 
     override fun install(view: Button) {
         super.install(view)

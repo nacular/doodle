@@ -16,7 +16,7 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.times
 
-class BasicCircularSliderBehavior(
+public class BasicCircularSliderBehavior(
         private val barColor : Color = Lightgray,
         private val knobColor: Color = Blue,
         focusManager: FocusManager? = null

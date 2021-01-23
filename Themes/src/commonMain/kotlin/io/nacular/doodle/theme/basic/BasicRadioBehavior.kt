@@ -57,7 +57,7 @@ private class BasicRadioIcon(
     }
 }
 
-class BasicRadioBehavior(
+public class BasicRadioBehavior(
         textMetrics        : TextMetrics,
         foregroundColor    : Color = Black,
         backgroundColor    : Color = Lightgray,
