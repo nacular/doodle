@@ -3,47 +3,47 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/12/20.
  */
-expect abstract class EventTarget
+public expect abstract class EventTarget
 
-expect open class Event {
-    val target: EventTarget?
+public expect open class Event {
+    public val target: EventTarget?
 
-    fun stopPropagation()
-    fun preventDefault ()
+    public fun stopPropagation()
+    public fun preventDefault ()
 }
 
-expect open class UIEvent: Event
+public expect open class UIEvent: Event
 
-expect open class KeyboardEvent: UIEvent {
-    val ctrlKey : Boolean
-    val shiftKey: Boolean
-    val altKey  : Boolean
-    val metaKey : Boolean
-    val keyCode : Int
-    val key     : String
-    val code    : String
+public expect open class KeyboardEvent: UIEvent {
+    public val ctrlKey : Boolean
+    public val shiftKey: Boolean
+    public val altKey  : Boolean
+    public val metaKey : Boolean
+    public val keyCode : Int
+    public val key     : String
+    public val code    : String
 }
 
-expect open class MouseEvent: UIEvent {
-    open val pageX   : Double
-    open val pageY   : Double
-    open val clientX : Int
-    open val clientY : Int
-    open val ctrlKey : Boolean
-    open val shiftKey: Boolean
-    open val altKey  : Boolean
-    open val metaKey : Boolean
-    open val button  : Short
-    open val buttons : Short
+public expect open class MouseEvent: UIEvent {
+    public open val pageX   : Double
+    public open val pageY   : Double
+    public open val clientX : Int
+    public open val clientY : Int
+    public open val ctrlKey : Boolean
+    public open val shiftKey: Boolean
+    public open val altKey  : Boolean
+    public open val metaKey : Boolean
+    public open val button  : Short
+    public open val buttons : Short
 }
 
-expect open class PointerEvent: MouseEvent {
-    val pointerType: String
+public expect open class PointerEvent: MouseEvent {
+    public val pointerType: String
 }
 
-expect open class WheelEvent: MouseEvent {
-    val deltaY: Double
-    val deltaX: Double
+public expect open class WheelEvent: MouseEvent {
+    public val deltaX: Double
+    public val deltaY: Double
 }
 
-expect open class TouchEvent: UIEvent
+public expect open class TouchEvent: UIEvent

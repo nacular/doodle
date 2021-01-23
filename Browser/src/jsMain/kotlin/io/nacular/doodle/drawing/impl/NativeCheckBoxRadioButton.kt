@@ -33,7 +33,7 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/25/19.
  */
-enum class Type(internal val value: String) { Check("checkbox"), Radio("radio") }
+internal enum class Type(internal val value: String) { Check("checkbox"), Radio("radio") }
 
 internal interface NativeCheckBoxRadioButtonFactory {
     operator fun invoke(button: Button, type: Type): NativeCheckBoxRadioButton

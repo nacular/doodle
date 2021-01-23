@@ -3,12 +3,12 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/13/20.
  */
-expect abstract class Performance {
-    fun now(): Double
+public expect abstract class Performance {
+    public fun now(): Double
 }
 
-expect class Date {
-    companion object {
-        fun now(): Double
+public expect class Date {
+    public companion object {
+        public fun now(): Double
     }
 }

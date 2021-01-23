@@ -76,14 +76,14 @@ import kotlin.random.Random
 /**
  * Created by Nicholas Eddy on 1/22/20.
  */
-inline fun <reified T: Application> application(
+public inline fun <reified T: Application> application(
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
     bind<Application>() with singleton(creator = creator)
 }, allowDefaultDarkMode, modules)
 
-inline fun <reified T: Application> application(
+public inline fun <reified T: Application> application(
                  root                : HTMLElement,
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
@@ -91,7 +91,7 @@ inline fun <reified T: Application> application(
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
-inline fun <reified T: Application> nestedApplication(
+public inline fun <reified T: Application> nestedApplication(
                  view                : ApplicationView,
                  root                : HTMLElement,
                  allowDefaultDarkMode: Boolean      = false,
@@ -100,18 +100,18 @@ inline fun <reified T: Application> nestedApplication(
     bind<Application>() with singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
-fun createApplication(
+public fun createApplication(
         injector            : DKodein,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
-fun createApplication(
+public fun createApplication(
         injector            : DKodein,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
-fun createNestedApplication(
+public fun createNestedApplication(
         view                : ApplicationView,
         injector            : DKodein,
         root                : HTMLElement,

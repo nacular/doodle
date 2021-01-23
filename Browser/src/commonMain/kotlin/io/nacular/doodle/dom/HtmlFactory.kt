@@ -11,16 +11,16 @@ import io.nacular.doodle.Text
  * Created by Nicholas Eddy on 10/24/17.
  */
 
-interface HtmlFactory {
-    val root: HTMLElement
+public interface HtmlFactory {
+    public val root: HTMLElement
 
-    fun <T: HTMLElement> create(           ): T
-    fun <T: HTMLElement> create(tag: String): T
+    public fun <T: HTMLElement> create(           ): T
+    public fun <T: HTMLElement> create(tag: String): T
 
-    fun createText (text  : String                 ): Text
-    fun createImage(source: String                 ): HTMLImageElement
-    fun createOrUse(tag   : String, possible: Node?): HTMLElement
+    public fun createText (text  : String                 ): Text
+    public fun createImage(source: String                 ): HTMLImageElement
+    public fun createOrUse(tag   : String, possible: Node?): HTMLElement
 
-    fun createInput (): HTMLInputElement
-    fun createButton(): HTMLButtonElement
+    public fun createInput (): HTMLInputElement
+    public fun createButton(): HTMLButtonElement
 }

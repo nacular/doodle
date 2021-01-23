@@ -7,7 +7,7 @@ import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.scheduler.Scheduler
 
 
-class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
+public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
     private val loading = mutableMapOf<String, HTMLImageElement>()
 
     override suspend fun load(source: String): Image? {

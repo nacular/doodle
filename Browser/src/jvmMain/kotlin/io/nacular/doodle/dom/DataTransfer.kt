@@ -3,13 +3,13 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/13/20.
  */
-actual abstract class DataTransfer {
+public actual abstract class DataTransfer {
     //    fun clearData(format: String = definedExternally)
-    actual open var dropEffect = ""
-    actual open var effectAllowed = ""
-    actual open val types: Array<out String> = arrayOf("")
+    public actual open var dropEffect: String = ""
+    public actual open var effectAllowed: String = ""
+    public actual open val types: Array<out String> = arrayOf("")
 
-    actual fun getData(format: String) = ""
+    public actual fun getData(format: String): String = ""
 
-    actual fun setData(format: String, data: String) {}
+    public actual fun setData(format: String, data: String) {}
 }

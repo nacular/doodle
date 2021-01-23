@@ -12,10 +12,10 @@ import io.nacular.measured.units.times
 /**
  * Created by Nicholas Eddy on 10/19/17.
  */
-class SystemClock: Clock {
+public class SystemClock: Clock {
     override val epoch: Measure<Time> get() = Date.now() * milliseconds
 }
 
-class PerformanceTimer(private val performance: Performance?): Timer {
+internal class PerformanceTimer(private val performance: Performance?): Timer {
     override val now get() = (performance?.now() ?: Date.now()) * milliseconds
 }

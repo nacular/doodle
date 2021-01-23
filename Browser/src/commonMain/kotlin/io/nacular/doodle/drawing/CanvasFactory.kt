@@ -5,6 +5,6 @@ import io.nacular.doodle.HTMLElement
 /**
  * Created by Nicholas Eddy on 10/23/17.
  */
-interface CanvasFactory {
+internal interface CanvasFactory {
     operator fun invoke(region: HTMLElement): Canvas
 }

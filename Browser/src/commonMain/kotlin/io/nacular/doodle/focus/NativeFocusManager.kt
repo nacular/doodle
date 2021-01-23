@@ -9,11 +9,11 @@ import io.nacular.doodle.utils.observable
  * focus. The use case is for embedded or nested apps where focus in the
  * Browser must be explicitly managed.
  */
-interface NativeFocusManager {
-    var hasFocusOwner: Boolean
+public interface NativeFocusManager {
+    public var hasFocusOwner: Boolean
 }
 
-class NativeFocusManagerImpl(private val focusManager: FocusManagerImpl): NativeFocusManager {
+internal class NativeFocusManagerImpl(private val focusManager: FocusManagerImpl): NativeFocusManager {
     override var hasFocusOwner by observable(false) { _,new ->
         when {
             new && !focusManager.enabled -> focusManager.enabled = true

@@ -3,7 +3,7 @@ package io.nacular.doodle.dom
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.geometry.Size
 
-interface ElementRuler {
+internal interface ElementRuler {
     fun size(element: HTMLElement): Size
 
     fun width (element: HTMLElement) = size(element).width

@@ -11,209 +11,210 @@ import io.nacular.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual abstract class CSSRule {
-    actual var cssText = ""
+public actual abstract class CSSRule {
+    public actual var cssText: String = ""
 }
 
-actual abstract class CSSRuleList {
-    actual abstract val length: Int
+public actual abstract class CSSRuleList {
+    public actual abstract val length: Int
 
-    actual fun item(index: Int): CSSRule? = null
+    public actual fun item(index: Int): CSSRule? = null
 }
 
-actual abstract class CSSStyleSheet: StyleSheet() {
-    actual fun insertRule(rule: String, index: Int) = 0
-    actual val cssRules: CSSRuleList
+public actual abstract class CSSStyleSheet: StyleSheet() {
+    public actual fun insertRule(rule: String, index: Int): Int = 0
+    public actual val cssRules: CSSRuleList
         get() = TODO("Not yet implemented")
 
-    actual fun deleteRule(index: Int) {}
+    public actual fun deleteRule(index: Int) {}
 }
 
-actual val CSSStyleSheet.numStyles: Int get() = 0
+public actual val CSSStyleSheet.numStyles: Int get() = 0
 
 
-actual abstract class CSSStyleDeclaration {
-    actual var top                 = ""
-    actual var font                = ""
-    actual var left                = ""
-    actual var right               = ""
-    actual var width               = ""
-    actual var color               = ""
-    actual var height              = ""
-    actual var margin              = ""
-    actual var bottom              = ""
-    actual var filter              = ""
-    actual var border              = ""
-    actual var cursor              = ""
-    actual var padding             = ""
-    actual var zIndex              = ""
-    actual var display             = ""
-    actual var opacity             = ""
-    actual var fontSize            = ""
-    actual var position            = ""
-    actual var transform           = ""
-    actual var marginTop           = ""
-    actual var overflowX           = ""
-    actual var overflowY           = ""
-    actual var boxShadow           = ""
-    actual var fontStyle           = ""
-    actual var textShadow          = ""
-    actual var textIndent          = ""
-    actual var fontFamily          = ""
-    actual var fontWeight          = ""
-    actual var background          = ""
-    actual var marginLeft          = ""
-    actual var whiteSpace          = ""
-    actual var marginRight         = ""
-    actual var borderStyle         = ""
-    actual var borderColor         = ""
-    actual var borderWidth         = ""
-    actual var borderRadius        = ""
-    actual var marginBottom        = ""
-    actual var outlineWidth        = ""
-    actual var backgroundSize      = ""
-    actual var textDecoration      = ""
-    actual var backgroundImage     = ""
-    actual var backgroundColor     = ""
-    actual var textDecorationLine  = ""
-    actual var textDecorationColor = ""
-    actual var textDecorationStyle = ""
+public actual abstract class CSSStyleDeclaration {
+    public actual var top: String                 = ""
+    public actual var font: String                = ""
+    public actual var left: String                = ""
+    public actual var right: String               = ""
+    public actual var width: String               = ""
+    public actual var color: String               = ""
+    public actual var height: String              = ""
+    public actual var margin: String              = ""
+    public actual var bottom: String              = ""
+    public actual var filter: String              = ""
+    public actual var border: String              = ""
+    public actual var cursor: String              = ""
+    public actual var zIndex: String              = ""
+    public actual var padding: String             = ""
+    public actual var display: String             = ""
+    public actual var opacity: String             = ""
+    public actual var fontSize: String            = ""
+    public actual var position: String            = ""
+    public actual var transform: String           = ""
+    public actual var marginTop: String           = ""
+    public actual var overflowX: String           = ""
+    public actual var overflowY: String           = ""
+    public actual var boxShadow: String           = ""
+    public actual var fontStyle: String           = ""
+    public actual var textShadow: String          = ""
+    public actual var textIndent: String          = ""
+    public actual var fontFamily: String          = ""
+    public actual var fontWeight: String          = ""
+    public actual var background: String          = ""
+    public actual var marginLeft: String          = ""
+    public actual var whiteSpace: String          = ""
+    public actual var marginRight: String         = ""
+    public actual var borderStyle: String         = ""
+    public actual var borderColor: String         = ""
+    public actual var borderWidth: String         = ""
+    public actual var borderRadius: String        = ""
+    public actual var marginBottom: String        = ""
+    public actual var outlineWidth: String        = ""
+    public actual var backgroundSize: String      = ""
+    public actual var textDecoration: String      = ""
+    public actual var backgroundImage: String     = ""
+    public actual var backgroundColor: String     = ""
+    public actual var textDecorationLine: String  = ""
+    public actual var textDecorationColor: String = ""
+    public actual var textDecorationStyle: String = ""
 
-    var clipPath_                  = ""
-    var willChange_                = ""
-    var textDecorationThickness_   = ""
+    internal var clipPath_: String                  = ""
+    internal var willChange_: String                = ""
+    internal var textDecorationThickness_: String   = ""
 }
 
-actual var CSSStyleDeclaration.clipPath get() = clipPath_; set(new) { clipPath_ = new }
-actual var CSSStyleDeclaration.willChange get() = willChange_; set(new) { willChange_ = new }
-actual var CSSStyleDeclaration.textDecorationThickness get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
+public actual var CSSStyleDeclaration.clipPath: String get() = clipPath_; set(new) { clipPath_ = new }
+public actual var CSSStyleDeclaration.willChange: String get() = willChange_; set(new) { willChange_ = new }
+public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
 
-actual class DOMRect {
-    actual var x      = 0.0
-    actual var y      = 0.0
-    actual var width  = 0.0
-    actual var height = 0.0
+public actual class DOMRect {
+    public actual var x: Double      = 0.0
+    public actual var y: Double      = 0.0
+    public actual var width: Double  = 0.0
+    public actual var height: Double = 0.0
 }
 
-actual abstract class Element: Node() {
-    actual open var id         = ""
-    actual open var className  = ""
-    actual open var innerHTML  = ""
-    actual open var scrollTop  = 0.0
-    actual open var scrollLeft = 0.0
+public actual abstract class Element: Node() {
+    public actual open var id: String         = ""
+    public actual open var className: String  = ""
+    public actual open var innerHTML: String  = ""
+    public actual open var scrollTop: Double  = 0.0
+    public actual open var scrollLeft: Double = 0.0
 
-    actual fun getBoundingClientRect() = DOMRect()
+    public actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
-    actual fun setAttribute   (                    qualifiedName: String, value: String) {}
-    actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
-    actual fun removeAttribute(                    qualifiedName: String               ) {}
+    public actual fun setAttribute   (                    qualifiedName: String, value: String) {}
+    public actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
+    public actual fun removeAttribute(                    qualifiedName: String               ) {}
 }
 
-actual class DragEvent {
-    actual val dataTransfer = null as DataTransfer?
+public actual class DragEvent {
+    public actual val dataTransfer: DataTransfer? = null
 }
 
-actual abstract class HTMLElement: Element() {
-    var role_               = "" as String?
-    actual var title        = ""
-    actual var draggable    = false
-    actual val offsetTop    = 0
-    actual val offsetLeft   = 0
-    actual val offsetWidth  = 0
-    actual val offsetHeight = 0
+public actual abstract class HTMLElement: Element() {
+    internal var role_             = "" as String?
+    public actual var title: String = ""
+    public actual var draggable: Boolean = false
+    public actual val offsetTop: Int = 0
+    public actual val offsetLeft: Int = 0
+    public actual val offsetWidth: Int = 0
+    public actual val offsetHeight: Int = 0
 
-    actual var onkeyup      = null as ((KeyboardEvent) -> Boolean)?
-    actual var onkeydown    = null as ((KeyboardEvent) -> Boolean)?
-    actual var onkeypress   = null as ((KeyboardEvent) -> Boolean)?
-    actual var onwheel      = null as ((WheelEvent) -> Any)?
-    actual var onmouseup    = null as ((MouseEvent) -> Any)?
-    actual var onmouseout   = null as ((MouseEvent) -> Any)?
-    actual var ondblclick   = null as ((MouseEvent) -> Any)?
-    actual var onmousedown  = null as ((MouseEvent) -> Any)?
-    actual var onmousemove  = null as ((MouseEvent) -> Any)?
-    actual var onmouseover  = null as ((MouseEvent) -> Any)?
+    public actual var onkeyup    : ((KeyboardEvent) -> Boolean)? = null
+    public actual var onkeydown  : ((KeyboardEvent) -> Boolean)? = null
+    public actual var onkeypress : ((KeyboardEvent) -> Boolean)? = null
+    public actual var onwheel    : ((WheelEvent   ) -> Any    )? = null
+    public actual var onmouseup  : ((MouseEvent   ) -> Any    )? = null
+    public actual var onmouseout : ((MouseEvent   ) -> Any    )? = null
+    public actual var ondblclick : ((MouseEvent   ) -> Any    )? = null
+    public actual var onmousedown: ((MouseEvent   ) -> Any    )? = null
+    public actual var onmousemove: ((MouseEvent   ) -> Any    )? = null
+    public actual var onmouseover: ((MouseEvent   ) -> Any    )? = null
 
-    actual abstract val style: CSSStyleDeclaration
+    public actual abstract val style: CSSStyleDeclaration
 
-    actual var onresize   : ((Event) -> Unit)? = {}
-    actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
+    public actual var onresize   : ((Event) -> Unit)? = {}
+    public actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
 
-    actual var onpointerup   = null as ((PointerEvent) -> Any)?
-    actual var onpointerdown = null as ((PointerEvent) -> Any)?
-    actual var onpointermove = null as ((PointerEvent) -> Any)?
-    actual var onpointerover = null as ((PointerEvent) -> Any)?
+    public actual var onpointerup  : ((PointerEvent) -> Any)? = null
+    public actual var onpointerdown: ((PointerEvent) -> Any)? = null
+    public actual var onpointermove: ((PointerEvent) -> Any)? = null
+    public actual var onpointerover: ((PointerEvent) -> Any)? = null
 
-    actual var dir = ""
+    public actual var dir: String = ""
 
-    actual fun focus() {}
-    actual fun blur () {}
+    public actual fun focus() {}
+    public actual fun blur () {}
 }
 
-actual fun HTMLElement.stopMonitoringSize () {}
-actual fun HTMLElement.startMonitoringSize() {}
+public actual fun HTMLElement.stopMonitoringSize () {}
+public actual fun HTMLElement.startMonitoringSize() {}
 
-actual var HTMLElement.role get() = role_
+public actual var HTMLElement.role: String?
+    get() = role_
     set(new) { role_ = new }
 
-actual var HTMLElement.ontouchmove: ((TouchEvent) -> Any)? get() = null
+public actual var HTMLElement.ontouchmove: ((TouchEvent) -> Any)? get() = null
     set(new) {}
 
-actual interface ElementCreationOptions
+public actual interface ElementCreationOptions
 
-actual class Document {
-    actual var body: HTMLElement?     = null
-    actual val head: HTMLHeadElement? = null
+public actual class Document {
+    public actual var body: HTMLElement?     = null
+    public actual val head: HTMLHeadElement? = null
 
-    actual fun createElement(localName: String, options: ElementCreationOptions) = object: Element() {}
-    actual fun createTextNode(data: String) = Text()
-    actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions) = object: Element() {}
-    actual val styleSheets = object: StyleSheetList() {
+    public actual fun createElement(localName: String, options: ElementCreationOptions): Element = object: Element() {}
+    public actual fun createTextNode(data: String): Text = Text()
+    public actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = object: Element() {}
+    public actual val styleSheets: StyleSheetList = object: StyleSheetList() {
         override val length get() = values.size
     }
 }
 
-actual fun Document.addEventListener   (to: String, listener: (Event) -> Unit) {}
-actual fun Document.removeEventListener(to: String, listener: (Event) -> Unit) {}
+public actual fun Document.addEventListener   (to: String, listener: (Event) -> Unit) {}
+public actual fun Document.removeEventListener(to: String, listener: (Event) -> Unit) {}
 
-actual abstract class CharacterData   : Node()
-actual          class Text            : CharacterData()
-actual abstract class HTMLImageElement: HTMLElement() {
-    actual var src      = ""
-    actual val complete = false
+public actual abstract class CharacterData   : Node()
+public actual          class Text            : CharacterData()
+public actual abstract class HTMLImageElement: HTMLElement() {
+    public actual var src: String = ""
+    public actual val complete: Boolean = false
 }
 
-actual abstract class HTMLHeadElement  : HTMLElement()
-actual abstract class HTMLInputElement : HTMLElement()
-actual abstract class HTMLButtonElement: HTMLElement() {
-    actual var disabled = false
+public actual abstract class HTMLHeadElement  : HTMLElement()
+public actual abstract class HTMLInputElement : HTMLElement()
+public actual abstract class HTMLButtonElement: HTMLElement() {
+    public actual var disabled: Boolean = false
 }
 
-actual abstract class StyleSheet
+public actual abstract class StyleSheet
 
-actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
+public actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
-actual abstract class StyleSheetList {
+public actual abstract class StyleSheetList {
     protected val values: List<StyleSheet> = mutableListOf()
 
-    actual abstract val length: Int
+    public actual abstract val length: Int
 
-    actual fun item(index: Int) = try {
+    public actual fun item(index: Int): StyleSheet? = try {
         values[index]
     } catch (e: Exception) {
         null
     }
 }
 
-actual interface ElementCSSInlineStyle {
-    actual val style: CSSStyleDeclaration
+public actual interface ElementCSSInlineStyle {
+    public actual val style: CSSStyleDeclaration
 }
 
-actual abstract class HTMLStyleElement: HTMLElement() {
-    actual val sheet: StyleSheet?
+public actual abstract class HTMLStyleElement: HTMLElement() {
+    public actual val sheet: StyleSheet?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 }
 
-actual abstract class HTMLMetaElement: HTMLElement() {
-    actual var name    = ""
-    actual var content = ""
+public actual abstract class HTMLMetaElement: HTMLElement() {
+    public actual var name: String = ""
+    public actual var content: String = ""
 }

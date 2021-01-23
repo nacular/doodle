@@ -3,46 +3,46 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/12/20.
  */
-actual abstract class EventTarget
+public actual abstract class EventTarget
 
-actual open class Event {
-    actual val target = null as EventTarget?
+public actual open class Event {
+    public actual val target: EventTarget? = null
 
-    actual fun stopPropagation() {}
-    actual fun preventDefault () {}
+    public actual fun stopPropagation() {}
+    public actual fun preventDefault () {}
 }
 
-actual open class UIEvent : Event()
-actual open class KeyboardEvent: UIEvent() {
-    actual val ctrlKey  = false
-    actual val shiftKey = false
-    actual val altKey   = false
-    actual val metaKey  = false
-    actual val keyCode  = 0
-    actual val key      = ""
-    actual val code     = ""
+public actual open class UIEvent : Event()
+public actual open class KeyboardEvent: UIEvent() {
+    public actual val ctrlKey : Boolean = false
+    public actual val shiftKey: Boolean = false
+    public actual val altKey  : Boolean = false
+    public actual val metaKey : Boolean = false
+    public actual val keyCode : Int     = 0
+    public actual val key     : String  = ""
+    public actual val code    : String  = ""
 }
 
-actual open class MouseEvent: UIEvent() {
-    actual open val pageX    = 0.0
-    actual open val pageY    = 0.0
-    actual open val clientX  = 0
-    actual open val clientY  = 0
-    actual open val ctrlKey  = false
-    actual open val shiftKey = false
-    actual open val altKey   = false
-    actual open val metaKey  = false
-    actual open val button   = 0.toShort()
-    actual open val buttons  = 0.toShort()
+public actual open class MouseEvent: UIEvent() {
+    public actual open val pageX   : Double  = 0.0
+    public actual open val pageY   : Double  = 0.0
+    public actual open val clientX : Int     = 0
+    public actual open val clientY : Int     = 0
+    public actual open val ctrlKey : Boolean = false
+    public actual open val shiftKey: Boolean = false
+    public actual open val altKey  : Boolean = false
+    public actual open val metaKey : Boolean = false
+    public actual open val button  : Short   = 0.toShort()
+    public actual open val buttons : Short   = 0.toShort()
 }
 
-actual open class WheelEvent: MouseEvent() {
-    actual val deltaY = 0.0
-    actual val deltaX = 0.0
+public actual open class WheelEvent: MouseEvent() {
+    public actual val deltaY: Double = 0.0
+    public actual val deltaX: Double = 0.0
 }
 
-actual open class PointerEvent: MouseEvent() {
-    actual val pointerType = ""
+public actual open class PointerEvent: MouseEvent() {
+    public actual val pointerType: String = ""
 }
 
-actual open class TouchEvent: UIEvent()
+public actual open class TouchEvent: UIEvent()

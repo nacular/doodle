@@ -3,26 +3,26 @@ package io.nacular.doodle
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual abstract class SVGElement actual constructor(): Element(), ElementCSSInlineStyle
-actual abstract class SVGPathElement    : SVGGeometryElement()
-actual abstract class SVGRectElement    : SVGGeometryElement()
-actual abstract class SVGCircleElement  : SVGGeometryElement()
-actual abstract class SVGEllipseElement : SVGGeometryElement()
-actual abstract class SVGPolygonElement : SVGGeometryElement()
-actual abstract class SVGPatternElement : SVGElement        ()
-actual abstract class SVGGradientElement: SVGElement        ()
-actual abstract class SVGGraphicsElement: SVGElement        () {
-    actual fun getBBox(options: SVGBoundingBoxOptions): DOMRect {
+public actual abstract class SVGElement public actual constructor(): Element(), ElementCSSInlineStyle
+public actual abstract class SVGPathElement    : SVGGeometryElement()
+public actual abstract class SVGRectElement    : SVGGeometryElement()
+public actual abstract class SVGCircleElement  : SVGGeometryElement()
+public actual abstract class SVGEllipseElement : SVGGeometryElement()
+public actual abstract class SVGPolygonElement : SVGGeometryElement()
+public actual abstract class SVGPatternElement : SVGElement        ()
+public actual abstract class SVGGradientElement: SVGElement        ()
+public actual abstract class SVGGraphicsElement: SVGElement        () {
+    public actual fun getBBox(options: SVGBoundingBoxOptions): DOMRect {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
 
-actual abstract class SVGGeometryElement: SVGGraphicsElement()
-actual abstract class SVGTextElement    : SVGTextPositioningElement()
+public actual abstract class SVGGeometryElement: SVGGraphicsElement()
+public actual abstract class SVGTextElement    : SVGTextPositioningElement()
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-actual interface SVGBoundingBoxOptions
+public actual interface SVGBoundingBoxOptions
 
-actual abstract class SVGTextContentElement    : SVGGraphicsElement()
-actual abstract class SVGTextPositioningElement: SVGTextContentElement()
+public actual abstract class SVGTextContentElement    : SVGGraphicsElement()
+public actual abstract class SVGTextPositioningElement: SVGTextContentElement()

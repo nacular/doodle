@@ -6,8 +6,8 @@ import io.nacular.doodle.SVGElement
 /**
  * Created by Nicholas Eddy on 10/24/17.
  */
-interface SvgFactory {
-    val root: HTMLElement
+public interface SvgFactory {
+    public val root: HTMLElement
 
-    operator fun <T: SVGElement> invoke(tag: String): T
+    public operator fun <T: SVGElement> invoke(tag: String): T
 }

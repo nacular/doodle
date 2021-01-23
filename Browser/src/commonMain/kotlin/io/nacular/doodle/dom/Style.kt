@@ -34,7 +34,7 @@ internal val defaultFontSize   = 13
 
 private typealias Style = CSSStyleDeclaration
 
-val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
+internal val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
 internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 

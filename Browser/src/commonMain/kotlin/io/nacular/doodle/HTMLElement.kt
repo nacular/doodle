@@ -11,138 +11,138 @@ import io.nacular.doodle.dom.WheelEvent
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-expect abstract class CSSRule {
-    var cssText: String
+public expect abstract class CSSRule {
+    internal var cssText: String
 }
 
-expect abstract class CSSRuleList {
-    abstract val length: Int
-    fun item(index: Int): CSSRule?
+public expect abstract class CSSRuleList {
+    public abstract val length: Int
+    public fun item(index: Int): CSSRule?
 }
 
-expect abstract class CSSStyleSheet: StyleSheet {
-    val cssRules: CSSRuleList
+public expect abstract class CSSStyleSheet: StyleSheet {
+    internal val cssRules: CSSRuleList
 
-    fun insertRule(rule: String, index: Int): Int
-    fun deleteRule(index: Int)
+    internal fun insertRule(rule: String, index: Int): Int
+    internal fun deleteRule(index: Int)
 }
 
-expect val CSSStyleSheet.numStyles: Int
+internal expect val CSSStyleSheet.numStyles: Int
 
-expect abstract class CSSStyleDeclaration {
-    var top                : String
-    var font               : String
-    var left               : String
-    var right              : String
-    var width              : String
-    var color              : String
-    var cursor             : String
-    var height             : String
-    var margin             : String
-    var bottom             : String
-    var filter             : String
-    var border             : String
-    var padding            : String
-    var zIndex             : String
-    var display            : String
-    var opacity            : String
-    var fontSize           : String
-    var position           : String
-    var transform          : String
-    var marginTop          : String
-    var overflowX          : String
-    var overflowY          : String
-    var boxShadow          : String
-    var fontStyle          : String
-    var textShadow         : String
-    var textIndent         : String
-    var fontFamily         : String
-    var fontWeight         : String
-    var background         : String
-    var marginLeft         : String
-    var whiteSpace         : String
-    var marginRight        : String
-    var borderStyle        : String
-    var borderColor        : String
-    var borderWidth        : String
-    var borderRadius       : String
-    var marginBottom       : String
-    var outlineWidth       : String
-    var backgroundSize     : String
-    var textDecoration     : String
-    var backgroundImage    : String
-    var backgroundColor    : String
-    var textDecorationLine : String
-    var textDecorationColor: String
-    var textDecorationStyle: String
+public expect abstract class CSSStyleDeclaration {
+    internal var top                : String
+    internal var font               : String
+    internal var left               : String
+    internal var right              : String
+    internal var width              : String
+    internal var color              : String
+    internal var cursor             : String
+    internal var height             : String
+    internal var margin             : String
+    internal var bottom             : String
+    internal var filter             : String
+    internal var border             : String
+    internal var padding            : String
+    internal var zIndex             : String
+    internal var display            : String
+    internal var opacity            : String
+    internal var fontSize           : String
+    internal var position           : String
+    internal var transform          : String
+    internal var marginTop          : String
+    internal var overflowX          : String
+    internal var overflowY          : String
+    internal var boxShadow          : String
+    internal var fontStyle          : String
+    internal var textShadow         : String
+    internal var textIndent         : String
+    internal var fontFamily         : String
+    internal var fontWeight         : String
+    internal var background         : String
+    internal var marginLeft         : String
+    internal var whiteSpace         : String
+    internal var marginRight        : String
+    internal var borderStyle        : String
+    internal var borderColor        : String
+    internal var borderWidth        : String
+    internal var borderRadius       : String
+    internal var marginBottom       : String
+    internal var outlineWidth       : String
+    internal var backgroundSize     : String
+    internal var textDecoration     : String
+    internal var backgroundImage    : String
+    internal var backgroundColor    : String
+    internal var textDecorationLine : String
+    internal var textDecorationColor: String
+    internal var textDecorationStyle: String
 }
 
-expect var CSSStyleDeclaration.clipPath               : String
-expect var CSSStyleDeclaration.willChange             : String
-expect var CSSStyleDeclaration.textDecorationThickness: String
+internal expect var CSSStyleDeclaration.clipPath               : String
+internal expect var CSSStyleDeclaration.willChange             : String
+internal expect var CSSStyleDeclaration.textDecorationThickness: String
 
-expect class DOMRect {
-    var x     : Double
-    var y     : Double
-    var width : Double
-    var height: Double
+public expect class DOMRect {
+    internal var x     : Double
+    internal var y     : Double
+    internal var width : Double
+    internal var height: Double
 }
 
-expect interface ElementCSSInlineStyle {
-    val style: CSSStyleDeclaration
+public expect interface ElementCSSInlineStyle {
+    public val style: CSSStyleDeclaration
 }
 
-expect abstract class Element: Node {
-    open var id        : String
-    open var className : String
-    open var innerHTML : String
-    open var scrollTop : Double
-    open var scrollLeft: Double
+public expect abstract class Element: Node {
+    public open var id        : String
+    public open var className : String
+    public open var innerHTML : String
+    public open var scrollTop : Double
+    public open var scrollLeft: Double
 
-    fun getBoundingClientRect(): DOMRect
+    public fun getBoundingClientRect(): DOMRect
 
-    fun setAttribute   (                    qualifiedName: String, value: String)
-    fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
-    fun removeAttribute(                    qualifiedName: String               )
+    public fun setAttribute   (                    qualifiedName: String, value: String)
+    public fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
+    public fun removeAttribute(                    qualifiedName: String               )
 }
 
-expect class DragEvent {
-    val dataTransfer: DataTransfer?
+public expect class DragEvent {
+    internal val dataTransfer: DataTransfer?
 }
 
-expect abstract class HTMLElement: Element {
-    var title       : String
-    var draggable   : Boolean
-    val offsetTop   : Int
-    val offsetLeft  : Int
-    val offsetWidth : Int
-    val offsetHeight: Int
-    abstract val style: CSSStyleDeclaration
+public expect abstract class HTMLElement: Element {
+    public var title       : String
+    public var draggable   : Boolean
+    public val offsetTop   : Int
+    public val offsetLeft  : Int
+    public val offsetWidth : Int
+    public val offsetHeight: Int
+    public abstract val style: CSSStyleDeclaration
 
-    var onkeyup     : ((KeyboardEvent) -> Boolean)?
-    var onkeydown   : ((KeyboardEvent) -> Boolean)?
-    var onkeypress  : ((KeyboardEvent) -> Boolean)?
+    public var onkeyup     : ((KeyboardEvent) -> Boolean)?
+    public var onkeydown   : ((KeyboardEvent) -> Boolean)?
+    public var onkeypress  : ((KeyboardEvent) -> Boolean)?
 
-    var onwheel     : ((WheelEvent) -> Any)?
-    var onmouseup   : ((MouseEvent) -> Any)?
-    var onmouseout  : ((MouseEvent) -> Any)?
-    var ondblclick  : ((MouseEvent) -> Any)?
-    var onmousedown : ((MouseEvent) -> Any)?
-    var onmousemove : ((MouseEvent) -> Any)?
-    var onmouseover : ((MouseEvent) -> Any)?
+    public var onwheel     : ((WheelEvent) -> Any)?
+    public var onmouseup   : ((MouseEvent) -> Any)?
+    public var onmouseout  : ((MouseEvent) -> Any)?
+    public var ondblclick  : ((MouseEvent) -> Any)?
+    public var onmousedown : ((MouseEvent) -> Any)?
+    public var onmousemove : ((MouseEvent) -> Any)?
+    public var onmouseover : ((MouseEvent) -> Any)?
 
-    var onpointerup  : ((PointerEvent) -> Any)?
-    var onpointerdown: ((PointerEvent) -> Any)?
-    var onpointermove: ((PointerEvent) -> Any)?
-    var onpointerover: ((PointerEvent) -> Any)?
+    public var onpointerup  : ((PointerEvent) -> Any)?
+    public var onpointerdown: ((PointerEvent) -> Any)?
+    public var onpointermove: ((PointerEvent) -> Any)?
+    public var onpointerover: ((PointerEvent) -> Any)?
 
-    var onresize   : ((Event) -> Unit)?
-    var ondragstart: ((DragEvent) -> Boolean)?
+    public var onresize   : ((Event) -> Unit)?
+    public var ondragstart: ((DragEvent) -> Boolean)?
 
-    var dir: String
+    public var dir: String
 
-    fun focus()
-    fun blur ()
+    public fun focus()
+    public fun blur ()
 }
 
 internal expect fun HTMLElement.stopMonitoringSize ()
@@ -150,51 +150,51 @@ internal expect fun HTMLElement.startMonitoringSize()
 
 internal expect var HTMLElement.ontouchmove: ((TouchEvent  ) -> Any)?
 
-expect var HTMLElement.role: String?
+internal expect var HTMLElement.role: String?
 
-expect interface ElementCreationOptions
+public expect interface ElementCreationOptions
 
-expect abstract class StyleSheet
+public expect abstract class StyleSheet
 
-expect inline operator fun StyleSheetList.get(index: Int): StyleSheet?
+internal expect inline operator fun StyleSheetList.get(index: Int): StyleSheet?
 
-expect abstract class StyleSheetList {
-    abstract val length: Int
+public expect abstract class StyleSheetList {
+    public abstract val length: Int
 
-    fun item(index: Int): StyleSheet?
+    public fun item(index: Int): StyleSheet?
 }
 
-expect abstract class HTMLStyleElement: HTMLElement {
-    val sheet: StyleSheet?
+public expect abstract class HTMLStyleElement: HTMLElement {
+    internal val sheet: StyleSheet?
 }
 
-expect abstract class HTMLMetaElement: HTMLElement {
-    var name   : String
-    var content: String
+public expect abstract class HTMLMetaElement: HTMLElement {
+    public var name   : String
+    public var content: String
 }
 
-expect class Document {
-    val head: HTMLHeadElement?
-    var body: HTMLElement?
-    val styleSheets: StyleSheetList
+public expect class Document {
+    internal val head: HTMLHeadElement?
+    internal var body: HTMLElement?
+    internal val styleSheets: StyleSheetList
 
-    fun createElement(localName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
-    fun createTextNode(data: String): Text
-    fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
+    internal fun createElement(localName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
+    internal fun createTextNode(data: String): Text
+    internal fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
 }
 
-expect fun Document.addEventListener(to: String, listener: (Event) -> Unit)
-expect fun Document.removeEventListener(to: String, listener: (Event) -> Unit)
+internal expect fun Document.addEventListener(to: String, listener: (Event) -> Unit)
+internal expect fun Document.removeEventListener(to: String, listener: (Event) -> Unit)
 
-expect abstract class CharacterData: Node
-expect          class Text: CharacterData
-expect abstract class HTMLImageElement : HTMLElement {
-    var src     : String
-    val complete: Boolean
+public expect abstract class CharacterData: Node
+public expect          class Text: CharacterData
+public expect abstract class HTMLImageElement : HTMLElement {
+    internal var src     : String
+    internal val complete: Boolean
 }
 
-expect abstract class HTMLHeadElement  : HTMLElement
-expect abstract class HTMLInputElement : HTMLElement
-expect abstract class HTMLButtonElement: HTMLElement {
-    var disabled: Boolean
+public expect abstract class HTMLHeadElement  : HTMLElement
+public expect abstract class HTMLInputElement : HTMLElement
+public expect abstract class HTMLButtonElement: HTMLElement {
+    internal var disabled: Boolean
 }

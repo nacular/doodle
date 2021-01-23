@@ -1,8 +1,9 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.geometry.Point
+import kotlin.js.JsName
 
-abstract class Path constructor(
+internal abstract class Path constructor(
         private val moveTo: String,
         private val lineTo: String,
         private val close : String,
@@ -23,8 +24,10 @@ abstract class Path constructor(
         }
     }
 
+    @JsName("endFun")
     fun end() = pathString.append(end)
 
+    @JsName("closeFun")
     fun close() {
         pathString.append(close)
 

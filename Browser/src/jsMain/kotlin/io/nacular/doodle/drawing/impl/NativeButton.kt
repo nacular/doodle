@@ -109,7 +109,7 @@ internal class NativeButtonFactoryImpl internal constructor(
     }
 }
 
-class NativeButton internal constructor(
+internal class NativeButton internal constructor(
         private val textMetrics           : TextMetrics,
         private val textFactory           : TextFactory,
         private val htmlFactory           : HtmlFactory,

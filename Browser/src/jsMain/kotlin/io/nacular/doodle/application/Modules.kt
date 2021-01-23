@@ -52,10 +52,10 @@ import org.kodein.di.erased.provider
 import org.kodein.di.erased.singleton
 import org.w3c.dom.HTMLElement
 
-class Modules {
-    companion object {
+public class Modules {
+    public companion object {
         /** Enables focus management by providing access to [FocusManager]. */
-        val FocusModule = Module(allowSilentOverride = true, name = "Focus") {
+        public val FocusModule: Module = Module(allowSilentOverride = true, name = "Focus") {
             bind<FocusabilityChecker> () with singleton { DefaultFocusabilityChecker(                                            ) }
             bind<FocusTraversalPolicy>() with singleton { FocusTraversalPolicyImpl  (instance()                                  ) }
             bind<FocusManager>        () with singleton { FocusManagerImpl          (instance(), instance(), instance()          ) }
@@ -63,7 +63,7 @@ class Modules {
         }
 
         /** Enables pointer use. */
-        val PointerModule = Module(allowSilentOverride = true, name = "Pointer") {
+        public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
             bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
             bind<PointerLocationResolver>    () with singleton { PointerLocationResolverImpl      (document,   instance()            ) }
             bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
@@ -72,7 +72,7 @@ class Modules {
         }
 
         /** Enables keyboard use. Includes [FocusModule]. */
-        val KeyboardModule = Module(allowSilentOverride = true, name = "Keyboard") {
+        public val KeyboardModule: Module = Module(allowSilentOverride = true, name = "Keyboard") {
             importOnce(FocusModule)
 
             // TODO: Make this pluggable
@@ -90,19 +90,19 @@ class Modules {
          * Enables drag-drop data transfer (not simple moving of Views) that allows data to be shared in and outside the
          * application. Includes [PointerModule].
          */
-        val DragDropModule = Module(allowSilentOverride = true, name = "DragDrop") {
+        public val DragDropModule: Module = Module(allowSilentOverride = true, name = "DragDrop") {
             importOnce(PointerModule)
 
             bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
         }
 
         /** Enables use of [Document]s */
-        val DocumentModule = Module(allowSilentOverride = true, name = "Document") {
+        public val DocumentModule: Module = Module(allowSilentOverride = true, name = "Document") {
             bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
         }
 
         /** Enables accessibility features */
-        val AccessibilityModule = Module(allowSilentOverride = true, name = "Accessibility") {
+        public val AccessibilityModule: Module = Module(allowSilentOverride = true, name = "Accessibility") {
             importOnce(KeyboardModule)
 
             // TODO: Can this be handled better?
@@ -118,11 +118,11 @@ class Modules {
         }
 
         /** Enables use of [UrlView]s */
-        val UrlViewModule = Module(allowSilentOverride = true, name = "UrlView") {
+        public val UrlViewModule: Module = Module(allowSilentOverride = true, name = "UrlView") {
             bind<UrlView>() with provider { UrlView(instance()) }
         }
 
-        val FontModule = Module(allowSilentOverride = true, name = "Font") {
+        public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
             bind<FontLoader>() with singleton { FontLoaderLegacy(instance(), instance(), instance(), instance()) }
         }
     }

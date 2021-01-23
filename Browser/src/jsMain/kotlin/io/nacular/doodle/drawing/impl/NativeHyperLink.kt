@@ -39,7 +39,7 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
             hyperLink)
 }
 
-class NativeHyperLink internal constructor(
+internal class NativeHyperLink internal constructor(
         private val textMetrics           : TextMetrics,
                     htmlFactory           : HtmlFactory,
                     handlerFactory        : NativeEventHandlerFactory,

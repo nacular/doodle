@@ -11,8 +11,8 @@ import org.w3c.dom.HTMLIFrameElement
 /**
  * Created by Nicholas Eddy on 3/4/20.
  */
-class UrlView internal constructor(htmlFactory: HtmlFactory): View() {
-    var url = ""
+public class UrlView internal constructor(htmlFactory: HtmlFactory): View() {
+    public var url: String = ""
 
     private val root = htmlFactory.create<HTMLIFrameElement>("iframe").apply {
         style.setWidthPercent (100.0)

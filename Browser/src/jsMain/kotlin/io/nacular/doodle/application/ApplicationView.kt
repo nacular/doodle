@@ -19,21 +19,21 @@ import org.kodein.di.erased.provider
 /**
  * Created by Nicholas Eddy on 1/30/20.
  */
-class ApplicationViewFactory private constructor(val htmlFactory: HtmlFactory, val nativeFocusManager: NativeFocusManager?) {
-    inline operator fun <reified T: Application> invoke(
+public class ApplicationViewFactory private constructor(public val htmlFactory: HtmlFactory, public val nativeFocusManager: NativeFocusManager?) {
+    public inline operator fun <reified T: Application> invoke(
             allowDefaultDarkMode: Boolean      = false,
             modules             : List<Module> = emptyList(),
             noinline creator    : NoArgSimpleBindingKodein<*>.() -> T
     ): View = ApplicationView(htmlFactory, nativeFocusManager) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
 
-    companion object {
-        val AppViewModule = Module(allowSilentOverride = true, name = "ApplicationView") {
+    public companion object {
+        public val AppViewModule: Module = Module(allowSilentOverride = true, name = "ApplicationView") {
             bind<ApplicationViewFactory>() with provider { ApplicationViewFactory(instance(), instanceOrNull()) }
         }
     }
 }
 
-class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusManager: NativeFocusManager?, private val builder: (ApplicationView, HTMLElement) -> Application): View() {
+public class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusManager: NativeFocusManager?, private val builder: (ApplicationView, HTMLElement) -> Application): View() {
 
     private val root = htmlFactory.create<HTMLElement>().apply {
         style.setWidthPercent (100.0)

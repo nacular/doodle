@@ -78,8 +78,8 @@ public open class Spinner<T, M: Model<T>>(public val model: M, public val itemVi
     }
 
     public companion object {
-        public operator fun     invoke(progression: IntProgression): Spinner<Int, IntModel>            = Spinner(IntModel (progression))
-        public operator fun <T> invoke(values: List<T>            ): Spinner<T, ListModel<T, List<T>>> = Spinner(ListModel(values     ))
+        public operator fun     invoke(progression: IntProgression, itemVisualizer: ItemVisualizer<Int, Any>? = null): Spinner<Int, IntModel>            = Spinner(IntModel (progression), itemVisualizer)
+        public operator fun <T> invoke(values: List<T>,             itemVisualizer: ItemVisualizer<T,   Any>? = null): Spinner<T, ListModel<T, List<T>>> = Spinner(ListModel(values     ), itemVisualizer)
     }
 }
 
