@@ -79,6 +79,7 @@ public expect abstract class CSSStyleDeclaration {
 
 internal expect var CSSStyleDeclaration.clipPath               : String
 internal expect var CSSStyleDeclaration.willChange             : String
+internal expect var CSSStyleDeclaration.scrollBehavior         : String
 internal expect var CSSStyleDeclaration.textDecorationThickness: String
 
 public expect class DOMRect {

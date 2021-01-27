@@ -8,6 +8,9 @@ import io.nacular.doodle.dom.scrollTo
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.scrollBehavior
 import io.nacular.doodle.willChange
 
 /**
@@ -19,15 +22,19 @@ internal interface NativeScrollPanelFactory {
 }
 
 internal class NativeScrollPanelFactoryImpl internal constructor(
+        private val smoothScroll  : Boolean = false,
+        private val scheduler     : Scheduler,
         private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
         private val handlerFactory: NativeEventHandlerFactory): NativeScrollPanelFactory {
-    override fun invoke(scrollPanel: ScrollPanel, onScroll: (Point) -> Unit) = NativeScrollPanel(handlerFactory, graphicsDevice, scrollPanel, onScroll)
+    override fun invoke(scrollPanel: ScrollPanel, onScroll: (Point) -> Unit) = NativeScrollPanel(scheduler, handlerFactory, graphicsDevice, scrollPanel, smoothScroll, onScroll)
 }
 
 internal class NativeScrollPanel internal constructor(
+        private val scheduler     : Scheduler,
                     handlerFactory: NativeEventHandlerFactory,
                     graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
         private val panel         : ScrollPanel,
+        private val smoothScroll  : Boolean,
         private val scrolled      : (Point) -> Unit): NativeEventListener {
 
     private val eventHandler: NativeEventHandler
@@ -37,6 +44,10 @@ internal class NativeScrollPanel internal constructor(
         rootElement.apply {
             style.setOverflow(Scroll())
             style.willChange = "transform"
+
+            if (smoothScroll) {
+                style.scrollBehavior = "smooth"
+            }
 
             scrollTo(panel.scroll)
         }
@@ -54,11 +65,24 @@ internal class NativeScrollPanel internal constructor(
         }
     }
 
+    private var scroll = Origin
+
     override fun onScroll(target: EventTarget?) = true.also {
-        scrolled(Point(x = rootElement.scrollLeft, y = rootElement.scrollTop))
+        scroll = Point(x = rootElement.scrollLeft, y = rootElement.scrollTop)
+
+        scrolled(scroll)
     }
 
     fun scrollTo(point: Point) {
-        rootElement.scrollTo(point)
+        // Defer scroll since it is possible element sizes have not been updated to match
+        // ScrollPanel size
+        scheduler.now {
+            rootElement.scrollTo(point)
+
+            // Handle case that requested scroll was not possible (say if rootElement's child is not larger than it)
+            if (scroll != point) {
+                scrolled(scroll)
+            }
+        }
     }
 }

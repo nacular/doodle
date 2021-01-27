@@ -80,6 +80,6 @@ internal class FontLoaderImpl(private val document: Document, private val fontSe
             else                                 -> Font.Style.Normal
         }
 
-        return FontImpl(size, w, s, family).also { println(it) }
+        return FontImpl(size, w, s, family)
     }
 }

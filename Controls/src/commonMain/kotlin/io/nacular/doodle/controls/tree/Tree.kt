@@ -125,8 +125,9 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   var maxVisibleY   = 0.0
     private   var minHeight     = 0.0
         set(new) {
-            field  = new
-            height = field
+            field       = new
+            height      = field
+            minimumSize = Size(minimumSize.width, field)
         }
 
 //    private val pathToRow = mutableMapOf<Path<Int>, Int>()
@@ -727,19 +728,21 @@ public open class Tree<T, out M: TreeModel<T>>(
         return if (newIndex == 0) newPath to newIndex else null
     }
 
-    public fun scrollToSelection() {
+    public fun scrollTo(path: Path<Int>) {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { lastSelection ->
-                val item  = this[lastSelection]
-                val index = rowFromPath(lastSelection)
+            val item  = this[path]
+            val index = rowFromPath(path)
 
-                if (item != null && index != null) {
-                    rowPositioner?.rowBounds(this, item, lastSelection, index)?.let {
-                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
-                    }
+            if (item != null && index != null) {
+                rowPositioner?.rowBounds(this, item, path, index)?.let {
+                    parent.scrollVerticallyToVisible(it.y .. it.bottom)
                 }
             }
         }
+    }
+
+    public fun scrollToSelection() {
+        lastSelection?.let { scrollTo(it) }
     }
 }
 

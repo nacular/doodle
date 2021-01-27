@@ -81,11 +81,13 @@ public actual abstract class CSSStyleDeclaration {
 
     internal var clipPath_: String                  = ""
     internal var willChange_: String                = ""
+    internal val scrollBehavior_: String            = ""
     internal var textDecorationThickness_: String   = ""
 }
 
 public actual var CSSStyleDeclaration.clipPath: String get() = clipPath_; set(new) { clipPath_ = new }
 public actual var CSSStyleDeclaration.willChange: String get() = willChange_; set(new) { willChange_ = new }
+public actual var CSSStyleDeclaration.scrollBehavior: String get() = scrollBehavior; set(new) { scrollBehavior = new }
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
 
 public actual class DOMRect {

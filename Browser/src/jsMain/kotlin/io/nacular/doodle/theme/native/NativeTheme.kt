@@ -77,13 +77,16 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), it) }
         }
 
-        public val NativeScrollPanelBehavior: Module = Module(name = "NativeScrollPanelBehavior") {
+        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeScrollPanelFactory>() with singleton { NativeScrollPanelFactoryImpl(instance(), instance()) }
+            bind<NativeScrollPanelFactory>() with singleton { NativeScrollPanelFactoryImpl(smoothScrolling, instance(), instance(), instance()) }
 
             bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it) }
         }
+
+        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeScrollPanelBehavior()"))
+        public val NativeScrollPanelBehavior: Module = nativeScrollPanelBehavior()
 
         public val NativeSliderBehavior: Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
@@ -93,13 +96,16 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
 
-        public val NativeTextFieldBehavior: Module = Module(name = "NativeTextFieldBehavior") {
+        public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instance()) }
+            bind<NativeTextFieldFactory>() with singleton { NativeTextFieldFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull(), instance(), spellCheck) }
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }
+
+        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeTextFieldBehavior()"))
+        public val NativeTextFieldBehavior: Module = nativeTextFieldBehavior()
 
         public val NativeHyperLinkBehavior: Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
@@ -132,9 +138,9 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
                 NativeSliderBehavior,
                 NativeSwitchBehavior,
                 NativeCheckBoxBehavior,
-                NativeTextFieldBehavior,
+                nativeTextFieldBehavior(),
                 NativeHyperLinkBehavior,
-                NativeScrollPanelBehavior,
+                nativeScrollPanelBehavior(),
                 NativeRadioButtonBehavior
         )
     }

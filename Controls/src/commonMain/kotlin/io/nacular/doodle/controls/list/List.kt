@@ -83,8 +83,9 @@ public open class List<T, out M: ListModel<T>>(
     private   var maxVisibleY  = 0.0
     protected var minHeight: Double = 0.0
         set(new) {
-            field  = new
-            height = field
+            field       = new
+            height      = field
+            minimumSize = Size(minimumSize.width, field)
         }
 
     protected var firstVisibleRow: Int =  0
@@ -266,16 +267,18 @@ public open class List<T, out M: ListModel<T>>(
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.row(this, y) ?: nearbyRow)
 
-    public fun scrollToSelection() {
+    public fun scrollTo(row: Int) {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            lastSelection?.let { lastSelection ->
-                this[lastSelection]?.let {
-                    rowPositioner?.rowBounds(this, it, lastSelection)?.let {
-                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
-                    }
+            this[row]?.let {
+                rowPositioner?.rowBounds(this, it, row)?.let {
+                    parent.scrollVerticallyToVisible(it.y .. it.bottom)
                 }
             }
         }
+    }
+
+    public fun scrollToSelection() {
+        lastSelection?.let { scrollTo(it) }
     }
 
     public companion object {

@@ -41,7 +41,8 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         private val elementRuler       : ElementRuler,
         private val eventHandlerFactory: NativeEventHandlerFactory,
         private val focusManager       : FocusManager?,
-        private val textMetrics        : TextMetrics): NativeTextFieldFactory {
+        private val textMetrics        : TextMetrics,
+        private val spellCheck         : Boolean): NativeTextFieldFactory {
 
     private val sizeDifference: Size by lazy {
         elementRuler.size(htmlFactory.createInput()).let {
@@ -66,6 +67,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             focusManager,
             textMetrics,
             sizeDifference,
+            spellCheck,
             textField)
 }
 
@@ -79,6 +81,7 @@ internal class NativeTextField(
         private val focusManager       : FocusManager?,
         private val textMetrics        : TextMetrics,
         private val borderSize         : Size,
+        private val spellCheck         : Boolean,
         private val textField          : TextField): NativeEventListener {
 
     val clipCanvasToBounds = false
@@ -160,7 +163,7 @@ internal class NativeTextField(
             }
 
             style.outline = if (textField.borderVisible) "" else "none"
-            style.setBorderWidth(if (textField.borderVisible) null else 0.0)
+            style.setBorderWidth (if (textField.borderVisible) null else 0.0)
             style.setOutlineWidth(if (textField.borderVisible) null else 0.0)
         }
     }
@@ -186,8 +189,8 @@ internal class NativeTextField(
             style.setWidthPercent (100.0)
             style.setHeightPercent(100.0)
 
-            type       = if (textField.masked) "password" else "text"
-            spellcheck = false
+            type         = if (textField.masked) "password" else "text"
+            spellcheck   = spellCheck
         }
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {

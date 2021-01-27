@@ -24,6 +24,13 @@ internal actual var CSSStyleDeclaration.willChange: String get() = try { this.as
         } catch (ignore: Exception) {}
     }
 
+internal actual var CSSStyleDeclaration.scrollBehavior: String get() = try { this.asDynamic()["scroll-behavior"] as String } catch (ignore: Exception) { "" }
+    set(new) {
+        try {
+            this.asDynamic()["scroll-behavior"] = new
+        } catch (ignore: Exception) {}
+    }
+
 internal actual var CSSStyleDeclaration.textDecorationThickness: String get() = try { this.asDynamic()["text-decoration-thickness"] as String } catch (ignore: Exception) { "" }
     set(new) {
         try {
