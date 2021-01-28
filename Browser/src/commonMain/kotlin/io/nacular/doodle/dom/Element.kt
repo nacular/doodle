@@ -62,6 +62,11 @@ internal fun HTMLElement.clearBoundStyles() {
 }
 
 internal fun HTMLElement.scrollTo(point: Point) {
-    scrollTop  = point.y
-    scrollLeft = point.x
+    try {
+        scrollTo(point.x, point.y)
+    } catch (ignored: Throwable) {
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1671283
+        scrollTop  = point.y
+        scrollLeft = point.x
+    }
 }

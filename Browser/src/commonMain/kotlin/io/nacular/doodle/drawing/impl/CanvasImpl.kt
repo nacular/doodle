@@ -425,7 +425,10 @@ internal open class CanvasImpl(
 
             when (element.firstChild) {
                 is Text -> element.style.textShadow += shadow
-                else    -> element.style.filter     += "drop-shadow($shadow)"
+                else    -> {
+                    element.style.filter += "drop-shadow($shadow)"
+                    element.style.setOverflow(Visible())
+                }
             }
         }
 

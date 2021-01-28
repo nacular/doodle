@@ -140,10 +140,7 @@ public class ObservableList<E> private constructor(private val list: MutableList
 
                 old.forEachIndexed { index, item ->
                     if (index >= this.size || this[index] != item) {
-
-                        val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }
-
-                        when (newIndex) {
+                        when (val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }) {
                             null -> removed[index] = item
                             else -> {
                                 uniqueMoved    += Move(from = index, to = newIndex, value = item)

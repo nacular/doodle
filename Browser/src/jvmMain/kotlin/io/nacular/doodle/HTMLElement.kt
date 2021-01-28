@@ -109,6 +109,7 @@ public actual abstract class Element: Node() {
     public actual fun setAttribute   (                    qualifiedName: String, value: String) {}
     public actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
     public actual fun removeAttribute(                    qualifiedName: String               ) {}
+    public actual fun scrollTo(x: Double, y: Double) {}
 }
 
 public actual class DragEvent {

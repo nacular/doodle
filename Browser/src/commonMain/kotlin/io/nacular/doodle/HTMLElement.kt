@@ -105,6 +105,8 @@ public expect abstract class Element: Node {
     public fun setAttribute   (                    qualifiedName: String, value: String)
     public fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
     public fun removeAttribute(                    qualifiedName: String               )
+
+    public fun scrollTo(x: Double, y: Double)
 }
 
 public expect class DragEvent {

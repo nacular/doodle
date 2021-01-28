@@ -20,6 +20,7 @@ import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -147,7 +148,8 @@ internal class NativeTextField(
 
                 val css = """#${this.id}::placeholder {
                     |${textField.placeHolderColor?.let { "color:${rgba(it)};" }}
-                    |${textField.placeHolderFont?.let { "font:${fontSerializer(it)}" }}
+                    |${textField.placeHolderFont?.let  { "font:${fontSerializer(it)};" }}
+                    |line-height:inherit;
                 |}""".trimMargin()
 
                 this@NativeTextField.style = systemStyler.insertRule(css)
@@ -166,6 +168,10 @@ internal class NativeTextField(
             style.setBorderWidth (if (textField.borderVisible) null else 0.0)
             style.setOutlineWidth(if (textField.borderVisible) null else 0.0)
         }
+    }
+
+    private val boundsChanged = { _: View, _: Rectangle, new: Rectangle ->
+        inputElement.style.lineHeight = "${new.height}px"
     }
 
     private val focusabilityChanged = { _: View, _: Boolean, new: Boolean ->
@@ -188,6 +194,7 @@ internal class NativeTextField(
         inputElement.apply {
             style.setWidthPercent (100.0)
             style.setHeightPercent(100.0)
+            style.lineHeight = "${textField.height}px"
 
             type         = if (textField.masked) "password" else "text"
             spellcheck   = spellCheck
@@ -205,6 +212,7 @@ internal class NativeTextField(
             maskChanged         += this@NativeTextField.maskChanged
             focusChanged        += this@NativeTextField.focusChanged
             styleChanged        += this@NativeTextField.styleChanged
+            boundsChanged       += this@NativeTextField.boundsChanged
             enabledChanged      += this@NativeTextField.enabledChanged
             selectionChanged    += this@NativeTextField.selectionChanged
             focusabilityChanged += this@NativeTextField.focusabilityChanged
