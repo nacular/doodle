@@ -6,6 +6,8 @@ import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.text.Target.Background
 import io.nacular.doodle.text.Target.Foreground
+import io.nacular.doodle.text.TextDecoration.Line.Through
+import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Style.Solid
 
 /**
@@ -25,6 +27,10 @@ public class TextDecoration(
         public class Percent (public val value: Float ): ThickNess()
     }
 
+    public companion object {
+        public val UnderLine  : TextDecoration = TextDecoration(lines = setOf(Under  ))
+        public val LineThrough: TextDecoration = TextDecoration(lines = setOf(Through))
+    }
 }
 
 public interface Style {

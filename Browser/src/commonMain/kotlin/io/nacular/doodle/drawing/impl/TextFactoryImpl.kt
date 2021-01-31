@@ -36,7 +36,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         if (element == possible) {
-            element.style.textDecoration = ""
+            element.style.setTextDecoration(null)
         }
 
         return element

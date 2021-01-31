@@ -24,6 +24,9 @@ import io.nacular.doodle.text.TextDecoration.Line
 import io.nacular.doodle.text.TextDecoration.Line.Over
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
+import io.nacular.doodle.text.TextDecoration.ThickNess
+import io.nacular.doodle.text.TextDecoration.ThickNess.FromFont
+import io.nacular.doodle.text.TextDecoration.ThickNess.Percent
 import io.nacular.doodle.textDecorationThickness
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
@@ -93,16 +96,21 @@ internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = if (value 
 
 internal fun Style.setTextDecoration(value: TextDecoration?) {
     when (value) {
-        null -> textDecoration = ""
+        null -> {
+            textDecorationLine      = ""
+            textDecorationColor     = ""
+            textDecorationStyle     = ""
+            textDecorationThickness = ""
+        }
         else -> {
-            textDecorationColor     = value.color?.let { rgba(it) } ?: ""
             textDecorationLine      = value.lines.joinToString(" ") { it.styleText }.takeUnless { it == "" } ?: ""
+            textDecorationColor     = value.color?.let { rgba(it) } ?: ""
             textDecorationStyle     = "${value.style}".toLowerCase()
             textDecorationThickness = when (val t = value.thickNess) {
-                TextDecoration.ThickNess.FromFont    -> "from-font"
-                is TextDecoration.ThickNess.Percent  -> "${t.value}%"
-                is TextDecoration.ThickNess.Absolute -> em(t.value)
-                null                                 -> ""
+                FromFont              -> "from-font"
+                is Percent            -> "${t.value}%"
+                is ThickNess.Absolute -> em(t.value)
+                null                  -> ""
             }
         }
     }
