@@ -34,12 +34,43 @@ public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: Muta
     public operator fun invoke(old: T, new: T): Unit = delegate.forEach { it(source, old, new) }
 }
 
+public interface ObservableList<E>: MutableList<E> {
+    public val changed: Pool<ListObserver<E>>
+
+    public fun move(element: E, to: Int): Boolean
+
+    public operator fun plusAssign(element: E)
+
+    public operator fun minusAssign(element: E)
+
+    public fun replaceAll(elements: Collection<E>): Boolean
+
+    public fun <T> batch(block: MutableList<E>.() -> T): T
+
+    public fun notifyChanged(index: Int)
+
+    public companion object {
+        public operator fun <E> invoke(             ): ObservableList<E> = ObservableListImpl(mutableListOf     ())
+        public operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableListImpl(list.toMutableList())
+
+        internal fun <E> wrap(list: MutableList<E>): ObservableList<E> = ObservableListImpl(list)
+    }
+}
+
+public fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
+    batch { sortWith(comparator) }
+}
+
+public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
+    batch { sortWith(comparator.reversed()) }
+}
+
 public class ObservableList<E> private constructor(private val list: MutableList<E>): MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<E>>()
-    public val changed: Pool<ListObserver<E>> = changed_
+    public override val changed: Pool<ListObserver<E>> = changed_
 
-    public fun move(element: E, to: Int): Boolean {
+    public override fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
 
         if (to !in 0 until size || oldIndex < 0 || oldIndex == to) return false
@@ -64,17 +95,17 @@ public class ObservableList<E> private constructor(private val list: MutableList
                 val element = list[index--]
                 it.remove()
                 changed_.forEach {
-                    it(this@ObservableList, mapOf(index to element), mapOf(), mapOf())
+                    it(this@ObservableListImpl, mapOf(index to element), mapOf(), mapOf())
                 }
             }
         }
     }
 
-    public operator fun plusAssign(element: E) {
+    public override operator fun plusAssign(element: E) {
         add(element)
     }
 
-    public operator fun minusAssign(element: E) {
+    public override operator fun minusAssign(element: E) {
         remove(element)
     }
 
@@ -100,7 +131,7 @@ public class ObservableList<E> private constructor(private val list: MutableList
     public override fun removeAll(elements: Collection<E>): Boolean = batch { removeAll(elements) }
     public override fun retainAll(elements: Collection<E>): Boolean = batch { retainAll(elements) }
 
-    public fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
+    public override fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
 
     private class Move<T>(val from: Int, val to:Int, val value: T) {
         override fun equals(other: Any?): Boolean {
@@ -125,62 +156,16 @@ public class ObservableList<E> private constructor(private val list: MutableList
         }
     }
 
-    public fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
+    public override fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
         list.run(block)
     } else {
         // TODO: Can this be optimized?
         val old = ArrayList(list)
 
         list.run(block).also {
-            if (old != this) {
-                val removed       = mutableMapOf<Int, E>()
-                val added         = mutableMapOf<Int, E>()
-                val uniqueMoved   = mutableSetOf<Move<E>>()
-                val unusedIndexes = (0 until this.size).toMutableSet()
-
-                old.forEachIndexed { index, item ->
-                    if (index >= this.size || this[index] != item) {
-                        when (val newIndex = unusedIndexes.firstOrNull { this.getOrNull(it) == item }) {
-                            null -> removed[index] = item
-                            else -> {
-                                uniqueMoved    += Move(from = index, to = newIndex, value = item)
-                                unusedIndexes.remove(newIndex)
-                            }
-                        }
-                    }
-                }
-
-                removed.forEach { (removedIndex, _) ->
-                    uniqueMoved.filter { it.from >= removedIndex }.sortedBy { it.to }.forEach { element ->
-                        if (element.from - 1 == element.to) {
-                            uniqueMoved.remove(element)
-                        } else {
-                            uniqueMoved.remove(element)
-                            uniqueMoved.add(Move(element.from - 1, element.to, element.value))
-                        }
-                    }
-                }
-
-                unusedIndexes.forEach {
-                    val item = this[it]
-
-                    if (it >= old.size || old[it] != item) {
-                        added[it] = item
-
-                        // Adjust all the moves
-                        uniqueMoved.filter { element -> element.from >= it }.sortedByDescending { it.to }.forEach { element ->
-                            if (element.from + 1 == element.to) {
-                                uniqueMoved.remove(element)
-                            } else {
-                                uniqueMoved.remove(element)
-                                uniqueMoved.add(Move(element.from + 1, element.to, element.value))
-                            }
-                        }
-                    }
-                }
-
+            diffLists(old, this)?.let { diffs ->
                 changed_.forEach {
-                    it(this, removed, added, uniqueMoved.associate { it.from to (it.to to it.value) })
+                    it(this, diffs.removed, diffs.added, diffs.moved)
                 }
             }
         }
@@ -205,7 +190,7 @@ public class ObservableList<E> private constructor(private val list: MutableList
         }
     }
 
-    public fun notifyChanged(index: Int) {
+    public override fun notifyChanged(index: Int) {
         changed_.forEach {
             it(this, mapOf(index to this[index]), mapOf(index to this[index]), mapOf())
         }
@@ -224,19 +209,100 @@ public class ObservableList<E> private constructor(private val list: MutableList
             it(this, mapOf(index to removed), mapOf(), mapOf())
         }
     }
+}
 
-    public companion object {
-        public operator fun <E> invoke(             ): ObservableList<E> = ObservableList(mutableListOf     ())
-        public operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableList(list.toMutableList())
+internal data class DiffResult<T>(val removed: Map<Int, T>, val added: Map<Int, T>, val moved: Map<Int, Pair<Int, T>>)
+
+private class Move<T>(var from: Int, var to:Int, var value: T) {
+    override fun toString() = (from to to to value).toString()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Move<*>) return false
+
+//            if (value != other.value) return false
+
+        if (from !in listOf(other.from, other.to  )) return false
+        if (to   !in listOf(other.to,   other.from)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        val first = min(from, to)
+        val last  = max(from, to)
+
+        var result = first
+        result = 31 * result + last
+        return result
     }
 }
 
-public fun <T> ObservableList<T>.sortWith(comparator: Comparator<in T>) {
-    batch { sortWith(comparator) }
-}
+internal fun <T> diffLists(old: List<T>, new: List<T>): DiffResult<T>? {
+    if (old != new) {
+        val removed       = mutableMapOf<Int, T>()
+        val added         = mutableMapOf<Int, T>()
+        val uniqueMoved   = mutableListOf<Move<T>>()
+        val unusedIndexes = new.indices.toMutableSet()
 
-public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>) {
-    batch { sortWith(comparator.reversed()) }
+        old.forEachIndexed { index, item ->
+            if (index >= new.size || new[index] != item) {
+                when (val newIndex = unusedIndexes.firstOrNull { new.getOrNull(it) == item }) {
+                    null -> removed[index] = item
+                    else -> {
+                        uniqueMoved += Move(from = index, to = newIndex, value = item)
+                        unusedIndexes.remove(newIndex)
+                    }
+                }
+            }
+        }
+
+        val removedIndexes = removed.keys.sorted()
+        var j = removedIndexes.size - 1
+        var i = uniqueMoved.size - 1
+
+        while(j >= 0 && i >= 0) {
+            when {
+                uniqueMoved[i].from > removedIndexes[j] -> {
+                    uniqueMoved[i].from -= j + 1
+                    if (uniqueMoved[i].from == uniqueMoved[i].to) {
+                        uniqueMoved.removeAt(i)
+                    }
+
+                    --i
+                }
+                else                                    -> {
+                    if (uniqueMoved[i].from == removedIndexes[j]) {
+                        uniqueMoved.removeAt(i)
+                        --i
+                    }
+
+                    --j
+                }
+            }
+        }
+
+        unusedIndexes.forEach {
+            val item = new[it]
+
+            if (it >= old.size || old[it] != item) {
+                added[it] = item
+
+                // Adjust all the moves
+                uniqueMoved.filter { element -> element.from >= it }.sortedByDescending { it.to }.forEach { element ->
+                    uniqueMoved.remove(element)
+
+                    if (element.from + 1 != element.to) {
+                        uniqueMoved.add(Move(element.from + 1, element.to, element.value))
+                    }
+                }
+            }
+        }
+
+        return DiffResult(removed = removed, added = added, moved = uniqueMoved.toSet().associate { it.from to (it.to to it.value) })
+    }
+
+    return null
 }
 
 public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {

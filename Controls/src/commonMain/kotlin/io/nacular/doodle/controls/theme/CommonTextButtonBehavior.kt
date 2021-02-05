@@ -1,7 +1,9 @@
 package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.buttons.Button
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Point
@@ -42,7 +44,7 @@ public abstract class CommonTextButtonBehavior<T: Button>(
         view.textChanged -= textChanged
     }
 
-    protected fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
+    public fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
         var minX       = insets.left
         val stringSize = textMetrics.size(text, font(button))
         var iconWidth  = 0.0
@@ -79,7 +81,7 @@ public abstract class CommonTextButtonBehavior<T: Button>(
         return Point(x, y) + bounds.position
     }
 
-    protected fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds.atOrigin): Point {
+    public fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds.atOrigin): Point {
         val size = icon.size(button)
 
         val y = when (button.verticalAlignment) {
@@ -119,5 +121,9 @@ public abstract class CommonTextButtonBehavior<T: Button>(
         return Point(x, y) + bounds.position
     }
 
-    protected fun font(button: Button): Font? = button.font ?: defaultFont
+    public fun font(button: Button): Font? = button.font ?: defaultFont
+}
+
+public inline fun <T: Button> simpleTextButtonRenderer(textMetrics: TextMetrics, crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics) {
+    override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }

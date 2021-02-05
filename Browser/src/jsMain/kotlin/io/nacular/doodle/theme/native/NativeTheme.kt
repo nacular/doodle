@@ -110,7 +110,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
         public val NativeHyperLinkBehavior: Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bind<NativeHyperLinkFactory>() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeHyperLinkFactory        >() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bind<NativeHyperLinkBehaviorBuilder>() with singleton { NativeHyperLinkBehaviorBuilderImpl(instance()) }
 
             bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
         }

@@ -319,7 +319,7 @@ class ObservableListTests {
     @Test @JsName("sortNotifies")
     fun `sort notifies`() {
         validateChanges(ObservableList(mutableListOf(5, 6, 1, 2))) { list, changed ->
-            list.sortWith(Comparator { a, b -> a.compareTo(b) })
+            list.sortWith { a, b -> a.compareTo(b) }
 
             verify(exactly = 1) { changed(
                     list,

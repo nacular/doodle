@@ -124,10 +124,8 @@ public abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListe
         val model  = button.model
 
         if (button.enabled && Button1 !in event.buttons) {
-            model.apply {
-                pressed = false
-                armed   = false
-            }
+            model.pressed = false
+            model.armed   = false
 
             pointerChanged(button)
 

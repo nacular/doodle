@@ -12,6 +12,7 @@ import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
@@ -22,20 +23,23 @@ import org.w3c.dom.events.EventTarget
  * Created by Nicholas Eddy on 12/7/19.
  */
 internal interface NativeHyperLinkFactory {
-    operator fun invoke(hyperLink: HyperLink): NativeHyperLink
+    operator fun invoke(hyperLink: HyperLink, customRenderer: ((HyperLink, Canvas) -> Unit)? = null): NativeHyperLink
 }
 
 internal class NativeHyperLinkFactoryImpl internal constructor(
         private val textMetrics              : TextMetrics,
         private val htmlFactory              : HtmlFactory,
         private val nativeEventHandlerFactory: NativeEventHandlerFactory,
+        private val canvasFactory            : CanvasFactory,
         private val focusManager             : FocusManager?
 ): NativeHyperLinkFactory {
-    override fun invoke(hyperLink: HyperLink) = NativeHyperLink(
+    override fun invoke(hyperLink: HyperLink, customRenderer: ((HyperLink, Canvas) -> Unit)?) = NativeHyperLink(
             textMetrics,
             htmlFactory,
             nativeEventHandlerFactory,
             focusManager,
+            canvasFactory,
+            customRenderer,
             hyperLink)
 }
 
@@ -44,12 +48,16 @@ internal class NativeHyperLink internal constructor(
                     htmlFactory           : HtmlFactory,
                     handlerFactory        : NativeEventHandlerFactory,
         private val focusManager          : FocusManager?,
+        private val canvasFactory         : CanvasFactory,
+        private val customRenderer        : ((HyperLink, Canvas) -> Unit)?,
         private val hyperLink             : HyperLink): NativeEventListener {
 
     var idealSize: Size? = null
         private set
 
     private val nativeEventHandler: NativeEventHandler
+
+    private val customCanvas: Canvas?
 
     private val linkElement = htmlFactory.create<HTMLAnchorElement>("a").apply {
         href = hyperLink.url
@@ -60,6 +68,8 @@ internal class NativeHyperLink internal constructor(
         style.setWidthPercent (100.0                    )
         style.setHeightPercent(100.0                    )
         style.setOverflow     (Visible()                )
+
+        customCanvas = if (customRenderer!= null) canvasFactory(this) else null
     }
 
     private val textChanged: (View, String, String) -> Unit = { _,_,_ ->
@@ -73,9 +83,12 @@ internal class NativeHyperLink internal constructor(
         }
     }
 
-//    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-//        linkElement.disabled = !new
-//    }
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+        linkElement.href = when {
+            new  -> hyperLink.url
+            else -> ""
+        }
+    }
 
     private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         linkElement.tabIndex = if (new) 0 else -1
@@ -90,7 +103,7 @@ internal class NativeHyperLink internal constructor(
         hyperLink.apply {
             textChanged         += this@NativeHyperLink.textChanged
             focusChanged        += this@NativeHyperLink.focusChanged
-//            enabledChanged      += this@NativeHyperLink.enabledChanged
+            enabledChanged      += this@NativeHyperLink.enabledChanged
             focusabilityChanged += this@NativeHyperLink.focusableChanged
         }
 
@@ -101,7 +114,7 @@ internal class NativeHyperLink internal constructor(
         hyperLink.apply {
             textChanged         -= this@NativeHyperLink.textChanged
             focusChanged        -= this@NativeHyperLink.focusChanged
-//            enabledChanged      -= this@NativeHyperLink.enabledChanged
+            enabledChanged      -= this@NativeHyperLink.enabledChanged
             focusabilityChanged -= this@NativeHyperLink.focusableChanged
         }
     }
@@ -110,6 +123,12 @@ internal class NativeHyperLink internal constructor(
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
+            customCanvas?.apply {
+                clear()
+                customRenderer?.let { it(hyperLink, this) }
+                flush()
+            }
+
             canvas.addData(listOf(linkElement))
 
             if (hyperLink.hasFocus) {
