@@ -65,7 +65,7 @@ public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>
     batch { sortWith(comparator.reversed()) }
 }
 
-public class ObservableList<E> private constructor(private val list: MutableList<E>): MutableList<E> by list {
+public open class ObservableListImpl<E> internal constructor(private val list: MutableList<E>): ObservableList<E>, MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<E>>()
     public override val changed: Pool<ListObserver<E>> = changed_
