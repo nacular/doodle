@@ -33,6 +33,20 @@ view.position = Point(13, -2) // reposition to 13,-2
 }
 ```
 
+This demo shows how the pointer can be used to position Views easily. In this case, we use the [Resizer](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/utils/Resizer.kt#L27) 
+utility to provide simple resize/move operations. The Resizer simply monitors the View for Pointer events and updates its `bounds` accordingly.
+
+```kotlin
+import io.nacular.doodle.utils.Resizer
+
+// ...
+
+MyView().apply {
+    bounds = Rectangle(localOrigin, Size(100, 100))
+    Resizer(this) // monitors the View and manages resize/move
+}
+```
+
 Views can also have
 [Affine Transformations](https://en.wikipedia.org/wiki/Affine_transformation) to change how they are displayed. A transformed View still
 retains the same `bounds`, but its [`boundingBox`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L156) property changes, since it reflects the smallest rectangle that encloses the View's

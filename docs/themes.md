@@ -117,7 +117,7 @@ class MyApp(display: Display,
 fun main() {
     // DynamicThemes require a list of Behavior modules since the
     // Theme itself is essentially a Behavior filter.
-    application(modules = listOf(NativeButtonBehavior)) {
+    application(modules = listOf(nativeButtonBehavior())) {
         MyApp(instance(), instance(), instance())
     }
 }
