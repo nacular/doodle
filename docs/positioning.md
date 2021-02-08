@@ -42,7 +42,7 @@ import io.nacular.doodle.utils.Resizer
 // ...
 
 MyView().apply {
-    bounds = Rectangle(localOrigin, Size(100, 100))
+    bounds = Rectangle(100, 100)
     Resizer(this) // monitors the View and manages resize/move
 }
 ```
