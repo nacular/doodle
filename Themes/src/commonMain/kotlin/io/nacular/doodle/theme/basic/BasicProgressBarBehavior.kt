@@ -13,10 +13,11 @@ import io.nacular.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/12/18.
  */
 public class BasicProgressBarBehavior(
-        private val background  : Fill,
-        private val foreground  : Fill,
-        private val outlineColor: Color? = null,
-        private val cornerRadius: Double = 0.0): ProgressIndicatorBehavior<ProgressBar>() {
+        private val background      : Fill?,
+        private val foreground      : Fill,
+        private val outlineColor    : Color? = null,
+        private val cornerRadius    : Double = 0.0,
+        private val outlineThickness: Double = 1.0): ProgressIndicatorBehavior<ProgressBar>() {
 
     override fun install(view: ProgressBar) {
         super.install(view)
@@ -25,14 +26,15 @@ public class BasicProgressBarBehavior(
     }
 
     override fun render(view: ProgressBar, canvas: Canvas) {
+        val rect = Rectangle(size = view.size)
 
-        val border = 1.0
-        val rect   = Rectangle(size = view.size)
+        val stroke = if (outlineColor != null && view.height > 2 * outlineThickness) Stroke(outlineColor, outlineThickness) else null
 
         // Draw background with optional outline
         when {
-            view.height > 2 && outlineColor != null -> canvas.rect(rect.inset(border / 2), cornerRadius, Stroke(outlineColor, border), background)
-            else                                    -> canvas.rect(rect,                   cornerRadius,                               background)
+            stroke     != null && background != null -> canvas.rect(rect.inset(outlineThickness / 2), cornerRadius, stroke, background)
+            stroke     != null                       -> canvas.rect(rect.inset(outlineThickness / 2), cornerRadius, stroke            )
+            background != null                       -> canvas.rect(rect,                             cornerRadius,         background)
         }
 
         val innerRect = when (view.orientation) {

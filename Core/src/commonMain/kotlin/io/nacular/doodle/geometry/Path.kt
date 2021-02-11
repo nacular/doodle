@@ -1,14 +1,22 @@
 package io.nacular.doodle.geometry
 
+import io.nacular.doodle.utils.RotationDirection
+import io.nacular.doodle.utils.RotationDirection.Clockwise
+import io.nacular.doodle.utils.RotationDirection.CounterClockwise
 import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
+import io.nacular.measured.units.abs
 import io.nacular.measured.units.times
 
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
  */
 public interface Path {
+    public operator fun plus(other: Path): Path
+
     /** command string */
     public val data: String
 }
@@ -95,9 +103,73 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
     }
 }.close()
 
+// TODO: Move to better place
+private val _0 = 0 * degrees
+
+/**
+ * Creates a circle path. The [direction] flag allows multiple circles to be combined
+ * to create circular holes. A [ring] can be created by joining an outer and inner circle
+ * with opposite directions.
+ *
+ * @param center of the circle
+ * @param radius of the circle
+ * @param direction to draw in
+ * @return path representing the circle
+ */
+public fun circle(center: Point, radius: Double, direction: RotationDirection): Path {
+    val sweep = direction == Clockwise
+
+    return path(Point(center.x, center.y - radius)).
+        arcTo(Point(center.x, center.y + radius), radius, radius, _0, largeArch = true, sweep = sweep).
+        arcTo(Point(center.x, center.y - radius), radius, radius, _0, largeArch = true, sweep = sweep).
+        close()
+}
+
+/**
+ * Creates ring (donut) path.
+ *
+ * @param center of the torus
+ * @param innerRadius of the torus
+ * @param outerRadius of the torus
+ * @return path representing the ring
+ */
+public fun ring(center: Point, innerRadius: Double, outerRadius: Double): Path = circle(center, outerRadius, Clockwise) + circle(center, innerRadius, CounterClockwise)
+
+/**
+ * Creates a path for a section of a ring (donut) shape. The direction of sweep is
+ * controlled by the sign of [end] - [start].
+ *
+ * @param center of the torus
+ * @param innerRadius of the torus
+ * @param outerRadius of the torus
+ * @param start angle
+ * @param end angle
+ * @return path representing the ring section
+ */
+public fun ringSection(center: Point, innerRadius: Double, outerRadius: Double, start: Measure<Angle>, end: Measure<Angle>): Path {
+    val sweep      = (end - start).amount > 1
+    val thickness  = outerRadius - innerRadius
+    val cosStart   = cos(start)
+    val sinStart   = sin(start)
+    val cosEnd     = cos(end  )
+    val sinEnd     = sin(end  )
+    val outerStart = center + Point(outerRadius * cosStart, outerRadius * sinStart)
+    val outerEnd   = center + Point(outerRadius * cosEnd,   outerRadius * sinEnd  )
+    val innerStart = outerStart - thickness * Point(cosStart, sinStart)
+    val innerEnd   = outerEnd   - thickness * Point(cosEnd,   sinEnd  )
+    val largeArch  = (abs(end - start) `in` degrees) % 360.0 > 180.0
+
+    return path(outerStart).
+        arcTo(outerEnd, outerRadius, outerRadius, _0, largeArch = largeArch, sweep = sweep).
+        lineTo(innerEnd).
+        arcTo(innerStart, innerRadius, innerRadius, _0, largeArch = largeArch, sweep = !sweep).
+        close()
+}
 
 private class PathImpl(override val data: String): Path {
     override fun toString() = data
+
+    override fun plus(other: Path) = PathImpl(data + other.data)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -109,8 +109,7 @@ PatternFill(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth el
 ```kotlin
 private inner class MyView: View() {
     val stripeWidth = 20.0
-    var fillAngle: Measure<Angle> = 0 * degrees
-        set(new) { field = new; rerender() }
+    var fillAngle by renderProperty(0 * degrees)
 
     override fun render(canvas: Canvas) {
         val fillCenter = Point(canvas.size.width / 2, canvas.size.height / 2)

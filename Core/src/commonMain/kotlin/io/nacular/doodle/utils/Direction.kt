@@ -7,3 +7,8 @@ public enum class Direction {
     East,
     West
 }
+
+public enum class RotationDirection {
+    Clockwise,
+    CounterClockwise
+}

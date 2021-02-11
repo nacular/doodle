@@ -51,6 +51,12 @@ import io.nacular.doodle.theme.basic.tree.BasicTreeBehavior
 import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
 import io.nacular.doodle.theme.basic.treecolumns.SimpleTreeColumnRowIcon
 import io.nacular.doodle.theme.basic.treecolumns.TreeColumnRowIcon
+import io.nacular.doodle.utils.RotationDirection
+import io.nacular.doodle.utils.RotationDirection.Clockwise
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
 import org.kodein.di.DKodein
 import org.kodein.di.Kodein
 import org.kodein.di.Kodein.Module
@@ -416,6 +422,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             foreground ?: ColorFill(darkBackgroundColor   ),
                             outlineColor,
                             cornerRadius) as Behavior<ProgressIndicator> }
+            }
+        }
+
+        public fun basicCircularProgressBarBehavior(
+                foreground      : Fill?             = null,
+                background      : Fill?             = null,
+                thickness       : Double            = 15.0,
+                outlineColor    : Color?            = null,
+                outlineThickness: Double            = 0.0,
+                startAngle      : Measure<Angle>    = -90 * degrees,
+                direction       : RotationDirection = Clockwise): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
+            bindBehavior<ProgressBar>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicCircularProgressBehavior(
+                        foreground ?: ColorFill(darkBackgroundColor   ),
+                        background ?: ColorFill(defaultBackgroundColor),
+                        thickness,
+                        outlineColor,
+                        outlineThickness,
+                        startAngle,
+                        direction)
+                }
             }
         }
 

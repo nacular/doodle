@@ -893,7 +893,7 @@ public abstract class View protected constructor(public val accessibilityRole: A
  * @param initial value of the property
  * @param onChange called when the property changes. There's no need to call rerender in [onChange].
  */
-public inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable<View, T>(initial) { old, new ->
+public inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
     rerender()
     onChange(old, new)
 }
