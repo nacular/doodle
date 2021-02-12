@@ -7,6 +7,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.SegmentBuilder
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.geometry.ring
 import io.nacular.doodle.geometry.ringSection
@@ -28,7 +29,10 @@ public class BasicCircularProgressBehavior(
         private val outlineColor    : Color?            = null,
         private val outlineThickness: Double            = 1.0,
         private val startAngle      : Measure<Angle>    = -90 * degrees,
-        private val direction       : RotationDirection = Clockwise): ProgressIndicatorBehavior<ProgressIndicator>() {
+        private val direction       : RotationDirection = Clockwise,
+        private val startCap        : SegmentBuilder    = { _,it -> lineTo(it) },
+        private val endCap          : SegmentBuilder    = { _,_  ->            }
+): ProgressIndicatorBehavior<ProgressIndicator>() {
     override fun render(view: ProgressIndicator, canvas: Canvas) {
         val stroke = if (outlineColor != null && thickness > 2 * outlineThickness) Stroke(outlineColor, outlineThickness) else null
 
@@ -51,8 +55,13 @@ public class BasicCircularProgressBehavior(
         }
 
         when {
-            view.progress < 1.0 -> canvas.path(ringSection(center, ringInnerRadius, ringOuterRadius, start = startAngle, end = operation(startAngle, 360 * degrees * view.progress)), foreground)
-            else                -> canvas.path(ring       (center, ringInnerRadius, ringOuterRadius),                                                                                 foreground)
+            view.progress < 1.0 -> canvas.path(ringSection(center, ringInnerRadius, ringOuterRadius, start = startAngle, end = operation(startAngle, 360 * degrees * view.progress), startCap, endCap), foreground)
+            else                -> canvas.path(ring       (center, ringInnerRadius, ringOuterRadius),                                                                                               foreground)
         }
+    }
+
+    public companion object {
+        public val circularEndCap        : SegmentBuilder = { _, it -> arcTo(it, 1.0, 1.0, largeArch = true, sweep = true  ) }
+        public val negativeCircularEndCap: SegmentBuilder = { _, it -> arcTo(it, 1.0, 1.0, largeArch = true, sweep = false ) }
     }
 }

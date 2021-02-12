@@ -33,6 +33,7 @@ import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.grayScale
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.geometry.SegmentBuilder
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
@@ -432,7 +433,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 outlineColor    : Color?            = null,
                 outlineThickness: Double            = 0.0,
                 startAngle      : Measure<Angle>    = -90 * degrees,
-                direction       : RotationDirection = Clockwise): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
+                direction       : RotationDirection = Clockwise,
+                startCap        : SegmentBuilder    = { _,it -> lineTo(it) },
+                endCap          : SegmentBuilder    = { _,_  ->            }): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularProgressBehavior(
@@ -442,7 +445,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         outlineColor,
                         outlineThickness,
                         startAngle,
-                        direction)
+                        direction,
+                        startCap,
+                        endCap)
                 }
             }
         }

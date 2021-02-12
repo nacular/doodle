@@ -84,6 +84,7 @@ public interface PathBuilder {
  * @param data conforming to https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
  * @return the path, or `null`
  */
+// TODO: Validate data?
 public fun path(data: String): Path? = PathImpl(data)
 
 /**
@@ -103,9 +104,6 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
     }
 }.close()
 
-// TODO: Move to better place
-private val _0 = 0 * degrees
-
 /**
  * Creates a circle path. The [direction] flag allows multiple circles to be combined
  * to create circular holes. A [ring] can be created by joining an outer and inner circle
@@ -120,8 +118,8 @@ public fun circle(center: Point, radius: Double, direction: RotationDirection): 
     val sweep = direction == Clockwise
 
     return path(Point(center.x, center.y - radius)).
-        arcTo(Point(center.x, center.y + radius), radius, radius, _0, largeArch = true, sweep = sweep).
-        arcTo(Point(center.x, center.y - radius), radius, radius, _0, largeArch = true, sweep = sweep).
+        arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
+        arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
         close()
 }
 
@@ -135,6 +133,8 @@ public fun circle(center: Point, radius: Double, direction: RotationDirection): 
  */
 public fun ring(center: Point, innerRadius: Double, outerRadius: Double): Path = circle(center, outerRadius, Clockwise) + circle(center, innerRadius, CounterClockwise)
 
+public typealias SegmentBuilder = PathBuilder.(current: Point, end: Point) -> Unit
+
 /**
  * Creates a path for a section of a ring (donut) shape. The direction of sweep is
  * controlled by the sign of [end] - [start].
@@ -144,9 +144,19 @@ public fun ring(center: Point, innerRadius: Double, outerRadius: Double): Path =
  * @param outerRadius of the torus
  * @param start angle
  * @param end angle
+ * @param startCap defining how to cap the starting side of the section
+ * @param endCap defining how to cap the ending side of the section
  * @return path representing the ring section
  */
-public fun ringSection(center: Point, innerRadius: Double, outerRadius: Double, start: Measure<Angle>, end: Measure<Angle>): Path {
+public fun ringSection(
+        center     : Point,
+        innerRadius: Double,
+        outerRadius: Double,
+        start      : Measure<Angle>,
+        end        : Measure<Angle>,
+        startCap   : SegmentBuilder = { _,it -> lineTo(it) },
+        endCap     : SegmentBuilder = { _,_  ->            }
+): Path {
     val sweep      = (end - start).amount > 1
     val thickness  = outerRadius - innerRadius
     val cosStart   = cos(start)
@@ -160,9 +170,12 @@ public fun ringSection(center: Point, innerRadius: Double, outerRadius: Double, 
     val largeArch  = (abs(end - start) `in` degrees) % 360.0 > 180.0
 
     return path(outerStart).
-        arcTo(outerEnd, outerRadius, outerRadius, _0, largeArch = largeArch, sweep = sweep).
-        lineTo(innerEnd).
-        arcTo(innerStart, innerRadius, innerRadius, _0, largeArch = largeArch, sweep = !sweep).
+        arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
+            startCap(this, outerEnd, innerEnd)
+        }.
+        arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
+            endCap(this, innerStart, outerStart)
+        }.
         close()
 }
 
