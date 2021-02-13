@@ -11,7 +11,7 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 3/21/20.
  */
-private infix fun IntArray.contentEquals2(other: IntArray?): Boolean = when(other) {
+private infix fun DoubleArray.contentEquals2(other: DoubleArray?): Boolean = when(other) {
     null -> false
     else -> this contentEquals other
 }
@@ -29,19 +29,19 @@ class PenTests {
 
     @Test @JsName("handlesDashVarArgs")
     fun `handles dash var args`() {
-        Stroke(dash = 1, remainingDashes = *intArrayOf(2, 3, 4)).apply {
-            expect(true) { intArrayOf(1,2,3,4) contentEquals2 dashes }
+        Stroke(dash = 1.0, remainingDashes = doubleArrayOf(2.0, 3.0, 4.0)).apply {
+            expect(true) { doubleArrayOf(1.0,2.0,3.0,4.0) contentEquals2 dashes }
         }
     }
 
     @Test @JsName("visibilityCorrect")
     fun `visibility correct`() {
         listOf(
-            Stroke(                            ) to true,
-            Stroke(color     = Red             ) to true,
-            Stroke(color     = Transparent     ) to false,
-            Stroke(color     = Green opacity 0f) to false,
-            Stroke(thickness = 0.0             ) to false
+                Stroke(                            ) to true,
+                Stroke(color     = Red             ) to true,
+                Stroke(color     = Transparent     ) to false,
+                Stroke(color     = Green opacity 0f) to false,
+                Stroke(thickness = 0.0             ) to false
         ).forEach {
             expect(it.second) { it.first.visible }
         }

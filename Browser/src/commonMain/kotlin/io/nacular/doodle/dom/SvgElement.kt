@@ -10,6 +10,7 @@ import io.nacular.doodle.SVGRectElement
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Renderer
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
@@ -57,9 +58,10 @@ internal inline fun SVGCircleElement.setCY    (value: Double) = setAttribute  ("
 internal inline fun SVGCircleElement.setR     (value: Double) = setAttribute  ("r",  "$value")
 internal inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
 
-internal inline fun SVGElement.setPathData   (value: String      ) = setAttribute  ("d",                  value        )
-internal inline fun SVGElement.setStrokeWidth(value: Double      ) = setAttribute  ("stroke-width",     "$value"       )
-internal inline fun SVGElement.setStrokeDash (value: String      ) = setAttribute  ("stroke-dasharray",   value        )
+internal inline fun SVGElement.setPathData        (value: String      ) = setAttribute  ("d",                   value           )
+internal inline fun SVGElement.setStrokeWidth     (value: Double      ) = setAttribute  ("stroke-width",      "$value"          )
+internal inline fun SVGElement.setStrokeDash      (value: DoubleArray?) = setAttribute  ("stroke-dasharray",    dashArray(value))
+internal inline fun SVGElement.setStrokeDashOffset(value: Double      ) = setAttribute  ("stroke-dashoffset", "$value"          )
 //internal inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
 //internal inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
 
@@ -130,7 +132,21 @@ internal fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fil
     else -> "url(#${pattern.id})"
 })
 
-internal fun SVGElement.setStroke(color: Color?) = convert(color) {
+internal fun SVGElement.setStroke(stroke: Stroke?) {
+    if (stroke != null) {
+        setStrokeColor(stroke.color    )
+        setStrokeWidth(stroke.thickness)
+
+        stroke.dashes?.let {
+            setStrokeDash      (stroke.dashes    )
+            setStrokeDashOffset(stroke.dashOffset)
+        }
+    }
+}
+
+private fun dashArray(dashes: DoubleArray?) = dashes?.map { max(0.0, it) }?.joinToString(",") ?: ""
+
+internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
     setAttribute("stroke", it)
     color?.let { setAttribute("stroke-opacity", "${it.opacity}") }
 }

@@ -48,8 +48,6 @@ import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setStopColor
 import io.nacular.doodle.dom.setStopOffset
 import io.nacular.doodle.dom.setStroke
-import io.nacular.doodle.dom.setStrokeDash
-import io.nacular.doodle.dom.setStrokeWidth
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
@@ -628,12 +626,7 @@ internal open class VectorRendererSvg constructor(
             element.setFill(null)
         }
 
-        element.setStroke(stroke.color)
-        element.setStrokeWidth(stroke.thickness)
-
-        stroke.dashes?.let {
-            element.setStrokeDash(dashArray(stroke))
-        }
+        element.setStroke(stroke)
     }
 
     private fun fillElement(element: SVGElement, fill: Fill, clearOutline: Boolean = true) {
@@ -647,10 +640,6 @@ internal open class VectorRendererSvg constructor(
             element.setStroke(null)
         }
     }
-
-    private fun dashArray(stroke: Stroke) = stroke.dashes?.mapIndexed { index, dash ->
-        max(0, dash + if (index.isEven) -1 else 1)
-    }?.joinToString(",") ?: ""
 
     private fun textBackground(fill: ColorFill) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }

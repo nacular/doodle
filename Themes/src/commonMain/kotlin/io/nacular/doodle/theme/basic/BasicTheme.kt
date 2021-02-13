@@ -411,18 +411,36 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        @Deprecated("Use new version")
         public fun basicProgressBarBehavior(
-                background  : Fill?  = null,
-                foreground  : Fill?  = null,
-                outlineColor: Color? = null,
-                cornerRadius: Double = 2.0): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
+                background  : Fill?   = null,
+                foreground  : Fill?   = null,
+                outlineColor: Color?  = null,
+                cornerRadius: Double? = null): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            background ?: ColorFill(defaultBackgroundColor),
-                            foreground ?: ColorFill(darkBackgroundColor   ),
-                            outlineColor,
-                            cornerRadius) as Behavior<ProgressIndicator> }
+                            background   = background ?: ColorFill(defaultBackgroundColor),
+                            foreground   = foreground ?: ColorFill(darkBackgroundColor   ),
+                            outlineColor = outlineColor,
+                            cornerRadius = cornerRadius ?: this.cornerRadius) as Behavior<ProgressIndicator> }
+            }
+        }
+
+        public fun basicProgressBarBehavior(
+                background      : Fill?   = null,
+                foreground      : Fill?   = null,
+                outlineColor    : Color?  = null,
+                backgroundRadius: Double? = null,
+                foregroundRadius: Double? = backgroundRadius): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
+            bindBehavior<ProgressBar>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicProgressBarBehavior(
+                            background       = background ?: ColorFill(defaultBackgroundColor),
+                            foreground       = foreground ?: ColorFill(darkBackgroundColor   ),
+                            outlineColor     = outlineColor,
+                            backgroundRadius = backgroundRadius ?: cornerRadius,
+                            foregroundRadius = foregroundRadius ?: 0.0) as Behavior<ProgressIndicator> }
             }
         }
 
@@ -485,7 +503,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicSplitPanelBehavior(),
                 basicRadioButtonBehavior(),
                 basicMutableListBehavior(),
-                basicProgressBarBehavior(),
+                basicProgressBarBehavior(foregroundRadius = null),
                 basicMutableTreeBehavior(),
                 basicTreeColumnsBehavior(),
                 basicTabbedPanelBehavior(),
