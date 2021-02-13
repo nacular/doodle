@@ -146,16 +146,6 @@ val progressBar = ProgressBar() // creates a bar that ranges form 0 - 100
 
 ?> Rendering requires a `Behavior<ProgressBar>`. [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L260) provides one.
 
-ProgressBar can also take different shapes. Here's an example that uses [`CircularProgressBehavior`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/CircularProgressBehavior.kt#L23).
-
-```doodle
-{
-    "border": false,
-    "height": "200px",
-    "run"   : "DocApps.circularProgress"
-}
-```
-
 ---
 ### [Slider](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/range/Slider.kt#L16)
 
