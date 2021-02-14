@@ -8,7 +8,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
@@ -50,7 +50,7 @@ private class BasicCheckBoxIcon(
 
     override fun render(view: CheckBox, canvas: Canvas, at: Point) {
         val rect       = Rectangle(at, size(view))
-        val background = ColorFill(fillColor(view))
+        val background = ColorPaint(fillColor(view))
 
         val xScale = (rect.width  * (1 - checkInset)) / CHECK_BOUNDING_BOX.width
         val yScale = (rect.height * (1 - checkInset)) / CHECK_BOUNDING_BOX.height
@@ -61,8 +61,8 @@ private class BasicCheckBoxIcon(
         canvas.rect(rect, cornerRadius, background)
 
         val foreground = when {
-            view.enabled -> ColorFill(foregroundColor)
-            else         -> ColorFill(disabledColorMapper(foregroundColor))
+            view.enabled -> ColorPaint(foregroundColor)
+            else         -> ColorPaint(disabledColorMapper(foregroundColor))
         }
 
         when {

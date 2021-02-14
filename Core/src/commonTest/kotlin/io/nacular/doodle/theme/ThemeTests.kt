@@ -9,7 +9,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -72,7 +72,7 @@ class ThemeTests {
 
         override fun fromAbsolute(point: Point) = point
 
-        override fun fill(fill: Fill) {}
+        override fun fill(fill: Paint) {}
 
         override fun child(at: Point) = null
 

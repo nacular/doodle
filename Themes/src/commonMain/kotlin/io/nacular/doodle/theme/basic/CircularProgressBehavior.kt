@@ -4,7 +4,7 @@ import io.nacular.doodle.controls.ProgressIndicator
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
@@ -22,7 +22,7 @@ public class CircularProgressBehavior(private val defaultBackgroundColor: Color,
         val border = 1.0
         val radius = min(view.width, view.height) / 2
         val center = (view.size / 2.0).run { Point(width, height) }
-        val fill  = ColorFill(view.backgroundColor ?: defaultBackgroundColor)
+        val fill  = ColorPaint(view.backgroundColor ?: defaultBackgroundColor)
 
         // Draw background with optional outline
         when {
@@ -32,9 +32,9 @@ public class CircularProgressBehavior(private val defaultBackgroundColor: Color,
 
         val sweep = 360 * degrees * view.progress
 
-        canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90 * degrees - sweep, fill = ColorFill(darkBackgroundColor))
+        canvas.wedge(center = center, radius = radius, sweep = sweep, rotation = 90 * degrees - sweep, fill = ColorPaint(darkBackgroundColor))
 
         // TODO: Make this transparent
-        canvas.circle(Circle(center, radius - radius / 4), Stroke(darkBackgroundColor, border), ColorFill(Color.White))
+        canvas.circle(Circle(center, radius - radius / 4), Stroke(darkBackgroundColor, border), ColorPaint(Color.White))
     }
 }

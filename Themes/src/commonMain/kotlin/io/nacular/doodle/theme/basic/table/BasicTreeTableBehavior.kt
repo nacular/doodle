@@ -22,7 +22,7 @@ import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
@@ -183,7 +183,7 @@ public open class BasicTreeTableBehavior<T>(
     }
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
     }
 
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
@@ -195,7 +195,7 @@ public open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner.rowBounds(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorFill(color))
+                    canvas.rect(rowPositioner.rowBounds(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorPaint(color))
                 }
             }
         }
@@ -203,7 +203,7 @@ public open class BasicTreeTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorFill(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor.opacity(0.2f)))
         }
     }
 

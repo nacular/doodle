@@ -4,8 +4,8 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -103,7 +103,7 @@ public interface Display: Iterable<View> {
     public fun fromAbsolute(point: Point): Point
 
     /** Fills the Display's background with the given fill */
-    public fun fill(fill: Fill)
+    public fun fill(fill: Paint)
 
     /**
      * @param at the x,y within the Display's coordinate-space
@@ -133,7 +133,7 @@ public inline val Display.width: Double get() = size.width
  */
 public inline val Display.height: Double get() = size.height
 
-public inline fun Display.fill(color: Color): Unit = fill(ColorFill(color))
+public inline fun Display.fill(color: Color): Unit = fill(ColorPaint(color))
 
 /**
  * Adds [view] to the Display.

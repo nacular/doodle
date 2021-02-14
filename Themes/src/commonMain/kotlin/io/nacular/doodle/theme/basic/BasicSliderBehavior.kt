@@ -6,7 +6,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
@@ -46,7 +46,7 @@ public class BasicSliderBehavior(
             }
         }
 
-        canvas.rect(rect1, rect1.height / 2, ColorFill(barColor))
-        canvas.circle(Circle(rect2.center, rect2.width / 2), ColorFill(knobColor))
+        canvas.rect(rect1, rect1.height / 2, ColorPaint(barColor))
+        canvas.circle(Circle(rect2.center, rect2.width / 2), ColorPaint(knobColor))
     }
 }

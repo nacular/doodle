@@ -4,7 +4,7 @@ import io.nacular.doodle.controls.ProgressIndicator
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.SegmentBuilder
@@ -23,8 +23,8 @@ import kotlin.math.min
  *
  */
 public class BasicCircularProgressBehavior(
-        private val foreground      : Fill,
-        private val background      : Fill?             = null,
+        private val foreground      : Paint,
+        private val background      : Paint?             = null,
         private val thickness       : Double,
         private val outlineColor    : Color?            = null,
         private val outlineThickness: Double            = 1.0,

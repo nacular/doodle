@@ -7,7 +7,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
@@ -47,12 +47,12 @@ private class BasicRadioIcon(
     override fun render(view: RadioButton, canvas: Canvas, at: Point) {
         val size   = size(view)
         val radius = min(size.width, size.height) / 2
-        val fill   = ColorFill(fillColor(view))
+        val fill   = ColorPaint(fillColor(view))
 
         canvas.circle(Circle(at + Point(radius, radius), radius), fill)
 
         if (view.model.selected) {
-            canvas.circle(Circle(at + Point(radius, radius), radius - innerCircleInset), ColorFill(foregroundColor))
+            canvas.circle(Circle(at + Point(radius, radius), radius - innerCircleInset), ColorPaint(foregroundColor))
         }
     }
 }

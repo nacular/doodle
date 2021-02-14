@@ -11,7 +11,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.event.KeyEvent
@@ -132,7 +132,7 @@ public class BasicTreeColumnsBehavior<T>(
     }
 
     override fun renderColumnBody(treeColumns: TreeColumns<T, *>, path: Path<Int>, canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
+        backgroundColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
 
         val x = canvas.size.width - VERTICAL_LINE_THICKNESS / 2
 

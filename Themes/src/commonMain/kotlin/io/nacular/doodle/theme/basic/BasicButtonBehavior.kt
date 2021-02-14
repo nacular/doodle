@@ -6,7 +6,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
@@ -62,9 +62,9 @@ public open class BasicButtonBehavior(
         val penWidth = if (view.enabled && (model.pressed || model.pointerOver)) 2 * borderWidth else borderWidth
 
         if (penWidth > 0 && colors.borderColor != null) {
-            canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), cornerRadius, Stroke(colors.borderColor, penWidth), ColorFill(colors.fillColor))
+            canvas.rect(Rectangle(size = view.size).inset(penWidth / 2), cornerRadius, Stroke(colors.borderColor, penWidth), ColorPaint(colors.fillColor))
         } else {
-            canvas.rect(Rectangle(size = view.size), cornerRadius, ColorFill(colors.fillColor))
+            canvas.rect(Rectangle(size = view.size), cornerRadius, ColorPaint(colors.fillColor))
         }
 
         val icon = icon(view)
@@ -73,7 +73,7 @@ public open class BasicButtonBehavior(
 
         if (text.isNotBlank()) {
             textPosition = textPosition(view, icon = icon)
-            canvas.text(text, font(view), textPosition, ColorFill(colors.textColor))
+            canvas.text(text, font(view), textPosition, ColorPaint(colors.textColor))
         }
 
         when (textPosition) {

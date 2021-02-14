@@ -4,14 +4,16 @@ package io.nacular.doodle
  * Created by Nicholas Eddy on 8/9/19.
  */
 public actual abstract class SVGElement public actual constructor(): Element(), ElementCSSInlineStyle
-public actual abstract class SVGPathElement    : SVGGeometryElement()
-public actual abstract class SVGRectElement    : SVGGeometryElement()
-public actual abstract class SVGCircleElement  : SVGGeometryElement()
-public actual abstract class SVGEllipseElement : SVGGeometryElement()
-public actual abstract class SVGPolygonElement : SVGGeometryElement()
-public actual abstract class SVGPatternElement : SVGElement        ()
-public actual abstract class SVGGradientElement: SVGElement        ()
-public actual abstract class SVGGraphicsElement: SVGElement        ()
+public actual abstract class SVGPathElement          : SVGGeometryElement()
+public actual abstract class SVGRectElement          : SVGGeometryElement()
+public actual abstract class SVGCircleElement        : SVGGeometryElement()
+public actual abstract class SVGEllipseElement       : SVGGeometryElement()
+public actual abstract class SVGPolygonElement       : SVGGeometryElement()
+public actual abstract class SVGPatternElement       : SVGElement        ()
+public actual abstract class SVGGradientElement      : SVGElement        ()
+public actual abstract class SVGGraphicsElement      : SVGElement        ()
+public actual abstract class SVGLinearGradientElement: SVGGradientElement()
+public actual abstract class SVGRadialGradientElement: SVGGradientElement()
 
 public actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

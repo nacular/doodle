@@ -9,7 +9,7 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -62,7 +62,7 @@ private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): Lis
 
 public open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
                                        override val generator   : RowGenerator<T>,
-                                       private  val patternFill : PatternFill? = null,
+                                       private  val patternFill : PatternPaint? = null,
                                              rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 

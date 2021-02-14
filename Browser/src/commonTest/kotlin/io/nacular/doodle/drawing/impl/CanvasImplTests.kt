@@ -29,12 +29,12 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImageFill
-import io.nacular.doodle.drawing.LinearGradientFill
-import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.LinearGradientPaint
+import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
@@ -93,7 +93,7 @@ class CanvasImplTests {
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
         val stroke = Stroke()
-        val fill   = ColorFill(Red)
+        val fill   = ColorPaint(Red)
         val rect   = Rectangle.Empty
         val circle = Circle.Empty
 
@@ -130,7 +130,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
-        val fill = ColorFill(Red)
+        val fill = ColorPaint(Red)
         val rect = Rectangle(100, 100)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -159,7 +159,7 @@ class CanvasImplTests {
             every { htmlFactory.createOrUse("B", b    ) } returns   b
 
             listOf(Red, Black, Blue).forEach {
-                rect(rect, ColorFill(it))
+                rect(rect, ColorPaint(it))
 
                 clear()
             }
@@ -191,7 +191,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val fill   = ColorFill(Red)
+        val fill   = ColorPaint(Red)
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -224,7 +224,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val fill  = ColorFill(Red)
+        val fill  = ColorPaint(Red)
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -255,7 +255,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val fill   = ColorFill(Red)
+        val fill   = ColorPaint(Red)
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -286,7 +286,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleText") fun `renders simple text`() {
-        val fill = ColorFill(Red)
+        val fill = ColorPaint(Red)
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(34, 89)
@@ -352,7 +352,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
-        val fill = ColorFill(Red)
+        val fill = ColorPaint(Red)
         val text = "some text"
         val font = mockk<Font>()
         val at   = Point(150, 89)
@@ -428,7 +428,7 @@ class CanvasImplTests {
 
     @Test @JsName("rendersPathPoints") fun `renders path points`() = validateRender { _,_,_,renderer,_ ->
         val points   = listOf(Point(3, 6), Point(150, 89))
-        val fill     = mockk<Fill>()
+        val fill     = mockk<Paint>()
         val stroke   = mockk<Stroke>()
         val fillRule = mockk<FillRule>()
 
@@ -447,7 +447,7 @@ class CanvasImplTests {
 
     @Test @JsName("rendersPath") fun `renders path`() = validateRender { _,_,_,renderer,_ ->
         val path     = mockk<Path>    ()
-        val fill     = mockk<Fill>    ()
+        val fill     = mockk<Paint>    ()
         val stroke   = mockk<Stroke>  ()
         val fillRule = mockk<FillRule>()
 
@@ -466,7 +466,7 @@ class CanvasImplTests {
 
     @Test @JsName("rendersPoly") fun `renders poly`() = validateRender { _,_,_,renderer,_ ->
         val polygon  = ConvexPolygon(Point(3, 6), Point(150, 89), Origin)
-        val fill     = mockk<Fill>()
+        val fill     = mockk<Paint>()
         val stroke   = mockk<Stroke>()
 
         poly(polygon, stroke      )
@@ -482,7 +482,7 @@ class CanvasImplTests {
         val radius   = 59.3
         val sweep    = 42 * degrees
         val rotation = 12 * degrees
-        val fill     = mockk<Fill>()
+        val fill     = mockk<Paint>()
         val stroke   = mockk<Stroke>()
 
         arc(center, radius, sweep, rotation,         fill)
@@ -500,7 +500,7 @@ class CanvasImplTests {
         val radius   = 59.3
         val sweep    = 42 * degrees
         val rotation = 12 * degrees
-        val fill     = mockk<Fill>()
+        val fill     = mockk<Paint>()
         val stroke   = mockk<Stroke>()
 
         wedge(center, radius, sweep, rotation,         fill)
@@ -568,7 +568,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("clearWorks") fun `clear works`() = validateRender { _, _, _, renderer, _ ->
-        rect(Rectangle(10, 10), ColorFill(Red))
+        rect(Rectangle(10, 10), ColorPaint(Red))
 
         clear()
 
@@ -576,8 +576,8 @@ class CanvasImplTests {
     }
 
     @Test @JsName("clearThenFlushWorks") fun `clear then flush works`() = validateRender { renderParent, _, _, renderer, _ ->
-        rect(Rectangle(10, 10), ColorFill(Red))
-        text("hello", Origin, ColorFill(Black))
+        rect(Rectangle(10, 10), ColorPaint(Red))
+        text("hello", Origin, ColorPaint(Black))
 
         expect(2) { renderParent.numChildren }
 
@@ -603,9 +603,9 @@ class CanvasImplTests {
         every { textFactory.create("hello", any(), any()) } returns hello
         every { textFactory.create("world", any(), any()) } returns world
 
-        rect(Rectangle(10, 10), ColorFill(Red))
-        text("world", Origin, ColorFill(Black))
-        rect(Rectangle(100, 10), ColorFill(Red))
+        rect(Rectangle(10, 10), ColorPaint(Red))
+        text("world", Origin, ColorPaint(Black))
+        rect(Rectangle(100, 10), ColorPaint(Red))
 
         expect(3) { renderParent.numChildren }
 
@@ -615,8 +615,8 @@ class CanvasImplTests {
 
         clear()
 
-        text("hello", Origin, ColorFill(Black)) // Replaces first node
-        text("world", Origin, ColorFill(Black))
+        text("hello", Origin, ColorPaint(Black)) // Replaces first node
+        text("world", Origin, ColorPaint(Black))
 
         expect(3) { renderParent.numChildren }
 
@@ -633,10 +633,10 @@ class CanvasImplTests {
     }
 
     private val complexFills = listOf(
-            mockk<Fill>              ().apply { every { visible } returns true },
+            mockk<Paint>              ().apply { every { visible } returns true },
             mockk<ImageFill>         ().apply { every { visible } returns true },
-            mockk<PatternFill>       ().apply { every { visible } returns true },
-            mockk<LinearGradientFill>().apply { every { visible } returns true }
+            mockk<PatternPaint>       ().apply { every { visible } returns true },
+            mockk<LinearGradientPaint>().apply { every { visible } returns true }
     )
 
     private fun validateTransform(block: CanvasImpl.() -> AffineTransform) {
@@ -750,12 +750,12 @@ class CanvasImplTests {
         verify(exactly = 0) { renderParent.appendChild(any()) }
     }
 
-    private fun nothingRendered2(block: CanvasImpl.(Stroke, Fill) -> Unit) {
+    private fun nothingRendered2(block: CanvasImpl.(Stroke, Paint) -> Unit) {
         val renderParent = spyk<HTMLElement>()
         val renderer     = mockk<VectorRenderer>()
 
         canvas(renderParent, rendererFactory = rendererFactory(renderer)).apply {
-            block(this, mockk<Stroke>().apply { every { visible } returns false }, mockk<Fill>().apply { every { visible } returns false })
+            block(this, mockk<Stroke>().apply { every { visible } returns false }, mockk<Paint>().apply { every { visible } returns false })
         }
 
 //        verify { renderer wasNot Called }

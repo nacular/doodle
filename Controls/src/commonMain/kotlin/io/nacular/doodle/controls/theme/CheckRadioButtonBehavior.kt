@@ -5,7 +5,7 @@ import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.geometry.Size
@@ -30,7 +30,7 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         val icon      = icon(view)
         val textColor = if (view.enabled) textColor else disabledColorMapper(textColor)
 
-        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorFill(textColor))
+        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorPaint(textColor))
 
         icon?.render(view, canvas, iconPosition(view, icon = this.icon as Icon<Button>))
     }

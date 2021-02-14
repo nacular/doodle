@@ -15,7 +15,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Gray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.opacity
@@ -176,7 +176,7 @@ public open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
         val selection = panel.selection
 
         backgroundColor?.let {
-            canvas.path(path, ColorFill(it))
+            canvas.path(path, ColorPaint(it))
         } ?: when {
             selection != null && (index > selection || index < selection - 1) -> {
                 canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Stroke(Gray))
@@ -585,6 +585,6 @@ public open class BasicTabbedPanelBehavior<T>(
     }
 
     override fun render(view: TabbedPanel<T>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, ColorFill(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, ColorPaint(backgroundColor))
     }
 }

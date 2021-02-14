@@ -14,7 +14,7 @@ import kotlin.test.expect
 class ColorFillTests {
     @Test @JsName("defaultsCorrect")
     fun `defaults correct`() {
-        ColorFill(Black).apply {
+        ColorPaint(Black).apply {
             expect(Black) { color   }
             expect(true ) { visible }
         }
@@ -23,9 +23,9 @@ class ColorFillTests {
     @Test @JsName("visibilityCorrect")
     fun `visibility correct`() {
         listOf(
-            ColorFill(color = Red             ) to true,
-            ColorFill(color = Transparent     ) to false,
-            ColorFill(color = Green opacity 0f) to false
+            ColorPaint(color = Red             ) to true,
+            ColorPaint(color = Transparent     ) to false,
+            ColorPaint(color = Green opacity 0f) to false
         ).forEach {
             expect(it.second) { it.first.visible }
         }
@@ -34,10 +34,10 @@ class ColorFillTests {
     @Test @JsName("equalsWorks")
     fun `equals works`() {
         listOf(
-            ColorFill(color = Red             ).let { it to it }                          to true,
-            ColorFill(color = Red             ) to ColorFill(color = Red               ) to true,
-            ColorFill(color = Green opacity 0f) to ColorFill(color = Green opacity 0.2f) to false,
-            ColorFill(color = Green opacity 0f) to "hello"                                to false
+            ColorPaint(color = Red             ).let { it to it }                          to true,
+            ColorPaint(color = Red             ) to ColorPaint(color = Red               ) to true,
+            ColorPaint(color = Green opacity 0f) to ColorPaint(color = Green opacity 0.2f) to false,
+            ColorPaint(color = Green opacity 0f) to "hello"                                to false
         ).forEach {
             expect(it.second) { it.first.first == it.first.second }
         }

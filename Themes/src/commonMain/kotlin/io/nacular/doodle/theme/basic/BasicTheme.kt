@@ -28,8 +28,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.grayScale
 import io.nacular.doodle.drawing.lighter
@@ -413,31 +413,31 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
         @Deprecated("Use new version")
         public fun basicProgressBarBehavior(
-                background  : Fill?   = null,
-                foreground  : Fill?   = null,
+                background  : Paint?   = null,
+                foreground  : Paint?   = null,
                 outlineColor: Color?  = null,
                 cornerRadius: Double? = null): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            background   = background ?: ColorFill(defaultBackgroundColor),
-                            foreground   = foreground ?: ColorFill(darkBackgroundColor   ),
+                            background   = background ?: ColorPaint(defaultBackgroundColor),
+                            foreground   = foreground ?: ColorPaint(darkBackgroundColor   ),
                             outlineColor = outlineColor,
                             cornerRadius = cornerRadius ?: this.cornerRadius) as Behavior<ProgressIndicator> }
             }
         }
 
         public fun basicProgressBarBehavior(
-                background      : Fill?   = null,
-                foreground      : Fill?   = null,
+                background      : Paint?   = null,
+                foreground      : Paint?   = null,
                 outlineColor    : Color?  = null,
                 backgroundRadius: Double? = null,
                 foregroundRadius: Double? = backgroundRadius): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            background       = background ?: ColorFill(defaultBackgroundColor),
-                            foreground       = foreground ?: ColorFill(darkBackgroundColor   ),
+                            background       = background ?: ColorPaint(defaultBackgroundColor),
+                            foreground       = foreground ?: ColorPaint(darkBackgroundColor   ),
                             outlineColor     = outlineColor,
                             backgroundRadius = backgroundRadius ?: cornerRadius,
                             foregroundRadius = foregroundRadius ?: 0.0) as Behavior<ProgressIndicator> }
@@ -445,8 +445,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicCircularProgressBarBehavior(
-                foreground      : Fill?             = null,
-                background      : Fill?             = null,
+                foreground      : Paint?             = null,
+                background      : Paint?             = null,
                 thickness       : Double            = 15.0,
                 outlineColor    : Color?            = null,
                 outlineThickness: Double            = 0.0,
@@ -457,8 +457,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularProgressBehavior(
-                        foreground ?: ColorFill(darkBackgroundColor   ),
-                        background ?: ColorFill(defaultBackgroundColor),
+                        foreground ?: ColorPaint(darkBackgroundColor   ),
+                        background ?: ColorPaint(defaultBackgroundColor),
                         thickness,
                         outlineColor,
                         outlineThickness,

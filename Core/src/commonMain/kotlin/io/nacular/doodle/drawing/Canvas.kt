@@ -160,7 +160,7 @@ public interface Canvas: Renderer {
      * @param rectangle to draw
      * @param fill to fill with
      */
-    public fun rect(rectangle: Rectangle, fill: Fill)
+    public fun rect(rectangle: Rectangle, fill: Paint)
 
     /**
      * Fills and outlines a rectangle.
@@ -169,7 +169,7 @@ public interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
+    public fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Fills a rounded rectangle.
@@ -178,7 +178,7 @@ public interface Canvas: Renderer {
      * @param radius for corners
      * @param fill to fill with
      */
-    public fun rect(rectangle: Rectangle, radius: Double, fill: Fill)
+    public fun rect(rectangle: Rectangle, radius: Double, fill: Paint)
 
     /**
      * Fills and outlines a rounded rectangle.
@@ -188,7 +188,7 @@ public interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
+    public fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Fills a circle.
@@ -196,7 +196,7 @@ public interface Canvas: Renderer {
      * @param circle to draw
      * @param fill to fill with
      */
-    public fun circle(circle: Circle, fill: Fill)
+    public fun circle(circle: Circle, fill: Paint)
 
     /**
      * Fills and outlines a circle.
@@ -205,7 +205,7 @@ public interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
+    public fun circle(circle: Circle, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Fills an ellipse.
@@ -213,7 +213,7 @@ public interface Canvas: Renderer {
      * @param ellipse to draw
      * @param fill to fill with
      */
-    public fun ellipse(ellipse: Ellipse, fill: Fill)
+    public fun ellipse(ellipse: Ellipse, fill: Paint)
 
     /**
      * Fills and outlines an ellipse.
@@ -222,7 +222,7 @@ public interface Canvas: Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
+    public fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Draws unwrapped plain text in the default [Font].
@@ -231,7 +231,7 @@ public interface Canvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, at: Point = Origin, fill: Fill): Unit = text(text, null, at, fill)
+    public fun text(text: String, at: Point = Origin, fill: Paint): Unit = text(text, null, at, fill)
 
     /**
      * Draws unwrapped plain text.
@@ -241,7 +241,7 @@ public interface Canvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, font: Font?, at: Point, fill: Fill)
+    public fun text(text: String, font: Font?, at: Point, fill: Paint)
 
     /**
      * Draws styled text.
@@ -261,7 +261,7 @@ public interface Canvas: Renderer {
      * @param rightMargin where text wraps
      * @param fill to fill with
      */
-    public fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Fill)
+    public fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Paint)
 
     /**
      * Draws wrapped styled text.
@@ -368,7 +368,7 @@ public inline val Canvas.height: Double get() = size.height
  * @param rectangle to draw
  * @param color to fill with
  */
-public inline fun Canvas.rect(rectangle: Rectangle, color: Color): Unit = rect(rectangle, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, color: Color): Unit = rect(rectangle, ColorPaint(color))
 
 /**
  * Fills and outlines a rectangle.
@@ -377,7 +377,7 @@ public inline fun Canvas.rect(rectangle: Rectangle, color: Color): Unit = rect(r
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color): Unit = rect(rectangle, stroke, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color): Unit = rect(rectangle, stroke, ColorPaint(color))
 
 /**
  * Fills a rounded rectangle.
@@ -386,7 +386,7 @@ public inline fun Canvas.rect(rectangle: Rectangle, stroke: Stroke, color: Color
  * @param radius for corners
  * @param color to fill with
  */
-public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color): Unit = rect(rectangle, radius, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color): Unit = rect(rectangle, radius, ColorPaint(color))
 
 /**
  * Fills and outlines a rounded rectangle.
@@ -396,7 +396,7 @@ public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, color: Color
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, color: Color): Unit = rect(rectangle, radius, stroke, ColorFill(color))
+public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stroke, color: Color): Unit = rect(rectangle, radius, stroke, ColorPaint(color))
 
 /**
  * Fills a circle.
@@ -404,7 +404,7 @@ public inline fun Canvas.rect(rectangle: Rectangle, radius: Double, stroke: Stro
  * @param circle to draw
  * @param color to fill with
  */
-public inline fun Canvas.circle(circle: Circle, color: Color): Unit = circle(circle, ColorFill(color))
+public inline fun Canvas.circle(circle: Circle, color: Color): Unit = circle(circle, ColorPaint(color))
 
 /**
  * Fills and outlines a circle.
@@ -413,7 +413,7 @@ public inline fun Canvas.circle(circle: Circle, color: Color): Unit = circle(cir
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color): Unit = circle(circle, stroke, ColorFill(color))
+public inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color): Unit = circle(circle, stroke, ColorPaint(color))
 
 /**
  * Fills an ellipse.
@@ -421,7 +421,7 @@ public inline fun Canvas.circle(circle: Circle, stroke: Stroke, color: Color): U
  * @param ellipse to draw
  * @param color to fill with
  */
-public inline fun Canvas.ellipse(ellipse: Ellipse, color: Color): Unit = ellipse(ellipse, ColorFill(color))
+public inline fun Canvas.ellipse(ellipse: Ellipse, color: Color): Unit = ellipse(ellipse, ColorPaint(color))
 
 /**
  * Fills and outlines an ellipse.
@@ -430,7 +430,7 @@ public inline fun Canvas.ellipse(ellipse: Ellipse, color: Color): Unit = ellipse
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color): Unit = ellipse(ellipse, stroke, ColorFill(color))
+public inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color): Unit = ellipse(ellipse, stroke, ColorPaint(color))
 
 /**
  * Draws unwrapped plain text in the default [Font].
@@ -439,7 +439,7 @@ public inline fun Canvas.ellipse(ellipse: Ellipse, stroke: Stroke, color: Color)
  * @param at this point
  * @param color to fill with
  */
-public inline fun Canvas.text(text: String, at: Point = Origin, color: Color): Unit = text(text, at, ColorFill(color))
+public inline fun Canvas.text(text: String, at: Point = Origin, color: Color): Unit = text(text, at, ColorPaint(color))
 
 /**
  * Draws unwrapped plain text.
@@ -449,7 +449,7 @@ public inline fun Canvas.text(text: String, at: Point = Origin, color: Color): U
  * @param at this point
  * @param color to fill with
  */
-public inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Color): Unit = text(text, font, at, ColorFill(color))
+public inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, color: Color): Unit = text(text, font, at, ColorPaint(color))
 
 /**
  * Draws wrapped plain text.
@@ -461,4 +461,4 @@ public inline fun Canvas.text(text: String, font: Font?, at: Point = Origin, col
  * @param rightMargin where text wraps
  * @param color to fill with
  */
-public inline fun Canvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color): Unit = wrapped(text, font, at, leftMargin, rightMargin, ColorFill(color))
+public inline fun Canvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color): Unit = wrapped(text, font, at, leftMargin, rightMargin, ColorPaint(color))

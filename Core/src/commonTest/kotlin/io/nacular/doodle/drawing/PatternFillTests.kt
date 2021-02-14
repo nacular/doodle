@@ -35,7 +35,7 @@ class PatternFillTests {
             Size(  1    ),
             Size(100, 23)
         ).forEach {
-            expect(it) { PatternFill(size = it) {}.size }
+            expect(it) { PatternPaint(size = it) {}.size }
         }
     }
 
@@ -45,7 +45,7 @@ class PatternFillTests {
             {                             },
             { it.rect(Rectangle(), Stroke()) }
         ).forEach {
-            expect(it) { PatternFill(size = Empty, fill = it).fill }
+            expect(it) { PatternPaint(size = Empty, fill = it).fill }
         }
     }
 
@@ -56,7 +56,7 @@ class PatternFillTests {
             Size(  1    ),
             Size(100, 23)
         ).forEach {
-            expect(!it.empty) { PatternFill(size = it) {}.visible }
+            expect(!it.empty) { PatternPaint(size = it) {}.visible }
         }
     }
 
@@ -66,7 +66,7 @@ class PatternFillTests {
                 Identity,
                 Identity.rotate(30 * degrees)
         ).forEach {
-            expect(it) { PatternFill(size = Empty, transform = it) {}.transform }
+            expect(it) { PatternPaint(size = Empty, transform = it) {}.transform }
         }
     }
 
@@ -107,12 +107,12 @@ class PatternFillTests {
 
             test.evenColor?.let {
                 verify(exactly = 1) {
-                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorFill(it))
+                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorPaint(it))
                 }
             }
 
             test.oddColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorFill(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorPaint(it)) }
             }
         }
     }
@@ -195,13 +195,13 @@ class PatternFillTests {
             }
 
             test.firstColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(size     = test.checkerSize), ColorFill(it)) }
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, test.checkerSize.height), size = test.checkerSize), ColorFill(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(size     = test.checkerSize), ColorPaint(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, test.checkerSize.height), size = test.checkerSize), ColorPaint(it)) }
             }
 
             test.secondColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, 0.0                   ), size = test.checkerSize), ColorFill(it)) }
-                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(0.0,                    test.checkerSize.width), size = test.checkerSize), ColorFill(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(test.checkerSize.width, 0.0                   ), size = test.checkerSize), ColorPaint(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(position = Point(0.0,                    test.checkerSize.width), size = test.checkerSize), ColorPaint(it)) }
             }
         }
     }

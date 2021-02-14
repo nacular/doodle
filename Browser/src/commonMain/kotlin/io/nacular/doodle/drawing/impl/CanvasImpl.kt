@@ -5,7 +5,6 @@ import io.nacular.doodle.HTMLImageElement
 import io.nacular.doodle.Node
 import io.nacular.doodle.Text
 import io.nacular.doodle.clear
-import io.nacular.doodle.dom.BorderStyle.Solid
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
@@ -19,10 +18,7 @@ import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.rgbaString
 import io.nacular.doodle.dom.setBackgroundColor
-import io.nacular.doodle.dom.setBorderColor
 import io.nacular.doodle.dom.setBorderRadius
-import io.nacular.doodle.dom.setBorderStyle
-import io.nacular.doodle.dom.setBorderWidth
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setColor
@@ -37,11 +33,11 @@ import io.nacular.doodle.dom.translate
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
 import io.nacular.doodle.drawing.OuterShadow
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
@@ -91,38 +87,38 @@ internal open class CanvasImpl(
     private var innerShadowCount  = 0
     private var vectorRenderDirty = false
 
-    override fun rect(rectangle: Rectangle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
-    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = vectorRenderer.rect(rectangle, stroke, fill)
+    override fun rect(rectangle: Rectangle,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
+    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
-    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill?) = vectorRenderer.rect(rectangle, radius, stroke, fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
+    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, radius, stroke, fill)
 
-    override fun circle(circle: Circle,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
-    override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) = vectorRenderer.circle(circle, stroke, fill)
+    override fun circle(circle: Circle,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
+    override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) = vectorRenderer.circle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,                 fill: Fill ) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
-    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) = vectorRenderer.ellipse(ellipse, stroke, fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
+    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = vectorRenderer.ellipse(ellipse, stroke, fill)
 
     // =============== Complex =============== //
 
     override fun line(start: Point, end: Point, stroke: Stroke) = vectorRenderer.line(start, end, stroke)
 
     override fun path(points: List<Point>, stroke: Stroke                                 ) = vectorRenderer.path(points, stroke                )
-    override fun path(points: List<Point>,                 fill: Fill, fillRule: FillRule?) = vectorRenderer.path(points,         fill, fillRule)
-    override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule?) = vectorRenderer.path(points, stroke, fill, fillRule)
+    override fun path(points: List<Point>,                 fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points,         fill, fillRule)
+    override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points, stroke, fill, fillRule)
 
     override fun path(path: Path, stroke: Stroke                                 ) = vectorRenderer.path(path, stroke                )
-    override fun path(path: Path,                 fill: Fill, fillRule: FillRule?) = vectorRenderer.path(path,         fill, fillRule)
-    override fun path(path: Path, stroke: Stroke, fill: Fill, fillRule: FillRule?) = vectorRenderer.path(path, stroke, fill, fillRule)
+    override fun path(path: Path,                 fill: Paint, fillRule: FillRule?) = vectorRenderer.path(path,         fill, fillRule)
+    override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: FillRule?) = vectorRenderer.path(path, stroke, fill, fillRule)
 
-    override fun poly(polygon: Polygon,                 fill: Fill ) = vectorRenderer.poly(polygon,         fill)
-    override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) = vectorRenderer.poly(polygon, stroke, fill)
+    override fun poly(polygon: Polygon,                 fill: Paint) = vectorRenderer.poly(polygon,         fill)
+    override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) = vectorRenderer.poly(polygon, stroke, fill)
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = vectorRenderer.arc(center, radius, sweep, rotation,         fill)
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = vectorRenderer.arc(center, radius, sweep, rotation, stroke, fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint) = vectorRenderer.arc(center, radius, sweep, rotation,         fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.arc(center, radius, sweep, rotation, stroke, fill)
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
 
 //    override val imageData: ImageData
 //        get () {
@@ -147,18 +143,18 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun text(text: String, font: Font?, at: Point, fill: Fill) {
+    override fun text(text: String, font: Font?, at: Point, fill: Paint) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorFill               -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at)) }
+            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at)) }
             else                            -> vectorRenderer.text(text, font, at, fill)
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorFill               -> { updateRenderPosition(); completeOperation(createWrappedTextGlyph(fill,
+            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createWrappedTextGlyph(fill,
                                                                   text,
                                                                   font,
                                                                   at,
@@ -300,10 +296,10 @@ internal open class CanvasImpl(
         vectorRenderer.clear() // FIXME: THIS IS A HACK.  Should communicate this better to the VectorRenderer
     }
 
-    protected open fun isSimple(fill: Fill) = when {
-        !fill.visible                              -> true
-        fill is ColorFill && innerShadowCount == 0 -> true
-        else                                       -> false
+    protected open fun isSimple(fill: Paint) = when {
+        !fill.visible                               -> true
+        fill is ColorPaint && innerShadowCount == 0 -> true
+        else                                        -> false
     }
 
     private fun isSimple(text: StyledText): Boolean {
@@ -348,20 +344,13 @@ internal open class CanvasImpl(
         renderPosition = clipRect.nextSibling
     }
 
-    private fun visible(stroke: Stroke?, fill: Fill?) = (stroke?.visible ?: false) || (fill?.visible ?: false)
-
-    private fun present(stroke: Stroke? = null, fill: Fill?, block: () -> HTMLElement?) {
-        if (visible(stroke, fill)) {
+    private fun present(fill: Paint?, block: () -> HTMLElement?) {
+        if (fill?.visible == true) {
             updateRenderPosition()
 
             block()?.let {
                 when (fill) {
-                    is ColorFill -> it.style.setBackgroundColor(fill.color)
-                }
-                if (stroke != null) {
-                    it.style.setBorderWidth(stroke.thickness)
-                    it.style.setBorderStyle(Solid()         )
-                    it.style.setBorderColor(stroke.color    )
+                    is ColorPaint -> it.style.setBackgroundColor(fill.color)
                 }
 
                 completeOperation(it)
@@ -445,9 +434,9 @@ internal open class CanvasImpl(
         return element
     }
 
-    private fun createTextGlyph(fill: ColorFill, text: String, font: Font?, at: Point) = configure(textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
+    private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point) = configure(textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
 
-    private fun createWrappedTextGlyph(fill: ColorFill, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
+    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(
                 text,
@@ -476,7 +465,7 @@ internal open class CanvasImpl(
         return element
     }
 
-    private fun configure(element: HTMLElement, fill: ColorFill, position: Point): HTMLElement = element.also {
+    private fun configure(element: HTMLElement, fill: ColorPaint, position: Point): HTMLElement = element.also {
         it.style.apply {
             translate (position          )
             setColor  (fill.color        )

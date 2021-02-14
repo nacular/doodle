@@ -4,8 +4,8 @@ import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.Orientation.Vertical
@@ -14,8 +14,8 @@ import io.nacular.doodle.utils.Orientation.Vertical
  * Created by Nicholas Eddy on 2/12/18.
  */
 public class BasicProgressBarBehavior(
-        private val background      : Fill?,
-        private val foreground      : Fill?,
+        private val background      : Paint?,
+        private val foreground      : Paint?,
         private val outlineColor    : Color? = null,
         private val backgroundRadius: Double = 0.0,
         private val foregroundRadius: Double = backgroundRadius,
@@ -28,8 +28,8 @@ public class BasicProgressBarBehavior(
     }
 
     override fun render(view: ProgressBar, canvas: Canvas) {
-        val bGround = background ?: view.backgroundColor?.let { ColorFill(it) }
-        val fGround = foreground ?: view.foregroundColor?.let { ColorFill(it) }
+        val bGround = background ?: view.backgroundColor?.let { ColorPaint(it) }
+        val fGround = foreground ?: view.foregroundColor?.let { ColorPaint(it) }
 
         if (bGround == null && fGround == null) {
             return
@@ -63,8 +63,8 @@ public class BasicProgressBarBehavior(
     public companion object {
         @Deprecated("Use new constructor instead")
         public operator fun invoke(
-                background      : Fill?,
-                foreground      : Fill?,
+                background      : Paint?,
+                foreground      : Paint?,
                 outlineColor    : Color? = null,
                 cornerRadius    : Double = 0.0,
                 outlineThickness: Double = 1.0): BasicProgressBarBehavior =

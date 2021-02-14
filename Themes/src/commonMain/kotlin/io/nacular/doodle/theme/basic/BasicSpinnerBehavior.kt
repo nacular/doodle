@@ -12,7 +12,7 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
@@ -84,7 +84,7 @@ public class BasicSpinnerBehavior(
                     0.0 - if (!isTop) cornerRadius else 0.0,
                     view.width + cornerRadius,
                     view.height + cornerRadius),
-                cornerRadius, ColorFill(colors(view).fillColor))
+                cornerRadius, ColorPaint(colors(view).fillColor))
 
             icon(view)?.let {
                 val adjust = it.size(view).height / 3 * if (isTop) 1 else -1
@@ -98,7 +98,7 @@ public class BasicSpinnerBehavior(
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 
     override fun render(view: Spinner<Any, Model<Any>>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, cornerRadius, ColorFill(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, cornerRadius, ColorPaint(backgroundColor))
     }
 
     override fun install(view: Spinner<Any, Model<Any>>) {

@@ -8,7 +8,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.interpolate
 import io.nacular.doodle.drawing.lighter
@@ -68,12 +68,12 @@ public open class BasicSwitchBehavior(
         val backgroundColor = color(view, offBackground, onBackground)
 
 //        canvas.innerShadow(blurRadius = 5.0) {
-        canvas.rect(view.bounds.atOrigin, radius, ColorFill(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, radius, ColorPaint(backgroundColor))
 //        }
 
         val center = Point(radius + (view.width - 2 * radius) * progress, radius)
 
-        canvas.circle(Circle(center, radius - border), ColorFill(circleColor))
+        canvas.circle(Circle(center, radius - border), ColorPaint(circleColor))
     }
 
     private fun color(button: Button, start: Color, end: Color) = interpolate(start, end, progress).let {

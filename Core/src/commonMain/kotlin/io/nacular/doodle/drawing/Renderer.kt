@@ -34,7 +34,7 @@ public interface Renderer {
      * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    public fun path(points: List<Point>, fill: Fill, fillRule: FillRule? = null)
+    public fun path(points: List<Point>, fill: Paint, fillRule: FillRule? = null)
 
     /**
      * Fills a line path connecting the given points.
@@ -43,7 +43,7 @@ public interface Renderer {
      * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    public fun path(path: Path, fill: Fill, fillRule: FillRule? = null)
+    public fun path(path: Path, fill: Paint, fillRule: FillRule? = null)
 
     /**
      * Draws a line path connecting the given points.
@@ -69,7 +69,7 @@ public interface Renderer {
      * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    public fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule? = null)
+    public fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: FillRule? = null)
 
     /**
      * Fills and outlines a line path connecting the given points.
@@ -79,7 +79,7 @@ public interface Renderer {
      * @param fill to fill with
      * @param fillRule indicating how to fill the path
      */
-    public fun path(path: Path, stroke: Stroke, fill: Fill, fillRule: FillRule? = null)
+    public fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: FillRule? = null)
 
     /**
      * Fills a polygon.
@@ -87,7 +87,7 @@ public interface Renderer {
      * @param polygon to draw
      * @param fill to fill with
      */
-    public fun poly(polygon: Polygon, fill: Fill)
+    public fun poly(polygon: Polygon, fill: Paint)
 
     /**
      * Fills and outlines a polygon.
@@ -96,7 +96,7 @@ public interface Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun poly(polygon: Polygon, stroke: Stroke, fill: Fill? = null)
+    public fun poly(polygon: Polygon, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Fills an arc centered at the given point and swept by the given angle.
@@ -105,7 +105,7 @@ public interface Renderer {
      * @param sweep of the arc
      * @param fill to fill with
      */
-    public fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill)
+    public fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Paint)
 
     /**
      * Fills and outlines an arc centered at the given point and swept by the given angle.
@@ -115,7 +115,7 @@ public interface Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill? = null)
+    public fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint? = null)
 
     /**
      * Fills a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -125,7 +125,7 @@ public interface Renderer {
      * @param sweep of the arc
      * @param fill to fill with
      */
-    public fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill)
+    public fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Paint)
 
     /**
      * Fills and outlines a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -136,7 +136,7 @@ public interface Renderer {
      * @param stroke to outline with
      * @param fill to fill with
      */
-    public fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill? = null)
+    public fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint? = null)
 
     public enum class FillRule { NonZero, EvenOdd }
 }
@@ -148,7 +148,7 @@ public interface Renderer {
  * @param color to fill with
  * @param fillRule indicating how to fill the path
  */
-public inline fun Renderer.path(points: List<Point>, color: Color, fillRule: FillRule? = null): Unit = path(points, ColorFill(color), fillRule)
+public inline fun Renderer.path(points: List<Point>, color: Color, fillRule: FillRule? = null): Unit = path(points, ColorPaint(color), fillRule)
 
 /**
  * Fills a line path connecting the given points.
@@ -157,7 +157,7 @@ public inline fun Renderer.path(points: List<Point>, color: Color, fillRule: Fil
  * @param color to fill with
  * @param fillRule indicating how to fill the path
  */
-public inline fun Renderer.path(path: Path, color: Color, fillRule: FillRule? = null): Unit = path(path, ColorFill(color), fillRule)
+public inline fun Renderer.path(path: Path, color: Color, fillRule: FillRule? = null): Unit = path(path, ColorPaint(color), fillRule)
 
 /**
  * Fills and outlines a line path connecting the given points.
@@ -167,7 +167,7 @@ public inline fun Renderer.path(path: Path, color: Color, fillRule: FillRule? = 
  * @param color to fill with
  * @param fillRule indicating how to fill the path
  */
-public inline fun Renderer.path(points: List<Point>, stroke: Stroke, color: Color, fillRule: FillRule? = null): Unit = path(points, stroke, ColorFill(color), fillRule)
+public inline fun Renderer.path(points: List<Point>, stroke: Stroke, color: Color, fillRule: FillRule? = null): Unit = path(points, stroke, ColorPaint(color), fillRule)
 
 /**
  * Fills and outlines a line path connecting the given points.
@@ -177,7 +177,7 @@ public inline fun Renderer.path(points: List<Point>, stroke: Stroke, color: Colo
  * @param color to fill with
  * @param fillRule indicating how to fill the path
  */
-public fun Renderer.path(path: Path, stroke: Stroke, color: Color, fillRule: FillRule? = null): Unit = path(path, stroke, ColorFill(color), fillRule)
+public fun Renderer.path(path: Path, stroke: Stroke, color: Color, fillRule: FillRule? = null): Unit = path(path, stroke, ColorPaint(color), fillRule)
 
 /**
  * Fills a polygon.
@@ -185,7 +185,7 @@ public fun Renderer.path(path: Path, stroke: Stroke, color: Color, fillRule: Fil
  * @param polygon to draw
  * @param color to fill with
  */
-public inline fun Renderer.poly(polygon: Polygon, color: Color): Unit = poly(polygon, ColorFill(color))
+public inline fun Renderer.poly(polygon: Polygon, color: Color): Unit = poly(polygon, ColorPaint(color))
 
 /**
  * Fills and outlines a polygon.
@@ -194,7 +194,7 @@ public inline fun Renderer.poly(polygon: Polygon, color: Color): Unit = poly(pol
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Renderer.poly(polygon: Polygon, stroke: Stroke, color: Color): Unit = poly(polygon, stroke, ColorFill(color))
+public inline fun Renderer.poly(polygon: Polygon, stroke: Stroke, color: Color): Unit = poly(polygon, stroke, ColorPaint(color))
 
 /**
  * Fills an arc centered at the given point and swept by the given angle.
@@ -203,7 +203,7 @@ public inline fun Renderer.poly(polygon: Polygon, stroke: Stroke, color: Color):
  * @param sweep of the arc
  * @param color to fill with
  */
-public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, color: Color): Unit = arc(center, radius, sweep, rotation, ColorFill(color))
+public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, color: Color): Unit = arc(center, radius, sweep, rotation, ColorPaint(color))
 
 /**
  * Fills and outlines an arc centered at the given point and swept by the given angle.
@@ -213,7 +213,7 @@ public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Ang
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, color: Color): Unit = arc(center, radius, sweep, rotation, stroke, ColorFill(color))
+public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, color: Color): Unit = arc(center, radius, sweep, rotation, stroke, ColorPaint(color))
 
 /**
  * Fills a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -223,7 +223,7 @@ public inline fun Renderer.arc(center: Point, radius: Double, sweep: Measure<Ang
  * @param sweep of the arc
  * @param color to fill with
  */
-public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, color: Color): Unit = wedge(center, radius, sweep, rotation, ColorFill(color))
+public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, color: Color): Unit = wedge(center, radius, sweep, rotation, ColorPaint(color))
 
 /**
  * Fills and outlines a width centered at the given point and swept by the given angle.  Wedges are like arcs
@@ -234,4 +234,4 @@ public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<A
  * @param stroke to outline with
  * @param color to fill with
  */
-public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, color: Color): Unit = wedge(center, radius, sweep, rotation, stroke, ColorFill(color))
+public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, color: Color): Unit = wedge(center, radius, sweep, rotation, stroke, ColorPaint(color))

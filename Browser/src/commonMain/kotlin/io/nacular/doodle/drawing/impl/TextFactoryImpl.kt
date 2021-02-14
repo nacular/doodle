@@ -16,7 +16,7 @@ import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent
 import io.nacular.doodle.dom.setWidth
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.text.Style
@@ -94,7 +94,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
     private fun applyStyle(element: HTMLElement, style: Style) {
         style.foreground?.let {
-            if (it is ColorFill) {
+            if (it is ColorPaint) {
                 element.style.setColor(it.color)
             } else {
                 // TODO: Implement
@@ -104,7 +104,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }()
 
         style.background?.let {
-            if (it is ColorFill) {
+            if (it is ColorPaint) {
                 element.style.setBackgroundColor(it.color)
             } else {
                 // TODO: Implement

@@ -10,8 +10,8 @@ import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -48,7 +48,7 @@ public open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, se
 
 public open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null,
                                               generator   : RowGenerator<T>,
-                                              patternFill : PatternFill? = null,
+                                              patternFill : PatternPaint? = null,
                                               rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, patternFill, rowHeight) {
     override fun pressed(event: KeyEvent) {
         when (event.key) {
@@ -146,7 +146,7 @@ public open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorFill(it)) }
+            textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorPaint(it)) }
         }
     }
 

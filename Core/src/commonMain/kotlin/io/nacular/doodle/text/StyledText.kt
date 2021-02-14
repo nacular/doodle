@@ -1,9 +1,9 @@
 package io.nacular.doodle.text
 
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.text.Target.Background
 import io.nacular.doodle.text.Target.Foreground
 import io.nacular.doodle.text.TextDecoration.Line.Through
@@ -35,8 +35,8 @@ public class TextDecoration(
 
 public interface Style {
     public val font      : Font?
-    public val foreground: Fill?
-    public val background: Fill?
+    public val foreground: Paint?
+    public val background: Paint?
     public val decoration: TextDecoration?
 }
 
@@ -44,8 +44,8 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     public constructor(
         text      : String,
         font      : Font?           = null,
-        foreground: Fill?           = null,
-        background: Fill?           = null,
+        foreground: Paint?           = null,
+        background: Paint?           = null,
         decoration: TextDecoration? = null): this(mutableListOf(MutablePair(text, StyleImpl(
             font,
             foreground = foreground,
@@ -67,7 +67,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     public operator fun plus(other: StyledText): StyledText = this.also { other.data.forEach { style -> add(style) } }
 
     public operator fun rangeTo(font : Font      ): StyledText = this.also { add(MutablePair("",   StyleImpl(font))) }
-    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorFill(color)))) }
+    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorPaint(color)))) }
     public operator fun rangeTo(text : String    ): StyledText = this.also { add(MutablePair(text, StyleImpl())) }
     public operator fun rangeTo(text : StyledText): StyledText = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 
@@ -107,8 +107,8 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
 
     internal data class StyleImpl(
             override var font      : Font? = null,
-            override var foreground: Fill? = null,
-            override var background: Fill? = null,
+            override var foreground: Paint? = null,
+            override var background: Paint? = null,
             override var decoration: TextDecoration? = null
     ): Style
 }
@@ -139,13 +139,13 @@ public enum class Target {
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorFill(it) }.let {
+public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorPaint(it) }.let {
     StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
 public operator fun Color?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null && this@invoke != null) {
-            style.foreground = ColorFill(this@invoke)
+            style.foreground = ColorPaint(this@invoke)
         }
     }
 }

@@ -11,7 +11,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
@@ -68,7 +68,7 @@ public class SimpleTreeRowIcon(private val color: Color = Black, private val sel
                                  Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
 
         canvas.transform(transform) {
-            path(path, ColorFill(if (selected) selectedColor else color))
+            path(path, ColorPaint(if (selected) selectedColor else color))
         }
     }
 }
@@ -271,7 +271,7 @@ public class TreeRow<T>(
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorFill(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorPaint(it)) }
     }
 
     private fun constrainIcon(icon: TreeRowIcon?) {

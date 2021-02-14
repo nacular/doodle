@@ -27,7 +27,7 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
@@ -186,7 +186,7 @@ public open class BasicTableBehavior<T>(
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorFill(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
     }
 
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
@@ -198,7 +198,7 @@ public open class BasicTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row?.let {
-                    canvas.rect(rowPositioner.rowBounds(table, row, index).inset(Insets(top = 1.0)), ColorFill(color))
+                    canvas.rect(rowPositioner.rowBounds(table, row, index).inset(Insets(top = 1.0)), ColorPaint(color))
                 }
             }
         }
@@ -206,7 +206,7 @@ public open class BasicTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorFill(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor.opacity(0.2f)))
         }
     }
 
@@ -348,7 +348,7 @@ public open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorFill(it)) }
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorPaint(it)) }
         }
     }
 

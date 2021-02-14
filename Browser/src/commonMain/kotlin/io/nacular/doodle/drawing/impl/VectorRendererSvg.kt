@@ -5,10 +5,11 @@ import io.nacular.doodle.Node
 import io.nacular.doodle.SVGCircleElement
 import io.nacular.doodle.SVGElement
 import io.nacular.doodle.SVGEllipseElement
-import io.nacular.doodle.SVGGradientElement
+import io.nacular.doodle.SVGLinearGradientElement
 import io.nacular.doodle.SVGPathElement
 import io.nacular.doodle.SVGPatternElement
 import io.nacular.doodle.SVGPolygonElement
+import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
 import io.nacular.doodle.clear
 import io.nacular.doodle.clipPath
@@ -28,6 +29,7 @@ import io.nacular.doodle.dom.setCircle
 import io.nacular.doodle.dom.setDefaultFill
 import io.nacular.doodle.dom.setDominantBaseline
 import io.nacular.doodle.dom.setEllipse
+import io.nacular.doodle.dom.setEnd
 import io.nacular.doodle.dom.setFill
 import io.nacular.doodle.dom.setFillPattern
 import io.nacular.doodle.dom.setFillRule
@@ -45,9 +47,12 @@ import io.nacular.doodle.dom.setRX
 import io.nacular.doodle.dom.setRY
 import io.nacular.doodle.dom.setRadius
 import io.nacular.doodle.dom.setSize
+import io.nacular.doodle.dom.setStart
 import io.nacular.doodle.dom.setStopColor
 import io.nacular.doodle.dom.setStopOffset
 import io.nacular.doodle.dom.setStroke
+import io.nacular.doodle.dom.setStrokeColor
+import io.nacular.doodle.dom.setStrokePattern
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
@@ -58,13 +63,14 @@ import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.dom.top
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
-import io.nacular.doodle.drawing.LinearGradientFill
+import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
-import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.PatternPaint
+import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
@@ -82,7 +88,6 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.IdGenerator
-import io.nacular.doodle.utils.isEven
 import io.nacular.doodle.utils.splitMatches
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
@@ -90,7 +95,6 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
-import kotlin.math.max
 
 internal open class VectorRendererSvg constructor(
         protected var context       : CanvasContext,
@@ -117,36 +121,36 @@ internal open class VectorRendererSvg constructor(
 
     override fun line(start: Point, end: Point, stroke: Stroke) = drawPath(stroke, null, null, start, end)
 
-    override fun path(points: List<Point>,                 fill: Fill, fillRule: FillRule?) = drawPath(null,   fill, fillRule, *points.toTypedArray())
-    override fun path(points: List<Point>, stroke: Stroke                                 ) = drawPath(stroke, null, null,     *points.toTypedArray())
-    override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(stroke, fill, fillRule, *points.toTypedArray())
+    override fun path(points: List<Point>,                 fill: Paint, fillRule: FillRule?) = drawPath(null,   fill, fillRule, *points.toTypedArray())
+    override fun path(points: List<Point>, stroke: Stroke                                  ) = drawPath(stroke, null, null,     *points.toTypedArray())
+    override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: FillRule?) = drawPath(stroke, fill, fillRule, *points.toTypedArray())
 
-    override fun path(path: io.nacular.doodle.geometry.Path,                 fill: Fill, fillRule: FillRule?) = drawPath(path.data, null,   fill, fillRule)
-    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke                                 ) = drawPath(path.data, stroke, null, null    )
-    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke, fill: Fill, fillRule: FillRule?) = drawPath(path.data, stroke, fill, fillRule)
+    override fun path(path: io.nacular.doodle.geometry.Path,                 fill: Paint, fillRule: FillRule?) = drawPath(path.data, null,   fill, fillRule)
+    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke                                  ) = drawPath(path.data, stroke, null, null    )
+    override fun path(path: io.nacular.doodle.geometry.Path, stroke: Stroke, fill: Paint, fillRule: FillRule?) = drawPath(path.data, stroke, fill, fillRule)
 
-    override fun rect(rectangle: Rectangle,                 fill: Fill ) = drawRect(rectangle, null,   fill)
-    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) = drawRect(rectangle, stroke, fill)
+    override fun rect(rectangle: Rectangle,                 fill: Paint ) = drawRect(rectangle, null,   fill)
+    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) = drawRect(rectangle, stroke, fill)
 
-    override fun poly(polygon: Polygon,                 fill: Fill ) = drawPoly(polygon, null,   fill)
-    override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) = drawPoly(polygon, stroke, fill)
+    override fun poly(polygon: Polygon,                 fill: Paint ) = drawPoly(polygon, null,   fill)
+    override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) = drawPoly(polygon, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Fill ) = drawRect(rectangle, radius, null, fill)
-    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill?) = drawRect(rectangle, radius, stroke,  fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint ) = drawRect(rectangle, radius, null,   fill)
+    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) = drawRect(rectangle, radius, stroke, fill)
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = drawArc(center, radius, sweep, rotation, null,   fill)
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawArc(center, radius, sweep, rotation, stroke, fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = drawArc(center, radius, sweep, rotation, null,   fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = drawArc(center, radius, sweep, rotation, stroke, fill)
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Fill ) = drawWedge(center, radius, sweep, rotation, null,   fill)
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) = drawWedge(center, radius, sweep, rotation, stroke, fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = drawWedge(center, radius, sweep, rotation, null,   fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = drawWedge(center, radius, sweep, rotation, stroke, fill)
 
-    override fun circle(circle: Circle,                 fill: Fill ) = drawCircle(circle, null,   fill)
-    override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) = drawCircle(circle, stroke, fill)
+    override fun circle(circle: Circle,                 fill: Paint ) = drawCircle(circle, null,   fill)
+    override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) = drawCircle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,                 fill: Fill ) = drawEllipse(ellipse, null,   fill)
-    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) = drawEllipse(ellipse, stroke, fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = drawEllipse(ellipse, null,   fill)
+    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = drawEllipse(ellipse, stroke, fill)
 
-    override fun text(text: String, font: Font?, at: Point, fill: Fill) = present(stroke = null, fill = fill) {
+    override fun text(text: String, font: Font?, at: Point, fill: Paint) = present(stroke = null, fill = fill) {
         when {
             text.isNotBlank() -> makeText(text, font, at, fill)
             else              -> null
@@ -163,7 +167,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint) {
         syncShadows()
 
         StyledText(text, font, foreground = fill).first().let { (text, style) ->
@@ -351,7 +355,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun makeText(text: String, font: Font?, at: Point, fill: Fill?) = createOrUse<SVGElement>("text").apply {
+    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?) = createOrUse<SVGElement>("text").apply {
         if (innerHTML != text) {
             innerHTML = ""
             add(htmlFactory.createText(text))
@@ -380,7 +384,7 @@ internal open class VectorRendererSvg constructor(
         val oldRenderPosition = renderPosition
 
         text.forEach { (text, style) ->
-            val background: SVGElement? = (style.background?.takeIf { it is ColorFill } as? ColorFill?)?.let { textBackground(it) }?.also {
+            val background: SVGElement? = (style.background?.takeIf { it is ColorPaint } as? ColorPaint?)?.let { textBackground(it) }?.also {
                 completeOperation(it)
             }
 
@@ -463,21 +467,21 @@ internal open class VectorRendererSvg constructor(
         return Point(endX, currentPoint.y)
     }
 
-    private fun drawPath(stroke: Stroke?, fill: Fill? = null, fillRule: FillRule? = null, vararg points: Point) = present(stroke, fill) {
+    private fun drawPath(stroke: Stroke?, fill: Paint? = null, fillRule: FillRule? = null, vararg points: Point) = present(stroke, fill) {
         when {
             points.isNotEmpty() -> makePath(*points).also { it.setFillRule(fillRule) }
             else                -> null
         }
     }
 
-    private fun drawPath(data: String, stroke: Stroke?, fill: Fill?, fillRule: FillRule?) = present(stroke, fill ) {
+    private fun drawPath(data: String, stroke: Stroke?, fill: Paint?, fillRule: FillRule?) = present(stroke, fill ) {
         when {
             !data.isBlank() -> makePath(data).also { it.setFillRule(fillRule) }
             else            -> null
         }
     }
 
-    private fun present(stroke: Stroke?, fill: Fill?, block: () -> SVGElement?) {
+    private fun present(stroke: Stroke?, fill: Paint?, block: () -> SVGElement?) {
         syncShadows()
 
         if (visible(stroke, fill)) {
@@ -499,7 +503,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun drawRect(rectangle: Rectangle, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawRect(rectangle: Rectangle, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             !rectangle.empty -> makeClosedPath(
                     Point(rectangle.x,                   rectangle.y                   ),
@@ -510,23 +514,23 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun drawRect(rectangle: Rectangle, radius: Double, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawRect(rectangle: Rectangle, radius: Double, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             !rectangle.empty -> makeRoundedRect(rectangle, radius)
             else             -> null
         }
     }
 
-    private fun visible(stroke: Stroke?, fill: Fill?) = (stroke?.visible ?: false) || (fill?.visible ?: false)
+    private fun visible(stroke: Stroke?, fill: Paint?) = (stroke?.visible ?: false) || (fill?.visible ?: false)
 
-    private fun drawPoly(polygon: Polygon, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawPoly(polygon: Polygon, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             !polygon.empty -> makeClosedPath(*polygon.points.toTypedArray())
             else           -> null
         }
     }
 
-    private fun drawArc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawArc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             radius <= 0 || sweep == 0 * degrees -> null
             sweep < 360 * degrees               -> makeArc(center, radius, sweep, rotation)
@@ -534,7 +538,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun drawWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             radius <= 0 || sweep == 0 * degrees -> null
             sweep < 360 * degrees               -> makeWedge(center, radius, sweep, rotation)
@@ -542,14 +546,14 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun drawCircle(circle: Circle, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawCircle(circle: Circle, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             !circle.empty -> makeCircle(circle)
             else          -> null
         }
     }
 
-    private fun drawEllipse(ellipse: Ellipse, stroke: Stroke?, fill: Fill?) = present(stroke, fill) {
+    private fun drawEllipse(ellipse: Ellipse, stroke: Stroke?, fill: Paint?) = present(stroke, fill) {
         when {
             !ellipse.empty -> makeEllipse(ellipse)
             else           -> null
@@ -626,14 +630,15 @@ internal open class VectorRendererSvg constructor(
             element.setFill(null)
         }
 
-        element.setStroke(stroke)
+        strokeElement(element, stroke)
     }
 
-    private fun fillElement(element: SVGElement, fill: Fill, clearOutline: Boolean = true) {
+    private fun fillElement(element: SVGElement, fill: Paint, clearOutline: Boolean = true) {
         when (fill) {
-            is ColorFill          -> SolidFillHandler.fill   (this, element, fill)
-            is PatternFill        -> canvasFillHandler.fill  (this, element, fill)
-            is LinearGradientFill -> LinearFillHandler().fill(this, element, fill)
+            is ColorPaint   -> SolidFillHandler.fill     (this, element, fill)
+            is PatternPaint        -> canvasFillHandler.fill    (this, element, fill)
+            is LinearGradientPaint -> LinearFillHandler  ().fill(this, element, fill)
+            is RadialGradientPaint -> GradientFillHandler().fill(this, element, fill)
         }
 
         if (clearOutline) {
@@ -641,7 +646,18 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun textBackground(fill: ColorFill) = createOrUse<SVGElement>("filter").apply {
+    private fun strokeElement(element: SVGElement, stroke: Stroke) {
+        when (val fill = stroke.fill) {
+            is ColorPaint   -> SolidFillHandler.stroke     (this, element, fill)
+            is PatternPaint        -> canvasFillHandler.stroke    (this, element, fill)
+            is LinearGradientPaint -> LinearFillHandler  ().stroke(this, element, fill)
+            is RadialGradientPaint -> GradientFillHandler().stroke(this, element, fill)
+        }
+
+        element.setStroke(stroke)
+    }
+
+    private fun textBackground(fill: ColorPaint) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
 
         setBounds(Rectangle(size = Size(1)))
@@ -781,45 +797,57 @@ internal open class VectorRendererSvg constructor(
 
     private class SVGPath: Path("M", "L", "Z")
 
-    private interface FillHandler<B: Fill> {
-        fun fill(renderer: VectorRendererSvg, element: SVGElement, fill: B)
+    private interface FillHandler<B: Paint> {
+        fun fill  (renderer: VectorRendererSvg, element: SVGElement, paint: B)
+        fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: B)
     }
 
-    private object SolidFillHandler: FillHandler<ColorFill> {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, fill: ColorFill) {
-            element.setFill(fill.color)
+    private object SolidFillHandler: FillHandler<ColorPaint> {
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint) {
+            element.setFill(paint.color)
+        }
+
+        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint) {
+            element.setStrokeColor(paint.color)
         }
     }
 
-    private val canvasFillHandler: FillHandler<PatternFill> by lazy {
-        object: FillHandler<PatternFill> {
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, fill: PatternFill) {
-
+    private val canvasFillHandler: FillHandler<PatternPaint> by lazy {
+        object: FillHandler<PatternPaint> {
+            private fun makeFill(renderer: VectorRendererSvg, paint: PatternPaint): SVGElement {
                 // FIXME: Re-use elements when possible
                 val pattern = createOrUse<SVGPatternElement>("pattern").apply {
                     if (id.isBlank()) { setId(nextId()) }
 
                     setAttribute("patternUnits", "userSpaceOnUse")
 
-                    if (!fill.transform.isIdentity) {
-                        setPatternTransform(fill.transform)
+                    if (!paint.transform.isIdentity) {
+                        setPatternTransform(paint.transform)
                     }
 
-                    setBounds(fill.bounds)
+                    setBounds(paint.bounds)
                     clear    (            )
                 }
 
                 renderer.completeOperation(pattern)
 
-                fill.fill(PatternCanvas(object: CanvasContext {
-                    override var size get() = fill.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
+                paint.paint(PatternCanvas(object: CanvasContext {
+                    override var size get() = paint.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
                     override val renderRegion = pattern
                     override var renderPosition: Node? = pattern
                     override val shadows get() = context.shadows
                     override fun markDirty() = context.markDirty()
                 }, svgFactory, htmlFactory, textMetrics, idGenerator, pattern))
 
-                element.setFillPattern(pattern)
+                return pattern
+            }
+
+            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
+                element.setFillPattern(makeFill(renderer, paint))
+            }
+
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
+                element.setStrokePattern(makeFill(renderer, paint))
             }
         }
     }
@@ -944,20 +972,20 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private inner class LinearFillHandler: FillHandler<LinearGradientFill> {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, fill: LinearGradientFill) {
+    private inner class LinearFillHandler: FillHandler<LinearGradientPaint> {
+        private fun makeFill(renderer: VectorRendererSvg, paint: LinearGradientPaint): SVGLinearGradientElement {
             // FIXME: Re-use elements when possible
-            val gradient = createOrUse<SVGGradientElement>("linearGradient").apply {
+            val gradient = createOrUse<SVGLinearGradientElement>("linearGradient").apply {
                 if (id.isBlank()) { setId(nextId()) }
 
                 setGradientUnits("userSpaceOnUse")
-                setX1(fill.start.x              )
-                setY1(fill.start.y              )
-                setX2(fill.end.x                )
-                setY2(fill.end.y                )
+                setX1(paint.start.x              )
+                setY1(paint.start.y              )
+                setX2(paint.end.x                )
+                setY2(paint.end.y                )
                 clear(                           )
 
-                fill.colors.forEach {
+                paint.colors.forEach {
                     // FIXME: Re-use elements when possible
                     add(svgFactory<SVGElement>("stop").apply {
                         setStopColor (it.color )
@@ -968,7 +996,49 @@ internal open class VectorRendererSvg constructor(
 
             renderer.completeOperation(gradient)
 
-            element.setFillPattern(gradient)
+            return gradient
+        }
+
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+            element.setFillPattern(makeFill(renderer, paint))
+        }
+
+        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+            element.setStrokePattern(makeFill(renderer, paint))
+        }
+    }
+
+    private inner class GradientFillHandler: FillHandler<RadialGradientPaint> {
+        private fun makeFill(renderer: VectorRendererSvg, paint: RadialGradientPaint): SVGRadialGradientElement {
+            // FIXME: Re-use elements when possible
+            val gradient = createOrUse<SVGRadialGradientElement>("radialGradient").apply {
+                if (id.isBlank()) { setId(nextId()) }
+
+                setGradientUnits("userSpaceOnUse")
+                setStart(paint.start)
+                setEnd  (paint.end  )
+                clear   (          )
+
+                paint.colors.forEach {
+                    // FIXME: Re-use elements when possible
+                    add(svgFactory<SVGElement>("stop").apply {
+                        setStopColor (it.color )
+                        setStopOffset(it.offset)
+                    })
+                }
+            }
+
+            renderer.completeOperation(gradient)
+
+            return gradient
+        }
+
+        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+            element.setFillPattern(makeFill(renderer, paint))
+        }
+
+        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+            element.setStrokePattern(makeFill(renderer, paint))
         }
     }
 

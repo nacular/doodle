@@ -5,6 +5,8 @@ import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
@@ -37,8 +39,8 @@ import kotlin.math.min
 public class PathProgressBarBehavior(
         private val pathMetrics        : PathMetrics,
         public  val path               : Path,
-        public  var foregroundColor    : Color?    = null,
-        public  var backgroundColor    : Color?    = null,
+        public  var foregroundFill     : Paint?     = null,
+        public  var backgroundFill     : Paint?     = null,
         public  var foregroundThickness: Double    = 1.0,
         public  var backgroundThickness: Double    = foregroundThickness,
         public  var direction          : Direction = Forward
@@ -51,7 +53,7 @@ public class PathProgressBarBehavior(
         Forward, Backward
     }
 
-    private val maxThickNess = max(if (backgroundColor != null) backgroundThickness else 0.0, foregroundThickness)
+    private val maxThickNess = max(if (backgroundFill != null) backgroundThickness else 0.0, foregroundThickness)
 
     private val pathBounds by lazy { pathMetrics.bounds(path) }
     private val pathLength by lazy { pathMetrics.length(path) }
@@ -63,10 +65,10 @@ public class PathProgressBarBehavior(
     }
 
     override fun render(view: ProgressIndicator, canvas: Canvas) {
-        val fColor = foregroundColor ?: view.foregroundColor
-        val bColor = backgroundColor ?: view.backgroundColor
+        val fFill = foregroundFill ?: view.foregroundColor?.let { ColorPaint(it) }
+        val bFill = backgroundFill ?: view.backgroundColor?.let { ColorPaint(it) }
 
-        if (fColor == null && bColor == null) {
+        if (fFill == null && bFill == null) {
             return
         }
 
@@ -82,22 +84,42 @@ public class PathProgressBarBehavior(
             translate(x = (view.width - pathBounds.width)/2 - pathBounds.x, y = (view.height - pathBounds.height)/2 - pathBounds.y)
 
         canvas.transform(transform) {
-            bColor?.let {
-                canvas.path(path, Stroke(color = it, thickness = backgroundThickness / scale))
+            bFill?.let {
+                canvas.path(path, Stroke(fill = it, thickness = backgroundThickness / scale))
             }
 
-            fColor?.let {
+            fFill?.let {
                 val offset = when (direction) {
                     Forward -> pathLength - pathLength * view.progress
                     else    -> pathLength + pathLength * view.progress
                 }
 
                 canvas.path(path, Stroke(
-                        color      = it,
+                        fill       = it,
                         thickness  = foregroundThickness / scale,
                         dashOffset = offset,
                         dashes     = doubleArrayOf(pathLength)))
             }
         }
+    }
+
+    public companion object {
+        public operator fun invoke(
+                pathMetrics        : PathMetrics,
+                path               : Path,
+                foregroundColor    : Color?    = null,
+                backgroundColor    : Color?    = null,
+                foregroundThickness: Double    = 1.0,
+                backgroundThickness: Double    = foregroundThickness,
+                direction          : Direction = Forward
+        ): PathProgressBarBehavior = PathProgressBarBehavior(
+                pathMetrics,
+                path,
+                foregroundColor?.let { ColorPaint(it) },
+                backgroundColor?.let { ColorPaint(it) },
+                foregroundThickness,
+                backgroundThickness,
+                direction
+        )
     }
 }

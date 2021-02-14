@@ -31,27 +31,27 @@ private class TestCanvas: Canvas {
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {}
 
-    override fun rect(rectangle: Rectangle, fill: Fill) {}
+    override fun rect(rectangle: Rectangle, fill: Paint) {}
 
-    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill?) {}
+    override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) {}
 
-    override fun rect(rectangle: Rectangle, radius: Double, fill: Fill) {}
+    override fun rect(rectangle: Rectangle, radius: Double, fill: Paint) {}
 
-    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill?) {}
+    override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) {}
 
-    override fun circle(circle: Circle, fill: Fill) {}
+    override fun circle(circle: Circle, fill: Paint) {}
 
-    override fun circle(circle: Circle, stroke: Stroke, fill: Fill?) {}
+    override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) {}
 
-    override fun ellipse(ellipse: Ellipse, fill: Fill) {}
+    override fun ellipse(ellipse: Ellipse, fill: Paint) {}
 
-    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill?) {}
+    override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) {}
 
-    override fun text(text: String, font: Font?, at: Point, fill: Fill) {}
+    override fun text(text: String, font: Font?, at: Point, fill: Paint) {}
 
     override fun text(text: StyledText, at: Point) {}
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Fill) {}
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint) {}
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {}
 
@@ -71,29 +71,29 @@ private class TestCanvas: Canvas {
 
     override fun line(start: Point, end: Point, stroke: Stroke) {}
 
-    override fun path(points: List<Point>, fill: Fill, fillRule: Renderer.FillRule?) {}
+    override fun path(points: List<Point>, fill: Paint, fillRule: Renderer.FillRule?) {}
 
-    override fun path(path: Path, fill: Fill, fillRule: Renderer.FillRule?) {}
+    override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) {}
 
     override fun path(points: List<Point>, stroke: Stroke) {}
 
     override fun path(path: Path, stroke: Stroke) {}
 
-    override fun path(points: List<Point>, stroke: Stroke, fill: Fill, fillRule: Renderer.FillRule?) {}
+    override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {}
 
-    override fun path(path: Path, stroke: Stroke, fill: Fill, fillRule: Renderer.FillRule?) {}
+    override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {}
 
-    override fun poly(polygon: Polygon, fill: Fill) {}
+    override fun poly(polygon: Polygon, fill: Paint) {}
 
-    override fun poly(polygon: Polygon, stroke: Stroke, fill: Fill?) {}
+    override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) {}
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill) {}
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Paint) {}
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) {}
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) {}
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Fill) {}
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, fill: Paint) {}
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Fill?) {}
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) {}
 }
 
 class CanvasTests {

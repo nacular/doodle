@@ -30,9 +30,9 @@ import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.CanvasFactory
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.Fill
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.ImageFill
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -110,7 +110,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
-    private var fill                = null as Fill?
+    private var fill                = null as Paint?
 
     override var transform = Identity
         set (new) {
@@ -152,14 +152,14 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 //            ROOT_CONTAINER.setFocusTraversalPolicy(aPolicy)
 //        }
 
-    override fun fill(fill: Fill) {
+    override fun fill(fill: Paint) {
         when (fill) {
-            is ColorFill -> {
+            is ColorPaint -> {
                 canvasElement.parentNode?.removeChild(canvasElement)
 
                 rootElement.style.setBackgroundColor(fill.color)
             }
-            is ImageFill -> {
+            is ImageFill  -> {
                 when (fill.opacity) {
                     1.0f -> {
                         canvasElement.parentNode?.removeChild(canvasElement)

@@ -1,7 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.drawing.Fill
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
@@ -16,19 +16,19 @@ import io.nacular.doodle.text.StyledText
  */
 
 internal interface VectorRenderer: Renderer {
-    fun rect(rectangle: Rectangle,           fill: Fill        )
-    fun rect(rectangle: Rectangle, stroke: Stroke, fill: Fill? = null)
+    fun rect(rectangle: Rectangle,           fill: Paint)
+    fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint? = null)
 
-    fun rect(rectangle: Rectangle, radius: Double,           fill: Fill)
-    fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Fill? = null)
+    fun rect(rectangle: Rectangle, radius: Double,           fill: Paint)
+    fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint? = null)
 
-    fun circle(circle: Circle,           fill: Fill        )
-    fun circle(circle: Circle, stroke: Stroke, fill: Fill? = null)
+    fun circle(circle: Circle,           fill: Paint)
+    fun circle(circle: Circle, stroke: Stroke, fill: Paint? = null)
 
-    fun ellipse(ellipse: Ellipse,           fill: Fill        )
-    fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Fill? = null)
+    fun ellipse(ellipse: Ellipse,           fill: Paint)
+    fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint? = null)
 
-    fun text(text: String, font: Font? = null, at: Point, fill: Fill)
+    fun text(text: String, font: Font? = null, at: Point, fill: Paint)
 
     fun text(text: StyledText, at: Point)
 
@@ -38,7 +38,7 @@ internal interface VectorRenderer: Renderer {
             at         : Point,
             leftMargin : Double,
             rightMargin: Double,
-            fill      : Fill)
+            fill      : Paint)
 
     fun wrapped(
             text       : StyledText,

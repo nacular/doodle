@@ -6,15 +6,17 @@ package io.nacular.doodle
 //    var markers: Boolean?
 //}
 
-public expect abstract class SVGElement()      : Element, ElementCSSInlineStyle
-public expect abstract class SVGRectElement    : SVGGeometryElement
-public expect abstract class SVGPathElement    : SVGGeometryElement
-public expect abstract class SVGTextElement    : SVGTextPositioningElement
-public expect abstract class SVGCircleElement  : SVGGeometryElement
-public expect abstract class SVGEllipseElement : SVGGeometryElement
-public expect abstract class SVGPolygonElement : SVGGeometryElement
-public expect abstract class SVGPatternElement : SVGElement
-public expect abstract class SVGGradientElement: SVGElement
+public expect abstract class SVGElement()            : Element, ElementCSSInlineStyle
+public expect abstract class SVGRectElement          : SVGGeometryElement
+public expect abstract class SVGPathElement          : SVGGeometryElement
+public expect abstract class SVGTextElement          : SVGTextPositioningElement
+public expect abstract class SVGCircleElement        : SVGGeometryElement
+public expect abstract class SVGEllipseElement       : SVGGeometryElement
+public expect abstract class SVGPolygonElement       : SVGGeometryElement
+public expect abstract class SVGPatternElement       : SVGElement
+public expect abstract class SVGGradientElement      : SVGElement
+public expect abstract class SVGLinearGradientElement: SVGGradientElement
+public expect abstract class SVGRadialGradientElement: SVGGradientElement
 
 public data class BoundingBoxOptions(
         public var fill   : Boolean? = true,

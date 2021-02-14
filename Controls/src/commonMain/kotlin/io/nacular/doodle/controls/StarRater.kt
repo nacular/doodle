@@ -7,8 +7,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorFill
-import io.nacular.doodle.drawing.PatternFill
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.geometry.Circle
@@ -117,13 +117,13 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
         val rect = bounds.atOrigin
 
         if (displayValue < max) {
-            canvas.rect(rect, PatternFill(bounds = fillBounds) {
+            canvas.rect(rect, PatternPaint(bounds = fillBounds) {
                 shadowColor?.let {
                     outerShadow(color = it, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                        poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorFill(it) })
+                        poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorPaint(it) })
                     }
                 } ?: {
-                    poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorFill(it) })
+                    poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorPaint(it) })
                 }()
             })
         }
@@ -136,13 +136,13 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
                     else -> floor(displayValue)
                 }
 
-                canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternFill(bounds = fillBounds) {
+                canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternPaint(bounds = fillBounds) {
                     if (displayValue.toInt() == max) {
                         outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                            poly(star, ColorFill(foregroundColor))
+                            poly(star, ColorPaint(foregroundColor))
                         }
                     } else {
-                        poly(star, ColorFill(foregroundColor))
+                        poly(star, ColorPaint(foregroundColor))
                     }
                 })
             }

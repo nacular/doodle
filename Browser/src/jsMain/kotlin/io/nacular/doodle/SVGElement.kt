@@ -17,6 +17,8 @@ internal actual typealias SVGGradientElement        = org.w3c.dom.svg.SVGGradien
 internal actual typealias SVGGraphicsElement        = org.w3c.dom.svg.SVGGraphicsElement
 internal actual typealias SVGGeometryElement        = org.w3c.dom.svg.SVGGeometryElement
 internal actual typealias SVGTextContentElement     = org.w3c.dom.svg.SVGTextContentElement
+internal actual typealias SVGLinearGradientElement  = org.w3c.dom.svg.SVGLinearGradientElement
+internal actual typealias SVGRadialGradientElement  = org.w3c.dom.svg.SVGRadialGradientElement
 internal actual typealias SVGTextPositioningElement = org.w3c.dom.svg.SVGTextPositioningElement
 
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
