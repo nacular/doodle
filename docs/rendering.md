@@ -59,9 +59,9 @@ class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
 
 The `render` method provides a [`Canvas`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Canvas.kt#L24)
 onto which a `View` can draw. Canvas offers a rich set of operations for geometric shapes, paths, images, and text. It
-also supports different [`Fill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Fill.kt#L3)
-types (i.e. [`ColorFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorFill.kt#L5),
-[`LinearGradientFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/LinearGradientFill.kt#L6), and
+also supports different [`Fill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Paint.kt#L18)
+types (i.e. [`ColorFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorPaint.kt#L29),
+[`LinearGradientFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/LinearGradientPaint.kt#L68), and
 [PatternFill](rendering.md?id=pattern-fills)) for filling regions.
 
 The Canvas provided to `render` has a coordinate system anchored to the View's origin, so `0,0` on the View and Canvas are the same point.
@@ -88,7 +88,7 @@ to a Canvas; these can be nested as well.
 
 ### Pattern Fills
 
-Sometimes you need to fill a region with a repeating pattern: often an image. Doodle has the [`PatterFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/PatternFill.kt#L13) to make this easy.
+Sometimes you need to fill a region with a repeating pattern: often an image. Doodle has the [`PatternFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/PatternPaint.kt#L35) to make this easy.
 This fill has a "render" body that provides a powerful and familiar way of creating repeating patterns.
 
 You create this fill by specifying a `size` and a `fill` lambda, which has access to the full `Canvas` APIs.
