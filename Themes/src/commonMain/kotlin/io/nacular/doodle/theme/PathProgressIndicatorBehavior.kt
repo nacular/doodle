@@ -8,11 +8,12 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.theme.PathProgressBarBehavior.Direction.Backward
-import io.nacular.doodle.theme.PathProgressBarBehavior.Direction.Forward
+import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction.Backward
+import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction.Forward
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,8 +22,8 @@ import kotlin.math.min
  *
  * @property pathMetrics used to measure the given path
  * @property path over which the progress will be displayed
- * @property foregroundColor to draw the progress in
- * @property backgroundColor to draw the path "behind" the progress line
+ * @property foreground paint to draw the progress in
+ * @property background paint to draw the path "behind" the progress line
  * @property foregroundThickness of the path line
  * @property backgroundThickness of the path "behind" the progress line
  * @property direction to draw the progress line
@@ -30,17 +31,17 @@ import kotlin.math.min
  * @constructor
  * @param pathMetrics used to measure the given path
  * @param path over which the progress will be displayed
- * @param foregroundColor to draw the progress in
- * @param backgroundColor to draw the path "behind" the progress line
+ * @param foreground paint to draw the progress in
+ * @param background paint to draw the path "behind" the progress line
  * @param foregroundThickness of the path line
  * @param backgroundThickness of the path "behind" the progress line
  * @param direction to draw the progress line
  */
-public class PathProgressBarBehavior(
+public class PathProgressIndicatorBehavior(
         private val pathMetrics        : PathMetrics,
         public  val path               : Path,
-        public  var foregroundFill     : Paint?     = null,
-        public  var backgroundFill     : Paint?     = null,
+        public  var foreground         : Paint?    = null,
+        public  var background         : Paint?    = null,
         public  var foregroundThickness: Double    = 1.0,
         public  var backgroundThickness: Double    = foregroundThickness,
         public  var direction          : Direction = Forward
@@ -53,7 +54,7 @@ public class PathProgressBarBehavior(
         Forward, Backward
     }
 
-    private val maxThickNess = max(if (backgroundFill != null) backgroundThickness else 0.0, foregroundThickness)
+    private val maxThickNess = max(if (background != null) backgroundThickness else 0.0, foregroundThickness)
 
     private val pathBounds by lazy { pathMetrics.bounds(path) }
     private val pathLength by lazy { pathMetrics.length(path) }
@@ -65,8 +66,8 @@ public class PathProgressBarBehavior(
     }
 
     override fun render(view: ProgressIndicator, canvas: Canvas) {
-        val fFill = foregroundFill ?: view.foregroundColor?.let { ColorPaint(it) }
-        val bFill = backgroundFill ?: view.backgroundColor?.let { ColorPaint(it) }
+        val fFill = foreground ?: view.foregroundColor?.let { ColorPaint(it) }
+        val bFill = background ?: view.backgroundColor?.let { ColorPaint(it) }
 
         if (fFill == null && bFill == null) {
             return
@@ -94,29 +95,43 @@ public class PathProgressBarBehavior(
                     else    -> pathLength + pathLength * view.progress
                 }
 
-                canvas.path(path, Stroke(
-                        fill       = it,
-                        thickness  = foregroundThickness / scale,
-                        dashOffset = offset,
-                        dashes     = doubleArrayOf(pathLength)))
+                when (view.progress) {
+                    1.0  -> canvas.path(path, Stroke(fill = it, thickness = foregroundThickness / scale))
+                    else -> canvas.path(path, Stroke(
+                            fill       = it,
+                            thickness  = foregroundThickness / scale,
+                            dashOffset = offset,
+                            dashes     = doubleArrayOf(pathLength)))
+                }
             }
         }
     }
 
     public companion object {
+        /**
+         * Creates a behavior that indicates progress by drawing a [Stroke] over the given [Path].
+         *
+         * @param pathMetrics used to measure the given path
+         * @param path over which the progress will be displayed
+         * @param foreground color to draw the progress in
+         * @param background color to draw the path "behind" the progress line
+         * @param foregroundThickness of the path line
+         * @param backgroundThickness of the path "behind" the progress line
+         * @param direction to draw the progress line
+         */
         public operator fun invoke(
                 pathMetrics        : PathMetrics,
                 path               : Path,
-                foregroundColor    : Color?    = null,
-                backgroundColor    : Color?    = null,
+                foreground         : Color?    = null,
+                background         : Color?    = null,
                 foregroundThickness: Double    = 1.0,
                 backgroundThickness: Double    = foregroundThickness,
                 direction          : Direction = Forward
-        ): PathProgressBarBehavior = PathProgressBarBehavior(
+        ): PathProgressIndicatorBehavior = PathProgressIndicatorBehavior(
                 pathMetrics,
                 path,
-                foregroundColor?.let { ColorPaint(it) },
-                backgroundColor?.let { ColorPaint(it) },
+                foreground?.paint,
+                background?.paint,
                 foregroundThickness,
                 backgroundThickness,
                 direction

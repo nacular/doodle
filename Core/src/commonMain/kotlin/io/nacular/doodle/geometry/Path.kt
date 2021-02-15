@@ -76,6 +76,11 @@ public interface PathBuilder {
 
     /** Closes the path. */
     public fun close(): Path
+
+    /**
+     * Finishes path without closing it.
+     */
+    public fun finish(): Path
 }
 
 /**
@@ -105,6 +110,16 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
 }.close()
 
 /**
+ * Converts an [Ellipse] to a [Path].
+ */
+public fun Ellipse.toPath(): Path = Point(center.x, center.y - yRadius).let { topPoint ->
+    PathBuilderImpl(topPoint).
+        arcTo(Point(center.x, center.y + yRadius), xRadius = xRadius, yRadius = yRadius, rotation = 0 * degrees, largeArch = true, sweep = true).
+        arcTo(topPoint,                            xRadius = xRadius, yRadius = yRadius, rotation = 0 * degrees, largeArch = true, sweep = true).
+        close()
+}
+
+/**
  * Creates a circle path. The [direction] flag allows multiple circles to be combined
  * to create circular holes. A [ring] can be created by joining an outer and inner circle
  * with opposite directions.
@@ -118,9 +133,9 @@ public fun circle(center: Point, radius: Double, direction: RotationDirection): 
     val sweep = direction == Clockwise
 
     return path(Point(center.x, center.y - radius)).
-        arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
-        arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
-        close()
+    arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
+    arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
+    close()
 }
 
 /**
@@ -133,6 +148,9 @@ public fun circle(center: Point, radius: Double, direction: RotationDirection): 
  */
 public fun ring(center: Point, innerRadius: Double, outerRadius: Double): Path = circle(center, outerRadius, Clockwise) + circle(center, innerRadius, CounterClockwise)
 
+/**
+ * Determines how to connect current and end points in a [Path]
+ */
 public typealias SegmentBuilder = PathBuilder.(current: Point, end: Point) -> Unit
 
 /**
@@ -170,13 +188,13 @@ public fun ringSection(
     val largeArch  = (abs(end - start) `in` degrees) % 360.0 > 180.0
 
     return path(outerStart).
-        arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
-            startCap(this, outerEnd, innerEnd)
-        }.
-        arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
-            endCap(this, innerStart, outerStart)
-        }.
-        close()
+    arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
+        startCap(this, outerEnd, innerEnd)
+    }.
+    arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
+        endCap(this, innerStart, outerStart)
+    }.
+    close()
 }
 
 private class PathImpl(override val data: String): Path {
@@ -216,4 +234,6 @@ private class PathBuilderImpl(start: Point): PathBuilder {
     }
 
     override fun close(): Path = PathImpl(data + "Z")
+
+    override fun finish(): Path = PathImpl(data)
 }

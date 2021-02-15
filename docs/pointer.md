@@ -45,7 +45,7 @@ class CircularView(val radius: Double): View() {
         (point - position) in circle
 
     override fun render(canvas: Canvas) {
-        canvas.circle(circle, ColorFill(Red))
+        canvas.circle(circle, Red.paint)
     }
 }
 ``` 

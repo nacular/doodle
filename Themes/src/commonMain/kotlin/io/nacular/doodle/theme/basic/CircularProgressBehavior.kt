@@ -16,7 +16,7 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 2/12/18.
  */
-@Deprecated(message = "Switch to BasicCircularProgressBehavior", replaceWith = ReplaceWith("BasicCircularProgressBehavior", imports = arrayOf("io.nacular.doodle.theme.basic.BasicCircularProgressBehavior")))
+@Deprecated(message = "Switch to BasicCircularProgressIndicatorBehavior", replaceWith = ReplaceWith("BasicCircularProgressIndicatorBehavior", imports = arrayOf("io.nacular.doodle.theme.basic.BasicCircularProgressIndicatorBehavior")))
 public class CircularProgressBehavior(private val defaultBackgroundColor: Color, private val darkBackgroundColor: Color): ProgressIndicatorBehavior<ProgressIndicator>() {
     override fun render(view: ProgressIndicator, canvas: Canvas) {
         val border = 1.0

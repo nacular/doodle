@@ -28,15 +28,19 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.grayScale
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.SegmentBuilder
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
+import io.nacular.doodle.theme.PathProgressIndicatorBehavior
+import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
@@ -412,60 +416,71 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         @Deprecated("Use new version")
-        public fun basicProgressBarBehavior(
-                background  : Paint?   = null,
-                foreground  : Paint?   = null,
+        public inline fun basicProgressBarBehavior(
+                background  : Paint?  = null,
+                foreground  : Paint?  = null,
                 outlineColor: Color?  = null,
-                cornerRadius: Double? = null): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
-            bindBehavior<ProgressBar>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run {
-                    BasicProgressBarBehavior(
-                            background   = background ?: ColorPaint(defaultBackgroundColor),
-                            foreground   = foreground ?: ColorPaint(darkBackgroundColor   ),
-                            outlineColor = outlineColor,
-                            cornerRadius = cornerRadius ?: this.cornerRadius) as Behavior<ProgressIndicator> }
-            }
-        }
+                cornerRadius: Double): Module = basicProgressBarBehavior(background, foreground, outlineColor, backgroundRadius = cornerRadius)
 
         public fun basicProgressBarBehavior(
-                background      : Paint?   = null,
-                foreground      : Paint?   = null,
+                background      : Paint?  = null,
+                foreground      : Paint?  = null,
                 outlineColor    : Color?  = null,
                 backgroundRadius: Double? = null,
                 foregroundRadius: Double? = backgroundRadius): Module = basicThemeModule(name = "BasicProgressBarBehavior") {
             bindBehavior<ProgressBar>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicProgressBarBehavior(
-                            background       = background ?: ColorPaint(defaultBackgroundColor),
-                            foreground       = foreground ?: ColorPaint(darkBackgroundColor   ),
+                            background       = background ?: defaultBackgroundColor.paint,
+                            foreground       = foreground ?: darkBackgroundColor.paint,
                             outlineColor     = outlineColor,
                             backgroundRadius = backgroundRadius ?: cornerRadius,
                             foregroundRadius = foregroundRadius ?: 0.0) as Behavior<ProgressIndicator> }
             }
         }
 
-        public fun basicCircularProgressBarBehavior(
-                foreground      : Paint?             = null,
-                background      : Paint?             = null,
+        public fun basicCircularProgressIndicatorBehavior(
+                foreground      : Paint?            = null,
+                background      : Paint?            = null,
                 thickness       : Double            = 15.0,
-                outlineColor    : Color?            = null,
-                outlineThickness: Double            = 0.0,
+                outline         : Stroke?           = null,
                 startAngle      : Measure<Angle>    = -90 * degrees,
                 direction       : RotationDirection = Clockwise,
                 startCap        : SegmentBuilder    = { _,it -> lineTo(it) },
                 endCap          : SegmentBuilder    = { _,_  ->            }): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
-            bindBehavior<ProgressBar>(BTheme::class) {
+            bindBehavior<ProgressIndicator>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicCircularProgressBehavior(
-                        foreground ?: ColorPaint(darkBackgroundColor   ),
-                        background ?: ColorPaint(defaultBackgroundColor),
+                    BasicCircularProgressIndicatorBehavior(
+                        foreground ?: darkBackgroundColor.paint,
+                        background ?: defaultBackgroundColor.paint,
                         thickness,
-                        outlineColor,
-                        outlineThickness,
+                        outline,
                         startAngle,
                         direction,
                         startCap,
                         endCap)
+                }
+            }
+        }
+
+        public fun basicPathProgressIndicatorBehavior(
+                path               : Path,
+                foreground         : Paint?    = null,
+                background         : Paint?    = null,
+                foregroundThickness: Double    = 1.0,
+                backgroundThickness: Double    = foregroundThickness,
+                direction          : Direction = Direction.Forward
+        ): Module = basicThemeModule(name = "BasicPathProgressIndicatorBehavior") {
+            bindBehavior<ProgressIndicator>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    PathProgressIndicatorBehavior(
+                        pathMetrics         = instance(),
+                        path                = path,
+                        foreground          = foreground ?: darkBackgroundColor.paint,
+                        background          = background ?: defaultBackgroundColor.paint,
+                        foregroundThickness = foregroundThickness,
+                        backgroundThickness = backgroundThickness,
+                        direction           = direction)
                 }
             }
         }

@@ -9,12 +9,14 @@ method to draw a `View`'s contents to the screen. The framework calls this metho
 ```kotlin
 class RectView: View() {
     override fun render(canvas: Canvas) {
-        canvas.rect(bounds.atOrigin, ColorFill(Blue))
+        canvas.rect(bounds.atOrigin, Blue.paint)
     }
 }
 ```
 
-This `RectView` draws a filled rectangle covering its bounds.
+This `RectView` draws a filled rectangle covering its bounds. The [`paint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorPaint.kt#L32) 
+extension on [`Color`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Color.kt#L12) 
+creates a new [`ColorPaint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorPaint.kt#L5).
 
 ?> `render` is automatically called on `size` changes and `visible` changing to `true`
 
@@ -59,10 +61,10 @@ class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
 
 The `render` method provides a [`Canvas`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Canvas.kt#L24)
 onto which a `View` can draw. Canvas offers a rich set of operations for geometric shapes, paths, images, and text. It
-also supports different [`Fill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Paint.kt#L18)
-types (i.e. [`ColorFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorPaint.kt#L29),
-[`LinearGradientFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/LinearGradientPaint.kt#L68), and
-[PatternFill](rendering.md?id=pattern-fills)) for filling regions.
+also supports different [`Paint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/Paint.kt#L4)
+types (i.e. [`ColorPaint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/ColorPaint.kt#L5),
+[`LinearGradientPaint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/LinearGradientPaint.kt#L31), and
+[PatternPaint](rendering.md?id=pattern-paints)) for filling regions.
 
 The Canvas provided to `render` has a coordinate system anchored to the View's origin, so `0,0` on the View and Canvas are the same point.
 The Canvas itself extends in all directions beyond the bounds of the View; but the contents drawn to it will be clipped to the view's
@@ -77,7 +79,7 @@ to `false`.
 class MyView: View() {
     override fun render(canvas: Canvas) {
         canvas.flipHorizontally(around = width / 2) {
-            text("hello", Origin, ColorFill(Black))
+            text("hello", Origin, Black.paint)
         }
     }
 }
@@ -86,39 +88,39 @@ class MyView: View() {
 Here, the view flips the Canvas horizontally around its mid-point and draws some text. You can apply any [`AffineTransform`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/AffineTransform.kt#L16)
 to a Canvas; these can be nested as well.
 
-### Pattern Fills
+### Pattern Paints
 
-Sometimes you need to fill a region with a repeating pattern: often an image. Doodle has the [`PatternFill`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/PatternPaint.kt#L35) to make this easy.
-This fill has a "render" body that provides a powerful and familiar way of creating repeating patterns.
+Sometimes you need to fill a region with a repeating pattern: often an image. Doodle has the [`PatternPaint`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/drawing/PatternPaint.kt#L13) to make this easy.
+This paint has a "render" body that provides a powerful and familiar way of creating repeating patterns.
 
-You create this fill by specifying a `size` and a `fill` lambda, which has access to the full `Canvas` APIs.
+You create this paint by specifying a `size` and a `paint` lambda, which has access to the full `Canvas` APIs.
 
-**io.nacular.doodle.drawing.PatternFill.kt**
+**io.nacular.doodle.drawing.PatternPaint.kt**
 
 ```kotlin
-fun stripedFill(stripeWidth : Double,
+fun stripedPaint(stripeWidth : Double,
                  evenRowColor: Color? = null,
                  oddRowColor : Color? = null,
                  transform   : AffineTransform = Identity) =
-PatternFill(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
-    evenRowColor?.let { rect(Rectangle(                 stripeWidth, stripeWidth), ColorFill(it)) }
-    oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorFill(it)) }
+PatternPaint(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
+    evenRowColor?.paint?.let { rect(Rectangle(                  stripeWidth, stripeWidth), it) }
+    oddRowColor?.paint?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), it) }
 }
 ```
 
 ```kotlin
 private inner class MyView: View() {
     val stripeWidth = 20.0
-    var fillAngle by renderProperty(0 * degrees)
+    var paintAngle by renderProperty(0 * degrees)
 
     override fun render(canvas: Canvas) {
-        val fillCenter = Point(canvas.size.width / 2, canvas.size.height / 2)
+        val paintCenter = Point(canvas.size.width / 2, canvas.size.height / 2)
 
-        canvas.rect(bounds.atOrigin, stripedFill(
+        canvas.rect(bounds.atOrigin, stripedPaint(
                 stripeWidth  = stripeWidth,
                 evenRowColor = Red,
                 oddRowColor  = White,
-                transform    = Identity.rotate(around = fillCenter, by = fillAngle)
+                transform    = Identity.rotate(around = paintCenter, by = paintAngle)
         ))
     }
 }
@@ -128,8 +130,8 @@ private inner class MyView: View() {
 {
     "border": false,
     "height": "300px",
-    "run"   : "DocApps.patternFill"
+    "run"   : "DocApps.patternPaint"
 }
 ``` 
 
-This app shows how a `PatternFill` can be transformed, like rotated around its center for example.
+This app shows how a `PatternPaint` can be transformed, like rotated around its center for example.

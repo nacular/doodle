@@ -75,8 +75,11 @@ internal inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.cent
 
 internal inline fun SVGElement.setPathData        (value: String      ) = setAttribute  ("d",                   value           )
 internal inline fun SVGElement.setStrokeWidth     (value: Double      ) = setAttribute  ("stroke-width",      "$value"          )
+internal inline fun SVGElement.setDefaultStrokeWidth() = removeAttribute("stroke-width")
 internal inline fun SVGElement.setStrokeDash      (value: DoubleArray?) = setAttribute  ("stroke-dasharray",    dashArray(value))
-internal inline fun SVGElement.setStrokeDashOffset(value: Double      ) = setAttribute  ("stroke-dashoffset", "$value"          )
+internal inline fun SVGElement.setDefaultStrokeDash() = removeAttribute  ("stroke-dasharray")
+internal inline fun SVGElement.setStrokeDashOffset(value: Double?     ) = setAttribute  ("stroke-dashoffset",   value?.let { "$it" } ?: "")
+internal inline fun SVGElement.setDefaultStrokeDashOffset() = removeAttribute  ("stroke-dashoffset")
 //internal inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
 //internal inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
 
@@ -148,12 +151,26 @@ internal fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fil
 })
 
 internal fun SVGElement.setStroke(stroke: Stroke?) {
-    if (stroke != null) {
-        setStrokeWidth(stroke.thickness)
+    when (stroke) {
+        null -> {
+            setStrokeColor            (null)
+            setDefaultStrokeDash      ()
+            setDefaultStrokeWidth     ()
+            setDefaultStrokeDashOffset()
+        }
+        else -> {
+            setStrokeWidth(stroke.thickness)
 
-        stroke.dashes?.let {
-            setStrokeDash      (stroke.dashes    )
-            setStrokeDashOffset(stroke.dashOffset)
+            when (stroke.dashes) {
+                null -> {
+                    setDefaultStrokeDash()
+                    setDefaultStrokeDashOffset()
+                }
+                else -> {
+                    setStrokeDash      (stroke.dashes)
+                    setStrokeDashOffset(stroke.dashOffset)
+                }
+            }
         }
     }
 }
@@ -167,7 +184,10 @@ private fun dashArray(dashes: DoubleArray?) = dashes?.map { max(0.0, it) }?.join
 
 internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
     setAttribute("stroke", it)
-    color?.let { setAttribute("stroke-opacity", "${it.opacity}") }
+    when (color) {
+        null -> removeAttribute("stroke-opacity")
+        else -> setAttribute("stroke-opacity", "${color.opacity}")
+    }
 }
 
 internal fun SVGPatternElement.setPatternTransform(transform: AffineTransform?) = when(transform) {

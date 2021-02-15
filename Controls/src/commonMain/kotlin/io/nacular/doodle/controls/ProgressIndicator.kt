@@ -1,12 +1,20 @@
 package io.nacular.doodle.controls
 
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.size
 
 /**
- * Created by Nicholas Eddy on 2/12/18.
+ * Control that shows progress of some activity. That progress comes via the [model].
+ * Changes to the [model] will update the control.
+ *
+ * @constructor
+ * @param model containing progress range and current value
  */
 public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
     public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
@@ -19,6 +27,14 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View
         model.valueChanged += changedHandler
     }
 
+    /**
+     * Defines the control's look and feel
+     */
+    public var behavior: Behavior<ProgressIndicator>? by behavior()
+
+    /**
+     * Underlying model representing the current progress within a range.
+     */
     public var model: ConfinedValueModel<Double> =  model
         set(new) {
             field.valueChanged -= changedHandler
@@ -28,16 +44,37 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View
             }
         }
 
+    /**
+     * Delegates to [behavior]
+     */
+    override fun render(canvas: Canvas) {
+        behavior?.render(this, canvas)
+    }
+
+    /**
+     * Delegates to [behavior]
+     */
+    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
+
+    /**
+     * Value from 0 to 1 representing the progress from the [model]'s start to end
+     */
     public var progress: Double
         get() = (model.value - model.limits.start) / (model.limits.size)
         set(new) {
             model.value = model.limits.start + new * (model.limits.size)
         }
 
+    /**
+     * Current progress value derived from [model]
+     */
     public var value: Double
         get(   ) = model.value
         set(new) { model.value = new }
 
+    /**
+     * Returns the [model]'s range
+     */
     public var range: ClosedRange<Double>
         get(   ) = model.limits
         set(new) { model.limits = new }

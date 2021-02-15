@@ -130,7 +130,8 @@ Represents a value within a specified range that usually indicates progress towa
 its value or range changes. Specify a range by passing a `ClosedRange` or [`ConfinedValueModel`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ConfinedRangeModel.kt#L22) 
 in the constructor.
 
-ProgressBar is a specialization of ProgressIndicator, which should be used for more generalized progress display (i.e. circular)
+ProgressBar is a specialization of [`ProgressIndicator`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ProgressIndicator.kt#L11), 
+which should be used for more generalized progress display (i.e. circular)
 
 ```kotlin
 val progressBar = ProgressBar() // creates a bar that ranges form 0 - 100
@@ -145,6 +146,45 @@ val progressBar = ProgressBar() // creates a bar that ranges form 0 - 100
 ```
 
 ?> Rendering requires a `Behavior<ProgressBar>`. [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L260) provides one.
+
+ProgressIndicators can also take different shapes. Here's an example that uses [`CircularProgressBehavior`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/CircularProgressBehavior.kt#L23).
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.circularProgress"
+}
+```
+
+This one draws a path using [`PathProgressBehavior`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/PathProgressBarBehavior.kt#L20).
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.pathProgress"
+}
+```
+
+```kotlin
+val BlueColor = Color(0x5AE0FCu) opacity 0.85f
+
+object: ProgressIndicator() {
+    init {
+        size     = Size(200, 100)
+        progress = 0.25
+        behavior = PathProgressIndicatorBehavior(
+            pathMetrics,          // injected
+            path                = path("M10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80")!!,
+            foreground          = LinearGradientPaint(Black, BlueColor, Origin, Point(width, 0.0)),
+            foregroundThickness = 5.0,
+            background          = Lightgray.paint,
+            backgroundThickness = 5.0
+        )
+    }
+}
+```
 
 ---
 ### [Slider](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/range/Slider.kt#L16)
