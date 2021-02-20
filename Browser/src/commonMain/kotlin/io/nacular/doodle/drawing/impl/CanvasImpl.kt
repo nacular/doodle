@@ -9,8 +9,6 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
-import io.nacular.doodle.dom.clearBoundStyles
-import io.nacular.doodle.dom.clearVisualStyles
 import io.nacular.doodle.dom.index
 import io.nacular.doodle.dom.left
 import io.nacular.doodle.dom.numChildren
@@ -489,9 +487,8 @@ internal open class CanvasImpl(
             result = image.cloneNode(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
-            result.clearBoundStyles ()
-            result.clearVisualStyles()
             result.src = image.src
+            result.style.filter = ""
         }
 
         return result as HTMLImageElement

@@ -23,7 +23,7 @@ expect inline fun mockkStatic(vararg classes: String)
 /**
  * Created by Nicholas Eddy on 3/21/20.
  */
-class PatternFillTests {
+class PatternPaintTests {
     init {
         mockkStatic("io.nacular.doodle.drawing.PatternFillKt")
     }
@@ -42,10 +42,10 @@ class PatternFillTests {
     @Test @JsName("fillCorrect")
     fun `fill correct`() {
         listOf<(Canvas) -> Unit>(
-            {                             },
+            {                                },
             { it.rect(Rectangle(), Stroke()) }
         ).forEach {
-            expect(it) { PatternPaint(size = Empty, fill = it).fill }
+            expect(it) { PatternPaint(size = Empty, fill = it).paint }
         }
     }
 
@@ -99,10 +99,10 @@ class PatternFillTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            stripedFill(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
+            stripedPaint(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
                 expect(transform) { test.transform }
 
-                canvas.apply(fill)
+                canvas.apply(paint)
             }
 
             test.evenColor?.let {
@@ -129,12 +129,12 @@ class PatternFillTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            horizontalStripedFill(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
-                canvas.apply(fill)
+            horizontalStripedPaint(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
+                canvas.apply(paint)
             }
 
             verify(exactly = 1) {
-                stripedFill(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor)
+                stripedPaint(stripeWidth = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor)
             }
         }
     }
@@ -151,12 +151,12 @@ class PatternFillTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            verticalStripedFill(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
-                canvas.apply(fill)
+            verticalStripedPaint(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
+                canvas.apply(paint)
             }
 
             verify(exactly = 1) {
-                stripedFill(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(270 * degrees))
+                stripedPaint(stripeWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = Identity.rotate(270 * degrees))
             }
         }
     }
@@ -167,14 +167,14 @@ class PatternFillTests {
             Red opacity 0f to Transparent,
             null to null
         ).forEach {
-            expect(true) { checkerFill(checkerSize = Size(10.0), firstColor = it.first, secondColor = it.second).size.empty }
+            expect(true) { checkerPaint(checkerSize = Size(10.0), firstColor = it.first, secondColor = it.second).size.empty }
         }
     }
 
     @Test @JsName("checkerSizeCorrect")
     fun `checker size correct`() {
         listOf(Size(20.0, 10.0), Size(1.0), Size(3.4, 0.0), Empty).forEach {
-            expect(it * 2) { checkerFill(checkerSize = it, firstColor = Red).size }
+            expect(it * 2) { checkerPaint(checkerSize = it, firstColor = Red).size }
         }
     }
 
@@ -190,8 +190,8 @@ class PatternFillTests {
         ).forEach { test ->
             val canvas = mockk<Canvas>()
 
-            checkerFill(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
-                canvas.apply(fill)
+            checkerPaint(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
+                canvas.apply(paint)
             }
 
             test.firstColor?.let {

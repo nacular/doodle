@@ -132,6 +132,37 @@ internal class DragManagerImpl(
                 coroutine.resumeWithException(e)
             }
         }
+
+        override suspend fun readBase64(progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
+            try {
+                val reader = FileReader()
+
+                reader.onerror = {
+                    coroutine.resume(null)
+                }
+
+                reader.onloadend = {
+                    var encoded = (reader.result as String).replace("^data:(.*,)?".toRegex(), "")
+
+                    if ((encoded.length % 4) > 0) {
+                        encoded = encoded.padEnd(4 - (encoded.length % 4), '=')
+                    }
+
+                    coroutine.resume(encoded)
+                }
+
+                reader.onprogress = {
+                    if (it.lengthComputable) {
+                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
+                    }
+                }
+
+                reader.readAsDataURL(delegate)
+
+            } catch (e: CancellationException) {
+                coroutine.resumeWithException(e)
+            }
+        }
     }
 
     private fun getFiles(dataTransfer: DataTransfer, mimeType: Files): List<LocalFile> {

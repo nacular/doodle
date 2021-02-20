@@ -20,10 +20,10 @@ class PenTests {
     @Test @JsName("defaultsCorrect")
     fun `defaults correct`() {
         Stroke().apply {
-            expect(Black) { color     }
-            expect(1.0  ) { thickness }
-            expect(null ) { dashes    }
-            expect(true ) { visible   }
+            expect(Black.paint) { fill      }
+            expect(1.0        ) { thickness }
+            expect(null       ) { dashes    }
+            expect(true       ) { visible   }
         }
     }
 

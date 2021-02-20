@@ -205,6 +205,29 @@ class RenderManagerImplTests {
         }
     }
 
+    @Test @JsName("handlesIndexChange")
+    fun `handles index change`() {
+        val child1   = spyk(view())
+        val child2   = spyk(view())
+        val parent   = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2) }
+        val display  = display(parent)
+        val surface1 = mockk<GraphicsSurface>()
+        val surface2 = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(child1 to surface1, child2 to surface2)))
+
+        verifyChildAddedProperly(renderManager, display, parent)
+
+        parent.children.move(child2, 0)
+
+        verify(exactly = 1) { surface2.index = 0 }
+
+        listOf(child1, child2).forEach {
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
+            verify(exactly = 1) { it.render             (any()) }
+        }
+    }
+
     @Test @JsName("zOrderChangeTopLevelViews")
     fun `z-order change top-level views`() {
         val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }

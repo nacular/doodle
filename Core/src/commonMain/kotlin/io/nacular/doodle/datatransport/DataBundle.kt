@@ -35,10 +35,19 @@ public interface LocalFile {
     /**
      * Reads the file contents as a String.
      *
+     * @param encoding of the resulting string
      * @param progress listener
      * @return the file contents or null if there was an error
      */
     public suspend fun readText(encoding: String? = null, progress: (Float) -> Unit = {}): String?
+
+    /**
+     * Reads the file contents as a base64 encoded String.
+     *
+     * @param progress listener
+     * @return the file contents or null if there was an error
+     */
+    public suspend fun readBase64(progress: (Float) -> Unit = {}): String?
 }
 
 /**

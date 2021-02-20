@@ -1,6 +1,7 @@
 package io.nacular.doodle.image.impl
 
 import io.nacular.doodle.HTMLImageElement
+import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
@@ -29,6 +30,8 @@ public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val s
 
         return images[source]
     }
+
+    override suspend fun load(file: LocalFile): Image? = file.readBase64()?.let { load("data:*/*;base64,$it")  }
 
     override fun unload(image: Image) {
         images.remove(image.source)

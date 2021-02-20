@@ -22,4 +22,5 @@ public class ImagePaint(public val image: Image, public val size: Size = image.s
     public override val visible: Boolean = opacity > 0 && !size.empty && !image.size.empty
 }
 
+@Deprecated("Use ImagePaint instead", replaceWith = ReplaceWith("ImagePaint"))
 public typealias ImageFill = ImagePaint

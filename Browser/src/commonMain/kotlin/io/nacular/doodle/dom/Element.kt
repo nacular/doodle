@@ -37,30 +37,6 @@ internal inline val HTMLElement.height get() = offsetHeight.toDouble()
 internal inline val HTMLElement.hasAutoOverflow   get() = style.run { overflowX.isNotEmpty() || overflowY.isNotEmpty() }
 internal inline val HTMLElement.hasScrollOverflow get() = style.run { overflowX == "scroll"  || overflowY == "scroll"  }
 
-internal fun HTMLElement.clearVisualStyles() {
-//    style.color      = ""
-//    style.filter     = ""
-//    style.border     = ""
-//    style.background = ""
-//
-//    style.overflowX  = ""
-//    style.overflowY  = ""
-//    style.boxShadow  = ""
-}
-
-internal fun HTMLElement.clearBoundStyles() {
-//    style.top          = ""
-//    style.left         = ""
-//    style.right        = ""
-//    style.width        = ""
-//    style.height       = ""
-//    style.bottom       = ""
-//    style.marginTop    = ""
-//    style.marginLeft   = ""
-//    style.marginRight  = ""
-//    style.marginBottom = ""
-}
-
 internal fun HTMLElement.scrollTo(point: Point) {
     try {
         scrollTo(point.x, point.y)

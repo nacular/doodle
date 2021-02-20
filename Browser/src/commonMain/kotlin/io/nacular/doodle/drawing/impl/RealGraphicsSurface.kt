@@ -29,8 +29,6 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.utils.MutableTreeSet
-import kotlin.math.max
 import kotlin.properties.Delegates.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
@@ -57,10 +55,10 @@ internal class RealGraphicsSurface private constructor(
 
     override var index = 0
         set(new) {
-            if (field != new) {
+//            if (field != new) {
                 field = new
                 parent?.setIndex(this, new)
-            }
+//            }
         }
 
     override var zOrder = 0
@@ -208,7 +206,7 @@ internal class RealGraphicsSurface private constructor(
             clipCanvasToBounds = oldClipping
         }
 
-    private  var indexSet        = MutableTreeSet<Int>()
+//    private  var indexSet        = MutableTreeSet<Int>()
     private  var indexStart      = 0
     internal val rootElement     = canvasElement
     private  var childrenElement = rootElement
@@ -228,7 +226,6 @@ internal class RealGraphicsSurface private constructor(
 
         if (parent != null) {
             parent?.add(this)
-            parent?.childrenElement?.add(rootElement)
         } else if (addToRootIfNoParent) {
             htmlFactory.root.add(rootElement)
         }
@@ -301,6 +298,8 @@ internal class RealGraphicsSurface private constructor(
         if (++numChildren == 1) {
             isContainer = true
         }
+
+        childrenElement.add(child.rootElement)
     }
 
     private fun remove(child: RealGraphicsSurface) {
@@ -309,8 +308,6 @@ internal class RealGraphicsSurface private constructor(
                 childrenElement.remove(child.rootElement)
             } catch (ignore: Throwable) {}
 
-            indexSet.remove(child.index)
-
             child.parent = null
 
             --numChildren // TODO: is it worth reverting to not container?
@@ -318,12 +315,9 @@ internal class RealGraphicsSurface private constructor(
     }
 
     private fun setIndex(child: RealGraphicsSurface, index: Int) {
-        val numChildren = childrenElement.numChildren
-
-        if (child.rootElement.parentNode == rootElement) childrenElement.remove(child.rootElement)
-
-        indexSet.add(index)
-
-        childrenElement.insert(child.rootElement, max(indexStart, numChildren - indexSet.indexOf(index) - 1))
+        if (child.rootElement.parentNode == rootElement) {
+            childrenElement.remove(child.rootElement       )
+            childrenElement.insert(child.rootElement, index)
+        }
     }
 }

@@ -12,7 +12,7 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 9/24/20.
  */
-class ImageFillTests {
+class ImagePaintTests {
     @Test @JsName("visibleWorks")
     fun `visible works`() {
         listOf(
@@ -27,7 +27,7 @@ class ImageFillTests {
         ).forEach { (image, size, opacity) ->
             val expected = !image.size.empty && !size.empty && opacity > 0f
 
-            ImageFill(image, size, opacity).apply {
+            ImagePaint(image, size, opacity).apply {
                 expect(expected, "${this}.visible") { visible }
             }
         }

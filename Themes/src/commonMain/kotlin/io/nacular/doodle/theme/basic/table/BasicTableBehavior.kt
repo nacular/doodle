@@ -28,7 +28,7 @@ import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.horizontalStripedFill
+import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.KeyEvent
@@ -117,9 +117,9 @@ public open class BasicTableBehavior<T>(
         bodyDirty?.invoke()
     }
 
-    private  val patternFill   = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+    private  val patternFill   = horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
     private  val movingColumns = mutableSetOf<Column<*>>()
-    override val cellGenerator: BasicCellGenerator<T> = BasicCellGenerator<T>()
+    override val cellGenerator: BasicCellGenerator<T> = BasicCellGenerator()
 
     override val headerPositioner: HeaderPositioner<T> = object: HeaderPositioner<T> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)

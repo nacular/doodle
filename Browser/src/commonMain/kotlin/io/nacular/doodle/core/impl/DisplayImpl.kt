@@ -18,7 +18,6 @@ import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.addIfNotPresent
-import io.nacular.doodle.dom.clearVisualStyles
 import io.nacular.doodle.dom.height
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBackgroundImage
@@ -241,8 +240,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         rootElement.apply {
             style.setTransform(null)
 
-            clearVisualStyles()
-            clear            ()
+            clear()
         }
     }
 
