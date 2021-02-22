@@ -25,7 +25,7 @@ expect inline fun mockkStatic(vararg classes: String)
  */
 class PatternPaintTests {
     init {
-        mockkStatic("io.nacular.doodle.drawing.PatternFillKt")
+        mockkStatic("io.nacular.doodle.drawing.PatternPaintKt")
     }
 
     @Test @JsName("sizeCorrect")
