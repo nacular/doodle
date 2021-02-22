@@ -129,8 +129,8 @@ class ObservableSetTests {
         }
     }
 
-    private fun <T> validateChanges(set: ObservableSet<T>, block: (ObservableSet<T>, SetObserver<T>) -> Unit) {
-        val changed = mockk<SetObserver<T>>()
+    private fun <T> validateChanges(set: ObservableSet<T>, block: (ObservableSet<T>, SetObserver<ObservableSet<T>, T>) -> Unit) {
+        val changed = mockk<SetObserver<ObservableSet<T>, T>>()
 
         set.changed += changed
 
@@ -332,8 +332,8 @@ class ObservableListTests {
         }
     }
 
-    private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<T>) -> Unit) {
-        val changed = mockk<ListObserver<T>>()
+    private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<ObservableList<T>, T>) -> Unit) {
+        val changed = mockk<ListObserver<ObservableList<T>, T>>()
 
         list.changed += changed
 

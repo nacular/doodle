@@ -19,7 +19,6 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.West
-import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -89,10 +88,10 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private class LocalSelectionModel(var root: Path<Int>, private val delegate: SelectionModel<Path<Int>>): SelectionModel<Int> { //MultiSelectionModel<Int>() {
 
-        private val changeObserver: (ObservableSet<Path<Int>>, Set<Path<Int>>, Set<Path<Int>>) -> Unit = { set, removed, added ->
+        private val changeObserver: (SelectionModel<Path<Int>>, Set<Path<Int>>, Set<Path<Int>>) -> Unit = { set, removed, added ->
             (changed as SetPool).forEach {
                 it(
-                    ObservableSet(set.filter { root ancestorOf it }.mapNotNull { it.nonOverlappingStem(root).firstOrNull() }.toMutableSet()),
+                    this,
                     removed.filter { root ancestorOf it }.mapNotNull { it.nonOverlappingStem(root).firstOrNull() }.toSet(),
                     added.filter   { root ancestorOf it }.mapNotNull { it.nonOverlappingStem(root).firstOrNull() }.toSet()
                 )
@@ -145,7 +144,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         override fun contains(item: Int) = delegateHandle?.iterator()?.asSequence()?.find { overlappingIndex(it) == item } != null
 
         // FIXME: This is pretty inefficient
-        override val changed: Pool<SetObserver<Int>> = SetPool()
+        override val changed: Pool<SetObserver<SelectionModel<Int>, Int>> = SetPool()
 
         override fun iterator() = delegateHandle?.iterator()?.asSequence()?.mapNotNull { overlappingIndex(it) }?.iterator() ?: emptyList<Int>().iterator()
     }

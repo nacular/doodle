@@ -8,10 +8,14 @@ import kotlin.reflect.KProperty
 /**
  * Created by Nicholas Eddy on 10/21/17.
  */
-public typealias SetObserver     <T>    = (source: ObservableSet<T>,  removed: Set<T>,      added: Set<T>                                    ) -> Unit
-public typealias ListObserver    <T>    = (source: ObservableList<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
-public typealias ChangeObserver  <S>    = (source: S                                                                                         ) -> Unit
-public typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                                         ) -> Unit
+public typealias SetObserver     <S, T> = (source: S, removed: Set<T>,      added: Set<T>                                    ) -> Unit
+public typealias ListObserver    <S, T> = (source: S, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ChangeObserver  <S>    = (source: S                                                                         ) -> Unit
+public typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                         ) -> Unit
+
+public fun <A, B, T> setObserver(source: B, to: SetObserver<B, T>): SetObserver<A, T> = { _,removed,added ->
+    to(source, removed, added)
+}
 
 public interface Pool<in T> {
     public operator fun plusAssign (item: T)
@@ -35,7 +39,7 @@ public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: Muta
 }
 
 public interface ObservableList<E>: MutableList<E> {
-    public val changed: Pool<ListObserver<E>>
+    public val changed: Pool<ListObserver<ObservableList<E>, E>>
 
     public fun move(element: E, to: Int): Boolean
 
@@ -67,8 +71,8 @@ public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>
 
 public open class ObservableListImpl<E> internal constructor(private val list: MutableList<E>): ObservableList<E>, MutableList<E> by list {
 
-    private val changed_ = SetPool<ListObserver<E>>()
-    public override val changed: Pool<ListObserver<E>> = changed_
+    private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
+    public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
 
     public override fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
@@ -306,8 +310,8 @@ internal fun <T> diffLists(old: List<T>, new: List<T>): DiffResult<T>? {
 }
 
 public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
-    private val changed_ = SetPool<SetObserver<E>>()
-    public val changed: Pool<SetObserver<E>> = changed_
+    private val changed_ = SetPool<SetObserver<ObservableSet<E>, E>>()
+    public val changed: Pool<SetObserver<ObservableSet<E>, E>> = changed_
 
     override fun add(element: E): Boolean = set.add(element).ifTrue {
         changed_.forEach {

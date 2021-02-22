@@ -8,8 +8,8 @@ package io.nacular.doodle.utils
  * @param filter to apply to [source]
  */
 public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) -> Boolean)? = null): ObservableList<E> by source {
-    private val changed_ = SetPool<ListObserver<E>>()
-    public override val changed: Pool<ListObserver<E>> = changed_
+    private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
+    public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
 
     /**
      * The filter applied to [source]

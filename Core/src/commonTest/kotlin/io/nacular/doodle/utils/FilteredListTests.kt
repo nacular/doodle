@@ -35,7 +35,7 @@ class FilteredListTests {
     @Test @JsName("changingFilterWorks")
     fun `changing filter works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             changed += listener
@@ -49,7 +49,7 @@ class FilteredListTests {
     @Test @JsName("removeWhenFilteredWorks")
     fun `remove when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -68,7 +68,7 @@ class FilteredListTests {
     @Test @JsName("removeFrontWhenNoOpFilteredWorks")
     fun `remove front when no-op filtered works`() {
         val source   = ObservableList(listOf(1,2,3))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { true }
@@ -85,7 +85,7 @@ class FilteredListTests {
     @Test @JsName("setWhenFilteredWorks")
     fun `set when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -100,7 +100,7 @@ class FilteredListTests {
     @Test @JsName("setWhenNoOpFilteredWorks")
     fun `set when no-op filtered works`() {
         val source   = ObservableList(listOf(0,2,4))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -115,7 +115,7 @@ class FilteredListTests {
     @Test @JsName("toggleWhenFilteredWorks")
     fun `toggle when filtered works`() {
         val source   = ObservableList(listOf(0,2,3,4))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -134,7 +134,7 @@ class FilteredListTests {
     @Test @JsName("addWhenFilteredWorks")
     fun `add when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -155,7 +155,7 @@ class FilteredListTests {
     @Test @JsName("moveWhenFilteredWorks")
     fun `move when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -176,7 +176,7 @@ class FilteredListTests {
     @Test @JsName("clearWhenFilteredWorks")
     fun `clear when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }
@@ -193,7 +193,7 @@ class FilteredListTests {
     @Test @JsName("batchWhenFilteredWorks")
     fun `batch when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
-        val listener = mockk<ListObserver<Int>>()
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
             filter = { it.isEven }

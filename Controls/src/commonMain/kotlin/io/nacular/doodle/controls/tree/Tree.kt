@@ -108,9 +108,9 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    public val expanded        : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
-    public val collapsed       : ExpansionObservers<T>        by lazy { ExpansionObserversImpl(this) }
-    public val selectionChanged: Pool<SetObserver<Path<Int>>> by lazy { SetPool<SetObserver<Path<Int>>>() }
+    public val expanded        : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
+    public val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
+    public val selectionChanged: Pool<SetObserver<Tree<T, M>, Path<Int>>> by lazy { SetPool() }
 
     override val firstSelection : Path<Int>?     get() = selectionModel?.first
     override val lastSelection  : Path<Int>?     get() = selectionModel?.last
@@ -136,9 +136,9 @@ public open class Tree<T, out M: TreeModel<T>>(
     protected var lastVisibleRow : Int = -1
 
     @Suppress("PrivatePropertyName")
-    private val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(set, removed, added)
+            it(this, removed, added)
         }
 
         children.batch {

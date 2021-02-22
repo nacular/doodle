@@ -21,7 +21,6 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Completable
-import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
@@ -102,13 +101,13 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     override fun iterator() = this@map.iterator().mapNotNull(mapper)
 
     // FIXME: This is pretty inefficient
-    override val changed: Pool<SetObserver<R>> = SetPool()
+    override val changed: Pool<SetObserver<SelectionModel<R>, R>> = SetPool()
 
     init {
         this@map.changed += { set, removed, added ->
             // FIXME: Can this be optimized?
             (changed as SetPool).forEach {
-                it(ObservableSet(set.mapNotNull(mapper).toMutableSet()), removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
+                it(this, removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
             }
         }
     }
@@ -478,7 +477,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: Pool<SetObserver<Path<Int>>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<TreeTable<T, M>, Path<Int>>> = SetPool()
 
     private val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
 
@@ -510,9 +509,9 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     }
 
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<Path<Int>> = { set,removed,added ->
+    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(set, removed, added)
+            it(this, removed, added)
         }
     }
 

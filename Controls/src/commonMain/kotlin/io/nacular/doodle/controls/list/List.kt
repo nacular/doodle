@@ -63,11 +63,11 @@ public open class List<T, out M: ListModel<T>>(
         private        val scrollCache   : Int                            = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
-    private val selectionChanged_: SetObserver<Int> = { set,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
         scrollToSelection() // FIXME: Avoid scrolling on selectAll, move to Behavior
 
         (selectionChanged as SetPool).forEach {
-            it(set, removed, added)
+            it(this, removed, added)
         }
 
         children.batch {
@@ -94,7 +94,7 @@ public open class List<T, out M: ListModel<T>>(
     public val numRows: Int     get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
-    public val selectionChanged: Pool<SetObserver<Int>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<List<T, M>, Int>> = SetPool()
 
     public var cellAlignment: (Constraints.() -> Unit)? = null
 

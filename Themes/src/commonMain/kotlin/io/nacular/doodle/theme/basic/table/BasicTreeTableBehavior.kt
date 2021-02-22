@@ -23,7 +23,7 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.horizontalStripedFill
+import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.KeyEvent
@@ -84,7 +84,7 @@ public open class BasicTreeTableBehavior<T>(
     override var bodyDirty  : ((         ) -> Unit)? = null
     override var columnDirty: ((Column<*>) -> Unit)? = null
 
-    private val selectionChanged: SetObserver<Path<Int>> = { _,_,_ ->
+    private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { _,_,_ ->
         bodyDirty?.invoke()
     }
 
@@ -98,7 +98,7 @@ public open class BasicTreeTableBehavior<T>(
         }
     }
 
-    private val canvasFill = horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+    private val canvasFill = horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
 
     private val movingColumns = mutableSetOf<Column<*>>()
 

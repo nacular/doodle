@@ -89,7 +89,7 @@ class RenderManagerImplTests {
 
         val display = display(view())
 
-        val slot = slot<ListObserver<View>>()
+        val slot = slot<ListObserver<ObservableList<View>, View>>()
 
         every { display.children.changed.plusAssign(capture(slot)) } just Runs
 

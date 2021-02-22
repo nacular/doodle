@@ -26,7 +26,6 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.ObservableSet
 
 
 public open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, selectionBlurredColor: Color? = null): BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
@@ -127,7 +126,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    private val listSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+    private val listSelectionChanged = { _: List<T, *>, _: Set<Int>, _:  Set<Int> ->
         list.cancelEditing()
     }
 

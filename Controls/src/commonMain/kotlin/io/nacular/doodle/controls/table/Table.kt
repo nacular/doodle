@@ -12,6 +12,7 @@ import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
@@ -145,75 +146,58 @@ public open class Table<T, M: ListModel<T>>(
             doLayout()
         }
 
-    public var behavior: TableBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
+    public var behavior: TableBehavior<T>? by behavior { old, new ->
+        new?.also { behavior ->
+            this.block?.let {
+                factory.apply(it)
 
-            field?.let {
-                it.bodyDirty   = null
-                it.headerDirty = null
-                it.columnDirty = null
+                // Last, unusable column
+                internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                it.uninstall(this)
+                children += listOf(header, panel)
+
+                this.block = null
             }
 
-            field = new
+            (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                it.behavior(TableLikeBehaviorWrapper())
+            }
 
-            new?.also { behavior ->
-                block?.let {
-                    factory.apply(it)
+            behavior.install(this)
 
-                    // Last, unusable column
-                    internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
+            header.children.batch {
+                clear()
 
-                    children += listOf(header, panel)
+                headerItemsToColumns.clear()
 
-                    block = null
-                }
-
-                behavior.bodyDirty   = bodyDirty
-                behavior.headerDirty = headerDirty
-                behavior.columnDirty = columnDirty
-
-                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
-                    it.behavior(TableLikeBehaviorWrapper())
-                }
-
-                behavior.install(this)
-
-                header.children.batch {
-                    clear()
-
-                    headerItemsToColumns.clear()
-
-                    addAll(internalColumns.dropLast(1).map { column ->
-                        behavior.headerCellGenerator(this@Table, column).also {
-                            headerItemsToColumns[it] = column
-                        }
-                    })
-                }
-
-                behavior.headerPositioner.invoke(this@Table).apply {
-                    header.height = height
-                }
-
-                layout = constrain(header, panel) { header, panel ->
-                    behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top    = header.parent.top + y
-                        header.height = constant(height)
+                addAll(internalColumns.dropLast(1).map { column ->
+                    behavior.headerCellGenerator(this@Table, column).also {
+                        headerItemsToColumns[it] = column
                     }
+                })
+            }
 
-                    panel.top    = header.bottom
-                    panel.left   = panel.parent.left
-                    panel.right  = panel.parent.right
-                    panel.bottom = panel.parent.bottom
+            behavior.headerPositioner.invoke(this@Table).apply {
+                header.height = height
+            }
+
+            layout = constrain(header, panel) { header, panel ->
+                behavior.headerPositioner.invoke(this@Table).apply {
+                    header.top    = header.parent.top + y
+                    header.height = constant(height)
                 }
+
+                panel.top    = header.bottom
+                panel.left   = panel.parent.left
+                panel.right  = panel.parent.right
+                panel.bottom = panel.parent.bottom
             }
         }
+    }
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: Pool<SetObserver<Int>> = SetPool()
+    public val selectionChanged: Pool<SetObserver<Table<T, M>, Int>> = SetPool()
 
     public fun contains(value: T): Boolean = value in model
 
@@ -250,9 +234,9 @@ public open class Table<T, M: ListModel<T>>(
     }
 
     @Suppress("PrivatePropertyName")
-    protected open val selectionChanged_: SetObserver<Int> = { set,removed,added ->
+    protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
-            it(set, removed, added)
+            it(this, removed, added)
         }
     }
 
@@ -260,9 +244,9 @@ public open class Table<T, M: ListModel<T>>(
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 
-    private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
-    private val headerDirty: (         ) -> Unit = { header.rerender        () }
-    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
+    internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
+    internal val headerDirty: (         ) -> Unit = { header.rerender        () }
+    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
     public operator fun get(index: Int): T? = model[index]
 

@@ -3,6 +3,7 @@ package io.nacular.doodle.controls
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetPool
 
 /**
  * Created by Nicholas Eddy on 3/19/18.
@@ -43,7 +44,7 @@ public interface SelectionModel<T>: Iterable<T> {
     public fun containsAll(items: Collection<T>): Boolean
     public fun toggle     (items: Collection<T>): Boolean
 
-    public val changed: Pool<SetObserver<T>>
+    public val changed: Pool<SetObserver<SelectionModel<T>, T>>
 }
 
 public open class MultiSelectionModel<T>: SelectionModel<T> {
@@ -56,6 +57,10 @@ public open class MultiSelectionModel<T>: SelectionModel<T> {
         observableSet.changed += { set, removed, added ->
             if (set.size <= 1 || (anchor_ in removed && anchor_ !in added)) {
                 anchor_ = null
+            }
+
+            (changed as SetPool).forEach {
+                it(this, removed, added)
             }
         }
     }
@@ -92,7 +97,7 @@ public open class MultiSelectionModel<T>: SelectionModel<T> {
         return result
     }
 
-    override val changed: Pool<SetObserver<T>> = observableSet.changed
+    override val changed: Pool<SetObserver<SelectionModel<T>, T>> = SetPool()
 
     private fun moveAnchorToDeleteSite(item: T) {
         if (anchor_ == item) {

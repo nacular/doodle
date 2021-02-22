@@ -13,10 +13,6 @@ import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
-import io.nacular.doodle.controls.table.TableBehavior.HeaderCellGenerator
-import io.nacular.doodle.controls.table.TableBehavior.HeaderPositioner
-import io.nacular.doodle.controls.table.TableBehavior.OverflowColumnConfig
-import io.nacular.doodle.controls.table.TableBehavior.RowPositioner
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit
 import io.nacular.doodle.core.Display
@@ -50,7 +46,6 @@ import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetObserver
@@ -91,8 +86,8 @@ private class TableListRow<T>(
 
 public open class BasicCellGenerator<T>: CellGenerator<T> {
     override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
-        is ListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
-        else          -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
+        is TableListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
+        else               -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
     }
 }
 
@@ -103,18 +98,14 @@ public open class BasicTableBehavior<T>(
                       evenRowColor         : Color? = White,
                       oddRowColor          : Color? = Lightgray.lighter().lighter(),
         protected val selectionColor       : Color? = Blue,
-        protected val selectionBlurredColor: Color? = Lightgray): TableBehavior<T>, PointerListener, KeyListener, SelectableListKeyHandler {
+        protected val selectionBlurredColor: Color? = Lightgray): TableBehavior<T>(), PointerListener, KeyListener, SelectableListKeyHandler {
 
-    override var bodyDirty  : ((         ) -> Unit)? = null
-    override var headerDirty: ((         ) -> Unit)? = null
-    override var columnDirty: ((Column<*>) -> Unit)? = null
-
-    private val selectionChanged: SetObserver<Int> = { _,_,_ ->
-        bodyDirty?.invoke()
+    private val selectionChanged: SetObserver<Table<T, *>, Int> = { table,_,_ ->
+        table.bodyDirty()
     }
 
-    private val focusChanged: PropertyObserver<View, Boolean> = { _,_,_ ->
-        bodyDirty?.invoke()
+    private val focusChanged: PropertyObserver<View, Boolean> = { table,_,_ ->
+        (table as Table<T, *>).bodyDirty()
     }
 
     private  val patternFill   = horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
@@ -217,8 +208,8 @@ public open class BasicTableBehavior<T>(
         view.pointerFilter    += this
         view.selectionChanged += selectionChanged
 
-        bodyDirty?.invoke  ()
-        headerDirty?.invoke()
+        view.bodyDirty  ()
+        view.headerDirty()
     }
 
     override fun uninstall(view: Table<T, *>) {
@@ -243,7 +234,7 @@ public open class BasicTableBehavior<T>(
 
         movingColumns += column
 
-        columnDirty?.invoke(column)
+        table.columnDirty(column)
     }
 
     override fun <A> columnMoveEnd(table: Table<T, *>, column: Column<A>) {
@@ -253,7 +244,7 @@ public open class BasicTableBehavior<T>(
 
         movingColumns -= column
 
-        columnDirty?.invoke(column)
+        table.columnDirty(column)
     }
 }
 
@@ -301,7 +292,7 @@ public open class TextEditOperation<T>(
         private var index       : Int,
                     current     : View): TextField(), EditOperation<T> {
 
-    private val tableSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+    private val tableSelectionChanged = { _: Table<*, *>, _: Set<Int>, _:  Set<Int> ->
         table.cancelEditing()
     }
 
@@ -435,7 +426,7 @@ public open class BooleanEditOperation<T>(
         }
     }
 
-    private val tableSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
+    private val tableSelectionChanged = { _: Table<T, *>, _: Set<Int>, _:  Set<Int> ->
         table.completeEditing()
     }
 

@@ -15,9 +15,20 @@ import io.nacular.doodle.utils.Path
  */
 public class HeaderGeometry(public val y: Double, public val height: Double)
 
-public interface TableBehavior<T>: Behavior<Table<T, *>> {
+public abstract class TableBehavior<T>: Behavior<Table<T, *>> {
+    public fun Table<T, *>.bodyDirty  (                 ): Unit = bodyDirty  (      )
+    public fun Table<T, *>.headerDirty(                 ): Unit = headerDirty(      )
+    public fun Table<T, *>.columnDirty(column: Column<*>): Unit = columnDirty(column)
+
     public interface CellGenerator<T> {
-        public operator fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View? = null): View
+        public operator fun <A> invoke(
+                table        : Table<T, *>,
+                column       : Column<A>,
+                cell         : A,
+                row          : Int,
+                itemGenerator: ItemVisualizer<A, IndexedIem>,
+                current      : View? = null
+        ): View
     }
 
     public interface RowPositioner<T> {
@@ -41,25 +52,21 @@ public interface TableBehavior<T>: Behavior<Table<T, *>> {
         public fun body  (table: Table<T, *>): View? = null
     }
 
-    public val cellGenerator       : CellGenerator<T>
-    public val rowPositioner       : RowPositioner<T>
-    public val headerPositioner    : HeaderPositioner<T>
-    public val headerCellGenerator : HeaderCellGenerator<T>
-    public val overflowColumnConfig: OverflowColumnConfig<T>?
+    public abstract val cellGenerator       : CellGenerator<T>
+    public abstract val rowPositioner       : RowPositioner<T>
+    public abstract val headerPositioner    : HeaderPositioner<T>
+    public abstract val headerCellGenerator : HeaderCellGenerator<T>
+    public abstract val overflowColumnConfig: OverflowColumnConfig<T>?
 
-    public var bodyDirty  : ((         ) -> Unit)?
-    public var headerDirty: ((         ) -> Unit)?
-    public var columnDirty: ((Column<*>) -> Unit)?
+    public open fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
-    public fun moveColumn(table: Table<T, *>, block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    public open fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
+    public open fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
+    public open fun <A> columnMoveEnd  (table: Table<T, *>, column: Column<A>) {}
 
-    public fun <A> columnMoveStart(table: Table<T, *>, column: Column<A>) {}
-    public fun <A> columnMoved    (table: Table<T, *>, column: Column<A>) {}
-    public fun <A> columnMoveEnd  (table: Table<T, *>, column: Column<A>) {}
-
-    public fun renderHeader        (table: Table<T, *>,                    canvas: Canvas) {}
-    public fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
-    public fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
+    public open fun renderHeader        (table: Table<T, *>,                    canvas: Canvas) {}
+    public open fun renderBody          (table: Table<T, *>,                    canvas: Canvas) {}
+    public open fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {}
 }
 
 public interface TreeTableBehavior<T>: Behavior<TreeTable<T, *>> {

@@ -15,6 +15,7 @@ import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 
 /**
@@ -92,7 +93,7 @@ public class TabbedPanel<T>(
     private val items = ObservableList<T>()
 
     /** Notifies of changes to items. */
-    public val itemsChanged: Pool<ListObserver<T>> = items.changed
+    public val itemsChanged: Pool<ListObserver<TabbedPanel<T>, T>> = SetPool()
 
     /** Notifies of changes to [selection]. */
     public val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> by lazy { PropertyObserversImpl(this) }
@@ -159,6 +160,10 @@ public class TabbedPanel<T>(
                     from                     -> to
                     else                     -> s
                 }
+            }
+
+            (itemsChanged as SetPool).forEach {
+                it(this, removed, added, moved)
             }
         }
     }
