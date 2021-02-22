@@ -337,11 +337,11 @@ class VectorRendererSvgTests {
     }
 
     private fun verifyRect(poly: SVGPolygonElement, rect: Rectangle, stroke: Stroke? = null, fill: ColorPaint) {
-        verify (exactly = 1) { poly.setFill  (fill.color                ) }
+        verify (exactly = 1) { poly.setFill(fill.color) }
 
         when (stroke) {
-            null -> verify (exactly = 0) { poly.setStroke(isNull(inverse = true)     ) }
-            else -> verify (exactly = 1) { poly.setStroke(stroke.color); poly.setStrokeWidth(stroke.thickness) }
+            null -> verify (exactly = 0) { poly.setStroke(isNull(inverse = true)) }
+            else -> verify (exactly = 1) { poly.setStroke(stroke); poly.setStrokeWidth(stroke.thickness) }
         }
 
         verify (exactly = 1) { poly.setPoints(*rect.points.toTypedArray()) }
