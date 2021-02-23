@@ -31,7 +31,7 @@ kotlin {
                 implementation(project(":controls" ))
                 implementation(project(":animation"))
 
-                implementation("org.kodein.di:kodein-di-erased:$kodeinVersion")
+                implementation("org.kodein.di:kodein-di:$kodeinVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
@@ -54,12 +54,6 @@ kotlin {
                 implementation("org.slf4j:slf4j-api:$log4jVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("io.mockk:mockk:$mockkVersion")
-            }
-        }
-
-        js().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation("org.kodein.di:kodein-di-erased-js:$kodeinVersion")
             }
         }
 

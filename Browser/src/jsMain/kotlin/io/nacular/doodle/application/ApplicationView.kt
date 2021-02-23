@@ -9,12 +9,12 @@ import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.focus.NativeFocusManager
-import org.kodein.di.Kodein.Module
-import org.kodein.di.bindings.NoArgSimpleBindingKodein
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.provider
+import org.kodein.di.DI.Module
+import org.kodein.di.bind
+import org.kodein.di.bindings.NoArgBindingDI
+import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import org.kodein.di.provider
 
 /**
  * Created by Nicholas Eddy on 1/30/20.
@@ -23,7 +23,7 @@ public class ApplicationViewFactory private constructor(public val htmlFactory: 
     public inline operator fun <reified T: Application> invoke(
             allowDefaultDarkMode: Boolean      = false,
             modules             : List<Module> = emptyList(),
-            noinline creator    : NoArgSimpleBindingKodein<*>.() -> T
+            noinline creator    : NoArgBindingDI<*>.() -> T
     ): View = ApplicationView(htmlFactory, nativeFocusManager) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
 
     public companion object {

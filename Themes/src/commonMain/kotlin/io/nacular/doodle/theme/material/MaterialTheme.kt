@@ -8,10 +8,10 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI.Module
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.singleton
 import org.kodein.di.erasedSet
 
 /**

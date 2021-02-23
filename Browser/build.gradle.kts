@@ -60,7 +60,7 @@ kotlin {
 
         js().compilations["main"].defaultSourceSet {
             dependencies {
-                api("org.kodein.di:kodein-di-erased-js:$kodeinVersion")
+                api("org.kodein.di:kodein-di:$kodeinVersion")
             }
         }
 

@@ -29,6 +29,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.CanvasFactoryImpl
 import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
+import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.drawing.impl.TextFactoryImpl
@@ -57,14 +58,16 @@ import io.nacular.doodle.utils.SimpleIdGenerator
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.kodein.di.Copy
-import org.kodein.di.DKodein
-import org.kodein.di.Kodein
-import org.kodein.di.Kodein.Module
-import org.kodein.di.bindings.NoArgSimpleBindingKodein
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI
+import org.kodein.di.DI.Module
+import org.kodein.di.DirectDI
+import org.kodein.di.bind
+import org.kodein.di.bindings.NoArgBindingDI
+import org.kodein.di.bindings.Singleton
+import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import org.kodein.di.singleton
+import org.kodein.type.generic
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Node
@@ -79,16 +82,18 @@ import kotlin.random.Random
 public inline fun <reified T: Application> application(
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
-    bind<Application>() with singleton(creator = creator)
+        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
+    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
+    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
 }, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> application(
                  root                : HTMLElement,
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createApplication(Kodein.direct {
-    bind<Application>() with singleton(creator = creator)
+        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
+    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
+    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> nestedApplication(
@@ -96,24 +101,25 @@ public inline fun <reified T: Application> nestedApplication(
                  root                : HTMLElement,
                  allowDefaultDarkMode: Boolean      = false,
                  modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgSimpleBindingKodein<*>.() -> T): Application = createNestedApplication(view, Kodein.direct {
-    bind<Application>() with singleton(creator = creator)
+        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
+    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
+    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 public fun createApplication(
-        injector            : DKodein,
+        injector            : DirectDI,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
 public fun createApplication(
-        injector            : DKodein,
+        injector            : DirectDI,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
 public fun createNestedApplication(
         view                : ApplicationView,
-        injector            : DKodein,
+        injector            : DirectDI,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
@@ -138,7 +144,7 @@ private class NestedPointerInputStrategy(private val view: ApplicationView, priv
 
 private class NestedApplicationHolder(
         view                : ApplicationView,
-        previousInjector    : DKodein,
+        previousInjector    : DirectDI,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean = false,
         modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
@@ -146,7 +152,7 @@ private class NestedApplicationHolder(
     init {
         (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.let { it.nested = true } // TODO: Find better way to handle this
         injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
-            injector = Kodein.direct {
+            injector = DI.direct {
                 extend(injector, copy = Copy.All)
 
                 bind<PointerInputServiceStrategy>(overrides = true) with singleton { NestedPointerInputStrategy(view, it) }
@@ -166,7 +172,7 @@ private class NestedApplicationHolder(
 }
 
 private open class ApplicationHolderImpl protected constructor(
-                    previousInjector    : DKodein,
+                    previousInjector    : DirectDI,
         private val root                : HTMLElement,
                     allowDefaultDarkMode: Boolean      = false,
                     modules             : List<Module> = emptyList(),
@@ -187,7 +193,7 @@ private open class ApplicationHolderImpl protected constructor(
         }
     }
 
-    protected var injector = Kodein.direct {
+    protected var injector = DI.direct {
         extend(previousInjector, copy = Copy.All)
 
         if (!isNested && root != document.body) {
@@ -200,29 +206,29 @@ private open class ApplicationHolderImpl protected constructor(
             else          -> root.id.takeIf { it.isNotBlank() } ?: Random.nextInt().toString()
         }
 
-        bind<Window>                   () with instance  ( window )
+        bind<Window>                                     () with instance  ( window )
 
-        bind<Timer>                    () with singleton { PerformanceTimer          (window.performance                                                    ) }
-        bind<Strand>                   () with singleton { StrandImpl                (instance(), instance()                                                ) }
-        bind<Display>                  () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
-        bind<Scheduler>                () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
-        bind<SvgFactory>               () with singleton { SvgFactoryImpl            (root, document                                                        ) }
-        bind<IdGenerator>              () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
-        bind<HtmlFactory>              () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
-        bind<TextFactory>              () with singleton { TextFactoryImpl           (instance()                                                            ) }
-        bind<TextMetrics>              () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
-        bind<ElementRuler>             () with singleton { ElementRulerImpl          (instance()                                                            ) }
-        bind<FontSerializer>           () with singleton { FontSerializerImpl        (instance()                                                            ) }
-        bind<SystemStyler>             () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
-        bind<CanvasFactory>            () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
-        bind<RenderManager>            () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
-        bind<GraphicsDevice<*>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
-        bind<AnimationScheduler>       () with singleton { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported
-        bind<GraphicsSurfaceFactory<*>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
+        bind<Timer>                                      () with singleton { PerformanceTimer          (window.performance                                                    ) }
+        bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                ) }
+        bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
+        bind<Scheduler>                                  () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
+        bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                        ) }
+        bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
+        bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
+        bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                            ) }
+        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
+        bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                            ) }
+        bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
+        bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
+        bind<RenderManager>                              () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+        bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                            ) }
+        bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
+        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bind<DisplayImpl>              () with singleton { instance<Display>     () as DisplayImpl }
-        bind<InternalDisplay>          () with singleton { instance<DisplayImpl> ()                }
+        bind<DisplayImpl>                                () with singleton { instance<Display>     () as DisplayImpl }
+        bind<InternalDisplay>                            () with singleton { instance<DisplayImpl> ()                }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -330,12 +336,12 @@ private open class ApplicationHolderImpl protected constructor(
             focusManager = null
         }
 
-        injector = Kodein.direct {}
+        injector = DI.direct {}
 
         isShutdown = true
     }
 
-    private class AsyncAppWrapper(previousInjector: DKodein, allowDefaultDarkMode: Boolean= false, modules: List<Module> = emptyList()): Application {
+    private class AsyncAppWrapper(previousInjector: DirectDI, allowDefaultDarkMode: Boolean= false, modules: List<Module> = emptyList()): Application {
         private  var jobId : Int
         lateinit var holder: ApplicationHolderImpl
 
@@ -355,7 +361,7 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     companion object {
-        operator fun invoke(previousInjector: DKodein, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
+        operator fun invoke(previousInjector: DirectDI, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
             return when (val body = document.body) {
                 // This is the case when the Javascript is loaded in the document header
                 null -> AsyncAppWrapper(previousInjector,       allowDefaultDarkMode, modules)
@@ -363,7 +369,7 @@ private open class ApplicationHolderImpl protected constructor(
             }
         }
 
-        operator fun invoke(previousInjector    : DKodein,
+        operator fun invoke(previousInjector    : DirectDI,
                             root                : HTMLElement,
                             allowDefaultDarkMode: Boolean      = false,
                             modules             : List<Module> = emptyList()): Application {

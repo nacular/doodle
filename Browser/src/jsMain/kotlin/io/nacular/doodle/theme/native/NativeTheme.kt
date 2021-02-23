@@ -30,11 +30,11 @@ import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI.Module
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import org.kodein.di.singleton
 import org.kodein.di.erasedSet
 import org.w3c.dom.HTMLElement
 

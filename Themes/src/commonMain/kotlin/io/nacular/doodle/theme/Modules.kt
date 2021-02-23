@@ -4,15 +4,15 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.theme.Modules.BehaviorResult.Matched
 import io.nacular.doodle.theme.Modules.BehaviorResult.NotMatched
 import io.nacular.doodle.theme.adhoc.DynamicTheme
-import org.kodein.di.DKodein
-import org.kodein.di.Kodein.Builder
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.inSet
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.setBinding
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI.Builder
+import org.kodein.di.DI.Module
+import org.kodein.di.bind
+import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.erasedSet
+import org.kodein.di.inSet
+import org.kodein.di.instance
+import org.kodein.di.setBinding
+import org.kodein.di.singleton
 import kotlin.reflect.KClass
 
 /**
@@ -41,13 +41,13 @@ public class Modules {
             bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
         }
 
-        public inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> Unit): Unit = bindConditionalBehavior<T>(theme) {
+        public inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: NoArgBindingDI<*>.(T) -> Unit): Unit = bindConditionalBehavior<T>(theme) {
             block(this, it)
             Matched
         }
 
         // TODO: Can this be renamed to bindBehavior in 1.4?
-        public inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: DKodein.(T) -> BehaviorResult) {
+        public inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: NoArgBindingDI<*>.(T) -> BehaviorResult) {
             importOnce(DynamicThemeModule, allowOverride = true)
 
             bind<BehaviorResolver>().inSet() with singleton {

@@ -44,12 +44,12 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import kotlinx.browser.document
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.provider
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI.Module
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import org.kodein.di.provider
+import org.kodein.di.singleton
 import org.w3c.dom.HTMLElement
 
 public class Modules {

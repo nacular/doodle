@@ -1,10 +1,12 @@
 package io.nacular.doodle.drawing
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 
+@Internal
 public interface GraphicsSurface {
     public var position           : Point
     public var size               : Size

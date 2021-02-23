@@ -62,15 +62,15 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
-import org.kodein.di.DKodein
-import org.kodein.di.Kodein
-import org.kodein.di.Kodein.Module
-import org.kodein.di.erased.bind
-import org.kodein.di.erased.instance
-import org.kodein.di.erased.instanceOrNull
-import org.kodein.di.erased.provider
-import org.kodein.di.erased.singleton
+import org.kodein.di.DI
+import org.kodein.di.DI.Module
+import org.kodein.di.DirectDI
+import org.kodein.di.bind
 import org.kodein.di.erasedSet
+import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import org.kodein.di.provider
+import org.kodein.di.singleton
 
 /**
  * Created by Nicholas Eddy on 2/12/18.
@@ -80,7 +80,7 @@ private typealias SpinnerModel<T>     = io.nacular.doodle.controls.spinner.Model
 private typealias MutableTreeModel<T> = io.nacular.doodle.controls.tree.MutableTreeModel<T>
 private typealias BTheme              = BasicTheme
 
-private typealias TabContainerFactory<T> = DKodein.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
+private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
 
 @Suppress("UNCHECKED_CAST")
@@ -119,7 +119,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
     }
 
     public companion object {
-        public fun basicThemeModule(name: String, init: Kodein.Builder.() -> Unit): Module = Module(name = name) {
+        public fun basicThemeModule(name: String, init: DI.Builder.() -> Unit): Module = Module(name = name) {
             importOnce(Config, allowOverride = true)
 
             init()

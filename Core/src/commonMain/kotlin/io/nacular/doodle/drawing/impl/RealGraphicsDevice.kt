@@ -6,12 +6,12 @@ import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
 
 @Internal
-public class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFactory<GraphicsSurface>): GraphicsDevice<GraphicsSurface> {
+public class RealGraphicsDevice<T: GraphicsSurface>(private val surfaceFactory: GraphicsSurfaceFactory<T>): GraphicsDevice<T> {
 
-    private val viewSurfaceMap = mutableMapOf<View, GraphicsSurface>()
-    private val surfaceViewMap = mutableMapOf<GraphicsSurface, View>()
+    private val viewSurfaceMap = mutableMapOf<View, T>()
+    private val surfaceViewMap = mutableMapOf<T, View>()
 
-    override operator fun get(view: View): GraphicsSurface = viewSurfaceMap.getOrPut(view) {
+    override operator fun get(view: View): T = viewSurfaceMap.getOrPut(view) {
         val surface = surfaceFactory(view.parent?.let { this[it] }, view).apply { zOrder = view.zOrder }
 
         surfaceViewMap[surface] = view
@@ -19,7 +19,7 @@ public class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFacto
         surface
     }
 
-    override fun create(view: View): GraphicsSurface = viewSurfaceMap.getOrPut(view) {
+    override fun create(view: View): T = viewSurfaceMap.getOrPut(view) {
         val surface = surfaceFactory(null, view, addToRootIfNoParent = false).apply { zOrder = view.zOrder }
 
         surfaceViewMap[surface] = view
@@ -27,7 +27,7 @@ public class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFacto
         surface
     }
 
-    override fun create(): GraphicsSurface = surfaceFactory().apply { index = 0 }
+    override fun create(): T = surfaceFactory().apply { index = 0 }
 
     override fun release(view: View) {
         viewSurfaceMap[view]?.let {
@@ -39,7 +39,7 @@ public class RealGraphicsDevice(private val surfaceFactory: GraphicsSurfaceFacto
         view.children_.forEach { release(it) }
     }
 
-    override fun release(surface: GraphicsSurface) {
+    override fun release(surface: T) {
         surfaceViewMap[surface]?.let { release(it) }
     }
 }
