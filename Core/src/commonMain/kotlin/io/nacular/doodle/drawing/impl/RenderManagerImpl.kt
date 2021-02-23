@@ -53,8 +53,7 @@ public class RenderManagerImpl(
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     init {
-        display.children.changed += { _,removed,added,moved ->
-
+        display.childrenChanged += { _,removed,added,moved ->
             removed.values.forEach { childRemoved(null, it) }
             added.values.forEach   { childAdded  (null, it) }
 

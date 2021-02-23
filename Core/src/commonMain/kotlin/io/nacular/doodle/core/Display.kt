@@ -49,6 +49,11 @@ public interface Display: Iterable<View> {
     /** The list of top-level items added to the Display */
     public val children: ObservableList<View>
 
+    /**
+     * Notifies changes to [children]
+     */
+    public val childrenChanged: Pool<ChildObserver<Display>>
+
     /** Fires when the display cursor changes */
     public val cursorChanged: PropertyObservers<Display, Cursor?>
 

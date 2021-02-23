@@ -4,6 +4,7 @@ import io.mockk.MockKMatcherScope
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
@@ -67,6 +68,7 @@ class ThemeTests {
         override var contentDirection        = ContentDirection.LeftRight
         override var mirrorWhenRightLeft     = true
         override val mirroringChanged        = mockk<Pool<ChangeObserver<Display>>>()
+        override val childrenChanged         = mockk<Pool<ChildObserver<Display>>>()
 
         override fun toAbsolute(point: Point) = point
 

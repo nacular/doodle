@@ -10,6 +10,7 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
@@ -28,8 +29,8 @@ import io.nacular.doodle.theme.InternalThemeManager
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
+import io.nacular.doodle.utils.SetPool
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
@@ -89,15 +90,15 @@ class RenderManagerImplTests {
 
         val display = display(view())
 
-        val slot = slot<ListObserver<ObservableList<View>, View>>()
+        val slot = slot<ListObserver<Display, View>>()
 
-        every { display.children.changed.plusAssign(capture(slot)) } just Runs
+        every { display.childrenChanged.plusAssign(capture(slot)) } just Runs
 
         renderManager(display)
 
         verify(exactly = 0) { display.relayout() }
 
-        slot.captured(display.children, emptyMap(), mapOf(1 to view()), emptyMap())
+        slot.captured(display, emptyMap(), mapOf(1 to view()), emptyMap())
 
         verify(exactly = 1) { display.relayout() }
     }
@@ -966,14 +967,21 @@ class RenderManagerImplTests {
 
         displayChildren.addAll(children)
 
+        val observers = SetPool<ChildObserver<Display>>()
+
+        displayChildren.changed += { _, removed, added, moved ->
+            observers.forEach { it(this, removed, added, moved) }
+        }
+
         val view = slot<View>()
 
-        every { this@apply.size       } returns Size(100, 100)
-        every { this@apply.children   } returns displayChildren
-        every { this@apply.iterator() } answers { displayChildren.iterator() }
+        every { this@apply.size            } returns Size(100, 100)
+        every { this@apply.children        } returns displayChildren
+        every { this@apply.iterator()      } answers { displayChildren.iterator() }
+        every { this@apply.childrenChanged } returns observers
 
         // FIXME: compiler fails to build w/o hint
-        every { sizeChanged as Pool<PropertyObserver<Display, Size>> } returns mockk()
+        every { sizeChanged } returns mockk()
         every { this@apply.ancestorOf(capture(view)) } answers {
             var result = false
 

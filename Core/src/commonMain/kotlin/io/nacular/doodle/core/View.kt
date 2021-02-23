@@ -61,8 +61,6 @@ private typealias BooleanObservers = PropertyObservers<View, Boolean>
 
 private typealias ZOrderObservers = PropertyObservers<View, Int>
 
-internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) -> Unit
-
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
  * User input events are sent to all Views that are configured to receive them. This allows them to response to user interaction or convey such events to
@@ -74,7 +72,7 @@ internal typealias ChildObserver = (source: View, removed: Map<Int, View>, added
  * @property accessibilityRole indicates the View's role for screen readers
  */
 public abstract class View protected constructor(public val accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
-    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver> = mutableSetOf()): SetPool<ChildObserver>(mutableSet) {
+    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
 
@@ -492,7 +490,7 @@ public abstract class View protected constructor(public val accessibilityRole: A
     }
 
     /** Notifies changes to [children] */
-    protected val childrenChanged: Pool<ChildObserver> by lazy { ChildObserversImpl() }
+    protected val childrenChanged: Pool<ChildObserver<View>> by lazy { ChildObserversImpl() }
 
     /**
      * Tells whether this View is an ancestor of the given View.  A View is not considered an ancestor of itself.

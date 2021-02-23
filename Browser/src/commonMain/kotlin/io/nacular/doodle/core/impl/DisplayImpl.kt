@@ -2,6 +2,7 @@ package io.nacular.doodle.core.impl
 
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.clear
+import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
@@ -45,6 +46,7 @@ import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.properties.Delegates.observable
 
@@ -58,12 +60,20 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     }
 
     override val children by lazy { ObservableList<View>().apply {
-        changed += { _,_,added,_ ->
+        changed += { _, removed, added, moved ->
             added.forEach { item ->
                 filterIndexed { index, view -> index != item.key && view == item.value }.forEach { remove(it) }
             }
+
+            (childrenChanged as ChildObserversImpl).invoke(removed, added, moved)
         }
     } }
+
+    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<Display>> = mutableSetOf()): SetPool<ChildObserver<Display>>(mutableSet) {
+        operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@DisplayImpl, removed, added, moved) }
+    }
+
+    override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }
 
     override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
