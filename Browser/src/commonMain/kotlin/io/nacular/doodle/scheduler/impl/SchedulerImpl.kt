@@ -99,7 +99,7 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(window, job) else SimpleTask(window, timer, time, job)
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(window, timer, time, job)
 
-    override fun shutdown() {
+    fun shutdown() {
         shutdown = true
     }
 }

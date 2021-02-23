@@ -41,9 +41,6 @@ public sealed class GradientPaint(public val colors: List<Stop>): Paint() {
  * @param end of the line along which the gradient flows
  */
 public class LinearGradientPaint(colors: List<GradientPaint.Stop>, public val start: Point, public val end: Point): GradientPaint(colors) {
-    @Deprecated("Use Gradient.Stop instead", replaceWith = ReplaceWith("GradientPaint.Stop"))
-    public class Stop(public val color: Color, public val offset: Float)
-
     /**
      * Creates a fill with a gradient between the given colors.
      *
@@ -56,16 +53,7 @@ public class LinearGradientPaint(colors: List<GradientPaint.Stop>, public val st
 
     /** `true` IFF super visible and start != end */
     override val visible: Boolean = super.visible && start != end
-
-    public companion object {
-        @Deprecated("Use new constructor")
-        public operator fun invoke(colors: List<Stop>, start: Point, end: Point): LinearGradientPaint =
-                LinearGradientPaint(colors.map { GradientPaint.Stop(it.color, it.offset) }, start, end)
-    }
 }
-
-@Deprecated("Use LinearGradientPaint instead", replaceWith = ReplaceWith("LinearGradientPaint"))
-public typealias LinearGradientFill = LinearGradientPaint
 
 /**
  * A radial gradient [Paint] that transitions between a list of [Stop]s.

@@ -31,13 +31,3 @@ public interface PointerMotionListener {
         }
     }
 }
-
-@Deprecated(message = "Migrate to companion version instead.", replaceWith = ReplaceWith("PointerMotionListener.Companion.moved"))
-public inline fun moved(crossinline block: (event: PointerEvent) -> Unit): PointerMotionListener = object: PointerMotionListener {
-    override fun moved(event: PointerEvent) = block(event)
-}
-
-@Deprecated(message = "Migrate to companion version instead.", replaceWith = ReplaceWith("PointerMotionListener.Companion.dragged"))
-public inline fun dragged(crossinline block: (event: PointerEvent) -> Unit): PointerMotionListener = object: PointerMotionListener {
-    override fun dragged(event: PointerEvent) = block(event)
-}

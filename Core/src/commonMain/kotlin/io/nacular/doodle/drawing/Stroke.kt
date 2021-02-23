@@ -44,18 +44,5 @@ public class Stroke(
         ): Stroke = Stroke(ColorPaint(color), thickness, doubleArrayOf(dash) + remainingDashes, dashOffset)
 
         public operator fun invoke(color: Color, thickness: Double = 1.0): Stroke = Stroke(ColorPaint(color), thickness, null)
-
-        @Deprecated("Use new constructor", replaceWith = ReplaceWith("Stroke(ColorFill(color), thickness, dashes"))
-        public operator fun invoke(
-                color     : Color,
-                thickness : Double = 1.0,
-                dashes    : IntArray?): Stroke = Stroke(ColorPaint(color), thickness, dashes?.map { it.toDouble() }?.toDoubleArray())
-
-        @Deprecated("Use new constructor", replaceWith = ReplaceWith("Stroke(ColorFill(color), thickness, dash, remainingDashes"))
-        public operator fun invoke(
-                color     : Color,
-                thickness : Double = 1.0,
-                dash      : Int,
-                vararg remainingDashes: Int): Stroke = Stroke(ColorPaint(color), thickness, doubleArrayOf(dash.toDouble()) + remainingDashes.map { it.toDouble() }.toDoubleArray())
     }
 }

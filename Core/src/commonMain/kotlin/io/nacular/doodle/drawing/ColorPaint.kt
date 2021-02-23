@@ -25,9 +25,6 @@ public class ColorPaint(public val color: Color): Paint() {
     override fun hashCode(): Int = color.hashCode()
 }
 
-@Deprecated("Use ColorPaint instead", replaceWith = ReplaceWith("ColorPaint"))
-public typealias ColorFill = ColorPaint
-
 /**
  * Creates a new [ColorPaint] from the given [Color].
  */

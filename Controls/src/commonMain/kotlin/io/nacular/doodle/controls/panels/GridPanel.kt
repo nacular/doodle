@@ -23,8 +23,7 @@ public interface SizingPolicy {
 
 public typealias SpacingPolicy = (panelSize: Double) -> Double
 
-@Deprecated(message = "Use constant instead", replaceWith = ReplaceWith("GridPanel.Companion.FitContent"))
-public class FitContent: SizingPolicy {
+private class FitContent: SizingPolicy {
     override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
         var size = 0.0
 
@@ -36,8 +35,7 @@ public class FitContent: SizingPolicy {
     }
 }
 
-@Deprecated(message = "Use constant instead", replaceWith = ReplaceWith("GridPanel.Companion.FitPanel"))
-public class FitPanel: SizingPolicy {
+private class FitPanel: SizingPolicy {
     override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues {
         max(0.0, (panelSize - spacing * (views.size - 1)) / views.size)
     }

@@ -31,19 +31,6 @@ public class PatternPaint(public val bounds: Rectangle, public val transform: Af
     }
 }
 
-@Deprecated("Use PatternPaint instead", replaceWith = ReplaceWith("PatternPaint"))
-public typealias PatternFill = PatternPaint
-
-/**
- * Creates a [PatternFill] that draws an alternating horizontal striped pattern.
- *
- * @param stripeWidth of the alternating rows
- * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
- * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
- */
-@Deprecated("Use stripedPaint instead", replaceWith = ReplaceWith("stripedPaint"))
-public inline fun stripedFill(stripeWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null, transform: AffineTransform = Identity): PatternPaint = stripedPaint(stripeWidth, evenRowColor, oddRowColor, transform)
-
 /**
  * Creates a [PatternPaint] that draws an alternating horizontal striped pattern.
  *
@@ -66,17 +53,7 @@ public fun stripedPaint(stripeWidth : Double,
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-@Deprecated("Use horizontalStripedPaint instead", replaceWith = ReplaceWith("horizontalStripedPaint"))
-public inline fun horizontalStripedFill(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
-
-/**
- * Creates a [PatternPaint] that draws an alternating horizontal striped pattern.
- *
- * @param rowHeight of the alternating rows
- * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
- * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
- */
-public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedFill(
+public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedPaint(
         rowHeight, evenRowColor, oddRowColor
 )
 
@@ -87,29 +64,9 @@ public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-@Deprecated("Use verticalStripedPaint instead", replaceWith = ReplaceWith("verticalStripedPaint"))
-public inline fun verticalStripedFill(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = verticalStripedPaint(colWidth, evenRowColor, oddRowColor)
-
-/**
- * Creates a [PatternPaint] that draws an alternating vertical striped pattern.
- *
- * @param colWidth of the alternating columns
- * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
- * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
- */
-public fun verticalStripedPaint(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedFill(
+public fun verticalStripedPaint(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedPaint(
         colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees)
 )
-
-/**
- * Creates a [PatternFill] that draws a checkered pattern.
- *
- * @param checkerSize of each rectangle in the checker pattern
- * @param firstColor of the first rectangle, left-to-right
- * @param secondColor of the second rectangle, left-to-right
- */
-@Deprecated("Use checkerPaint instead", replaceWith = ReplaceWith("checkerPaint"))
-public inline fun checkerFill(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null): PatternPaint = checkerPaint(checkerSize, firstColor, secondColor)
 
 /**
  * Creates a [PatternPaint] that draws a checkered pattern.

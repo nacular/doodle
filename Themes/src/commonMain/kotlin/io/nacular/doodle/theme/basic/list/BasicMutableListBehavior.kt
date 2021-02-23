@@ -12,7 +12,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.PatternPaint
-import io.nacular.doodle.drawing.horizontalStripedFill
+import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText
@@ -68,7 +68,7 @@ public open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null
                     focusManager,
                     generator,
                     when {
-                        evenRowColor != null || oddRowColor != null -> horizontalStripedFill(rowHeight, evenRowColor, oddRowColor)
+                        evenRowColor != null || oddRowColor != null -> horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
                         else                                        -> null
                     },
                     rowHeight)

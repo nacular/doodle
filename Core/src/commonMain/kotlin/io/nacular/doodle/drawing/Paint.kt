@@ -13,6 +13,3 @@ public abstract class Paint internal constructor() {
      */
     public abstract val visible: Boolean
 }
-
-@Deprecated("Use Paint instead", replaceWith = ReplaceWith("Paint"))
-public typealias Fill = Paint

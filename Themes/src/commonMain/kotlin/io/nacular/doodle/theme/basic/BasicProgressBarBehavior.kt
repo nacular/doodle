@@ -59,21 +59,4 @@ public class BasicProgressBarBehavior(
             }
         }
     }
-
-    public companion object {
-        @Deprecated("Use new constructor instead")
-        public operator fun invoke(
-                background      : Paint?,
-                foreground      : Paint?,
-                outlineColor    : Color? = null,
-                cornerRadius    : Double = 0.0,
-                outlineThickness: Double = 1.0): BasicProgressBarBehavior =
-                BasicProgressBarBehavior(
-                        background       = background,
-                        foreground       = foreground,
-                        outlineColor     = outlineColor,
-                        backgroundRadius = cornerRadius,
-                        foregroundRadius = 0.0,
-                        outlineThickness = outlineThickness)
-    }
 }

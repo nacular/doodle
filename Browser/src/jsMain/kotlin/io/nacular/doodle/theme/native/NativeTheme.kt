@@ -32,10 +32,10 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
+import org.kodein.di.erasedSet
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 import org.kodein.di.singleton
-import org.kodein.di.erasedSet
 import org.w3c.dom.HTMLElement
 
 
@@ -69,9 +69,6 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
         }
 
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeButtonBehavior()"))
-        public val NativeButtonBehavior: Module = nativeButtonBehavior()
-
         public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -79,9 +76,6 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
 
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), it) }
         }
-
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeScrollPanelBehavior()"))
-        public val NativeScrollPanelBehavior: Module = nativeScrollPanelBehavior()
 
         public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
@@ -91,9 +85,6 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it) }
         }
 
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeSliderBehavior()"))
-        public val NativeSliderBehavior: Module = nativeSliderBehavior()
-
         public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -102,9 +93,6 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
 
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeTextFieldBehavior()"))
-        public val NativeTextFieldBehavior: Module = nativeTextFieldBehavior()
-
         public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -112,9 +100,6 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }
-
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeHyperLinkBehavior()"))
-        public val NativeHyperLinkBehavior: Module = nativeHyperLinkBehavior()
 
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
@@ -125,26 +110,17 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
         }
 
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeCheckBoxBehavior()"))
-        public val NativeCheckBoxBehavior: Module = nativeCheckBoxBehavior()
-
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
             bindBehavior<CheckBox>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), it) as Behavior<Button> }
         }
 
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeRadioButtonBehavior()"))
-        public val NativeRadioButtonBehavior: Module = nativeRadioButtonBehavior()
-
         public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
             bindBehavior<RadioButton>(NTheme::class) { it.behavior = NativeRadioButtonBehavior(instance(), instance(), it) as Behavior<Button> }
         }
-
-        @Deprecated(message = "Use method call instead", replaceWith = ReplaceWith("nativeSwitchBehavior()"))
-        public val NativeSwitchBehavior: Module = nativeSwitchBehavior()
 
         public fun nativeSwitchBehavior(): Module = Module(name = "NativeSwitchBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)

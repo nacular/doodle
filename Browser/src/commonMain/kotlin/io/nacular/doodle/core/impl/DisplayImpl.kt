@@ -31,7 +31,7 @@ import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.ImageFill
+import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
@@ -149,17 +149,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         onResize()
 
-//        isFocusCycleRoot = true
-
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)
     }
-
-//    var focusTraversalPolicy: FocusTraversalPolicy
-//        get() = ROOT_CONTAINER.getFocusTraversalPolicy()
-//        set(aPolicy) {
-//            ROOT_CONTAINER.setFocusTraversalPolicy(aPolicy)
-//        }
 
     override fun fill(fill: Paint) {
         when (fill) {
@@ -168,7 +160,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
                 rootElement.style.setBackgroundColor(fill.color)
             }
-            is ImageFill  -> {
+            is ImagePaint  -> {
                 when (fill.opacity) {
                     1.0f -> {
                         canvasElement.parentNode?.removeChild(canvasElement)

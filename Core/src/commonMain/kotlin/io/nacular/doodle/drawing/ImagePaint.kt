@@ -21,6 +21,3 @@ import io.nacular.doodle.image.Image
 public class ImagePaint(public val image: Image, public val size: Size = image.size, public val opacity: Float = 1f): Paint() {
     public override val visible: Boolean = opacity > 0 && !size.empty && !image.size.empty
 }
-
-@Deprecated("Use ImagePaint instead", replaceWith = ReplaceWith("ImagePaint"))
-public typealias ImageFill = ImagePaint

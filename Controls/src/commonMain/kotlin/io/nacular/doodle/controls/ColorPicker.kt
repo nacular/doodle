@@ -13,7 +13,7 @@ import io.nacular.doodle.drawing.GradientPaint.Stop
 import io.nacular.doodle.drawing.HsvColor
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.Stroke
-import io.nacular.doodle.drawing.checkerFill
+import io.nacular.doodle.drawing.checkerPaint
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.toRgb
 import io.nacular.doodle.event.PointerEvent
@@ -264,7 +264,7 @@ public class ColorPicker(color: Color): View() {
     }
 
     private class OpacityStrip(color: Color): Strip(color.opacity) {
-        private val checkerFill = checkerFill(Size(32.0 / 2, 15.0 / 2), White, Lightgray)
+        private val checkerFill = checkerPaint(Size(32.0 / 2, 15.0 / 2), White, Lightgray)
 
         private lateinit var fill: LinearGradientPaint
 
@@ -323,7 +323,7 @@ public class ColorPicker(color: Color): View() {
         override fun render(canvas: Canvas) {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
                 if (backgroundColor?.opacity ?: 0f < 1f) {
-                    canvas.rect(bounds.atOrigin, 3.0, checkerFill(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
+                    canvas.rect(bounds.atOrigin, 3.0, checkerPaint(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
                 }
 
                 backgroundColor?.let {

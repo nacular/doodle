@@ -21,9 +21,6 @@ public interface Scheduler {
 
     public suspend fun delay     (time     :  Measure<Time>)
     public suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean)
-
-    @Deprecated(message = "This is an internal API that should not be called")
-    public fun shutdown()
 }
 
 public interface AnimationScheduler {

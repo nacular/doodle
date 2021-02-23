@@ -415,13 +415,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        @Deprecated("Use new version")
-        public inline fun basicProgressBarBehavior(
-                background  : Paint?  = null,
-                foreground  : Paint?  = null,
-                outlineColor: Color?  = null,
-                cornerRadius: Double): Module = basicProgressBarBehavior(background, foreground, outlineColor, backgroundRadius = cornerRadius)
-
         public fun basicProgressBarBehavior(
                 background      : Paint?  = null,
                 foreground      : Paint?  = null,
