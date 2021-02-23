@@ -14,12 +14,12 @@ fun KotlinMultiplatformExtension.jsTargets() {
 
         compilations.all {
             kotlinOptions {
-                moduleKind = "umd"
                 sourceMap  = !releaseBuild
-                if (sourceMap) {
-                    sourceMapEmbedSources = "always"
-                }
-                freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+//                if (sourceMap) {
+//                    sourceMapEmbedSources = "always"
+//                }
+                moduleKind       = "umd"
+                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
         browser {
@@ -34,8 +34,8 @@ fun KotlinMultiplatformExtension.jvmTargets() {
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
-                freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+                jvmTarget        = "1.8"
+                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
     }

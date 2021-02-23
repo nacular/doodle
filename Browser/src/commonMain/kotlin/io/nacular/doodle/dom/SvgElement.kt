@@ -54,9 +54,6 @@ internal inline fun SVGRadialGradientElement.setEnd(value: Point ) {
     setAttribute("cy", "${value.y}")
 }
 
-//internal inline fun SVGRadialGradientElement.setY1(value: Double) = setAttribute("y1", "$value")
-//internal inline fun SVGRadialGradientElement.setY2(value: Double) = setAttribute("y2", "$value")
-
 internal inline fun SVGEllipseElement.setRX     (value: Double ) = setAttribute("rx", "$value")
 internal inline fun SVGEllipseElement.setRY     (value: Double ) = setAttribute("ry", "$value")
 internal inline fun SVGEllipseElement.setCX     (value: Double ) = setAttribute("cx", "$value")
@@ -73,15 +70,13 @@ internal inline fun SVGCircleElement.setCY    (value: Double) = setAttribute  ("
 internal inline fun SVGCircleElement.setR     (value: Double) = setAttribute  ("r",  "$value")
 internal inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
 
-internal inline fun SVGElement.setPathData        (value: String      ) = setAttribute  ("d",                   value           )
-internal inline fun SVGElement.setStrokeWidth     (value: Double      ) = setAttribute  ("stroke-width",      "$value"          )
-internal inline fun SVGElement.setDefaultStrokeWidth() = removeAttribute("stroke-width")
-internal inline fun SVGElement.setStrokeDash      (value: DoubleArray?) = setAttribute  ("stroke-dasharray",    dashArray(value))
-internal inline fun SVGElement.setDefaultStrokeDash() = removeAttribute  ("stroke-dasharray")
-internal inline fun SVGElement.setStrokeDashOffset(value: Double?     ) = setAttribute  ("stroke-dashoffset",   value?.let { "$it" } ?: "")
-internal inline fun SVGElement.setDefaultStrokeDashOffset() = removeAttribute  ("stroke-dashoffset")
-//internal inline fun SVGElement.setClipPath   (clipId: String      ) = setAttribute  ("clip-path",        "url(#$clipId)")
-//internal inline fun SVGElement.setXLinkHref  (value : String      ) = setAttributeNS( "http://www.w3.org/1999/xlink", "xlink:href", value )
+internal inline fun SVGElement.setPathData               (value: String      ) = setAttribute   ("d",                   value          )
+internal inline fun SVGElement.setStrokeWidth            (value: Double      ) = setAttribute   ("stroke-width",      "$value"          )
+internal inline fun SVGElement.setDefaultStrokeWidth     (                   ) = removeAttribute("stroke-width"                        )
+internal inline fun SVGElement.setStrokeDash             (value: DoubleArray?) = setAttribute   ("stroke-dasharray",   dashArray(value))
+internal inline fun SVGElement.setDefaultStrokeDash      (                   ) = removeAttribute("stroke-dasharray"                    )
+internal inline fun SVGElement.setStrokeDashOffset       (value: Double?     ) = setAttribute   ("stroke-dashoffset",  value?.let { "$it" } ?: "")
+internal inline fun SVGElement.setDefaultStrokeDashOffset(                   ) = removeAttribute("stroke-dashoffset"                    )
 
 internal inline fun SVGGeometryElement.setPoints(vararg points: Point) = setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
 

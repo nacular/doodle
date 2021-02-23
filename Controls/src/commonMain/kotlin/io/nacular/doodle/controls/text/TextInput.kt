@@ -43,16 +43,6 @@ public abstract class TextInput(text: String = ""): View() {
         private set
 
     init {
-//        setDataTransporter(object : TextTransporter() {
-//            protected fun getText(view: View): String? {
-//                return this@TextInput.text
-//            }
-//
-//            protected fun setText(view: View, aText: String) {
-//                this@TextInput.text = aText
-//            }
-//        })
-
         mirrorWhenRightLeft = false
     }
 

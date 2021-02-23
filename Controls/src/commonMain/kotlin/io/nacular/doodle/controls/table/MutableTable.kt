@@ -193,24 +193,4 @@ public class MutableTable<T, M: MutableListModel<T>>(
     public fun cancelEditing() {
         editingColumn?.view?.cancelEditing()
     }
-
-    public companion object {
-//        operator fun invoke(
-//                strand        : Strand,
-//                progression   : IntProgression,
-//                itemGenerator : ItemGenerator<Int>,
-//                selectionModel: SelectionModel<Int>? = null,
-//                fitContent    : Boolean              = true,
-//                scrollCache   : Int                  = 10) =
-//                MutableTable(strand, progression.toMutableList(), itemGenerator, selectionModel, fitContent, scrollCache)
-//
-//        operator fun <T> invoke(
-//                strand        : Strand,
-//                values        : kotlin.collections.List<T>,
-//                itemGenerator : ItemGenerator<T>,
-//                selectionModel: SelectionModel<Int>? = null,
-//                fitContent    : Boolean              = true,
-//                scrollCache   : Int                  = 10): MutableList<T, SimpleMutableListModel<T>> =
-//                MutableTable(strand, SimpleMutableListModel(values.toMutableList()), itemGenerator, selectionModel, fitContent, scrollCache)
-    }
 }

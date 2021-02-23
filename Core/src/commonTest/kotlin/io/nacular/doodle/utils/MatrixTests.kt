@@ -61,41 +61,41 @@ class MatrixTests {
               this[ 1.0,  0.0,  0.0]]) to false,
 
             s(this[
-              this[ 1 ]]) to true,
+              this[ 1.0 ]]) to true,
 
             s(this[
-              this[ 1,  0,  0],
-              this[ 0,  1,  0],
-              this[ 0,  0,  1]]) to true,
+              this[ 1.0,  0.0,  0.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 0.0,  0.0,  1.0]]) to true,
 
             s(this[
-              this[ 2,  0,  0],
-              this[ 0,  2,  0],
-              this[ 0,  0,  1]]) to false,
+              this[ 2.0,  0.0,  0.0],
+              this[ 0.0,  2.0,  0.0],
+              this[ 0.0,  0.0,  1.0]]) to false,
 
             s(this[
-              this[-1,  0,  0],
-              this[ 0, -1,  0],
-              this[ 0,  0, -1]]) to false,
+              this[-1.0,  0.0,  0.0],
+              this[ 0.0, -1.0,  0.0],
+              this[ 0.0,  0.0, -1.0]]) to false,
 
             s(this[
-              this[ 0,  0,  1],
-              this[ 0,  1,  0],
-              this[ 1,  0,  0]]) to false,
+              this[ 0.0,  0.0,  1.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 1.0,  0.0,  0.0]]) to false,
 
             s(this[
-              this[ 1, -1,  1],
-              this[ 0,  1,  0],
-              this[ 0,  0,  1]]) to false,
+              this[ 1.0, -1.0,  1.0],
+              this[ 0.0,  1.0,  0.0],
+              this[ 0.0,  0.0,  1.0]]) to false,
 
             s(this[
-              this[ 1,  0],
-              this[ 0,  1]]) to true,
+              this[ 1.0,  0.0],
+              this[ 0.0,  1.0]]) to true,
 
             s(this[
-              this[ 1,  0,   0],
-              this[ 1,  0.1, 0],
-              this[ 1,  0,   0]]) to false
+              this[ 1.0,  0.0, 0.0],
+              this[ 1.0,  0.1, 0.0],
+              this[ 1.0,  0.0, 0.0]]) to false
         ).forEach {
             expect(it.second, "\n${it.first} \nis identity") { it.first.isIdentity }
         }
@@ -136,8 +136,8 @@ class MatrixTests {
               this[1.0, 1.0, 1.0]]) to null,
 
             s(this[
-              this[1, 1],
-              this[1, 1]]) to null
+              this[1.0, 1.0],
+              this[1.0, 1.0]]) to null
         ).forEach {
             expect(it.second, "\n${it.first} \ninverse") { it.first.inverse }
         }
@@ -214,7 +214,7 @@ class MatrixTests {
     }
 
     @Test @JsName("emptyThrows") fun `empty throws`() {
-        assertFailsWith(IllegalArgumentException::class) { m(listOf()) }
+        assertFailsWith(IllegalArgumentException::class) { m(listOf<List<Double>>()) }
     }
 
     @Test @JsName("equalsWorks") fun `equals works`() {
