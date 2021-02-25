@@ -59,9 +59,7 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
-    internal inner class TableLikeBehaviorWrapper: TableLikeBehavior<TableLikeWrapper> {
-        val delegate get() = this@Table.behavior
-
+    internal inner class TableLikeBehaviorWrapper(val delegate: TableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
         override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
             behavior?.columnMoveStart(table.delegate, internalColumn)
         }
@@ -85,7 +83,7 @@ public open class Table<T, M: ListModel<T>>(
             preferredWidth : Double?                   = null,
             minWidth       : Double                    = 0.0,
             maxWidth       : Double?                   = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
@@ -110,7 +108,7 @@ public open class Table<T, M: ListModel<T>>(
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
                         override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: ItemVisualizer<R, IndexedIem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedIem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
+                            override fun invoke(item: R, previous: View?, context: IndexedIem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<R> {
                                 override val column         = this@InternalListColumn
                                 override val index          = index
                                 override val selected get() = context.selected
@@ -146,54 +144,57 @@ public open class Table<T, M: ListModel<T>>(
             doLayout()
         }
 
-    public var behavior: TableBehavior<T>? by behavior { old, new ->
-        new?.also { behavior ->
-            this.block?.let {
-                factory.apply(it)
+    public var behavior: TableBehavior<T>? by behavior(
+        beforeChange = { _, new ->
+            new?.also { behavior ->
+                this.block?.let {
+                    factory.apply(it)
 
-                // Last, unusable column
-                internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
+                    // Last, unusable column
+                    internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                children += listOf(header, panel)
+                    children += listOf(header, panel)
 
-                this.block = null
+                    this.block = null
+                }
             }
-
-            (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
-                it.behavior(TableLikeBehaviorWrapper())
-            }
-
-            behavior.install(this)
-
-            header.children.batch {
-                clear()
-
-                headerItemsToColumns.clear()
-
-                addAll(internalColumns.dropLast(1).map { column ->
-                    behavior.headerCellGenerator(this@Table, column).also {
-                        headerItemsToColumns[it] = column
-                    }
-                })
-            }
-
-            behavior.headerPositioner.invoke(this@Table).apply {
-                header.height = height
-            }
-
-            layout = constrain(header, panel) { header, panel ->
-                behavior.headerPositioner.invoke(this@Table).apply {
-                    header.top    = header.parent.top + y
-                    header.height = constant(height)
+        },
+        afterChange = { _, new ->
+            new?.also { behavior ->
+                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                    it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
-                panel.top    = header.bottom
-                panel.left   = panel.parent.left
-                panel.right  = panel.parent.right
-                panel.bottom = panel.parent.bottom
+                header.children.batch {
+                    clear()
+
+                    headerItemsToColumns.clear()
+
+                    addAll(internalColumns.dropLast(1).map { column ->
+                        behavior.headerCellGenerator(this@Table, column).also {
+                            headerItemsToColumns[it] = column
+                        }
+                    })
+                }
+
+                behavior.headerPositioner.invoke(this@Table).apply {
+                    header.height = height
+                }
+
+                layout = constrain(header, panel) { header, panel ->
+                    behavior.headerPositioner.invoke(this@Table).apply {
+                        header.top = header.parent.top + y
+                        header.height = constant(height)
+                    }
+
+                    panel.top = header.bottom
+                    panel.left = panel.parent.left
+                    panel.right = panel.parent.right
+                    panel.bottom = panel.parent.bottom
+                }
             }
         }
-    }
+    )
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 

@@ -3,17 +3,14 @@ package io.nacular.doodle.theme.basic.table
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.list.ListLike
+import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderCellGenerator
+import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.AbstractTableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.Column
 import io.nacular.doodle.controls.table.ExpansionObserver
 import io.nacular.doodle.controls.table.HeaderGeometry
 import io.nacular.doodle.controls.table.TreeTable
 import io.nacular.doodle.controls.table.TreeTableBehavior
-import io.nacular.doodle.controls.table.TreeTableBehavior.CellGenerator
-import io.nacular.doodle.controls.table.TreeTableBehavior.HeaderCellGenerator
-import io.nacular.doodle.controls.table.TreeTableBehavior.HeaderPositioner
-import io.nacular.doodle.controls.table.TreeTableBehavior.OverflowColumnConfig
-import io.nacular.doodle.controls.table.TreeTableBehavior.RowPositioner
-import io.nacular.doodle.controls.table.TreeTableBehavior.TreeCellGenerator
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -78,23 +75,19 @@ public open class BasicTreeTableBehavior<T>(
                     oddRowColor          : Color? = Lightgray.lighter().lighter(),
                     iconColor            : Color  = Black,
         private val selectionColor       : Color? = Blue,
-        private val blurredSelectionColor: Color? = Lightgray): TreeTableBehavior<T>, PointerListener, KeyListener, SelectableTreeKeyHandler {
+        private val blurredSelectionColor: Color? = Lightgray): TreeTableBehavior<T>(), PointerListener, KeyListener, SelectableTreeKeyHandler {
 
-    override var headerDirty: ((         ) -> Unit)? = null
-    override var bodyDirty  : ((         ) -> Unit)? = null
-    override var columnDirty: ((Column<*>) -> Unit)? = null
-
-    private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { _,_,_ ->
-        bodyDirty?.invoke()
+    private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { treeTable ,_,_ ->
+        treeTable.bodyDirty()
     }
 
-    private val focusChanged: PropertyObserver<View, Boolean> = { _,_,_ ->
-        bodyDirty?.invoke()
+    private val focusChanged: PropertyObserver<View, Boolean> = { table ,_,_ ->
+        (table as? TreeTable<T, *>)?.bodyDirty()
     }
 
-    private val expansionChanged: ExpansionObserver<T> = { treeTable,_ ->
-        if (treeTable.selection.isNotEmpty()) {
-            bodyDirty?.invoke()
+    private val expansionChanged: ExpansionObserver<T> = { table,_ ->
+        if (table.selection.isNotEmpty()) {
+            table.bodyDirty()
         }
     }
 
@@ -118,7 +111,7 @@ public open class BasicTreeTableBehavior<T>(
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
-    override val headerPositioner: HeaderPositioner<T> = object: HeaderPositioner<T> {
+    override val headerPositioner: HeaderPositioner<TreeTable<T, *>> = object: HeaderPositioner<TreeTable<T, *>> {
         override fun invoke(table: TreeTable<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
     }
 
@@ -126,15 +119,15 @@ public open class BasicTreeTableBehavior<T>(
         private val delegate = ListPositioner(rowHeight)
 
         override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
-        override fun rowFor(of: TreeTable<T, *>, y: Double)                           = delegate.rowFor(of.insets, y)
-        override fun height(of: TreeTable<T, *>, below: Path<Int>)                    = delegate.totalHeight(of.rowsBelow(below), of.insets)
+        override fun rowFor   (of: TreeTable<T, *>, y: Double)                           = delegate.rowFor(of.insets, y)
+        override fun height   (of: TreeTable<T, *>, below: Path<Int>)                    = delegate.totalHeight(of.rowsBelow(below), of.insets)
     }
 
-    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<TreeTable<T, *>> = object: HeaderCellGenerator<TreeTable<T, *>> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
-    override val overflowColumnConfig: OverflowColumnConfig<T> = object: OverflowColumnConfig<T> {
+    override val overflowColumnConfig: OverflowColumnConfig<TreeTable<T, *>> = object: OverflowColumnConfig<TreeTable<T, *>> {
         override fun body(table: TreeTable<T, *>): View? = object: View() {
             init {
                 pointerChanged += object: PointerListener {
@@ -216,8 +209,8 @@ public open class BasicTreeTableBehavior<T>(
         view.pointerChanged   += this
         view.selectionChanged += selectionChanged
 
-        bodyDirty?.invoke  ()
-        headerDirty?.invoke()
+        view.bodyDirty  ()
+        view.headerDirty()
     }
 
     override fun uninstall(view: TreeTable<T, *>) {
@@ -244,7 +237,7 @@ public open class BasicTreeTableBehavior<T>(
 
         movingColumns += column
 
-        columnDirty?.invoke(column)
+        table.columnDirty(column)
     }
 
     override fun <A> columnMoveEnd(table: TreeTable<T, *>, column: Column<A>) {
@@ -254,6 +247,6 @@ public open class BasicTreeTableBehavior<T>(
 
         movingColumns -= column
 
-        columnDirty?.invoke(column)
+        table.columnDirty(column)
     }
 }

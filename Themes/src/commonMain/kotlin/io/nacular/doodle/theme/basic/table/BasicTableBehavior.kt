@@ -6,6 +6,9 @@ import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.list.ListLike
+import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderCellGenerator
+import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.AbstractTableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.Column
 import io.nacular.doodle.controls.table.HeaderGeometry
 import io.nacular.doodle.controls.table.MutableColumn
@@ -105,14 +108,14 @@ public open class BasicTableBehavior<T>(
     }
 
     private val focusChanged: PropertyObserver<View, Boolean> = { table,_,_ ->
-        (table as Table<T, *>).bodyDirty()
+        (table as? Table<T, *>)?.bodyDirty()
     }
 
     private  val patternFill   = horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
     private  val movingColumns = mutableSetOf<Column<*>>()
     override val cellGenerator: BasicCellGenerator<T> = BasicCellGenerator()
 
-    override val headerPositioner: HeaderPositioner<T> = object: HeaderPositioner<T> {
+    override val headerPositioner: HeaderPositioner<Table<T, *>> = object: HeaderPositioner<Table<T, *>> {
         override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
     }
 
@@ -124,11 +127,11 @@ public open class BasicTableBehavior<T>(
         override fun totalRowHeight(of: Table<T, *>)                = delegate.totalHeight(of.numRows, of.insets   )
     }
 
-    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
-    override val overflowColumnConfig: OverflowColumnConfig<T> = object: OverflowColumnConfig<T> {
+    override val overflowColumnConfig: OverflowColumnConfig<Table<T, *>> = object: OverflowColumnConfig<Table<T, *>> {
         override fun body(table: Table<T, *>): View? = object: View() {
             init {
                 pointerChanged += object: PointerListener {
@@ -257,7 +260,7 @@ public open class BasicMutableTableBehavior<T>(
         selectionColor       : Color? = Blue,
         selectionBlurredColor: Color? = Lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
-    override val headerCellGenerator: HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
+    override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
             toggled += {
                 if (table is MutableTable && column is MutableColumn<*,*>) {
@@ -269,8 +272,8 @@ public open class BasicMutableTableBehavior<T>(
 
     override val cellGenerator: BasicCellGenerator<T> = object: BasicCellGenerator<T>() {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
-            if (current !is ListRow<*>) {
-                val result = it as ListRow<*>
+            if (current !is TableListRow<*>) {
+                val result = it as TableListRow<*>
 
                 it.pointerChanged += object: PointerListener {
                     override fun released(event: PointerEvent) {

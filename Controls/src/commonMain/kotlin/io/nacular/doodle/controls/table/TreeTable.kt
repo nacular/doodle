@@ -14,6 +14,7 @@ import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
@@ -204,9 +205,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
         }
     }
 
-    private inner class TableLikeBehaviorWrapper: TableLikeBehavior<TableLikeWrapper> {
-        val delegate get() = this@TreeTable.behavior
-
+    private inner class TableLikeBehaviorWrapper(val delegate: TreeTableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
         override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
             behavior?.columnMoveStart(table.delegate, internalColumn)
         }
@@ -230,7 +229,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
         override val view = Tree(
                 model.map(extractor),
@@ -306,7 +305,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
         /**
          * Returns all rows below the given [[Path]]; even if path is collapsed/invisible
          */
@@ -409,22 +408,10 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
             relayout()
         }
 
-    public var behavior: TreeTableBehavior<T>? = null
-        set(new) {
-            if (new == behavior) { return }
-
-            field?.let {
-                it.bodyDirty   = null
-                it.headerDirty = null
-                it.columnDirty = null
-
-                it.uninstall(this)
-            }
-
-            field = new
-
+    public var behavior: TreeTableBehavior<T>? by behavior(
+        beforeChange = { _, new ->
             new?.also { behavior ->
-                block?.let {
+                this.block?.let {
                     factory.apply(it)
 
                     // Last, unusable column
@@ -432,18 +419,15 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
                     children += listOf(header, panel)
 
-                    block = null
+                    this.block = null
                 }
-
-                behavior.bodyDirty   = bodyDirty
-                behavior.headerDirty = headerDirty
-                behavior.columnDirty = columnDirty
-
+            }
+        },
+        afterChange = { _, new ->
+            new?.also { behavior ->
                 (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
-                    it.behavior(TableLikeBehaviorWrapper())
+                    it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
-
-                behavior.install(this)
 
                 header.children.batch {
                     clear()
@@ -474,6 +458,73 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                 }
             }
         }
+    )
+
+//    public var behavior: TreeTableBehavior<T>? = null
+//        set(new) {
+//            if (new == behavior) { return }
+//
+//            field?.let {
+//                it.bodyDirty   = null
+//                it.headerDirty = null
+//                it.columnDirty = null
+//
+//                it.uninstall(this)
+//            }
+//
+//            field = new
+//
+//            new?.also { behavior ->
+//                block?.let {
+//                    factory.apply(it)
+//
+//                    // Last, unusable column
+//                    internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
+//
+//                    children += listOf(header, panel)
+//
+//                    block = null
+//                }
+//
+//                behavior.bodyDirty   = bodyDirty
+//                behavior.headerDirty = headerDirty
+//                behavior.columnDirty = columnDirty
+//
+//                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+//                    it.behavior(TableLikeBehaviorWrapper())
+//                }
+//
+//                behavior.install(this)
+//
+//                header.children.batch {
+//                    clear()
+//
+//                    headerItemsToColumns.clear()
+//
+//                    addAll(internalColumns.dropLast(1).map { column ->
+//                        behavior.headerCellGenerator(this@TreeTable, column).also {
+//                            headerItemsToColumns[it] = column
+//                        }
+//                    })
+//                }
+//
+//                behavior.headerPositioner.invoke(this@TreeTable).apply {
+//                    header.height = height
+//                }
+//
+//                layout = constrain(header, panel) { header, panel ->
+//                    behavior.headerPositioner.invoke(this@TreeTable).apply {
+//                        header.top    = header.parent.top + y
+//                        header.height = constant(height)
+//                    }
+//
+//                    panel.top    = header.bottom
+//                    panel.left   = panel.parent.left
+//                    panel.right  = panel.parent.right
+//                    panel.bottom = panel.parent.bottom
+//                }
+//            }
+//        }
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
@@ -519,9 +570,9 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
         selectionModel?.let { it.changed += selectionChanged_ }
     }
 
-    private val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
-    private val headerDirty: (         ) -> Unit = { header.rerender        () }
-    private val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*, *, *>)?.view?.rerender() }
+    internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
+    internal val headerDirty: (         ) -> Unit = { header.rerender        () }
+    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*, *, *>)?.view?.rerender() }
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }

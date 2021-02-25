@@ -24,10 +24,10 @@ public interface TableEditor<T> {
 }
 
 public class MutableTable<T, M: MutableListModel<T>>(
-        model         : M,
-        selectionModel: SelectionModel<Int>? = null,
-        scrollCache   : Int                  = 10,
-        block         : MutableColumnFactory<T>.() -> Unit
+                      model         : M,
+                      selectionModel: SelectionModel<Int>? = null,
+        private   val scrollCache   : Int                  = 10,
+                      block         : MutableColumnFactory<T>.() -> Unit
 ): DynamicTable<T, M>(model, selectionModel, scrollCache, {}) {
 
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
@@ -89,7 +89,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
         override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModelWrapper, fitContent = false).apply {
+        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = false).apply {
             acceptsThemes = false
 
             this@MutableInternalListColumn.editor?.let {

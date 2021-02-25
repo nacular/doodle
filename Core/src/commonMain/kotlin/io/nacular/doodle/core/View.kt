@@ -921,9 +921,11 @@ public fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
  *
  * @param beforeChange is called before a change is applied
  */
-public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange)
+public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange, { _,_ -> })
 
-private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit): ReadWriteProperty<T, B?> {
+public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }, afterChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange, afterChange)
+
+private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeChange: (old: B?, new: B?) -> Unit, private val afterChange: (old: B?, new: B?) -> Unit): ReadWriteProperty<T, B?> {
     private var behavior: B? = null
 
     override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
@@ -936,10 +938,14 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
 
         behavior?.uninstall(thisRef)
 
+        val old = behavior
+
         behavior = value?.also { behavior ->
             behavior.install(thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
+
+            afterChange(old, behavior)
         }
     }
 }

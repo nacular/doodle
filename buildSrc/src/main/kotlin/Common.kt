@@ -15,9 +15,9 @@ fun KotlinMultiplatformExtension.jsTargets() {
         compilations.all {
             kotlinOptions {
                 sourceMap  = !releaseBuild
-//                if (sourceMap) {
-//                    sourceMapEmbedSources = "always"
-//                }
+                if (sourceMap) {
+                    sourceMapEmbedSources = "always"
+                }
                 moduleKind       = "umd"
                 freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
