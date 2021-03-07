@@ -6,9 +6,14 @@ import io.nacular.doodle.utils.AffineMatrix3D
 import io.nacular.doodle.utils.matrixOf
 import io.nacular.doodle.utils.times
 import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.acos
 import io.nacular.measured.units.Angle.Companion.cos
+import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
+import kotlin.math.atan
+import kotlin.math.sqrt
 
 /**
  * Represents an [Affine Transformation](https://en.wikipedia.org/wiki/Affine_transformation).
@@ -269,5 +274,24 @@ public class AffineTransform private constructor(private val matrix: AffineMatri
          * ```
          */
         public val Identity: AffineTransform = AffineTransform()
+    }
+}
+
+/**
+ * Return the angle this transform would apply.
+ *
+ * NOTE: This is a computed value requires square roots and
+ * trigonometric functions.
+ *
+ * @return the angle
+ */
+public fun AffineTransform.computeAngle(): Measure<Angle> {
+    val sign  = atan(-shearX / scaleX)
+    val angle = acos(scaleX / sqrt((scaleX * scaleX) + (shearX * shearX)))
+
+    return when {
+        angle > 90 * degrees && sign > 0 -> 360 * degrees - angle
+        angle < 90 * degrees && sign < 0 -> 360 * degrees - angle
+        else                                   -> angle
     }
 }

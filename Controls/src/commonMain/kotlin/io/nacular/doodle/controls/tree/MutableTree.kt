@@ -6,6 +6,7 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.Path
 
 /**
@@ -16,7 +17,10 @@ public interface TreeEditor<T> {
     public fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T>
 }
 
-public class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedIem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): DynamicTree<T, M>(model, itemVisualizer, selectionModel) {
+public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
+                                                    itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+                                                    selectionModel: SelectionModel<Path<Int>>? = null
+): DynamicTree<T, M>(model, itemVisualizer, selectionModel), Editable {
     init {
         selectionChanged += { _,_,_ ->
             editingRect?.let {
@@ -102,7 +106,7 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: It
         }
     }
 
-    public fun completeEditing() {
+    public override fun completeEditing() {
         editOperation?.let { operation ->
             editingPath?.let { path ->
                 val result = operation.complete() ?: return
@@ -114,7 +118,7 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model: M, itemVisualizer: It
         }
     }
 
-    public fun cancelEditing() {
+    public override fun cancelEditing() {
         preEditValue?.let { oldValue -> cleanupEditing()?.let { path -> updateModel(path, oldValue) } }
     }
 

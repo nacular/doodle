@@ -33,8 +33,6 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {}
-
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation("junit:junit:$junitVersion")
@@ -45,8 +43,6 @@ kotlin {
                 implementation("io.mockk:mockk:$mockkVersion")
             }
         }
-
-        js().compilations["main"].defaultSourceSet {}
 
         js().compilations["test"].defaultSourceSet {
             dependencies {

@@ -5,7 +5,6 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
-import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -14,18 +13,16 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.horizontalStripedFill
 import io.nacular.doodle.event.KeyEvent
-import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.KeyText
 import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Delete
-import io.nacular.doodle.event.PointerEvent
-import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerListener.Companion.released
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.utils.Encoder
-import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.ObservableSet
 
 
@@ -34,12 +31,10 @@ public open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, se
         if (current !is ListRow<*>) {
             val result = it as ListRow<*>
 
-            it.pointerFilter += object: PointerListener {
-                override fun released(event: PointerEvent) {
-                    if (list.selected(result.index)) {
-                        (list as? MutableList)?.startEditing(result.index)
-                        event.consume()
-                    }
+            it.pointerFilter += released { event ->
+                if (list.selected(result.index)) {
+                    (list as? MutableList)?.startEditing(result.index)
+                    event.consume()
                 }
             }
         }
@@ -85,47 +80,11 @@ public open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null
 }
 
 public open class TextEditOperation<T>(
-        private val focusManager: FocusManager?,
-        private val mapper      : Encoder<T, String>,
+                    focusManager: FocusManager?,
+                    mapper      : Encoder<T, String>,
         private val list        : MutableList<T, *>,
                     row         : T,
-                    current     : View): EditOperation<T> {
-
-    protected open val cancelOnFocusLost: Boolean = true
-
-    protected val textField: TextField = TextField().apply {
-        text                = mapper.encode(row) ?: ""
-        fitText             = setOf(Width)
-        borderVisible       = false
-        font                = current.font
-        foregroundColor     = current.foregroundColor
-        backgroundColor     = current.backgroundColor
-        horizontalAlignment = HorizontalAlignment.Left
-
-        styleChanged += { rerender() }
-
-        focusChanged += { _,_,_ ->
-            if (!hasFocus && cancelOnFocusLost) {
-                list.cancelEditing()
-            }
-        }
-
-        keyChanged += object: KeyListener {
-            override fun released(event: KeyEvent) {
-                when (event.key) {
-                    KeyText.Enter  -> { list.completeEditing(); focusManager?.requestFocus(list) }
-                    KeyText.Escape -> { list.cancelEditing  (); focusManager?.requestFocus(list) }
-                }
-            }
-        }
-
-        displayChange += { _,_, displayed ->
-            if (displayed) {
-                focusManager?.requestFocus(this)
-                selectAll()
-            }
-        }
-    }
+                    current     : View): GenericTextEditOperation<T, MutableList<T, *>>(focusManager, mapper, list, row, current) {
 
     private val listSelectionChanged = { _: ObservableSet<Int>,_: Set<Int>,_:  Set<Int> ->
         list.cancelEditing()
@@ -133,6 +92,10 @@ public open class TextEditOperation<T>(
 
     init {
         list.selectionChanged += listSelectionChanged
+
+        textField.horizontalAlignment = Left
+        textField.fitText             = setOf(Width)
+        textField.backgroundColor     = current.backgroundColor
     }
 
     override fun invoke(): View = object: View() {
@@ -149,8 +112,6 @@ public open class TextEditOperation<T>(
             textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorPaint(it)) }
         }
     }
-
-    override fun complete(): T? = mapper.decode(textField.text)
 
     override fun cancel() {
         list.selectionChanged -= listSelectionChanged

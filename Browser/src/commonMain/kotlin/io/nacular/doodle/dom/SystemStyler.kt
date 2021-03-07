@@ -98,28 +98,34 @@ internal class SystemStylerImpl(
     private val ruleIndexes = mutableListOf<Int>()
 
     override fun insertRule(css: String): Style? = sheet?.run {
-        val offset     = ruleIndexes.size
-        val styleIndex = insertRule(css, numStyles)
+        try {
+            val offset = ruleIndexes.size
+            val styleIndex = insertRule(css, numStyles)
 
-        ruleIndexes += styleIndex
+            ruleIndexes += styleIndex
 
-        val sheet = this
+            val sheet = this
 
-        cssRules.item(styleIndex)?.let { rule ->
-            object: Style {
-                override var css get() = rule.cssText; set(new) { rule.cssText = new }
+            cssRules.item(styleIndex)?.let { rule ->
+                object : Style {
+                    override var css
+                        get() = rule.cssText;
+                        set(new) {
+                            rule.cssText = new
+                        }
 
-                override fun delete() {
-                    sheet.deleteRule(ruleIndexes[offset])
+                    override fun delete() {
+                        sheet.deleteRule(ruleIndexes[offset])
 
-                    ruleIndexes[offset] = -1
+                        ruleIndexes[offset] = -1
 
-                    for (i in offset + 1 until ruleIndexes.size) {
-                        ruleIndexes[i] = ruleIndexes[i] - 1
+                        for (i in offset + 1 until ruleIndexes.size) {
+                            ruleIndexes[i] = ruleIndexes[i] - 1
+                        }
                     }
                 }
             }
-        }
+        } catch (ignored: Throwable) { null }
     }
 
     override fun shutdown() {

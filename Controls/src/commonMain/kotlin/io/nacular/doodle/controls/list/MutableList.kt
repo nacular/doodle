@@ -9,6 +9,7 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
@@ -22,7 +23,7 @@ public interface ListEditor<T> {
 }
 
 public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>): ListEditor<T> = object: ListEditor<T> {
-    public override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
+    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
 }
 
 public open class MutableList<T, M: MutableListModel<T>>(
@@ -30,7 +31,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         selectionModel: SelectionModel<Int>?           = null,
         fitContent    : Boolean                        = true,
-        scrollCache   : Int                            = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+        scrollCache   : Int                            = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
 
     public val editing: Boolean get() = editingRow != null
 
@@ -85,7 +86,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
-    public fun completeEditing() {
+    public override fun completeEditing() {
         editOperation?.let { operation ->
             editingRow?.let { index ->
                 val result = operation.complete() ?: return
@@ -98,7 +99,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
     }
 
     // FIXME: Cancel editing on selection/focus change
-    public fun cancelEditing() {
+    public override fun cancelEditing() {
         cleanupEditing()?.let { update(children, it) }
     }
 

@@ -9,6 +9,7 @@ import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -30,13 +31,14 @@ public class BasicSpinnerBehavior(
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
-        private val cornerRadius       : Double): SpinnerBehavior<Any, Model<Any>>() {
+        private val cornerRadius       : Double,
+        private val buttonWidth        : Double = 20.0): SpinnerBehavior<Any, Model<Any>>() {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     private inner class ButtonIcon(private val isUp: Boolean): Icon<Button> {
-        override fun size(view: Button) = Size(view.width * 0.3, view.height * 0.3)
+        override fun size(view: Button) = Size(view.width * 0.5, view.height * 0.3)
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
             val size = size(view)
@@ -48,7 +50,7 @@ public class BasicSpinnerBehavior(
             val stroke = Stroke(when {
                 view.enabled -> foregroundColor
                 else         -> disabledColorMapper(foregroundColor)
-            }, 2.0)
+            }, 1.5)
 
             canvas.transform(transform) {
                 path(listOf(
@@ -82,12 +84,12 @@ public class BasicSpinnerBehavior(
                 Rectangle(
                     -cornerRadius,
                     0.0 - if (!isTop) cornerRadius else 0.0,
-                    view.width + cornerRadius,
+                    view.width  + cornerRadius,
                     view.height + cornerRadius),
                 cornerRadius, ColorPaint(colors(view).fillColor))
 
             icon(view)?.let {
-                val adjust = it.size(view).height / 3 * if (isTop) 1 else -1
+                val adjust = it.size(view).height / 5 * if (isTop) 1 else -1
                 it.render(view, canvas, iconPosition(view, icon = it) + Point(0.0, adjust))
             }
         }
@@ -122,21 +124,7 @@ public class BasicSpinnerBehavior(
         }
 
         view.changed += {
-            val newCenter = itemVisualizer(view.value, center)
-
-            if (newCenter != center) {
-                view.children -= center
-                (view.layout as? ConstraintLayout)?.unconstrain(center)
-
-                view.children += newCenter
-
-                (view.layout as? ConstraintLayout)?.constrain(newCenter, next) { center, next ->
-                    center.top = parent.top
-                    center.left = parent.left
-                    center.right = next.left
-                    center.bottom = parent.bottom
-                }
-            }
+            updateCenter(view)
 
             next.enabled     = it.hasNext
             previous.enabled = it.hasPrevious
@@ -161,12 +149,32 @@ public class BasicSpinnerBehavior(
             next.top        = parent.top
             next.right      = parent.right
             next.bottom     = parent.centerY
-            next.width      = constant(40.0)
+            next.width      = constant(buttonWidth)
 
             previous.top    = next.bottom
             previous.left   = next.left
             previous.right  = next.right
-            previous.bottom = parent.bottom //center.bottom
+            previous.bottom = parent.bottom
         }
     }
+
+    internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter)) {
+        if (newCenter != oldCenter) {
+            oldCenter?.let {
+                spinner.children -= oldCenter
+                (spinner.layout as? ConstraintLayout)?.unconstrain(oldCenter)
+            }
+
+            spinner.children += newCenter
+
+            (spinner.layout as? ConstraintLayout)?.constrain(newCenter, spinner.children[0]) { center, next ->
+                center.top    = parent.top
+                center.left   = parent.left
+                center.right  = next.left
+                center.bottom = parent.bottom
+            }
+        }
+    }
+
+    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View = spinner.children.first { it !is PushButton }
 }
