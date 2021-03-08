@@ -13,7 +13,6 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.event.PointerListener.Companion.released
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.theme.basic.BasicSpinnerBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
