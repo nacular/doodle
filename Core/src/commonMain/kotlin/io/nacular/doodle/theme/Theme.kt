@@ -8,6 +8,7 @@ import io.nacular.doodle.utils.Node
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import kotlin.properties.Delegates.observable
 
 
 /**
@@ -52,22 +53,16 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 
 @Internal
 public class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
-    override val themes: ObservableSet<Theme> by lazy { ObservableSet<Theme>() }
+    override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
-    override var selected: Theme? = null as Theme?
-        set(new) {
-            if (field == new) return
-
-            val old = field
-            field = new
-
-            field?.apply {
-                themes += this
-                install(display, allViews)
-            }
-
-            (selectionChanged as PropertyObserversImpl).forEach { it(this, old, field) }
+    override var selected: Theme? by observable(null) { _,old,new ->
+        new?.apply {
+            themes += this
+            install(display, allViews)
         }
+
+        (selectionChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+    }
 
     override val selectionChanged: PropertyObservers<ThemeManager, Theme?> by lazy { PropertyObserversImpl<ThemeManager, Theme?>(this) }
 

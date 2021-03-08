@@ -11,9 +11,10 @@ import io.nacular.measured.units.times
 /**
  * Created by Nicholas Eddy on 10/29/18.
  */
-public class SpeedUpSlowDown<T: Units>(duration            : Measure<Time>,
-                   private val endValue            : Measure<T>,
-                   private val accelerationFraction: Float = 0.5f): FixedDuration<T>(duration)
+public class SpeedUpSlowDown<T: Units>(
+                    duration            : Measure<Time>,
+        private val endValue            : Measure<T>,
+        private val accelerationFraction: Float = 0.5f): FixedDuration<T>(duration)
 {
     init {
         require(accelerationFraction in 0f..1f) { "accelerationFraction must be in range [0, 1]" }

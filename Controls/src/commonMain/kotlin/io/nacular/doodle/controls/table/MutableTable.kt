@@ -8,6 +8,7 @@ import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
@@ -186,11 +187,11 @@ public class MutableTable<T, M: MutableListModel<T>>(
         }
     }
 
-    public fun completeEditing() {
+    public override fun completeEditing() {
         editingColumn?.view?.completeEditing()
     }
 
-    public fun cancelEditing() {
+    public override fun cancelEditing() {
         editingColumn?.view?.cancelEditing()
     }
 }

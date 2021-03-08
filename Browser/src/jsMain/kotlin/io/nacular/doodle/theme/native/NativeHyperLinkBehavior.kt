@@ -11,7 +11,7 @@ import io.nacular.doodle.event.PointerEvent
 
 /**
  * Allows full control over how native [HyperLink]s are styled. The given behavior is delegated
- * to for all visual styling, but the [HyperLink] is still "styled" by the browser as well.
+ * to for all visual styling, but the browser will also treat the view as it does un-styled links.
  */
 public interface NativeHyperLinkBehaviorBuilder {
     /**

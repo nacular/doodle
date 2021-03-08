@@ -128,31 +128,39 @@ internal class NativeTextField(
         inputElement.disabled = !new
     }
 
-    private var style: Style? = null
-        set(new) {
-            if (new?.css != field?.css) {
-                field?.delete()
+    private var selectionStyle   : Style? by cssStyle()
+    private var placeHolderStyle : Style? by cssStyle()
+    private var mozSelectionStyle: Style? by cssStyle()
 
-                field = new
-            }
+    private fun ensureId() {
+        if (inputElement.id == "") {
+            inputElement.id = idGenerator.nextId()
         }
+    }
 
     private val styleChanged = { _: View ->
         inputElement.run {
             placeholder = textField.placeHolder
 
             if (textField.placeHolderColor ?: textField.placeHolderFont != null) {
-                if (this.id == "") {
-                    this.id = idGenerator.nextId()
-                }
-
-                val css = """#${this.id}::placeholder {
-                    |${textField.placeHolderColor?.let { "color:${rgba(it)};" }}
-                    |${textField.placeHolderFont?.let  { "font:${fontSerializer(it)};" }}
+                ensureId()
+                val css = """#$id::placeholder {
+                    |${textField.placeHolderColor?.let { "color:${rgba(it)};" } ?: ""}
+                    |${textField.placeHolderFont?.let  { "font:${fontSerializer(it)};" } ?: ""}
                     |line-height:inherit;
                 |}""".trimMargin()
+                this@NativeTextField.placeHolderStyle = systemStyler.insertRule(css)
+            }
 
-                this@NativeTextField.style = systemStyler.insertRule(css)
+            if (textField.selectionForegroundColor != null || textField.selectionBackgroundColor != null) {
+                ensureId()
+                val styleBody = """
+                    |${textField.selectionForegroundColor?.let { "color:${rgba(it)};" } ?: ""}
+                    |${textField.selectionBackgroundColor?.let { "background-color:${rgba(it)};" }}
+                """.trimMargin()
+
+                this@NativeTextField.mozSelectionStyle = systemStyler.insertRule("#$id::-moz-selection {$styleBody}")
+                this@NativeTextField.selectionStyle    = systemStyler.insertRule("#$id::selection {$styleBody}")
             }
 
             style.setFont(textField.font)
@@ -230,7 +238,9 @@ internal class NativeTextField(
             focusabilityChanged -= this@NativeTextField.focusabilityChanged
         }
 
-        style = null
+        selectionStyle    = null
+        placeHolderStyle  = null
+        mozSelectionStyle = null
     }
 
     fun render(canvas: Canvas) {

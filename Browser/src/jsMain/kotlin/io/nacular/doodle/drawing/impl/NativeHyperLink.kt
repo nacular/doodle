@@ -5,7 +5,6 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.setColor
-import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setOverflow
@@ -44,13 +43,13 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
 }
 
 internal class NativeHyperLink internal constructor(
-        private val textMetrics           : TextMetrics,
-                    htmlFactory           : HtmlFactory,
-                    handlerFactory        : NativeEventHandlerFactory,
-        private val focusManager          : FocusManager?,
-        private val canvasFactory         : CanvasFactory,
-        private val customRenderer        : ((HyperLink, Canvas) -> Unit)?,
-        private val hyperLink             : HyperLink): NativeEventListener {
+        private val textMetrics   : TextMetrics,
+                    htmlFactory   : HtmlFactory,
+                    handlerFactory: NativeEventHandlerFactory,
+        private val focusManager  : FocusManager?,
+        private val canvasFactory : CanvasFactory,
+        private val customRenderer: ((HyperLink, Canvas) -> Unit)?,
+        private val hyperLink     : HyperLink): NativeEventListener {
 
     var idealSize: Size? = null
         private set
@@ -62,18 +61,26 @@ internal class NativeHyperLink internal constructor(
     private val linkElement = htmlFactory.create<HTMLAnchorElement>("a").apply {
         href = hyperLink.url
 
-        style.setFont         (hyperLink.font           )
-        style.setColor        (hyperLink.foregroundColor)
-        style.setCursor       (hyperLink.cursor         )
-        style.setWidthPercent (100.0                    )
-        style.setHeightPercent(100.0                    )
-        style.setOverflow     (Visible()                )
+        if (customRenderer == null) {
+            style.cursor = "inherit"
+            style.setFont (hyperLink.font           )
+            style.setColor(hyperLink.foregroundColor)
+        }
+
+        style.setOverflow     (Visible())
+        style.setWidthPercent (100.0    )
+        style.setHeightPercent(100.0    )
 
         customCanvas = if (customRenderer!= null) canvasFactory(this) else null
     }
 
     private val textChanged: (View, String, String) -> Unit = { _,_,_ ->
         hyperLink.rerender()
+    }
+
+    private val styleChanged: (View) -> Unit = {
+        linkElement.style.setFont (it.font           )
+        linkElement.style.setColor(it.foregroundColor)
     }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
@@ -105,6 +112,8 @@ internal class NativeHyperLink internal constructor(
             focusChanged        += this@NativeHyperLink.focusChanged
             enabledChanged      += this@NativeHyperLink.enabledChanged
             focusabilityChanged += this@NativeHyperLink.focusableChanged
+
+            if (customRenderer == null) styleChanged += this@NativeHyperLink.styleChanged
         }
 
         setIconText()
@@ -116,6 +125,8 @@ internal class NativeHyperLink internal constructor(
             focusChanged        -= this@NativeHyperLink.focusChanged
             enabledChanged      -= this@NativeHyperLink.enabledChanged
             focusabilityChanged -= this@NativeHyperLink.focusableChanged
+
+            if (customRenderer == null) styleChanged -= this@NativeHyperLink.styleChanged
         }
     }
 

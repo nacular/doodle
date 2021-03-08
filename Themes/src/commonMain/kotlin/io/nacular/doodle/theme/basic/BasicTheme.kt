@@ -12,6 +12,8 @@ import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.spinner.MutableModel
+import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
@@ -44,6 +46,8 @@ import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
+import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinnerBehavior
+import io.nacular.doodle.theme.basic.spinner.BasicSpinnerBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.SimpleTabContainer
@@ -327,11 +331,36 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 backgroundColor    : Color?  = null,
                 darkBackgroundColor: Color?  = null,
                 foregroundColor    : Color?  = null,
-                cornerRadius       : Double? = null): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
+                cornerRadius       : Double? = null,
+                buttonWidth        : Double? = null): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
             bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicSpinnerBehavior(
                             instance(),
+                            buttonWidth         = buttonWidth         ?: 20.0,
+                            cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                            backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                            foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                    ).apply {
+                        hoverColorMapper     = this@run.hoverColorMapper
+                        disabledColorMapper  = this@run.disabledColorMapper
+                    }
+                }
+            }
+        }
+
+        public fun basicMutableSpinnerBehavior(
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                foregroundColor    : Color?  = null,
+                cornerRadius       : Double? = null,
+                buttonWidth        : Double? = null): Module = basicThemeModule(name = "BasicMutableSpinnerBehavior") {
+            bindBehavior<MutableSpinner<Any, MutableModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicMutableSpinnerBehavior<Any, MutableModel<Any>>(
+                            instance(),
+                            buttonWidth         = buttonWidth         ?: 20.0,
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
                             backgroundColor     = backgroundColor     ?: this.backgroundColor,
                             foregroundColor     = foregroundColor     ?: this.foregroundColor,
@@ -515,7 +544,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicMutableTreeBehavior(),
                 basicTreeColumnsBehavior(),
                 basicTabbedPanelBehavior(),
-                basicMutableTableBehavior()
+                basicMutableTableBehavior(),
+                basicMutableSpinnerBehavior()
         )
     }
 }

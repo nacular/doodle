@@ -22,6 +22,10 @@ public open class TextField(text: String = ""): TextInput(text) {
 
     public var placeHolderColor: Color? by styleProperty(foregroundColor)
 
+    public var selectionForegroundColor: Color? by styleProperty(null)
+
+    public var selectionBackgroundColor: Color? by styleProperty(null)
+
     public var fitText: Set<TextFit> = emptySet<TextFit>()
         set(new) {
             field = new

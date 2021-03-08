@@ -38,8 +38,6 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {}
-
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation("junit:junit:$junitVersion")
@@ -49,10 +47,6 @@ kotlin {
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("io.mockk:mockk:$mockkVersion")
             }
-        }
-
-        js().compilations["main"].defaultSourceSet {
-            dependencies {}
         }
 
         js().compilations["test"].defaultSourceSet {

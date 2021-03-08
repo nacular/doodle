@@ -129,15 +129,19 @@ internal class NativeButton internal constructor(
     private val nativeEventHandler: NativeEventHandler
 
     private val buttonElement = htmlFactory.createButton().apply {
-        style.setFont         (null      )
-//        style.setPosition     (Relative())
-        style.setWidthPercent (100.0     )
-        style.setHeightPercent(100.0     )
+        style.setFont         (null )
+        style.setWidthPercent (100.0)
+        style.setHeightPercent(100.0)
         style.cursor = "inherit"
         disabled     = !button.enabled
     }
 
     private val textChanged: (View, String, String) -> Unit = { _,_,_ ->
+        button.rerender()
+    }
+
+    private val styleChanged: (View) -> Unit = {
+        buttonElement.style.setFont(it.font)
         button.rerender()
     }
 
@@ -291,6 +295,7 @@ internal class NativeButton internal constructor(
         button.apply {
             textChanged         += this@NativeButton.textChanged
             focusChanged        += this@NativeButton.focusChanged
+            styleChanged        += this@NativeButton.styleChanged
             enabledChanged      += this@NativeButton.enabledChanged
             focusabilityChanged += this@NativeButton.focusableChanged
         }
@@ -345,6 +350,7 @@ internal class NativeButton internal constructor(
         button.apply {
             textChanged         -= this@NativeButton.textChanged
             focusChanged        -= this@NativeButton.focusChanged
+            styleChanged        -= this@NativeButton.styleChanged
             enabledChanged      -= this@NativeButton.enabledChanged
             focusabilityChanged -= this@NativeButton.focusableChanged
         }

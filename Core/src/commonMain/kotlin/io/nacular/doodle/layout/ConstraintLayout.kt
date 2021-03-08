@@ -268,7 +268,7 @@ public class VerticalConstraint(target: View, dependencies: Set<View> = emptySet
         block(it) / value()
     }
 
-//    override fun toString() = "V ($default) <- $dependencies"
+//    override fun toString(): String = "V ($default) <- $dependencies"
 }
 
 public class HorizontalConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
@@ -320,7 +320,7 @@ public class HorizontalConstraint(target: View, dependencies: Set<View> = emptyS
         block(it) / value()
     }
 
-//    override fun toString() = "H ($default) <- $dependencies"
+//    override fun toString(): String = "H ($default) <- $dependencies"
 }
 
 private object IgnoreTarget: View()
@@ -378,7 +378,7 @@ public open class MagnitudeConstraint(target: View, dependencies: Set<View> = em
         block(it) / value()
     }
 
-//    override fun toString() = "H ($default) <- $dependencies"
+//    override fun toString(): String = "H ($default) <- $dependencies"
 }
 
 public interface ParentConstraints {
@@ -431,6 +431,8 @@ private open class ParentConstraintsImpl(val target: View): ParentConstraints {
     override val right    = HorizontalConstraint(target      ) { it.width                 }
     override val width    = MagnitudeConstraint (target      ) { it.width                 }
     override val minWidth = MagnitudeConstraint (IgnoreTarget) { target.minimumSize.width }
+
+//    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"
 }
 
 private open class DisplayConstraints(private val display: Display): ParentConstraints {

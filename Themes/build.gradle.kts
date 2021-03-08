@@ -44,8 +44,6 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {}
-
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation("junit:junit:$junitVersion")
