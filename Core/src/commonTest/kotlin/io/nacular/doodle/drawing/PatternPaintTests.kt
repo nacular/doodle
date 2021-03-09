@@ -76,14 +76,14 @@ class PatternPaintTests {
                 Red opacity 0f to Transparent,
                 null to null
         ).forEach {
-            expect(true) { stripedFill(stripeWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
+            expect(true) { stripedPaint(stripeWidth = 10.0, evenRowColor = it.first, oddRowColor = it.second).size.empty }
         }
     }
 
     @Test @JsName("stripesSizeCorrect")
     fun `stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
-            expect(Size(it, it * 2)) { stripedFill(stripeWidth = it, evenRowColor = Red).size }
+            expect(Size(it, it * 2)) { stripedPaint(stripeWidth = it, evenRowColor = Red).size }
         }
     }
 

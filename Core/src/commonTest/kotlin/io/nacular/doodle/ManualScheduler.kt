@@ -40,8 +40,4 @@ class ManualScheduler: Scheduler {
     override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
-    override fun shutdown() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 }

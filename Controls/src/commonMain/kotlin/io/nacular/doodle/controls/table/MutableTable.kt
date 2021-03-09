@@ -29,7 +29,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
                       selectionModel: SelectionModel<Int>? = null,
         private   val scrollCache   : Int                  = 10,
                       block         : MutableColumnFactory<T>.() -> Unit
-): DynamicTable<T, M>(model, selectionModel, scrollCache, {}) {
+): DynamicTable<T, M>(model, selectionModel, scrollCache, {}), Editable {
 
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
                         header         : View?,

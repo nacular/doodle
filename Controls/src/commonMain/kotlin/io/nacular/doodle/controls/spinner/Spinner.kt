@@ -12,6 +12,9 @@ import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 
 
+/**
+ * An iterator-like model that tracks the items a [Spinner] can present.
+ */
 public interface Model<T> {
     public fun next    ()
     public fun previous()
@@ -39,6 +42,9 @@ public abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
     public abstract fun changed(spinner: Spinner<T, M>)
 }
 
+/**
+ * Controls used to flip through items (one at a time) within a sequential collection.
+ */
 @Suppress("PropertyName")
 public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: ItemVisualizer<T, Any>? = null): View() {
 

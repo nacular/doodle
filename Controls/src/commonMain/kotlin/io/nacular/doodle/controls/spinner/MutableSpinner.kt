@@ -38,10 +38,7 @@ public abstract class MutableSpinnerBehavior<T, M: MutableModel<T>>: SpinnerBeha
 }
 
 
-public class MutableSpinner<T, M: MutableModel<T>>(
-        model: M,
-        itemVisualizer: ItemVisualizer<T, Any>? = null
-): Spinner<T, M>(model, itemVisualizer), Editable {
+public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, Any>? = null): Spinner<T, M>(model, itemVisualizer), Editable {
     override var value: T
         get(   ) = super.value
         set(new) { model.value = new }

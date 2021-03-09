@@ -31,7 +31,7 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.ImageFill
+import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.PatternPaint
@@ -634,7 +634,7 @@ class CanvasImplTests {
 
     private val complexFills = listOf(
             mockk<Paint>              ().apply { every { visible } returns true },
-            mockk<ImageFill>         ().apply { every { visible } returns true },
+            mockk<ImagePaint>         ().apply { every { visible } returns true },
             mockk<PatternPaint>       ().apply { every { visible } returns true },
             mockk<LinearGradientPaint>().apply { every { visible } returns true }
     )
