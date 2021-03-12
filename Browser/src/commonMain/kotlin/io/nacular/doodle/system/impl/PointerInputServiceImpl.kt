@@ -1,6 +1,5 @@
 package io.nacular.doodle.system.impl
 
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Listener
@@ -9,10 +8,6 @@ import io.nacular.doodle.system.SystemPointerEvent
 
 
 internal class PointerInputServiceImpl(private val strategy: PointerInputServiceStrategy): PointerInputService {
-
-    override val pointerLocation: Point
-        get() = strategy.pointerLocation
-
     override var cursor: Cursor?
         get(     ) = strategy.cursor
         set(value) { strategy.cursor = value }

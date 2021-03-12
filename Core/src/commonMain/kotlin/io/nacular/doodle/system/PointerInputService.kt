@@ -1,12 +1,9 @@
 package io.nacular.doodle.system
 
 
-import io.nacular.doodle.geometry.Point
-
 public interface PointerInputService {
-    public var cursor         : Cursor?
-    public var toolTipText    : String
-    public val pointerLocation: Point
+    public var cursor     : Cursor?
+    public var toolTipText: String
 
     public operator fun plusAssign (listener: Listener)
     public operator fun minusAssign(listener: Listener)

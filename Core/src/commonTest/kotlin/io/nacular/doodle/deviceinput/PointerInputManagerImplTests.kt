@@ -11,6 +11,7 @@ import io.mockk.verify
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.event.Pointer
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -21,7 +22,9 @@ import io.nacular.doodle.system.Cursor.Companion.Help
 import io.nacular.doodle.system.Cursor.Companion.Move
 import io.nacular.doodle.system.Cursor.Companion.Progress
 import io.nacular.doodle.system.PointerInputService
+import io.nacular.doodle.system.SystemInputEvent.Modifier
 import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 import io.nacular.doodle.system.SystemPointerEvent.Type
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
@@ -38,7 +41,7 @@ import kotlin.test.Test
  * Created by Nicholas Eddy on 2/27/18.
  */
 @Suppress("FunctionName")
-class PointInputManagerImplTests {
+class PointerInputManagerImplTests {
     @Test @JsName("correctDefaultCursorOnInit")
     fun `correct default cursor on init`() {
         val display      = display()
@@ -94,11 +97,11 @@ class PointInputManagerImplTests {
 
         verify(exactly = 1) { inputService.cursor = null }
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
         verify(exactly = 1) { inputService.cursor = Move }
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(11.0, 10.0), emptySet(), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(11.0, 10.0), emptySet(), 0, emptySet()))
 
         verify(exactly = 2) { inputService.cursor = null }
     }
@@ -118,7 +121,7 @@ class PointInputManagerImplTests {
 
         verify(exactly = 1) { inputService.cursor = null }
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
         verify(exactly = 1) { inputService.cursor = Move }
 
@@ -150,7 +153,7 @@ class PointInputManagerImplTests {
 
         verify(exactly = 1) { inputService.cursor = Progress }
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
         verify(exactly = 2) { inputService.cursor = Progress }
 
@@ -182,8 +185,8 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 2) { inputService.toolTipText = "" }
 
@@ -205,7 +208,7 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 0) { child.handlePointerEvent_(any()) }
     }
@@ -227,13 +230,13 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
         verify(exactly = 0) { child.handlePointerEvent_(any()) }
 
         verify(ORDERED) {
-            parent.handlePointerEvent_(PointerEvent(parent, parent, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
-            parent.handlePointerEvent_(PointerEvent(parent, parent, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, parent, id = 0, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, parent, id = 0, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
         }
     }
 
@@ -253,13 +256,13 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
 
@@ -282,13 +285,13 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            parent.handlePointerEvent_(PointerEvent(parent, child, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
-            parent.handlePointerEvent_(PointerEvent(parent, child, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
 
@@ -307,14 +310,14 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_      (PointerEvent(child, child, Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
-            child.handlePointerMotionEvent_(PointerEvent(child, child, Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_      (pointerEvent(child, child, id = 0, Down, Point( 1.0,  1.0), Button1, 1, emptySet()))
+            child.handlePointerMotionEvent_(pointerEvent(child, child, id = 0, Drag, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
 
@@ -336,12 +339,12 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
-            child.handlePointerEvent_      (PointerEvent(child, child, Enter,     Point( 1.0,  1.0), Button1, 1, emptySet()))
-            child.handlePointerMotionEvent_(PointerEvent(child, child, Type.Move, Point(11.0, 11.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_      (pointerEvent(child, child, id = 0, Enter,     Point( 1.0,  1.0), Button1, 1, emptySet()))
+            child.handlePointerMotionEvent_(pointerEvent(child, child, id = 0, Type.Move, Point(11.0, 11.0), Button1, 1, emptySet()))
         }
     }
 
@@ -361,15 +364,15 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Click, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Down,  Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Click, Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -389,15 +392,15 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Down, Point(  1.0,   1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Up,   Point(-19.0, -19.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Exit, Point(-19.0, -19.0), Button1, 1, emptySet()))
         }
     }
 
@@ -417,14 +420,14 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
-        manager.changed(SystemPointerEvent(Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -444,11 +447,11 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
+        manager.changed(SystemPointerEvent(0, Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), Button1, 1, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Up,    Point(1.0, 1.0), Button1, 1, emptySet()))
         }
     }
 
@@ -468,13 +471,13 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+        manager.changed(SystemPointerEvent(0, Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Up,    Point(1.0, 1.0), Button1, 2, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Click, Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
 
@@ -496,15 +499,15 @@ class PointInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(Type.Move, Point(10.0, 10.0), setOf(Button1), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), setOf(Button1), 0, emptySet()))
 
         child.enabled = false
 
         enabledChanged.captured(child, true, false)
 
         verify(ORDERED) {
-            child.handlePointerEvent_(PointerEvent(child, child, Enter, Point(1.0, 1.0), Button1, 0, emptySet()))
-            child.handlePointerEvent_(PointerEvent(child, child, Exit,  Point(1.0, 1.0), Button1, 0, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), Button1, 0, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Exit,  Point(1.0, 1.0), Button1, 0, emptySet()))
         }
     }
 
@@ -517,5 +520,20 @@ class PointInputManagerImplTests {
             this.bounds = bounds
             this.cursor = cursor
         }
+    }
+
+    private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, button: Button, clickCount: Int, modifiers: Set<Modifier>): PointerEvent {
+        val pointers = listOf(Pointer(id, target, type, location))
+
+        return PointerEvent(
+                source,
+                target,
+                setOf(button),
+                clickCount,
+                targetPointers    = pointers,
+                changedPointers   = pointers.toSet(),
+                allActivePointers = { pointers },
+                modifiers         = modifiers
+        )
     }
 }

@@ -7,9 +7,8 @@ import io.nacular.doodle.system.SystemPointerEvent
 
 
 internal interface PointerInputServiceStrategy {
-    var cursor         : Cursor?
-    var toolTipText    : String
-    val pointerLocation: Point
+    var cursor     : Cursor?
+    var toolTipText: String
 
     fun startUp (handler: EventHandler)
     fun shutdown()

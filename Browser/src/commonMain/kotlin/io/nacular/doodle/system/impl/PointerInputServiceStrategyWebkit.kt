@@ -6,9 +6,9 @@ import io.nacular.doodle.addEventListener
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
+import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.ontouchmove
 import io.nacular.doodle.removeEventListener
 import io.nacular.doodle.system.Cursor
@@ -67,12 +67,13 @@ internal open class PointerInputServiceStrategyWebkit(
             }
     }
 
-    override var pointerLocation = Origin
-        protected set
-
+    // tracks previous up event pointerId so it can continue on to double-click
+    // which has no ID since it is a MouseEvent
+    private var lastUpId      = -1
     private var inputDevice   = null as HTMLElement?
     private var eventHandler  = null as EventHandler?
-    private var preventScroll = false
+    private val preventScroll = mutableSetOf<Int>()
+    private var lastUpIsPointer = false
 
     override fun startUp(handler: EventHandler) {
         eventHandler = handler
@@ -95,18 +96,25 @@ internal open class PointerInputServiceStrategyWebkit(
         }
     }
 
-    private fun mouseEnter(event: MouseEvent) {
+    private fun pointerEnter(event: PointerEvent) {
         eventHandler?.handle(createPointerEvent(event, Enter, 0))
     }
 
-    private fun mouseExit(event: MouseEvent) {
+    private fun pointerExit(event: PointerEvent) {
         eventHandler?.handle(createPointerEvent(event, Exit, 0))
     }
 
-    private fun mouseUp(event: MouseEvent): Boolean {
-        preventScroll = false
+    private fun pointerUp(event: PointerEvent): Boolean {
+        lastUpId         = event.pointerId
+        preventScroll   -= event.pointerId
+        lastUpIsPointer  = (event as? PointerEvent)?.pointerType == "touch"
 
-        eventHandler?.handle(createPointerEvent(event, Up, 1, (event as? io.nacular.doodle.dom.PointerEvent)?.pointerType == "touch"))
+        eventHandler?.handle(createPointerEvent(event, Up, 1))
+
+        // Fake exit when dealing w/ touch event
+        if (lastUpIsPointer) {
+            eventHandler?.handle(createPointerEvent(event, Exit, 1))
+        }
 
         return isNativeElement(event.target).ifFalse {
             event.preventDefault ()
@@ -114,32 +122,18 @@ internal open class PointerInputServiceStrategyWebkit(
         }
     }
 
-//    override fun pointerLocation(event: MouseEvent) = when {
-//        !nested && inputDevice != document.body -> {
-//            val rect = inputDevice?.getBoundingClientRect()
-//
-//            Point(event.clientX - (rect?.x ?: 0.0), event.clientY - (rect?.y ?: 0.0))
-//        }
-//        else -> Point(event.pageX, event.pageY)
-//    }
-
-    private fun updatePointer(event: MouseEvent) {
-        pointerLocation = pointerLocationResolver(event)
-    }
-
-    private fun mouseDown(event: MouseEvent): Boolean {
-        // Need to update location here in case running on a touch-based device; in which case mouseMove isn't called
-        // unless touch is dragged
-        updatePointer(event)
-
-        preventScroll = eventHandler?.handle(createPointerEvent(event, Down, 1)) == true
-
-        return true
+    private fun pointerDown(event: PointerEvent)= true.also {
+        if (eventHandler?.handle(createPointerEvent(event, Down, 1)) == true) preventScroll += event.pointerId
     }
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
     private fun doubleClick(event: MouseEvent): Boolean {
-        eventHandler?.handle(createPointerEvent(event, Up, 2))
+        eventHandler?.handle(createPointerEvent(event, lastUpId, Up, 2))
+
+        // Fake exit when dealing w/ touch event
+        if (lastUpIsPointer) {
+            eventHandler?.handle(createPointerEvent(event, lastUpId, Exit, 2))
+        }
 
         return isNativeElement(event.target).ifFalse {
             event.preventDefault ()
@@ -147,15 +141,13 @@ internal open class PointerInputServiceStrategyWebkit(
         }
     }
 
-    private fun mouseMove(event: MouseEvent): Boolean {
-        updatePointer(event)
-
+    private fun pointerMove(event: PointerEvent)= true.also {
         eventHandler?.handle(createPointerEvent(event, Move, 0))
-
-        return true
     }
 
-    private fun createPointerEvent(event: MouseEvent, type: Type, clickCount: Int, fromPointer: Boolean = false): SystemPointerEvent {
+    private fun createPointerEvent(event: PointerEvent, type: Type, clickCount: Int) = createPointerEvent(event, event.pointerId, type, clickCount)
+
+    private fun createPointerEvent(event: MouseEvent, id: Int, type: Type, clickCount: Int): SystemPointerEvent {
         val buttons    = mutableSetOf<SystemPointerEvent.Button>()
         val buttonsInt = event.buttons.toInt()
 
@@ -167,13 +159,13 @@ internal open class PointerInputServiceStrategyWebkit(
         if (buttonsInt and 4 == 4) buttons += Button3
 
         return SystemPointerEvent(
+                id,
                 type,
-                pointerLocation,
+                pointerLocationResolver(event),
                 buttons,
                 clickCount,
                 createModifiers(event),
-                nativeScrollPanel(event.target),
-                fromPointer)
+                nativeScrollPanel(event.target))
     }
 
     private fun createModifiers(event: MouseEvent) = mutableSetOf<Modifier>().also {
@@ -186,47 +178,47 @@ internal open class PointerInputServiceStrategyWebkit(
     private fun registerCallbacks(element: HTMLElement) = element.run {
         // TODO: Figure out fallback in case PointerEvent not present
 
-        onmouseout    = { mouseExit  (it)                      }
-        ondblclick    = { doubleClick(it)                      }
-        onpointerdown = { mouseDown  (it); followPointer(this) }
-        onpointerover = { mouseEnter (it)                      }
-        ontouchmove   = {
-            if (preventScroll) {
+        ondblclick      = { doubleClick (it)                      }
+        onpointerdown   = { pointerDown (it); followPointer(this) }
+        onpointerover   = { pointerEnter(it)                      }
+        onpointercancel = { pointerExit (it)                      }
+        ontouchmove     = {
+            if (preventScroll.isNotEmpty()) {
                 it.preventDefault ()
                 it.stopPropagation()
             }
         }
 
-        registerMouseCallbacks(this)
+        registerPointerCallbacks(this)
     }
 
-    private val trackingMouseMove: (Event) -> Unit = { mouseMove(it as MouseEvent) }
-    private val trackingMouseUp  : (Event) -> Unit = { mouseUp  (it as MouseEvent); registerMouseCallbacks(htmlFactory.root) }
+    private val trackingPointerMove: (Event) -> Unit = { pointerMove(it as PointerEvent) }
+    private val trackingPointerUp  : (Event) -> Unit = { pointerUp  (it as PointerEvent); registerPointerCallbacks(htmlFactory.root) }
 
     private fun followPointer(element: HTMLElement): Unit = element.run {
         onpointerup   = null
         onpointermove = null
 
-        document.addEventListener(POINTER_UP,   trackingMouseUp  )
-        document.addEventListener(POINTER_MOVE, trackingMouseMove)
+        document.addEventListener(POINTER_UP,   trackingPointerUp  )
+        document.addEventListener(POINTER_MOVE, trackingPointerMove)
     }
 
-    private fun registerMouseCallbacks(element: HTMLElement) = element.run {
-        onpointerup   = { mouseUp  (it) }
-        onpointermove = { mouseMove(it) }
+    private fun registerPointerCallbacks(element: HTMLElement) = element.run {
+        onpointerup   = { pointerUp  (it) }
+        onpointermove = { pointerMove(it) }
 
-        document.removeEventListener(POINTER_UP,   trackingMouseUp  )
-        document.removeEventListener(POINTER_MOVE, trackingMouseMove)
+        document.removeEventListener(POINTER_UP,   trackingPointerUp  )
+        document.removeEventListener(POINTER_MOVE, trackingPointerMove)
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.run {
-        onmouseout    = null
-        ondblclick    = null
-        onpointerdown = null
-        onpointerover = null
+        ondblclick      = null
+        onpointerdown   = null
+        onpointerover   = null
+        onpointercancel = null
 
-        document.removeEventListener(POINTER_UP,   trackingMouseUp  )
-        document.removeEventListener(POINTER_MOVE, trackingMouseMove)
+        document.removeEventListener(POINTER_UP,   trackingPointerUp  )
+        document.removeEventListener(POINTER_MOVE, trackingPointerMove)
     }
 
     private companion object {

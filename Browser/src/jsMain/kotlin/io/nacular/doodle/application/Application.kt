@@ -130,8 +130,9 @@ private class NestedPointerInputStrategy(private val view: ApplicationView, priv
         delegate.startUp(object: EventHandler {
             override fun handle(event: SystemPointerEvent) = handler.handle(
                 SystemPointerEvent(
+                    event.id,
                     event.type,
-                    view.fromAbsolute(pointerLocation),
+                    view.fromAbsolute(event.location),
                     event.buttons,
                     event.clickCount,
                     event.modifiers,
