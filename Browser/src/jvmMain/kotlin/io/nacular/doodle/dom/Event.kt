@@ -42,7 +42,16 @@ public actual open class WheelEvent: MouseEvent() {
 }
 
 public actual open class PointerEvent: MouseEvent() {
+    public actual val pointerId  : Int    = 0
     public actual val pointerType: String = ""
 }
 
-public actual open class TouchEvent: UIEvent()
+public actual abstract class TouchList {
+    public actual abstract val length: Int
+}
+
+public actual open class TouchEvent: UIEvent() {
+    public actual val touches: TouchList = object: TouchList() {
+        override val length = 0
+    }
+}

@@ -82,6 +82,8 @@ internal expect var CSSStyleDeclaration.willChange             : String
 internal expect var CSSStyleDeclaration.scrollBehavior         : String
 internal expect var CSSStyleDeclaration.textDecorationThickness: String
 
+internal expect var CSSStyleDeclaration.touchAction: String
+
 public expect class DOMRect {
     internal var x     : Double
     internal var y     : Double
@@ -126,18 +128,14 @@ public expect abstract class HTMLElement: Element {
     public var onkeydown   : ((KeyboardEvent) -> Boolean)?
     public var onkeypress  : ((KeyboardEvent) -> Boolean)?
 
-    public var onwheel     : ((WheelEvent) -> Any)?
-    public var onmouseup   : ((MouseEvent) -> Any)?
-    public var onmouseout  : ((MouseEvent) -> Any)?
-    public var ondblclick  : ((MouseEvent) -> Any)?
-    public var onmousedown : ((MouseEvent) -> Any)?
-    public var onmousemove : ((MouseEvent) -> Any)?
-    public var onmouseover : ((MouseEvent) -> Any)?
-
-    public var onpointerup  : ((PointerEvent) -> Any)?
-    public var onpointerdown: ((PointerEvent) -> Any)?
-    public var onpointermove: ((PointerEvent) -> Any)?
-    public var onpointerover: ((PointerEvent) -> Any)?
+    public var onwheel        : ((WheelEvent  ) -> Any)?
+    public var ondblclick     : ((MouseEvent  ) -> Any)?
+    public var onpointerup    : ((PointerEvent) -> Any)?
+    public var onpointerout   : ((PointerEvent) -> Any)?
+    public var onpointerdown  : ((PointerEvent) -> Any)?
+    public var onpointermove  : ((PointerEvent) -> Any)?
+    public var onpointerover  : ((PointerEvent) -> Any)?
+    public var onpointercancel: ((PointerEvent) -> Any)?
 
     public var onresize   : ((Event) -> Unit)?
     public var ondragstart: ((DragEvent) -> Boolean)?
@@ -151,9 +149,10 @@ public expect abstract class HTMLElement: Element {
 internal expect fun HTMLElement.stopMonitoringSize ()
 internal expect fun HTMLElement.startMonitoringSize()
 
-internal expect var HTMLElement.ontouchmove: ((TouchEvent  ) -> Any)?
-
 internal expect var HTMLElement.role: String?
+
+internal expect fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit)
+internal expect fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit)
 
 public expect interface ElementCreationOptions
 
@@ -186,7 +185,7 @@ public expect class Document {
     internal fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
 }
 
-internal expect fun Document.addEventListener(to: String, listener: (Event) -> Unit)
+internal expect fun Document.addEventListener   (to: String, listener: (Event) -> Unit)
 internal expect fun Document.removeEventListener(to: String, listener: (Event) -> Unit)
 
 public expect abstract class CharacterData: Node

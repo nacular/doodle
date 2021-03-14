@@ -2,14 +2,16 @@ package io.nacular.doodle.system.impl
 
 import io.nacular.doodle.Document
 import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.addActiveEventListener
 import io.nacular.doodle.addEventListener
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
+import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.ontouchmove
+import io.nacular.doodle.removeActiveEventListener
 import io.nacular.doodle.removeEventListener
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemInputEvent.Modifier
@@ -69,10 +71,10 @@ internal open class PointerInputServiceStrategyWebkit(
 
     // tracks previous up event pointerId so it can continue on to double-click
     // which has no ID since it is a MouseEvent
-    private var lastUpId      = -1
-    private var inputDevice   = null as HTMLElement?
-    private var eventHandler  = null as EventHandler?
-    private val preventScroll = mutableSetOf<Int>()
+    private var lastUpId        = -1
+    private var inputDevice     = null as HTMLElement?
+    private var eventHandler    = null as EventHandler?
+    private val preventScroll   = mutableSetOf<Int>()
     private var lastUpIsPointer = false
 
     override fun startUp(handler: EventHandler) {
@@ -100,7 +102,8 @@ internal open class PointerInputServiceStrategyWebkit(
         eventHandler?.handle(createPointerEvent(event, Enter, 0))
     }
 
-    private fun pointerExit(event: PointerEvent) {
+    private fun pointerCancel(event: PointerEvent) {
+        preventScroll -= event.pointerId
         eventHandler?.handle(createPointerEvent(event, Exit, 0))
     }
 
@@ -117,13 +120,14 @@ internal open class PointerInputServiceStrategyWebkit(
         }
 
         return isNativeElement(event.target).ifFalse {
-            event.preventDefault ()
-            event.stopPropagation()
+            event.preventBrowserDefault()
         }
     }
 
-    private fun pointerDown(event: PointerEvent)= true.also {
-        if (eventHandler?.handle(createPointerEvent(event, Down, 1)) == true) preventScroll += event.pointerId
+    private fun pointerDown(event: PointerEvent) = true.also {
+        if (eventHandler?.handle(createPointerEvent(event, Down, 1)) == true) {
+            preventScroll += event.pointerId
+        }
     }
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
@@ -136,8 +140,7 @@ internal open class PointerInputServiceStrategyWebkit(
         }
 
         return isNativeElement(event.target).ifFalse {
-            event.preventDefault ()
-            event.stopPropagation()
+            event.preventBrowserDefault()
         }
     }
 
@@ -177,19 +180,31 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun registerCallbacks(element: HTMLElement) = element.run {
         // TODO: Figure out fallback in case PointerEvent not present
+        ondblclick      = { doubleClick  (it)                     }
+        onpointerdown   = { pointerDown  (it); followPointer(this)}
+        onpointerover   = { pointerEnter (it)                     }
+        onpointercancel = { pointerCancel(it)                     }
 
-        ondblclick      = { doubleClick (it)                      }
-        onpointerdown   = { pointerDown (it); followPointer(this) }
-        onpointerover   = { pointerEnter(it)                      }
-        onpointercancel = { pointerExit (it)                      }
-        ontouchmove     = {
-            if (preventScroll.isNotEmpty()) {
-                it.preventDefault ()
-                it.stopPropagation()
-            }
-        }
+        addActiveEventListener("touchmove",    preventTouchDefault     )
+        addActiveEventListener("touchstart",   preventTouchStartDefault)
+        addActiveEventListener("gesturestart", preventTouchDefault     )
 
         registerPointerCallbacks(this)
+    }
+
+    private val preventTouchDefault: (Event) -> Unit = {
+        if (preventScroll.isNotEmpty()) {
+            it.preventBrowserDefault()
+        }
+    }
+
+    private val preventTouchStartDefault: (Event) -> Unit = {
+        if ((it as TouchEvent).touches.length > 1) preventTouchDefault(it)
+    }
+
+    private fun Event.preventBrowserDefault() {
+        preventDefault ()
+        stopPropagation()
     }
 
     private val trackingPointerMove: (Event) -> Unit = { pointerMove(it as PointerEvent) }
@@ -213,9 +228,15 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun unregisterCallbacks(element: HTMLElement) = element.run {
         ondblclick      = null
+        onpointerup     = null
+        onpointermove   = null
         onpointerdown   = null
         onpointerover   = null
         onpointercancel = null
+
+        removeActiveEventListener("touchmove",    preventTouchDefault     )
+        removeActiveEventListener("touchstart",   preventTouchStartDefault)
+        removeActiveEventListener("gesturestart", preventTouchDefault     )
 
         document.removeEventListener(POINTER_UP,   trackingPointerUp  )
         document.removeEventListener(POINTER_MOVE, trackingPointerMove)

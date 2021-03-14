@@ -38,6 +38,7 @@ public expect open class MouseEvent: UIEvent {
 }
 
 public expect open class PointerEvent: MouseEvent {
+    public val pointerId  : Int
     public val pointerType: String
 }
 
@@ -46,4 +47,10 @@ public expect open class WheelEvent: MouseEvent {
     public val deltaY: Double
 }
 
-public expect open class TouchEvent: UIEvent
+public expect abstract class TouchList {
+    public abstract val length: Int
+}
+
+public expect open class TouchEvent: UIEvent {
+    public val touches: TouchList
+}

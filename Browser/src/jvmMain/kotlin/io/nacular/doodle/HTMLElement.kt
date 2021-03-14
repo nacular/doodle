@@ -83,12 +83,14 @@ public actual abstract class CSSStyleDeclaration {
     internal var willChange_: String                = ""
     internal val scrollBehavior_: String            = ""
     internal var textDecorationThickness_: String   = ""
+    internal var touchAction_: String = ""
 }
 
 public actual var CSSStyleDeclaration.clipPath: String get() = clipPath_; set(new) { clipPath_ = new }
 public actual var CSSStyleDeclaration.willChange: String get() = willChange_; set(new) { willChange_ = new }
 public actual var CSSStyleDeclaration.scrollBehavior: String get() = scrollBehavior; set(new) { scrollBehavior = new }
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
+public actual var CSSStyleDeclaration.touchAction: String get() = touchAction_; set(new) { touchAction_ = new }
 
 public actual class DOMRect {
     public actual var x: Double      = 0.0
@@ -125,26 +127,23 @@ public actual abstract class HTMLElement: Element() {
     public actual val offsetWidth: Int = 0
     public actual val offsetHeight: Int = 0
 
+    public actual var onwheel    : ((WheelEvent   ) -> Any    )? = null
     public actual var onkeyup    : ((KeyboardEvent) -> Boolean)? = null
     public actual var onkeydown  : ((KeyboardEvent) -> Boolean)? = null
     public actual var onkeypress : ((KeyboardEvent) -> Boolean)? = null
-    public actual var onwheel    : ((WheelEvent   ) -> Any    )? = null
-    public actual var onmouseup  : ((MouseEvent   ) -> Any    )? = null
-    public actual var onmouseout : ((MouseEvent   ) -> Any    )? = null
-    public actual var ondblclick : ((MouseEvent   ) -> Any    )? = null
-    public actual var onmousedown: ((MouseEvent   ) -> Any    )? = null
-    public actual var onmousemove: ((MouseEvent   ) -> Any    )? = null
-    public actual var onmouseover: ((MouseEvent   ) -> Any    )? = null
 
     public actual abstract val style: CSSStyleDeclaration
 
     public actual var onresize   : ((Event) -> Unit)? = {}
     public actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
 
+    public actual var ondblclick   : ((MouseEvent  ) -> Any)? = null
     public actual var onpointerup  : ((PointerEvent) -> Any)? = null
+    public actual var onpointerout : ((PointerEvent) -> Any)? = null
     public actual var onpointerdown: ((PointerEvent) -> Any)? = null
     public actual var onpointermove: ((PointerEvent) -> Any)? = null
     public actual var onpointerover: ((PointerEvent) -> Any)? = null
+    public actual var onpointercancel: ((PointerEvent) -> Any)? = null
 
     public actual var dir: String = ""
 
@@ -155,12 +154,10 @@ public actual abstract class HTMLElement: Element() {
 public actual fun HTMLElement.stopMonitoringSize () {}
 public actual fun HTMLElement.startMonitoringSize() {}
 
-public actual var HTMLElement.role: String?
-    get() = role_
-    set(new) { role_ = new }
+public actual var HTMLElement.role: String? get() = role_; set(new) { role_ = new }
 
-public actual var HTMLElement.ontouchmove: ((TouchEvent) -> Any)? get() = null
-    set(new) {}
+public actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) {}
+public actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) {}
 
 public actual interface ElementCreationOptions
 
