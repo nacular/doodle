@@ -8,9 +8,40 @@ import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Type
 
+/**
+ * Represents an input device (Mouse, Pen, Touch, etc.) that is actively interacting
+ * with a View.
+ *
+ * @constructor
+ * @param id of the Pointer that uniquely identifies it throughout its interaction
+ * @param target the Pointer is interacting with
+ * @param state the Pointer is in
+ * @param location of the Pointer within its [target]
+ *
+ * @property id of the Pointer that uniquely identifies it throughout its interaction
+ * @property target the Pointer is interacting with
+ * @property state the Pointer is in
+ * @property location of the Pointer within its [target]
+ */
+public class Pointer internal constructor(internal val id: Int, public val target: View, public val state: Type, public val location: Point)
 
-public class Pointer internal constructor(internal val id: Int, public val target: View?, public val state: Type, public val location: Point)
-
+/**
+ * Event triggered when a pointing device (Mouse, Pen, Touch, etc.) interacts with a View.
+ *
+ * @constructor
+ * @param source receiving the notification
+ * @param target where the Pointer interaction occurred
+ * @param buttons that are pressed (applicable for Mouse)
+ * @param targetPointers active Pointers that started within the [target]
+ * @param changedPointers active Pointers that changed since the last event
+ * @param allActivePointers that are currently active (even those not directed at the [target])
+ * @param modifiers that are pressed
+ *
+ * @property target where the Pointer interaction occurred
+ * @property buttons that are pressed (applicable for Mouse)
+ * @property targetPointers active Pointers that started within the [target]
+ * @property changedPointers active Pointers that changed since the last event
+ */
 public class PointerEvent internal constructor(
                    source           : View,
         public val target           : View,
@@ -21,10 +52,14 @@ public class PointerEvent internal constructor(
                    allActivePointers: () -> List<Pointer>,
                    modifiers        : Set<Modifier>): InputEvent(source, modifiers) {
 
+    /** Pointers that are currently active (even those not directed at the [target]) */
     public val allActivePointers: List<Pointer> by lazy { allActivePointers() }
 
-    public val type    : Type  get() = targetPointers.first().state
-    public val location: Point get() = targetPointers.first().location
+    /** Type of the first item in [changedPointers] */
+    public val type: Type  get() = changedPointers.first().state
+
+    /** Location of the first item in [changedPointers] */
+    public val location: Point get() = changedPointers.first().location
 
     public companion object {
         @Internal
