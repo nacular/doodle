@@ -11,6 +11,7 @@ import io.mockk.verify
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.event.Interaction
 import io.nacular.doodle.event.Pointer
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
@@ -193,8 +194,8 @@ class PointerInputManagerImplTests {
         verify(exactly = 0) { child.handlePointerEvent_(any()) }
     }
 
-    @Test @JsName("pointerDownDisabled")
-    fun `pointer down, disabled`() {
+    @Test @JsName("noEventPointerDownDisabled")
+    fun `no event pointer down, disabled`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -481,8 +482,8 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerOutWhenViewDisabled")
-    fun `pointer out when view disabled`() {
+    @Test @JsName("pointersCleanedUpWhenViewDisabled")
+    fun `pointers cleaned up when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()
         val display        = display()
         val inputService   = mockk<PointerInputService>()
@@ -499,15 +500,25 @@ class PointerInputManagerImplTests {
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
-        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), setOf(Button1), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Enter, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+        manager.changed(SystemPointerEvent(0, Down,  Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
         child.enabled = false
 
         enabledChanged.captured(child, true, false)
 
+        manager.changed(SystemPointerEvent(0, Type.Move, Point( 9.0,  9.0), emptySet(), 0, emptySet()))
+
+        child.enabled = true
+
+        enabledChanged.captured(child, false, true)
+
+        manager.changed(SystemPointerEvent(1, Down, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+
         verify(ORDERED) {
-            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), Button1, 0, emptySet()))
-            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Exit,  Point(1.0, 1.0), Button1, 0, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), emptySet(), 0, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 0, Down,  Point(1.0, 1.0), emptySet(), 0, emptySet()))
+            child.handlePointerEvent_(pointerEvent(child, child, id = 1, Down,  Point(1.0, 1.0), emptySet(), 0, emptySet()))
         }
     }
 
@@ -522,18 +533,35 @@ class PointerInputManagerImplTests {
         }
     }
 
-    private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, button: Button, clickCount: Int, modifiers: Set<Modifier>): PointerEvent {
-        val pointers = listOf(Pointer(id, target, type, location))
+    private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, button: Button, clickCount: Int, modifiers: Set<Modifier>) = pointerEvent(
+            source, target, id, type, location, setOf(button), clickCount, modifiers
+    )
 
+    private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, buttons: Set<Button>, clickCount: Int, modifiers: Set<Modifier>): PointerEvent {
+        val interactions = listOf(Interaction(Pointer(id), target, type, location))
+
+        return pointerEvent(source, target, interactions, interactions.toSet(), { interactions }, buttons, clickCount, modifiers)
+    }
+
+    private fun pointerEvent(
+            source: View,
+            target: View,
+            targetInteractions: List<Interaction>,
+            changedInteractions: Set<Interaction>,
+            allInteractions: () -> List<Interaction>,
+            buttons: Set<Button>,
+            clickCount: Int,
+            modifiers: Set<Modifier>
+    ): PointerEvent {
         return PointerEvent(
                 source,
                 target,
-                setOf(button),
+                buttons,
                 clickCount,
-                targetPointers    = pointers,
-                changedPointers   = pointers.toSet(),
-                allActivePointers = { pointers },
-                modifiers         = modifiers
+                targetInteractions,
+                changedInteractions,
+                allInteractions,
+                modifiers
         )
     }
 }
