@@ -55,10 +55,8 @@ internal class RealGraphicsSurface private constructor(
 
     override var index = 0
         set(new) {
-//            if (field != new) {
-                field = new
-                parent?.setIndex(this, new)
-//            }
+            field = new
+            parent?.setIndex(this, new)
         }
 
     override var zOrder = 0
@@ -316,8 +314,8 @@ internal class RealGraphicsSurface private constructor(
 
     private fun setIndex(child: RealGraphicsSurface, index: Int) {
         if (child.rootElement.parentNode == rootElement) {
-            childrenElement.remove(child.rootElement       )
-            childrenElement.insert(child.rootElement, index)
+            childrenElement.remove(child.rootElement                    )
+            childrenElement.insert(child.rootElement, indexStart + index)
         }
     }
 }
