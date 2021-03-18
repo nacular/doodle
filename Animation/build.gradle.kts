@@ -14,7 +14,6 @@ kotlin {
     val junitVersion  : String by project
     val log4jVersion  : String by project
     val logbackVersion: String by project
-    val mockkJsVersion: String by project
 
     sourceSets {
         val commonMain by getting {
@@ -27,7 +26,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("io.mockk:mockk-common:$mockkVersion")
             }
         }
 
@@ -45,7 +43,6 @@ kotlin {
         js().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation(kotlin("test-js"))
-                implementation("io.mockk:mockk-js:$mockkJsVersion")
             }
         }
     }
