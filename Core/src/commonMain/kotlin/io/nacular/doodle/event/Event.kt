@@ -10,8 +10,8 @@ public abstract class Event<out T> protected constructor(public val source: T) {
         private set
 
     /**
-     * Sets an event's state to consumed.  Consuming an event prevents the default
-     * handling by its source.
+     * Sets an event's state to consumed. Consuming an event prevents other listeners
+     * and the OS from handling it.
      */
     public fun consume() {
         consumed = true

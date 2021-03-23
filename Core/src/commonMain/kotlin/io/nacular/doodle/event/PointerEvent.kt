@@ -56,6 +56,8 @@ public class PointerEvent internal constructor(
                    allInteractions    : () -> List<Interaction>,
                    modifiers          : Set<Modifier>): InputEvent(source, modifiers) {
 
+    internal var preventOsHandling = false
+        private set
     /** Pointers that are currently active (even those not directed at the [target]) */
     public val allInteractions: List<Interaction> by lazy { allInteractions() }
 
@@ -64,6 +66,16 @@ public class PointerEvent internal constructor(
 
     /** Location of the first item in [changedInteractions] */
     public val location: Point get() = changedInteractions.first().location
+
+    /**
+     * Prevents the OS from handling this event. This does not affect subsequent listeners within the application.
+     *
+     * NOTE: [consume] will also prevent the OS from handling the event, but it prevents other listeners from seeing
+     * it as well.
+     */
+    public fun preventOsHandling() {
+        preventOsHandling = true
+    }
 
     public companion object {
         @Internal

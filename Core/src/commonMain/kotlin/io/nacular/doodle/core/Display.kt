@@ -171,3 +171,8 @@ public inline operator fun Display.minusAssign(views: Iterable<View>): Unit = ch
 public interface InternalDisplay: Display {
     public fun repaint()
 }
+
+/**
+ * The Display's center point in its coordinate system.
+ */
+public val Display.center: Point get() = Point(width/2, height/2)

@@ -64,6 +64,7 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
         }
 
         updateCursor(event)
+        event.preventOsHandling()
     }
 
     override fun entered(event: PointerEvent) {
