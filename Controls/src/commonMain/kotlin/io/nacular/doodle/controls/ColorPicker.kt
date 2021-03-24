@@ -94,9 +94,9 @@ public class ColorPicker(color: Color): View() {
             set(new) {
                 field = new
 
-                when (new) {
-                    true -> cursor = None
-                    else -> cursor = Crosshair
+                cursor = when (new) {
+                    true -> None
+                    else -> Crosshair
                 }
             }
 
@@ -273,12 +273,12 @@ public class ColorPicker(color: Color): View() {
                 if (field == new) { return }
                 field   = new
                 updateFill()
-                opacity = color.opacity
+                value = color.opacity
 
                 rerender()
             }
 
-        var opacity = color.opacity
+        var value = color.opacity
             set(new) {
                 if (field == new) { return }
 
@@ -292,7 +292,7 @@ public class ColorPicker(color: Color): View() {
 
         init {
             changed_ += { _,_,new ->
-                opacity = new
+                value = new
             }
 
             boundsChanged += { _,_,_ ->

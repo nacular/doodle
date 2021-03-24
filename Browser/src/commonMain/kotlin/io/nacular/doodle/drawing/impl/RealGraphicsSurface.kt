@@ -15,6 +15,7 @@ import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setHeightPercent
+import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setTransform
@@ -51,6 +52,13 @@ internal class RealGraphicsSurface private constructor(
             field = new
 
             rootElement.style.setDisplay(if (new) null else None())
+        }
+
+    override var opacity = 1f
+        set(new) {
+            field = new
+
+            rootElement.style.setOpacity(new)
         }
 
     override var index = 0

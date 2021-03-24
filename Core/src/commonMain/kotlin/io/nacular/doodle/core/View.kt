@@ -58,7 +58,6 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
-
 private typealias ZOrderObservers = PropertyObservers<View, Int>
 
 /**
@@ -202,14 +201,37 @@ public abstract class View protected constructor(public val accessibilityRole: A
     /** Notifies changes to [visible] */
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
-    /** Whether this View is visible.  The default is `true`. */
+    /** Whether this View is visible. The default is `true`. */
     override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+
+    public val opacityChanged: PropertyObservers<View, Float> by lazy { PropertyObserversImpl(this) }
+
+    /**
+     * Indicates how opaque the View is. A value of 1 means the View should be fully opaque and
+     * 0 means fully transparent. Setting this property to 0 does not make a View invisible (i.e.
+     * [visible] might still be `true`). This property also does not affect how events (i.e.
+     * pointer and keyboard) are sent to the View.
+     */
+    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>)
 
     /** Notifies changes to [enabled] */
     public val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
+    private var actualEnabled: Boolean = true
     /** Whether this View is enabled.  The default is `true`.  */
-    public var enabled: Boolean by observable(true, enabledChanged as PropertyObserversImpl<View, Boolean>)
+    public var enabled: Boolean
+        get(   ) = actualEnabled && (parent?.enabled != false)
+        set(new) {
+            if (actualEnabled == new) return
+
+            val old = actualEnabled
+
+            actualEnabled = new
+
+            if (parent?.enabled != false) {
+                enabledChanged(old, new) { it.actualEnabled }
+            }
+        }
 
     /** Notifies changes to [focusable] */
     public val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
@@ -260,12 +282,12 @@ public abstract class View protected constructor(public val accessibilityRole: A
     private var actualCursor: Cursor? = null
 
     /** Cursor that is displayed whenever the pointer is over this View. This falls back to the [parent]'s Cursor if not set. */
-    public var cursor: Cursor? = null
+    public var cursor: Cursor?
         get(   ) = actualCursor ?: parent?.cursor
         set(new) {
             if (actualCursor == new) return
 
-            val old = field
+            val old = cursor
 
             actualCursor = new
 
@@ -436,6 +458,14 @@ public abstract class View protected constructor(public val accessibilityRole: A
         children.filter { it.actualCursor == null }.forEach {
             it.cursorChanged(old, new)
         }
+    }
+
+    @JsName("fireEnabledChanged")
+    protected fun enabledChanged(old: Boolean, new: Boolean, filter: (View) -> Boolean) {
+        (enabledChanged as PropertyObserversImpl<View, Boolean>)(old, new)
+
+        // Notify relevant children that their enabled state has changed
+        children.filter(filter).forEach { it.enabledChanged(old, new, filter) }
     }
 
     /**

@@ -77,6 +77,7 @@ class ViewTests {
                 View::zOrder                to 0,
                 View::enabled               to true,
                 View::visible               to true,
+                View::opacity               to 1f,
                 View::insets_               to None,
                 View::layout_               to null,
                 View::position              to Origin,
@@ -132,6 +133,7 @@ class ViewTests {
         validateSetter(View::cursor,                Crosshair                      )
         validateSetter(View::enabled,               false                          )
         validateSetter(View::visible,               false                          )
+        validateSetter(View::opacity,               0.3f                           )
         validateSetter(View::position,              Origin                         )
         validateSetter(View::focusable,             false                          )
         validateSetter(View::idealSize,             Size(20.0, 37.6)               )
@@ -673,6 +675,57 @@ class ViewTests {
         grandParent.cursor         = new
 
         verify(exactly = 1) { observer(child,       old, new) }
+        verify(exactly = 1) { observer(parent,      old, new) }
+        verify(exactly = 1) { observer(grandParent, old, new) }
+    }
+
+    @Test @JsName("disableChangeWorks")
+    fun `disable change works`() {
+        val grandChild  = object: View() {}
+        val child       = object: View() {}.apply { children_ += grandChild }
+        val parent      = object: View() {}.apply { children_ += child      }
+        val grandParent = object: View() {}.apply { children_ += parent     }
+        val observer    = mockk<PropertyObserver<View, Boolean>>()
+        val new         = false
+        val old         = grandParent.enabled
+
+        grandChild.enabled = false
+
+        grandChild.enabledChanged  += observer
+        child.enabledChanged       += observer
+        parent.enabledChanged      += observer
+        grandParent.enabledChanged += observer
+
+        grandParent.enabled = new
+
+        verify(exactly = 0) { observer(grandChild,  old, new) }
+        verify(exactly = 1) { observer(child,       old, new) }
+        verify(exactly = 1) { observer(parent,      old, new) }
+        verify(exactly = 1) { observer(grandParent, old, new) }
+    }
+
+    @Test @JsName("enabledChangeWorks")
+    fun `enabled change works`() {
+        val grandChild  = object: View() {}
+        val child       = object: View() {}.apply { children_ += grandChild }
+        val parent      = object: View() {}.apply { children_ += child      }
+        val grandParent = object: View() {}.apply { children_ += parent     }
+        val observer    = mockk<PropertyObserver<View, Boolean>>()
+        grandParent.enabled = false
+        val new         = true
+        val old         = grandParent.enabled
+
+        child.enabled = false
+
+        grandChild.enabledChanged  += observer
+        child.enabledChanged       += observer
+        parent.enabledChanged      += observer
+        grandParent.enabledChanged += observer
+
+        grandParent.enabled = new
+
+        verify(exactly = 0) { observer(grandChild,  old, new) }
+        verify(exactly = 0) { observer(child,       old, new) }
         verify(exactly = 1) { observer(parent,      old, new) }
         verify(exactly = 1) { observer(grandParent, old, new) }
     }

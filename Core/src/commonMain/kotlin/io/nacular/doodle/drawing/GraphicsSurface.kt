@@ -16,6 +16,7 @@ public interface GraphicsSurface {
     public var index              : Int
     public var zOrder             : Int
     public var visible            : Boolean
+    public var opacity            : Float
     public var transform          : AffineTransform
     public var mirrored           : Boolean
     public var clipCanvasToBounds : Boolean

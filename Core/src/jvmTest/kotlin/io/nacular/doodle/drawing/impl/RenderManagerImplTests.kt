@@ -2,6 +2,7 @@
 
 package io.nacular.doodle.drawing.impl
 
+import JsName
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -36,7 +37,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
-import JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -164,7 +164,6 @@ class RenderManagerImplTests {
     @Test @JsName("removesTopLevelViews")
     fun `removes top-level views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
 
@@ -252,6 +251,36 @@ class RenderManagerImplTests {
             verify(exactly = 1) { it.render             (any()) }
             verify(exactly = 1) { it.doLayout_          (     ) }
         }
+    }
+
+    @Test @JsName("opacityChangeHandled")
+    fun `opacity change handled`() {
+        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+        val display = display(view)
+        val surface = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(view to surface)))
+
+        verifyChildAddedProperly(renderManager, display, view)
+
+        view.opacity = 0.3f
+
+        verify(exactly = 1) { surface.opacity = 0.3f }
+    }
+
+    @Test @JsName("initializesGraphicsSurface")
+    fun `initializes graphics surface`() {
+        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
+        val display = display(view)
+        val surface = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(view to surface)))
+
+        verifyChildAddedProperly(renderManager, display, view)
+
+        verify(exactly = 1) { surface.opacity   = 0.56f    }
+        verify(exactly = 1) { surface.zOrder    = 4        }
+        verify(exactly = 1) { surface.transform = Identity }
     }
 
     @Test @JsName("removesNestedViews")
@@ -689,7 +718,7 @@ class RenderManagerImplTests {
             every { contentDirectionChanged += capture(observer) } just Runs
         }
 
-        val renderManager = renderManager(display)
+        renderManager(display)
 
         observer.captured(display)
 
@@ -707,7 +736,7 @@ class RenderManagerImplTests {
             every { mirroringChanged += capture(observer) } just Runs
         }
 
-        val renderManager = renderManager(display)
+        renderManager(display)
 
         observer.captured(display)
 
@@ -975,13 +1004,11 @@ class RenderManagerImplTests {
 
         val view = slot<View>()
 
-        every { this@apply.size            } returns Size(100, 100)
-        every { this@apply.children        } returns displayChildren
-        every { this@apply.iterator()      } answers { displayChildren.iterator() }
-        every { this@apply.childrenChanged } returns observers
-
-        // FIXME: compiler fails to build w/o hint
-        every { sizeChanged } returns mockk()
+        every { this@apply.size                      } returns Size(100, 100)
+        every { this@apply.children                  } returns displayChildren
+        every { this@apply.iterator()                } answers { displayChildren.iterator() }
+        every { this@apply.childrenChanged           } returns observers
+        every { sizeChanged                          } returns mockk()
         every { this@apply.ancestorOf(capture(view)) } answers {
             var result = false
 

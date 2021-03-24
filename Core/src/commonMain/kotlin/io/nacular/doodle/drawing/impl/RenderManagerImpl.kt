@@ -50,6 +50,7 @@ public class RenderManagerImpl(
     private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
     private val transformChanged_           = ::transformChanged
     private val visibilityChanged_          = ::visibilityChangedFunc
+    private val opacityChanged_             = ::opacityChangedFunc
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     init {
@@ -170,6 +171,7 @@ public class RenderManagerImpl(
                 view.visibilityChanged          += visibilityChanged_
                 view.childrenChanged_           += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
+                view.opacityChanged             += opacityChanged_
             }
 
             views += view
@@ -310,6 +312,8 @@ public class RenderManagerImpl(
         graphicsSurface?.let {
             if (view in neverRendered) {
                 graphicsSurface.transform = view.transform
+                graphicsSurface.opacity   = view.opacity
+                graphicsSurface.zOrder    = view.zOrder
             }
 
             if (view in pendingBoundsChange) {
@@ -385,6 +389,7 @@ public class RenderManagerImpl(
         view.visibilityChanged          -= visibilityChanged_
         view.childrenChanged_           -= childrenChanged_
         view.displayRectHandlingChanged -= displayRectHandlingChanged_
+        view.opacityChanged             -= opacityChanged_
 
         unregisterDisplayRectMonitoring(view)
     }
@@ -505,6 +510,11 @@ public class RenderManagerImpl(
         if (view in displayTree) {
             checkDisplayRectChange(view)
         }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun opacityChangedFunc(view: View, old: Float, new: Float) {
+        graphicsDevice[view].opacity = new
     }
 
     @Suppress("UNUSED_PARAMETER")
