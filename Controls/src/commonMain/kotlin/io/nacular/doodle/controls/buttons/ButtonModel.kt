@@ -1,6 +1,9 @@
 package io.nacular.doodle.controls.buttons
 
+import io.nacular.doodle.accessibility.togglebutton
+import io.nacular.doodle.controls.Binding
 import io.nacular.doodle.utils.ChangeObservers
+import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
 
 /**
@@ -22,4 +25,16 @@ public interface ButtonModel {
     public val fired      : ChangeObservers<ButtonModel>
 
     public fun fire()
+}
+
+public fun togglebutton.bind(model: ButtonModel): Binding {
+    pressed = model.selected
+
+    return object: Binding {
+        val selectedChanged: PropertyObserver<ButtonModel, Boolean> = { _,_,new -> pressed = new }
+
+        init { model.selectedChanged += selectedChanged }
+
+        override fun unbind() { model.selectedChanged -= selectedChanged }
+    }
 }

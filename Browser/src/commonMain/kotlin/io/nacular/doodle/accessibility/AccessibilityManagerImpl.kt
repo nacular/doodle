@@ -42,26 +42,31 @@ internal class AccessibilityManagerImpl(
         eventHandler.unregisterFocusInListener()
     }
 
+    override fun labelChanged(view: View) = labelChanged(view, root(view))
+
+    override fun enabledChanged(view: View) = enabledChanged(view, root(view))
+
     override fun roleAdopted(view: View) {
         view.accessibilityRole?.let { role ->
-            device[view].rootElement.let {
+            role.manager = this
+            role.view    = view
+
+            root(view).let {
                 elementToView[it  ] = view
                 viewToElement[view] = it
 
-                it.role = role::class.simpleName
+                it.role = role.name
+                labelChanged  (view, it)
+                enabledChanged(view, it)
 
-                when (role) {
-                    is RangeRole -> {
-                        it.setAttribute("aria-valuenow", "${role.valueNow}")
-                        it.setAttribute("aria-valuemin", "${role.valueMin}")
-                        it.setAttribute("aria-valuemax", "${role.valueMax}")
-                    }
-                }
+                roleUpdated(it, role)
             }
         }
     }
 
     override fun roleAbandoned(view: View) {
+        view.accessibilityRole?.manager = null
+
         viewToElement[view]?.let {
             elementToView -= it
 
@@ -71,8 +76,16 @@ internal class AccessibilityManagerImpl(
         viewToElement -= view
     }
 
+    override fun roleUpdated(view: View) {
+        view.accessibilityRole?.let { role ->
+            roleUpdated(root(view), role)
+        }
+    }
+
     override fun invoke(keyState: KeyState, target: EventTarget?): Boolean {
         view(target)?.let {
+            println("key changed: $it")
+
             focusManager.requestFocus(it)
         }
 
@@ -105,6 +118,39 @@ internal class AccessibilityManagerImpl(
         }
 
         return false
+    }
+
+    private fun root(view: View) = device[view].rootElement
+
+    private fun labelChanged(view: View, root: HTMLElement) {
+        root.updateAttribute("aria-label", view.accessibilityLabel)
+    }
+
+    private fun enabledChanged(view: View, root: HTMLElement) {
+        root.updateAttribute("aria-disabled", if (view.enabled) null else true)
+    }
+
+    private fun <T> HTMLElement.updateAttribute(name: String, value: T?) {
+        when (value) {
+            null -> removeAttribute(name          )
+            else -> setAttribute   (name, "$value")
+        }
+    }
+
+    private fun roleUpdated(viewRoot: HTMLElement, role: AccessibilityRole) {
+        viewRoot.apply {
+            when (role) {
+                is RangeRole    -> {
+                    setAttribute("aria-valuenow", "${role.valueNow}")
+                    setAttribute("aria-valuemin", "${role.valueMin}")
+                    setAttribute("aria-valuemax", "${role.valueMax}")
+                }
+                is radio        -> setAttribute("aria-checked", "${role.pressed}")
+                is switch       -> setAttribute("aria-checked", "${role.pressed}")
+                is checkbox     -> setAttribute("aria-checked", "${role.pressed}")
+                is togglebutton -> setAttribute("aria-pressed", "${role.pressed}")
+            }
+        }
     }
 
     private fun view(target: EventTarget?) = when (target) {

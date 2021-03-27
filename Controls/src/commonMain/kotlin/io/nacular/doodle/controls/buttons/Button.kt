@@ -27,7 +27,8 @@ import io.nacular.doodle.utils.observable
 public abstract class Button protected constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
-            model: ButtonModel   = ButtonModelImpl()): View(accessibilityRole = button()) {
+            model: ButtonModel   = ButtonModelImpl(),
+            role : button        = button()): View(accessibilityRole = role) {
 
     private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
     private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl)(old, new) }

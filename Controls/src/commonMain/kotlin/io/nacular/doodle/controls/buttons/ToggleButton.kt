@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls.buttons
 
+import io.nacular.doodle.accessibility.togglebutton
+import io.nacular.doodle.controls.binding
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -7,7 +9,16 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 public interface ToggleButtonModel: ButtonModel
 
 @Suppress("PrivatePropertyName")
-public open class ToggleButton(text: String = "", icon: Icon<Button>? = null, model: ToggleButtonModel = ToggleButtonModelImpl()): PushButton(text, icon, model) {
+public open class ToggleButton protected constructor(
+        text: String = "",
+        icon: Icon<Button>? = null,
+        model: ToggleButtonModel = ToggleButtonModelImpl(),
+        private val role: togglebutton
+): PushButton(text, icon, model, role) {
+    public constructor(text: String = "",
+            icon: Icon<Button>? = null,
+            model: ToggleButtonModel = ToggleButtonModelImpl()): this(text, icon, model, togglebutton())
+
     protected class ToggleButtonModelImpl: ButtonModelImpl(), ToggleButtonModel {
         override var selected: Boolean
             get(   ) = super.selected
@@ -45,6 +56,8 @@ public open class ToggleButton(text: String = "", icon: Icon<Button>? = null, mo
             }
     }
 
+    private var roleBinding by binding(role.bind(model))
+
     public val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
 
     private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
@@ -68,6 +81,8 @@ public open class ToggleButton(text: String = "", icon: Icon<Button>? = null, mo
             super.model.selectedChanged -= selectedChanged_
 
             super.model = new
+
+            roleBinding = role.bind(new)
 
             if (displayed) {
                 super.model.selectedChanged += selectedChanged_

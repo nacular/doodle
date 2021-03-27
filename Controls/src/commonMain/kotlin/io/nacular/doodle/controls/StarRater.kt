@@ -7,10 +7,10 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
@@ -41,13 +41,13 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
             value = min(field.toDouble(), value)
         }
 
-    public var innerRadiusRatio: Float? by observable(null) { _, _,_ -> updateStar() }
+    public var innerRadiusRatio: Float? by observable(null) { _,_,_ -> updateStar() }
 
-    public var minSpacing: Double by observable(0.0) { _, _,_ -> updateStar() }
+    public var minSpacing: Double by observable(0.0) { _,_,_ -> updateStar() }
 
-    public var numStarPoints: Int by observable(5) { _, _,_ -> updateStar() }
+    public var numStarPoints: Int by observable(5) { _,_,_ -> updateStar() }
 
-    public var starRotation: Measure<Angle> by observable(0 * degrees) { _, _,_ -> updateStar() }
+    public var starRotation: Measure<Angle> by observable(0 * degrees) { _,_,_ -> updateStar() }
 
     public var shadowColor: Color? by renderProperty(Black opacity 0.2f)
 
@@ -120,10 +120,10 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
             canvas.rect(rect, PatternPaint(bounds = fillBounds) {
                 shadowColor?.let {
                     outerShadow(color = it, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                        poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorPaint(it) })
+                        poly(star, Stroke(Lightgray opacity 0.7f), backgroundColor?.paint)
                     }
                 } ?: {
-                    poly(star, Stroke(Lightgray.opacity(0.7f)), backgroundColor?.let { ColorPaint(it) })
+                    poly(star, Stroke(Lightgray opacity 0.7f), backgroundColor?.paint)
                 }()
             })
         }
@@ -139,10 +139,10 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
                 canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternPaint(bounds = fillBounds) {
                     if (displayValue.toInt() == max) {
                         outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
-                            poly(star, ColorPaint(foregroundColor))
+                            poly(star, foregroundColor.paint)
                         }
                     } else {
-                        poly(star, ColorPaint(foregroundColor))
+                        poly(star, foregroundColor.paint)
                     }
                 })
             }

@@ -1,19 +1,21 @@
 package io.nacular.doodle.controls.range
 
+import io.nacular.doodle.accessibility.RangeRole
 import io.nacular.doodle.accessibility.slider
 import io.nacular.doodle.controls.BasicConfinedValueModel
 import io.nacular.doodle.controls.ConfinedValueModel
+import io.nacular.doodle.controls.bind
+import io.nacular.doodle.controls.binding
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.round
 
-public abstract class ValueSlider(model: ConfinedValueModel<Double>): View(accessibilityRole = slider().apply {
-    valueMin = model.limits.start.toInt()
-    valueMax = model.limits.endInclusive.toInt()
-    valueNow = model.value.toInt()
-}) {
+public abstract class ValueSlider private constructor(model: ConfinedValueModel<Double>, private val role: RangeRole = slider()): View(role) {
+    public constructor(model: ConfinedValueModel<Double>): this(model, slider())
     public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
+
+    private var roleBinding by binding(role.bind(model))
 
     public var snapToTicks: Boolean = false
 
@@ -26,12 +28,11 @@ public abstract class ValueSlider(model: ConfinedValueModel<Double>): View(acces
 
     public var model: ConfinedValueModel<Double> =  model
         set(new) {
-            field.valueChanged  -= modelChanged
-            field.limitsChanged -= modelLimitsChanged
+            field.valueChanged -= modelChanged
 
             field = new.also {
-                it.valueChanged  += modelChanged
-                it.limitsChanged += modelLimitsChanged
+                it.valueChanged += modelChanged
+                roleBinding = role.bind(it)
             }
         }
 
@@ -49,18 +50,7 @@ public abstract class ValueSlider(model: ConfinedValueModel<Double>): View(acces
     protected abstract fun changed(old: Double, new: Double)
 
     private val modelChanged: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
-        (accessibilityRole as? slider)?.let {
-            it.valueNow = (((new - range.start) / range.size) * 100).toInt()
-        }
-
         changed(old, new)
-    }
-
-    private val modelLimitsChanged: (ConfinedValueModel<Double>, ClosedRange<Double>, ClosedRange<Double>) -> Unit = { _,_,_ ->
-        (accessibilityRole as? slider)?.let {
-            it.valueMin = range.start.toInt()
-            it.valueMax = range.endInclusive.toInt()
-        }
     }
 
     private var snapSize = 0.0

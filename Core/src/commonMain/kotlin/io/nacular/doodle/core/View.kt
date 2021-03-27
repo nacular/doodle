@@ -68,11 +68,16 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
  * @author Nicholas Eddy
  *
  * @constructor
- * @property accessibilityRole indicates the View's role for screen readers
+ * @property accessibilityRole indicates the View's role for assistive technologies
  */
 public abstract class View protected constructor(public val accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
+    }
+
+    /** Provides a recognizable name for assistive technologies. */
+    public var accessibilityLabel: String? by observable(null) { _,_ ->
+        accessibilityManager?.labelChanged(this)
     }
 
     /** Left edge of [bounds] */
@@ -462,6 +467,8 @@ public abstract class View protected constructor(public val accessibilityRole: A
 
     @JsName("fireEnabledChanged")
     protected fun enabledChanged(old: Boolean, new: Boolean, filter: (View) -> Boolean) {
+        accessibilityManager?.enabledChanged(this)
+
         (enabledChanged as PropertyObserversImpl<View, Boolean>)(old, new)
 
         // Notify relevant children that their enabled state has changed

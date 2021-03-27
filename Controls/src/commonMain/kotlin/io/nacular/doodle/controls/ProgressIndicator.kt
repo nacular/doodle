@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls
 
+import io.nacular.doodle.accessibility.RangeRole
+import io.nacular.doodle.accessibility.progressbar
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -16,8 +18,10 @@ import io.nacular.doodle.utils.size
  * @constructor
  * @param model containing progress range and current value
  */
-public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View() {
+public abstract class ProgressIndicator(model: ConfinedValueModel<Double>, private val role: RangeRole = progressbar()): View(role) {
     public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
+
+    private var roleBinding by binding(role.bind(model))
 
     private val changedHandler: (ConfinedValueModel<Double>, Double, Double) -> Unit = { _,old,new ->
         changed_(old, new)
@@ -41,6 +45,7 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>): View
 
             field = new.also {
                 it.valueChanged += changedHandler
+                roleBinding = role.bind(it)
             }
         }
 

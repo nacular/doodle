@@ -95,12 +95,13 @@ class ViewTests {
                 View::contentDirection      to LeftRight,
                 View::isFocusCycleRoot_     to false,
                 View::childrenClipPoly_     to null,
+                View::accessibilityLabel    to null,
                 View::clipCanvasToBounds_   to true,
                 View::mirrorWhenRightLeft   to true,
                 View::monitorsDisplayRect   to false,
                 View::needsMirrorTransform  to false,
                 View::focusTraversalPolicy_ to null,
-                View::localContentDirection to null
+                View::localContentDirection to null,
         ).forEach { validateDefault(it.key, it.value) }
     }
 
@@ -144,6 +145,7 @@ class ViewTests {
         validateSetter(View::clipCanvasToBounds_,   false, shouldRerender = true   )
         validateSetter(View::monitorsDisplayRect,   true                           )
         validateSetter(View::localContentDirection, RightLeft                      )
+        validateSetter(View::accessibilityLabel,    "foo bar"                      )
     }
 
     @Test @JsName("traversalKeySettersWork")
@@ -728,6 +730,32 @@ class ViewTests {
         verify(exactly = 0) { observer(child,       old, new) }
         verify(exactly = 1) { observer(parent,      old, new) }
         verify(exactly = 1) { observer(grandParent, old, new) }
+    }
+
+    @Test @JsName("enabledChangeAccessible")
+    fun `enabled change accessible`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.enabled = false
+
+        verify(exactly = 1) { accessibilityManager.enabledChanged(view) }
+    }
+
+    @Test @JsName("accessibleLabelChangeWorks")
+    fun `accessible label change works`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.accessibilityLabel = "hello there"
+
+        verify(exactly = 1) { accessibilityManager.labelChanged(view) }
     }
 
     @Test @JsName("zOrderChangeWorks")

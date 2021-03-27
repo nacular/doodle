@@ -52,7 +52,13 @@ internal actual fun HTMLElement.stopMonitoringSize() {
     SIZE_OBSERVERS.remove(this)?.disconnect()
 }
 
-internal actual var HTMLElement.role: String? by DynamicProperty("role")
+internal actual var HTMLElement.role: String? get() = getAttribute("role")
+    set(new) {
+        when (new) {
+            null -> removeAttribute("role"           )
+            else -> setAttribute   ("role", new ?: "")
+        }
+    }
 
 internal actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) = this.addEventListener   (to, listener, jsObject { passive = false })
 internal actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) = this.removeEventListener(to, listener, jsObject { passive = false })

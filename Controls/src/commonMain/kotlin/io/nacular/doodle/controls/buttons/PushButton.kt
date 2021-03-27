@@ -1,14 +1,21 @@
 package io.nacular.doodle.controls.buttons
 
+import io.nacular.doodle.accessibility.button
 import io.nacular.doodle.core.Icon
 
 /**
  * Created by Nicholas Eddy on 11/14/17.
  */
-public open class PushButton(
+public open class PushButton protected constructor(
         text : String        = "",
         icon : Icon<Button>? = null,
-        model: ButtonModel   = ButtonModelImpl()): Button(text, icon, model) {
+        model: ButtonModel   = ButtonModelImpl(),
+        role : button): Button(text, icon, model, role) {
+
+    public constructor(text : String        = "",
+            icon : Icon<Button>? = null,
+            model: ButtonModel   = ButtonModelImpl()): this(text, icon, model, button())
+
     override fun click() {
         if (enabled) {
             model.armed   = true

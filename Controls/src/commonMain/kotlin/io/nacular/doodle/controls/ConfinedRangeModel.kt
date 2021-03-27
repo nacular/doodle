@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls
 
+import io.nacular.doodle.accessibility.RangeRole
+import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.intersect
@@ -87,4 +89,31 @@ public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, va
     override var limits: ClosedRange<T>
         get(   ) = delegate.limits
         set(new) { delegate.limits = new }
+}
+
+public fun RangeRole.bind(model: ConfinedValueModel<Double>): Binding {
+    valueMin = model.limits.start
+    valueMax = model.limits.endInclusive
+    valueNow = model.value
+
+    return object: Binding {
+        val limitsChanged: PropertyObserver<ConfinedValueModel<Double>, ClosedRange<Double>> = { _,_,new ->
+            valueMin = new.start
+            valueMax = new.endInclusive
+        }
+
+        val valueChanged: PropertyObserver<ConfinedValueModel<Double>, Double> = { _,_,new ->
+            valueNow = new
+        }
+
+        init {
+            model.valueChanged  += valueChanged
+            model.limitsChanged += limitsChanged
+        }
+
+        override fun unbind() {
+            model.valueChanged  -= valueChanged
+            model.limitsChanged -= limitsChanged
+        }
+    }
 }

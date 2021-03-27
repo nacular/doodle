@@ -1,3 +1,8 @@
 package io.nacular.doodle.controls.buttons
 
-public class Switch(text: String = "", model: ToggleButtonModel = ToggleButtonModelImpl()): ToggleButton(text, model = model)
+import io.nacular.doodle.accessibility.switch
+
+public class Switch(
+        text: String = "",
+        model: ToggleButtonModel = ToggleButtonModelImpl()
+): ToggleButton(text, model = model, role = switch())
