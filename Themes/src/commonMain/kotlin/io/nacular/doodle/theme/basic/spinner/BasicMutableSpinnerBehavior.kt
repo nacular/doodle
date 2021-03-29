@@ -25,9 +25,10 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
         darkBackgroundColor: Color,
         foregroundColor    : Color,
         cornerRadius       : Double,
-        buttonWidth        : Double): MutableSpinnerBehavior<T, M>() {
+        buttonWidth        : Double,
+        focusManager       : FocusManager? = null): MutableSpinnerBehavior<T, M>() {
 
-    private val delegate = BasicSpinnerBehavior(textMetrics, backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth)
+    private val delegate = BasicSpinnerBehavior(textMetrics, backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, focusManager)
 
     public var hoverColorMapper   : ColorMapper get() = delegate.hoverColorMapper;    set(new) { delegate.hoverColorMapper    = new }
     public var disabledColorMapper: ColorMapper get() = delegate.disabledColorMapper; set(new) { delegate.disabledColorMapper = new }

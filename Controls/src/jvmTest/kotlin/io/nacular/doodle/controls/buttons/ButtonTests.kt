@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
+import JsName
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -20,7 +21,6 @@ import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.VerticalAlignment.Bottom
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import JsName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
@@ -37,48 +37,48 @@ class ButtonTests {
     @Test @JsName("defaults")
     fun `defaults valid`() {
         mapOf(
-                Button::text                   to "",
-                Button::icon                   to null,
-                Button::behavior               to null,
-                Button::selected               to false,
-                Button::iconAnchor             to Left,
-                Button::pressedIcon            to null,
-                Button::disabledIcon           to null,
-                Button::selectedIcon           to null,
-                Button::pointerOverIcon          to null,
-                Button::iconTextSpacing        to 4.0,
-                Button::verticalAlignment      to Middle,
-                Button::horizontalAlignment    to Center,
-                Button::disabledSelectedIcon   to null,
-                Button::pointerOverSelectedIcon  to null
+                Button::text                    to "",
+                Button::icon                    to null,
+                Button::behavior                to null,
+                Button::selected                to false,
+                Button::iconAnchor              to Left,
+                Button::pressedIcon             to null,
+                Button::disabledIcon            to null,
+                Button::selectedIcon            to null,
+                Button::pointerOverIcon         to null,
+                Button::iconTextSpacing         to 4.0,
+                Button::verticalAlignment       to Middle,
+                Button::horizontalAlignment     to Center,
+                Button::disabledSelectedIcon    to null,
+                Button::pointerOverSelectedIcon to null
         ).forEach { validateDefault(it.key, it.value) }
     }
 
     @Test @JsName("settersWork")
     fun `setters work`() {
-        validateSetter(Button::text,                  "foo"                )
-        validateSetter(Button::icon,                  mockk(relaxed = true))
-        validateSetter(Button::behavior,              null                 )
-        validateSetter(Button::iconAnchor,            Left                 )
-        validateSetter(Button::pressedIcon,           mockk(relaxed = true))
-        validateSetter(Button::disabledIcon,          mockk(relaxed = true))
-        validateSetter(Button::selectedIcon,          mockk(relaxed = true))
+        validateSetter(Button::text,                    "foo"                )
+        validateSetter(Button::icon,                    mockk(relaxed = true))
+        validateSetter(Button::behavior,                null                 )
+        validateSetter(Button::iconAnchor,              Left                 )
+        validateSetter(Button::pressedIcon,             mockk(relaxed = true))
+        validateSetter(Button::disabledIcon,            mockk(relaxed = true))
+        validateSetter(Button::selectedIcon,            mockk(relaxed = true))
         validateSetter(Button::pointerOverIcon,         mockk(relaxed = true))
-        validateSetter(Button::iconTextSpacing,       5.6                  )
-        validateSetter(Button::verticalAlignment,     Bottom               )
-        validateSetter(Button::horizontalAlignment,   Right                )
-        validateSetter(Button::disabledSelectedIcon,  mockk(relaxed = true))
+        validateSetter(Button::iconTextSpacing,         5.6                  )
+        validateSetter(Button::verticalAlignment,       Bottom               )
+        validateSetter(Button::horizontalAlignment,     Right                )
+        validateSetter(Button::disabledSelectedIcon,    mockk(relaxed = true))
         validateSetter(Button::pointerOverSelectedIcon, mockk(relaxed = true))
     }
 
     @Test @JsName("iconsFallback")
     fun `icons fallback`() {
         TestButton(icon = mockk(relaxed = true), model = mockk(relaxed = true)).apply {
-            expect(pressedIcon          ) { icon         }
-            expect(disabledIcon         ) { icon         }
-            expect(selectedIcon         ) { icon         }
+            expect(pressedIcon            ) { icon         }
+            expect(disabledIcon           ) { icon         }
+            expect(selectedIcon           ) { icon         }
             expect(pointerOverIcon        ) { icon         }
-            expect(disabledSelectedIcon ) { disabledIcon }
+            expect(disabledSelectedIcon   ) { disabledIcon }
             expect(pointerOverSelectedIcon) { selectedIcon }
         }
     }

@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme
 
 import io.nacular.doodle.controls.spinner.MutableListModel
-import io.nacular.doodle.controls.spinner.MutableSpinner
+import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.constrain
 
@@ -10,7 +10,7 @@ import io.nacular.doodle.layout.constrain
  */
 public class ThemePicker(themeManager: ThemeManager): View() {
     private val model   = MutableListModel<Theme?>()
-    private val spinner = MutableSpinner(model)
+    private val spinner = Spinner(model)
 
     init {
         updateAvailableThemes(emptySet(), themeManager.themes)

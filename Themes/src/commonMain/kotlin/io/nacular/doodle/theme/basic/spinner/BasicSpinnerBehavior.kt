@@ -18,6 +18,14 @@ import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyText.Companion.ArrowDown
+import io.nacular.doodle.event.KeyText.Companion.ArrowUp
+import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -26,7 +34,7 @@ import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
-import io.nacular.doodle.utils.Anchor
+import io.nacular.doodle.utils.Anchor.Leading
 
 public class BasicSpinnerBehavior(
         private val textMetrics        : TextMetrics,
@@ -34,7 +42,9 @@ public class BasicSpinnerBehavior(
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val cornerRadius       : Double,
-        private val buttonWidth        : Double = 20.0): SpinnerBehavior<Any, Model<Any>>() {
+        private val buttonWidth        : Double = 20.0,
+        private val focusManager       : FocusManager? = null,
+): SpinnerBehavior<Any, Model<Any>>(), KeyListener, PointerListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
@@ -88,7 +98,7 @@ public class BasicSpinnerBehavior(
                     0.0 - if (!isTop) cornerRadius else 0.0,
                     view.width  + cornerRadius,
                     view.height + cornerRadius),
-                cornerRadius, ColorPaint(colors(view).fillColor))
+                cornerRadius, colors(view).fillColor.paint)
 
             icon(view)?.let {
                 val adjust = it.size(view).height / 5 * if (isTop) 1 else -1
@@ -112,16 +122,18 @@ public class BasicSpinnerBehavior(
 
         val center = itemVisualizer(view.value)
         val next = PushButton().apply {
-            iconAnchor    = Anchor.Leading
+            iconAnchor    = Leading
             enabled       = view.hasNext
             acceptsThemes = false
+            focusable     = false
             behavior      = SpinnerButtonBehavior(true)
         }
 
         val previous = PushButton().apply {
-            iconAnchor    = Anchor.Leading
+            iconAnchor    = Leading
             enabled       = view.hasPrevious
             acceptsThemes = false
+            focusable     = false
             behavior      = SpinnerButtonBehavior(false)
         }
 
@@ -159,12 +171,30 @@ public class BasicSpinnerBehavior(
             previous.right  = next.right
             previous.bottom = parent.bottom
         }
+
+        view.keyChanged     += this
+        view.pointerChanged += this
     }
 
     override fun uninstall(view: Spinner<Any, Model<Any>>) {
         super.uninstall(view)
 
         view.children.clear()
+        view.keyChanged     -= this
+        view.pointerChanged -= this
+    }
+
+    override fun pressed(event: KeyEvent) {
+        (event.source as? Spinner<*,*>)?.apply {
+            when (event.key) {
+                ArrowUp   -> next    ()
+                ArrowDown -> previous()
+            }
+        }
+    }
+
+    override fun pressed(event: PointerEvent) {
+        focusManager?.requestFocus(event.source)
     }
 
     internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter)) {

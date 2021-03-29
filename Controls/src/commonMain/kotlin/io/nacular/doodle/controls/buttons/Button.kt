@@ -69,7 +69,7 @@ public abstract class Button protected constructor(
 
     public var iconAnchor: Anchor by styleProperty(Left) { true }
 
-    public var icon                   : Icon<Button>? = icon;                                set(new) { field = new; styleChanged { true } }
+    public var icon                   : Icon<Button>? by styleProperty(icon) { true }
     public var pressedIcon            : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
     public var disabledIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
     public var selectedIcon           : Icon<Button>? = null; get() = field ?: icon;         set(new) { field = new; styleChanged { true } }
@@ -85,16 +85,21 @@ public abstract class Button protected constructor(
             }
         }
 
-    public open var model: ButtonModel = model
-        set(new) {
-            unregisterModel(field)
-
-            field = new
-
-            registerModel(field)
-        }
+    public open var model: ButtonModel by observable(model) { old, new ->
+        unregisterModel(old)
+        registerModel  (new)
+    }
 
     init {
+        enabledChanged += { _,_,_ ->
+            if (!enabled) {
+                // Disarm model w/o causing it to fire
+                model.armed       = false
+                model.pressed     = false
+                model.pointerOver = false // FIXME: Should PointerManager deliver exit events when View disabled?
+            }
+        }
+
         registerModel(model)
     }
 

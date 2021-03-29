@@ -341,7 +341,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
                             backgroundColor     = backgroundColor     ?: this.backgroundColor,
                             foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                            focusManager        = instanceOrNull()
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
@@ -364,7 +365,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
                             backgroundColor     = backgroundColor     ?: this.backgroundColor,
                             foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                            focusManager        = instanceOrNull()
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
