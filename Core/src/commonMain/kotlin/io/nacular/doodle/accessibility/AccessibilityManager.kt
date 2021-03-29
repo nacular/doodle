@@ -8,13 +8,12 @@ import kotlin.properties.ReadWriteProperty
 /**
  * Created by Nicholas Eddy on 3/28/20.
  */
-@Internal
 public interface AccessibilityManager {
-    public fun labelChanged  (view: View)
-    public fun enabledChanged(view: View)
-    public fun roleAdopted   (view: View)
-    public fun roleAbandoned (view: View)
-    public fun roleUpdated   (view: View)
+    @Internal public fun syncLabel    (view: View)
+    @Internal public fun syncEnabled  (view: View)
+    @Internal public fun roleAdopted  (view: View)
+    @Internal public fun roleAbandoned(view: View)
+    @Internal public fun roleUpdated  (view: View)
 }
 
 public sealed class AccessibilityRole {
@@ -59,6 +58,23 @@ public class progressbar: RangeRole()
 
 public class slider: RangeRole()
 
+public class list: AccessibilityRole()
+public class listitem: AccessibilityRole() {
+    public var index   : Int? by roleProperty(null)
+    public var listSize: Int? by roleProperty(null)
+}
+
+public class tree: AccessibilityRole()
+public class treeitem: AccessibilityRole() {
+    public var index   : Int? by roleProperty(null)
+    public var listSize: Int? by roleProperty(null)
+    public var depth   : Int  by roleProperty(0   )
+}
+
+public class textbox: AccessibilityRole() {
+    public var placeHolder: String? by roleProperty(null)
+}
+
 internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()
 internal class alertdialog: AccessibilityRole()
@@ -77,10 +93,8 @@ internal class scrollbar: RangeRole()
 internal class status: AccessibilityRole()
 internal class tab: AccessibilityRole()
 internal class tabpanel: AccessibilityRole()
-internal class textbox: AccessibilityRole()
 internal class timer: AccessibilityRole()
 internal class tooltip: AccessibilityRole()
-internal class treeitem: AccessibilityRole()
 
 internal class combobox: AccessibilityRole()
 internal class grid: AccessibilityRole()
@@ -89,7 +103,6 @@ internal class menu: AccessibilityRole()
 internal class menubar: AccessibilityRole()
 internal class radiogroup: AccessibilityRole()
 internal class tablist: AccessibilityRole()
-internal class tree: AccessibilityRole()
 internal class treegrid: AccessibilityRole()
 
 internal class article: AccessibilityRole()
@@ -99,8 +112,6 @@ internal class directory: AccessibilityRole()
 internal class document: AccessibilityRole()
 internal class group: AccessibilityRole()
 internal class heading: AccessibilityRole()
-internal class list: AccessibilityRole()
-internal class listitem: AccessibilityRole()
 internal class math: AccessibilityRole()
 internal class note: AccessibilityRole()
 internal class presentation: AccessibilityRole()

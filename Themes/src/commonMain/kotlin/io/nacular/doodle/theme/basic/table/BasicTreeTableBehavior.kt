@@ -48,6 +48,7 @@ import io.nacular.doodle.utils.SetObserver
 public fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int): ListLike = object: ListLike {
     override val hasFocus     get() = this@map.hasFocus
     override val focusChanged get() = this@map.focusChanged
+    override val numRows      get() = this@map.numRows
 
     override fun selectAll     () = this@map.selectAll     ()
     override fun clearSelection() = this@map.clearSelection()

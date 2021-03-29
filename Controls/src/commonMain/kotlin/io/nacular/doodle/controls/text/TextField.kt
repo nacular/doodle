@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
 
 
 public interface TextFieldBehavior: Behavior<TextField> {
@@ -16,7 +17,9 @@ public interface TextFieldBehavior: Behavior<TextField> {
 
 public open class TextField(text: String = ""): TextInput(text) {
 
-    public var placeHolder: String by styleProperty("")
+    public var placeHolder: String by observableStyleProperty("") { _,new ->
+        role.placeHolder = new
+    }
 
     public var placeHolderFont: Font? by styleProperty(font)
 
@@ -26,18 +29,15 @@ public open class TextField(text: String = ""): TextInput(text) {
 
     public var selectionBackgroundColor: Color? by styleProperty(null)
 
-    public var fitText: Set<TextFit> = emptySet<TextFit>()
-        set(new) {
-            field = new
-
-            fitText()
-        }
+    public var fitText: Set<TextFit> by observable(emptySet()) { _,_ ->
+        fitText()
+    }
 
     public var borderVisible: Boolean by styleProperty(true)
 
     public val masked: Boolean get() = mask != null
 
-    public val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl<TextField, Char?>(this) }
+    public val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl(this) }
 
     public var mask: Char? = null
         set(new) {

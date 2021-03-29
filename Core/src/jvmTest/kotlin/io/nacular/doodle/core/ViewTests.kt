@@ -742,7 +742,7 @@ class ViewTests {
 
         view.enabled = false
 
-        verify(exactly = 1) { accessibilityManager.enabledChanged(view) }
+        verify(exactly = 1) { accessibilityManager.syncEnabled(view) }
     }
 
     @Test @JsName("accessibleLabelChangeWorks")
@@ -755,7 +755,7 @@ class ViewTests {
 
         view.accessibilityLabel = "hello there"
 
-        verify(exactly = 1) { accessibilityManager.labelChanged(view) }
+        verify(exactly = 1) { accessibilityManager.syncLabel(view) }
     }
 
     @Test @JsName("zOrderChangeWorks")

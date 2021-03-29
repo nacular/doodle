@@ -1,5 +1,6 @@
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.accessibility.listitem
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
@@ -31,7 +32,8 @@ public open class ListRow<T>(
         public  var index                          : Int,
         private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
         private val backgroundSelectionColor       : Color? = Blue,
-        private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor): View() {
+        private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
+        private val role: listitem = listitem()): View(role) {
 
     public var insetTop: Double = 1.0
 
@@ -106,8 +108,10 @@ public open class ListRow<T>(
         this.list  = list
         this.row   = row
         this.index = index
-
         val listSelected = list.selected(index)
+
+        role.index    = index
+        role.listSize = list.numRows
 
         children[0] = itemVisualizer.invoke(row, children.firstOrNull(), SimpleIndexedItem(index, listSelected))
 

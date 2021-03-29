@@ -1,5 +1,6 @@
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.accessibility.treeitem
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
@@ -81,7 +82,8 @@ public class TreeRow<T>(
      private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
-     private val iconFactory          : () -> TreeRowIcon): View() {
+     private val iconFactory          : () -> TreeRowIcon,
+     private val role: treeitem       = treeitem()): View(role) {
 
     public var insetTop: Double = 1.0
 
@@ -185,6 +187,10 @@ public class TreeRow<T>(
     public fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
         this.path  = path
         this.index = index
+
+        role.index    = index
+        role.depth    = path.depth
+        role.listSize = tree.numRows
 
         update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, tree.selected(path))), tree)
     }

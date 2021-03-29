@@ -77,7 +77,7 @@ public abstract class View protected constructor(public val accessibilityRole: A
 
     /** Provides a recognizable name for assistive technologies. */
     public var accessibilityLabel: String? by observable(null) { _,_ ->
-        accessibilityManager?.labelChanged(this)
+        accessibilityManager?.syncLabel(this)
     }
 
     /** Left edge of [bounds] */
@@ -467,7 +467,7 @@ public abstract class View protected constructor(public val accessibilityRole: A
 
     @JsName("fireEnabledChanged")
     protected fun enabledChanged(old: Boolean, new: Boolean, filter: (View) -> Boolean) {
-        accessibilityManager?.enabledChanged(this)
+        accessibilityManager?.syncEnabled(this)
 
         (enabledChanged as PropertyObserversImpl<View, Boolean>)(old, new)
 
@@ -572,9 +572,9 @@ public abstract class View protected constructor(public val accessibilityRole: A
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    internal var display             : Display?              = null; private set
-    private  var renderManager       : RenderManager?        = null
-    private  var accessibilityManager: AccessibilityManager? = null
+    internal  var display             : Display?              = null; private set
+    private   var renderManager       : RenderManager?        = null
+    protected var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf() }
 
@@ -861,7 +861,10 @@ public abstract class View protected constructor(public val accessibilityRole: A
     internal fun addedToDisplay(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
         this.display              = display
         this.renderManager        = renderManager
-        this.accessibilityManager = accessibilityManager
+        this.accessibilityManager = accessibilityManager?.also {
+            it.syncLabel  (this)
+            it.syncEnabled(this)
+        }
 
         accessibilityRole?.let {
             accessibilityManager?.roleAdopted(this)
@@ -918,6 +921,11 @@ public abstract class View protected constructor(public val accessibilityRole: A
          */
         public fun <T> styleProperty(initial: T, filter: (View) -> Boolean = { true }): ReadWriteProperty<View, T> = observable(initial) { _,_ ->
             styleChanged(filter)
+        }
+
+        public fun <T> observableStyleProperty(initial: T, filter: (View) -> Boolean = { true }, onChanged: (old: T, new: T) -> Unit): ReadWriteProperty<View, T> = observable(initial) { old, new ->
+            styleChanged(filter)
+            onChanged(old, new)
         }
     }
 }

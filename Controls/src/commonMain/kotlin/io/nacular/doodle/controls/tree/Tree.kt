@@ -3,6 +3,7 @@
 package io.nacular.doodle.controls.tree
 
 import io.nacular.doodle.JvmName
+import io.nacular.doodle.accessibility.tree
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
@@ -73,7 +74,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         protected      val selectionModel: SelectionModel<Path<Int>>?     = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-        private        val scrollCache   : Int                            = 10): View(), TreeLike {
+        private        val scrollCache   : Int                            = 10): View(tree()), TreeLike {
 
     override var rootVisible: Boolean = false
         set(new) {

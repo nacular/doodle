@@ -134,7 +134,7 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
-    public val numRows: Int     get() = model.size
+    override val numRows: Int   get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
     public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()

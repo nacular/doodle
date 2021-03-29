@@ -42,9 +42,9 @@ internal class AccessibilityManagerImpl(
         eventHandler.unregisterFocusInListener()
     }
 
-    override fun labelChanged(view: View) = labelChanged(view, root(view))
+    override fun syncLabel(view: View) = labelChanged(view, root(view))
 
-    override fun enabledChanged(view: View) = enabledChanged(view, root(view))
+    override fun syncEnabled(view: View) = enabledChanged(view, root(view))
 
     override fun roleAdopted(view: View) {
         view.accessibilityRole?.let { role ->
@@ -83,8 +83,10 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun invoke(keyState: KeyState, target: EventTarget?): Boolean {
+        println("key changed: $target")
+
         view(target)?.let {
-            println("key changed: $it")
+            println("key changed for $it")
 
             focusManager.requestFocus(it)
         }
@@ -141,14 +143,24 @@ internal class AccessibilityManagerImpl(
         viewRoot.apply {
             when (role) {
                 is RangeRole    -> {
-                    setAttribute("aria-valuenow", "${role.valueNow}")
-                    setAttribute("aria-valuemin", "${role.valueMin}")
-                    setAttribute("aria-valuemax", "${role.valueMax}")
+                    updateAttribute("aria-valuenow", role.valueNow)
+                    updateAttribute("aria-valuemin", role.valueMin)
+                    updateAttribute("aria-valuemax", role.valueMax)
                 }
-                is radio        -> setAttribute("aria-checked", "${role.pressed}")
-                is switch       -> setAttribute("aria-checked", "${role.pressed}")
-                is checkbox     -> setAttribute("aria-checked", "${role.pressed}")
-                is togglebutton -> setAttribute("aria-pressed", "${role.pressed}")
+                is radio        -> updateAttribute("aria-checked", role.pressed)
+                is switch       -> updateAttribute("aria-checked", role.pressed)
+                is checkbox     -> updateAttribute("aria-checked", role.pressed)
+                is togglebutton -> updateAttribute("aria-pressed", role.pressed)
+                is listitem     -> {
+                    updateAttribute("aria-setsize",  role.listSize)
+                    updateAttribute("aria-posinset", role.index?.plus(1))
+                }
+                is treeitem     -> {
+                    updateAttribute("aria-setsize",  role.listSize)
+                    updateAttribute("aria-posinset", role.index?.plus(1))
+                    updateAttribute("aria-level",    role.depth)
+                }
+                is textbox      -> updateAttribute("aria-placeholder", role.placeHolder?.takeIf { it.isNotBlank() })
             }
         }
     }

@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.list
 
+import io.nacular.doodle.accessibility.list
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
@@ -53,6 +54,7 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
 public interface ListLike: Selectable<Int> {
     public val hasFocus    : Boolean
     public val focusChanged: PropertyObservers<View, Boolean>
+    public val numRows     : Int
 }
 
 public open class List<T, out M: ListModel<T>>(
@@ -60,7 +62,7 @@ public open class List<T, out M: ListModel<T>>(
         public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         protected      val selectionModel: SelectionModel<Int>?           = null,
         private        val fitContent    : Boolean                        = true,
-        private        val scrollCache   : Int                            = 10): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val scrollCache   : Int                            = 10): View(list()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
@@ -91,7 +93,7 @@ public open class List<T, out M: ListModel<T>>(
     protected var firstVisibleRow: Int =  0
     protected var lastVisibleRow : Int = -1
 
-    public val numRows: Int     get() = model.size
+    override val numRows: Int     get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
     public val selectionChanged: Pool<SetObserver<List<T, M>, Int>> = SetPool()
