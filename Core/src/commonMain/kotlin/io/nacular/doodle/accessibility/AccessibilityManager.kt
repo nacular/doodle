@@ -105,12 +105,13 @@ public class tablist: AccessibilityRole() {
 
 public class tabpanel: AccessibilityRole()
 
+public class link: button()
+
 internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()
 internal class alertdialog: AccessibilityRole()
 internal class dialog: AccessibilityRole()
 internal class gridcell: AccessibilityRole()
-internal class link: AccessibilityRole()
 internal class log: AccessibilityRole()
 internal class marquee: AccessibilityRole()
 internal class menuitem: AccessibilityRole()
