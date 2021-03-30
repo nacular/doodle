@@ -41,8 +41,8 @@ public class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusMa
         tabIndex = 0 // FIXME: Move this functionality into custom KeyInputStrategy?
     }
 
-    private var application = null as Application?
-    private var firstRender = false
+    private var application   = null as Application?
+    private var initialRender = false
 
     init {
         boundsChanged += { _,old,new ->
@@ -66,7 +66,7 @@ public class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusMa
     override fun addedToDisplay() {
         super.addedToDisplay()
 
-        firstRender = true
+        initialRender = true
     }
 
     override fun removedFromDisplay() {
@@ -80,9 +80,9 @@ public class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusMa
         if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
 
-            if (firstRender) {
+            if (initialRender) {
                 application = builder(this, root)
-                firstRender = false
+                initialRender = false
             }
         }
     }

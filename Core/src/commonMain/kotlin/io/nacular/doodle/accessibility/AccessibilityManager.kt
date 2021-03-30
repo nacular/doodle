@@ -12,8 +12,11 @@ public interface AccessibilityManager {
     @Internal public fun syncLabel    (view: View)
     @Internal public fun syncEnabled  (view: View)
     @Internal public fun roleAdopted  (view: View)
-    @Internal public fun roleAbandoned(view: View)
     @Internal public fun roleUpdated  (view: View)
+    @Internal public fun roleAbandoned(view: View)
+
+    @Internal public fun addOwnership   (owner: View, owned: View)
+    @Internal public fun removeOwnership(owner: View, owned: View)
 }
 
 public sealed class AccessibilityRole {
@@ -75,6 +78,33 @@ public class textbox: AccessibilityRole() {
     public var placeHolder: String? by roleProperty(null)
 }
 
+public class tab: AccessibilityRole() {
+    public var selected: Boolean by roleProperty(false)
+}
+
+public class tablist: AccessibilityRole() {
+    @Internal public val tabToPanelMap: MutableMap<View, View> = mutableMapOf()
+
+    public operator fun set(tab: View, tabPanel: View) {
+        tabToPanelMap.put(tab, tabPanel)?.also {
+            manager?.removeOwnership(tab, it)
+            it.accessibilityRole = null
+        }
+
+        manager?.addOwnership(tab, tabPanel)
+        tabPanel.accessibilityRole = tabpanel()
+    }
+
+    public operator fun minusAssign(tab: View) {
+        tabToPanelMap.remove(tab)?.also {
+            manager?.removeOwnership(tab, it)
+            it.accessibilityRole = null
+        }
+    }
+}
+
+public class tabpanel: AccessibilityRole()
+
 internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()
 internal class alertdialog: AccessibilityRole()
@@ -91,8 +121,6 @@ internal class option: AccessibilityRole()
 internal class scrollbar: RangeRole()
 
 internal class status: AccessibilityRole()
-internal class tab: AccessibilityRole()
-internal class tabpanel: AccessibilityRole()
 internal class timer: AccessibilityRole()
 internal class tooltip: AccessibilityRole()
 
@@ -102,7 +130,6 @@ internal class listbox: AccessibilityRole()
 internal class menu: AccessibilityRole()
 internal class menubar: AccessibilityRole()
 internal class radiogroup: AccessibilityRole()
-internal class tablist: AccessibilityRole()
 internal class treegrid: AccessibilityRole()
 
 internal class article: AccessibilityRole()

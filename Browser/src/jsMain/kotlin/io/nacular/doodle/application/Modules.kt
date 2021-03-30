@@ -77,8 +77,8 @@ public class Modules {
 
             // TODO: Make this pluggable
             val keys = mapOf(
-                    Forward  to setOf(KeyState(KeyCode.Tab, KeyText.Tab, emptySet(     ), Down)),
-                    Backward to setOf(KeyState(KeyCode.Tab, KeyText.Tab, setOf   (Shift), Down))
+                Forward  to setOf(KeyState(KeyCode.Tab, KeyText.Tab, emptySet(     ), Down)),
+                Backward to setOf(KeyState(KeyCode.Tab, KeyText.Tab, setOf   (Shift), Down))
             )
 
             bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
@@ -111,7 +111,7 @@ public class Modules {
             // FIXME: Centralize
             bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(instanceOrNull(), element, listener) } }
 
-            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
 
             // TODO: Can this be handled better?
             bind<AccessibilityManagerImpl>() with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }

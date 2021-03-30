@@ -10,6 +10,11 @@ public interface GraphicsDevice<T: GraphicsSurface> {
      */
     public operator fun get(view: View): T
 
+    /**
+     * @return `true` if the View has a [GraphicsSurface]
+     */
+    public operator fun contains(view: View): Boolean
+
     public fun create(view: View): T
 
     /**

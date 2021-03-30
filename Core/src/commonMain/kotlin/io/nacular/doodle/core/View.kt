@@ -44,7 +44,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Move
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
-import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
@@ -68,15 +68,31 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
  * @author Nicholas Eddy
  *
  * @constructor
- * @property accessibilityRole indicates the View's role for assistive technologies
  */
-public abstract class View protected constructor(public val accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
+public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
 
+    /** indicates the View's role for assistive technologies */
+    public var accessibilityRole: AccessibilityRole? = accessibilityRole
+        internal set(new) {
+            if (field != new) {
+                field = new
+                accessibilityManager?.roleAdopted(this)
+            }
+        }
+
     /** Provides a recognizable name for assistive technologies. */
     public var accessibilityLabel: String? by observable(null) { _,_ ->
+        accessibilityManager?.syncLabel(this)
+    }
+
+    /**
+     * Indicates the [View] that contains a recognizable name for assistive technologies.
+     * This property overrides [accessibilityLabel].
+     */
+    public var accessibilityLabelProvider: View? by observable(null) { _,_ ->
         accessibilityManager?.syncLabel(this)
     }
 
@@ -278,8 +294,28 @@ public abstract class View protected constructor(public val accessibilityRole: A
     /** Notifies changes to [displayed] */
     public val displayChange: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
-    /** Is `true` if the View is currently within the [Display] */
+    /**
+     * Is `true` if the View is currently within the [Display].
+     * NOTE: this does not mean the View has been rendered yet.
+     * @see [rendered]
+     */
     public val displayed: Boolean get() = renderManager != null
+
+    /** Notifies on the View's first render */
+    public val firstRender: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
+
+    /**
+     * Is `true` if the View has been rendered at least once.
+     */
+    public var rendered: Boolean = false
+        internal set(new) {
+            if (field != new) {
+                field = new
+                if (field) {
+                    (firstRender as ChangeObserversImpl).forEach { it(this) }
+                }
+            }
+        }
 
     /** The current text to display for tool-tips.  The default is the empty string.  */
     public var toolTipText: String = ""
@@ -322,10 +358,10 @@ public abstract class View protected constructor(public val accessibilityRole: A
     public var backgroundColor: Color? = null; set(new) { field = new; styleChanged { it.backgroundColor == null } }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
-    public val styleChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
+    public val styleChanged: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
 
     /** Notifies changes to [localContentDirection] */
-    public val contentDirectionChanged: Pool<ChangeObserver<View>> by lazy { ChangeObserversImpl(this) }
+    public val contentDirectionChanged: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
 
     /**
      * Determines whether the View will be affected by [Theme][io.nacular.doodle.theme.Theme]s set in [ThemeManager][io.nacular.doodle.theme.ThemeManager].

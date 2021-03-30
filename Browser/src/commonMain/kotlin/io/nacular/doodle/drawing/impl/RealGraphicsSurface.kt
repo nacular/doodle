@@ -94,7 +94,7 @@ internal class RealGraphicsSurface private constructor(
         }
 
     private fun setupChildrenClipRect() {
-        val needsClipping = !(clipCanvasToBounds && childdrenClipPoly == null)
+        val needsClipping = !(clipCanvasToBounds && childrenClipPoly == null)
 
         when {
             needsClipping -> if (isContainer && childrenElement == rootElement) {
@@ -124,7 +124,7 @@ internal class RealGraphicsSurface private constructor(
         }
 
         if (childrenElement != rootElement) {
-            childrenElement.style.setClipPath(childdrenClipPoly)
+            childrenElement.style.setClipPath(childrenClipPoly)
         }
     }
 
@@ -148,7 +148,7 @@ internal class RealGraphicsSurface private constructor(
             }
         }
 
-    override var childdrenClipPoly: Polygon? = null
+    override var childrenClipPoly: Polygon? = null
         set(new) {
             if (field != new) {
                 field = new

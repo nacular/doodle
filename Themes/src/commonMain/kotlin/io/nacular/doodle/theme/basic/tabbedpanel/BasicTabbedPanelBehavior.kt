@@ -1,5 +1,7 @@
 package io.nacular.doodle.theme.basic.tabbedpanel
 
+import io.nacular.doodle.accessibility.tab
+import io.nacular.doodle.accessibility.tablist
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.fixedSpeedLinear
 import io.nacular.doodle.animation.fixedTimeLinear
@@ -50,19 +52,21 @@ import kotlin.math.sqrt
  * Created by Nicholas Eddy on 3/14/19.
  */
 
-public abstract class Tab<T>: View() {
+public abstract class Tab<T>(protected val role: tab = tab()): View(accessibilityRole = role) {
     public abstract var index: Int
 }
 
-public open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
-                              override var index              : Int,
-                                           visualizer         : ItemVisualizer<T, Any>,
-                              private  val radius             : Double,
-                              private  val tabColor           : Color,
-                              private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
-                              private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
-                              private  var selectedColorMapper: ColorMapper,
-                              private  var hoverColorMapper   : ColorMapper): Tab<T>() {
+public open class BasicTab<T>(
+        private  val panel              : TabbedPanel<T>,
+        override var index              : Int,
+                     visualizer         : ItemVisualizer<T, Any>,
+        private  val radius             : Double,
+        private  val tabColor           : Color,
+        private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
+        private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
+        private  var selectedColorMapper: ColorMapper,
+        private  var hoverColorMapper   : ColorMapper
+): Tab<T>() {
 
     private var pointerOver = false
         set(new) {
@@ -87,6 +91,8 @@ public open class BasicTab<T>(private  val panel              : TabbedPanel<T>,
             new == index -> selectedColorMapper(tabColor)
             else         -> null
         }
+
+        role.selected = new == index
     }
 
     public var cellAlignment: (Constraints.() -> Unit) = { left = parent.left; centerY = parent.centerY }
@@ -256,7 +262,7 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
     }
 }
 
-public abstract class TabContainer<T>: View() {
+public abstract class TabContainer<T>(protected val role: tablist = tablist()): View(accessibilityRole = role) {
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
      * behaviors receive the notification before listeners to [TabbedPanel.selectionChanged].
@@ -276,6 +282,11 @@ public abstract class TabContainer<T>: View() {
      * @param moved items (changed index)
      */
     public abstract fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
+
+    /**
+     * Allows the container to learn which View will be associated with each tab.
+     */
+    public abstract fun registerTab(panel: TabbedPanel<T>, index: Int, tabPanel: View)
 }
 
 public open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer: TabProducer<T>): TabContainer<T>() {
@@ -308,6 +319,12 @@ public open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabPr
             filterIsInstance<Tab<T>>().forEachIndexed { index, item ->
                 item.index = index
             }
+        }
+    }
+
+    override fun registerTab(panel: TabbedPanel<T>, index: Int, tabPanel: View) {
+        children.getOrNull(index)?.let { tab ->
+            role[tab] = tabPanel
         }
     }
 }
@@ -520,11 +537,13 @@ public open class BasicTabbedPanelBehavior<T>(
 
     override fun install(view: TabbedPanel<T>) {
         view.apply {
-            children += tabContainer(view, tabProducer)
+            val tabContainer = tabContainer(view, tabProducer)
+            children += tabContainer
 
-            view.forEach {
-                children.add(view.visualizer(it).apply {
-                    visible = it == view.selectedItem
+            view.forEachIndexed { index, item ->
+                children.add(view.visualizer(item).apply {
+                    visible = item == view.selectedItem
+                    tabContainer.registerTab(view, index, this)
                 })
             }
 

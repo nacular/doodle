@@ -345,7 +345,7 @@ public class RenderManagerImpl(
 
                     graphicsSurface.apply {
                         clipCanvasToBounds = view.clipCanvasToBounds_
-                        childdrenClipPoly  = view.childrenClipPoly_
+                        childrenClipPoly  = view.childrenClipPoly_
                         mirrored           = view.needsMirrorTransform
 
                         render { canvas ->
@@ -354,6 +354,7 @@ public class RenderManagerImpl(
                     }
 
                     rendered = true
+                    view.rendered = rendered
                 }
             }
         }
@@ -371,6 +372,8 @@ public class RenderManagerImpl(
 
     private fun releaseResources(parent: View?, view: View) {
         view.removedFromDisplay_()
+
+        view.rendered = false
 
         view.children_.forEach {
             releaseResources(it.parent, it)

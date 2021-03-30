@@ -27,6 +27,8 @@ public class RealGraphicsDevice<T: GraphicsSurface>(private val surfaceFactory: 
         surface
     }
 
+    override operator fun contains(view: View): Boolean = view in viewSurfaceMap
+
     override fun create(): T = surfaceFactory().apply { index = 0 }
 
     override fun release(view: View) {
