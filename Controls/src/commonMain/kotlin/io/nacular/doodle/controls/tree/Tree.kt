@@ -91,7 +91,9 @@ public open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-    override var numRows: Int = 0
+    private var numRows_ = 0
+
+    override val numRows: Int get() = numRows_
 
     public override var insets: Insets
         get(   ) = super.insets
@@ -276,7 +278,7 @@ public open class Tree<T, out M: TreeModel<T>>(
                 if (visible(it)) {
                     pathsToUpdate -= it
 
-                    numRows   += rowsBelow(it)
+                    numRows_  += rowsBelow(it)
                     minHeight += rowPositioner?.height(this@Tree, below = it) ?: 0.0
 
                     update        (this, it)
@@ -484,7 +486,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     private fun updateNumRows() {
-        numRows = rowsBelow(Path()) + if(rootVisible) 1 else 0
+        numRows_ = rowsBelow(Path()) + if(rootVisible) 1 else 0
     }
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, rowPositioner?.row(this, y) ?: nearbyRow)

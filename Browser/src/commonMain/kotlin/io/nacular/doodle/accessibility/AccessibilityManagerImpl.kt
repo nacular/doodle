@@ -50,6 +50,8 @@ internal class AccessibilityManagerImpl(
 
     override fun syncEnabled(view: View) = syncEnabled(view, root(view))
 
+    override fun syncVisible(view: View) = syncVisible(view, root(view))
+
     override fun roleAdopted(view: View) {
         view.accessibilityRole?.let {
             it.manager = this
@@ -254,6 +256,10 @@ internal class AccessibilityManagerImpl(
         root.updateAttribute("aria-disabled", if (view.enabled) null else true)
     }
 
+    private fun syncVisible(view: View, root: HTMLElement) {
+        root.updateAttribute("aria-hidden", if (view.visible) null else true)
+    }
+
     private fun <T> HTMLElement.updateAttribute(name: String, value: T?) {
         when (value) {
             null -> removeAttribute(name          )
@@ -265,9 +271,9 @@ internal class AccessibilityManagerImpl(
         viewRoot.apply {
             when (role) {
                 is RangeRole    -> {
-                    updateAttribute("aria-valuenow", role.valueNow)
-                    updateAttribute("aria-valuemin", role.valueMin)
-                    updateAttribute("aria-valuemax", role.valueMax)
+                    updateAttribute("aria-valuenow", role.value)
+                    updateAttribute("aria-valuemin", role.min  )
+                    updateAttribute("aria-valuemax", role.max  )
                 }
                 is radio        -> updateAttribute("aria-checked", role.pressed)
                 is switch       -> updateAttribute("aria-checked", role.pressed)
@@ -287,6 +293,10 @@ internal class AccessibilityManagerImpl(
                 is tablist      -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
+            }
+
+            when (role) {
+                is slider -> updateAttribute("aria-orientation", role.orientation?.name?.toLowerCase())
             }
         }
     }

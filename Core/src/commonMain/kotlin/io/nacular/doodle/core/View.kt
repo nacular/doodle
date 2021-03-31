@@ -223,7 +223,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible. The default is `true`. */
-    override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>)
+    override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
+        accessibilityManager?.syncVisible(this)
+    }
 
     public val opacityChanged: PropertyObservers<View, Float> by lazy { PropertyObserversImpl(this) }
 
@@ -608,9 +610,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    internal  var display             : Display?              = null; private set
-    private   var renderManager       : RenderManager?        = null
-    protected var accessibilityManager: AccessibilityManager? = null
+    internal var display             : Display?              = null; private set
+    private  var renderManager       : RenderManager?        = null
+    private  var accessibilityManager: AccessibilityManager? = null
 
     private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf() }
 

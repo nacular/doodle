@@ -92,18 +92,18 @@ public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, va
 }
 
 public fun RangeRole.bind(model: ConfinedValueModel<Double>): Binding {
-    valueMin = model.limits.start
-    valueMax = model.limits.endInclusive
-    valueNow = model.value
+    min = model.limits.start
+    max = model.limits.endInclusive
+    value = model.value
 
     return object: Binding {
         val limitsChanged: PropertyObserver<ConfinedValueModel<Double>, ClosedRange<Double>> = { _,_,new ->
-            valueMin = new.start
-            valueMax = new.endInclusive
+            min = new.start
+            max = new.endInclusive
         }
 
         val valueChanged: PropertyObserver<ConfinedValueModel<Double>, Double> = { _,_,new ->
-            valueNow = new
+            value = new
         }
 
         init {

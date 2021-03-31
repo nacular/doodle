@@ -2,6 +2,7 @@ package io.nacular.doodle.accessibility
 
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.observable
 import kotlin.properties.ReadWriteProperty
 
@@ -11,6 +12,7 @@ import kotlin.properties.ReadWriteProperty
 public interface AccessibilityManager {
     @Internal public fun syncLabel    (view: View)
     @Internal public fun syncEnabled  (view: View)
+    @Internal public fun syncVisible  (view: View)
     @Internal public fun roleAdopted  (view: View)
     @Internal public fun roleUpdated  (view: View)
     @Internal public fun roleAbandoned(view: View)
@@ -20,27 +22,48 @@ public interface AccessibilityManager {
 }
 
 public sealed class AccessibilityRole {
-    @Internal public open val name: String? = this::class.simpleName
-
-    @Internal public var manager : AccessibilityManager? = null
-    @Internal public var view    : View? = null
+    @Internal public      var manager: AccessibilityManager? = null
+    @Internal public      var view   : View?                 = null
+    @Internal public open val name   : String?               = this::class.simpleName
 }
 
-public open class RangeRole: AccessibilityRole() {
-    public var valueMax : Double  by roleProperty(0.0 )
-    public var valueMin : Double  by roleProperty(0.0 )
-    public var valueNow : Double  by roleProperty(0.0 )
+/**
+ * Role for items that represent a range with a specified value within it.
+ * The properties must be kept in sync with the View with this role.
+ */
+public open class RangeRole internal constructor(): AccessibilityRole() {
+    /** max value for the range */
+    public var max: Double by roleProperty(0.0)
+
+    /** min value for the range */
+    public var min: Double by roleProperty(0.0)
+
+    /** current value for the range */
+    public var value: Double by roleProperty(0.0)
+
+    /** text representation for [value] */
     public var valueText: String? by roleProperty(null)
 }
 
-public class img: AccessibilityRole()
+/** Indicates a View that shows progress. */
+public class progressbar: RangeRole()
 
+/** Indicates a View that lets a user slide a value between a max and min value. */
+public class slider: RangeRole() {
+    /** visual orientation of the slider */
+    public var orientation: Orientation? by roleProperty(null)
+}
+
+public class image: AccessibilityRole()
+
+/** Indicates a View that a user can click to take an action. */
 public open class button internal constructor(): AccessibilityRole() {
     public companion object {
         public operator fun invoke(): button = button()
     }
 }
 
+/** Indicates a button that toggles between selected/deselected when clicked. */
 public open class togglebutton internal constructor(): button() {
     override val name: String? get() = super.name
 
@@ -51,27 +74,30 @@ public open class togglebutton internal constructor(): button() {
     }
 }
 
+/** Indicates a toggle-button that toggles between checked/un-checked when clicked. */
 public class checkbox: togglebutton()
 
+/** Indicates a toggle-button used (usually within a group) to select a single option from many. */
 public class radio: togglebutton()
 
 public class switch: togglebutton()
 
-public class progressbar: RangeRole()
-
-public class slider: RangeRole()
+public class link: button()
 
 public class list: AccessibilityRole()
+
 public class listitem: AccessibilityRole() {
     public var index   : Int? by roleProperty(null)
     public var listSize: Int? by roleProperty(null)
 }
 
 public class tree: AccessibilityRole()
+
 public class treeitem: AccessibilityRole() {
-    public var index   : Int? by roleProperty(null)
-    public var listSize: Int? by roleProperty(null)
-    public var depth   : Int  by roleProperty(0   )
+    public var index   : Int?    by roleProperty(null )
+    public var listSize: Int?    by roleProperty(null )
+    public var depth   : Int     by roleProperty(0    )
+    public var expanded: Boolean by roleProperty(false)
 }
 
 public class textbox: AccessibilityRole() {
@@ -104,8 +130,6 @@ public class tablist: AccessibilityRole() {
 }
 
 public class tabpanel: AccessibilityRole()
-
-public class link: button()
 
 internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()

@@ -35,6 +35,10 @@ public open class Slider(model: ConfinedValueModel<Double>, public val orientati
 
     public var behavior: Behavior<Slider>? by behavior()
 
+    init {
+        role.orientation = orientation
+    }
+
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }

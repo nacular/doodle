@@ -36,7 +36,7 @@ public fun Boolean.ifFalse(block: () -> Unit): Boolean {
  */
 public fun <T> MutableList<T>.addOrAppend(at: Int, value: T): Unit = when {
     at < size -> add(at, value)
-    else      -> add(    value).run { Unit }
+    else      -> add(    value).run {}
 }
 
 /**

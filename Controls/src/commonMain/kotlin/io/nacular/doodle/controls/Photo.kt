@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls
 
-import io.nacular.doodle.accessibility.img
+import io.nacular.doodle.accessibility.image
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.image.Image
@@ -9,7 +9,7 @@ import io.nacular.doodle.image.Image
  * A simple wrapper around an [Image]. The image is scaled to fit within the
  * bounds of this Photo when drawn.
  */
-public class Photo(private var image: Image): View(accessibilityRole = img()) {
+public class Photo(private var image: Image): View(accessibilityRole = image()) {
     init {
         size = image.size
     }

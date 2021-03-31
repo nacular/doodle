@@ -28,6 +28,7 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.addOrAppend
 import kotlin.math.max
 import kotlin.math.min
 
@@ -240,7 +241,6 @@ public open class List<T, out M: ListModel<T>>(
 
                     uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
                         children[i] = ui
-
                         layout(ui, row, index)
                     }
                 }
@@ -253,11 +253,7 @@ public open class List<T, out M: ListModel<T>>(
             model[index]?.let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
-                        when {
-                            index > children.lastIndex -> children.add(ui)
-                            else                       -> children[index] = ui
-                        }
-
+                        children.addOrAppend(index, ui)
                         layout(ui, row, index)
                     }
                 } else {

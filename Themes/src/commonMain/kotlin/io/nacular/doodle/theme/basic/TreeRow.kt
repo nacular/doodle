@@ -188,10 +188,6 @@ public class TreeRow<T>(
         this.path  = path
         this.index = index
 
-        role.index    = index
-        role.depth    = path.depth
-        role.listSize = tree.numRows
-
         update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, tree.selected(path))), tree)
     }
 
@@ -274,6 +270,11 @@ public class TreeRow<T>(
                 null
             }
         }
+
+        role.index    = index
+        role.depth    = depth
+        role.listSize = tree.numRows
+        role.expanded = tree.expanded(path)
     }
 
     override fun render(canvas: Canvas) {

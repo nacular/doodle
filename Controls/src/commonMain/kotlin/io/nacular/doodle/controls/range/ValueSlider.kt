@@ -1,6 +1,5 @@
 package io.nacular.doodle.controls.range
 
-import io.nacular.doodle.accessibility.RangeRole
 import io.nacular.doodle.accessibility.slider
 import io.nacular.doodle.controls.BasicConfinedValueModel
 import io.nacular.doodle.controls.ConfinedValueModel
@@ -11,7 +10,7 @@ import io.nacular.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.round
 
-public abstract class ValueSlider private constructor(model: ConfinedValueModel<Double>, private val role: RangeRole = slider()): View(role) {
+public abstract class ValueSlider private constructor(model: ConfinedValueModel<Double>, protected val role: slider = slider()): View(role) {
     public constructor(model: ConfinedValueModel<Double>): this(model, slider())
     public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start): this(BasicConfinedValueModel(range, value))
 
