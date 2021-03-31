@@ -7,7 +7,7 @@ import io.nacular.doodle.utils.observable
 import kotlin.properties.ReadWriteProperty
 
 /**
- * Created by Nicholas Eddy on 3/28/20.
+ * Manages all accessibility interactions within an application.
  */
 public interface AccessibilityManager {
     @Internal public fun syncLabel    (view: View)
@@ -21,6 +21,10 @@ public interface AccessibilityManager {
     @Internal public fun removeOwnership(owner: View, owned: View)
 }
 
+/**
+ * Base class for all accessible roles a [View] can take.
+ * @see [View.accessibilityRole]
+ */
 public sealed class AccessibilityRole {
     @Internal public      var manager: AccessibilityManager? = null
     @Internal public      var view   : View?                 = null
@@ -80,37 +84,58 @@ public class checkbox: togglebutton()
 /** Indicates a toggle-button used (usually within a group) to select a single option from many. */
 public class radio: togglebutton()
 
+/** A toggle-button that generally indicates an on/off option */
 public class switch: togglebutton()
 
+/** A hyperlink that navigates to a url. */
 public class link: button()
 
+/** A container with a sequential set of [listitem]. */
 public class list: AccessibilityRole()
 
+/** An item in a [list]. */
 public class listitem: AccessibilityRole() {
-    public var index   : Int? by roleProperty(null)
+    /** The index of the item within its list. */
+    public var index: Int? by roleProperty(null)
+
+    /** The size of the list this item belongs to. */
     public var listSize: Int? by roleProperty(null)
 }
 
+/** A container with a hierarchy of nested [treeitem]. */
 public class tree: AccessibilityRole()
 
+/** A node within a [tree] */
 public class treeitem: AccessibilityRole() {
-    public var index   : Int?    by roleProperty(null )
-    public var listSize: Int?    by roleProperty(null )
-    public var depth   : Int     by roleProperty(0    )
+    /** The index of the item within its tree. */
+    public var index: Int? by roleProperty(null)
+
+    /** The nested leve of the item. */
+    public var depth: Int by roleProperty(0)
+
+    /** Size of the tree this item belongs to */
+    public var treeSize: Int? by roleProperty(null)
+
+    /** Expanded state of this item (if it has descendants) */
     public var expanded: Boolean by roleProperty(false)
 }
 
+/** A View that allows text entry. */
 public class textbox: AccessibilityRole() {
+    /** A short hint indicate the purpose of the field. */
     public var placeHolder: String? by roleProperty(null)
 }
 
+/** Item used as the interactive tab for a tabbed-panel. */
 public class tab: AccessibilityRole() {
     public var selected: Boolean by roleProperty(false)
 }
 
+/** View that holds the [tab]s for a tabbed-panel. */
 public class tablist: AccessibilityRole() {
     @Internal public val tabToPanelMap: MutableMap<View, View> = mutableMapOf()
 
+    /** Creates a relationship between a tab's View and the panel it controls */
     public operator fun set(tab: View, tabPanel: View) {
         tabToPanelMap.put(tab, tabPanel)?.also {
             manager?.removeOwnership(tab, it)
@@ -121,6 +146,7 @@ public class tablist: AccessibilityRole() {
         tabPanel.accessibilityRole = tabpanel()
     }
 
+    /** Removes the relationship between a tab's View and the panel it controls */
     public operator fun minusAssign(tab: View) {
         tabToPanelMap.remove(tab)?.also {
             manager?.removeOwnership(tab, it)
@@ -129,6 +155,7 @@ public class tablist: AccessibilityRole() {
     }
 }
 
+/** Displayed item associated with a [tab] */
 public class tabpanel: AccessibilityRole()
 
 internal class spinbutton: RangeRole()

@@ -284,7 +284,7 @@ internal class AccessibilityManagerImpl(
                     updateAttribute("aria-posinset", role.index?.plus(1))
                 }
                 is treeitem     -> {
-                    updateAttribute("aria-setsize",  role.listSize)
+                    updateAttribute("aria-setsize",  role.treeSize)
                     updateAttribute("aria-posinset", role.index?.plus(1))
                     updateAttribute("aria-level",    role.depth)
                 }

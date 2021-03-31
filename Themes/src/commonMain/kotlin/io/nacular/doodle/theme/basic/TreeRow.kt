@@ -273,7 +273,7 @@ public class TreeRow<T>(
 
         role.index    = index
         role.depth    = depth
-        role.listSize = tree.numRows
+        role.treeSize = tree.numRows
         role.expanded = tree.expanded(path)
     }
 
