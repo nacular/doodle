@@ -10,11 +10,10 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.focus.NativeFocusManager
 import org.kodein.di.DI.Module
-import org.kodein.di.bind
+import org.kodein.di.bindProvider
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import org.kodein.di.provider
 
 /**
  * Created by Nicholas Eddy on 1/30/20.
@@ -28,7 +27,7 @@ public class ApplicationViewFactory private constructor(public val htmlFactory: 
 
     public companion object {
         public val AppViewModule: Module = Module(allowSilentOverride = true, name = "ApplicationView") {
-            bind<ApplicationViewFactory>() with provider { ApplicationViewFactory(instance(), instanceOrNull()) }
+            bindProvider { ApplicationViewFactory(instance(), instanceOrNull()) }
         }
     }
 }

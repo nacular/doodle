@@ -62,16 +62,16 @@ import org.kodein.di.DI
 import org.kodein.di.DI.Module
 import org.kodein.di.DirectDI
 import org.kodein.di.bind
+import org.kodein.di.bindInstance
+import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.bindings.Singleton
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import org.kodein.di.singleton
 import org.kodein.type.generic
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Node
-import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.events.FocusEvent
 import kotlin.random.Random
@@ -84,7 +84,8 @@ public inline fun <reified T: Application> application(
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
     // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
+    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
+//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator)
 }, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> application(
@@ -93,7 +94,9 @@ public inline fun <reified T: Application> application(
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
     // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
+    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
+
+//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator)
 }, root, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> nestedApplication(
@@ -103,7 +106,9 @@ public inline fun <reified T: Application> nestedApplication(
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
     // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
+    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
+
+//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
 }, root, allowDefaultDarkMode, modules)
 
 public fun createApplication(
@@ -156,7 +161,7 @@ private class NestedApplicationHolder(
             injector = DI.direct {
                 extend(injector, copy = Copy.All)
 
-                bind<PointerInputServiceStrategy>(overrides = true) with singleton { NestedPointerInputStrategy(view, it) }
+                bindSingleton<PointerInputServiceStrategy>(overrides = true) { NestedPointerInputStrategy(view, it) }
             }
         }
 
@@ -207,29 +212,29 @@ private open class ApplicationHolderImpl protected constructor(
             else          -> root.id.takeIf { it.isNotBlank() } ?: Random.nextInt().toString()
         }
 
-        bind<Window>                                     () with instance  ( window )
+        bindInstance                                               { window }
 
-        bind<Timer>                                      () with singleton { PerformanceTimer          (window.performance                                                    ) }
-        bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                ) }
-        bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
-        bind<Scheduler>                                  () with singleton { SchedulerImpl             (instance(), instance()                                                ) }
-        bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                        ) }
-        bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
-        bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
-        bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                            ) }
-        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
-        bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                            ) }
-        bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
-        bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
-        bind<RenderManager>                              () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
-        bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                            ) }
-        bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported
-        bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
-        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
+        bindSingleton<Timer>                                       { PerformanceTimer          (window.performance                                                    ) }
+        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                ) }
+        bindSingleton<Display>                                     { DisplayImpl               (instance(), instance(), root                                          ) }
+        bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                ) }
+        bindSingleton<SvgFactory>                                  { SvgFactoryImpl            (root, document                                                        ) }
+        bindSingleton<IdGenerator>                                 { SimpleIdGenerator         (idPrefix                                                              ) }
+        bindSingleton<HtmlFactory>                                 { HtmlFactoryImpl           (root, document                                                        ) }
+        bindSingleton<TextFactory>                                 { TextFactoryImpl           (instance()                                                            ) }
+        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
+        bindSingleton<ElementRuler>                                { ElementRulerImpl          (instance()                                                            ) }
+        bindSingleton<SystemStyler>                                { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
+        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
+        bindSingleton<RenderManager>                               { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+        bindSingleton<FontSerializer>                              { FontSerializerImpl        (instance()                                                            ) }
+        bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported
+        bindSingleton<GraphicsDevice<RealGraphicsSurface>>         { RealGraphicsDevice        (instance()                                                            ) }
+        bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bind<DisplayImpl>                                () with singleton { instance<Display>     () as DisplayImpl }
-        bind<InternalDisplay>                            () with singleton { instance<DisplayImpl> ()                }
+        bindSingleton<DisplayImpl>                                 { instance<Display>     () as DisplayImpl }
+        bindSingleton<InternalDisplay>                             { instance<DisplayImpl> ()                }
 
         modules.forEach {
             import(it, allowOverride = true)
