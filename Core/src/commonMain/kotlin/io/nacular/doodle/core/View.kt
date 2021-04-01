@@ -96,6 +96,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityManager?.syncLabel(this)
     }
 
+    /**
+     * Overrides the next item read by assistive technologies when they move from this View.
+     * This is helpful when the display order (i.e. ordering of children in a parent) does not
+     * match the order they should be read in.
+     */
+    public var nextInAccessibleReadOrder: View? by observable(null) { _,_ ->
+        accessibilityManager?.syncNextReadOrder(this)
+    }
+
     /** Left edge of [bounds] */
     override var x: Double
         get( ) = bounds.x
@@ -224,7 +233,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Whether this View is visible. The default is `true`. */
     override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
-        accessibilityManager?.syncVisible(this)
+        accessibilityManager?.syncVisibility(this)
     }
 
     public val opacityChanged: PropertyObservers<View, Float> by lazy { PropertyObserversImpl(this) }

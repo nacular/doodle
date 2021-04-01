@@ -50,7 +50,11 @@ internal class AccessibilityManagerImpl(
 
     override fun syncEnabled(view: View) = syncEnabled(view, root(view))
 
-    override fun syncVisible(view: View) = syncVisible(view, root(view))
+    override fun syncVisibility(view: View) = syncVisibility(view, root(view))
+
+    override fun syncNextReadOrder(view: View) {
+        updateRelationship(view, view.nextInAccessibleReadOrder, "aria-flowto")
+    }
 
     override fun roleAdopted(view: View) {
         view.accessibilityRole?.let {
@@ -256,7 +260,7 @@ internal class AccessibilityManagerImpl(
         root.updateAttribute("aria-disabled", if (view.enabled) null else true)
     }
 
-    private fun syncVisible(view: View, root: HTMLElement) {
+    private fun syncVisibility(view: View, root: HTMLElement) {
         root.updateAttribute("aria-hidden", if (view.visible) null else true)
     }
 

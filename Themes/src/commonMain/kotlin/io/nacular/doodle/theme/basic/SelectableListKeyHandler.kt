@@ -30,7 +30,7 @@ public interface SelectableListKeyHandler {
                             }
                         }
                         else -> list.lastSelection?.let { if (event.key == ArrowUp) list.previous(it) else list.next(it) }?.let { list.setSelection(setOf(it)) }
-                    }?.let { Unit } ?: Unit
+                    }
                 }
 
                 KeyText("a"), KeyText("A") -> {
@@ -40,6 +40,7 @@ public interface SelectableListKeyHandler {
                         event.consume()
                     }
                 }
+
                 else -> return
             }
 

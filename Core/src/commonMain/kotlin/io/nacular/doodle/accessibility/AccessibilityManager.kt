@@ -10,12 +10,13 @@ import kotlin.properties.ReadWriteProperty
  * Manages all accessibility interactions within an application.
  */
 public interface AccessibilityManager {
-    @Internal public fun syncLabel    (view: View)
-    @Internal public fun syncEnabled  (view: View)
-    @Internal public fun syncVisible  (view: View)
-    @Internal public fun roleAdopted  (view: View)
-    @Internal public fun roleUpdated  (view: View)
-    @Internal public fun roleAbandoned(view: View)
+    @Internal public fun syncLabel        (view: View)
+    @Internal public fun syncEnabled      (view: View)
+    @Internal public fun syncVisibility   (view: View)
+    @Internal public fun syncNextReadOrder(view: View)
+    @Internal public fun roleAdopted      (view: View)
+    @Internal public fun roleUpdated      (view: View)
+    @Internal public fun roleAbandoned    (view: View)
 
     @Internal public fun addOwnership   (owner: View, owned: View)
     @Internal public fun removeOwnership(owner: View, owned: View)

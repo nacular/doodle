@@ -61,7 +61,7 @@ public open class ListRow<T>(
 
         children += itemVisualizer.invoke(row, context = SimpleIndexedItem(index, listSelected))
 
-        styleChanged += { rerender() }
+        styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
             private var pressed = false
 
@@ -83,7 +83,7 @@ public open class ListRow<T>(
                         list.apply {
                             when {
                                 Ctrl  in event.modifiers || Meta in event.modifiers -> toggleSelection(it)
-                                Shift in event.modifiers && lastSelection != null  -> {
+                                Shift in event.modifiers && lastSelection != null   -> {
                                     selectionAnchor?.let { anchor ->
                                         val current = index
                                         when {

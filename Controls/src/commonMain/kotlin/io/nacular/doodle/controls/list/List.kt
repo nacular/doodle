@@ -242,6 +242,10 @@ public open class List<T, out M: ListModel<T>>(
                     uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
                         children[i] = ui
                         layout(ui, row, index)
+
+                        if (index + 1 < numRows - 1) {
+                            ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
+                        }
                     }
                 }
             }

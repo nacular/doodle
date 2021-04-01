@@ -15,14 +15,14 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
     override fun last   (within: View): View? = within.children_.lastOrNull  { focusabilityChecker(it) }
 
     override fun next    (within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
-    override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let {              previous(within, it.parent, it) }
+    override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { last (it) ?: previous(within, it.parent, it) }
 
     override fun default(display: Display): View? = first(display)
     override fun first  (display: Display): View? = display.children.firstOrNull { focusabilityChecker(it) }
     override fun last   (display: Display): View? = display.children.lastOrNull  { focusabilityChecker(it) }
 
     override fun next    (display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
-    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let {              previous(DisplayView(display), it.parent, it) }
+    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { last (it) ?: previous(DisplayView(display), it.parent, it) }
 
     private class DisplayView(val display_: Display): View() {
         override val children get() = display_.children
