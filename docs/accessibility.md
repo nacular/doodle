@@ -25,8 +25,8 @@ fun main () {
 
 ### [`accessibilityLabel`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L89)
 
-Authors can provide short, descriptive text that is used by assistive technologies to announce a View when it is selected.
-This property helps in cases where a View contains no meaningful text or has no [`toolTipText`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L347).
+Authors can provide short, descriptive text that is used by assistive technologies to announce a View when it is selected. This property helps 
+in cases where a View contains no meaningful text.
 
 ```kotlin
 val button = PushButton("x").apply {
@@ -62,10 +62,10 @@ Authors can indicate that a View plays a well-defined role as a widget by taggin
 assistive technologies to change the presentation of the View to the user as she navigates a scene. This is done by setting the View's 
 [`accessibilityRole`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/core/View.kt#L80)
 
-Here is an example of creating a View that will serve as a [`button`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/accessibility/AccessibilityManager.kt#L59).
+Here is an example of creating a View that will serve as a [`ButtonRole`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/accessibility/AccessibilityManager.kt#L59).
 
 ```kotlin
-class CustomButton: View(accessibilityRole = button()) {
+class CustomButton: View(accessibilityRole = ButtonRole()) {
     // handle key events, etc.
 }
 ```
@@ -76,7 +76,7 @@ additional properties, so simply adopting it is sufficient.
 Other roles have state and must be synchronized with the View to ensure proper assistive support.
 
 ```kotlin
-class CustomToggle(private val role: togglebutton = togglebutton()): View(accessibilityRole = role) {
+class CustomToggle(private val role: ToggleButtonRole = ToggleButtonRole()): View(accessibilityRole = role) {
     var selected by observable(false) { old, new ->
         role.pressed = new
     }
@@ -92,7 +92,7 @@ that underlies it. This way the role and View are always in sync.
 ```kotlin
 public abstract class ValueSlider private constructor(
                  model: ConfinedValueModel<Double>,
-    protected val role: slider = slider()
+    protected val role: slider = SliderRole()
 ): View(role) {
     // ...
 

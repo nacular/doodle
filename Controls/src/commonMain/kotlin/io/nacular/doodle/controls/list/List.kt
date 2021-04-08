@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.list
 
-import io.nacular.doodle.accessibility.list
+import io.nacular.doodle.accessibility.ListRole
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
@@ -63,7 +63,7 @@ public open class List<T, out M: ListModel<T>>(
         public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
         protected      val selectionModel: SelectionModel<Int>?           = null,
         private        val fitContent    : Boolean                        = true,
-        private        val scrollCache   : Int                            = 10): View(list()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val scrollCache   : Int                            = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->

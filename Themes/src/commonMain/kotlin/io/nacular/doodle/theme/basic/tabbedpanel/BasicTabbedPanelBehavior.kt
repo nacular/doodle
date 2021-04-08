@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.tabbedpanel
 
-import io.nacular.doodle.accessibility.tab
-import io.nacular.doodle.accessibility.tablist
+import io.nacular.doodle.accessibility.TabRole
+import io.nacular.doodle.accessibility.TabListRole
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.fixedSpeedLinear
 import io.nacular.doodle.animation.fixedTimeLinear
@@ -52,7 +52,7 @@ import kotlin.math.sqrt
  * Created by Nicholas Eddy on 3/14/19.
  */
 
-public abstract class Tab<T>(protected val role: tab = tab()): View(accessibilityRole = role) {
+public abstract class Tab<T>(protected val role: TabRole = TabRole()): View(accessibilityRole = role) {
     public abstract var index: Int
 }
 
@@ -263,7 +263,7 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
     }
 }
 
-public abstract class TabContainer<T>(protected val role: tablist = tablist()): View(accessibilityRole = role) {
+public abstract class TabContainer<T>(protected val role: TabListRole = TabListRole()): View(accessibilityRole = role) {
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
      * behaviors receive the notification before listeners to [TabbedPanel.selectionChanged].

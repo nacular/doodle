@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.accessibility.togglebutton
+import io.nacular.doodle.accessibility.ToggleButtonRole
 import io.nacular.doodle.controls.binding
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.utils.PropertyObservers
@@ -13,11 +13,11 @@ public open class ToggleButton protected constructor(
         text: String = "",
         icon: Icon<Button>? = null,
         model: ToggleButtonModel = ToggleButtonModelImpl(),
-        private val role: togglebutton
+        private val role: ToggleButtonRole
 ): PushButton(text, icon, model, role) {
     public constructor(text: String = "",
             icon: Icon<Button>? = null,
-            model: ToggleButtonModel = ToggleButtonModelImpl()): this(text, icon, model, togglebutton())
+            model: ToggleButtonModel = ToggleButtonModelImpl()): this(text, icon, model, ToggleButtonRole())
 
     protected class ToggleButtonModelImpl: ButtonModelImpl(), ToggleButtonModel {
         override var selected: Boolean

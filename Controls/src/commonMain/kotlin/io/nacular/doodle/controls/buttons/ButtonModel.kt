@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.accessibility.togglebutton
+import io.nacular.doodle.accessibility.ToggleButtonRole
 import io.nacular.doodle.controls.Binding
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.PropertyObserver
@@ -27,7 +27,7 @@ public interface ButtonModel {
     public fun fire()
 }
 
-public fun togglebutton.bind(model: ButtonModel): Binding {
+public fun ToggleButtonRole.bind(model: ButtonModel): Binding {
     pressed = model.selected
 
     return object: Binding {

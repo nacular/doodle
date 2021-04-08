@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.accessibility.button
+import io.nacular.doodle.accessibility.ButtonRole
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
@@ -28,7 +28,7 @@ public abstract class Button protected constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
             model: ButtonModel   = ButtonModelImpl(),
-            role : button        = button()): View(accessibilityRole = role) {
+            role : ButtonRole        = ButtonRole()): View(accessibilityRole = role) {
 
     private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
     private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl)(old, new) }

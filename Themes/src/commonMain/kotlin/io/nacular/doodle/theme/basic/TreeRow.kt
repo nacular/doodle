@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.accessibility.treeitem
+import io.nacular.doodle.accessibility.TreeItemRole
 import io.nacular.doodle.controls.IndexedIem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
@@ -83,7 +83,7 @@ public class TreeRow<T>(
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon,
-     private val role: treeitem       = treeitem()): View(role) {
+     private val role: TreeItemRole       = TreeItemRole()): View(role) {
 
     public var insetTop: Double = 1.0
 

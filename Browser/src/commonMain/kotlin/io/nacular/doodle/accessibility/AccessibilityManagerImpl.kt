@@ -281,34 +281,34 @@ internal class AccessibilityManagerImpl(
     private fun roleUpdated(viewRoot: HTMLElement, role: AccessibilityRole) {
         viewRoot.apply {
             when (role) {
-                is RangeRole    -> {
+                is RangeRole -> {
                     updateAttribute("aria-valuenow",  role.value    )
                     updateAttribute("aria-valuemin",  role.min      )
                     updateAttribute("aria-valuemax",  role.max      )
                     updateAttribute("aria-valuetext", role.valueText)
                 }
-                is radio        -> updateAttribute("aria-checked", role.pressed)
-                is switch       -> updateAttribute("aria-checked", role.pressed)
-                is checkbox     -> updateAttribute("aria-checked", role.pressed)
-                is togglebutton -> updateAttribute("aria-pressed", role.pressed)
-                is listitem     -> {
+                is RadioRole    -> updateAttribute("aria-checked", role.pressed)
+                is SwitchRole   -> updateAttribute("aria-checked", role.pressed)
+                is CheckBoxRole -> updateAttribute("aria-checked", role.pressed)
+                is ToggleButtonRole -> updateAttribute("aria-pressed", role.pressed)
+                is ListItemRole -> {
                     updateAttribute("aria-setsize",  role.listSize)
                     updateAttribute("aria-posinset", role.index?.plus(1))
                 }
-                is treeitem     -> {
+                is TreeItemRole -> {
                     updateAttribute("aria-setsize",  role.treeSize)
                     updateAttribute("aria-posinset", role.index?.plus(1))
                     updateAttribute("aria-level",    role.depth)
                 }
-                is textbox      -> updateAttribute("aria-placeholder", role.placeHolder?.takeIf { it.isNotBlank() })
-                is tab          -> updateAttribute("aria-selected",    role.selected)
-                is tablist      -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
+                is TextBoxRole -> updateAttribute("aria-placeholder", role.placeHolder?.takeIf { it.isNotBlank() })
+                is TabRole     -> updateAttribute("aria-selected",    role.selected)
+                is TabListRole -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
             }
 
             when (role) {
-                is slider -> updateAttribute("aria-orientation", role.orientation?.name?.toLowerCase())
+                is SliderRole -> updateAttribute("aria-orientation", role.orientation?.name?.toLowerCase())
             }
         }
     }

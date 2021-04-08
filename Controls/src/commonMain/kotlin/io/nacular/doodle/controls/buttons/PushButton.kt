@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.accessibility.button
+import io.nacular.doodle.accessibility.ButtonRole
 import io.nacular.doodle.core.Icon
 
 /**
@@ -10,12 +10,12 @@ public open class PushButton protected constructor(
         text : String        = "",
         icon : Icon<Button>? = null,
         model: ButtonModel   = ButtonModelImpl(),
-        role : button): Button(text, icon, model, role) {
+        role : ButtonRole): Button(text, icon, model, role) {
 
     public constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
-            model: ButtonModel   = ButtonModelImpl()): this(text, icon, model, button())
+            model: ButtonModel   = ButtonModelImpl()): this(text, icon, model, ButtonRole())
 
     override fun click() {
         if (enabled) {

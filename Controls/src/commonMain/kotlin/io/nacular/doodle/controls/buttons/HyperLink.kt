@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.buttons
 
-import io.nacular.doodle.accessibility.link
+import io.nacular.doodle.accessibility.LinkRole
 import io.nacular.doodle.core.Icon
 
 /**
@@ -10,7 +10,7 @@ public class HyperLink(
         public val url  : String,
                    text : String        = url,
                    icon : Icon<Button>? = null,
-                   model: ButtonModel   = ButtonModelImpl()): PushButton(text, icon, model, link()) {
+                   model: ButtonModel   = ButtonModelImpl()): PushButton(text, icon, model, LinkRole()) {
 
     public var visited: Boolean = false
 

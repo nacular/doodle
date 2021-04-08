@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.text
 
-import io.nacular.doodle.accessibility.textbox
+import io.nacular.doodle.accessibility.TextBoxRole
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -18,7 +18,7 @@ public class Selection(public val position: Int, public val anchor: Int) {
 
 public typealias Validator = (String) -> String
 
-public abstract class TextInput(text: String = "", protected val role: textbox = textbox()): View(role) {
+public abstract class TextInput(text: String = "", protected val role: TextBoxRole = TextBoxRole()): View(role) {
 
     public val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl<TextInput, HorizontalAlignment>(this) }
 

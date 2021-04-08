@@ -52,51 +52,51 @@ public open class RangeRole internal constructor(): AccessibilityRole() {
 }
 
 /** Indicates a View that shows progress. */
-public class progressbar: RangeRole()
+public class ProgressBarRole: RangeRole()
 
 /** Indicates a View that lets a user slide a value between a max and min value. */
-public class slider: RangeRole() {
+public class SliderRole: RangeRole() {
     /** visual orientation of the slider */
     public var orientation: Orientation? by roleProperty(null)
 }
 
-public class image: AccessibilityRole()
+public class ImageRole: AccessibilityRole()
 
 /** Indicates a View that a user can click to take an action. */
-public open class button internal constructor(): AccessibilityRole() {
+public open class ButtonRole internal constructor(): AccessibilityRole() {
     public companion object {
-        public operator fun invoke(): button = button()
+        public operator fun invoke(): ButtonRole = ButtonRole()
     }
 }
 
 /** Indicates a button that toggles between selected/deselected when clicked. */
-public open class togglebutton internal constructor(): button() {
+public open class ToggleButtonRole internal constructor(): ButtonRole() {
     override val name: String? get() = super.name
 
     public var pressed: Boolean by roleProperty(false)
 
     public companion object {
-        public operator fun invoke(): togglebutton = togglebutton()
+        public operator fun invoke(): ToggleButtonRole = ToggleButtonRole()
     }
 }
 
 /** Indicates a toggle-button that toggles between checked/un-checked when clicked. */
-public class checkbox: togglebutton()
+public class CheckBoxRole: ToggleButtonRole()
 
 /** Indicates a toggle-button used (usually within a group) to select a single option from many. */
-public class radio: togglebutton()
+public class RadioRole: ToggleButtonRole()
 
 /** A toggle-button that generally indicates an on/off option */
-public class switch: togglebutton()
+public class SwitchRole: ToggleButtonRole()
 
 /** A hyperlink that navigates to a url. */
-public class link: button()
+public class LinkRole: ButtonRole()
 
-/** A container with a sequential set of [listitem]. */
-public class list: AccessibilityRole()
+/** A container with a sequential set of [ListItemRole]. */
+public class ListRole: AccessibilityRole()
 
-/** An item in a [list]. */
-public class listitem: AccessibilityRole() {
+/** An item in a [ListRole]. */
+public class ListItemRole: AccessibilityRole() {
     /** The index of the item within its list. */
     public var index: Int? by roleProperty(null)
 
@@ -104,11 +104,11 @@ public class listitem: AccessibilityRole() {
     public var listSize: Int? by roleProperty(null)
 }
 
-/** A container with a hierarchy of nested [treeitem]. */
-public class tree: AccessibilityRole()
+/** A container with a hierarchy of nested [TreeItemRole]. */
+public class TreeRole: AccessibilityRole()
 
-/** A node within a [tree] */
-public class treeitem: AccessibilityRole() {
+/** A node within a [TreeRole] */
+public class TreeItemRole: AccessibilityRole() {
     /** The index of the item within its tree. */
     public var index: Int? by roleProperty(null)
 
@@ -123,18 +123,18 @@ public class treeitem: AccessibilityRole() {
 }
 
 /** A View that allows text entry. */
-public class textbox: AccessibilityRole() {
+public class TextBoxRole: AccessibilityRole() {
     /** A short hint indicate the purpose of the field. */
     public var placeHolder: String? by roleProperty(null)
 }
 
 /** Item used as the interactive tab for a tabbed-panel. */
-public class tab: AccessibilityRole() {
+public class TabRole: AccessibilityRole() {
     public var selected: Boolean by roleProperty(false)
 }
 
-/** View that holds the [tab]s for a tabbed-panel. */
-public class tablist: AccessibilityRole() {
+/** View that holds the [TabRole]s for a tabbed-panel. */
+public class TabListRole: AccessibilityRole() {
     @Internal public val tabToPanelMap: MutableMap<View, View> = mutableMapOf()
 
     /** Creates a relationship between a tab's View and the panel it controls */
@@ -145,7 +145,7 @@ public class tablist: AccessibilityRole() {
         }
 
         manager?.addOwnership(tab, tabPanel)
-        tabPanel.accessibilityRole = tabpanel()
+        tabPanel.accessibilityRole = TabPanelRole()
     }
 
     /** Removes the relationship between a tab's View and the panel it controls */
@@ -157,8 +157,8 @@ public class tablist: AccessibilityRole() {
     }
 }
 
-/** Displayed item associated with a [tab] */
-public class tabpanel: AccessibilityRole()
+/** Displayed item associated with a [TabRole] */
+public class TabPanelRole: AccessibilityRole()
 
 internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()
