@@ -28,60 +28,6 @@ internal class AccessibilityManagerImpl(
                     htmlFactory              : HtmlFactory
 ): AccessibilityManager, RawListener, NativeEventListener {
 
-    private val elementToView = mutableMapOf<HTMLElement, View>()
-    private val viewToElement = mutableMapOf<View, HTMLElement>()
-    private val eventHandler  = nativeEventHandlerFactory(htmlFactory.root, this)
-
-    init {
-        keyInputService += this
-
-        eventHandler.registerFocusInListener()
-        eventHandler.registerClickListener  ()
-    }
-
-    fun shutdown() {
-        keyInputService -= this
-
-        eventHandler.unregisterClickListener  ()
-        eventHandler.unregisterFocusInListener()
-    }
-
-    override fun syncLabel(view: View) = syncLabel(view, root(view))
-
-    override fun syncEnabled(view: View) = syncEnabled(view, root(view))
-
-    override fun syncVisibility(view: View) = syncVisibility(view, root(view))
-
-    override fun syncNextReadOrder(view: View) {
-        updateRelationship(view, view.nextInAccessibleReadOrder, "aria-flowto")
-    }
-
-    override fun roleAdopted(view: View) {
-        view.accessibilityRole?.let {
-            it.manager = this
-            it.view    = view
-
-            registerRole(view, it)
-        }
-    }
-
-    override fun roleAbandoned(view: View) {
-        view.accessibilityRole?.let {
-            it.manager = null
-            it.view    = null
-
-            unregisterRole(view)
-        }
-    }
-
-    override fun roleUpdated(view: View) {
-        view.accessibilityRole?.let { role ->
-            roleUpdated(root(view), role)
-        }
-    }
-
-    private val idRelationships = mutableSetOf<IdRelationship>()
-
     private inner class IdRelationship(private val source: View, private val target: View, private val propertyName: String) {
         private val firstRender: (View) -> Unit = {
             when (it) {
@@ -102,7 +48,7 @@ internal class AccessibilityManagerImpl(
         }
 
         private var sourceReady = source.rendered
-        private var targetId: String? = if (target.rendered) id(target) else null
+        private var targetId    = if (target.rendered) id(target) else null
             set(new) {
                 if (field != new) {
                     field = new
@@ -155,13 +101,59 @@ internal class AccessibilityManagerImpl(
         }
     }
 
+    private val elementToView         = mutableMapOf<HTMLElement, View>()
+    private val viewToElement         = mutableMapOf<View, HTMLElement>()
+    private val eventHandler          = nativeEventHandlerFactory(htmlFactory.root, this)
+    private val idRelationships       = mutableSetOf<IdRelationship>()
     private val idRelationshipSources = mutableMapOf<Pair<View, String>, IdRelationship>()
 
-    private fun updateRelationship(source: View, target: View?, name: String) {
-        idRelationshipSources.remove(source to name)?.delete()
+    init {
+        keyInputService += this
 
-        if (target != null) {
-            idRelationshipSources[source to name] = IdRelationship(source, target, name)
+        eventHandler.registerFocusInListener()
+        eventHandler.registerClickListener  ()
+    }
+
+    fun shutdown() {
+        keyInputService -= this
+
+        eventHandler.unregisterClickListener  ()
+        eventHandler.unregisterFocusInListener()
+    }
+
+    override fun syncLabel(view: View) = syncLabel(view, root(view))
+
+    override fun syncEnabled(view: View) = syncEnabled(view, root(view))
+
+    override fun syncVisibility(view: View) = syncVisibility(view, root(view))
+
+    override fun syncDescription(view: View) = syncDescription(view, root(view))
+
+    override fun syncNextReadOrder(view: View) {
+        updateRelationship(view, view.nextInAccessibleReadOrder, "aria-flowto")
+    }
+
+    override fun roleAdopted(view: View) {
+        view.accessibilityRole?.let {
+            it.manager = this
+            it.view    = view
+
+            registerRole(view, it)
+        }
+    }
+
+    override fun roleAbandoned(view: View) {
+        view.accessibilityRole?.let {
+            it.manager = null
+            it.view    = null
+
+            unregisterRole(view)
+        }
+    }
+
+    override fun roleUpdated(view: View) {
+        view.accessibilityRole?.let { role ->
+            roleUpdated(root(view), role)
         }
     }
 
@@ -207,6 +199,14 @@ internal class AccessibilityManagerImpl(
         }
 
         return false
+    }
+
+    private fun updateRelationship(source: View, target: View?, name: String) {
+        idRelationshipSources.remove(source to name)?.delete()
+
+        if (target != null) {
+            idRelationshipSources[source to name] = IdRelationship(source, target, name)
+        }
     }
 
     private fun registerRole(view: View, role: AccessibilityRole) {
@@ -256,6 +256,13 @@ internal class AccessibilityManagerImpl(
         updateRelationship(view, provider, "aria-labelledby")
     }
 
+    private fun syncDescription(view: View, root: HTMLElement) {
+        val provider = view.accessibilityDescriptionProvider
+
+        // will clear field when provider is null
+        updateRelationship(view, provider, "aria-describedby")
+    }
+
     private fun syncEnabled(view: View, root: HTMLElement) {
         root.updateAttribute("aria-disabled", if (view.enabled) null else true)
     }
@@ -275,9 +282,10 @@ internal class AccessibilityManagerImpl(
         viewRoot.apply {
             when (role) {
                 is RangeRole    -> {
-                    updateAttribute("aria-valuenow", role.value)
-                    updateAttribute("aria-valuemin", role.min  )
-                    updateAttribute("aria-valuemax", role.max  )
+                    updateAttribute("aria-valuenow",  role.value    )
+                    updateAttribute("aria-valuemin",  role.min      )
+                    updateAttribute("aria-valuemax",  role.max      )
+                    updateAttribute("aria-valuetext", role.valueText)
                 }
                 is radio        -> updateAttribute("aria-checked", role.pressed)
                 is switch       -> updateAttribute("aria-checked", role.pressed)

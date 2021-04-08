@@ -167,6 +167,7 @@ public open class BasicTab<T>(
 
         if (selected) {
             backgroundColor = selectedColorMapper(tabColor)
+            role.selected   = true
         }
 
         path = updatePath()

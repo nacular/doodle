@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic.spinner
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
@@ -35,6 +34,8 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.Anchor.Leading
+import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.SetPool
 
 public class BasicSpinnerBehavior(
         private val textMetrics        : TextMetrics,
@@ -118,9 +119,7 @@ public class BasicSpinnerBehavior(
     override fun install(view: Spinner<Any, Model<Any>>) {
         super.install(view)
 
-        val itemVisualizer = view.itemVisualizer ?: itemVisualizer
-
-        val center = itemVisualizer(view.value)
+        val center = (view.itemVisualizer ?: itemVisualizer)(view.value, null, view)
         val next = PushButton().apply {
             iconAnchor    = Leading
             enabled       = view.hasNext
@@ -197,12 +196,12 @@ public class BasicSpinnerBehavior(
         focusManager?.requestFocus(event.source)
     }
 
-    internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter)) {
-        if (newCenter != oldCenter) {
-            oldCenter?.let {
-                spinner.children -= oldCenter
-                (spinner.layout as? ConstraintLayout)?.unconstrain(oldCenter)
-            }
+    internal val centerChanged: Pool<(Spinner<*, *>, View?, View) -> Unit> = SetPool()
+
+    internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter, spinner)) {
+        if (oldCenter != null && newCenter != oldCenter) {
+            spinner.children -= oldCenter
+            (spinner.layout as? ConstraintLayout)?.unconstrain(oldCenter)
 
             spinner.children += newCenter
 
@@ -212,8 +211,10 @@ public class BasicSpinnerBehavior(
                 center.right  = next.left
                 center.bottom = parent.bottom
             }
+
+            (centerChanged as SetPool).forEach { it(spinner, oldCenter, newCenter) }
         }
     }
 
-    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View = spinner.children.first { it !is PushButton }
+    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View? = spinner.children.firstOrNull { it !is PushButton }
 }

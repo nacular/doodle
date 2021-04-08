@@ -25,7 +25,7 @@ public abstract class ValueSlider private constructor(model: ConfinedValueModel<
             snapSize = if (field > 0) range.size / field else 0.0
         }
 
-    public var model: ConfinedValueModel<Double> =  model
+    public var model: ConfinedValueModel<Double> = model
         set(new) {
             field.valueChanged -= modelChanged
 

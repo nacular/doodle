@@ -46,7 +46,7 @@ public abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
  * Controls used to flip through items (one at a time) within a sequential collection.
  */
 @Suppress("PropertyName")
-public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: ItemVisualizer<T, Any>? = null): View() {
+public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = null): View() {
 
     public fun next    (): Unit = model.next    ()
     public fun previous(): Unit = model.previous()
@@ -57,7 +57,7 @@ public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: I
 
     public var behavior: SpinnerBehavior<T, M>? by behavior()
 
-    public var itemVisualizer: ItemVisualizer<T, Any>? = itemVisualizer
+    public var itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = itemVisualizer
         protected set
 
     override fun render(canvas: Canvas) {

@@ -102,7 +102,7 @@ an observer any time.
 ---
 ## Pointer Event
 
-The event provided to pointer listeners carries information about the View it originated from (`source`), the View it is sent to (`target`),
+The event provided to pointer listeners carries information about the View it originated from (`target`), the View it is sent to (`source`),
 various attributes about the state of the pointer--like buttons pressed--and the location of the cursor relative to the target View.
 
 Pointer events are **consumable**. This means any observer can call `consume()` on the event and prevent subsequent
@@ -125,8 +125,8 @@ override fun pressed(event: PointerEvent) {
 Pointer events sent to a View will also be sent up to its parent and so on. This means you can listen to all events that happen
 to the descendants of a View.
 
-The event sent to a parent if slightly different from the one sent to the View. These events continue to have the same `source`
-(descendant View where the event fired), but their `target` changes to the recipient ancestor as they bubble.
+The event sent to a parent if slightly different from the one sent to the View. These events continue to have the same `target`
+(descendant View where the event fired), but their `source` changes to the recipient ancestor as they bubble.
 
 !> Bubbling is canceled if any listener calls `consume`
 

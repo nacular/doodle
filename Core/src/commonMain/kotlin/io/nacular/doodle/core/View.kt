@@ -74,6 +74,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
 
+    // region Accessibility
+
     /** indicates the View's role for assistive technologies */
     public var accessibilityRole: AccessibilityRole? = accessibilityRole
         internal set(new) {
@@ -97,6 +99,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /**
+     * Indicates the [View] that contains a more detailed description for assistive technologies.
+     * This property overrides [accessibilityLabel].
+     */
+    public var accessibilityDescriptionProvider: View? by observable(null) { _,_ ->
+        accessibilityManager?.syncDescription(this)
+    }
+
+    /**
      * Overrides the next item read by assistive technologies when they move from this View.
      * This is helpful when the display order (i.e. ordering of children in a parent) does not
      * match the order they should be read in.
@@ -104,6 +114,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var nextInAccessibleReadOrder: View? by observable(null) { _,_ ->
         accessibilityManager?.syncNextReadOrder(this)
     }
+
+    // endregion
+    // region Bounds
 
     /** Left edge of [bounds] */
     override var x: Double
@@ -219,6 +232,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Empty
 
+    // endregion
+
     /** Notifies changes to [zOrder] */
     internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl(this) }
 
@@ -329,7 +344,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** The current text to display for tool-tips.  The default is the empty string.  */
-    public var toolTipText: String = ""
+    public var toolTipText: String by observable("") { _,_ ->
+        accessibilityManager?.syncDescription(this)
+    }
 
     private var actualCursor: Cursor? = null
 
@@ -909,8 +926,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         this.display              = display
         this.renderManager        = renderManager
         this.accessibilityManager = accessibilityManager?.also {
-            it.syncLabel  (this)
-            it.syncEnabled(this)
+            it.syncLabel        (this)
+            it.syncEnabled      (this)
+            it.syncDescription  (this)
+            it.syncNextReadOrder(this)
         }
 
         accessibilityRole?.let {

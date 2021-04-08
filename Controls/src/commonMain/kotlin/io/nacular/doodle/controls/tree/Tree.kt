@@ -455,16 +455,19 @@ public open class Tree<T, out M: TreeModel<T>>(
 
             // Path index not found (could be invisible)
             if (index in firstVisibleRow..lastVisibleRow) {
-                generator?.let {
+                generator?.let { rowGenerator ->
                     model[path]?.let { value ->
                         // pathToRow[path ] = index
 
                         val i = index % children.size
 
-                        it(this, value, path, index, children.getOrNull(i)).also {
-                            children[i] = it
+                        rowGenerator(this, value, path, index, children.getOrNull(i)).also { ui ->
+                            children[i] = ui
+                            layout(ui, value, path, index)
 
-                            layout(it, value, path, index)
+                            if (index + 1 < numRows - 1) {
+                                ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
+                            }
                         }
 
                         ++result

@@ -51,15 +51,15 @@ public class PointerEvent internal constructor(
         public val target             : View,
         public val buttons            : Set<Button>,
         public val clickCount         : Int,
-        public val targetInteractions : List<Interaction>,
+        public val targetInteractions : Set<Interaction>,
         public val changedInteractions: Set<Interaction>,
-                   allInteractions    : () -> List<Interaction>,
+                   allInteractions    : () -> Set<Interaction>,
                    modifiers          : Set<Modifier>): InputEvent(source, modifiers) {
 
     internal var preventOsHandling = false
         private set
     /** Pointers that are currently active (even those not directed at the [target]) */
-    public val allInteractions: List<Interaction> by lazy { allInteractions() }
+    public val allInteractions: Set<Interaction> by lazy { allInteractions() }
 
     /** Type of the first item in [changedInteractions] */
     public val type: Type  get() = changedInteractions.first().state
@@ -80,7 +80,7 @@ public class PointerEvent internal constructor(
     public companion object {
         @Internal
         public operator fun invoke(target: View, event: SystemPointerEvent): PointerEvent {
-            val pointers = listOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location)))
+            val pointers = setOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location)))
 
             return PointerEvent(target,
                                 target,

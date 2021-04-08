@@ -10,7 +10,8 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.event.PointerListener.Companion.released
+import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.theme.basic.ColorMapper
@@ -26,9 +27,24 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
         foregroundColor    : Color,
         cornerRadius       : Double,
         buttonWidth        : Double,
-        focusManager       : FocusManager? = null): MutableSpinnerBehavior<T, M>() {
+        focusManager       : FocusManager? = null): MutableSpinnerBehavior<T, M>(), PointerListener {
 
-    private val delegate = BasicSpinnerBehavior(textMetrics, backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, focusManager)
+    private val delegate = BasicSpinnerBehavior(
+            textMetrics,
+            backgroundColor,
+            darkBackgroundColor,
+            foregroundColor,
+            cornerRadius,
+            buttonWidth,
+            focusManager
+    ).apply {
+        centerChanged += { spinner, old, new ->
+            (spinner as? MutableSpinner<T, M>)?.let {
+                spinner.cancelEditing()
+                setupEditingTriggers(old, new)
+            }
+        }
+    }
 
     public var hoverColorMapper   : ColorMapper get() = delegate.hoverColorMapper;    set(new) { delegate.hoverColorMapper    = new }
     public var disabledColorMapper: ColorMapper get() = delegate.disabledColorMapper; set(new) { delegate.disabledColorMapper = new }
@@ -36,11 +52,7 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
     override fun contains(view: Spinner<T, M>, point: Point): Boolean = delegate.contains(view as Spinner<Any, Model<Any>>, point)
     override fun mirrorWhenRightToLeft(view: Spinner<T, M>): Boolean = delegate.mirrorWhenRightToLeft(view as Spinner<Any, Model<Any>>)
     override fun clipCanvasToBounds(view: Spinner<T, M>): Boolean = delegate.clipCanvasToBounds(view as Spinner<Any, Model<Any>>)
-    override fun install(view: Spinner<T, M>) {
-        delegate.install(view as Spinner<Any, Model<Any>>)
-
-        installClickListener(view)
-    }
+    override fun install(view: Spinner<T, M>) { delegate.install(view as Spinner<Any, Model<Any>>) }
 
     override fun uninstall(view: Spinner<T, M>): Unit = delegate.uninstall(view as Spinner<Any, Model<Any>>)
 
@@ -49,26 +61,29 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
     override fun editingStarted(spinner: MutableSpinner<T, M>): EditOperation<T>? {
         val center = delegate.visualizedValue(spinner as Spinner<Any, Model<Any>>)
 
-        return spinner.editor?.edit(spinner, spinner.value, center)?.also { operation ->
+        return spinner.editor?.edit(spinner, spinner.value, center!!)?.also { operation ->
             operation()?.let { newCenter -> delegate.updateCenter(spinner, oldCenter = center, newCenter) }
         }
     }
 
     override fun editingEnded(spinner: MutableSpinner<T, M>) {
         delegate.updateCenter(spinner as Spinner<Any, Model<Any>>)
-
-        installClickListener(spinner)
     }
 
     override fun changed(spinner: Spinner<T, M>): Unit = delegate.changed(spinner as Spinner<Any, Model<Any>>)
 
-    private fun installClickListener(spinner: Spinner<Any, Model<Any>>) {
-        delegate.visualizedValue(spinner).pointerFilter += released { event ->
-            if (event.clickCount >= 2) {
-                (spinner as? MutableSpinner)?.startEditing()
+    override fun pressed(event: PointerEvent) {
+        event.source.let { spinner ->
+            if (event.clickCount >= 2 && spinner is MutableSpinner<*,*>) {
+                spinner.startEditing()
                 event.consume()
             }
         }
+    }
+
+    private fun setupEditingTriggers(old: View?, new: View) {
+        old?.pointerFilter?.minusAssign(this)
+        new.pointerFilter += this
     }
 }
 

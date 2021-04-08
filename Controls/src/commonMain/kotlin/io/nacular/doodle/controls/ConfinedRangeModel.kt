@@ -91,6 +91,9 @@ public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, va
         set(new) { delegate.limits = new }
 }
 
+/**
+ * Creates a binding between the role and model, keeping the role synchronized with the given model
+ */
 public fun RangeRole.bind(model: ConfinedValueModel<Double>): Binding {
     min = model.limits.start
     max = model.limits.endInclusive

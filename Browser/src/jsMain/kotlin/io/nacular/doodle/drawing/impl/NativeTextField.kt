@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.FontSerializer
+import io.nacular.doodle.HTMLInputElement
 import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextInput
@@ -9,12 +10,15 @@ import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStyler.Style
+import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.rgba
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBorderWidth
 import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setFont
+import io.nacular.doodle.dom.setHeight
 import io.nacular.doodle.dom.setHeightPercent
+import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOutlineWidth
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
@@ -34,6 +38,11 @@ internal interface NativeTextFieldFactory {
     operator fun invoke(textField: TextField): NativeTextField
 }
 
+internal interface MobileKeyboardManager {
+    fun show()
+    fun hide()
+}
+
 internal class NativeTextFieldFactoryImpl internal constructor(
         private val idGenerator        : IdGenerator,
         private val fontSerializer     : FontSerializer,
@@ -44,6 +53,23 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         private val focusManager       : FocusManager?,
         private val textMetrics        : TextMetrics,
         private val spellCheck         : Boolean): NativeTextFieldFactory {
+
+    private inner class MobileKeyboardManagerImpl: MobileKeyboardManager {
+        private val tempFocusTarget: HTMLInputElement = htmlFactory.createInput().apply {
+            setAttribute("type", "text")
+            style.setOpacity(0f)
+            style.setHeight(0.0)
+        }
+
+        override fun show() {
+            htmlFactory.root.add(tempFocusTarget)
+            tempFocusTarget.focus()
+        }
+
+        override fun hide() {
+            tempFocusTarget.remove()
+        }
+    }
 
     private val sizeDifference: Size by lazy {
         elementRuler.size(htmlFactory.createInput()).let {
@@ -67,6 +93,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             htmlFactory,
             focusManager,
             textMetrics,
+            MobileKeyboardManagerImpl(),
             sizeDifference,
             spellCheck,
             textField)
@@ -74,16 +101,17 @@ internal class NativeTextFieldFactoryImpl internal constructor(
 
 @Suppress("PrivatePropertyName")
 internal class NativeTextField(
-                    eventHandlerFactory: NativeEventHandlerFactory,
-        private val idGenerator        : IdGenerator,
-        private val systemStyler       : SystemStyler,
-        private val fontSerializer     : FontSerializer,
-                    htmlFactory        : HtmlFactory,
-        private val focusManager       : FocusManager?,
-        private val textMetrics        : TextMetrics,
-        private val borderSize         : Size,
-        private val spellCheck         : Boolean,
-        private val textField          : TextField): NativeEventListener {
+                    eventHandlerFactory  : NativeEventHandlerFactory,
+        private val idGenerator          : IdGenerator,
+        private val systemStyler         : SystemStyler,
+        private val fontSerializer       : FontSerializer,
+                    htmlFactory          : HtmlFactory,
+        private val focusManager         : FocusManager?,
+        private val textMetrics          : TextMetrics,
+        private val mobileKeyboardManager: MobileKeyboardManager,
+        private val borderSize           : Size,
+        private val spellCheck           : Boolean,
+        private val textField            : TextField): NativeEventListener {
 
     val clipCanvasToBounds = false
 
@@ -93,14 +121,15 @@ internal class NativeTextField(
             inputElement.value = new
         }
 
+    var size = Empty
+
     private val selection
         get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 
-    var size = Empty
-
-    private var ignoreSync   = false
-    private val inputElement = htmlFactory.createInput()
-    private val eventHandler: NativeEventHandler
+    private var ignoreSync     = false
+    private val inputElement   = htmlFactory.createInput()
+    private val eventHandler   : NativeEventHandler
+    private var elementFocused = false
 
     private val textChanged = { _: TextInput, _: String, new: String ->
         text = new
@@ -225,6 +254,10 @@ internal class NativeTextField(
             selectionChanged    += this@NativeTextField.selectionChanged
             focusabilityChanged += this@NativeTextField.focusabilityChanged
         }
+
+        if (textField.hasFocus) {
+            mobileKeyboardManager.show()
+        }
     }
 
     fun discard() {
@@ -248,7 +281,7 @@ internal class NativeTextField(
             canvas.addData(listOf(inputElement))
         }
 
-        if (textField.hasFocus) {
+        if (textField.hasFocus && !elementFocused) {
             inputElement.focus()
         }
 
@@ -265,12 +298,18 @@ internal class NativeTextField(
     override fun onInput(target: EventTarget?) = true.also { syncTextField() }
 
     override fun onFocusGained(target: EventTarget?) = true.also {
+        elementFocused = true
+
+        mobileKeyboardManager.hide()
+
         if (!ignoreSync) {
             focusManager?.requestFocus(textField)
         }
     }
 
     override fun onFocusLost(target: EventTarget?) = true.also {
+        elementFocused = false
+
         if (!ignoreSync && focusManager?.focusOwner == textField) {
             focusManager.clearFocus()
         }
@@ -285,7 +324,7 @@ internal class NativeTextField(
 
         // Ignore updates from the TextField during this call since
         // they will invalidate the underlying selection range
-        // by modifying the start/end position.  They are also
+        // by modifying the start/end position. They are also
         // redundant.
 
         textField.textChanged      -= textChanged
@@ -297,5 +336,25 @@ internal class NativeTextField(
 
         textField.textChanged      += textChanged
         textField.selectionChanged += selectionChanged
+    }
+
+    companion object {
+        private var tempFocusTarget: HTMLInputElement? = null
+
+        protected fun showKeyboard(htmlFactory: HtmlFactory) {
+            if (tempFocusTarget == null) {
+                tempFocusTarget = htmlFactory.createInput().apply {
+                    setAttribute("type", "text")
+//                    setAttribute("type", "text")
+                    style.setOpacity(0f)
+                    style.setHeight(0.0)
+                }
+            }
+
+            tempFocusTarget?.let {
+                htmlFactory.root.add(it)
+                it.focus()
+            }
+        }
     }
 }

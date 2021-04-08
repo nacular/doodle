@@ -13,6 +13,7 @@ public interface AccessibilityManager {
     @Internal public fun syncLabel        (view: View)
     @Internal public fun syncEnabled      (view: View)
     @Internal public fun syncVisibility   (view: View)
+    @Internal public fun syncDescription  (view: View)
     @Internal public fun syncNextReadOrder(view: View)
     @Internal public fun roleAdopted      (view: View)
     @Internal public fun roleUpdated      (view: View)

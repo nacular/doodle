@@ -12,7 +12,8 @@ public open class PushButton protected constructor(
         model: ButtonModel   = ButtonModelImpl(),
         role : button): Button(text, icon, model, role) {
 
-    public constructor(text : String        = "",
+    public constructor(
+            text : String        = "",
             icon : Icon<Button>? = null,
             model: ButtonModel   = ButtonModelImpl()): this(text, icon, model, button())
 

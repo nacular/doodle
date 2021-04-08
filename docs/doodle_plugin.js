@@ -23,7 +23,12 @@ window.$docsify.plugins.push(
 
                 element.style.height = config.height+''
 
-                eval(config.run)(element)
+                if (config.args != null) {
+                    config.args.unshift(element)
+                    eval(config.run).apply(null, config.args)
+                } else {
+                    eval(config.run)(element)
+                }
             })
         }
 

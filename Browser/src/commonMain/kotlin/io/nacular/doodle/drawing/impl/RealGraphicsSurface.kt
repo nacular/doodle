@@ -303,6 +303,7 @@ internal class RealGraphicsSurface private constructor(
     private fun add(@Suppress("UNUSED_PARAMETER") child: RealGraphicsSurface) {
         if (++numChildren == 1) {
             isContainer = true
+            setupChildrenClipRect()
         }
 
         childrenElement.add(child.rootElement)
