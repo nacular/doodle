@@ -344,9 +344,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** The current text to display for tool-tips.  The default is the empty string.  */
-    public var toolTipText: String by observable("") { _,_ ->
-        accessibilityManager?.syncDescription(this)
-    }
+    public var toolTipText: String = ""
 
     private var actualCursor: Cursor? = null
 

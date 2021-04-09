@@ -1,9 +1,9 @@
 package io.nacular.doodle.controls.buttons
 
+import JsName
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -44,8 +44,8 @@ class PushButtonTests {
             enabled = false
             click()
 
-            verify(exactly = 0) { model.armed   = any() }
-            verify(exactly = 0) { model.pressed = any() }
+            verify(exactly = 0) { model.armed   = true }
+            verify(exactly = 0) { model.pressed = true }
         }
     }
 
