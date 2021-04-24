@@ -21,13 +21,21 @@ public inline class Pointer(internal val id: Int)
  * @param target of the interaction
  * @param state the Pointer is in
  * @param location of the Pointer within its [target]
+ * @param absoluteLocation of the Pointer within the Display
  *
  * @property pointer responsible for the interaction
  * @property target of the interaction
  * @property state the Pointer is in
  * @property location of the Pointer within its [target]
+ * @property absoluteLocation of the Pointer within the Display
  */
-public class Interaction internal constructor(public val pointer: Pointer, public val target: View, public val state: Type, public val location: Point)
+public class Interaction internal constructor(
+        public   val pointer         : Pointer,
+        public   val target          : View,
+        public   val state           : Type,
+        public   val location        : Point,
+        internal val absoluteLocation: Point
+)
 
 /**
  * Event triggered when a pointing device (Mouse, Pen, Touch, etc.) interacts with a View.
@@ -80,7 +88,7 @@ public class PointerEvent internal constructor(
     public companion object {
         @Internal
         public operator fun invoke(target: View, event: SystemPointerEvent): PointerEvent {
-            val pointers = setOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location)))
+            val pointers = setOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location), event.location))
 
             return PointerEvent(target,
                                 target,

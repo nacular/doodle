@@ -5,7 +5,6 @@ import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
-import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.WheelEvent
 
 /**
@@ -134,8 +133,11 @@ public actual abstract class HTMLElement: Element() {
 
     public actual abstract val style: CSSStyleDeclaration
 
-    public actual var onresize   : ((Event) -> Unit)? = {}
+    public actual var onresize   : ((Event) -> Unit)? = null
     public actual var ondragstart: ((DragEvent) -> Boolean)? = { false }
+
+    public actual var onload : ((Event) -> Any)? = null
+    public actual var onerror: ((Any, String, Int, Int, Any?) -> Any)? = null
 
     public actual var ondblclick   : ((MouseEvent  ) -> Any)? = null
     public actual var onpointerup  : ((PointerEvent) -> Any)? = null

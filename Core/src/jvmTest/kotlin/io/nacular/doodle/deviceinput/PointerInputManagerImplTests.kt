@@ -536,7 +536,7 @@ class PointerInputManagerImplTests {
     )
 
     private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, buttons: Set<Button>, clickCount: Int, modifiers: Set<Modifier>): PointerEvent {
-        val interactions = setOf(Interaction(Pointer(id), target, type, location))
+        val interactions = setOf(Interaction(Pointer(id), target, type, location, location))
 
         return pointerEvent(source, target, interactions, interactions.toSet(), { interactions }, buttons, clickCount, modifiers)
     }

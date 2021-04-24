@@ -5,7 +5,6 @@ import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
-import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.WheelEvent
 
 /**
@@ -139,6 +138,9 @@ public expect abstract class HTMLElement: Element {
 
     public var onresize   : ((Event) -> Unit)?
     public var ondragstart: ((DragEvent) -> Boolean)?
+
+    public var onload : ((Event) -> Any)?
+    public var onerror: ((Any, String, Int, Int, Any?) -> Any)?
 
     public var dir: String
 

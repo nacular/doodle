@@ -7,6 +7,7 @@ import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.ConstraintBlockContext
@@ -21,18 +22,19 @@ public typealias Extractor<T, R>  = T.() -> R
 public abstract class Field<T>: Positionable
 
 public class NamedField<T, C>(private val name           : String,
-                       private val nameVisualizer : ItemVisualizer<String, Any>,
-                       private val valueVisualizer: ItemVisualizer<T, C>,
-                       private val layout         : (ConstraintBlockContext.(Constraints, Constraints) -> Unit)?
+                              private val nameVisualizer : ItemVisualizer<String, Any>,
+                              private val valueVisualizer: ItemVisualizer<T, C>,
+                              private val layout         : (ConstraintBlockContext.(Constraints, Constraints) -> Unit)?
 ): ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C): View = object: View() {
         init {
             children += listOf(nameVisualizer(name, null, Unit), valueVisualizer(item, previous, context))
 
             layout = when (val l = this@NamedField.layout) {
-                null -> HorizontalFlowLayout().also {
-                    width  = children[0].width + children[1].width
-                    height = 50.0 //max(children[0].height, children[1].height)
+                null -> HorizontalFlowLayout(horizontalSpacing = 5.0, verticalSpacing = 5.0).then {
+                    height = max(children[0].bounds.bottom, children[1].bounds.bottom)
+                }.also {
+                    width  = children[0].width + 5.0 + children[1].width
                 }
                 else -> {
                     object: Layout {
@@ -43,7 +45,7 @@ public class NamedField<T, C>(private val name           : String,
 
                             height = max(children[0].bounds.bottom, children[1].bounds.bottom)
                         }
-                    }.also {
+                    }.then {
                         // FIXME
                         height = max(children[0].bounds.bottom, children[1].bounds.bottom)
                     }

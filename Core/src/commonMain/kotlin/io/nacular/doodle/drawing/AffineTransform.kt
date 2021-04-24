@@ -200,8 +200,9 @@ public class AffineTransform private constructor(private val matrix: AffineMatri
         when {
             isIdentity -> this
             else       -> matrix.inverse?.let { AffineTransform(
-                    it[0, 0], it[0, 1], it[0, 2],
-                    it[1, 1], it[1, 0], it[1, 2]) }
+                it[0, 0], it[0, 1], it[0, 2],
+                it[1, 1], it[1, 0], it[1, 2])
+            }
         }
     }
 

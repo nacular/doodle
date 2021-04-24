@@ -32,7 +32,8 @@ class AffineTransformTests {
     @Test @JsName("operationsInvertible")
     fun `operations invertible`() {
         testInversion { it.translate       (x = 10.0, y = 5.5) }
-        testInversion { it.rotate          (45 * degrees     ) }
+        testInversion { it.rotate          (45  * degrees    ) }
+        testInversion { it.rotate          (180 * degrees    ) }
         testInversion { it.flipHorizontally(                 ) }
     }
 

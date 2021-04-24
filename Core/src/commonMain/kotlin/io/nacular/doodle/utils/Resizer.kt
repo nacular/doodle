@@ -21,6 +21,7 @@ import io.nacular.doodle.system.Cursor.Companion.SwResize
 import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
+import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.North
 import io.nacular.doodle.utils.Direction.South
@@ -44,23 +45,27 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
     private var initialPosition      = Origin
     private var ignorePropertyChange = false
     private var activePointer        = null as Pointer?
+    private var consumedDrag         = false
 
     override fun released(event: PointerEvent) {
-        if (activePointerChanged(event)) {
+        if (activePointerChanged(event) && activeInteraction(event)?.state == Up) {
             captureInitialState(event)
+            if (consumedDrag) {
+                event.consume()
+                consumedDrag = false
+            }
         }
     }
 
     override fun pressed(event: PointerEvent) {
-        if (activePointer == null || activePointer !in event.targetInteractions) {
+        if (activePointer == null || event.targetInteractions.find { it.pointer == activePointer } == null) {
             captureInitialState(event)
-            event.preventOsHandling()
         }
     }
 
     override fun entered(event: PointerEvent) {
         (activeInteraction(event) ?: event.changedInteractions.firstOrNull())?.let {
-            updateCursor(it)
+            updateCursor(it, event)
         }
     }
 
@@ -72,51 +77,49 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
 
     override fun moved(event: PointerEvent) {
         (activeInteraction(event) ?: event.changedInteractions.firstOrNull())?.let {
-            updateCursor(it)
+            updateCursor(it, event)
         }
     }
 
     override fun dragged(event: PointerEvent) {
-        event.changedInteractions.find { it.pointer == activePointer }?.let { activeInteration ->
-            val delta = view.toLocal(activeInteration.location, event.target) - initialPosition
+        event.changedInteractions.find { it.pointer == activePointer }?.let { activeInteraction ->
+            val delta = view.toLocal(activeInteraction.location, event.target) - initialPosition
 
             if (dragMode.isEmpty() && movable) {
                 view.position += delta
 
                 event.consume()
+                consumedDrag = true
             } else if (dragMode.isNotEmpty()) {
-                val bounds = view.bounds
-
-                var x = bounds.x
-                var y = bounds.y
-                var width = bounds.width
-                var height = bounds.height
-
-                val minWidth = view.minimumSize.width
+                val bounds    = view.bounds
+                var x         = bounds.x
+                var y         = bounds.y
+                var width     = bounds.width
+                var height    = bounds.height
+                val minWidth  = view.minimumSize.width
                 val minHeight = view.minimumSize.height
-
-                var consume = false
+                var consume   = false
 
                 when {
                     West in dragMode && West in directions -> {
-                        width = max(minWidth, view.width - delta.x)
-                        x += bounds.width - width
-                        consume = true
+                        width    = max(minWidth, view.width - delta.x)
+                        x       += bounds.width - width
+                        consume  = true
                     }
                     East in dragMode && East in directions -> {
-                        width = max(minWidth, initialSize.width + delta.x)
+                        width   = max(minWidth, initialSize.width + delta.x)
                         consume = true
                     }
                 }
 
                 when {
                     North in dragMode && North in directions -> {
-                        height = max(minHeight, view.height - delta.y)
-                        y += bounds.height - height
-                        consume = true
+                        height   = max(minHeight, view.height - delta.y)
+                        y       += bounds.height - height
+                        consume  = true
                     }
                     South in dragMode && South in directions -> {
-                        height = max(minHeight, initialSize.height + delta.y)
+                        height  = max(minHeight, initialSize.height + delta.y)
                         consume = true
                     }
                 }
@@ -125,6 +128,7 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
 
                 if (consume) {
                     event.consume()
+                    consumedDrag = true
                 }
             }
         }
@@ -143,7 +147,7 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
 
         if (interaction != null) {
             activePointer   = interaction.pointer
-            initialPosition = interaction.location
+            initialPosition = view.toLocal(interaction.location, event.target)
             initialSize     = view.size
 
             when {
@@ -156,18 +160,22 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
                 initialPosition.x <= hotspotSize              -> dragMode.plusAssign(West)
             }
 
-            updateCursor(interaction)
+            if (dragMode.isNotEmpty() || movable) {
+                event.preventOsHandling()
+            }
+
+            updateCursor(interaction, event)
         } else {
             view.cursor = oldCursor
         }
     }
 
-    private fun updateCursor(interaction: Interaction) {
+    private fun updateCursor(interaction: Interaction, event: PointerEvent) {
         if (dragMode.isNotEmpty()) {
             return
         }
 
-        val location = interaction.location
+        val location = view.toLocal(interaction.location, event.target)
         val x        = location.x
         val y        = location.y
         val mask     = mutableSetOf<Direction>()

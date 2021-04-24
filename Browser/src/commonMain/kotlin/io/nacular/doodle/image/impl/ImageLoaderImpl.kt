@@ -6,29 +6,37 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.scheduler.Scheduler
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
+
     private val loading = mutableMapOf<String, HTMLImageElement>()
 
-    override suspend fun load(source: String): Image? {
-        images[source]?.let { return it }
+    override suspend fun load(source: String): Image? = suspendCoroutine { coroutine ->
+        images[source]?.let {
+            coroutine.resume(it)
+        }
 
         if (source !in loading) {
             val img = htmlFactory.createImage(source)
 
             loading[source] = img
 
-            scheduler.delayUntil { img.complete }
+            img.onload = {
+                loading -= source
+                images[source] = ImageImpl(img)
+                coroutine.resume(images[source])
+            }
 
-            images[source] = ImageImpl(img)
-
-            loading -= source
+            img.onerror = { _,_,_,_,_ ->
+                loading -= source
+                coroutine.resume(null)
+            }
+        } else {
+            coroutine.resume(images[source])
         }
-
-        scheduler.delayUntil { source in images }
-
-        return images[source]
     }
 
     override suspend fun load(file: LocalFile): Image? = file.readBase64()?.let { load("data:*/*;base64,$it")  }
