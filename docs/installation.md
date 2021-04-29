@@ -27,7 +27,7 @@ repositories {
     mavenCentral()
 }
 
-val doodleVersion = '0.5.0' // <--- Latest Doodle version
+val doodleVersion = '0.5.1' // <--- Latest Doodle version
 
 kotlin {
     dependencies {
@@ -60,7 +60,7 @@ repositories {
 }
 
 ext {
-    doodle_version = '0.5.0' // <--- Latest Doodle version
+    doodle_version = '0.5.1' // <--- Latest Doodle version
 }
 
 kotlin {
@@ -103,7 +103,7 @@ repositories {
     mavenCentral()
 }
 
-val doodleVersion = '0.5.0' // <--- Latest Doodle version
+val doodleVersion = '0.5.1' // <--- Latest Doodle version
 
 kotlin {
     js {}
@@ -144,7 +144,7 @@ repositories {
 }
 
 ext {
-    doodle_version = '0.5.0' // <--- Latest Doodle version
+    doodle_version = '0.5.1' // <--- Latest Doodle version
 }
 
 kotlin {
