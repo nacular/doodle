@@ -32,25 +32,6 @@ import io.nacular.doodle.utils.addOrAppend
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Created by Nicholas Eddy on 3/19/18.
- */
-public interface ListBehavior<T>: Behavior<List<T, *>> {
-    public interface RowGenerator<T> {
-        public operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
-    }
-
-    public interface RowPositioner<T> {
-        public fun rowBounds(of: List<T, *>, row: T, index: Int, view: View? = null): Rectangle
-
-        public fun row(of: List<T, *>, atY: Double): Int
-
-        public fun totalRowHeight(of: List<T, *>): Double
-    }
-
-    public val generator : RowGenerator<T>
-    public val positioner: RowPositioner<T>
-}
 
 public interface ListLike: Selectable<Int> {
     public val hasFocus    : Boolean
@@ -58,6 +39,86 @@ public interface ListLike: Selectable<Int> {
     public val numRows     : Int
 }
 
+/**
+ * Controls how a [List] behaves and is rendered, by providing key strategies.
+ */
+public interface ListBehavior<T>: Behavior<List<T, *>> {
+    /**
+     * [List] uses this to create each row it displays. The generator provides a mapping between some item [T]
+     * and the [View] that will represent its row in the List.
+     */
+    public interface RowGenerator<T> {
+        /**
+         * Provides a mapping between an item [T] in the list at [index] and the [View] that should
+         * be used to render its row.
+         *
+         * @param list being configured
+         * @param row being rendered
+         * @param index of the row in [list]
+         * @param current View that could be recycled
+         */
+        public operator fun invoke(list: List<T, *>, row: T, index: Int, current: View? = null): View
+    }
+
+    /**
+     * [List] uses this to determine where row geometry.
+     */
+    public interface RowPositioner<T> {
+        /**
+         * Provides the bounds for a given row in the list.
+         *
+         * @param of a specific List
+         * @param row being rendered
+         * @param index of the row
+         * @param view being used to render that row
+         */
+        public fun rowBounds(of: List<T, *>, row: T, index: Int, view: View? = null): Rectangle
+
+        /**
+         * Returns the row at the given y-offset in a List.
+         *
+         * @param of a specific list
+         * @param atY the y-offset in the list
+         */
+        public fun row(of: List<T, *>, atY: Double): Int
+
+        /**
+         * Returns the total height of the given List including all rows.
+         *
+         * @param of a specific List
+         */
+        public fun totalRowHeight(of: List<T, *>): Double
+    }
+
+    public val generator : RowGenerator<T>
+    public val positioner: RowPositioner<T>
+}
+
+/**
+ * A visual component that renders an immutable list of items of type [T] using a [ListBehavior]. Items are obtained via
+ * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
+ * efficiently, since List recycles the Views generated to render its rows.
+ *
+ * Note that this class assumes the given [ListModel] is immutable and therefore it will not automatically respond
+ * to changes to it. See [DynamicList] or [MutableList] if this behavior is desirable.
+ *
+ * List does not provide scrolling internally, so it should be embedded in a [ScrollPanel] or similar component if needed.
+ *
+ * @param model that holds the data for this List
+ * @param itemVisualizer that maps [T] to [View] for each item in the List
+ * @param selectionModel that manages the List's selection state
+ * @param fitContent determines whether the List scales to fit it's rows width and total height
+ * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
+ * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
+ *
+ * @property model that holds the data for this List
+ * @property itemVisualizer that maps [T] to [View] for each item in the List
+ * @property selectionModel that manages the List's selection state
+ * @property fitContent determines whether the List scales to fit it's rows width and total height
+ * @property scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
+ * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
+
+ */
 public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
@@ -97,12 +158,22 @@ public open class List<T, out M: ListModel<T>>(
     override val numRows: Int     get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
+    /**
+     * Notifies of changes to the List's selection.
+     */
     public val selectionChanged: Pool<SetObserver<List<T, M>, Int>> = SetPool()
 
+    /**
+     * Defines how the contents of a row should be aligned within that row.
+     */
     public var cellAlignment: (Constraints.() -> Unit)? = null
 
     public fun contains(value: T): Boolean = value in model
 
+    /**
+     * Controls how the List behaves and how its items are rendered. A List will not render without
+     * a behavior specified.
+     */
     public var behavior: ListBehavior<T>? by behavior { _,new ->
         new?.also {
             rowGenerator  = it.generator
@@ -156,6 +227,9 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
+    /**
+     * Returns the item at [index] if one exists, `null` otherwise.
+     */
     public operator fun get(index: Int): T? = model[index]
 
     override var isFocusCycleRoot: Boolean = true
@@ -269,6 +343,9 @@ public open class List<T, out M: ListModel<T>>(
 
     private fun findRowAt(y: Double, nearbyRow: Int) = min(model.size - 1, rowPositioner?.row(this, y) ?: nearbyRow)
 
+    /**
+     * Scrolls [row] into view if the List is within a [ScrollPanel].
+     */
     public fun scrollTo(row: Int) {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
             this[row]?.let {
@@ -279,6 +356,9 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
+    /**
+     * Scrolls the last selected row into view if the List is within a [ScrollPanel].
+     */
     public fun scrollToSelection() {
         lastSelection?.let { scrollTo(it) }
     }

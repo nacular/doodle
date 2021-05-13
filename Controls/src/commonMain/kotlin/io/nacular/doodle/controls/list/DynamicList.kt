@@ -15,6 +15,22 @@ import io.nacular.doodle.utils.size
 
 public typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
 
+/**
+ * A [List] component that renders a potentially mutable list of items of type [T] using a [ListBehavior]. Items are obtained via
+ * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
+ * efficiently, since List recycles the Views generated to render its rows.
+ *
+ * Note that this class does not provide methods to change its underlying model. See [MutableList] if this behavior is desirable.
+ *
+ * DynamicList does not provide scrolling internally, so it should be embedded in a [ScrollPanel][io.nacular.doodle.controls.panels.ScrollPanel] or similar component if needed.
+ *
+ * @param model that holds the data for this List
+ * @param itemVisualizer that maps [T] to [View] for each item in the List
+ * @param selectionModel that manages the List's selection state
+ * @param fitContent determines whether the List scales to fit it's rows width and total height
+ * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
+ * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
+ */
 public open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
@@ -60,6 +76,9 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
     }
 
+    /**
+     * Notifies of changes to the list
+     */
     public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
     init {

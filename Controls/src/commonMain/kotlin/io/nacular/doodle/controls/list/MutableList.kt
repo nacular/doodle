@@ -26,6 +26,20 @@ public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, ro
     override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
 }
 
+/**
+ * A [DynamicList] component that renders a mutable list of items of type [T] using a [ListBehavior]. Items are obtained via
+ * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
+ * efficiently, since List recycles the Views generated to render its rows.
+ *
+ * MutableList does not provide scrolling internally, so it should be embedded in a [ScrollPanel][io.nacular.doodle.controls.panels.ScrollPanel] or similar component if needed.
+ *
+ * @param model that holds the data for this List
+ * @param itemVisualizer that maps [T] to [View] for each item in the List
+ * @param selectionModel that manages the List's selection state
+ * @param fitContent determines whether the List scales to fit it's rows width and total height
+ * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
+ * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
+ */
 public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
@@ -33,8 +47,14 @@ public open class MutableList<T, M: MutableListModel<T>>(
         fitContent    : Boolean                        = true,
         scrollCache   : Int                            = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
 
+    /**
+     * Indicates whether the list is currently being edited.
+     */
     public val editing: Boolean get() = editingRow != null
 
+    /**
+     * Controls whether and how the list can be edited. The list will not be editable without an editor specified.
+     */
     public var editor: ListEditor<T>? = null
 
     /** Notifies changes to [sortOrder] */
@@ -51,6 +71,10 @@ public open class MutableList<T, M: MutableListModel<T>>(
 
     private var editOperation = null as EditOperation<T>?
 
+    /**
+     * Sets the value at [index] in the underlying [model]. This will result in changes to the list as well if the
+     * Model accepts the change.
+     */
     public operator fun set(index: Int, value: T) {
         if (value == model.set(index, value)) {
             // This is the case that the "new" value is the same as what was there
@@ -69,6 +93,10 @@ public open class MutableList<T, M: MutableListModel<T>>(
     public fun retainAll(values: Collection<T>             ): Unit = model.retainAll(values       )
     public fun clear    (                                  ): Unit = model.clear()
 
+    /**
+     * Initiates editing of the list at the given [index]. This will cancel any other edit operation and
+     * begin a new one if an [editor] is present.
+     */
     public fun startEditing(index: Int) {
         cancelEditing()
 
@@ -86,6 +114,10 @@ public open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
+    /**
+     * Indicates that editing is now complete. The current edit operation is terminated and its result is incorporated
+     * into the list.
+     */
     public override fun completeEditing() {
         editOperation?.let { operation ->
             editingRow?.let { index ->
@@ -98,17 +130,26 @@ public open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
-    // FIXME: Cancel editing on selection/focus change
+    /**
+     * Cancels the current edit operation and discards its result.
+     */
     public override fun cancelEditing() {
+        // FIXME: Cancel editing on selection/focus change
         cleanupEditing()?.let { update(children, it) }
     }
 
+    /**
+     * Sorts the list with the given comparator. This causes the underlying [model] to also be sorted.
+     */
     public fun sort(with: Comparator<T>) {
         model.sortWith(with)
 
         sortOrder = Ascending
     }
 
+    /**
+     * Sorts the list (descending) with the given comparator. This causes the underlying [model] to also be sorted.
+     */
     public fun sortDescending(with: Comparator<T>) {
         model.sortWithDescending(with)
 

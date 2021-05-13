@@ -1,9 +1,9 @@
-<div align="center"><img src="doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
-<div align="center"><h1>A pure Kotlin, UI framework for the Web</h1></div>
+<div style="text-align:center"><img src="doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
+<div style="text-align:center"><h1>A pure Kotlin, UI framework for the Web</h1></div>
 
 ----
 
-[![Kotlin 1.4.21](https://img.shields.io/badge/Kotlin-1.4.31-blue.svg?style=for-the-badge&logo=kotlin)](http://kotlinlang.org)
+[![Kotlin 1.4.31](https://img.shields.io/badge/Kotlin-1.4.31-blue.svg?style=for-the-badge&logo=kotlin)](http://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 [![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
