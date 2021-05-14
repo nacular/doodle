@@ -550,7 +550,13 @@ public class RenderManagerImpl(
         if (old.size != new.size) {
             reRender = true
             if (view.children_.isNotEmpty() && view.layout_ != null) {
-                pendingLayout += view
+                if (layingOut !== view) {
+                    pendingLayout += view
+                } else {
+                    // view is in the middle of a layout, so re-do it to allow bounds
+                    // changes to take effect
+                    view.doLayout_()
+                }
             }
         }
 

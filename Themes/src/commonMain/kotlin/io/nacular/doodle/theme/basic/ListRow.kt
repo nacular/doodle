@@ -33,9 +33,9 @@ public open class ListRow<T>(
         private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
         private val backgroundSelectionColor       : Color? = Blue,
         private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
-        private val role: ListItemRole = ListItemRole()): View(role) {
+        private val role                           : ListItemRole = ListItemRole()): View(role) {
 
-    public var insetTop: Double = 1.0
+    public var insetTop: Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
 
     public var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {

@@ -22,7 +22,7 @@ public class ListLayout constructor(private val spacing: Int = 0, private val wi
 
         val width = when (widthSource) {
             Parent -> container.run { idealSize?.width ?: width }
-            else   -> container.children.filter { it.visible }.map { it.idealSize?.width ?: it.width }.max() ?: 0.0
+            else   -> container.children.filter { it.visible }.map { it.idealSize?.width ?: it.width }.maxOrNull() ?: 0.0
         }
 
         var i = 0
@@ -39,7 +39,7 @@ public class ListLayout constructor(private val spacing: Int = 0, private val wi
         container.minimumSize = size
     }
 
-    override fun idealSize(container: PositionableContainer, default: Size?): Size? {
+    override fun idealSize(container: PositionableContainer, default: Size?): Size {
         val insets = container.insets
         var y      = insets.top
 

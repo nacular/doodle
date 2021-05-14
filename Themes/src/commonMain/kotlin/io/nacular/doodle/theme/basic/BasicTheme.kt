@@ -11,6 +11,7 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
@@ -505,6 +506,23 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         foregroundThickness = foregroundThickness,
                         backgroundThickness = backgroundThickness,
                         direction           = direction)
+                }
+            }
+        }
+
+        public fun basicCircularSliderBehavior(
+                barFill  : Paint? = null,
+                knobFill : Paint? = null,
+                thickness: Double = 20.0
+        ): Module = basicThemeModule(name = "BasicCircularSliderBehavior") {
+            bindBehavior<CircularSlider>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicCircularSliderBehavior(
+                        barFill      = barFill  ?: defaultBackgroundColor.paint,
+                        knobFill     = knobFill ?: darkBackgroundColor.paint,
+                        thickness    = thickness,
+                        focusManager = instanceOrNull()
+                    )
                 }
             }
         }

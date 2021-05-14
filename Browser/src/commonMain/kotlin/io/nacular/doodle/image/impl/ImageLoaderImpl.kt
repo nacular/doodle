@@ -15,27 +15,27 @@ public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val s
     private val loading = mutableMapOf<String, HTMLImageElement>()
 
     override suspend fun load(source: String): Image? = suspendCoroutine { coroutine ->
-        images[source]?.let {
-            coroutine.resume(it)
-        }
+        when (source) {
+            in images   -> coroutine.resume(images[source])
+            !in loading -> {
+                val img = htmlFactory.createImage(source)
 
-        if (source !in loading) {
-            val img = htmlFactory.createImage(source)
+                loading[source] = img
 
-            loading[source] = img
+                img.onload = {
+                    loading        -= source
+                    images[source]  = ImageImpl(img)
+                    removeListeners(img)
+                    coroutine.resume(images[source])
+                }
 
-            img.onload = {
-                loading -= source
-                images[source] = ImageImpl(img)
-                coroutine.resume(images[source])
+                img.onerror = { _,_,_,_,_ ->
+                    loading -= source
+                    removeListeners(img)
+                    coroutine.resume(null)
+                }
             }
-
-            img.onerror = { _,_,_,_,_ ->
-                loading -= source
-                coroutine.resume(null)
-            }
-        } else {
-            coroutine.resume(images[source])
+            else        -> coroutine.resume(images[source])
         }
     }
 
@@ -43,5 +43,10 @@ public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val s
 
     override fun unload(image: Image) {
         images.remove(image.source)
+    }
+
+    private fun removeListeners(image: HTMLImageElement) {
+        image.onload  = null
+        image.onerror = null
     }
 }
