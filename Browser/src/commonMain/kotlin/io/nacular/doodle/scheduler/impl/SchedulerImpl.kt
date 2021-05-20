@@ -21,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
  * Created by Nicholas Eddy on 10/19/17.
  */
 
-private open class SimpleTask(private val window: Window, timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+private class SimpleTask(private val window: Window, timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private val start = timer.now
     private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time  `in` milliseconds).toInt())
