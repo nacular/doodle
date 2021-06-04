@@ -9,13 +9,11 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.observable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skija.Font
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
+import org.jetbrains.skija.Canvas as SkijaCanvas
 
 /**
  * Created by Nicholas Eddy on 5/19/21.
@@ -23,25 +21,23 @@ import org.jetbrains.skiko.SkiaWindow
 internal class RealGraphicsSurface(
                     window             : SkiaWindow,
         private val defaultFont        : Font,
-        private var parent             : RealGraphicsSurface?,
-                    isContainer        : Boolean,
+                    parent             : RealGraphicsSurface?,
                     addToRootIfNoParent: Boolean): GraphicsSurface {
 
     private val layer = SkiaLayer().apply {
         renderer = object: SkiaRenderer {
             @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            override fun onRender(skiaCanvas: org.jetbrains.skija.Canvas, width: Int, height: Int, nanoTime: Long) {
+            override fun onRender(skiaCanvas: SkijaCanvas, width: Int, height: Int, nanoTime: Long) {
                 skiaCanvas.scale(contentScale, contentScale)
-                renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont).apply { size = Size(width, height) })
+                renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont).apply { size = this@RealGraphicsSurface.size })
             }
         }
     }
 
     init {
-        if (addToRootIfNoParent) {
-            runBlocking(Dispatchers.Swing) {
-                window.add(layer)
-            }
+        when {
+            parent != null      -> parent.layer.add(layer)
+            addToRootIfNoParent -> window.add(layer)
         }
     }
 
@@ -72,13 +68,12 @@ internal class RealGraphicsSurface(
     private var renderBlock: ((Canvas) -> Unit)? = null
 
     override fun render(block: (Canvas) -> Unit) {
-        runBlocking(Dispatchers.Swing) {
-            renderBlock = block
-            layer.needRedraw()
-        }
+        renderBlock = block
+        layer.needRedraw()
     }
 
     override fun release() {
+        layer.parent?.remove(layer)
         layer.dispose()
     }
 }

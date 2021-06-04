@@ -16,34 +16,25 @@ import io.nacular.doodle.theme.InternalThemeManager
 import io.nacular.doodle.utils.MutableTreeSet
 import io.nacular.doodle.utils.ifTrue
 
-private object AncestorComparator: Comparator<View> {
-    override fun compare(a: View, b: View) = when {
-        a == b          ->  0
-        b ancestorOf_ a ->  1
-        else            -> -1
-    }
-}
-
 @Internal
 @Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
-public class RenderManagerImpl(
+public open class RenderManagerImpl(
         private val display             : InternalDisplay,
         private val scheduler           : AnimationScheduler,
         private val themeManager        : InternalThemeManager?,
         private val accessibilityManager: AccessibilityManager?,
         private val graphicsDevice      : GraphicsDevice<*>): RenderManager {
 
+    protected object AncestorComparator: Comparator<View> {
+        override fun compare(a: View, b: View): Int = when {
+            a == b          ->  0
+            b ancestorOf_ a ->  1
+            else            -> -1
+        }
+    }
+
     private val views                       = mutableSetOf <View>()
     private var layingOut                   = null as View?
-    private val dirtyViews                  = mutableSetOf <View>()
-    private val displayTree                 = mutableMapOf <View?, DisplayRectNode>()
-    private val neverRendered               = mutableSetOf <View>()
-    private val pendingLayout               = MutableTreeSet(AncestorComparator)
-    private val pendingRender               = LinkedHashSet<View>()
-    private val pendingCleanup              = mutableMapOf <View, MutableSet<View>>()
-    private val addedInvisible              = mutableSetOf <View>()
-    private val visibilityChanged           = mutableSetOf <View>()
-    private val pendingBoundsChange         = mutableSetOf <View>()
     private var paintTask                   = null as Task?
     private val boundsChanged_              = ::boundsChanged
     private val zOrderChanged_              = ::zOrderChanged
@@ -52,6 +43,16 @@ public class RenderManagerImpl(
     private val visibilityChanged_          = ::visibilityChangedFunc
     private val opacityChanged_             = ::opacityChangedFunc
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
+
+    protected open val dirtyViews         : MutableSet<View>                   = mutableSetOf()
+    protected open val displayTree        : MutableMap<View?, DisplayRectNode> = mutableMapOf()
+    protected open val neverRendered      : MutableSet<View>                   = mutableSetOf()
+    protected open val pendingLayout      : MutableSet<View>                   = MutableTreeSet(AncestorComparator)
+    protected open val pendingRender      : MutableSet<View>                   = LinkedHashSet()
+    protected open val pendingCleanup     : MutableMap<View, MutableSet<View>> = mutableMapOf()
+    protected open val addedInvisible     : MutableSet<View>                   = mutableSetOf()
+    protected open val visibilityChanged  : MutableSet<View>                   = mutableSetOf()
+    protected open val pendingBoundsChange: MutableSet<View>                   = mutableSetOf()
 
     init {
         display.childrenChanged += { _,removed,added,moved ->
@@ -654,23 +655,23 @@ public class RenderManagerImpl(
         node.clipRect = parentBounds.let { viewRect intersect it }
     }
 
-    private class DisplayRectNode(val view: View) {
-        var parent            = null as DisplayRectNode?
-        var clipRect          = Empty
-        val numChildren get() = children.size
+    protected class DisplayRectNode(public val view: View) {
+        public var parent     : DisplayRectNode? = null
+        public var clipRect   : Rectangle        = Empty
+        public val numChildren: Int get()        = children.size
 
         private val children = mutableListOf<DisplayRectNode>()
 
-        operator fun plusAssign(child: DisplayRectNode) {
+        public operator fun plusAssign(child: DisplayRectNode) {
             child.parent = this
             children += child
         }
 
-        operator fun minusAssign(child: DisplayRectNode) {
+        public operator fun minusAssign(child: DisplayRectNode) {
             child.parent = null
             children -= child
         }
 
-        operator fun get(index: Int) = children[index]
+        public operator fun get(index: Int): DisplayRectNode = children[index]
     }
 }

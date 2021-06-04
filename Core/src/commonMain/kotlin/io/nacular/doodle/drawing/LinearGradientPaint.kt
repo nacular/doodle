@@ -59,21 +59,21 @@ public class LinearGradientPaint(colors: List<GradientPaint.Stop>, public val st
  * A radial gradient [Paint] that transitions between a list of [Stop]s.
  *
  * @property start circle from which the gradient flows
- * @property end center of the circle that the gradient stops at
+ * @property end circle that the gradient stops at
  *
  * @constructor
  * @param colors at stop points
  * @param start circle from which the gradient flows
- * @param end center of the circle that the gradient stops at
+ * @param end circle that the gradient stops at
  */
-public class RadialGradientPaint(colors: List<Stop>, public val start: Circle, public val end: Point): GradientPaint(colors) {
+public class RadialGradientPaint(colors: List<Stop>, public val start: Circle, public val end: Circle): GradientPaint(colors) {
     /**
      * Creates a fill with a gradient between the given colors.
      *
      * @param color1 associated with the start point
      * @param color2 associated with the end point
-     * @param start of the line along which the gradient flows
-     * @param end of the line along which the gradient flows
+     * @param start circle from which the gradient flows
+     * @param end circle that the gradient stops at
      */
-    public constructor(color1: Color, color2: Color, start: Circle, end: Point): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
+    public constructor(color1: Color, color2: Color, start: Circle, end: Circle): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
 }

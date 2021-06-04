@@ -6,13 +6,17 @@ import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.times
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.swing.Swing
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -21,11 +25,11 @@ import kotlin.coroutines.suspendCoroutine
  * Created by Nicholas Eddy on 5/18/21.
  */
 internal open class SchedulerImpl(private val scope: CoroutineScope, private val timer: Timer): Scheduler {
-    private inner class SimpleTask(timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
+    private inner class SimpleTask(timer: Timer, time: Measure<Time>, context: CoroutineContext = EmptyCoroutineContext, job: (Measure<Time>) -> Unit): Task {
         private val start = timer.now
 
-        private val job = scope.launch {
-            kotlinx.coroutines.delay((time `in` Time.milliseconds).toLong())
+        private val job = scope.launch(context) {
+            kotlinx.coroutines.delay((time `in` milliseconds).toLong())
             completed = true
             job(timer.now - start)
         }
@@ -44,7 +48,7 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
         private val job = scope.launch {
             while(true) {
                 timer.now.let { job(it - last); last = it }
-                kotlinx.coroutines.delay((time `in` Time.milliseconds).toLong())
+                kotlinx.coroutines.delay((time `in` milliseconds).toLong())
             }
         }
 
@@ -58,11 +62,13 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
 
     private var shutdown = false
 
-    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = SimpleTask(timer, time, job)
+    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = SimpleTask(timer, time, job = job)
+
+    internal fun after(time: Measure<Time>, context: CoroutineContext = EmptyCoroutineContext, job: (Measure<Time>) -> Unit): Task = SimpleTask(timer, time, context, job)
 
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
 
-    override suspend fun delay(time: Measure<Time>) = kotlinx.coroutines.delay((time `in` Time.milliseconds).toLong())
+    override suspend fun delay(time: Measure<Time>) = kotlinx.coroutines.delay((time `in` milliseconds).toLong())
 
     override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
         try {
@@ -90,5 +96,5 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
 }
 
 internal class AnimationSchedulerImpl(scope: CoroutineScope, timer: Timer): AnimationScheduler, SchedulerImpl(scope, timer) {
-    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = after(1 * seconds / 60, job)
+    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = after(1 * seconds / 60, Dispatchers.Swing, job)
 }

@@ -4,13 +4,14 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
+import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
+import io.nacular.doodle.drawing.impl.DesktopRenderManagerImpl
 import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
-import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
@@ -23,12 +24,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.Clock
 import org.jetbrains.skija.Font
+import org.jetbrains.skija.FontSlant.UPRIGHT
+import org.jetbrains.skija.FontStyle
+import org.jetbrains.skija.PathMeasure
+import org.jetbrains.skija.Typeface
 import org.jetbrains.skiko.SkiaWindow
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
 import org.kodein.di.DI.Module
 import org.kodein.di.DirectDI
 import org.kodein.di.bind
+import org.kodein.di.bindFactory
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
@@ -63,7 +69,7 @@ private open class ApplicationHolderImpl protected constructor(
 
     private val appScope    = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val skiaWindow  = SkiaWindow()
-    private val defaultFont = Font()
+    private val defaultFont = Font(Typeface.makeFromName("monospace", FontStyle(300, 5, UPRIGHT)), 13f)
 
     protected var injector = direct {
         extend(previousInjector, copy = All)
@@ -71,13 +77,14 @@ private open class ApplicationHolderImpl protected constructor(
         bindInstance                                               { appScope }
         bindInstance                                               { Clock.System  }
         bindInstance                                               { skiaWindow }
+        bindFactory<Unit, PathMeasure>                             { PathMeasure() }
         bindSingleton<Timer>                                       { TimerImpl          (instance()                                                    ) }
 //        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                ) }
         bindSingleton<Display>                                     { DisplayImpl               (instance(), skiaWindow, defaultFont                                                            ) }
         bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                ) }
 //        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
 //        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
-        bindSingleton<RenderManager>                               { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+        bindSingleton<RenderManager>                               { DesktopRenderManagerImpl  (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance(), instance()                                                ) } // FIXME: Provide fallback in case not supported
         bindSingleton<GraphicsDevice<RealGraphicsSurface>>         { RealGraphicsDevice        (instance()                                                            ) }
         bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), defaultFont                                               ) }
@@ -103,7 +110,7 @@ private open class ApplicationHolderImpl protected constructor(
     protected fun run() {
         injector.instance<RenderManager>()
 
-//        injector.instanceOrNull<PointerInputManager> ()
+        injector.instanceOrNull<PointerInputManager> ()
 //        injector.instanceOrNull<KeyboardFocusManager>()
 //        injector.instanceOrNull<DragManager>         ()
 
@@ -144,7 +151,7 @@ private open class ApplicationHolderImpl protected constructor(
 //        }
 //
 //        injector.instanceOrNull<DragManager>             ()?.shutdown()
-//        injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
+        injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
 //        injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
 //        injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
 
@@ -162,25 +169,6 @@ private open class ApplicationHolderImpl protected constructor(
 
         isShutdown = true
     }
-
-//    private class AsyncAppWrapper(previousInjector: DirectDI, allowDefaultDarkMode: Boolean= false, modules: List<Module> = emptyList()): Application {
-//        private  var jobId : Int
-//        lateinit var holder: ApplicationHolderImpl
-//
-//        init {
-//            jobId = window.setTimeout({
-//                holder = ApplicationHolderImpl(previousInjector, document.body!!, allowDefaultDarkMode, modules)
-//                holder.run()
-//            })
-//        }
-//
-//        override fun shutdown() {
-//            when {
-//                ::holder.isInitialized -> holder.shutdown()
-//                else                   -> window.clearTimeout(jobId)
-//            }
-//        }
-//    }
 
     companion object {
         operator fun invoke(previousInjector    : DirectDI,

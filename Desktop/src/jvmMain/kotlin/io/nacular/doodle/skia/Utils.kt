@@ -1,11 +1,15 @@
 package io.nacular.doodle.skia
 
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.Paint
-import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Renderer
+import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
+import io.nacular.doodle.geometry.Path
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import org.jetbrains.skija.PathEffect
+import org.jetbrains.skija.Matrix33
+import org.jetbrains.skija.PathFillMode.EVEN_ODD
+import org.jetbrains.skija.PathFillMode.WINDING
 import org.jetbrains.skija.RRect
 import org.jetbrains.skija.Rect
 
@@ -18,20 +22,18 @@ internal fun Color.skia(): Int = (((opacity * 0xFF).toUInt() shl 24) + (red.toUI
 internal fun Rectangle.skija() = Rect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 internal fun Rectangle.rrect(radius: Float) = RRect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), radius)
 
-internal fun Paint.skija(): org.jetbrains.skija.Paint {
-    val result = org.jetbrains.skija.Paint()
+internal fun Point.skija() = org.jetbrains.skija.Point(x.toFloat(), y.toFloat())
 
-    when (this) {
-        is ColorPaint -> result.color = this.color.skia()
-    }
+internal fun Path.skija() = org.jetbrains.skija.Path.makeFromSVGString(data)
 
-    return result
-}
-
-internal fun Stroke.skija(): org.jetbrains.skija.Paint = fill.skija().also {
-    it.setStroke(true)
-    it.strokeWidth = thickness.toFloat()
-    dashes?.let { dashes ->
-        it.pathEffect = PathEffect.makeDash(dashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
-    }
-}
+internal fun AffineTransform.skija() = Matrix33(
+        scaleX.toFloat    (),
+        shearX.toFloat    (),
+        translateX.toFloat(),
+        shearY.toFloat    (),
+        scaleY.toFloat    (),
+        translateY.toFloat(),
+        0f,
+        0f,
+        1f
+)

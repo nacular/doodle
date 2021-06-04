@@ -5,12 +5,12 @@ import io.nacular.doodle.geometry.Point
 
 public class SystemPointerEvent @Internal constructor(
         @Internal public val id               : Int,
-        public val type             : Type,
-        public val location         : Point,
-        public val buttons          : Set<Button>,
-        public val clickCount       : Int,
-                   modifiers        : Set<Modifier>,
-        public val nativeScrollPanel: Boolean = false): SystemInputEvent(modifiers) {
+                  public val type             : Type,
+                  public val location         : Point,
+                  public val buttons          : Set<Button>,
+                  public val clickCount       : Int,
+                             modifiers        : Set<Modifier>,
+                  public val nativeScrollPanel: Boolean = false): SystemInputEvent(modifiers) {
 
     @Internal
     public constructor(

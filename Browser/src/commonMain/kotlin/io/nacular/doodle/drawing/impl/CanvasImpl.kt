@@ -101,7 +101,7 @@ internal open class CanvasImpl(
 
     override fun line(start: Point, end: Point, stroke: Stroke) = vectorRenderer.line(start, end, stroke)
 
-    override fun path(points: List<Point>, stroke: Stroke                                 ) = vectorRenderer.path(points, stroke                )
+    override fun path(points: List<Point>, stroke: Stroke                                  ) = vectorRenderer.path(points, stroke                )
     override fun path(points: List<Point>,                 fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points,         fill, fillRule)
     override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points, stroke, fill, fillRule)
 

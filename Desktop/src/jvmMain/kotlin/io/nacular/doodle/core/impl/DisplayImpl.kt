@@ -11,14 +11,13 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.skia.skija
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -35,14 +34,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skija.Font
-import org.jetbrains.skija.Rect
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
+import java.awt.LayoutManager
 import kotlin.properties.Delegates
 import org.jetbrains.skija.Canvas as SkiaCanvas
+
 
 /**
  * Created by Nicholas Eddy on 5/14/21.
@@ -128,7 +128,7 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
     }
 
     private val positionableWrapper = PositionableWrapper()
-    private var fill: Paint? by Delegates.observable(null) { _,_,_ ->
+    private var fill: Paint? by Delegates.observable(null) { _, _, _ ->
         requestRender()
     }
 
@@ -146,35 +146,41 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
             updateTransform()
         }
 
-    private lateinit var canvas: Canvas
-
-    private var skiaCanvas: SkiaCanvas? by observable(null) { _,new ->
-        canvas = CanvasImpl(new!!, defaultFont)
-    }
-
     init {
         window.layer.renderer = object: SkiaRenderer {
             @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
             override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-                this@DisplayImpl.skiaCanvas = skiaCanvas
-
                 fill?.let {
-                    skiaCanvas.drawRect(Rect(0f, 0f, width.toFloat(), height.toFloat()), it.skija())
+                    skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
+
+                    CanvasImpl(skiaCanvas, defaultFont).apply {
+                        size = this@DisplayImpl.size
+                        rect(Rectangle(width, height), it)
+                    }
                 }
             }
         }
 
         runBlocking(Dispatchers.Swing) {
             window.preferredSize = Dimension(800, 600)
+//            window.layout    = null
             window.pack()
             window.layer.awaitRedraw()
             window.isVisible = true
 
-            window.addComponentListener(object: ComponentAdapter() {
-                override fun componentResized(e: ComponentEvent?) {
-                    window.layer.size = window.size
+            window.layout = object: LayoutManager {
+                override fun addLayoutComponent(name: String?, comp: Component?) {}
+
+                override fun removeLayoutComponent(comp: Component?) {}
+
+                override fun preferredLayoutSize(parent: Container?) = parent?.preferredSize
+
+                override fun minimumLayoutSize(parent: Container?) = Dimension(0, 0)
+
+                override fun layoutContainer(parent: Container?) {
+                    window.layer.size = parent?.size
                 }
-            })
+            }
         }
     }
 
@@ -195,20 +201,20 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
     override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at) ?: at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
             null, LookupResult.Ignored -> {
-                var child     = null as View?
+                var child = null as View?
                 var topZOrder = 0
 
                 children.reversed().forEach {
                     if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
-                        child     = it
+                        child = it
                         topZOrder = it.zOrder
                     }
                 }
 
                 child
             }
-            is LookupResult.Found      -> result.child as? View
-            is LookupResult.Empty      -> null
+            is LookupResult.Found -> result.child as? View
+            is LookupResult.Empty -> null
         }
     }
 

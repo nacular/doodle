@@ -49,9 +49,10 @@ internal inline fun SVGRadialGradientElement.setStart(value: Circle) {
     setAttribute("fy", "${value.center.y}")
     setAttribute("fr", "${value.radius  }")
 }
-internal inline fun SVGRadialGradientElement.setEnd(value: Point ) {
-    setAttribute("cx", "${value.x}")
-    setAttribute("cy", "${value.y}")
+internal inline fun SVGRadialGradientElement.setEnd(value: Circle) {
+    setAttribute("cx", "${value.center.x}")
+    setAttribute("cy", "${value.center.y}")
+    setAttribute("r",  "${value.radius  }")
 }
 
 internal inline fun SVGEllipseElement.setRX     (value: Double ) = setAttribute("rx", "$value")
