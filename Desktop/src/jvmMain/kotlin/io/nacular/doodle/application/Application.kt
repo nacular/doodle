@@ -7,11 +7,13 @@ import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
+import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.DesktopRenderManagerImpl
 import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
+import io.nacular.doodle.drawing.impl.TextMetricsImpl
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
@@ -28,6 +30,7 @@ import org.jetbrains.skija.FontSlant.UPRIGHT
 import org.jetbrains.skija.FontStyle
 import org.jetbrains.skija.PathMeasure
 import org.jetbrains.skija.Typeface
+import org.jetbrains.skiko.SkiaLayerProperties
 import org.jetbrains.skiko.SkiaWindow
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
@@ -68,7 +71,7 @@ private open class ApplicationHolderImpl protected constructor(
     private var focusManager: FocusManager? = null
 
     private val appScope    = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val skiaWindow  = SkiaWindow()
+    private val skiaWindow  = SkiaWindow(SkiaLayerProperties(isVsyncEnabled = false))
     private val defaultFont = Font(Typeface.makeFromName("monospace", FontStyle(300, 5, UPRIGHT)), 13f)
 
     protected var injector = direct {
@@ -82,7 +85,7 @@ private open class ApplicationHolderImpl protected constructor(
 //        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                ) }
         bindSingleton<Display>                                     { DisplayImpl               (instance(), skiaWindow, defaultFont                                                            ) }
         bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                ) }
-//        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
+        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (defaultFont) }
 //        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
         bindSingleton<RenderManager>                               { DesktopRenderManagerImpl  (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance(), instance()                                                ) } // FIXME: Provide fallback in case not supported

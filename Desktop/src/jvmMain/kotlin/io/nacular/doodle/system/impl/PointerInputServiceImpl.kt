@@ -143,10 +143,11 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     }
 
     private fun notifyPointerEvent(mouseEvent: MouseEvent, type: Type): Boolean {
-        val button = when (mouseEvent.button) {
-            1    -> Button2
-            2    -> Button3
-            else -> Button1
+        val buttons = when (mouseEvent.button) {
+            1    -> setOf(Button1)
+            2    -> setOf(Button2)
+            3    -> setOf(Button3)
+            else -> emptySet()
         }
 
         val modifiers = mutableSetOf<Modifier>()
@@ -163,7 +164,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
                 id                = 0,
                 type              = type,
                 location          = location,
-                buttons           = setOf(button),
+                buttons           = buttons,
                 clickCount        = mouseEvent.clickCount,
                 modifiers         = modifiers,
                 nativeScrollPanel = false)

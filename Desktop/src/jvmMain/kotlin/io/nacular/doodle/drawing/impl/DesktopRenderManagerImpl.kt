@@ -22,7 +22,7 @@ internal class DesktopRenderManagerImpl(
     override val displayTree        : MutableMap<View?, DisplayRectNode> = ConcurrentHashMap()
     override val neverRendered      : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
     override val pendingLayout      : MutableSet<View>                   = ConcurrentSkipListSet(AncestorComparator)
-//    override val pendingRender      : MutableSet<View>                   = ConcurrentSkipListSet()
+    override val pendingRender      : MutableSet<View>                   = ConcurrentHashMap.newKeySet() // FIXME: Sort by insertion order
     override val pendingCleanup     : MutableMap<View, MutableSet<View>> = ConcurrentHashMap    ()
     override val addedInvisible     : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
     override val visibilityChanged  : MutableSet<View>                   = ConcurrentHashMap.newKeySet()

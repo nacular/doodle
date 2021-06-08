@@ -17,6 +17,7 @@ import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
@@ -36,10 +37,9 @@ import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skija.Font
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
-import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
-import java.awt.LayoutManager
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import kotlin.properties.Delegates
 import org.jetbrains.skija.Canvas as SkiaCanvas
 
@@ -73,7 +73,7 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
 
     override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
-    override var size                                               by observable(Size.Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
+    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
         private set
 
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
@@ -112,10 +112,6 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
         }
     }
 
-//    internal fun regionDirty(rectangle: Rectangle) {
-//        requestRender()
-//    }
-
     private fun contentDirectionChanged() {
         (contentDirectionChanged as ChangeObserversImpl)()
         notifyMirroringChanged()
@@ -147,40 +143,33 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
         }
 
     init {
-        window.layer.renderer = object: SkiaRenderer {
-            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-                fill?.let {
-                    skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
+        runBlocking(Dispatchers.Swing) {
+            window.layer.renderer = object: SkiaRenderer {
+                @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+                override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
+                    fill?.let {
+                        skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
 
-                    CanvasImpl(skiaCanvas, defaultFont).apply {
-                        size = this@DisplayImpl.size
-                        rect(Rectangle(width, height), it)
+                        CanvasImpl(skiaCanvas, defaultFont).apply {
+                            size = this@DisplayImpl.size
+                            rect(Rectangle(width, height), it)
+                        }
                     }
                 }
             }
-        }
 
-        runBlocking(Dispatchers.Swing) {
             window.preferredSize = Dimension(800, 600)
-//            window.layout    = null
             window.pack()
             window.layer.awaitRedraw()
             window.isVisible = true
+            window.layout    = null
 
-            window.layout = object: LayoutManager {
-                override fun addLayoutComponent(name: String?, comp: Component?) {}
-
-                override fun removeLayoutComponent(comp: Component?) {}
-
-                override fun preferredLayoutSize(parent: Container?) = parent?.preferredSize
-
-                override fun minimumLayoutSize(parent: Container?) = Dimension(0, 0)
-
-                override fun layoutContainer(parent: Container?) {
-                    window.layer.size = parent?.size
+            window.addComponentListener(object: ComponentAdapter() {
+                override fun componentResized(e: ComponentEvent) {
+                    size = Size(window.width, window.height)
+                    window.layer.setSize(window.width, window.height)
                 }
-            }
+            })
         }
     }
 
@@ -244,6 +233,7 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
 
     override fun repaint() {
         fill?.let {
+            window.layer.needRedraw()
         }
     }
 
@@ -266,7 +256,7 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
         override val width       get() = this@DisplayImpl.width
         override val height      get() = this@DisplayImpl.height
         override var idealSize   get() = null as Size?;           set(_) {}
-        override var minimumSize get() = Size.Empty;                   set(_) {}
+        override var minimumSize get() = Empty;                   set(_) {}
 
         override val insets      get() = this@DisplayImpl.insets
         override val children    get() = this@DisplayImpl.children

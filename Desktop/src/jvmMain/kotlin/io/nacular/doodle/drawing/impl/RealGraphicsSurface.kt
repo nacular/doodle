@@ -11,8 +11,12 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.observable
 import org.jetbrains.skija.Font
 import org.jetbrains.skiko.SkiaLayer
+import org.jetbrains.skiko.SkiaLayerProperties
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
+import java.awt.Container
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import org.jetbrains.skija.Canvas as SkijaCanvas
 
 /**
@@ -24,29 +28,61 @@ internal class RealGraphicsSurface(
                     parent             : RealGraphicsSurface?,
                     addToRootIfNoParent: Boolean): GraphicsSurface {
 
-    private val layer = SkiaLayer().apply {
-        renderer = object: SkiaRenderer {
+    private class SkiaPanel: Container() {
+        val layer = SkiaLayer(SkiaLayerProperties(isVsyncEnabled = false))
+
+        init {
+            layout = null
+        }
+
+//        override fun add(component: Component): Component {
+//            layer.clipComponents.add(ClipComponent(component))
+//            return super.add(component)
+//        }
+
+        override fun addNotify() {
+            super.addNotify()
+            super.add(layer)
+
+            addComponentListener(object : ComponentAdapter() {
+                override fun componentResized(e: ComponentEvent) {
+                    layer.setSize(width, height)
+                }
+            })
+        }
+
+        override fun removeNotify() {
+            layer.dispose()
+            super.removeNotify()
+        }
+    }
+
+    private val skiaPanel = SkiaPanel().apply {
+        layer.renderer = object: SkiaRenderer {
             @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
             override fun onRender(skiaCanvas: SkijaCanvas, width: Int, height: Int, nanoTime: Long) {
-                skiaCanvas.scale(contentScale, contentScale)
+                skiaCanvas.scale(layer.contentScale, layer.contentScale)
                 renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont).apply { size = this@RealGraphicsSurface.size })
             }
         }
     }
 
     init {
-        when {
-            parent != null      -> parent.layer.add(layer)
-            addToRootIfNoParent -> window.add(layer)
+        val parentLayer = when {
+            parent != null      -> parent.skiaPanel
+            addToRootIfNoParent -> window
+            else                -> null
         }
+
+        parentLayer?.add(skiaPanel)
     }
 
     override var position: Point by observable(Origin) { _,new ->
-        layer.setLocation(new.x.toInt(), new.y.toInt())
+        skiaPanel.setLocation(new.x.toInt(), new.y.toInt())
     }
 
     override var size: Size by observable(Empty) { _,new ->
-        layer.setSize(new.width.toInt(), new.height.toInt())
+        skiaPanel.setSize(new.width.toInt(), new.height.toInt())
     }
 
     override var index by observable(0) { _,_ -> }
@@ -69,11 +105,11 @@ internal class RealGraphicsSurface(
 
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block
-        layer.needRedraw()
+        skiaPanel.repaint()
+//        layer.paintImmediately(0, 0, size.width.toInt(), size.height.toInt())
     }
 
     override fun release() {
-        layer.parent?.remove(layer)
-        layer.dispose()
+        skiaPanel.parent?.remove(skiaPanel)
     }
 }

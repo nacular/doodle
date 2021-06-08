@@ -25,7 +25,6 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.skia.rrect
-import io.nacular.doodle.skia.skia
 import io.nacular.doodle.skia.skija
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle
@@ -34,7 +33,6 @@ import io.nacular.measured.units.Measure
 import org.jetbrains.skija.Bitmap
 import org.jetbrains.skija.FilterTileMode.REPEAT
 import org.jetbrains.skija.FontMgr
-import org.jetbrains.skija.ImageInfo
 import org.jetbrains.skija.PathEffect
 import org.jetbrains.skija.PathFillMode.*
 import org.jetbrains.skija.Shader
@@ -60,18 +58,19 @@ internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defau
         val result = SkijaPaint()
 
         when (this) {
-            is ColorPaint          -> result.color  = color.skia()
-            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skija(), end.skija(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skija(), start.radius.toFloat(), end.center.skija(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is ColorPaint          -> result.color  = color.skija()
+            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skija(), end.skija(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skija(), start.radius.toFloat(), end.center.skija(), end.radius.toFloat(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT) }
             is PatternPaint        -> {
-                if (false) {
-                    val bitmap = Bitmap().apply { imageInfo = ImageInfo.makeA8(size.width.toInt(), size.height.toInt()) }
-                    val bitmapCanvas = org.jetbrains.skija.Canvas(bitmap)
-                    paint.invoke(CanvasImpl(bitmapCanvas, defaultFont).apply { size = this@skija.size })
-
-                    result.shader = bitmap.makeShader(REPEAT, REPEAT)
+                // FIXME: Reuse bitmaps
+                val bitmap = Bitmap().apply {
+                    allocN32Pixels(size.width.toInt(), size.height.toInt())
                 }
+                val bitmapCanvas = org.jetbrains.skija.Canvas(bitmap)
+                paint.invoke(CanvasImpl(bitmapCanvas, defaultFont).apply { size = this@skija.size })
+
+                result.shader = bitmap.makeShader(REPEAT, REPEAT)
             }
         }
 
@@ -233,7 +232,7 @@ internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defau
     }
 
     override fun clear() {
-        skiaCanvas.clear(Color.Transparent.skia())
+        skiaCanvas.clear(Color.Transparent.skija())
     }
 
     override fun flush() {
