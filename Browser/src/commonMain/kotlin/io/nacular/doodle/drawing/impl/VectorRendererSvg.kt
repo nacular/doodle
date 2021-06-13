@@ -223,6 +223,7 @@ internal open class VectorRendererSvg constructor(
         this.renderPosition = null
         rootSvgElement      = null
         svgElement          = null
+        shadows.clear()
 
         if (renderPosition != null) {
             findSvgDepthFirst(context.renderRegion)?.let {
@@ -648,7 +649,7 @@ internal open class VectorRendererSvg constructor(
 
     private fun strokeElement(element: SVGElement, stroke: Stroke) {
         when (val fill = stroke.fill) {
-            is ColorPaint   -> SolidFillHandler.stroke     (this, element, fill)
+            is ColorPaint          -> SolidFillHandler.stroke     (this, element, fill)
             is PatternPaint        -> canvasFillHandler.stroke    (this, element, fill)
             is LinearGradientPaint -> LinearFillHandler  ().stroke(this, element, fill)
             is RadialGradientPaint -> GradientFillHandler().stroke(this, element, fill)

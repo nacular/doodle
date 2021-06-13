@@ -109,6 +109,21 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
     }
 }.close()
 
+public fun Rectangle.toPath(radius: Double): Path = PathBuilderImpl(points[0] + Point(radius, 0.0)).apply {
+    lineTo(points[1] - Point(radius, 0.0))
+    arcTo (points[1] + Point(0.0, radius), radius, largeArch = false, sweep = true)
+
+    lineTo(points[2] - Point(0.0, radius))
+    arcTo (points[2] - Point(radius, 0.0), radius, largeArch = false, sweep = true)
+
+    lineTo(points[3] + Point(radius, 0.0))
+    arcTo (points[3] - Point(0.0, radius), radius, largeArch = false, sweep = true)
+
+    lineTo(points[0] + Point(0.0, radius))
+    arcTo (points[0] + Point(radius, 0.0), radius, largeArch = false, sweep = true)
+}.close()
+
+
 /**
  * Converts an [Ellipse] to a [Path].
  */

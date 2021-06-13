@@ -30,7 +30,6 @@ import org.jetbrains.skija.FontSlant.UPRIGHT
 import org.jetbrains.skija.FontStyle
 import org.jetbrains.skija.PathMeasure
 import org.jetbrains.skija.Typeface
-import org.jetbrains.skiko.SkiaLayerProperties
 import org.jetbrains.skiko.SkiaWindow
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
@@ -70,9 +69,14 @@ private open class ApplicationHolderImpl protected constructor(
         private val isNested: Boolean      = false): Application {
     private var focusManager: FocusManager? = null
 
+    init {
+//        System.setProperty("skiko.vsync.enabled", "false")
+//        System.setProperty("skiko.fps.enabled", "true")
+    }
+
     private val appScope    = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val skiaWindow  = SkiaWindow(SkiaLayerProperties(isVsyncEnabled = false))
-    private val defaultFont = Font(Typeface.makeFromName("monospace", FontStyle(300, 5, UPRIGHT)), 13f)
+    private val skiaWindow  = SkiaWindow()
+    private val defaultFont = Font(Typeface.makeFromName("menlo", FontStyle(300, 5, UPRIGHT)), 13f)
 
     protected var injector = direct {
         extend(previousInjector, copy = All)

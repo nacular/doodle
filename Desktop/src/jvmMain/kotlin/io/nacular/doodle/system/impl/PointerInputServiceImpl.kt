@@ -16,6 +16,7 @@ import io.nacular.doodle.system.Cursor.Companion.SwResize
 import io.nacular.doodle.system.Cursor.Companion.Text
 import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.system.Cursor.Companion.Wait
+import io.nacular.doodle.system.Cursor.Companion.custom
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Listener
 import io.nacular.doodle.system.PointerInputService.Preprocessor
@@ -91,15 +92,32 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     }
 
     override var cursor: Cursor?
-        get() = TODO("Not yet implemented") //window.cursor
+        get() = when (window.layeredPane.cursor.type) {
+            TEXT_CURSOR      -> Text
+            WAIT_CURSOR      -> Wait
+            MOVE_CURSOR      -> Move
+            HAND_CURSOR      -> Grab
+            DEFAULT_CURSOR   -> Default
+            N_RESIZE_CURSOR  -> NResize
+            S_RESIZE_CURSOR  -> SResize
+            E_RESIZE_CURSOR  -> EResize
+            W_RESIZE_CURSOR  -> WResize
+            NE_RESIZE_CURSOR -> NeResize
+            NW_RESIZE_CURSOR -> NwResize
+            SE_RESIZE_CURSOR -> SeResize
+            SW_RESIZE_CURSOR -> SwResize
+            CROSSHAIR_CURSOR -> Crosshair
+            else             -> custom(window.layeredPane.cursor.name, or = Default)
+        }
         set(new) {
             window.layer.cursor = new?.swing()
         }
 
     override var toolTipText: String
-        get() = window.layer.toolTipText
+        get(   ) = window.layeredPane.toolTipText
         set(new) {
-//            window.layer.toolTipText = new
+            // FIXME: This doesn't work
+            window.layeredPane.toolTipText = new
         }
 
     override operator fun plusAssign (listener: Listener) { listeners.plusAssign (listener); if (listeners.size == 1) startUp() }
@@ -157,7 +175,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
         if (mouseEvent.isMetaDown   ) modifiers += Meta
         if (mouseEvent.isControlDown) modifiers += Ctrl
 
-        val windowScreenLocation = window.layer.locationOnScreen
+        val windowScreenLocation = window.layeredPane.locationOnScreen
         val location = mouseEvent.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
 
         val event = SystemPointerEvent(
