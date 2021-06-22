@@ -6,18 +6,17 @@ import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.skia.skija
 import io.nacular.doodle.utils.observable
+import org.jetbrains.skija.ClipMode
 import org.jetbrains.skija.Font
-import org.jetbrains.skiko.SkiaLayer
-import org.jetbrains.skiko.SkiaRenderer
+import org.jetbrains.skija.Paint
+import org.jetbrains.skija.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaWindow
-import java.awt.Container
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
+import kotlin.properties.Delegates.observable
+import kotlin.properties.ReadWriteProperty
 import org.jetbrains.skija.Canvas as SkijaCanvas
-
 
 /**
  * Created by Nicholas Eddy on 5/19/21.
@@ -25,96 +24,141 @@ import org.jetbrains.skija.Canvas as SkijaCanvas
 internal class RealGraphicsSurface(
                     window             : SkiaWindow,
         private val defaultFont        : Font,
-                    parent             : RealGraphicsSurface?,
-                    addToRootIfNoParent: Boolean): GraphicsSurface {
+        private val fontCollection     : FontCollection,
+        private val parent             : RealGraphicsSurface?,
+                    addToRootIfNoParent: Boolean
+): GraphicsSurface {
 
-    private inner class SkiaPanel: Container() {
-        val layer = SkiaLayer()
+    private val layer          = window.layer
+    private val children       = mutableListOf<RealGraphicsSurface>()
+    private var needsRerender  = false
 
-        init {
-            layout = null
+    private var dirty = false
+        get() = field || true == parent?.dirty
+        set(new) {
+            field = new
+            needsRerender()
         }
 
-//        override fun add(component: Component): Component {
-//            layer.clipComponents.add(ClipComponent(component))
-//            return super.add(component)
-//        }
-
-        override fun addNotify() {
-            super.addNotify()
-            super.add(layer)
-
-            addComponentListener(object : ComponentAdapter() {
-                override fun componentResized(e: ComponentEvent) {
-                    layer.setSize(width, height)
-                }
-            })
-        }
-
-        override fun removeNotify() {
-            layer.dispose()
-            super.removeNotify()
-        }
+    private var renderBlock: ((Canvas) -> Unit)? by observable(null) { _,_,_ ->
+        dirty = true
     }
 
-    private val skiaPanel = SkiaPanel().apply {
-        layer.renderer = object: SkiaRenderer {
-            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            override fun onRender(skiaCanvas: SkijaCanvas, width: Int, height: Int, nanoTime: Long) {
-                skiaCanvas.scale(layer.contentScale, layer.contentScale)
-
-//                val a = layer.parent.bounds.run { Rectangle(-position.x, -position.y, width.toDouble() /*- position.x*/, height.toDouble() /*- position.y*/).skija() }
-//                skiaCanvas.clipRect(a, ClipMode.INTERSECT)
-                renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont).apply { size = this@RealGraphicsSurface.size })
-            }
-        }
-    }
+    private var finalTransform by redrawProperty(Identity)
 
     init {
-        val parentLayer = when {
-            parent != null      -> parent.skiaPanel
-            addToRootIfNoParent -> window
-            else                -> null
-        }
-
-        parentLayer?.add(skiaPanel)
+//        println("new surface: $id, $parent")
+        parent?.add(this)
     }
 
-    override var position: Point by observable(Origin) { _, new ->
-        skiaPanel.setLocation(new.x.toInt(), new.y.toInt())
+    override var position: Point by observable(Origin) { _,new ->
+        parent?.dirty = true
+        updateTransform(new)
+        needsRerender()
+        layer.needRedraw()
     }
 
-    override var size: Size by observable(Empty) { _, new ->
-        skiaPanel.setSize(new.width.toInt(), new.height.toInt())
+    override var size by observable(Empty) { _,_ ->
+        parent?.dirty = true
+        needsRerender()
+        layer.needRedraw()
     }
 
-    override var index by observable(0) { _, _ -> }
+    override var index by redrawProperty(0)
 
-    override var zOrder by observable(0) { _, _ -> }
+    override var zOrder by redrawProperty(0)
 
-    override var visible by observable(true) { _, new ->
-        skiaPanel.isVisible = new
-    }
+    override var visible by redrawProperty(true)
 
-    override var opacity by observable(0.5f) { _, _ -> }
+    override var opacity by redrawProperty(0.5f)
 
-    override var transform by observable(Identity) { _, _ -> }
+    override var transform by observable(Identity) { _,_ -> updateTransform(position) }
 
-    override var mirrored by observable(false) { _, _ -> }
+    override var mirrored by observable(false) { _,_ -> updateTransform(position) }
 
-    override var clipCanvasToBounds by observable(true) { _, _ -> }
+    override var clipCanvasToBounds by observable(true) { _,_ -> }
 
     override var childrenClipPoly: Polygon? by observable(null) { _, _ -> }
 
-    private var renderBlock: ((Canvas) -> Unit)? = null
-
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block
-//        skiaPanel.repaint()
-        skiaPanel.layer.paintImmediately(0, 0, size.width.toInt(), size.height.toInt())
+
+        layer.needRedraw()
     }
 
     override fun release() {
-        skiaPanel.parent?.remove(skiaPanel)
+        parent?.remove(this)
+    }
+
+    private fun add(child: RealGraphicsSurface) {
+        children += child
+    }
+
+    private fun remove(child: RealGraphicsSurface) {
+        children -= child
+    }
+
+    private fun needsRerender() {
+        needsRerender = true
+//        println("needsRedraw($id)")
+        parent?.needsRerender()
+    }
+
+    internal fun onRender(skiaCanvas: SkijaCanvas, width: Int, height: Int, nanoTime: Long) {
+//        println("onRender ($id) $width, $height, $size: ${Thread.currentThread()}")
+
+        if (true) { //needsRerender) {
+            if (visible && !size.empty) {
+//                println("render [$id]")
+//                skiaCanvas.save()
+
+                when (opacity) {
+                    1f   -> skiaCanvas.save()
+                    else -> skiaCanvas.saveLayer(null, Paint().apply {
+                        alpha = (255 * opacity).toInt()
+                    })
+                }
+
+                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
+
+                if (clipCanvasToBounds) {
+                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                }
+
+                if (true) { //dirty) {
+                    renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply { size = this@RealGraphicsSurface.size })
+                }
+
+                childrenClipPoly?.let {
+                    if (!clipCanvasToBounds) {
+                        skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                    }
+                    skiaCanvas.clipPath(it.skija(), ClipMode.INTERSECT)
+                }
+
+                children./*filter { it.needsRerender }.*/forEach {
+//                    println("render nested [${it.id}]")
+                    it.onRender(skiaCanvas, width, height, nanoTime)
+                }
+
+                skiaCanvas.restore()
+            }
+
+            dirty         = false
+            needsRerender = false
+        }
+    }
+
+    private fun updateTransform(new: Point) {
+        finalTransform = when {
+            !mirrored && transform.isIdentity -> Identity.translate(new)
+            mirrored -> (transform translate new).flipHorizontally()
+            else     ->  transform translate new
+        }
+    }
+
+    private fun <T> redrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
+        layer.needRedraw()
+        onChange(old, new)
     }
 }

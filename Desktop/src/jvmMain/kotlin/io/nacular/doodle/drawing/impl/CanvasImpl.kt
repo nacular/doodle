@@ -38,7 +38,6 @@ import io.nacular.measured.units.Measure
 import org.jetbrains.skija.Bitmap
 import org.jetbrains.skija.FilterBlurMode
 import org.jetbrains.skija.FilterTileMode.REPEAT
-import org.jetbrains.skija.FontMgr
 import org.jetbrains.skija.ImageFilter
 import org.jetbrains.skija.MaskFilter
 import org.jetbrains.skija.PathEffect
@@ -63,7 +62,11 @@ import org.jetbrains.skija.Path as SkijaPath
 /**
  * Created by Nicholas Eddy on 5/19/21.
  */
-internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defaultFont: SkijaFont): Canvas {
+internal class CanvasImpl(
+        private val skiaCanvas    : SkijaCanvas,
+        private val defaultFont   : SkijaFont,
+        private val fontCollection: FontCollection
+): Canvas {
     private fun Paint.skija(): SkijaPaint {
         val result = SkijaPaint()
 
@@ -78,7 +81,7 @@ internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defau
                     allocN32Pixels(size.width.toInt(), size.height.toInt())
                 }
                 val bitmapCanvas = org.jetbrains.skija.Canvas(bitmap)
-                paint.invoke(CanvasImpl(bitmapCanvas, defaultFont).apply { size = this@skija.size })
+                paint.invoke(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skija.size })
 
                 result.shader = bitmap.makeShader(REPEAT, REPEAT)
             }
@@ -100,10 +103,6 @@ internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defau
     private fun Renderer.FillRule.skija() = when (this) {
         EvenOdd -> EVEN_ODD
         else    -> WINDING
-    }
-
-    private val fontCollection = FontCollection().apply {
-        setDefaultFontManager(FontMgr.getDefault())
     }
 
     override var size: Size = Size.Empty
@@ -310,8 +309,8 @@ internal class CanvasImpl(private val skiaCanvas: SkijaCanvas, private val defau
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         shadows += shadow
-//    skiaCanvas.save()
-//
+        skiaCanvas.save()
+
 //    val previousFilter = imageFilter
 //
 //    imageFilter = when (val i = imageFilter) {

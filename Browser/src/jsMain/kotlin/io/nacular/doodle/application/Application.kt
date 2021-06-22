@@ -233,7 +233,7 @@ private open class ApplicationHolderImpl protected constructor(
         bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bindSingleton<DisplayImpl>                                 { instance<Display>     () as DisplayImpl }
+        bindSingleton                                              { instance<Display>     () as DisplayImpl }
         bindSingleton<InternalDisplay>                             { instance<DisplayImpl> ()                }
 
         modules.forEach {

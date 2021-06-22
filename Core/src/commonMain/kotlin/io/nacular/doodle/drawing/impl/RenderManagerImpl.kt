@@ -385,7 +385,9 @@ public open class RenderManagerImpl(
         pendingLayout       -= view
         pendingBoundsChange -= view
 
-        pendingCleanup[parent]?.remove(view)
+        parent?.let {
+            pendingCleanup[parent]?.remove(view)
+        }
 
         view.boundsChanged              -= boundsChanged_
         view.zOrderChanged              -= zOrderChanged_

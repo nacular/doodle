@@ -45,30 +45,29 @@ import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import kotlinx.browser.document
 import org.kodein.di.DI.Module
-import org.kodein.di.bind
+import org.kodein.di.bindProvider
+import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import org.kodein.di.provider
-import org.kodein.di.singleton
 import org.w3c.dom.HTMLElement
 
 public class Modules {
     public companion object {
         /** Enables focus management by providing access to [FocusManager]. */
         public val FocusModule: Module = Module(allowSilentOverride = true, name = "Focus") {
-            bind<FocusabilityChecker> () with singleton { DefaultFocusabilityChecker(                                            ) }
-            bind<FocusTraversalPolicy>() with singleton { FocusTraversalPolicyImpl  (instance()                                  ) }
-            bind<FocusManager>        () with singleton { FocusManagerImpl          (instance(), instance(), instance()          ) }
-            bind<NativeFocusManager>  () with singleton { NativeFocusManagerImpl    (instance<FocusManager>() as FocusManagerImpl) }
+            bindSingleton<FocusabilityChecker>  { DefaultFocusabilityChecker(                                            ) }
+            bindSingleton<FocusTraversalPolicy> { FocusTraversalPolicyImpl  (instance()                                  ) }
+            bindSingleton<FocusManager>         { FocusManagerImpl          (instance(), instance(), instance()          ) }
+            bindSingleton<NativeFocusManager>   { NativeFocusManagerImpl    (instance<FocusManager>() as FocusManagerImpl) }
         }
 
         /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bind<ViewFinder>                 () with singleton { ViewFinderImpl                   (instance()                        ) }
-            bind<PointerLocationResolver>    () with singleton { PointerLocationResolverImpl      (document,   instance()            ) }
-            bind<PointerInputService>        () with singleton { PointerInputServiceImpl          (instance()                        ) }
-            bind<PointerInputManager>        () with singleton { PointerInputManagerImpl          (instance(), instance(), instance()) }
-            bind<PointerInputServiceStrategy>() with singleton { PointerInputServiceStrategyWebkit(document,   instance(), instance()) }
+            bindSingleton<ViewFinder>                  { ViewFinderImpl                   (instance()                        ) }
+            bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (document,   instance()            ) }
+            bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                        ) }
+            bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()) }
+            bindSingleton<PointerInputServiceStrategy> { PointerInputServiceStrategyWebkit(document,   instance(), instance()) }
         }
 
         /** Enables keyboard use. Includes [FocusModule]. */
@@ -81,9 +80,9 @@ public class Modules {
                 Backward to setOf(KeyState(KeyCode.Tab, KeyText.Tab, setOf   (Shift), Down))
             )
 
-            bind<KeyInputService>        () with singleton { KeyInputServiceImpl     (instance()                  ) }
-            bind<KeyboardFocusManager>   () with singleton { KeyboardFocusManagerImpl(instance(), instance(), keys) }
-            bind<KeyInputServiceStrategy>() with singleton { KeyInputStrategyWebkit  (instance()                  ) }
+            bindSingleton<KeyInputService>         { KeyInputServiceImpl     (instance()                  ) }
+            bindSingleton<KeyboardFocusManager>    { KeyboardFocusManagerImpl(instance(), instance(), keys) }
+            bindSingleton<KeyInputServiceStrategy> { KeyInputStrategyWebkit  (instance()                  ) }
         }
 
         /**
@@ -93,12 +92,12 @@ public class Modules {
         public val DragDropModule: Module = Module(allowSilentOverride = true, name = "DragDrop") {
             importOnce(PointerModule)
 
-            bind<DragManager>() with singleton { DragManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
+            bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
         }
 
         /** Enables use of [Document]s */
         public val DocumentModule: Module = Module(allowSilentOverride = true, name = "Document") {
-            bind<Document>() with provider { DocumentImpl(instance(), instance(), instance(), instance()) }
+            bindProvider<Document> { DocumentImpl(instance(), instance(), instance(), instance()) }
         }
 
         /** Enables accessibility features */
@@ -106,24 +105,24 @@ public class Modules {
             importOnce(KeyboardModule)
 
             // TODO: Can this be handled better?
-            bind<KeyInputServiceImpl>() with singleton { instance<KeyInputService>() as KeyInputServiceImpl }
+            bindSingleton { instance<KeyInputService>() as KeyInputServiceImpl }
 
             // FIXME: Centralize
-            bind<NativeEventHandlerFactory>() with singleton { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(instanceOrNull(), element, listener) } }
+            bindSingleton<NativeEventHandlerFactory> { { element: HTMLElement, listener: NativeEventListener -> NativeEventHandlerImpl(instanceOrNull(), element, listener) } }
 
-            bind<AccessibilityManager>() with singleton { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
+            bindSingleton<AccessibilityManager> { AccessibilityManagerImpl(instance(), instance(), instance(), instance(), instance(), instance()) }
 
             // TODO: Can this be handled better?
-            bind<AccessibilityManagerImpl>() with singleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
+            bindSingleton { instance<AccessibilityManager>() as AccessibilityManagerImpl }
         }
 
         /** Enables use of [UrlView]s */
         public val UrlViewModule: Module = Module(allowSilentOverride = true, name = "UrlView") {
-            bind<UrlView>() with provider { UrlView(instance()) }
+            bindProvider { UrlView(instance()) }
         }
 
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
-            bind<FontLoader>() with singleton { FontLoaderLegacy(instance(), instance(), instance(), instance()) }
+            bindSingleton<FontLoader> { FontLoaderLegacy(instance(), instance(), instance(), instance()) }
         }
     }
 }

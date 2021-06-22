@@ -7,14 +7,13 @@ import io.nacular.doodle.time.Timer
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.times
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.swing.Swing
+import kotlinx.coroutines.yield
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
@@ -64,8 +63,6 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
 
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = SimpleTask(timer, time, job = job)
 
-    internal fun after(time: Measure<Time>, context: CoroutineContext = EmptyCoroutineContext, job: (Measure<Time>) -> Unit): Task = SimpleTask(timer, time, context, job)
-
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(timer, time, job)
 
     override suspend fun delay(time: Measure<Time>) = kotlinx.coroutines.delay((time `in` milliseconds).toLong())
@@ -90,11 +87,65 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
         }
     }
 
-    fun shutdown() {
+    open fun shutdown() {
         shutdown = true
     }
 }
 
-internal class AnimationSchedulerImpl(scope: CoroutineScope, timer: Timer): AnimationScheduler, SchedulerImpl(scope, timer) {
-    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = after(1 * seconds / 60, Dispatchers.Swing, job)
+internal class DebounceEventQueue constructor(
+                    appScope      : CoroutineScope,
+                    context       : CoroutineContext,
+        private val timer         : Timer,
+        private val maxTimeToBlock: Measure<Time> = 4 * milliseconds
+) {
+    private val queue = Channel<() -> Unit>(Channel.UNLIMITED)
+
+    private var job = appScope.launch(context) {
+        var previousTime = timer.now
+
+        for (event in queue) {
+            val now = timer.now
+
+            if (now - previousTime >= maxTimeToBlock) {
+                previousTime = now
+                yield()
+            }
+
+            event()
+        }
+    }
+
+    fun cancel() = job.cancel()
+
+    fun post(event: () -> Unit) {
+        queue.offer(event)
+    }
+}
+
+internal class AnimationSchedulerImpl(appScope: CoroutineScope, uiDispatcher: CoroutineContext, private val timer: Timer): AnimationScheduler, SchedulerImpl(appScope, timer) {
+    private val debounceQueue = DebounceEventQueue(appScope, timer = timer, context = uiDispatcher)
+
+    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = object: Task {
+        init {
+            val start = timer.now
+
+            debounceQueue.post {
+                if (!completed) {
+                    completed = true
+                    job(timer.now - start)
+                }
+            }
+        }
+
+        override var completed = false
+
+        override fun cancel() {
+            completed = true
+        }
+    }
+
+    override fun shutdown() {
+        super.shutdown()
+        debounceQueue.cancel()
+    }
 }

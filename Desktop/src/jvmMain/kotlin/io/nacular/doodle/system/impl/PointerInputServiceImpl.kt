@@ -60,7 +60,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     private val listeners     = mutableSetOf<Listener>()
     private val preprocessors = mutableSetOf<Preprocessor>()
 
-    private fun Cursor.swing() = when (this) {
+    private fun Cursor?.swing() = when (this) {
 //        None      -> null
         Text      -> AwtCursor(TEXT_CURSOR)
         Wait      -> AwtCursor(WAIT_CURSOR)
@@ -110,7 +110,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
             else             -> custom(window.layeredPane.cursor.name, or = Default)
         }
         set(new) {
-            window.layer.cursor = new?.swing()
+            window.layer.cursor = new.swing()
         }
 
     override var toolTipText: String
@@ -161,11 +161,16 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     }
 
     private fun notifyPointerEvent(mouseEvent: MouseEvent, type: Type): Boolean {
-        val buttons = when (mouseEvent.button) {
+        var buttons = when (mouseEvent.button) {
             1    -> setOf(Button1)
             2    -> setOf(Button2)
             3    -> setOf(Button3)
             else -> emptySet()
+        }
+
+        // FIXME: Change browser behavior to track released button instead of doing this
+        if (type == Up) {
+            buttons = emptySet()
         }
 
         val modifiers = mutableSetOf<Modifier>()

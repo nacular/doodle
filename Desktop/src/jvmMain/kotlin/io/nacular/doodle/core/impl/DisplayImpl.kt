@@ -11,14 +11,17 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.impl.CanvasImpl
+import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.skia.skija
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -29,17 +32,17 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skija.Font
+import org.jetbrains.skija.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import org.jetbrains.skija.Canvas as SkiaCanvas
 
@@ -48,7 +51,14 @@ import org.jetbrains.skija.Canvas as SkiaCanvas
  * Created by Nicholas Eddy on 5/14/21.
  */
 // FIXME: Move common parts to common code
-internal class DisplayImpl(private val scope: CoroutineScope, private val window: SkiaWindow, private val defaultFont: Font): InternalDisplay {
+internal class DisplayImpl(
+        private val appScope      : CoroutineScope,
+        private val uiDispatcher  : CoroutineContext,
+        private val window        : SkiaWindow,
+        private val defaultFont   : Font,
+        private val fontCollection: FontCollection,
+        private val device        : GraphicsDevice<RealGraphicsSurface>
+): InternalDisplay {
     override var insets = Insets.None
 
     override var layout: Layout? by Delegates.observable(null) { _, _, _ ->
@@ -106,7 +116,7 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
 
     private fun requestRender() {
         if (renderJob == null || renderJob?.isActive != true) {
-            renderJob = scope.launch(Dispatchers.Swing) {
+            renderJob = appScope.launch(uiDispatcher) {
                 window.layer.needRedraw()
             }
         }
@@ -115,6 +125,10 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
     private fun contentDirectionChanged() {
         (contentDirectionChanged as ChangeObserversImpl)()
         notifyMirroringChanged()
+    }
+
+    private var finalTransform by observable(Identity) { _,_ ->
+        requestRender()
     }
 
     private fun notifyMirroringChanged() {
@@ -132,37 +146,41 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
         set (new) {
             field = new
 
-            refreshAugmentedTransform()
-        }
-
-    private var augmentedTransform = Identity
-        set (new) {
-            field = new
-
-            updateTransform()
+            requestRender()
         }
 
     init {
-        runBlocking(Dispatchers.Swing) {
+        runBlocking(uiDispatcher) {
             window.layer.renderer = object: SkiaRenderer {
                 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
                 override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-                    fill?.let {
-                        skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
+//                    println("display render ${Thread.currentThread()}")
 
-                        CanvasImpl(skiaCanvas, defaultFont).apply {
+//                    window.layer.graphics.color = Color.CYAN
+//                    window.layer.graphics.fillRect(0, 0, 100, 100)
+//                    return
+
+                    skiaCanvas.save()
+
+                    skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
+
+                    skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
+
+                    fill?.let {
+                        CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
                             size = this@DisplayImpl.size
                             rect(Rectangle(width, height), it)
                         }
                     }
+
+                    children.forEach {
+//                        println("render top-level [${it::class.simpleName}]")
+                        device[it].onRender(skiaCanvas, width, height, nanoTime)
+                    }
+
+                    skiaCanvas.restore()
                 }
             }
-
-            window.preferredSize = Dimension(800, 600)
-            window.pack()
-            window.layer.awaitRedraw()
-            window.isVisible = true
-            window.layout    = null
 
             window.addComponentListener(object: ComponentAdapter() {
                 override fun componentResized(e: ComponentEvent) {
@@ -170,6 +188,12 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
                     window.layer.setSize(window.width, window.height)
                 }
             })
+
+            window.preferredSize = Dimension(800, 600)
+            window.pack()
+            window.layer.awaitRedraw()
+            window.isVisible = true
+            window.layout    = null
         }
     }
 
@@ -222,6 +246,8 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
             layout?.layout(positionableWrapper)
 
             layingOut= false
+
+            requestRender()
         }
     }
 
@@ -233,22 +259,20 @@ internal class DisplayImpl(private val scope: CoroutineScope, private val window
 
     override fun repaint() {
         fill?.let {
-            window.layer.needRedraw()
+            requestRender()
         }
     }
 
-    private fun refreshAugmentedTransform() {
-        val point          = -Point(size.width / 2, size.height / 2)
-        augmentedTransform = ((Identity translate point) * transform) translate -point
-    }
-
     private val resolvedTransform get() = when {
-        mirrored -> augmentedTransform.flipHorizontally(at = width / 2)
-        else     -> augmentedTransform
+        mirrored -> transform.flipHorizontally(at = width / 2)
+        else     -> transform
     }
 
     private fun updateTransform() {
-        // TODO: Implement
+        finalTransform = when {
+            mirrored -> transform.flipHorizontally()
+            else     -> transform
+        }
     }
 
     private inner class PositionableWrapper: PositionableContainer {

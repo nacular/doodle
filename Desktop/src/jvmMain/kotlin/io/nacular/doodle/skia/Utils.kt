@@ -4,7 +4,9 @@ import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.toPath
 import org.jetbrains.skija.Matrix33
 import org.jetbrains.skija.RRect
 import org.jetbrains.skija.Rect
@@ -17,6 +19,8 @@ internal fun Color.skija(): Int = (((opacity * 0xFF).toUInt() shl 24) + (red.toU
 
 internal fun Rectangle.skija() = Rect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 internal fun Rectangle.rrect(radius: Float) = RRect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), radius)
+
+internal fun Polygon.skija() = toPath().skija()
 
 internal fun Point.skija() = org.jetbrains.skija.Point(x.toFloat(), y.toFloat())
 

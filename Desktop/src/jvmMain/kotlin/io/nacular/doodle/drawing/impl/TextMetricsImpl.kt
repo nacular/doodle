@@ -6,6 +6,7 @@ import io.nacular.doodle.text.StyledText
 import org.jetbrains.skija.FontMgr
 import org.jetbrains.skija.paragraph.BaselineMode
 import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skija.paragraph.Paragraph
 import org.jetbrains.skija.paragraph.ParagraphBuilder
 import org.jetbrains.skija.paragraph.ParagraphStyle
 import org.jetbrains.skija.paragraph.PlaceholderAlignment
@@ -16,10 +17,26 @@ import org.jetbrains.skija.Font as SkijaFont
 /**
  * Created by Nicholas Eddy on 6/8/21.
  */
-internal class TextMetricsImpl(private val defaultFont: SkijaFont): TextMetrics {
+internal class TextMetricsImpl(private val defaultFont: SkijaFont, private val fontCollection: FontCollection): TextMetrics {
     private val Font?.skia get() = when (this) {
         is FontImpl -> skiaFont
         else        -> defaultFont
+    }
+
+    private fun StyledText.paragraph(): Paragraph {
+        val builder = ParagraphBuilder(ParagraphStyle(), fontCollection).also { builder ->
+            this.forEach { (text, style) ->
+                builder.pushStyle(TextStyle().apply {
+                    typeface   = style.font.skia.typeface
+                    fontSize   = style.font.skia.size
+                    fontStyle  = style.font.skia.typeface?.fontStyle
+                })
+                builder.addText(text)
+                builder.popStyle()
+            }
+        }
+
+        return builder.build().apply { layout(Float.POSITIVE_INFINITY) }
     }
 
     override fun width(text: String, font: Font?) = font.skia.measureTextWidth(text).toDouble()
@@ -27,9 +44,7 @@ internal class TextMetricsImpl(private val defaultFont: SkijaFont): TextMetrics 
     // FIXME
     override fun width(text: String, width: Double, indent: Double, font: Font?) = width
 
-    override fun width(text: StyledText): Double {
-        TODO("Not yet implemented")
-    }
+    override fun width(text: StyledText) = text.paragraph().longestLine.toDouble()
 
     override fun width(text: StyledText, width: Double, indent: Double): Double {
         TODO("Not yet implemented")
@@ -60,9 +75,7 @@ internal class TextMetricsImpl(private val defaultFont: SkijaFont): TextMetrics 
         return paragraph.height.toDouble()
     }
 
-    override fun height(text: StyledText): Double {
-        TODO("Not yet implemented")
-    }
+    override fun height(text: StyledText) = text.paragraph().height.toDouble()
 
     override fun height(text: StyledText, width: Double, indent: Double): Double {
         TODO("Not yet implemented")
