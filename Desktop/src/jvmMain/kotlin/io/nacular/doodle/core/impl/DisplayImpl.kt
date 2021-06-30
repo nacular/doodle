@@ -34,7 +34,6 @@ import io.nacular.doodle.utils.observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.skija.Font
 import org.jetbrains.skija.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaRenderer
@@ -127,14 +126,9 @@ internal class DisplayImpl(
         notifyMirroringChanged()
     }
 
-    private var finalTransform by observable(Identity) { _,_ ->
-        requestRender()
-    }
-
     private fun notifyMirroringChanged() {
-        updateTransform()
-
         (mirroringChanged as ChangeObserversImpl)()
+        requestRender()
     }
 
     private val positionableWrapper = PositionableWrapper()
@@ -150,51 +144,44 @@ internal class DisplayImpl(
         }
 
     init {
-        runBlocking(uiDispatcher) {
-            window.layer.renderer = object: SkiaRenderer {
-                @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-                override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
+        window.layer.renderer = object: SkiaRenderer {
+            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+            override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
 //                    println("display render ${Thread.currentThread()}")
 
-//                    window.layer.graphics.color = Color.CYAN
-//                    window.layer.graphics.fillRect(0, 0, 100, 100)
-//                    return
+                skiaCanvas.save     ()
+                skiaCanvas.scale    (window.layer.contentScale, window.layer.contentScale)
+                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skija()))
 
-                    skiaCanvas.save()
-
-                    skiaCanvas.scale(window.layer.contentScale, window.layer.contentScale)
-
-                    skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
-
-                    fill?.let {
-                        CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
-                            size = this@DisplayImpl.size
-                            rect(Rectangle(width, height), it)
-                        }
+                fill?.let {
+                    CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
+                        size = this@DisplayImpl.size
+                        rect(Rectangle(width, height), it)
                     }
+                }
 
-                    children.forEach {
+                children.forEach {
 //                        println("render top-level [${it::class.simpleName}]")
-                        device[it].onRender(skiaCanvas, width, height, nanoTime)
-                    }
-
-                    skiaCanvas.restore()
+                    device[it].onRender(skiaCanvas, width, height, nanoTime)
                 }
+
+                skiaCanvas.restore()
             }
-
-            window.addComponentListener(object: ComponentAdapter() {
-                override fun componentResized(e: ComponentEvent) {
-                    size = Size(window.width, window.height)
-                    window.layer.setSize(window.width, window.height)
-                }
-            })
-
-            window.preferredSize = Dimension(800, 600)
-            window.pack()
-            window.layer.awaitRedraw()
-            window.isVisible = true
-            window.layout    = null
         }
+
+        window.addComponentListener(object: ComponentAdapter() {
+            override fun componentResized(e: ComponentEvent) {
+                size = Size(window.contentPane.width, window.contentPane.height)
+                window.layer.setSize(window.contentPane.width, window.contentPane.height)
+            }
+        })
+
+        window.preferredSize = Dimension(800, 600)
+        window.pack()
+        window.isVisible = true
+        window.layout    = null
+
+        size = Size(window.contentPane.width, window.contentPane.height)
     }
 
     override fun fill(fill: Paint) {
@@ -266,13 +253,6 @@ internal class DisplayImpl(
     private val resolvedTransform get() = when {
         mirrored -> transform.flipHorizontally(at = width / 2)
         else     -> transform
-    }
-
-    private fun updateTransform() {
-        finalTransform = when {
-            mirrored -> transform.flipHorizontally()
-            else     -> transform
-        }
     }
 
     private inner class PositionableWrapper: PositionableContainer {

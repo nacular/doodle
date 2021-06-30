@@ -12,6 +12,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -61,8 +62,8 @@ private class BasicCheckBoxIcon(
         canvas.rect(rect, cornerRadius, background)
 
         val foreground = when {
-            view.enabled -> ColorPaint(foregroundColor)
-            else         -> ColorPaint(disabledColorMapper(foregroundColor))
+            view.enabled -> foregroundColor.paint
+            else         -> disabledColorMapper(foregroundColor).paint
         }
 
         when {

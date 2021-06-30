@@ -64,9 +64,20 @@ internal class RealGraphicsSurface(
         layer.needRedraw()
     }
 
-    override var index by redrawProperty(0)
+    override var index by redrawProperty(parent?.children?.size ?: 0) { _,_ ->
+        updateParentChildrenSort()
+    }
 
-    override var zOrder by redrawProperty(0)
+    override var zOrder: Int by redrawProperty(0) { _,_ ->
+        updateParentChildrenSort()
+    }
+
+    private fun updateParentChildrenSort() {
+        val comparator = Comparator<RealGraphicsSurface> { a, b -> a.zOrder - b.zOrder }.
+        thenComparing { a, b -> a.index - b.index }
+
+        parent?.children?.sortWith(comparator)
+    }
 
     override var visible by redrawProperty(true)
 
@@ -129,6 +140,11 @@ internal class RealGraphicsSurface(
                     renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply { size = this@RealGraphicsSurface.size })
                 }
 
+                if (!clipCanvasToBounds) {
+                    // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
+                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                }
+
                 childrenClipPoly?.let {
                     if (!clipCanvasToBounds) {
                         skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
@@ -152,13 +168,13 @@ internal class RealGraphicsSurface(
     private fun updateTransform(new: Point) {
         finalTransform = when {
             !mirrored && transform.isIdentity -> Identity.translate(new)
-            mirrored -> (transform translate new).flipHorizontally()
+            mirrored -> (transform translate new).flipHorizontally(at = size.width / 2)
             else     ->  transform translate new
         }
     }
 
     private fun <T> redrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
-        layer.needRedraw()
         onChange(old, new)
+        layer.needRedraw()
     }
 }

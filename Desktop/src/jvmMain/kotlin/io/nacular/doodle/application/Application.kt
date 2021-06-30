@@ -24,6 +24,7 @@ import io.nacular.doodle.time.impl.TimerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.swing.Swing
 import kotlinx.datetime.Clock
 import org.jetbrains.skija.Font
@@ -74,6 +75,7 @@ private open class ApplicationHolderImpl protected constructor(
 
     private inner class ShutdownHook: Thread() {
         override fun run() {
+            // TODO: Should this be run in the UI thread?
             shutdown()
         }
     }
@@ -196,7 +198,11 @@ private open class ApplicationHolderImpl protected constructor(
         operator fun invoke(previousInjector    : DirectDI,
                             allowDefaultDarkMode: Boolean      = false,
                             modules             : List<Module> = emptyList()): Application {
-            return ApplicationHolderImpl(previousInjector, allowDefaultDarkMode, modules).apply { run() }
+            return ApplicationHolderImpl(previousInjector, allowDefaultDarkMode, modules).apply {
+                appScope.launch(Dispatchers.Swing) {
+                    run()
+                }
+            }
         }
     }
 }

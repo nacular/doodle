@@ -7,9 +7,13 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.toPath
+import org.jetbrains.skija.Image
 import org.jetbrains.skija.Matrix33
 import org.jetbrains.skija.RRect
 import org.jetbrains.skija.Rect
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 /**
  * Created by Nicholas Eddy on 5/19/21.
@@ -37,3 +41,11 @@ internal fun AffineTransform.skija() = Matrix33(
         0f,
         1f
 )
+
+internal fun BufferedImage.toImage(): Image {
+    val outputStream = ByteArrayOutputStream()
+
+    ImageIO.write(this, "png", outputStream)
+
+    return Image.makeFromEncoded(outputStream.toByteArray())
+}

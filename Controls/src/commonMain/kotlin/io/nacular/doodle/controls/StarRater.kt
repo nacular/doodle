@@ -137,8 +137,10 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
                 }
 
                 canvas.rect(rect.inset(Insets(right = width - rectWidth)), PatternPaint(bounds = fillBounds) {
-                    if (displayValue.toInt() == max) {
-                        outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
+                    val sColor = shadowColor
+
+                    if (displayValue >= max && sColor != null) {
+                        outerShadow(color = sColor, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                             poly(star, foregroundColor.paint)
                         }
                     } else {

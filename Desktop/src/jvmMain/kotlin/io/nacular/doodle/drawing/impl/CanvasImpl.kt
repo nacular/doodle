@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -32,6 +33,7 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.skia.rrect
 import io.nacular.doodle.skia.skija
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.isOdd
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Measure
@@ -42,6 +44,7 @@ import org.jetbrains.skija.ImageFilter
 import org.jetbrains.skija.MaskFilter
 import org.jetbrains.skija.PathEffect
 import org.jetbrains.skija.PathFillMode.*
+import org.jetbrains.skija.SamplingMode.MITCHELL
 import org.jetbrains.skija.Shader
 import org.jetbrains.skija.paragraph.BaselineMode.ALPHABETIC
 import org.jetbrains.skija.paragraph.FontCollection
@@ -63,27 +66,29 @@ import org.jetbrains.skija.Path as SkijaPath
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class CanvasImpl(
-        private val skiaCanvas    : SkijaCanvas,
-        private val defaultFont   : SkijaFont,
+        internal val skiaCanvas: SkijaCanvas,
+        private val defaultFont: SkijaFont,
         private val fontCollection: FontCollection
 ): Canvas {
     private fun Paint.skija(): SkijaPaint {
         val result = SkijaPaint()
 
         when (this) {
-            is ColorPaint          -> result.color  = color.skija()
+            is ColorPaint          -> result.color = color.skija()
             is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skija(), end.skija(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skija(), start.radius.toFloat(), end.center.skija(), end.radius.toFloat(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT) }
             is PatternPaint        -> {
-                // FIXME: Reuse bitmaps
+                // FIXME: Reuse bitmaps?
                 val bitmap = Bitmap().apply {
                     allocN32Pixels(size.width.toInt(), size.height.toInt())
                 }
-                val bitmapCanvas = org.jetbrains.skija.Canvas(bitmap)
-                paint.invoke(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skija.size })
 
-                result.shader = bitmap.makeShader(REPEAT, REPEAT)
+                val bitmapCanvas = SkijaCanvas(bitmap)
+
+                paint(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skija.size })
+
+                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, (Identity.translate(bounds.x, bounds.y) * transform).skija())
             }
         }
 
@@ -96,7 +101,12 @@ internal class CanvasImpl(
         it.setStroke(true)
         it.strokeWidth = thickness.toFloat()
         dashes?.let { dashes ->
-            it.pathEffect = PathEffect.makeDash(dashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
+            val fixedDashes = when {
+                dashes.size.isOdd -> { doubleArrayOf(*dashes, dashes.last()) }
+                else              -> dashes
+            }
+
+            it.pathEffect = PathEffect.makeDash(fixedDashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
         }
     }
 
@@ -250,19 +260,21 @@ internal class CanvasImpl(
     }
 
     override fun poly(polygon: Polygon, fill: Paint) {
-        withShadows({ polygon.toPath() }) {
-            skiaCanvas.drawPolygon(polygon.points.map { it.skija() }.toTypedArray(), fill.skija())
+        val path by lazy { polygon.toPath() }
+
+        withShadows({ path }) {
+            skiaCanvas.drawPath(path.skija(), fill.skija())
         }
     }
 
     override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) {
-        withShadows({ polygon.toPath() }) {
-            val points = polygon.points.map { it.skija() }.toTypedArray()
+        val path by lazy { polygon.toPath() }
 
+        withShadows({ path }) {
             if (fill != null) {
-                skiaCanvas.drawPolygon(points, fill.skija())
+                skiaCanvas.drawPath(path.skija(), fill.skija())
             }
-            skiaCanvas.drawPolygon(points, stroke.skija())
+            skiaCanvas.drawPath(path.skija(), stroke.skija())
         }
     }
 
@@ -366,7 +378,7 @@ internal class CanvasImpl(
 
             skiaCanvas.save     ()
             skiaCanvas.translate(it.horizontal.toFloat(), it.vertical.toFloat())
-            skiaCanvas.drawPath (path.skija(), blur)
+            skiaCanvas.drawPath(path.skija(), blur)
             skiaCanvas.restore  ()
         }
     }
@@ -384,9 +396,9 @@ internal class CanvasImpl(
             }
 
             skiaCanvas.save     ()
-            skiaCanvas.clipPath (path.skija())
+            skiaCanvas.clipPath(path.skija())
             skiaCanvas.translate(it.horizontal.toFloat(), it.vertical.toFloat())
-            skiaCanvas.drawPath (path.skija(), blur)
+            skiaCanvas.drawPath(path.skija(), blur)
             skiaCanvas.restore  ()
         }
     }
@@ -432,9 +444,9 @@ internal class CanvasImpl(
                     style.background?.skija()?.let { background = it }
 
                     foreground = style.foreground?.skija() ?: Black.paint.skija()
-                    typeface   = style.font.skia.typeface
-                    fontSize   = style.font.skia.size
-                    fontStyle  = style.font.skia.typeface?.fontStyle
+                    typeface = style.font.skia.typeface
+                    fontSize = style.font.skia.size
+                    fontStyle = style.font.skia.typeface?.fontStyle
                 })
                 builder.addText(text)
                 builder.popStyle()

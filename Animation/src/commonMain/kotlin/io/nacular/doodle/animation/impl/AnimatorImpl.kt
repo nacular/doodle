@@ -148,7 +148,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
         override fun then(transition: Transition<NoneUnit>) = this.also { property.add(transition) }
 
-        override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { animations += it }
+        override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { addAnimation(it) }
     }
 
     private inner class TransitionBuilderImpl<T: Number>(
@@ -159,7 +159,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
         override fun then(transition: Transition<NoneUnit>) = this.also { property.add(transition) }
 
-        override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { animations += it }
+        override fun invoke(block: (T) -> Unit): Animation = AnimationImpl(property) { block(it.amount as T) }.also { addAnimation(it) }
     }
 
     private inner class MeasurePairTransitionBuilderImpl<T: Units>(
@@ -171,7 +171,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         override fun then(transition: Transition<T>) = this.also { property.add(transition) }
 
         override fun invoke(block: (Measure<T>) -> Unit): Animation {
-            return AnimationImpl(property) { block(it) }.also { animations += it }
+            return AnimationImpl(property) { block(it) }.also { addAnimation(it) }
         }
     }
 
@@ -183,7 +183,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         override fun then(transition: Transition<T>) = this.also { property.add(transition) }
 
         override fun invoke(block: (Measure<T>) -> Unit): Animation {
-            return AnimationImpl(property) { block(it) }.also { animations += it }
+            return AnimationImpl(property) { block(it) }.also { addAnimation(it) }
         }
     }
 
@@ -196,6 +196,9 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
             }
         }
     }
+
+    private var inAnimation = false
+    private var concurrentlyModifiedAnimations: ObservableSet<AnimationImpl<*>>? = null
 
     override fun <T: Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T> = TransitionPairBuilderImpl(first, second, transition)
 
@@ -254,6 +257,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         val completed = mutableSetOf<Animation>()
 
         val iterator = animations.iterator()
+        inAnimation = true
 
         while (iterator.hasNext()) {
             val it = iterator.next()
@@ -275,6 +279,11 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
             }
         }
 
+        inAnimation = false
+        concurrentlyModifiedAnimations?.let {
+            animations.addAll(it)
+        }
+
         if (changed.isNotEmpty()) {
             (listeners as? SetPool)?.forEach { it.changed(this, changed) }
         }
@@ -284,6 +293,18 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
                 onAnimate()
             }
             completed.isNotEmpty()  -> (listeners as? SetPool)?.forEach { it.completed(this, completed) }
+        }
+    }
+
+    private fun addAnimation(animation: AnimatorImpl.AnimationImpl<*>) {
+        when {
+            inAnimation -> {
+                if (concurrentlyModifiedAnimations == null) {
+                    concurrentlyModifiedAnimations = ObservableSet(animations)
+                }
+                concurrentlyModifiedAnimations?.apply { this += animation }
+            }
+            else -> animations += animation
         }
     }
 }
