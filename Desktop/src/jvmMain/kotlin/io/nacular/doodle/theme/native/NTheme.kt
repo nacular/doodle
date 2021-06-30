@@ -1,17 +1,20 @@
 package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.buttons.Button
+import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
+import org.jetbrains.skiko.SkiaWindow
 import org.kodein.di.DI.Module
 import org.kodein.di.bindSingleton
 import org.kodein.di.erasedSet
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
+import javax.swing.FocusManager
 
 private typealias NTheme = NativeTheme
 
@@ -38,19 +41,15 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-//            bindSingleton<NativeButtonFactory> { NativeButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
-
-            bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), Dispatchers.Swing, instance(), instance(), instanceOrNull(), it) }
+            bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), instance(), FocusManager.getCurrentManager(), instanceOrNull()) }
         }
 
 //        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false): Module = Module(name = "NativeScrollPanelBehavior") {
 //            importOnce(CommonNativeModule, allowOverride = true)
 //
-//            bind<NativeScrollPanelFactory>() with singleton { NativeScrollPanelFactoryImpl(smoothScrolling, instance(), instance(), instance()) }
-//
-//            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it) }
+//            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), Dispatchers.Swing, it) }
 //        }
-//
+
 //        public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
 //            importOnce(CommonNativeModule, allowOverride = true)
 //
@@ -58,26 +57,13 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
 //
 //            bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
 //        }
-//
-//        public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
-//            importOnce(CommonNativeModule, allowOverride = true)
-//
-//            bind<NativeTextFieldFactory>() with singleton {
-//                NativeTextFieldFactoryImpl(
-//                    instance(),
-//                    instance(),
-//                    instance(),
-//                    instance(),
-//                    instance(),
-//                    instance(),
-//                    instanceOrNull(),
-//                    instance(),
-//                    spellCheck)
-//            }
-//
-//            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
-//        }
-//
+
+        public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
+            importOnce(CommonNativeModule, allowOverride = true)
+
+            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), FocusManager.getCurrentManager(), instanceOrNull()) }
+        }
+
 //        public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
 //            importOnce(CommonNativeModule, allowOverride = true)
 //
@@ -110,7 +96,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
 //            nativeSliderBehavior     (),
 //            nativeSwitchBehavior     (),
 //            nativeCheckBoxBehavior   (),
-//            nativeTextFieldBehavior  (),
+            nativeTextFieldBehavior  (),
 //            nativeHyperLinkBehavior  (),
 //            nativeScrollPanelBehavior(),
 //            nativeRadioButtonBehavior()

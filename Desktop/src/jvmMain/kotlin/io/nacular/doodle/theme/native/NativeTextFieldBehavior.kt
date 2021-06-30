@@ -1,11 +1,13 @@
 package io.nacular.doodle.theme.native
 
-import io.nacular.doodle.controls.buttons.Button
-import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
+import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.controls.text.TextFieldBehavior
+import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -26,52 +28,59 @@ import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import javax.swing.JButton
+import javax.swing.JTextField
 import kotlin.coroutines.CoroutineContext
 
 
 /**
  * Created by Nicholas Eddy on 6/14/21.
  */
-internal class NativeButtonBehavior(
+internal class NativeTextFieldBehavior(
         private val window           : SkiaWindow,
         private val appScope         : CoroutineScope,
         private val uiDispatcher     : CoroutineContext,
         private val contentScale     : Double,
-                    textMetrics      : TextMetrics,
         private val swingFocusManager: javax.swing.FocusManager,
         private val focusManager     : FocusManager?
-): CommonTextButtonBehavior<Button>(textMetrics) {
+): TextFieldBehavior, PointerListener, PointerMotionListener {
 
-    private inner class JButtonPeer(button: Button): JButton() {
-        private val button: Button? = button
+    private inner class JTextFieldPeer(textField: TextField): JTextField() {
+        private var textField: TextField? = textField
 
         init {
-            text = button.text
+            text = textField.text
 
             addFocusListener(object : FocusListener {
-                override fun focusGained(e: FocusEvent?) { focusManager?.requestFocus(button) }
+                override fun focusGained(e: FocusEvent?) { focusManager?.requestFocus(textField) }
                 override fun focusLost  (e: FocusEvent?) {
-                    if (button == focusManager?.focusOwner) { focusManager.clearFocus() }
+                    if (textField == focusManager?.focusOwner) { focusManager.clearFocus() }
                 }
             })
         }
 
         override fun repaint() {
             super.repaint()
-            button?.rerender()
+            textField?.rerender()
         }
 
         public override fun processMouseEvent(e: MouseEvent?) {
             super.processMouseEvent(e)
         }
+
+        public override fun processMouseMotionEvent(e: MouseEvent?) {
+            super.processMouseMotionEvent(e)
+        }
     }
 
-    private lateinit var nativePeer: JButtonPeer
+    private lateinit var nativePeer: JTextFieldPeer
     private var oldCursor    : Cursor? = null
     private var oldIdealSize : Size?   = null
     private lateinit var bufferedImage: BufferedImage
     private lateinit var graphics     : Graphics2D
+
+    private val textChanged: (TextInput, String, String) -> Unit = { _,_,new ->
+        nativePeer.text = new
+    }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
@@ -96,14 +105,14 @@ internal class NativeButtonBehavior(
     private fun createNewBufferedImage(size: Size) {
         if (!size.empty && contentScale > 0f) {
             bufferedImage = BufferedImage((size.width * contentScale).toInt(), (size.height * contentScale).toInt(), TYPE_INT_ARGB)
-            this@NativeButtonBehavior.graphics = bufferedImage.createGraphics().apply {
+            this@NativeTextFieldBehavior.graphics = bufferedImage.createGraphics().apply {
                 setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON)
                 scale(contentScale, contentScale)
             }
         }
     }
 
-    override fun render(view: Button, canvas: Canvas) {
+    override fun render(view: TextField, canvas: Canvas) {
         if (this::graphics.isInitialized) {
             graphics.background = Color(255, 255, 255, 0)
             graphics.clearRect(0, 0, bufferedImage.width, bufferedImage.height)
@@ -115,20 +124,25 @@ internal class NativeButtonBehavior(
         }
     }
 
-    override fun mirrorWhenRightToLeft(view: Button) = false
+    override fun mirrorWhenRightToLeft(view: TextField) = false
 
-    override fun install(view: Button) {
+    override fun fitTextSize(textField: TextField) = nativePeer.preferredScrollableViewportSize.run { Size(width, height) }
+
+    override fun install(view: TextField) {
         super.install(view)
 
-        nativePeer = JButtonPeer(view)
+        nativePeer = JTextFieldPeer(view)
 
         createNewBufferedImage(view.size)
 
         view.apply {
-            focusChanged        += this@NativeButtonBehavior.focusChanged
-            boundsChanged       += this@NativeButtonBehavior.boundsChanged
-            enabledChanged      += this@NativeButtonBehavior.enabledChanged
-            focusabilityChanged += this@NativeButtonBehavior.focusableChanged
+            textChanged          += this@NativeTextFieldBehavior.textChanged
+            focusChanged         += this@NativeTextFieldBehavior.focusChanged
+            boundsChanged        += this@NativeTextFieldBehavior.boundsChanged
+            enabledChanged       += this@NativeTextFieldBehavior.enabledChanged
+            pointerChanged       += this@NativeTextFieldBehavior
+            focusabilityChanged  += this@NativeTextFieldBehavior.focusableChanged
+            pointerMotionChanged += this@NativeTextFieldBehavior
         }
 
         appScope.launch(uiDispatcher) {
@@ -143,17 +157,20 @@ internal class NativeButtonBehavior(
         }
     }
 
-    override fun uninstall(view: Button) {
+    override fun uninstall(view: TextField) {
         super.uninstall(view)
 
         view.apply {
             cursor    = oldCursor
             idealSize = oldIdealSize
 
-            focusChanged        -= this@NativeButtonBehavior.focusChanged
-            boundsChanged       -= this@NativeButtonBehavior.boundsChanged
-            enabledChanged      -= this@NativeButtonBehavior.enabledChanged
-            focusabilityChanged -= this@NativeButtonBehavior.focusableChanged
+            textChanged          -= this@NativeTextFieldBehavior.textChanged
+            focusChanged         -= this@NativeTextFieldBehavior.focusChanged
+            boundsChanged        -= this@NativeTextFieldBehavior.boundsChanged
+            enabledChanged       -= this@NativeTextFieldBehavior.enabledChanged
+            pointerChanged       -= this@NativeTextFieldBehavior
+            focusabilityChanged  -= this@NativeTextFieldBehavior.focusableChanged
+            pointerMotionChanged -= this@NativeTextFieldBehavior
         }
 
         appScope.launch(uiDispatcher) {
@@ -162,22 +179,22 @@ internal class NativeButtonBehavior(
     }
 
     override fun entered(event: PointerEvent) {
-        super.entered(event)
         nativePeer.processMouseEvent(event.toAwt(nativePeer))
     }
 
     override fun exited(event: PointerEvent) {
-        super.exited(event)
         nativePeer.processMouseEvent(event.toAwt(nativePeer))
     }
 
     override fun pressed(event: PointerEvent) {
-        super.pressed(event)
         nativePeer.processMouseEvent(event.toAwt(nativePeer))
     }
 
     override fun released(event: PointerEvent) {
-        super.released(event)
         nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun moved(event: PointerEvent) {
+        nativePeer.processMouseMotionEvent(event.toAwt(nativePeer))
     }
 }
