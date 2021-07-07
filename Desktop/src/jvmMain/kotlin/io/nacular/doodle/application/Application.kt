@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
+import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
@@ -83,7 +84,7 @@ private open class ApplicationHolderImpl protected constructor(
     private var focusManager   : FocusManager? = null
     private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val skiaWindow     = SkiaWindow().apply {
-        defaultCloseOperation  = EXIT_ON_CLOSE
+        defaultCloseOperation = EXIT_ON_CLOSE
     }
     private val defaultFont    = Font(Typeface.makeFromName("menlo", FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
@@ -123,18 +124,17 @@ private open class ApplicationHolderImpl protected constructor(
     private var focusListener: ((FocusManager, View?, View?) -> Unit)? = null
 
     init {
-//        System.setProperty("skiko.vsync.enabled", "false")
-//        System.setProperty("skiko.fps.enabled", "true")
+        System.setProperty("skiko.vsync.enabled", "false")
+//        System.setProperty("skiko.fps.enabled",   "true" )
 //        System.setProperty("skiko.renderApi", "OPENGL")
 
         Runtime.getRuntime().addShutdownHook(ShutdownHook())
     }
 
     protected fun run() {
-        injector.instance<RenderManager>()
-
+        injector.instance      <RenderManager>       ()
         injector.instanceOrNull<PointerInputManager> ()
-//        injector.instanceOrNull<KeyboardFocusManager>()
+        injector.instanceOrNull<KeyboardFocusManager>()
 //        injector.instanceOrNull<DragManager>         ()
 
         application = injector.instance()

@@ -33,7 +33,6 @@ public open class RenderManagerImpl(
         }
     }
 
-    private val views                       = mutableSetOf <View>()
     private var layingOut                   = null as View?
     private var paintTask                   = null as Task?
     private val boundsChanged_              = ::boundsChanged
@@ -44,6 +43,7 @@ public open class RenderManagerImpl(
     private val opacityChanged_             = ::opacityChangedFunc
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
+    protected open val views              : MutableSet<View>                   = mutableSetOf <View>()
     protected open val dirtyViews         : MutableSet<View>                   = mutableSetOf()
     protected open val displayTree        : MutableMap<View?, DisplayRectNode> = mutableMapOf()
     protected open val neverRendered      : MutableSet<View>                   = mutableSetOf()
@@ -400,7 +400,7 @@ public open class RenderManagerImpl(
         unregisterDisplayRectMonitoring(view)
     }
 
-    private fun addToCleanupList(parent: View, child: View) {
+    protected open fun addToCleanupList(parent: View, child: View) {
         pendingCleanup.getOrPut(parent) { mutableSetOf() }.apply { add(child) }
     }
 
@@ -617,7 +617,7 @@ public open class RenderManagerImpl(
         displayTree[view]?.let { node ->
             val oldDisplayRect = node.clipRect
 
-            updateClipRect(node, displayTree[view.parent])
+            updateClipRect(node, view.parent?.let { displayTree[it] })
 
             if (oldDisplayRect != node.clipRect) {
                 if (view.monitorsDisplayRect) {

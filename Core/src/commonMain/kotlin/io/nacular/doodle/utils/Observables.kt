@@ -31,11 +31,13 @@ public open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetO
 }
 
 public class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
-    public operator fun invoke(): Unit = delegate.forEach { it(source) }
+    // TODO: Can concurrent modification errors be avoided more efficiently?
+    public operator fun invoke(): Unit = delegate.toList().forEach { it(source) }
 }
 
 public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
-    public operator fun invoke(old: T, new: T): Unit = delegate.forEach { it(source, old, new) }
+    // TODO: Can concurrent modification errors be avoided more efficiently?
+    public operator fun invoke(old: T, new: T): Unit = delegate.toList().forEach { it(source, old, new) }
 }
 
 public interface ObservableList<E>: MutableList<E> {

@@ -12,9 +12,11 @@ import io.nacular.doodle.utils.observable
 import org.jetbrains.skija.ClipMode
 import org.jetbrains.skija.Font
 import org.jetbrains.skija.Paint
+import org.jetbrains.skija.Picture
+import org.jetbrains.skija.PictureRecorder
 import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaWindow
-import kotlin.properties.Delegates.observable
 import kotlin.properties.ReadWriteProperty
 import org.jetbrains.skija.Canvas as SkijaCanvas
 
@@ -22,54 +24,65 @@ import org.jetbrains.skija.Canvas as SkijaCanvas
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class RealGraphicsSurface(
-                    window             : SkiaWindow,
-        private val defaultFont        : Font,
-        private val fontCollection     : FontCollection,
-        private val parent             : RealGraphicsSurface?,
-                    addToRootIfNoParent: Boolean
-): GraphicsSurface {
+                    window        : SkiaWindow,
+        private val defaultFont   : Font,
+        private val fontCollection: FontCollection,
+        private val parent        : RealGraphicsSurface?): GraphicsSurface {
 
-    private val layer          = window.layer
-    private val children       = mutableListOf<RealGraphicsSurface>()
-    private var needsRerender  = false
-
-    private var dirty = false
-        get() = field || true == parent?.dirty
-        set(new) {
-            field = new
-            needsRerender()
-        }
-
-    private var renderBlock: ((Canvas) -> Unit)? by observable(null) { _,_,_ ->
-        dirty = true
-    }
-
-    private var finalTransform by redrawProperty(Identity)
+    private var layer           =  window.layer as SkiaLayer?
+    private var picture         =  null as Picture?
+    private val children        =  mutableListOf<RealGraphicsSurface>()
+    private var renderBlock     by redrawProperty<((Canvas) -> Unit)?>(null)
+    private var finalTransform  by parentRedrawProperty(Identity)
+    private val pictureRecorder =  PictureRecorder()
 
     init {
-//        println("new surface: $id, $parent")
         parent?.add(this)
     }
 
-    override var position: Point by observable(Origin) { _,new ->
-        parent?.dirty = true
-        updateTransform(new)
-        needsRerender()
-        layer.needRedraw()
+    override var size               by redrawProperty          (Empty                      )
+    override var index              by parentRedrawProperty    (parent?.children?.size ?: 0) { _,_ ->   updateParentChildrenSort(        ) }
+    override var zOrder             by parentRedrawProperty    (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
+    override var visible            by redrawProperty          (true                       )
+    override var opacity            by redrawProperty          (0.5f                       )
+    override var position           by observable              (Origin                     ) { _,new -> updateTransform         (new     ) }
+    override var mirrored           by observable              (false                      ) { _,_ -> updateTransform           (position) }
+    override var transform          by observable              (Identity                   ) { _,_ -> updateTransform           (position) }
+    override var childrenClipPoly   by redrawProperty<Polygon?>(null                       )
+    override var clipCanvasToBounds by redrawProperty          (true                       )
+
+    override fun render(block: (Canvas) -> Unit) {
+        renderBlock = block
     }
 
-    override var size by observable(Empty) { _,_ ->
-        parent?.dirty = true
-        needsRerender()
-        layer.needRedraw()
+    private var released = false
+
+    override fun release() {
+        if (!released) {
+            released = true
+
+            layer    = null
+            picture?.close()
+            pictureRecorder.close()
+
+            // FIXME: Should always be true
+            if (parent?.released == false) {
+                parent.remove(this)
+            }
+        }
     }
 
-    override var index by redrawProperty(parent?.children?.size ?: 0) { _,_ ->
-        updateParentChildrenSort()
-    }
+    internal fun onRender(skiaCanvas: SkijaCanvas) {
+        if (picture == null) {
+            val canvas = pictureRecorder.beginRecording(bounds.atOrigin.skija())
+            drawToCanvas(canvas)
+            picture = pictureRecorder.finishRecordingAsPicture()
+        }
 
-    override var zOrder: Int by redrawProperty(0) { _,_ ->
-        updateParentChildrenSort()
+        skiaCanvas.save()
+        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
+        skiaCanvas.drawPicture(picture!!)
+        skiaCanvas.restore()
     }
 
     private fun updateParentChildrenSort() {
@@ -79,89 +92,58 @@ internal class RealGraphicsSurface(
         parent?.children?.sortWith(comparator)
     }
 
-    override var visible by redrawProperty(true)
-
-    override var opacity by redrawProperty(0.5f)
-
-    override var transform by observable(Identity) { _,_ -> updateTransform(position) }
-
-    override var mirrored by observable(false) { _,_ -> updateTransform(position) }
-
-    override var clipCanvasToBounds by observable(true) { _,_ -> }
-
-    override var childrenClipPoly: Polygon? by observable(null) { _, _ -> }
-
-    override fun render(block: (Canvas) -> Unit) {
-        renderBlock = block
-
-        layer.needRedraw()
-    }
-
-    override fun release() {
-        parent?.remove(this)
-    }
-
     private fun add(child: RealGraphicsSurface) {
         children += child
+        needsRerender()
     }
 
     private fun remove(child: RealGraphicsSurface) {
         children -= child
+        needsRerender()
     }
 
     private fun needsRerender() {
-        needsRerender = true
-//        println("needsRedraw($id)")
-        parent?.needsRerender()
+        picture?.close()
+        picture = null
+
+        when (parent) {
+            null -> layer?.needRedraw()
+            else -> parent.needsRerender()
+        }
     }
 
-    internal fun onRender(skiaCanvas: SkijaCanvas, width: Int, height: Int, nanoTime: Long) {
-//        println("onRender ($id) $width, $height, $size: ${Thread.currentThread()}")
-
-        if (true) { //needsRerender) {
-            if (visible && !size.empty) {
-//                println("render [$id]")
-//                skiaCanvas.save()
-
-                when (opacity) {
-                    1f   -> skiaCanvas.save()
-                    else -> skiaCanvas.saveLayer(null, Paint().apply {
-                        alpha = (255 * opacity).toInt()
-                    })
-                }
-
-                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
-
-                if (clipCanvasToBounds) {
-                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
-                }
-
-                if (true) { //dirty) {
-                    renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply { size = this@RealGraphicsSurface.size })
-                }
-
-                if (!clipCanvasToBounds) {
-                    // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
-                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
-                }
-
-                childrenClipPoly?.let {
-                    if (!clipCanvasToBounds) {
-                        skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
-                    }
-                    skiaCanvas.clipPath(it.skija(), ClipMode.INTERSECT)
-                }
-
-                children./*filter { it.needsRerender }.*/forEach {
-//                    println("render nested [${it.id}]")
-                    it.onRender(skiaCanvas, width, height, nanoTime)
-                }
-
-                skiaCanvas.restore()
+    private fun drawToCanvas(skiaCanvas: SkijaCanvas) {
+        if (visible && !size.empty) {
+            when (opacity) {
+                1f   -> skiaCanvas.save()
+                else -> skiaCanvas.saveLayer(null, Paint().apply {
+                    alpha = (255 * opacity).toInt()
+                })
             }
 
-            dirty         = false
-            needsRerender = false
+            if (clipCanvasToBounds) {
+                skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+            }
+
+            renderBlock?.invoke(CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply { size = this@RealGraphicsSurface.size })
+
+            if (!clipCanvasToBounds) {
+                // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
+                skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+            }
+
+            childrenClipPoly?.let {
+                if (!clipCanvasToBounds) {
+                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                }
+                skiaCanvas.clipPath(it.skija(), ClipMode.INTERSECT)
+            }
+
+            children.forEach {
+                it.onRender(skiaCanvas)
+            }
+
+            skiaCanvas.restore()
         }
     }
 
@@ -175,6 +157,11 @@ internal class RealGraphicsSurface(
 
     private fun <T> redrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
         onChange(old, new)
-        layer.needRedraw()
+        needsRerender()
+    }
+
+    private fun <T> parentRedrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
+        onChange(old, new)
+        parent?.needsRerender()
     }
 }

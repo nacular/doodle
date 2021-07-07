@@ -27,6 +27,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.path
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
@@ -218,7 +219,9 @@ internal class CanvasImpl(
     }
 
     override fun path(points: List<Point>, fill: Paint, fillRule: Renderer.FillRule?) {
-        skiaCanvas.drawLines(points.map { it.skija() }.toTypedArray(), fill.skija())
+        if (points.isNotEmpty()) {
+            skiaCanvas.drawPath(points.toPath().skija(), fill.skija())
+        }
     }
 
     override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) {
@@ -234,7 +237,9 @@ internal class CanvasImpl(
     }
 
     override fun path(points: List<Point>, stroke: Stroke) {
-        skiaCanvas.drawLines(points.map { it.skija() }.toTypedArray(), stroke.skija())
+        if (points.isNotEmpty()) {
+            skiaCanvas.drawPath(points.toPath().skija(), stroke.skija())
+        }
     }
 
     override fun path(path: Path, stroke: Stroke) {
@@ -244,17 +249,20 @@ internal class CanvasImpl(
     }
 
     override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {
-        val skijaPoints = points.map { it.skija() }.toTypedArray()
-
-        skiaCanvas.drawLines(skijaPoints, fill.skija())
-        skiaCanvas.drawLines(skijaPoints, stroke.skija())
+        if (points.isNotEmpty()) {
+            path(points.toPath(), fill, fillRule)
+        }
     }
 
     override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {
         withShadows({ path }) {
             val skijaPath = path.skija()
 
-            skiaCanvas.drawPath(skijaPath, fill.skija())
+            if (fillRule != null) {
+                skijaPath.fillMode = fillRule.skija()
+            }
+
+            skiaCanvas.drawPath(skijaPath, fill.skija ())
             skiaCanvas.drawPath(skijaPath, stroke.skija())
         }
     }
@@ -454,6 +462,11 @@ internal class CanvasImpl(
         }
 
         return builder.build().apply { layout(POSITIVE_INFINITY) }
+    }
+
+    private fun List<Point>.toPath() = path(from = this[0]).run {
+        subList(1, size).forEach { lineTo(it) }
+        finish()
     }
 
     private fun skiaArc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke?, fill: Paint?, includeCenter: Boolean) {

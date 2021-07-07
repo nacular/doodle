@@ -126,20 +126,20 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     override operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.plusAssign (preprocessor); if (preprocessors.size == 1) startUp() }
     override operator fun minusAssign(preprocessor: Preprocessor) { preprocessors.minusAssign(preprocessor); shutdown()                             }
 
-    override fun mousePressed(e: MouseEvent?) {
-        if (e != null) { notifyPointerEvent(e, Down) }
+    override fun mousePressed(e: MouseEvent) {
+        notifyPointerEvent(e, Down)
     }
 
-    override fun mouseReleased(e: MouseEvent?) {
-        if (e != null) { notifyPointerEvent(e, Up) }
+    override fun mouseReleased(e: MouseEvent) {
+        notifyPointerEvent(e, Up)
     }
 
-    override fun mouseMoved(e: MouseEvent?) {
-        if (e != null) { notifyPointerEvent(e, Type.Move) }
+    override fun mouseMoved(e: MouseEvent) {
+        notifyPointerEvent(e, Type.Move)
     }
 
-    override fun mouseDragged(e: MouseEvent?) {
-        if (e != null) { notifyPointerEvent(e, Type.Move) }
+    override fun mouseDragged(e: MouseEvent) {
+        notifyPointerEvent(e, Type.Move)
     }
 
     private fun startUp() {

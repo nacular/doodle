@@ -147,8 +147,6 @@ internal class DisplayImpl(
         window.layer.renderer = object: SkiaRenderer {
             @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
             override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-//                    println("display render ${Thread.currentThread()}")
-
                 skiaCanvas.save     ()
                 skiaCanvas.scale    (window.layer.contentScale, window.layer.contentScale)
                 skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skija()))
@@ -161,8 +159,7 @@ internal class DisplayImpl(
                 }
 
                 children.forEach {
-//                        println("render top-level [${it::class.simpleName}]")
-                    device[it].onRender(skiaCanvas, width, height, nanoTime)
+                    device[it].onRender(skiaCanvas)
                 }
 
                 skiaCanvas.restore()

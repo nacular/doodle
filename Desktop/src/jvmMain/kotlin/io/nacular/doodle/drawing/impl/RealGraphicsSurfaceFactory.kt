@@ -13,11 +13,11 @@ internal class RealGraphicsSurfaceFactory(
         private val defaultFont   : Font,
         private val fontCollection: FontCollection,
 ): GraphicsSurfaceFactory<RealGraphicsSurface> {
-    override fun invoke() = RealGraphicsSurface(window, defaultFont, parent = null, addToRootIfNoParent = true, fontCollection = fontCollection)
+    override fun invoke() = RealGraphicsSurface(window, defaultFont, parent = null, fontCollection = fontCollection)
 
     override fun invoke(parent             : RealGraphicsSurface?,
                         view               : View,
                         isContainer        : Boolean,
                         addToRootIfNoParent: Boolean
-    ) = RealGraphicsSurface(window, defaultFont, fontCollection, parent, addToRootIfNoParent)
+    ) = RealGraphicsSurface(window, defaultFont, fontCollection, parent)
 }

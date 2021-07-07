@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -28,7 +29,7 @@ import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.awt.event.MouseEvent.MOUSE_PRESSED
 import java.awt.event.MouseEvent.MOUSE_RELEASED
 
-internal fun PointerEvent.toAwt(target: Component): MouseEvent {
+internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseEvent {
     val id = when (type) {
         Type.Up    -> MOUSE_RELEASED
         Type.Down  -> MOUSE_PRESSED
@@ -70,5 +71,5 @@ internal fun PointerEvent.toAwt(target: Component): MouseEvent {
         modifiers = modifiers or META_DOWN_MASK
     }
 
-    return MouseEvent(target, id, time, modifiers, location.x.toInt(), location.y.toInt(), clickCount, false, button)
+    return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
 }

@@ -110,15 +110,15 @@ internal class KeyInputServiceImpl(private val window: SkiaWindow): KeyInputServ
 
     private fun createModifiers(e: KeyEvent) = mutableSetOf<SystemInputEvent.Modifier>().also {
         e.isAltDown.ifTrue     { it += SystemInputEvent.Modifier.Alt   }
-        e.isControlDown.ifTrue { it += SystemInputEvent.Modifier.Ctrl  }
         e.isMetaDown.ifTrue    { it += SystemInputEvent.Modifier.Meta  }
         e.isShiftDown.ifTrue   { it += SystemInputEvent.Modifier.Shift }
+        e.isControlDown.ifTrue { it += SystemInputEvent.Modifier.Ctrl  }
     }
 
     private val unused: Boolean get() = listeners.isEmpty() && preprocessors.isEmpty() && postprocessors.isEmpty()
 
     private fun notifyKeyEvent(e: KeyEvent, type: Type) {
-        val keyState = KeyState(e.doodleKeyCode, KeyText(e.keyChar.toString()), createModifiers(e), type)
+        val keyState = KeyState(e.doodleKeyCode, e.doodleKeyText, createModifiers(e), type)
 
         preprocessors.forEach {
             if (it(keyState)) {

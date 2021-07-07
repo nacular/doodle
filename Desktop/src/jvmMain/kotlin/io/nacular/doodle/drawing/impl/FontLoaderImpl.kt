@@ -35,7 +35,6 @@ internal class FontLoaderImpl: FontLoader {
         loadedFonts.getOrPut(info) {
             // FIXME: Incorporate info?
             val typeface = Typeface.makeFromFile(source)
-
             val skiaFont = SkijaFont(typeface, info.size.toFloat())
             FontImpl(skiaFont)
         }
