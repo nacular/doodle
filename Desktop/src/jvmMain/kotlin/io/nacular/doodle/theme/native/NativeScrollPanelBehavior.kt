@@ -57,6 +57,7 @@ internal class NativeScrollPanelBehavior(
         var viewPortView = ViewPortComponent()
 
         init {
+            border = null
             setViewportView(viewPortView)
 
             viewport.addChangeListener {

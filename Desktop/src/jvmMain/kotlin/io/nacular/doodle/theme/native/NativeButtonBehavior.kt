@@ -43,7 +43,6 @@ internal class JButtonPeer(focusManager: FocusManager?, button: Button): JButton
     }
 }
 
-
 internal class NativeButtonBehavior(
         window           : SkiaWindow,
         appScope         : CoroutineScope,

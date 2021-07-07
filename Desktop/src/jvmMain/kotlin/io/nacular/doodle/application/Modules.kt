@@ -55,9 +55,8 @@ public class Modules {
                 FocusTraversalPolicy.TraversalType.Backward to setOf(KeyState(KeyCode.Tab, Tab, setOf   (Shift), Down))
             )
 
-            bindSingleton<KeyInputService>     { KeyInputServiceImpl     (instance()                  ) }
-            bindSingleton<KeyboardFocusManager>{ KeyboardFocusManagerImpl(instance(), instance(), keys) }
-            bindSingleton<KeyInputService>     { KeyInputServiceImpl     (instance()                  ) }
+            bindSingleton<KeyInputService>     { KeyInputServiceImpl     (java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()) }
+            bindSingleton<KeyboardFocusManager>{ KeyboardFocusManagerImpl(instance(), instance(), keys                                  ) }
         }
 
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {

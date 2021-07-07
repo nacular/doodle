@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
+import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.TextField
@@ -48,7 +49,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), instance(), FocusManager.getCurrentManager(), instanceOrNull()) }
         }
 
-        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false): Module = Module(name = "NativeScrollPanelBehavior") {
+        public fun nativeScrollPanelBehavior(): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble()) }
@@ -68,14 +69,13 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), FocusManager.getCurrentManager(), instanceOrNull()) }
         }
 
-//        public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
-//            importOnce(CommonNativeModule, allowOverride = true)
-//
-//            bind<NativeHyperLinkFactory        >() with singleton { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
-//            bind<NativeHyperLinkBehaviorBuilder>() with singleton { NativeHyperLinkBehaviorBuilderImpl(instance()) }
-//
-//            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
-//        }
+        public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
+            importOnce(CommonNativeModule, allowOverride = true)
+
+            bindSingleton<NativeHyperLinkBehaviorBuilder> { NativeHyperLinkBehaviorBuilderImpl() }
+
+            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), instance(), FocusManager.getCurrentManager(), instanceOrNull()) }
+        }
 
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
@@ -101,7 +101,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             nativeSwitchBehavior     (),
             nativeCheckBoxBehavior   (),
             nativeTextFieldBehavior  (),
-//            nativeHyperLinkBehavior  (),
+            nativeHyperLinkBehavior  (),
             nativeScrollPanelBehavior(),
 //            nativeRadioButtonBehavior()
         )

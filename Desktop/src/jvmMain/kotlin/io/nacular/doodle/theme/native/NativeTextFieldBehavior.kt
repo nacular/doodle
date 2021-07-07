@@ -35,7 +35,6 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.swing.JLabel
 import javax.swing.JPasswordField
-import javax.swing.border.Border
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
@@ -83,7 +82,7 @@ internal class NativeTextFieldBehavior(
 ): TextFieldBehavior, PointerListener, PointerMotionListener {
 
     private inner class JTextFieldPeer(textField: TextField): JPasswordField() {
-        private var textField: TextField? = textField
+        private val textField: TextField? = textField
 
         var placeHolder: String
             get()    = placeHolderLabel?.text ?: ""
@@ -95,26 +94,38 @@ internal class NativeTextFieldBehavior(
             }
 
         private var placeHolderLabel: PlaceHolderLabel? = null
+        private var defaultBorder = border
 
         init {
-            text          = textField.text
-            echoChar      = textField.mask ?: 0.toChar()
-            placeHolder   = textField.placeHolder
-            defaultBorder = border
+            text = textField.text
 
-            if (!textField.borderVisible) { border = null }
+            stylesChanged()
 
-            addFocusListener(object : FocusListener {
+            addFocusListener(object: FocusListener {
                 override fun focusGained(e: FocusEvent?) {
                     if (textField != focusManager?.focusOwner) {
-                        println("[Swing -> Doodle] requesting focus"); focusManager?.requestFocus(textField)
+                        focusManager?.requestFocus(textField)
                     }
                 }
 
                 override fun focusLost(e: FocusEvent?) {
                     if (textField == focusManager?.focusOwner) {
-                        println("[Swing -> Doodle] clearing focus"); focusManager.clearFocus()
+                        focusManager.clearFocus()
                     }
+                }
+            })
+
+            document.addDocumentListener(object: DocumentListener {
+                override fun insertUpdate(e: DocumentEvent?) {
+                    syncTextFromSwing()
+                }
+
+                override fun removeUpdate(e: DocumentEvent?) {
+                    syncTextFromSwing()
+                }
+
+                override fun changedUpdate(e: DocumentEvent?) {
+                    syncTextFromSwing()
                 }
             })
         }
@@ -131,24 +142,53 @@ internal class NativeTextFieldBehavior(
         public override fun processMouseMotionEvent(e: MouseEvent?) {
             super.processMouseMotionEvent(e)
         }
+
+        fun stylesChanged() {
+            if (textField == null) return
+
+            echoChar    = textField.mask ?: 0.toChar()
+            placeHolder = textField.placeHolder
+
+            textField.font?.toAwt()?.let            { font       = it }
+            textField.foregroundColor?.toAwt().let  { foreground = it }
+            textField.backgroundColor?.toAwt()?.let { background = it }
+
+            placeHolderLabel?.apply {
+                textField.placeHolderFont?.toAwt ().let { font       = it }
+                textField.placeHolderColor?.toAwt().let { foreground = it }
+            }
+
+            border = when {
+                textField.borderVisible -> defaultBorder
+                else                    -> null
+            }
+        }
+
+        private fun syncTextFromSwing() {
+            ignoreDoodleTextChange = true
+            textField?.text = password.concatToString()
+            ignoreDoodleTextChange = false
+        }
     }
 
-    private lateinit var defaultBorder: Border
     private lateinit var graphics     : Graphics2D
     private          var oldCursor    : Cursor? = null
     private lateinit var nativePeer   : JTextFieldPeer
     private          var oldIdealSize : Size?   = null
     private lateinit var bufferedImage: BufferedImage
+    private          var ignoreDoodleTextChange = false
 
     private val maskChanged = { _: TextField, _: Char?, new: Char? ->
         nativePeer.echoChar = new ?: 0.toChar()
     }
 
-    private val textChanged: (TextInput, String, String) -> Unit = { _, _, new ->
-        nativePeer.text = new
+    private val textChanged: (TextInput, String, String) -> Unit = { _,_,new ->
+        if (!ignoreDoodleTextChange) {
+            nativePeer.text = new
+        }
     }
 
-    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
+    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
             true -> if (!nativePeer.hasFocus()) {
                 println("[Doodle -> Swing] requesting focus"); nativePeer.requestFocus()
@@ -167,14 +207,7 @@ internal class NativeTextFieldBehavior(
 
     private val styleChanged: (source: View) -> Unit = {
         (it as? TextField)?.let { textField ->
-            nativePeer.border = when {
-                textField.borderVisible -> defaultBorder
-                else                    -> null
-            }
-
-            nativePeer.placeHolder = textField.placeHolder
-
-//        nativePeer.
+            nativePeer.stylesChanged()
         }
     }
 
