@@ -8,16 +8,15 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.toPath
 import org.jetbrains.skija.Image
+import org.jetbrains.skija.ImageInfo
 import org.jetbrains.skija.Matrix33
 import org.jetbrains.skija.RRect
 import org.jetbrains.skija.Rect
 import java.awt.image.BufferedImage
+import java.awt.image.DataBufferInt
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
-/**
- * Created by Nicholas Eddy on 5/19/21.
- */
 
 internal fun Color.skija(): Int = (((opacity * 0xFF).toUInt() shl 24) + (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt()).toInt()
 
@@ -42,10 +41,32 @@ internal fun AffineTransform.skija() = Matrix33(
         1f
 )
 
+private class CustomByteArrayOutputStream: ByteArrayOutputStream() {
+    val buffer: ByteArray get() = super.buf
+}
+
 internal fun BufferedImage.toImage(): Image {
-    val outputStream = ByteArrayOutputStream()
+    if (false) {
+    val outputStream = CustomByteArrayOutputStream()
 
     ImageIO.write(this, "png", outputStream)
 
-    return Image.makeFromEncoded(outputStream.toByteArray())
+    return Image.makeFromEncoded(outputStream.buffer)}
+
+// FIXME: Optimize
+    return Image.makeRaster(ImageInfo.makeN32Premul(width, height), (data.dataBuffer as DataBufferInt).data.toByteArray(), width * 4L)
+//    return Image.makeFromEncoded((raster.dataBuffer as DataBufferByte).data)
+}
+
+private fun IntArray.toByteArray(): ByteArray {
+    val byteStream = ByteArrayOutputStream()
+
+    forEach {
+        byteStream.write((it shr 16) and 0xff) // R
+        byteStream.write((it shr  8) and 0xff) // G
+        byteStream.write((it       ) and 0xff) // B
+        byteStream.write((it shr 24) and 0xff) // A
+    }
+
+    return byteStream.toByteArray()
 }

@@ -10,36 +10,33 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.impl.ImageImpl
-import io.nacular.doodle.skia.toImage
 import io.nacular.doodle.system.Cursor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.GraphicsConfiguration
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
 import javax.swing.JComponent
 import kotlin.coroutines.CoroutineContext
 
-/**
- * Created by Nicholas Eddy on 6/30/21.
- */
-internal abstract class AbstractNativeButtonBehavior<T: Button, P>(
-        private   val window           : SkiaWindow,
-        private   val appScope         : CoroutineScope,
-        private   val uiDispatcher     : CoroutineContext,
-        private   val contentScale     : Double,
-                      textMetrics      : TextMetrics,
-        private   val swingFocusManager: javax.swing.FocusManager,
-        protected val focusManager     : FocusManager?
+
+internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
+                      graphicsConfiguration: GraphicsConfiguration,
+        private   val window               : SkiaWindow,
+        private   val appScope             : CoroutineScope,
+        private   val uiDispatcher         : CoroutineContext,
+        private   val contentScale         : Double,
+                      textMetrics          : TextMetrics,
+        private   val swingFocusManager    : javax.swing.FocusManager,
+        protected val focusManager         : FocusManager?
 ): CommonTextButtonBehavior<T>(textMetrics) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
 
     internal interface Peer {
         var selected_            : Boolean
         var ignoreSelectionChange: Boolean
+        var clip                 : Rectangle?
 
         fun handleMouseEvent(e: MouseEvent?)
     }
@@ -47,49 +44,46 @@ internal abstract class AbstractNativeButtonBehavior<T: Button, P>(
     protected abstract fun createPeer(button: T): P
 
     private lateinit var nativePeer: P
-    private var oldCursor    : Cursor? = null
-    private var oldIdealSize : Size?   = null
-    private lateinit var bufferedImage: BufferedImage
-    private lateinit var graphics     : Graphics2D
+    private          var oldCursor    : Cursor? = null
+    private          var oldIdealSize : Size?   = null
+    private          val offscreenGraphics = OffscreenGraphics(graphicsConfiguration, contentScale)
 
-    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {
             true -> if (!nativePeer.hasFocus()) nativePeer.requestFocus()
             else -> swingFocusManager.clearFocusOwner()
         }
     }
 
-    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         nativePeer.isEnabled = new
     }
 
-    private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         nativePeer.isFocusable = new
     }
 
-    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
-        createNewBufferedImage(new.size)
+    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
+        offscreenGraphics.size = new.size
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
-    private fun createNewBufferedImage(size: Size) {
-        if (!size.empty && contentScale > 0.0) {
-            bufferedImage = BufferedImage((size.width * contentScale).toInt(), (size.height * contentScale).toInt(), BufferedImage.TYPE_INT_ARGB)
-            this@AbstractNativeButtonBehavior.graphics = bufferedImage.createGraphics().apply {
-                setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-                scale(contentScale, contentScale)
-            }
-        }
-    }
-
     override fun render(view: T, canvas: Canvas) {
-        if (this::graphics.isInitialized) {
-            graphics.background = Color(255, 255, 255, 0)
-            graphics.clearRect(0, 0, bufferedImage.width, bufferedImage.height)
+        offscreenGraphics.render { graphics ->
+            val clip = when (nativePeer.clip?.empty) {
+                false -> nativePeer.clip!!.run { java.awt.Rectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt()) }
+                else  -> java.awt.Rectangle(0, 0, view.width.toInt(), view.height.toInt())
+            }
+
+            graphics.clip = clip.also {
+                graphics.background = Color(255, 255, 255, 0)
+                graphics.clearRect(it.x, it.y, it.width, it.height)
+            }
 
             nativePeer.paint(graphics)
+        }.let {
             canvas.scale(1 / contentScale, 1 / contentScale) {
-                canvas.image(ImageImpl(bufferedImage.toImage(), ""))
+                canvas.image(ImageImpl(it, ""))
             }
         }
     }
@@ -114,10 +108,11 @@ internal abstract class AbstractNativeButtonBehavior<T: Button, P>(
 
             view.apply {
                 cursor    = Cursor.Default
-//                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                idealSize = nativePeer.preferredSize.run { Size(width, height) }
             }
 
-            createNewBufferedImage(view.size)
+            offscreenGraphics.size = view.size
+//            createNewBufferedImage(view.size)
 
             window.add(nativePeer)
         }

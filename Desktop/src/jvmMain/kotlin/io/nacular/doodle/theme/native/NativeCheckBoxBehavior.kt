@@ -4,8 +4,10 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skiko.SkiaWindow
+import java.awt.GraphicsConfiguration
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
@@ -16,8 +18,8 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
     private val button: Button? = button
 
     override var ignoreSelectionChange = false
-
     override var selected_ get() = isSelected; set(value) { isSelected = value }
+    override var clip: Rectangle? = null
 
     init {
         text       = button.text
@@ -34,7 +36,7 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
     }
 
     override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-        super.repaint(tm, x, y, width, height)
+        clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
         button?.rerender()
     }
 
@@ -44,6 +46,7 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
 }
 
 internal class NativeCheckBoxBehavior(
+        graphicsConfiguration: GraphicsConfiguration,
         window           : SkiaWindow,
         appScope         : CoroutineScope,
         uiDispatcher     : CoroutineContext,
@@ -51,7 +54,6 @@ internal class NativeCheckBoxBehavior(
         textMetrics      : TextMetrics,
         swingFocusManager: javax.swing.FocusManager,
         focusManager     : FocusManager?
-): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(window, appScope, uiDispatcher, contentScale, textMetrics, swingFocusManager, focusManager) {
-
+): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(graphicsConfiguration, window, appScope, uiDispatcher, contentScale, textMetrics, swingFocusManager, focusManager) {
     override fun createPeer(button: ToggleButton) = JCheckBoxPeer(focusManager, button)
 }

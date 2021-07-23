@@ -13,28 +13,25 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.impl.ImageImpl
-import io.nacular.doodle.skia.toImage
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
 import io.nacular.doodle.system.SystemPointerEvent.Type.*
+import io.nacular.doodle.utils.HorizontalAlignment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Graphics2D
-import java.awt.RenderingHints.KEY_ANTIALIASING
-import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
+import java.awt.GraphicsConfiguration
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.swing.JLabel
 import javax.swing.JPasswordField
+import javax.swing.JTextField.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
@@ -73,12 +70,13 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
  * Created by Nicholas Eddy on 6/14/21.
  */
 internal class NativeTextFieldBehavior(
-        private val window: SkiaWindow,
-        private val appScope: CoroutineScope,
-        private val uiDispatcher: CoroutineContext,
-        private val contentScale: Double,
-        private val swingFocusManager: javax.swing.FocusManager,
-        private val focusManager: FocusManager?
+                    graphicsConfiguration: GraphicsConfiguration,
+        private val window               : SkiaWindow,
+        private val appScope             : CoroutineScope,
+        private val uiDispatcher         : CoroutineContext,
+        private val contentScale         : Double,
+        private val swingFocusManager    : javax.swing.FocusManager,
+        private val focusManager         : FocusManager?
 ): TextFieldBehavior, PointerListener, PointerMotionListener {
 
     private inner class JTextFieldPeer(textField: TextField): JPasswordField() {
@@ -131,7 +129,7 @@ internal class NativeTextFieldBehavior(
         }
 
         override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-            super.repaint(tm, x, y, width, height)
+            clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
             textField?.rerender()
         }
 
@@ -153,9 +151,21 @@ internal class NativeTextFieldBehavior(
             textField.foregroundColor?.toAwt().let  { foreground = it }
             textField.backgroundColor?.toAwt()?.let { background = it }
 
+            horizontalAlignment = when (textField.horizontalAlignment) {
+                Center -> CENTER
+                Right  -> RIGHT
+                else   -> LEADING
+            }
+
+            if (textField.backgroundColor?.opacity != 1f) {
+                isOpaque = false
+            }
+
             placeHolderLabel?.apply {
                 textField.placeHolderFont?.toAwt ().let { font       = it }
                 textField.placeHolderColor?.toAwt().let { foreground = it }
+
+                horizontalAlignment = this@JTextFieldPeer.horizontalAlignment
             }
 
             border = when {
@@ -171,12 +181,12 @@ internal class NativeTextFieldBehavior(
         }
     }
 
-    private lateinit var graphics     : Graphics2D
     private          var oldCursor    : Cursor? = null
     private lateinit var nativePeer   : JTextFieldPeer
     private          var oldIdealSize : Size?   = null
-    private lateinit var bufferedImage: BufferedImage
     private          var ignoreDoodleTextChange = false
+    private          var clip                   = null as Rectangle?
+    private          val offscreenGraphics      = OffscreenGraphics(graphicsConfiguration, contentScale)
 
     private val maskChanged = { _: TextField, _: Char?, new: Char? ->
         nativePeer.echoChar = new ?: 0.toChar()
@@ -190,10 +200,8 @@ internal class NativeTextFieldBehavior(
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
-            true -> if (!nativePeer.hasFocus()) {
-                println("[Doodle -> Swing] requesting focus"); nativePeer.requestFocus()
-            }
-            else -> if ( nativePeer.hasFocus()) { println("[Doodle -> Swing] clearing focus"); swingFocusManager.clearFocusOwner() }
+            true -> if (!nativePeer.hasFocus()) { nativePeer.requestFocus() }
+            else -> if ( nativePeer.hasFocus()) { swingFocusManager.clearFocusOwner() }
         }
     }
 
@@ -216,29 +224,24 @@ internal class NativeTextFieldBehavior(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
-        createNewBufferedImage(new.size)
+        offscreenGraphics.size = new.size
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
         nativePeer.revalidate()
     }
 
-    private fun createNewBufferedImage(size: Size) {
-        if (!size.empty && contentScale > 0f) {
-            bufferedImage = BufferedImage((size.width * contentScale).toInt(), (size.height * contentScale).toInt(), TYPE_INT_ARGB)
-            this@NativeTextFieldBehavior.graphics = bufferedImage.createGraphics().apply {
-                setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON)
-                scale(contentScale, contentScale)
-            }
-        }
-    }
-
     override fun render(view: TextField, canvas: Canvas) {
-        if (this::graphics.isInitialized) {
-            graphics.background = Color(255, 255, 255, 0)
-            graphics.clearRect(0, 0, bufferedImage.width, bufferedImage.height)
+        offscreenGraphics.render { graphics ->
+            graphics.clip = clip?.run { java.awt.Rectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt()) }?.also {
+                graphics.background = Color(255, 255, 255, 0)
+                graphics.clearRect(it.x, it.y, it.width, it.height)
+            }
 
             nativePeer.paint(graphics)
+
+            clip = null
+        }.let {
             canvas.scale(1 / contentScale, 1 / contentScale) {
-                canvas.image(ImageImpl(bufferedImage.toImage(), ""))
+                canvas.image(ImageImpl(it, ""))
             }
         }
     }
@@ -253,7 +256,7 @@ internal class NativeTextFieldBehavior(
 
         nativePeer = JTextFieldPeer(view)
 
-        createNewBufferedImage(view.size)
+        offscreenGraphics.size = view.size
 
         view.apply {
             maskChanged          += this@NativeTextFieldBehavior.maskChanged

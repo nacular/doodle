@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
+import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -135,7 +136,7 @@ private open class ApplicationHolderImpl protected constructor(
         injector.instance      <RenderManager>       ()
         injector.instanceOrNull<PointerInputManager> ()
         injector.instanceOrNull<KeyboardFocusManager>()
-//        injector.instanceOrNull<DragManager>         ()
+        injector.instanceOrNull<DragManager>         ()
 
         application = injector.instance()
 
@@ -168,15 +169,10 @@ private open class ApplicationHolderImpl protected constructor(
 
         (injector.instance<Scheduler> () as? SchedulerImpl)?.shutdown()
         injector.instance<DisplayImpl>().shutdown()
-
         injector.instance<AnimationSchedulerImpl>().shutdown()
-//        if (!isNested) {
-//            injector.instance<SystemStyler>().shutdown()
-//        }
-//
-//        injector.instanceOrNull<DragManager>             ()?.shutdown()
+        injector.instanceOrNull<DragManager>             ()?.shutdown()
         injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
-//        injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
+        injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
 //        injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
 
 //        if (!isNested && root != document.body) {

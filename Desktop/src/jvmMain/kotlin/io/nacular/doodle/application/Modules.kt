@@ -1,5 +1,7 @@
 package io.nacular.doodle.application
 
+import io.nacular.doodle.datatransport.dragdrop.DragManager
+import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManagerImpl
 import io.nacular.doodle.deviceinput.PointerInputManager
@@ -61,6 +63,16 @@ public class Modules {
 
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
             bind<FontLoader>() with singleton { FontLoaderImpl() }
+        }
+
+        /**
+         * Enables drag-drop data transfer (not simple moving of Views) that allows data to be shared in and outside the
+         * application. Includes [PointerModule].
+         */
+        public val DragDropModule: Module = Module(allowSilentOverride = true, name = "DragDrop") {
+            importOnce(PointerModule)
+
+            bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
         }
     }
 }

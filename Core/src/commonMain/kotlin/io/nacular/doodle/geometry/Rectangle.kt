@@ -3,6 +3,7 @@ package io.nacular.doodle.geometry
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.layout.Insets
 import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -175,6 +176,23 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
         }
 
         return Rectangle(x1, y1, x2 - x1, y2 - y1)
+    }
+
+    /**
+     * Returns a Rectangle that is the union of this and the given one.
+     *
+     * @param rectangle to union with
+     * @return a Rectangle representing the union of the 2 rectangles
+     */
+    public infix fun union(rectangle: Rectangle): Rectangle {
+        if (rectangle === this) {
+            return this
+        }
+
+        val newX = min(x, rectangle.x)
+        val newY = min(y, rectangle.y)
+
+        return Rectangle(newX, newY, max(right, rectangle.right) - newX, max(bottom, rectangle.bottom) - newY)
     }
 
     /** Rectangle with the same width/height but positioned at 0,0 */

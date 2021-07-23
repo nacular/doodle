@@ -11,8 +11,10 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.ConstraintLayout
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.MagnitudeConstraint
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.math.max
@@ -22,6 +24,11 @@ import kotlin.math.min
  * Configures how a [ScrollPanel] behaves.
  */
 public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
+    public val ScrollPanel.children        : ObservableList<View> get() = _children
+    public var ScrollPanel.insets          : Insets               get() = _insets;           set(new) { _insets           = new }
+    public var ScrollPanel.layout          : Layout?              get() = _layout;           set(new) { _layout           = new }
+    public var ScrollPanel.isFocusCycleRoot: Boolean              get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+
     /**
      * Listener registered by [ScrollPanel] to listen for scroll events from
      * the behavior.  Behaviors should be used this instead of [ScrollPanel.scrollTo]
@@ -111,6 +118,12 @@ public open class ScrollPanel(content: View? = null): View() {
             scrollTo(it, force = true)
         }
     }
+
+    // Expose container APIs for behavior
+    internal val _children         get() = children
+    internal var _insets           get() = insets; set(new) { insets = new }
+    internal var _layout           get() = layout; set(new) { layout = new }
+    internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     init {
         mirrorWhenRightLeft = false

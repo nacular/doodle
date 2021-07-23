@@ -23,7 +23,7 @@ public interface NativeHyperLinkBehaviorBuilder {
     public operator fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink>
 }
 
-private class NativeHyperLinkBehaviorBuilderImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
+internal class NativeHyperLinkBehaviorBuilderImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
         NativeHyperLinkBehaviorBuilder {
     override fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink> = NativeHyperLinkBehaviorWrapper(
             nativeHyperLinkFactory,

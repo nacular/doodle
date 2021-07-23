@@ -181,7 +181,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
         if (mouseEvent.isControlDown) modifiers += Ctrl
 
         val windowScreenLocation = window.layeredPane.locationOnScreen
-        val location = mouseEvent.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
+        val location             = mouseEvent.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
 
         val event = SystemPointerEvent(
                 id                = 0,

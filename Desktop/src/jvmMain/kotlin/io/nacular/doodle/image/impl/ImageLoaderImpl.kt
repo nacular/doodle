@@ -3,6 +3,8 @@ package io.nacular.doodle.image.impl
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
+import java.io.InputStream
+import org.jetbrains.skija.Image as SkijaImage
 
 /**
  * Created by Nicholas Eddy on 5/20/21.
@@ -14,19 +16,26 @@ public class ImageLoaderImpl: ImageLoader {
         loadedImages[source]?.let { return it }
 
         try {
-            val file = javaClass.getResourceAsStream(source)
-
-            loadedImages[source] = ImageImpl(org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()), source)
-        } catch (ignored: Throwable) {}
+            loadedImages[source] = when (val file: InputStream? = javaClass.getResourceAsStream(source)) {
+                null -> {
+                    ImageImpl(SkijaImage.makeFromEncoded(source.encodeToByteArray()), source)
+                }
+                else -> ImageImpl(SkijaImage.makeFromEncoded(file.readBytes()), source)
+            }
+        } catch (ignored: Throwable) { ignored.printStackTrace() }
 
         return loadedImages[source]
     }
 
     override suspend fun load(file: LocalFile): Image? {
-        TODO("Not yet implemented")
+        try {
+            return ImageImpl(SkijaImage.makeFromEncoded(file.read()), file.name)
+        } catch (ignored: Throwable) { ignored.printStackTrace() }
+
+        return null
     }
 
     override fun unload(image: Image) {
-        // FIXME: Implement
+        loadedImages.remove(image.source)
     }
 }

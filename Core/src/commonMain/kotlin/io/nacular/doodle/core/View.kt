@@ -671,7 +671,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     protected open fun child(at: Point): View? = when {
         false == childrenClipPoly?.contains(at) -> null
-        else                                       -> when (val result = layout?.child(positionableWrapper, at)) {
+        else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
             null, Ignored -> {
                 var child     = null as View?
                 var topZOrder = 0

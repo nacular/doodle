@@ -34,6 +34,8 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.skia.rrect
 import io.nacular.doodle.skia.skija
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.TextDecoration.Line.*
+import io.nacular.doodle.text.TextDecoration.Style
 import io.nacular.doodle.utils.isOdd
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.radians
@@ -48,6 +50,8 @@ import org.jetbrains.skija.PathFillMode.*
 import org.jetbrains.skija.SamplingMode.MITCHELL
 import org.jetbrains.skija.Shader
 import org.jetbrains.skija.paragraph.BaselineMode.ALPHABETIC
+import org.jetbrains.skija.paragraph.DecorationLineStyle.*
+import org.jetbrains.skija.paragraph.DecorationStyle
 import org.jetbrains.skija.paragraph.FontCollection
 import org.jetbrains.skija.paragraph.Paragraph
 import org.jetbrains.skija.paragraph.ParagraphBuilder
@@ -452,9 +456,26 @@ internal class CanvasImpl(
                     style.background?.skija()?.let { background = it }
 
                     foreground = style.foreground?.skija() ?: Black.paint.skija()
-                    typeface = style.font.skia.typeface
-                    fontSize = style.font.skia.size
-                    fontStyle = style.font.skia.typeface?.fontStyle
+                    typeface   = style.font.skia.typeface
+                    fontSize   = style.font.skia.size
+                    fontStyle  = style.font.skia.typeface?.fontStyle
+
+                    style.decoration?.run {
+                        decorationStyle = DecorationStyle(
+                            Under   in lines,
+                            Over    in lines,
+                            Through in lines,
+                            false,
+                            color?.skija() ?: foreground?.color ?: Black.skija(),
+                            when (this.style) {
+                                Style.Solid  -> SOLID
+                                Style.Double -> DOUBLE
+                                Style.Dotted -> DOTTED
+                                Style.Dashed -> DASHED
+                                Style.Wavy   -> WAVY
+                            },
+                            1f)
+                    }
                 })
                 builder.addText(text)
                 builder.popStyle()

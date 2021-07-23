@@ -2,7 +2,9 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.drawing.Font.Style
+import io.nacular.doodle.drawing.Font.Style.Italic
+import io.nacular.doodle.drawing.Font.Style.Normal
+import io.nacular.doodle.drawing.Font.Style.Oblique
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
@@ -95,9 +97,9 @@ internal fun Font.toAwt() = AwtFont(mutableMapOf(
         WEIGHT  to weight,
         POSTURE to style.run {
             when (this) {
-                Style.Normal     -> POSTURE_REGULAR
-                Style.Italic     -> POSTURE_OBLIQUE
-                is Style.Oblique -> angle?.normalize()?.div(360 * degrees) ?: POSTURE_OBLIQUE
+                Normal     -> POSTURE_REGULAR
+                Italic     -> POSTURE_OBLIQUE
+                is Oblique -> angle?.normalize()?.div(360 * degrees) ?: POSTURE_OBLIQUE
             }
         }
 ))

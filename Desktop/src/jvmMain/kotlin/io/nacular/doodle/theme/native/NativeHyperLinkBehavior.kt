@@ -5,8 +5,10 @@ import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skiko.SkiaWindow
+import java.awt.GraphicsConfiguration
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
@@ -61,6 +63,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
     override var selected_             = false
     override var ignoreSelectionChange = false
+    override var clip: Rectangle?      = null
 
     init {
         text = "<html><a href='${button.url}'>${button.text}</a></html>"
@@ -96,7 +99,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
     }
 
     override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-        super.repaint(tm, x, y, width, height)
+        clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
         button?.rerender()
     }
 
@@ -107,6 +110,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
 
 internal class NativeHyperLinkBehavior(
+        graphicsConfiguration: GraphicsConfiguration,
         window: SkiaWindow,
         appScope: CoroutineScope,
         uiDispatcher: CoroutineContext,
@@ -114,6 +118,6 @@ internal class NativeHyperLinkBehavior(
         textMetrics: TextMetrics,
         swingFocusManager: javax.swing.FocusManager,
         focusManager: FocusManager?
-): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, contentScale, textMetrics, swingFocusManager, focusManager) {
+): AbstractNativeButtonBehavior<Button, JButtonPeer>(graphicsConfiguration, window, appScope, uiDispatcher, contentScale, textMetrics, swingFocusManager, focusManager) {
     override fun createPeer(button: Button) = JButtonPeer(focusManager, button)
 }
