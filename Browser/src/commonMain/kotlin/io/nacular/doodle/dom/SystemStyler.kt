@@ -34,7 +34,7 @@ internal class SystemStylerImpl(
 
     private val meta: HTMLMetaElement?  = when(htmlFactory.root) {
         document.body -> htmlFactory.create<HTMLMetaElement>("meta").apply {
-            name = "viewport"
+            name    = "viewport"
             content = "width=device-width, initial-scale=1"
         }
         else -> null

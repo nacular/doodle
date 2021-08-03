@@ -87,7 +87,7 @@ private open class ApplicationHolderImpl protected constructor(
     private val skiaWindow     = SkiaWindow().apply {
         defaultCloseOperation = EXIT_ON_CLOSE
     }
-    private val defaultFont    = Font(Typeface.makeFromName("menlo", FontStyle(300, 5, UPRIGHT)), 13f)
+    private val defaultFont    = Font(Typeface.makeFromName("monospace", FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.getDefault())
     }
@@ -98,16 +98,17 @@ private open class ApplicationHolderImpl protected constructor(
         bindInstance                                               { appScope                                                                                                       }
         bindInstance                                               { Clock.System                                                                                                   }
         bindInstance                                               { skiaWindow                                                                                                     }
+        bindInstance                                               { defaultFont                                                                                                    }
         bindFactory<Unit, PathMeasure>                             { PathMeasure               (                                                                                  ) }
         bindSingleton<Timer>                                       { TimerImpl                 (instance()                                                                        ) }
 //      bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                            ) }
-        bindSingleton<Display>                                     { DisplayImpl               (instance(), Dispatchers.Swing, instance(), defaultFont, fontCollection, instance()) }
+        bindSingleton<Display>                                     { DisplayImpl               (instance(), Dispatchers.Swing, instance(), instance(), fontCollection, instance()) }
         bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                            ) }
-        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (defaultFont, fontCollection                                                       ) }
+        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), fontCollection                                                       ) }
         bindSingleton<RenderManager>                               { DesktopRenderManagerImpl  (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()            ) }
         bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance(), Dispatchers.Swing, instance()                                         ) }
         bindSingleton<GraphicsDevice<RealGraphicsSurface>>         { RealGraphicsDevice        (instance()                                                                        ) }
-        bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), defaultFont, fontCollection                                           ) }
+        bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), instance(), fontCollection                                           ) }
 
         // TODO: Can this be handled better?
         bindSingleton                                              { instance<Display>           () as DisplayImpl                                                                 }

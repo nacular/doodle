@@ -337,24 +337,4 @@ internal class NativeTextField(
         textField.textChanged      += textChanged
         textField.selectionChanged += selectionChanged
     }
-
-    companion object {
-        private var tempFocusTarget: HTMLInputElement? = null
-
-        protected fun showKeyboard(htmlFactory: HtmlFactory) {
-            if (tempFocusTarget == null) {
-                tempFocusTarget = htmlFactory.createInput().apply {
-                    setAttribute("type", "text")
-//                    setAttribute("type", "text")
-                    style.setOpacity(0f)
-                    style.setHeight(0.0)
-                }
-            }
-
-            tempFocusTarget?.let {
-                htmlFactory.root.add(it)
-                it.focus()
-            }
-        }
-    }
 }

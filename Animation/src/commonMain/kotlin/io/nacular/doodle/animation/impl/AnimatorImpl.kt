@@ -244,7 +244,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         }
     }
 
-    override val listeners: Pool<Listener> = SetPool<Listener>()
+    override val listeners: Pool<Listener> = SetPool()
 
     private fun startAnimation() {
         task = animationScheduler.onNextFrame {

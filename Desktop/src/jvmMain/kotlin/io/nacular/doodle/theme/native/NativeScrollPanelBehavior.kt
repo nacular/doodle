@@ -230,6 +230,10 @@ internal class NativeScrollPanelBehavior(
             createNewBufferedImage(view.size)
             window.add(nativePeer)
             window.revalidate()
+
+            if (view.hasFocus) {
+                nativePeer.requestFocus()
+            }
         }
     }
 

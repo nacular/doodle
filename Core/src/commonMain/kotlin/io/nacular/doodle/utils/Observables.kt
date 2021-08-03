@@ -25,20 +25,36 @@ public interface Pool<in T> {
 public typealias ChangeObservers<S>      = Pool<ChangeObserver<S>>
 public typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
 
-public open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
-    override fun plusAssign (item: T) { delegate += item }
-    override fun minusAssign(item: T) { delegate -= item }
+public expect open class SetPool<T>(delegate: MutableSet<T>): Pool<T>, Set<T> {
+    public constructor()
+
+    protected val delegate: MutableSet<T>
 }
 
-public class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
-    // TODO: Can concurrent modification errors be avoided more efficiently?
-    public operator fun invoke(): Unit = delegate.toList().forEach { it(source) }
+public expect class ChangeObserversImpl<S>(source: S, mutableSet: MutableSet<ChangeObserver<S>>): SetPool<ChangeObserver<S>> {
+    public constructor(source: S)
+
+    public operator fun invoke(): Unit
 }
 
-public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
-    // TODO: Can concurrent modification errors be avoided more efficiently?
-    public operator fun invoke(old: T, new: T): Unit = delegate.toList().forEach { it(source, old, new) }
+public expect class PropertyObserversImpl<S, T>(source: S, mutableSet: MutableSet<PropertyObserver<S, T>>): SetPool<PropertyObserver<S, T>> {
+    public constructor(source: S)
+
+    public operator fun invoke(old: T, new: T): Unit
 }
+
+//public open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
+//    override fun plusAssign (item: T) { delegate += item }
+//    override fun minusAssign(item: T) { delegate -= item }
+//}
+//
+//public class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
+//    public operator fun invoke(): Unit = delegate.forEach { it(source) }
+//}
+//
+//public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
+//    public operator fun invoke(old: T, new: T): Unit = delegate.forEach { it(source, old, new) }
+//}
 
 public interface ObservableList<E>: MutableList<E> {
     public val changed: Pool<ListObserver<ObservableList<E>, E>>

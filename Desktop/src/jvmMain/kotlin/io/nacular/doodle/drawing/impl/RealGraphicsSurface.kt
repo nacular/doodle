@@ -44,7 +44,7 @@ internal class RealGraphicsSurface(
     }
 
     override var size               by redrawProperty(Empty)
-    override var index              = parent?.children?.size?.minus(1) ?: 0
+    override var index              = 0
         set(new) {
             parent?.let {
                 it.children.remove(this)

@@ -195,6 +195,8 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
 
-        return event.consumed
+        return event.consumed.also {
+            window.layer.canvas.isFocusable = !it
+        }
     }
 }

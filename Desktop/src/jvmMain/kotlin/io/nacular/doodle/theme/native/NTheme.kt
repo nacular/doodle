@@ -77,7 +77,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), FocusManager.getCurrentManager(), instanceOrNull()) }
+            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), instance(), instance(), Dispatchers.Swing, instance(), instance<SkiaWindow>().layer.contentScale.toDouble(), FocusManager.getCurrentManager(), instanceOrNull()) }
         }
 
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {

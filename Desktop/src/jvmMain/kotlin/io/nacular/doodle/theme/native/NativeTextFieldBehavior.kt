@@ -36,23 +36,18 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 import kotlin.coroutines.CoroutineContext
+import org.jetbrains.skija.Font as SkijaFont
 
 private class PlaceHolderLabel(text: String, private val component: JTextComponent): JLabel(), DocumentListener {
     private fun updateVisibility() {
         isVisible = component.document.length == 0
     }
 
-    override fun insertUpdate (e: DocumentEvent) { updateVisibility() }
-    override fun removeUpdate (e: DocumentEvent) { updateVisibility() }
-    override fun changedUpdate(e: DocumentEvent) {                    }
+    override fun insertUpdate (e: DocumentEvent) = updateVisibility()
+    override fun removeUpdate (e: DocumentEvent) = updateVisibility()
+    override fun changedUpdate(e: DocumentEvent) = updateVisibility()
 
     init {
-        addComponentListener(object: ComponentAdapter() {
-            override fun componentShown(e: ComponentEvent) {
-                component.revalidate()
-            }
-        })
-
         font                = component.font
         border              = null
         this.text           = text
@@ -65,6 +60,11 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
 
         updateVisibility()
     }
+
+    fun dispose() {
+        component.document.removeDocumentListener(this)
+        component.remove(this)
+    }
 }
 /**
  * Created by Nicholas Eddy on 6/14/21.
@@ -74,6 +74,7 @@ internal class NativeTextFieldBehavior(
         private val window               : SkiaWindow,
         private val appScope             : CoroutineScope,
         private val uiDispatcher         : CoroutineContext,
+        private val defaultFont          : SkijaFont,
         private val contentScale         : Double,
         private val swingFocusManager    : javax.swing.FocusManager,
         private val focusManager         : FocusManager?
@@ -85,9 +86,19 @@ internal class NativeTextFieldBehavior(
         var placeHolder: String
             get()    = placeHolderLabel?.text ?: ""
             set(new) {
+                placeHolderLabel?.dispose()
                 placeHolderLabel = when (new) {
                     ""   -> null
-                    else -> PlaceHolderLabel(new, this)
+                    else -> PlaceHolderLabel(new, this).apply {
+                        textField?.placeHolderFont.toAwt  (defaultFont).let { font       = it }
+                        textField?.placeHolderColor?.toAwt(           ).let { foreground = it }
+
+                        horizontalAlignment = when (textField?.horizontalAlignment) {
+                            Center -> CENTER
+                            Right  -> RIGHT
+                            else   -> LEADING
+                        }
+                    }
                 }
             }
 
@@ -98,6 +109,12 @@ internal class NativeTextFieldBehavior(
             text = textField.text
 
             stylesChanged()
+
+            addComponentListener(object: ComponentAdapter() {
+                override fun componentShown(e: ComponentEvent) {
+                    revalidate()
+                }
+            })
 
             addFocusListener(object: FocusListener {
                 override fun focusGained(e: FocusEvent?) {
@@ -114,17 +131,9 @@ internal class NativeTextFieldBehavior(
             })
 
             document.addDocumentListener(object: DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
-                    syncTextFromSwing()
-                }
-
-                override fun removeUpdate(e: DocumentEvent?) {
-                    syncTextFromSwing()
-                }
-
-                override fun changedUpdate(e: DocumentEvent?) {
-                    syncTextFromSwing()
-                }
+                override fun insertUpdate (e: DocumentEvent?) = syncTextFromSwing()
+                override fun removeUpdate (e: DocumentEvent?) = syncTextFromSwing()
+                override fun changedUpdate(e: DocumentEvent?) = syncTextFromSwing()
             })
         }
 
@@ -147,9 +156,11 @@ internal class NativeTextFieldBehavior(
             echoChar    = textField.mask ?: 0.toChar()
             placeHolder = textField.placeHolder
 
-            textField.font?.toAwt()?.let            { font       = it }
-            textField.foregroundColor?.toAwt().let  { foreground = it }
-            textField.backgroundColor?.toAwt()?.let { background = it }
+            textField.font.toAwt(defaultFont).let            { font              = it }
+            textField.foregroundColor?.toAwt().let           { foreground        = it }
+            textField.backgroundColor?.toAwt()?.let          { background        = it }
+            textField.selectionForegroundColor?.toAwt()?.let { selectedTextColor = it }
+            textField.selectionBackgroundColor?.toAwt()?.let { selectionColor    = it }
 
             horizontalAlignment = when (textField.horizontalAlignment) {
                 Center -> CENTER
@@ -159,13 +170,6 @@ internal class NativeTextFieldBehavior(
 
             if (textField.backgroundColor?.opacity != 1f) {
                 isOpaque = false
-            }
-
-            placeHolderLabel?.apply {
-                textField.placeHolderFont?.toAwt ().let { font       = it }
-                textField.placeHolderColor?.toAwt().let { foreground = it }
-
-                horizontalAlignment = this@JTextFieldPeer.horizontalAlignment
             }
 
             border = when {
@@ -276,6 +280,10 @@ internal class NativeTextFieldBehavior(
 
             window.add(nativePeer)
             nativePeer.revalidate()
+
+            if (view.hasFocus) {
+                nativePeer.requestFocus()
+            }
 
             view.apply {
                 cursor    = Default

@@ -18,11 +18,6 @@ import javax.swing.JLabel
 import kotlin.coroutines.CoroutineContext
 
 /**
- * Created by Nicholas Eddy on 7/6/21.
- */
-
-
-/**
  * Allows full control over how native [HyperLink]s are styled. The given behavior is delegated
  * to for all visual styling, but the app will also treat the view as it does un-styled links.
  */

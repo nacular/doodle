@@ -115,6 +115,10 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
 //            createNewBufferedImage(view.size)
 
             window.add(nativePeer)
+
+            if (view.hasFocus) {
+                nativePeer.requestFocus()
+            }
         }
     }
 

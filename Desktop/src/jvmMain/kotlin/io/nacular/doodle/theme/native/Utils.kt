@@ -13,11 +13,15 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type
-import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Angle
 import io.nacular.measured.units.div
 import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlinx.datetime.Clock
+import org.jetbrains.skija.FontSlant.ITALIC
+import org.jetbrains.skija.FontSlant.OBLIQUE
+import org.jetbrains.skija.paragraph.BaselineMode.IDEOGRAPHIC
+import org.jetbrains.skija.paragraph.TextStyle
 import java.awt.Component
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
@@ -43,6 +47,7 @@ import java.awt.font.TextAttribute.POSTURE_OBLIQUE
 import java.awt.font.TextAttribute.POSTURE_REGULAR
 import java.awt.font.TextAttribute.SIZE
 import java.awt.font.TextAttribute.WEIGHT
+import org.jetbrains.skija.Font as SkijaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont
 
@@ -91,7 +96,20 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
 }
 
-internal fun Font.toAwt() = AwtFont(mutableMapOf(
+internal fun Font?.toAwt(default: SkijaFont) = when (this) {
+    null -> AwtFont(mutableMapOf(
+        SIZE    to default.size,
+        FAMILY  to default.typefaceOrDefault.familyName,
+        WEIGHT  to default.typefaceOrDefault.fontStyle.weight,
+        POSTURE to default.typefaceOrDefault.fontStyle.slant.run {
+            when (this) {
+                ITALIC  -> POSTURE_OBLIQUE
+                OBLIQUE -> POSTURE_OBLIQUE
+                else    -> POSTURE_REGULAR
+            }
+        }
+    ))
+    else -> AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to family,
         WEIGHT  to weight,
@@ -99,9 +117,18 @@ internal fun Font.toAwt() = AwtFont(mutableMapOf(
             when (this) {
                 Normal     -> POSTURE_REGULAR
                 Italic     -> POSTURE_OBLIQUE
-                is Oblique -> angle?.normalize()?.div(360 * degrees) ?: POSTURE_OBLIQUE
+                is Oblique -> angle?.normalize()?.div(360 * Angle.degrees) ?: POSTURE_OBLIQUE
             }
         }
-))
+    ))
+}
 
-internal fun Color.toAwt() = AwtColor(red.toInt(), green.toInt(), blue.toInt())
+internal fun SkijaFont.textStyle() = TextStyle().apply {
+    fontSize     = size
+    typeface     = typefaceOrDefault
+    fontStyle    = typefaceOrDefault.fontStyle
+    fontFamilies = typefaceOrDefault.familyNames.map { it.name }.toTypedArray()
+    baselineMode = IDEOGRAPHIC
+}
+
+internal fun Color.toAwt() = AwtColor(red.toInt(), green.toInt(), blue.toInt(), (opacity * 255).toInt())
