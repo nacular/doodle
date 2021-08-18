@@ -110,7 +110,7 @@ internal class DragManagerImpl(
     }
 
     private fun TransferSupport.getFiles(mimeType: Files): List<LocalFile> {
-        val fileTypes = mimeType.types.map { it.toString() }.also { println("fileTypes: ${it.joinToString()}") }
+        val fileTypes = mimeType.types.map { it.toString() }
 
         return (transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>)?.filter {
             probeContentType(it.toPath()) in fileTypes

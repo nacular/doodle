@@ -6,24 +6,27 @@ import io.nacular.doodle.controls.text.TextFieldBehavior
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.impl.CanvasImpl
+import io.nacular.doodle.drawing.impl.TextMetricsImpl
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
 import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import io.nacular.doodle.utils.HorizontalAlignment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.skija.FontStyle
+import org.jetbrains.skija.Typeface
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.GraphicsConfiguration
+import java.awt.Font
+import java.awt.FontMetrics
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.FocusEvent
@@ -48,17 +51,16 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
     override fun changedUpdate(e: DocumentEvent) = updateVisibility()
 
     init {
-        font                = component.font
         border              = null
         this.text           = text
         foreground          = component.foreground
         horizontalAlignment = LEADING
 
+        updateVisibility()
+
         component.layout = BorderLayout()
         component.document.addDocumentListener(this)
         component.add(this)
-
-        updateVisibility()
     }
 
     fun dispose() {
@@ -70,14 +72,14 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
  * Created by Nicholas Eddy on 6/14/21.
  */
 internal class NativeTextFieldBehavior(
-                    graphicsConfiguration: GraphicsConfiguration,
-        private val window               : SkiaWindow,
-        private val appScope             : CoroutineScope,
-        private val uiDispatcher         : CoroutineContext,
-        private val defaultFont          : SkijaFont,
-        private val contentScale         : Double,
-        private val swingFocusManager    : javax.swing.FocusManager,
-        private val focusManager         : FocusManager?
+        private val window              : SkiaWindow,
+        private val appScope            : CoroutineScope,
+        private val uiDispatcher        : CoroutineContext,
+        private val defaultFont         : SkijaFont,
+        private val swingGraphicsFactory: SwingGraphicsFactory,
+        private val swingFocusManager   : javax.swing.FocusManager,
+        private val textMetrics         : TextMetricsImpl,
+        private val focusManager        : FocusManager?
 ): TextFieldBehavior, PointerListener, PointerMotionListener {
 
     private inner class JTextFieldPeer(textField: TextField): JPasswordField() {
@@ -88,10 +90,10 @@ internal class NativeTextFieldBehavior(
             set(new) {
                 placeHolderLabel?.dispose()
                 placeHolderLabel = when (new) {
-                    ""   -> null
+                    "" -> null
                     else -> PlaceHolderLabel(new, this).apply {
-                        textField?.placeHolderFont.toAwt  (defaultFont).let { font       = it }
-                        textField?.placeHolderColor?.toAwt(           ).let { foreground = it }
+                        (textField?.placeHolderFont ?: textField?.font).toAwt(defaultFont).let { font       = it }
+                        textField?.placeHolderColor?.toAwt                   (           ).let { foreground = it }
 
                         horizontalAlignment = when (textField?.horizontalAlignment) {
                             Center -> CENTER
@@ -110,13 +112,13 @@ internal class NativeTextFieldBehavior(
 
             stylesChanged()
 
-            addComponentListener(object: ComponentAdapter() {
+            addComponentListener(object : ComponentAdapter() {
                 override fun componentShown(e: ComponentEvent) {
                     revalidate()
                 }
             })
 
-            addFocusListener(object: FocusListener {
+            addFocusListener(object : FocusListener {
                 override fun focusGained(e: FocusEvent?) {
                     if (textField != focusManager?.focusOwner) {
                         focusManager?.requestFocus(textField)
@@ -130,7 +132,7 @@ internal class NativeTextFieldBehavior(
                 }
             })
 
-            document.addDocumentListener(object: DocumentListener {
+            document.addDocumentListener(object : DocumentListener {
                 override fun insertUpdate (e: DocumentEvent?) = syncTextFromSwing()
                 override fun removeUpdate (e: DocumentEvent?) = syncTextFromSwing()
                 override fun changedUpdate(e: DocumentEvent?) = syncTextFromSwing()
@@ -138,8 +140,26 @@ internal class NativeTextFieldBehavior(
         }
 
         override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-            clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
             textField?.rerender()
+        }
+
+        private val Font.fontStyle: FontStyle get() = when (style) {
+            Font.PLAIN              -> FontStyle.NORMAL
+            Font.BOLD               -> FontStyle.BOLD
+            Font.ITALIC             -> FontStyle.ITALIC
+            Font.BOLD + Font.ITALIC -> FontStyle.BOLD_ITALIC
+            else                    -> FontStyle.NORMAL
+        }
+
+        override fun getFontMetrics(font: Font?): FontMetrics {
+            if (font != null) {
+                return SkiaFontMetrics(org.jetbrains.skija.Font(Typeface.makeFromName(font.family, font.fontStyle), font.size.toFloat()),
+                                       font,
+                                       textMetrics
+                )
+            }
+
+            return super.getFontMetrics(font)
         }
 
         public override fun processMouseEvent(e: MouseEvent?) {
@@ -161,15 +181,12 @@ internal class NativeTextFieldBehavior(
             textField.backgroundColor?.toAwt()?.let          { background        = it }
             textField.selectionForegroundColor?.toAwt()?.let { selectedTextColor = it }
             textField.selectionBackgroundColor?.toAwt()?.let { selectionColor    = it }
+            textField.backgroundColor?.takeIf { it.opacity != 1f }.let { isOpaque = false }
 
             horizontalAlignment = when (textField.horizontalAlignment) {
                 Center -> CENTER
                 Right  -> RIGHT
                 else   -> LEADING
-            }
-
-            if (textField.backgroundColor?.opacity != 1f) {
-                isOpaque = false
             }
 
             border = when {
@@ -189,22 +206,22 @@ internal class NativeTextFieldBehavior(
     private lateinit var nativePeer   : JTextFieldPeer
     private          var oldIdealSize : Size?   = null
     private          var ignoreDoodleTextChange = false
-    private          var clip                   = null as Rectangle?
-    private          val offscreenGraphics      = OffscreenGraphics(graphicsConfiguration, contentScale)
 
     private val maskChanged = { _: TextField, _: Char?, new: Char? ->
         nativePeer.echoChar = new ?: 0.toChar()
     }
 
-    private val textChanged: (TextInput, String, String) -> Unit = { _,_,new ->
+    private val textChanged: (TextInput, String, String) -> Unit = { _, _, new ->
         if (!ignoreDoodleTextChange) {
             nativePeer.text = new
         }
     }
 
-    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {
-            true -> if (!nativePeer.hasFocus()) { nativePeer.requestFocus() }
+            true -> if (!nativePeer.hasFocus()) {
+                nativePeer.requestFocus()
+            }
             else -> if ( nativePeer.hasFocus()) { swingFocusManager.clearFocusOwner() }
         }
     }
@@ -218,7 +235,7 @@ internal class NativeTextFieldBehavior(
     }
 
     private val styleChanged: (source: View) -> Unit = {
-        (it as? TextField)?.let { textField ->
+        (it as? TextField)?.let { _ ->
             nativePeer.stylesChanged()
         }
     }
@@ -228,26 +245,12 @@ internal class NativeTextFieldBehavior(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
-        offscreenGraphics.size = new.size
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
         nativePeer.revalidate()
     }
 
     override fun render(view: TextField, canvas: Canvas) {
-        offscreenGraphics.render { graphics ->
-            graphics.clip = clip?.run { java.awt.Rectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt()) }?.also {
-                graphics.background = Color(255, 255, 255, 0)
-                graphics.clearRect(it.x, it.y, it.width, it.height)
-            }
-
-            nativePeer.paint(graphics)
-
-            clip = null
-        }.let {
-            canvas.scale(1 / contentScale, 1 / contentScale) {
-                canvas.image(ImageImpl(it, ""))
-            }
-        }
+        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun mirrorWhenRightToLeft(view: TextField) = false
@@ -259,8 +262,6 @@ internal class NativeTextFieldBehavior(
         super.install(view)
 
         nativePeer = JTextFieldPeer(view)
-
-        offscreenGraphics.size = view.size
 
         view.apply {
             maskChanged          += this@NativeTextFieldBehavior.maskChanged
@@ -333,6 +334,10 @@ internal class NativeTextFieldBehavior(
     }
 
     override fun moved(event: PointerEvent) {
+        nativePeer.processMouseMotionEvent(event.toAwt(nativePeer))
+    }
+
+    override fun dragged(event: PointerEvent) {
         nativePeer.processMouseMotionEvent(event.toAwt(nativePeer))
     }
 }

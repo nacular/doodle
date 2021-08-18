@@ -5,32 +5,29 @@ import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.system.Cursor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.GraphicsConfiguration
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import kotlin.coroutines.CoroutineContext
 
 
 internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
-                      graphicsConfiguration: GraphicsConfiguration,
-        private   val window               : SkiaWindow,
-        private   val appScope             : CoroutineScope,
-        private   val uiDispatcher         : CoroutineContext,
-        private   val contentScale         : Double,
-                      textMetrics          : TextMetrics,
-        private   val swingFocusManager    : javax.swing.FocusManager,
-        protected val focusManager         : FocusManager?
+        private   val window              : SkiaWindow,
+        private   val appScope            : CoroutineScope,
+        private   val uiDispatcher        : CoroutineContext,
+                      textMetrics         : TextMetrics,
+        private   val swingGraphicsFactory: SwingGraphicsFactory,
+        private   val swingFocusManager   : javax.swing.FocusManager,
+        protected val focusManager        : FocusManager?
 ): CommonTextButtonBehavior<T>(textMetrics) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
 
     internal interface Peer {
@@ -46,7 +43,6 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
     private lateinit var nativePeer: P
     private          var oldCursor    : Cursor? = null
     private          var oldIdealSize : Size?   = null
-    private          val offscreenGraphics = OffscreenGraphics(graphicsConfiguration, contentScale)
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {
@@ -64,28 +60,11 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
-        offscreenGraphics.size = new.size
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
     override fun render(view: T, canvas: Canvas) {
-        offscreenGraphics.render { graphics ->
-            val clip = when (nativePeer.clip?.empty) {
-                false -> nativePeer.clip!!.run { java.awt.Rectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt()) }
-                else  -> java.awt.Rectangle(0, 0, view.width.toInt(), view.height.toInt())
-            }
-
-            graphics.clip = clip.also {
-                graphics.background = Color(255, 255, 255, 0)
-                graphics.clearRect(it.x, it.y, it.width, it.height)
-            }
-
-            nativePeer.paint(graphics)
-        }.let {
-            canvas.scale(1 / contentScale, 1 / contentScale) {
-                canvas.image(ImageImpl(it, ""))
-            }
-        }
+        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun mirrorWhenRightToLeft(view: T) = false
@@ -110,9 +89,6 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
                 cursor    = Cursor.Default
                 idealSize = nativePeer.preferredSize.run { Size(width, height) }
             }
-
-            offscreenGraphics.size = view.size
-//            createNewBufferedImage(view.size)
 
             window.add(nativePeer)
 

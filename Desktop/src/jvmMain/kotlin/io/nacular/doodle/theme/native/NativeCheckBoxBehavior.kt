@@ -7,7 +7,6 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skiko.SkiaWindow
-import java.awt.GraphicsConfiguration
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
@@ -46,14 +45,13 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
 }
 
 internal class NativeCheckBoxBehavior(
-        graphicsConfiguration: GraphicsConfiguration,
-        window           : SkiaWindow,
-        appScope         : CoroutineScope,
-        uiDispatcher     : CoroutineContext,
-        contentScale     : Double,
-        textMetrics      : TextMetrics,
-        swingFocusManager: javax.swing.FocusManager,
-        focusManager     : FocusManager?
-): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(graphicsConfiguration, window, appScope, uiDispatcher, contentScale, textMetrics, swingFocusManager, focusManager) {
+        window              : SkiaWindow,
+        appScope            : CoroutineScope,
+        uiDispatcher        : CoroutineContext,
+        swingGraphicsFactory: SwingGraphicsFactory,
+        textMetrics         : TextMetrics,
+        swingFocusManager   : javax.swing.FocusManager,
+        focusManager        : FocusManager?
+): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
     override fun createPeer(button: ToggleButton) = JCheckBoxPeer(focusManager, button)
 }

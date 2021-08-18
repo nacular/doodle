@@ -3,7 +3,6 @@ apply (from = "../jacoco.gradle")
 plugins {
     kotlin("multiplatform")
 
-    id("maven-publish"      )
     id("org.jetbrains.dokka")
 }
 

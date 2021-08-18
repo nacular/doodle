@@ -1,6 +1,5 @@
 package io.nacular.doodle.system.impl
 
-import com.sun.glass.events.KeyEvent.VK_BACKSPACE
 import io.nacular.doodle.event.KeyCode
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.event.KeyState.Type
@@ -20,6 +19,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.VK_ALT
 import java.awt.event.KeyEvent.VK_ALT_GRAPH
+import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CAPS_LOCK
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
@@ -138,11 +138,11 @@ internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFoc
     }
 
     private val KeyEvent.doodleKeyCode: KeyCode get() = when (keyCode) {
-        VK_BACKSPACE -> KeyCode.Backspace
-        VK_TAB -> KeyCode.Tab
-        VK_ENTER -> KeyCode.Enter
-        VK_ESCAPE -> KeyCode.Escape
-        VK_DELETE -> KeyCode.Delete
+        VK_BACK_SPACE -> KeyCode.Backspace
+        VK_TAB        -> KeyCode.Tab
+        VK_ENTER      -> KeyCode.Enter
+        VK_ESCAPE     -> KeyCode.Escape
+        VK_DELETE     -> KeyCode.Delete
 
         VK_ALT -> KeyCode.AltLeft
         VK_ALT_GRAPH -> KeyCode.AltRight
@@ -168,7 +168,7 @@ internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFoc
     }
 
     private val KeyEvent.doodleKeyText: KeyText get() = when (keyCode) {
-        VK_BACKSPACE -> KeyText.Backspace
+        VK_BACK_SPACE -> KeyText.Backspace
         VK_TAB -> KeyText.Tab
         VK_ENTER -> KeyText.Enter
         VK_ESCAPE -> KeyText.Escape

@@ -12,7 +12,13 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.SystemPointerEvent
-import io.nacular.doodle.system.SystemPointerEvent.Type
+import io.nacular.doodle.system.SystemPointerEvent.Type.Click
+import io.nacular.doodle.system.SystemPointerEvent.Type.Down
+import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
+import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
+import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
+import io.nacular.doodle.system.SystemPointerEvent.Type.Move
+import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.div
 import io.nacular.measured.units.normalize
@@ -53,13 +59,13 @@ import java.awt.Font as AwtFont
 
 internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseEvent {
     val id = when (type) {
-        Type.Up    -> MOUSE_RELEASED
-        Type.Down  -> MOUSE_PRESSED
-        Type.Move  -> MOUSE_MOVED
-        Type.Exit  -> MOUSE_EXITED
-        Type.Drag  -> MOUSE_DRAGGED
-        Type.Click -> MOUSE_CLICKED
-        Type.Enter -> MOUSE_ENTERED
+        Up    -> MOUSE_RELEASED
+        Down  -> MOUSE_PRESSED
+        Move  -> MOUSE_MOVED
+        Exit  -> MOUSE_EXITED
+        Drag  -> MOUSE_DRAGGED
+        Click -> MOUSE_CLICKED
+        Enter -> MOUSE_ENTERED
     }
 
     val button = when (buttons) {
@@ -96,19 +102,21 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
 }
 
-internal fun Font?.toAwt(default: SkijaFont) = when (this) {
-    null -> AwtFont(mutableMapOf(
-        SIZE    to default.size,
-        FAMILY  to default.typefaceOrDefault.familyName,
-        WEIGHT  to default.typefaceOrDefault.fontStyle.weight,
-        POSTURE to default.typefaceOrDefault.fontStyle.slant.run {
+internal fun SkijaFont.toAwt() = AwtFont(mutableMapOf(
+        SIZE    to size,
+        FAMILY  to typefaceOrDefault.familyName,
+        WEIGHT  to typefaceOrDefault.fontStyle.weight,
+        POSTURE to typefaceOrDefault.fontStyle.slant.run {
             when (this) {
                 ITALIC  -> POSTURE_OBLIQUE
                 OBLIQUE -> POSTURE_OBLIQUE
                 else    -> POSTURE_REGULAR
             }
         }
-    ))
+))
+
+internal fun Font?.toAwt(default: SkijaFont) = when (this) {
+    null -> default.toAwt()
     else -> AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to family,

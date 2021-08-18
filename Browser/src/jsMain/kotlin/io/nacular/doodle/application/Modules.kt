@@ -32,6 +32,8 @@ import io.nacular.doodle.focus.impl.DefaultFocusabilityChecker
 import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.focus.impl.FocusTraversalPolicyImpl
 import io.nacular.doodle.focus.impl.FocusabilityChecker
+import io.nacular.doodle.image.ImageLoader
+import io.nacular.doodle.image.impl.ImageLoaderImpl
 import io.nacular.doodle.system.KeyInputService
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -123,6 +125,10 @@ public class Modules {
 
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
             bindSingleton<FontLoader> { FontLoaderLegacy(instance(), instance(), instance(), instance()) }
+        }
+
+        public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
+            bindSingleton<ImageLoader>{ ImageLoaderImpl(instance(), instance()) }
         }
     }
 }

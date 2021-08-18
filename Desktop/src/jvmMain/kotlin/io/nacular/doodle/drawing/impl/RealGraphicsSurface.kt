@@ -7,7 +7,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.skia.skija
+import io.nacular.doodle.skia.skia
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
 import org.jetbrains.skija.ClipMode
@@ -84,13 +84,13 @@ internal class RealGraphicsSurface(
 
     internal fun onRender(skiaCanvas: SkijaCanvas) {
         if (picture == null) {
-            val canvas = pictureRecorder.beginRecording(bounds.atOrigin.skija())
+            val canvas = pictureRecorder.beginRecording(bounds.atOrigin.skia())
             drawToCanvas(canvas)
             picture = pictureRecorder.finishRecordingAsPicture()
         }
 
         skiaCanvas.save()
-        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skija()))
+        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skia()))
         skiaCanvas.drawPicture(picture!!)
         skiaCanvas.restore()
     }
@@ -132,7 +132,7 @@ internal class RealGraphicsSurface(
             }
 
             if (clipCanvasToBounds) {
-                skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
             }
 
             skiaCanvas.save()
@@ -143,14 +143,14 @@ internal class RealGraphicsSurface(
 
             if (!clipCanvasToBounds) {
                 // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
-                skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
             }
 
             childrenClipPoly?.let {
                 if (!clipCanvasToBounds) {
-                    skiaCanvas.clipRect(bounds.atOrigin.skija(), ClipMode.INTERSECT)
+                    skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
                 }
-                skiaCanvas.clipPath(it.skija(), ClipMode.INTERSECT)
+                skiaCanvas.clipPath(it.skia(), ClipMode.INTERSECT)
             }
 
             children.forEach {

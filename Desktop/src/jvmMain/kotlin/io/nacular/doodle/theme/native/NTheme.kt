@@ -13,7 +13,7 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
-import org.jetbrains.skiko.SkiaWindow
+import org.jetbrains.skija.Canvas
 import org.kodein.di.DI.Module
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
@@ -37,6 +37,18 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
 
         private val CommonNativeModule = Module(allowSilentOverride = true, name = "CommonNativeModule") {
             bindInstance { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration }
+            bindSingleton {
+                object: SwingGraphicsFactory {
+                    override fun invoke(skiaCanvas: Canvas): SkiaGraphics2D {
+                        return SkiaGraphics2D(
+                                fontCollection = instance(),
+                                defaultFont    = instance(),
+                                canvas         = skiaCanvas,
+                                textMetrics    = instance()
+                        )
+                    }
+                }
+            }
         }
 
 //        private val NativeCheckBoxRadioButtonBehavior = Module(name = "NativeCheckBoxRadioButtonBehavior") {
@@ -49,21 +61,20 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(
-                    graphicsConfiguration = instance(),
-                    window = instance(),
-                    appScope = instance(),
-                    uiDispatcher = Dispatchers.Swing,
-                    contentScale = instance<SkiaWindow>().layer.contentScale.toDouble(),
-                    textMetrics = instance(),
-                    swingFocusManager = FocusManager.getCurrentManager(),
-                    focusManager = instanceOrNull()
+                    window               = instance(),
+                    appScope             = instance(),
+                    textMetrics          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance()
             ) }
         }
 
         public fun nativeScrollPanelBehavior(): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), instance(), Dispatchers.Swing, instance(), instance<SkiaWindow>().layer.contentScale.toDouble()) }
+            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), instance(), Dispatchers.Swing, instance(), instance()) }
         }
 
 //        public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
@@ -77,7 +88,16 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), instance(), instance(), Dispatchers.Swing, instance(), instance<SkiaWindow>().layer.contentScale.toDouble(), FocusManager.getCurrentManager(), instanceOrNull()) }
+            bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(
+                    window               = instance(),
+                    appScope             = instance(),
+                    defaultFont          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance(),
+                    textMetrics          = instance()
+            ) }
         }
 
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
@@ -85,13 +105,29 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
 
             bindSingleton<NativeHyperLinkBehaviorBuilder> { NativeHyperLinkBehaviorBuilderImpl() }
 
-            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), instance(), FocusManager.getCurrentManager(), instanceOrNull()) }
+            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(
+                    window               = instance(),
+                    appScope             = instance(),
+                    textMetrics          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance()
+            ) }
         }
 
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<CheckBox>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), instance(), Dispatchers.Swing, instance<SkiaWindow>().layer.contentScale.toDouble(), instance(), FocusManager.getCurrentManager(), instanceOrNull()) as Behavior<Button> }
+            bindBehavior<CheckBox>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(
+                    window               = instance(),
+                    appScope             = instance(),
+                    textMetrics          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance()
+            ) as Behavior<Button> }
         }
 
 //        public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
@@ -104,14 +140,13 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<Switch>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(
-                    graphicsConfiguration = instance(),
-                    window = instance(),
-                    appScope = instance(),
-                    uiDispatcher = Dispatchers.Swing,
-                    contentScale = instance<SkiaWindow>().layer.contentScale.toDouble(),
-                    textMetrics = instance(),
-                    swingFocusManager = FocusManager.getCurrentManager(),
-                    focusManager = instanceOrNull()
+                    window               = instance(),
+                    appScope             = instance(),
+                    textMetrics          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance()
             ) as Behavior<Button> }
         }
 

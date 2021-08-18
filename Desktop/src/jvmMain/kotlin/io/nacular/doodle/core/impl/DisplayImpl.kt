@@ -21,7 +21,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.skia.skija
+import io.nacular.doodle.skia.skia
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -149,7 +149,7 @@ internal class DisplayImpl(
             override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
                 skiaCanvas.save     ()
                 skiaCanvas.scale    (window.layer.contentScale, window.layer.contentScale)
-                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skija()))
+                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skia()))
 
                 fill?.let {
                     CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {

@@ -50,12 +50,14 @@ import java.awt.Cursor.W_RESIZE_CURSOR
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
+import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelListener
 import java.awt.Cursor as AwtCursor
 
 /**
  * Created by Nicholas Eddy on 5/24/21.
  */
-internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerInputService, MouseAdapter(), MouseMotionListener {
+internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerInputService, MouseAdapter(), MouseWheelListener, MouseMotionListener {
     private var started       = false
     private val listeners     = mutableSetOf<Listener>()
     private val preprocessors = mutableSetOf<Preprocessor>()
@@ -142,9 +144,12 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
         notifyPointerEvent(e, Type.Move)
     }
 
+    override fun mouseWheelMoved(e: MouseWheelEvent) {}
+
     private fun startUp() {
         if (!started) {
             window.layer.addMouseListener      (this)
+            window.layer.addMouseWheelListener (this)
             window.layer.addMouseMotionListener(this)
 
             started = true
@@ -154,6 +159,7 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
     private fun shutdown() {
         if (started && listeners.isEmpty() && preprocessors.isEmpty()) {
             window.layer.removeMouseListener      (this)
+            window.layer.removeMouseWheelListener (this)
             window.layer.removeMouseMotionListener(this)
 
             started = false

@@ -31,8 +31,9 @@ import io.nacular.doodle.geometry.path
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
+import io.nacular.doodle.image.impl.SvgImage
 import io.nacular.doodle.skia.rrect
-import io.nacular.doodle.skia.skija
+import io.nacular.doodle.skia.skia
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextDecoration.Line.*
 import io.nacular.doodle.text.TextDecoration.Style
@@ -75,13 +76,13 @@ internal class CanvasImpl(
         private val defaultFont: SkijaFont,
         private val fontCollection: FontCollection
 ): Canvas {
-    private fun Paint.skija(): SkijaPaint {
+    private fun Paint.skia(): SkijaPaint {
         val result = SkijaPaint()
 
         when (this) {
-            is ColorPaint          -> result.color = color.skija()
-            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skija(), end.skija(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skija(), start.radius.toFloat(), end.center.skija(), end.radius.toFloat(), colors.map { it.color.skija() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is ColorPaint          -> result.color  = color.skia()
+            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skia(), end.skia(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skia(), start.radius.toFloat(), end.center.skia(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT) }
             is PatternPaint        -> {
                 // FIXME: Reuse bitmaps?
@@ -91,9 +92,9 @@ internal class CanvasImpl(
 
                 val bitmapCanvas = SkijaCanvas(bitmap)
 
-                paint(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skija.size })
+                paint(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size })
 
-                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, (Identity.translate(bounds.x, bounds.y) * transform).skija())
+                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, (Identity.translate(bounds.x, bounds.y) * transform).skia())
             }
         }
 
@@ -102,7 +103,7 @@ internal class CanvasImpl(
         return result
     }
 
-    private fun Stroke.skija(): SkijaPaint = fill.skija().also {
+    private fun Stroke.skia(): SkijaPaint = fill.skia().also {
         it.setStroke(true)
         it.strokeWidth = thickness.toFloat()
         dashes?.let { dashes ->
@@ -115,7 +116,7 @@ internal class CanvasImpl(
         }
     }
 
-    private fun Renderer.FillRule.skija() = when (this) {
+    private fun Renderer.FillRule.skia() = when (this) {
         EvenOdd -> EVEN_ODD
         else    -> WINDING
     }
@@ -125,7 +126,7 @@ internal class CanvasImpl(
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
         val oldMatrix = skiaCanvas.localToDeviceAsMatrix33
 
-        skiaCanvas.setMatrix(oldMatrix.makeConcat(transform.skija()))
+        skiaCanvas.setMatrix(oldMatrix.makeConcat(transform.skia()))
 
         block(this)
 
@@ -134,61 +135,61 @@ internal class CanvasImpl(
 
     override fun rect(rectangle: Rectangle, fill: Paint) {
         withShadows({ rectangle.toPath() }) {
-            skiaCanvas.drawRect(rectangle.skija(), fill.skija())
+            skiaCanvas.drawRect(rectangle.skia(), fill.skia())
         }
     }
 
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) {
         withShadows({ rectangle.toPath() }) {
             if (fill != null) {
-                skiaCanvas.drawRect(rectangle.skija(), fill.skija())
+                skiaCanvas.drawRect(rectangle.skia(), fill.skia())
             }
-            skiaCanvas.drawRect(rectangle.skija(), stroke.skija())
+            skiaCanvas.drawRect(rectangle.skia(), stroke.skia())
         }
     }
 
     override fun rect(rectangle: Rectangle, radius: Double, fill: Paint) {
         withShadows({ rectangle.toPath(radius) }) {
-            skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skija())
+            skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skia())
         }
     }
 
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) {
         withShadows({ rectangle.toPath(radius) }) {
             if (fill != null) {
-                skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skija())
+                skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skia())
             }
-            skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), stroke.skija())
+            skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), stroke.skia())
         }
     }
 
     override fun circle(circle: Circle, fill: Paint) {
         withShadows({ circle.toPath() }) {
-            skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skija())
+            skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skia())
         }
     }
 
     override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) {
         withShadows({ circle.toPath() }) {
             if (fill != null) {
-                skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skija())
+                skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skia())
             }
-            skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), stroke.skija())
+            skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), stroke.skia())
         }
     }
 
     override fun ellipse(ellipse: Ellipse, fill: Paint) {
         withShadows({ ellipse.toPath() }) {
-            skiaCanvas.drawOval(ellipse.boundingRectangle.skija(), fill.skija())
+            skiaCanvas.drawOval(ellipse.boundingRectangle.skia(), fill.skia())
         }
     }
 
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) {
         withShadows({ ellipse.toPath() }) {
             if (fill != null) {
-                skiaCanvas.drawOval(ellipse.boundingRectangle.skija(), fill.skija())
+                skiaCanvas.drawOval(ellipse.boundingRectangle.skia(), fill.skia())
             }
-            skiaCanvas.drawOval(ellipse.boundingRectangle.skija(), stroke.skija())
+            skiaCanvas.drawOval(ellipse.boundingRectangle.skia(), stroke.skia())
         }
     }
 
@@ -197,7 +198,7 @@ internal class CanvasImpl(
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-                updateForegroundPaint(0, text.length - 1, fill.skija())
+                updateForegroundPaint(0, text.length - 1, fill.skia())
             }
 
             paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
@@ -217,7 +218,7 @@ internal class CanvasImpl(
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-                updateForegroundPaint(0, text.length - 1, fill.skija())
+                updateForegroundPaint(0, text.length - 1, fill.skia())
             }
 
             paint(skiaCanvas, at.x.toFloat() + leftMargin.toFloat(), at.y.toFloat())
@@ -241,42 +242,44 @@ internal class CanvasImpl(
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (image is ImageImpl) {
             withShadows({ destination.toPath() }) {
-                skiaCanvas.drawImageRect(image.skiaImage, source.skija(), destination.skija())
+                skiaCanvas.drawImageRect(image.skiaImage, source.skia(), destination.skia())
             }
+        } else if (image is SvgImage) {
+            image.render(skiaCanvas, source.skia(), destination.skia())
         }
     }
 
     override fun line(start: Point, end: Point, stroke: Stroke) {
-        skiaCanvas.drawLine(start.x.toFloat(), start.y.toFloat(), end.x.toFloat(), end.y.toFloat(), stroke.skija())
+        skiaCanvas.drawLine(start.x.toFloat(), start.y.toFloat(), end.x.toFloat(), end.y.toFloat(), stroke.skia())
     }
 
     override fun path(points: List<Point>, fill: Paint, fillRule: Renderer.FillRule?) {
         if (points.isNotEmpty()) {
-            skiaCanvas.drawPath(points.toPath().skija(), fill.skija())
+            skiaCanvas.drawPath(points.toPath().skia(), fill.skia())
         }
     }
 
     override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) {
         withShadows({ path }) {
-            val skijaPath = path.skija()
+            val skiaPath = path.skia()
 
             if (fillRule != null) {
-                skijaPath.fillMode = fillRule.skija()
+                skiaPath.fillMode = fillRule.skia()
             }
 
-            skiaCanvas.drawPath(skijaPath, fill.skija())
+            skiaCanvas.drawPath(skiaPath, fill.skia())
         }
     }
 
     override fun path(points: List<Point>, stroke: Stroke) {
         if (points.isNotEmpty()) {
-            skiaCanvas.drawPath(points.toPath().skija(), stroke.skija())
+            skiaCanvas.drawPath(points.toPath().skia(), stroke.skia())
         }
     }
 
     override fun path(path: Path, stroke: Stroke) {
         withShadows({ path }) {
-            skiaCanvas.drawPath(path.skija(), stroke.skija())
+            skiaCanvas.drawPath(path.skia(), stroke.skia())
         }
     }
 
@@ -288,14 +291,14 @@ internal class CanvasImpl(
 
     override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {
         withShadows({ path }) {
-            val skijaPath = path.skija()
+            val skiaPath = path.skia()
 
             if (fillRule != null) {
-                skijaPath.fillMode = fillRule.skija()
+                skiaPath.fillMode = fillRule.skia()
             }
 
-            skiaCanvas.drawPath(skijaPath, fill.skija ())
-            skiaCanvas.drawPath(skijaPath, stroke.skija())
+            skiaCanvas.drawPath(skiaPath, fill.skia ())
+            skiaCanvas.drawPath(skiaPath, stroke.skia())
         }
     }
 
@@ -303,7 +306,7 @@ internal class CanvasImpl(
         val path by lazy { polygon.toPath() }
 
         withShadows({ path }) {
-            skiaCanvas.drawPath(path.skija(), fill.skija())
+            skiaCanvas.drawPath(path.skia(), fill.skia())
         }
     }
 
@@ -312,9 +315,9 @@ internal class CanvasImpl(
 
         withShadows({ path }) {
             if (fill != null) {
-                skiaCanvas.drawPath(path.skija(), fill.skija())
+                skiaCanvas.drawPath(path.skia(), fill.skia())
             }
-            skiaCanvas.drawPath(path.skija(), stroke.skija())
+            skiaCanvas.drawPath(path.skia(), stroke.skia())
         }
     }
 
@@ -342,11 +345,11 @@ internal class CanvasImpl(
     }
 
     override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
-        clip(polygon.toPath().skija(), block)
+        clip(polygon.toPath().skia(), block)
     }
 
     override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {
-        clip(ellipse.toPath().skija(), block)
+        clip(ellipse.toPath().skia(), block)
     }
 
     private fun clip(path: SkijaPath, block: Canvas.() -> Unit) {
@@ -362,39 +365,13 @@ internal class CanvasImpl(
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         shadows += shadow
         skiaCanvas.save()
-
-//    val previousFilter = imageFilter
-//
-//    imageFilter = when (val i = imageFilter) {
-//        null -> ImageFilter.makeDropShadow(
-//                shadow.horizontal.toFloat(),
-//                shadow.vertical.toFloat(),
-//                shadow.blurRadius.toFloat(),
-//                shadow.blurRadius.toFloat(),
-//                shadow.color.skija()
-//        )
-//        else -> ImageFilter.makeDropShadow(
-//                shadow.horizontal.toFloat(),
-//                shadow.vertical.toFloat(),
-//                shadow.blurRadius.toFloat(),
-//                shadow.blurRadius.toFloat(),
-//                shadow.color.skija(),
-//                i,
-//                IRect.makeWH(size.width.toInt(), size.height.toInt())
-//        )
-//    }
-
         block(this)
-
-//        imageFilter = previousFilter
-
         shadows -= shadow
-
         skiaCanvas.restore()
     }
 
     override fun clear() {
-        skiaCanvas.clear(Color.Transparent.skija())
+        skiaCanvas.clear(Color.Transparent.skia())
     }
 
     override fun flush() {
@@ -409,7 +386,7 @@ internal class CanvasImpl(
     private fun drawOuterShadows(operation: SkijaCanvas.(SkijaPaint) -> Unit) {
         shadows.filterIsInstance<OuterShadow>().forEach {
             val blur = SkijaPaint().apply {
-                color       = it.color.skija()
+                color       = it.color.skia()
                 isAntiAlias = true
                 if (it.blurRadius > 0f) {
                     maskFilter = MaskFilter.makeBlur(NORMAL, it.blurRadius.toFloat())
@@ -428,7 +405,7 @@ internal class CanvasImpl(
 
         shadows.filterIsInstance<InnerShadow>().forEach {
             val blur = SkijaPaint().apply {
-                color       = it.color.opacity(it.color.opacity * 0.4f).skija()
+                color       = it.color.opacity(it.color.opacity * 0.4f).skia()
                 isAntiAlias = true
                 strokeWidth = it.blurRadius.toFloat()
                 setStroke(true)
@@ -438,20 +415,20 @@ internal class CanvasImpl(
             }
 
             skiaCanvas.save     ()
-            skiaCanvas.clipPath (path.skija())
+            skiaCanvas.clipPath (path.skia())
             skiaCanvas.translate(it.horizontal.toFloat(), it.vertical.toFloat())
-            skiaCanvas.drawPath (path.skija(), blur)
+            skiaCanvas.drawPath (path.skia(), blur)
             skiaCanvas.restore  ()
         }
     }
 
     private fun withShadows(path: () -> Path, block: () -> Unit) {
-        drawOuterShadows { drawPath(path().skija(), it) }
+        drawOuterShadows { drawPath(path().skia(), it) }
         block()
         drawInnerShadows(path)
     }
 
-    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, fill: Paint) = paragraph(text, font, at, leftMargin, rightMargin, fill.skija())
+    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, fill: Paint) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia())
 
     private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, paint: SkijaPaint): Paragraph {
         val style = ParagraphStyle().apply {
@@ -480,16 +457,16 @@ internal class CanvasImpl(
         val builder = ParagraphBuilder(ParagraphStyle(), fontCollection).also { builder ->
             this.forEach { (text, style) ->
                 builder.pushStyle(style.font.skia.textStyle().apply {
-                    foreground = paint ?: style.foreground?.skija() ?: Black.paint.skija()
+                    foreground = paint ?: style.foreground?.skia() ?: Black.paint.skia()
 
-                    style.background?.skija()?.let { background = it }
+                    style.background?.skia()?.let { background = it }
                     style.decoration?.run {
                         decorationStyle = DecorationStyle(
                             Under   in lines,
                             Over    in lines,
                             Through in lines,
                             false,
-                            color?.skija() ?: foreground?.color ?: Black.skija(),
+                            color?.skia() ?: foreground?.color ?: Black.skia(),
                             when (this.style) {
                                 Style.Solid  -> SOLID
                                 Style.Double -> DOUBLE
@@ -524,7 +501,7 @@ internal class CanvasImpl(
                     (rotation `in` radians).toFloat(),
                     (sweep `in` radians).toFloat(),
                     includeCenter,
-                    fill.skija())
+                    fill.skia())
         }
 
         if (stroke != null) {
@@ -535,7 +512,7 @@ internal class CanvasImpl(
                     (rotation `in` radians).toFloat(),
                     (sweep `in` radians).toFloat(),
                     includeCenter,
-                    stroke.skija())
+                    stroke.skia())
         }
     }
 }

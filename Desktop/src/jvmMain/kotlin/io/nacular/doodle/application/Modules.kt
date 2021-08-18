@@ -20,6 +20,9 @@ import io.nacular.doodle.focus.impl.DefaultFocusabilityChecker
 import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.focus.impl.FocusTraversalPolicyImpl
 import io.nacular.doodle.focus.impl.FocusabilityChecker
+import io.nacular.doodle.image.ImageLoader
+import io.nacular.doodle.image.impl.ImageLoaderImpl
+import io.nacular.doodle.image.impl.UrlDecoder
 import io.nacular.doodle.system.KeyInputService
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -30,6 +33,7 @@ import org.kodein.di.bind
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.kodein.di.singleton
+import java.net.URLDecoder
 
 /**
  * Created by Nicholas Eddy on 5/20/21.
@@ -73,6 +77,14 @@ public class Modules {
             importOnce(PointerModule)
 
             bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+        }
+
+        public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
+            bindSingleton<ImageLoader>{
+                ImageLoaderImpl(object: UrlDecoder {
+                    override fun decode(string: String, encoding: String) = URLDecoder.decode(string, encoding)
+                })
+            }
         }
     }
 }
