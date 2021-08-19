@@ -17,9 +17,11 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import javax.swing.JComponent
@@ -96,8 +98,9 @@ internal class NativeScrollPanelBehavior(
         }
     }
 
-    private var oldCursor   : Cursor? = null
-    private var oldIdealSize: Size?   = null
+    private var oldCursor    : Cursor?    = null
+    private var oldIdealSize : Size?      = null
+    private var clickedTarget: Component? = null
 
     private lateinit var nativePeer     : JScrollPanePeer
     private lateinit var graphics2D     : SkiaGraphics2D
@@ -222,14 +225,31 @@ internal class NativeScrollPanelBehavior(
     }
 
     private fun processPointerEvent(event: PointerEvent) {
-        nativePeer.getComponentAt(event.location.x.toInt(), event.location.y.toInt())?.let { target ->
+        when (event.type) {
+            Drag -> clickedTarget
+            else -> nativePeer.getComponentAt(event.location.x.toInt(), event.location.y.toInt())
+        }?.let { target ->
+            clickedTarget = when (event.type) {
+                Click -> target
+                Down  -> target
+                Up    -> null
+                else       -> clickedTarget
+            }
+
             val at = when (target) {
                 nativePeer -> event.location
                 else       -> Point(event.location.x - target.x, event.location.y - target.y)
             }
 
+            if (event.type == Drag) {
+                println("dragging target: ${target::class.simpleName} at: $at")
+            }
+//            val awtEvent = event.toAwt(target, at)
             target.dispatchEvent(event.toAwt(target, at))
-//            println("event [${event.type}] -> ${target::class.simpleName} @$at")
+
+//            if (awtEvent.isConsumed) {
+            event.consume()
+//            }
         }
     }
 

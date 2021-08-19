@@ -535,9 +535,10 @@ internal class SkiaGraphics2D(
         }
 
         awtFont = font
+        val skiaStyle = font.skiaStyle()
 
-        val typeface = typefaceMap.getOrPut(font.family to font.fontStyle) {
-            Typeface.makeFromName(font.family, font.fontStyle)
+        val typeface = typefaceMap.getOrPut(font.family to skiaStyle) {
+            Typeface.makeFromName(font.family, skiaStyle)
         }
 
         skiaFont = Font(typeface, font.size.toFloat())
@@ -794,14 +795,6 @@ internal class SkiaGraphics2D(
         }
 
         return SkiaImage.makeRaster(ImageInfo(width, height, ColorType.BGRA_8888, ColorAlphaType.PREMUL), bytes, width * 4L)
-    }
-
-    private val AwtFont.fontStyle: FontStyle get() = when (style) {
-        AwtFont.PLAIN                 -> FontStyle.NORMAL
-        AwtFont.BOLD                  -> FontStyle.BOLD
-        AwtFont.ITALIC                -> FontStyle.ITALIC
-        AwtFont.BOLD + AwtFont.ITALIC -> FontStyle.BOLD_ITALIC
-        else                          -> FontStyle.NORMAL
     }
 
     private fun awtToSkiaLineCap(cap: Int): PaintStrokeCap = when (cap) {

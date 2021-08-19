@@ -20,7 +20,6 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import io.nacular.doodle.utils.HorizontalAlignment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skija.FontStyle
 import org.jetbrains.skija.Typeface
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.BorderLayout
@@ -39,7 +38,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 import kotlin.coroutines.CoroutineContext
-import org.jetbrains.skija.Font as SkijaFont
+import org.jetbrains.skija.Font as SkiaFont
 
 private class PlaceHolderLabel(text: String, private val component: JTextComponent): JLabel(), DocumentListener {
     private fun updateVisibility() {
@@ -75,7 +74,7 @@ internal class NativeTextFieldBehavior(
         private val window              : SkiaWindow,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
-        private val defaultFont         : SkijaFont,
+        private val defaultFont         : SkiaFont,
         private val swingGraphicsFactory: SwingGraphicsFactory,
         private val swingFocusManager   : javax.swing.FocusManager,
         private val textMetrics         : TextMetricsImpl,
@@ -143,24 +142,9 @@ internal class NativeTextFieldBehavior(
             textField?.rerender()
         }
 
-        private val Font.fontStyle: FontStyle get() = when (style) {
-            Font.PLAIN              -> FontStyle.NORMAL
-            Font.BOLD               -> FontStyle.BOLD
-            Font.ITALIC             -> FontStyle.ITALIC
-            Font.BOLD + Font.ITALIC -> FontStyle.BOLD_ITALIC
-            else                    -> FontStyle.NORMAL
-        }
-
-        override fun getFontMetrics(font: Font?): FontMetrics {
-            if (font != null) {
-                return SkiaFontMetrics(org.jetbrains.skija.Font(Typeface.makeFromName(font.family, font.fontStyle), font.size.toFloat()),
-                                       font,
-                                       textMetrics
-                )
-            }
-
-            return super.getFontMetrics(font)
-        }
+        override fun getFontMetrics(font: Font?): FontMetrics = font?.let {
+            SkiaFontMetrics(SkiaFont(Typeface.makeFromName(font.family, font.skiaStyle()), font.size.toFloat()), font, textMetrics)
+        } ?: super.getFontMetrics(font)
 
         public override fun processMouseEvent(e: MouseEvent?) {
             super.processMouseEvent(e)

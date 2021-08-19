@@ -26,6 +26,8 @@ import io.nacular.measured.units.times
 import kotlinx.datetime.Clock
 import org.jetbrains.skija.FontSlant.ITALIC
 import org.jetbrains.skija.FontSlant.OBLIQUE
+import org.jetbrains.skija.FontSlant.UPRIGHT
+import org.jetbrains.skija.FontStyle
 import org.jetbrains.skija.paragraph.BaselineMode.IDEOGRAPHIC
 import org.jetbrains.skija.paragraph.TextStyle
 import java.awt.Component
@@ -102,10 +104,30 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
 }
 
+internal fun AwtFont.skiaStyle(): FontStyle {
+    val weight = when (val w = attributes[WEIGHT] as? Float?) {
+        null -> when (style) {
+            AwtFont.PLAIN                 -> FontStyle.NORMAL
+            AwtFont.BOLD                  -> FontStyle.BOLD
+            AwtFont.ITALIC                -> FontStyle.ITALIC
+            AwtFont.BOLD + AwtFont.ITALIC -> FontStyle.BOLD_ITALIC
+            else                          -> FontStyle.NORMAL
+        }.weight
+        else -> (w * 1000).toInt()
+    }
+
+    return FontStyle(weight, size, (attributes[POSTURE] as? Float).let {
+        when (it) {
+            POSTURE_OBLIQUE -> ITALIC
+            else            -> UPRIGHT
+        }
+    })
+}
+
 internal fun SkijaFont.toAwt() = AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to typefaceOrDefault.familyName,
-        WEIGHT  to typefaceOrDefault.fontStyle.weight,
+        WEIGHT  to typefaceOrDefault.fontStyle.weight / 1000f,
         POSTURE to typefaceOrDefault.fontStyle.slant.run {
             when (this) {
                 ITALIC  -> POSTURE_OBLIQUE
@@ -120,7 +142,7 @@ internal fun Font?.toAwt(default: SkijaFont) = when (this) {
     else -> AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to family,
-        WEIGHT  to weight,
+        WEIGHT  to weight / 1000f,
         POSTURE to style.run {
             when (this) {
                 Normal     -> POSTURE_REGULAR
