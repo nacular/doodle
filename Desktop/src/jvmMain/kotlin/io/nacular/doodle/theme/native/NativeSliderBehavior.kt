@@ -1,189 +1,228 @@
-//package io.nacular.doodle.theme.native
-//
-//import io.nacular.doodle.controls.buttons.Button
-//import io.nacular.doodle.controls.range.Slider
-//import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
-//import io.nacular.doodle.core.View
-//import io.nacular.doodle.drawing.Canvas
-//import io.nacular.doodle.drawing.TextMetrics
-//import io.nacular.doodle.event.KeyEvent
-//import io.nacular.doodle.event.PointerEvent
-//import io.nacular.doodle.event.PointerListener
-//import io.nacular.doodle.focus.FocusManager
-//import io.nacular.doodle.geometry.Rectangle
-//import io.nacular.doodle.geometry.Size
-//import io.nacular.doodle.image.impl.ImageImpl
-//import io.nacular.doodle.skia.toImage
-//import io.nacular.doodle.system.Cursor
-//import io.nacular.doodle.system.Cursor.Companion.Default
-//import io.nacular.doodle.system.SystemPointerEvent.Type.*
-//import kotlinx.coroutines.CoroutineScope
-//import kotlinx.coroutines.launch
-//import org.jetbrains.skiko.SkiaWindow
-//import java.awt.Color
-//import java.awt.Component
-//import java.awt.Dimension
-//import java.awt.Graphics2D
-//import java.awt.RenderingHints
-//import java.awt.event.FocusEvent
-//import java.awt.event.FocusListener
-//import java.awt.event.MouseEvent
-//import java.awt.event.MouseEvent.BUTTON1
-//import java.awt.image.BufferedImage
-//import java.awt.image.BufferedImage.TYPE_INT_ARGB
-//import javax.swing.JButton
-//import javax.swing.JSlider
-//import kotlin.coroutines.CoroutineContext
-//
-//
-///**
-// * Created by Nicholas Eddy on 6/14/21.
-// */
-//internal class NativeSliderBehavior(
-//        private val appScope: CoroutineScope,
-//        private val uiDispatcher: CoroutineContext,
-//        private val window: SkiaWindow,
-//        textMetrics: TextMetrics,
-//        private val focusManager: FocusManager?
-//): CommonTextButtonBehavior<Button>(textMetrics) {
-//
-//    private inner class JSliderPeer(private val slider: Slider): JSlider(slider.model.limits.start) {
-//        init {
-//            value = slider.value
-//
-//            addFocusListener(object : FocusListener {
-//                override fun focusGained(e: FocusEvent?) {
-//                    focusManager?.requestFocus(slider)
-//                }
-//
-//                override fun focusLost(e: FocusEvent?) {
-//                    focusManager?.clearFocus()
-//                }
-//            })
-//        }
-//
-//        override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-//            super.repaint(tm, x, y, width, height)
-//            slider.rerender()
-//        }
-//
-//        override public fun processMouseEvent(e: MouseEvent?) {
-//            super.processMouseEvent(e)
-//        }
-//    }
-//
-//    private lateinit var nativePeer: JButtonPeer
-//    private var oldCursor    : Cursor? = null
-//    private var oldIdealSize : Size?   = null
-//    private lateinit var bufferedImage: BufferedImage
-//    private lateinit var graphics     : Graphics2D
-//
-//    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-//        when (new) {
-//            true -> nativePeer.requestFocus ()
-//            else -> nativePeer.transferFocus()
-//        }
-//    }
-//
-//    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-//        nativePeer.isEnabled = new
-//    }
-//
-//    private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-//        nativePeer.isFocusable = new
-//    }
-//
-//    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
-//        createNewBufferedImage(new.size)
-//        size = new.size.run { Dimension(width.toInt(), height.toInt()) }
-//    }
-//
-//    private fun createNewBufferedImage(size: Size) {
-//        if (!size.empty && contentScale > 0f) {
-//            bufferedImage = BufferedImage((size.width * contentScale).toInt(), (size.height * contentScale).toInt(), TYPE_INT_ARGB)
-//            this@NativeButtonBehavior.graphics = bufferedImage.createGraphics().apply {
-//                setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-//                scale(contentScale, contentScale)
-//            }
-//        }
-//    }
-//
-//    override fun render(view: Button, canvas: Canvas) {
-//        if (this::graphics.isInitialized) {
-//            graphics.background = Color(255, 255, 255, 0)
-//            graphics.clearRect(0, 0, bufferedImage.width, bufferedImage.height)
-//
-//            nativePeer.paint(graphics)
-//            canvas.scale(1 / contentScale, 1 / contentScale) {
-//                canvas.image(ImageImpl(bufferedImage.toImage(), ""))
-//            }
-//        }
-//    }
-//
-//    override fun mirrorWhenRightToLeft(view: Button) = false
-//
-//    override fun install(view: Button) {
-//        super.install(view)
-//
-//        nativePeer = JButtonPeer(view)
-//
-//        createNewBufferedImage(view.size)
-//
-//        view.apply {
-//            focusChanged        += this@NativeButtonBehavior.focusChanged
-//            boundsChanged       += this@NativeButtonBehavior.boundsChanged
-//            enabledChanged      += this@NativeButtonBehavior.enabledChanged
-//            pointerChanged      += this@NativeButtonBehavior
-//            focusabilityChanged += this@NativeButtonBehavior.focusableChanged
-//        }
-//
-//        appScope.launch(uiDispatcher) {
-//            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
-//
-//            view.apply {
-//                cursor    = Default
-//                idealSize = nativePeer.preferredSize.run { Size(width, height) }
-//            }
-//        }
-//    }
-//
-//    override fun uninstall(view: Button) {
-//        super.uninstall(view)
-//
-//        view.apply {
-//            cursor    = oldCursor
-//            idealSize = oldIdealSize
-//
-//            focusChanged        -= this@NativeButtonBehavior.focusChanged
-//            boundsChanged       -= this@NativeButtonBehavior.boundsChanged
-//            enabledChanged      -= this@NativeButtonBehavior.enabledChanged
-//            pointerChanged      -= this@NativeButtonBehavior
-//            focusabilityChanged -= this@NativeButtonBehavior.focusableChanged
-//        }
-//    }
-//
-//    override fun released(event: PointerEvent) {
-//        val button = event.source as Button
-//        val model  = button.model
-//
-//        if (button.enabled && event.buttons.isEmpty()) {
-//            model.pressed = false
-//            model.armed   = false
-//        }
-//
-//        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//
-//    override fun entered(event: PointerEvent) {
-//        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun exited(event: PointerEvent) {
-//        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun pressed(event: PointerEvent) {
-//        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-//    }
-//}
+package io.nacular.doodle.theme.native
+
+import io.nacular.doodle.controls.ConfinedValueModel
+import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.impl.CanvasImpl
+import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerMotionListener
+import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.Cursor.Companion.Default
+import io.nacular.doodle.system.SystemPointerEvent.Type.*
+import io.nacular.doodle.utils.Orientation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.skiko.SkiaWindow
+import java.awt.Dimension
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.MouseEvent
+import javax.swing.BoundedRangeModel
+import javax.swing.JSlider
+import javax.swing.event.ChangeListener
+import kotlin.coroutines.CoroutineContext
+import kotlin.math.pow
+
+
+private class ModelAdapter(private val delegate: ConfinedValueModel<Double>, precision: Int): BoundedRangeModel {
+    private val listeners = mutableListOf<ChangeListener>()
+    private var valueAdjusting = false
+    private val multiplier = 10.0.pow(precision.toDouble())
+
+    override fun getMinimum() = (delegate.limits.start * multiplier).toInt()
+
+    override fun setMinimum(newMinimum: Int) {
+        delegate.limits = newMinimum / multiplier .. delegate.limits.endInclusive
+    }
+
+    override fun getMaximum() = (delegate.limits.endInclusive * multiplier).toInt()
+
+    override fun setMaximum(newMaximum: Int) {
+        delegate.limits = delegate.limits.start .. newMaximum / multiplier
+    }
+
+    override fun getValue() = (delegate.value * multiplier).toInt()
+
+    override fun setValue(newValue: Int) {
+        delegate.value = newValue / multiplier
+    }
+
+    override fun setValueIsAdjusting(b: Boolean) {
+        valueAdjusting = b
+    }
+
+    override fun getValueIsAdjusting() = valueAdjusting
+
+    override fun getExtent() = 0
+
+    override fun setExtent(newExtent: Int) {
+        // no-op
+    }
+
+    override fun setRangeProperties(value: Int, extent: Int, min: Int, max: Int, adjusting: Boolean) {
+        minimum = min
+        maximum = max
+        setValue (value )
+        setExtent(extent)
+        valueAdjusting = adjusting
+    }
+
+    override fun addChangeListener(listener: ChangeListener) {
+        listeners += listener
+    }
+
+    override fun removeChangeListener(listener: ChangeListener) {
+        listeners -= listener
+    }
+}
+
+private open class DoubleSlider(slider: Slider, precision: Int = 2): JSlider(ModelAdapter(slider.model, precision)) {
+    init {
+        this.orientation = when (slider.orientation) {
+            Orientation.Vertical -> VERTICAL
+            else                 -> HORIZONTAL
+        }
+    }
+}
+
+internal class NativeSliderBehavior(
+        private val appScope            : CoroutineScope,
+        private val uiDispatcher        : CoroutineContext,
+        private val window              : SkiaWindow,
+        private val swingGraphicsFactory: SwingGraphicsFactory,
+        private val focusManager        : FocusManager?
+): Behavior<Slider>, PointerListener, PointerMotionListener {
+
+    private inner class JSliderPeer(slider: Slider): DoubleSlider(slider) {
+        private val slider: Slider? = slider
+
+        init {
+            addFocusListener(object : FocusListener {
+                override fun focusGained(e: FocusEvent?) {
+                    focusManager?.requestFocus(slider)
+                }
+
+                override fun focusLost(e: FocusEvent?) {
+                    focusManager?.clearFocus()
+                }
+            })
+        }
+
+        override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
+            slider?.rerender()
+        }
+
+        public override fun processMouseEvent(e: MouseEvent?) {
+            super.processMouseEvent(e)
+        }
+    }
+
+    private lateinit var nativePeer   : JSliderPeer
+    private          var oldCursor    : Cursor? = null
+    private          var oldIdealSize : Size?   = null
+
+    private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+        when (new) {
+            true -> nativePeer.requestFocus ()
+            else -> nativePeer.transferFocus()
+        }
+    }
+
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+        nativePeer.isEnabled = new
+    }
+
+    private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+        nativePeer.isFocusable = new
+    }
+
+    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
+        nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
+    }
+
+    override fun render(view: Slider, canvas: Canvas) {
+        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
+    }
+
+    override fun mirrorWhenRightToLeft(view: Slider) = false
+
+    override fun install(view: Slider) {
+        super.install(view)
+
+        nativePeer = JSliderPeer(view)
+
+        view.apply {
+            focusChanged         += this@NativeSliderBehavior.focusChanged
+            boundsChanged        += this@NativeSliderBehavior.boundsChanged
+            enabledChanged       += this@NativeSliderBehavior.enabledChanged
+            pointerChanged       += this@NativeSliderBehavior
+            focusabilityChanged  += this@NativeSliderBehavior.focusableChanged
+            pointerMotionChanged += this@NativeSliderBehavior
+        }
+
+        appScope.launch(uiDispatcher) {
+            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
+
+            view.apply {
+                cursor    = Default
+                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+            }
+
+            window.add(nativePeer)
+
+            if (view.hasFocus) {
+                nativePeer.requestFocus()
+            }
+        }
+    }
+
+    override fun uninstall(view: Slider) {
+        super.uninstall(view)
+
+        view.apply {
+            cursor    = oldCursor
+            idealSize = oldIdealSize
+
+            focusChanged         -= this@NativeSliderBehavior.focusChanged
+            boundsChanged        -= this@NativeSliderBehavior.boundsChanged
+            enabledChanged       -= this@NativeSliderBehavior.enabledChanged
+            pointerChanged       -= this@NativeSliderBehavior
+            focusabilityChanged  -= this@NativeSliderBehavior.focusableChanged
+            pointerMotionChanged -= this@NativeSliderBehavior
+        }
+    }
+
+    override fun entered(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun pressed(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun released(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun clicked(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun moved(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun dragged(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun exited(event: PointerEvent) {
+        nativePeer.processMouseEvent(event.toAwt(nativePeer))
+    }
+}

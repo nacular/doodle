@@ -16,7 +16,7 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 
 
-public abstract class CommonButtonBehavior<T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
+public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)

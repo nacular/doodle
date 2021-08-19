@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.event.FocusEvent
@@ -18,7 +17,6 @@ internal class JButtonPeer(focusManager: FocusManager?, button: Button): JButton
 
     override var ignoreSelectionChange = false
     override var selected_ get() = isSelected; set(value) { isSelected = value }
-    override var clip: Rectangle? = null
 
     init {
         text       = button.text
@@ -35,7 +33,6 @@ internal class JButtonPeer(focusManager: FocusManager?, button: Button): JButton
     }
 
     override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-        clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
         button?.rerender()
     }
 
@@ -53,5 +50,5 @@ internal class NativeButtonBehavior(
         swingFocusManager   : javax.swing.FocusManager,
         focusManager        : FocusManager?
 ): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
-    override fun createPeer(button: Button) = JButtonPeer(focusManager, button)
+    override fun createPeer (button: Button) = JButtonPeer(focusManager, button)
 }

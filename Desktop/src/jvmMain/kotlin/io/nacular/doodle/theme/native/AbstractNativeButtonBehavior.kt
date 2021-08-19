@@ -20,7 +20,7 @@ import javax.swing.JComponent
 import kotlin.coroutines.CoroutineContext
 
 
-internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
+internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         private   val window              : SkiaWindow,
         private   val appScope            : CoroutineScope,
         private   val uiDispatcher        : CoroutineContext,
@@ -33,14 +33,14 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
     internal interface Peer {
         var selected_            : Boolean
         var ignoreSelectionChange: Boolean
-        var clip                 : Rectangle?
 
         fun handleMouseEvent(e: MouseEvent?)
     }
 
-    protected abstract fun createPeer(button: T): P
+    protected abstract fun createPeer (button: T         ): P
+    protected open     fun destroyPeer(button: T, peer: P) {}
 
-    private lateinit var nativePeer: P
+    private lateinit var nativePeer   : P
     private          var oldCursor    : Cursor? = null
     private          var oldIdealSize : Size?   = null
 
@@ -71,6 +71,10 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
 
     override fun install(view: T) {
         super.install(view)
+
+        if (this::nativePeer.isInitialized) {
+            destroyPeer(view, nativePeer)
+        }
 
         nativePeer = createPeer(view)
 
@@ -113,6 +117,8 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
 
         appScope.launch(uiDispatcher) {
             window.remove(nativePeer)
+
+            destroyPeer(view, nativePeer)
         }
     }
 
@@ -136,6 +142,11 @@ internal abstract class AbstractNativeButtonBehavior<T : Button, P>(
 
     override fun pressed(event: PointerEvent) {
         super.pressed(event)
+        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+    }
+
+    override fun clicked(event: PointerEvent) {
+        super.clicked(event)
         nativePeer.handleMouseEvent(event.toAwt(nativePeer))
     }
 

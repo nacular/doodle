@@ -9,10 +9,10 @@ import org.jetbrains.skiko.SkiaWindow
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
-import javax.swing.JCheckBox
+import javax.swing.JRadioButton
 import kotlin.coroutines.CoroutineContext
 
-internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton): JCheckBox(), AbstractNativeButtonBehavior.Peer {
+internal class JRadioButtonPeer(focusManager: FocusManager?, button: ToggleButton): JRadioButton(), AbstractNativeButtonBehavior.Peer {
     private val button: Button? = button
 
     override var ignoreSelectionChange = false
@@ -41,7 +41,7 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
     }
 }
 
-internal class NativeCheckBoxBehavior(
+internal class NativeRadioButtonBehavior(
         window              : SkiaWindow,
         appScope            : CoroutineScope,
         uiDispatcher        : CoroutineContext,
@@ -49,6 +49,6 @@ internal class NativeCheckBoxBehavior(
         textMetrics         : TextMetrics,
         swingFocusManager   : javax.swing.FocusManager,
         focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
-    override fun createPeer(button: ToggleButton) = JCheckBoxPeer(focusManager, button)
+): AbstractNativeButtonBehavior<ToggleButton, JRadioButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+    override fun createPeer(button: ToggleButton) = JRadioButtonPeer(focusManager, button)
 }

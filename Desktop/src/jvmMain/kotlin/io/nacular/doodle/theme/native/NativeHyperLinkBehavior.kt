@@ -1,11 +1,12 @@
 package io.nacular.doodle.theme.native
 
-import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.event.FocusEvent
@@ -51,16 +52,16 @@ private class NativeHyperLinkBehaviorWrapper(
     }
 }
 
-
-internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JLabel(), AbstractNativeButtonBehavior.Peer {
-    private val button: Button? = button
+internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JLabel(), AbstractNativeButtonBehavior.Peer, PointerListener {
+    private val button: HyperLink? = button
 
     override var selected_             = false
     override var ignoreSelectionChange = false
-    override var clip: Rectangle?      = null
 
     init {
         text = "<html><a href='${button.url}'>${button.text}</a></html>"
+
+        button.size = preferredSize.run { Size(width, height) }
 
         addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {
@@ -74,6 +75,8 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
             }
         })
 
+        button.pointerChanged += this
+
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 try {
@@ -81,19 +84,17 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
                 } catch (ignored: Exception) {
                 }
             }
-
-            override fun mouseEntered(e: MouseEvent?) {
-                text = "<html><a href='${button.url}'>${button.text}</a></html>"
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                text = button.text
-            }
         })
     }
 
+//    override fun clicked(event: PointerEvent) {
+//        try {
+//            java.awt.Desktop.getDesktop().browse(URI(button!!.url))
+//        } catch (ignored: Exception) {
+//        }
+//    }
+
     override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-        clip = clip?.union(Rectangle(x, y, width, height)) ?: Rectangle(x, y, width, height)
         button?.rerender()
     }
 
@@ -111,6 +112,7 @@ internal class NativeHyperLinkBehavior(
         textMetrics         : TextMetrics,
         swingFocusManager   : javax.swing.FocusManager,
         focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
-    override fun createPeer(button: Button) = JButtonPeer(focusManager, button)
+): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+    override fun createPeer(button: HyperLink) = HyperLinkPeer(focusManager, button)
+
 }

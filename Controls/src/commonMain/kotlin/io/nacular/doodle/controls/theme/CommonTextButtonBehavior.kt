@@ -22,7 +22,7 @@ import kotlin.math.min
 /**
  * Created by Nicholas Eddy on 10/3/18.
  */
-public abstract class CommonTextButtonBehavior<T: Button>(
+public abstract class CommonTextButtonBehavior<in T: Button>(
         private val textMetrics: TextMetrics,
         private val defaultFont: Font?  = null,
         private val insets     : Insets = Insets.None): CommonButtonBehavior<T>() {
