@@ -76,7 +76,7 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
         else -> BUTTON1
     }
 
-    // FIXME:
+    // FIXME: Inject
     val time = Clock.System.now().toEpochMilliseconds()
 
     var modifiers = when (button) {

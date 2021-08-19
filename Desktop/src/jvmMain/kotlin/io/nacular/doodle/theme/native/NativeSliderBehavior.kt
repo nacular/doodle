@@ -196,6 +196,10 @@ internal class NativeSliderBehavior(
             focusabilityChanged  -= this@NativeSliderBehavior.focusableChanged
             pointerMotionChanged -= this@NativeSliderBehavior
         }
+
+        appScope.launch(uiDispatcher) {
+            window.remove(nativePeer)
+        }
     }
 
     override fun entered(event: PointerEvent) {
