@@ -43,19 +43,6 @@ public expect class PropertyObserversImpl<S, T>(source: S, mutableSet: MutableSe
     public operator fun invoke(old: T, new: T): Unit
 }
 
-//public open class SetPool<T>(protected val delegate: MutableSet<T> = mutableSetOf()): Pool<T>, Set<T> by delegate {
-//    override fun plusAssign (item: T) { delegate += item }
-//    override fun minusAssign(item: T) { delegate -= item }
-//}
-//
-//public class ChangeObserversImpl<S>(private val source: S, mutableSet: MutableSet<ChangeObserver<S>> = mutableSetOf()): SetPool<ChangeObserver<S>>(mutableSet) {
-//    public operator fun invoke(): Unit = delegate.forEach { it(source) }
-//}
-//
-//public class PropertyObserversImpl<S, T>(private val source: S, mutableSet: MutableSet<PropertyObserver<S, T>> = mutableSetOf()): SetPool<PropertyObserver<S, T>>(mutableSet) {
-//    public operator fun invoke(old: T, new: T): Unit = delegate.forEach { it(source, old, new) }
-//}
-
 public interface ObservableList<E>: MutableList<E> {
     public val changed: Pool<ListObserver<ObservableList<E>, E>>
 
