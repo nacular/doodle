@@ -39,12 +39,6 @@ kotlin {
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-            }
-        }
-
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation("junit:junit:$junitVersion")

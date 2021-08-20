@@ -47,6 +47,8 @@ kotlin {
                 api(project(":themes"  ))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$dateTimeVersion")
             }
         }
 
@@ -61,10 +63,6 @@ kotlin {
             dependencies {
                 api("org.kodein.di:kodein-di:$kodeinVersion")
                 api("org.jetbrains.skiko:skiko-jvm-runtime-$target:$skikoVersion")
-
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion" )
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutinesVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$dateTimeVersion")
             }
         }
 

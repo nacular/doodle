@@ -155,7 +155,7 @@ class CanvasImplTests {
         validateRender { renderParent, htmlFactory, _, _, _ ->
             val b = mockk<HTMLElement>()
 
-            every { htmlFactory.createOrUse("B", any()) } answers { b } andThen { mockk() }
+            every { htmlFactory.createOrUse("B", any()) } answers { b } andThenAnswer { mockk() }
             every { htmlFactory.createOrUse("B", b    ) } returns   b
 
             listOf(Red, Black, Blue).forEach {

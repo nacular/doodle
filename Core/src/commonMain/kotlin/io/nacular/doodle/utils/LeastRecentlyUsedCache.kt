@@ -14,11 +14,21 @@ public class LeastRecentlyUsedCache<K, V>(private val maxSize: Int): MutableMap<
     private var start   = null as LeastRecentlyUsedCache<K, V>.Entry?
     private var end     = null as LeastRecentlyUsedCache<K, V>.Entry?
 
-    override operator fun get(key: K): V? = hashMap[key]?.let {
-        removeNode(it)
-        addAtTop  (it)
-        return it.value
+    // FIXME: File Kotlin bug for this, which fails w/ ClassCastException whenever the key isn't found
+//    override operator fun get(key: K): V? = hashMap[key]?.let {
+//        removeNode(it)
+//        addAtTop  (it)
+//        return it.value
+//    }
+
+    override operator fun get(key: K): V? {
+        return hashMap[key]?.let {
+            removeNode(it)
+            addAtTop  (it)
+            return it.value
+        }
     }
+
 
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
         get() = hashMap.entries.map {

@@ -332,17 +332,17 @@ internal class SkiaGraphics2D(
             skiaPaint.alphaf = newComposite.alpha
 
             when (newComposite.rule) {
-                AlphaComposite.CLEAR    -> skiaPaint.blendMode = BlendMode.CLEAR
-                AlphaComposite.SRC      -> skiaPaint.blendMode = BlendMode.SRC
-                AlphaComposite.SRC_OVER -> skiaPaint.blendMode = BlendMode.SRC_OVER
-                AlphaComposite.DST_OVER -> skiaPaint.blendMode = BlendMode.DST_OVER
-                AlphaComposite.SRC_IN   -> skiaPaint.blendMode = BlendMode.SRC_IN
-                AlphaComposite.DST_IN   -> skiaPaint.blendMode = BlendMode.DST_IN
-                AlphaComposite.SRC_OUT  -> skiaPaint.blendMode = BlendMode.SRC_OUT
-                AlphaComposite.DST_OUT  -> skiaPaint.blendMode = BlendMode.DST_OUT
-                AlphaComposite.DST      -> skiaPaint.blendMode = BlendMode.DST
-                AlphaComposite.SRC_ATOP -> skiaPaint.blendMode = BlendMode.SRC_ATOP
-                AlphaComposite.DST_ATOP -> skiaPaint.blendMode = BlendMode.DST_ATOP
+                AlphaComposite.CLEAR    -> skiaPaint.setBlendMode(BlendMode.CLEAR   )
+                AlphaComposite.SRC      -> skiaPaint.setBlendMode(BlendMode.SRC     )
+                AlphaComposite.SRC_OVER -> skiaPaint.setBlendMode(BlendMode.SRC_OVER)
+                AlphaComposite.DST_OVER -> skiaPaint.setBlendMode(BlendMode.DST_OVER)
+                AlphaComposite.SRC_IN   -> skiaPaint.setBlendMode(BlendMode.SRC_IN  )
+                AlphaComposite.DST_IN   -> skiaPaint.setBlendMode(BlendMode.DST_IN  )
+                AlphaComposite.SRC_OUT  -> skiaPaint.setBlendMode(BlendMode.SRC_OUT )
+                AlphaComposite.DST_OUT  -> skiaPaint.setBlendMode(BlendMode.DST_OUT )
+                AlphaComposite.DST      -> skiaPaint.setBlendMode(BlendMode.DST     )
+                AlphaComposite.SRC_ATOP -> skiaPaint.setBlendMode(BlendMode.SRC_ATOP)
+                AlphaComposite.DST_ATOP -> skiaPaint.setBlendMode(BlendMode.DST_ATOP)
             }
         }
     }

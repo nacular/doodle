@@ -23,7 +23,7 @@ allprojects {
     apply (plugin = "signing"            )
 
     repositories {
-        maven       { url = uri("http://dl.bintray.com/kotlin/kotlin-eap") }
+        maven       { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }
         maven       { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         mavenCentral()
         mavenLocal  ()
