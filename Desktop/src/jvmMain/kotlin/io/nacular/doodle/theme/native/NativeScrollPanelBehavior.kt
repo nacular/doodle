@@ -241,9 +241,6 @@ internal class NativeScrollPanelBehavior(
                 else       -> Point(event.location.x - target.x, event.location.y - target.y)
             }
 
-            if (event.type == Drag) {
-                println("dragging target: ${target::class.simpleName} at: $at")
-            }
 //            val awtEvent = event.toAwt(target, at)
             target.dispatchEvent(event.toAwt(target, at))
 

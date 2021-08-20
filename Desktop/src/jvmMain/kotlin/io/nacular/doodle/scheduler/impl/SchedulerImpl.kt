@@ -2,6 +2,7 @@ package io.nacular.doodle.scheduler.impl
 
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.scheduler.Strand
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
 import io.nacular.measured.units.Measure
@@ -148,4 +149,48 @@ internal class AnimationSchedulerImpl(appScope: CoroutineScope, uiDispatcher: Co
         super.shutdown()
         debounceQueue.cancel()
     }
+}
+
+private open class DistributedAnimationTask(private val scheduler: AnimationScheduler, private val timer: Timer, private val jobs: Iterator<() -> Unit>): Task {
+
+    override var completed = false
+
+    private var task: Task? = null
+
+    init {
+        processJobs()
+    }
+
+    override fun cancel() {
+        task?.cancel()
+
+        completed = true
+    }
+
+    private fun scheduleJob() {
+        if (task == null || task?.completed == true) {
+            task = scheduler.onNextFrame { processJobs() }
+        }
+    }
+
+    private fun frameExpired(start: Measure<Time>) = (timer.now - start) >= FRAME_DURATION
+
+    private fun processJobs() {
+        val start = timer.now
+
+        while (jobs.hasNext()) {
+            jobs.next()()
+
+            if (frameExpired(start)) { scheduleJob(); return }
+        }
+    }
+
+    private companion object {
+        private val FRAME_DURATION = 1000 * milliseconds / 60
+    }
+}
+
+internal class StrandImpl(private val scheduler: AnimationScheduler, private val timer: Timer): Strand {
+    override operator fun invoke(jobs: Sequence<() -> Unit>): Task = invoke(jobs.asIterable())
+    override operator fun invoke(jobs: Iterable<() -> Unit>): Task = DistributedAnimationTask(scheduler, timer, jobs.iterator())
 }

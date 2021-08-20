@@ -2,7 +2,6 @@ package io.nacular.doodle.application
 
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
-import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
@@ -16,11 +15,12 @@ import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
-import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.scheduler.Strand
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
+import io.nacular.doodle.scheduler.impl.StrandImpl
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.TimerImpl
 import kotlinx.coroutines.CoroutineScope
@@ -82,9 +82,8 @@ private open class ApplicationHolderImpl protected constructor(
         }
     }
 
-    private var focusManager   : FocusManager? = null
-    private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val skiaWindow     = SkiaWindow().apply {
+    private val appScope      = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val skiaWindow    = SkiaWindow().apply {
         defaultCloseOperation = EXIT_ON_CLOSE
     }
     private val defaultFont    = Font(Typeface.makeFromName("Courier", FontStyle(300, 5, UPRIGHT)), 13f)
@@ -102,7 +101,7 @@ private open class ApplicationHolderImpl protected constructor(
         bindInstance                                               { fontCollection                                                                                            }
         bindFactory<Unit, PathMeasure>                             { PathMeasure               (                                                                             ) }
         bindSingleton<Timer>                                       { TimerImpl                 (instance()                                                                   ) }
-//      bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                       ) }
+        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                       ) }
         bindSingleton<Display>                                     { DisplayImpl               (instance(), Dispatchers.Swing, instance(), instance(), instance(), instance()) }
         bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                       ) }
         bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance()                                                       ) }
@@ -125,8 +124,6 @@ private open class ApplicationHolderImpl protected constructor(
     private var isShutdown  = false
     private var application = null as Application?
 
-    private var focusListener: ((FocusManager, View?, View?) -> Unit)? = null
-
     init {
         System.setProperty("skiko.vsync.enabled", "false")
 //        System.setProperty("skiko.fps.enabled",   "true" )
@@ -142,25 +139,6 @@ private open class ApplicationHolderImpl protected constructor(
         injector.instanceOrNull<DragManager>         ()
 
         application = injector.instance()
-
-//        focusManager = injector.instanceOrNull()
-
-//        if (!isNested && root != document.body) {
-//            val nativeFocusManager = injector.instanceOrNull<NativeFocusManager>()
-//
-//            focusManager?.let {
-//                it.focusChanged += { _: FocusManager, _: View?, new: View? ->
-//                    when {
-//                        new == null                                -> root.blur ()
-//                        nativeFocusManager?.hasFocusOwner == false -> root.focus()
-//                    }
-//                }.also { focusListener = it }
-//            }
-//        }
-
-//        if (root != document.body) {
-//            (focusManager as? FocusManagerImpl)?.enabled = false
-//        }
     }
 
     override fun shutdown() {
@@ -177,16 +155,6 @@ private open class ApplicationHolderImpl protected constructor(
         injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
 //        injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
-
-//        if (!isNested && root != document.body) {
-//            root.stopMonitoringSize()
-//
-//            focusManager?.let { focusManager ->
-//                focusListener?.let { focusManager.focusChanged -= it }
-//            }
-//
-//            focusManager = null
-//        }
 
         injector = direct {}
 
