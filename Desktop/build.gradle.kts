@@ -7,7 +7,7 @@ plugins {
 kotlin {
     explicitApi()
 
-    jvmTargets()
+    jvmTargets("11")
 
     val mockkVersion     : String by project
     val junitVersion     : String by project

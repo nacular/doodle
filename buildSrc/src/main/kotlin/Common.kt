@@ -30,11 +30,11 @@ fun KotlinMultiplatformExtension.jsTargets() {
     }
 }
 
-fun KotlinMultiplatformExtension.jvmTargets() {
+fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget        = "1.8"
+                this.jvmTarget   = jvmTarget
                 freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
