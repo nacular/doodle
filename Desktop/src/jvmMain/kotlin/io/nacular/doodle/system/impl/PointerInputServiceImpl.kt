@@ -49,6 +49,8 @@ import java.awt.Cursor.S_RESIZE_CURSOR
 import java.awt.Cursor.TEXT_CURSOR
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.W_RESIZE_CURSOR
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
@@ -193,9 +195,12 @@ internal class PointerInputServiceImpl(
 
     private fun startUp() {
         if (!started) {
-            window.layer.addMouseListener      (this)
-            window.layer.addMouseWheelListener (this)
-            window.layer.addMouseMotionListener(this)
+            window.layer.addMouseListener       (this)
+            window.layer.addMouseWheelListener  (this)
+            window.layer.addMouseMotionListener (this)
+
+            // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
+            window.layer.canvas.isFocusable = false
 
             started = true
         }
@@ -246,8 +251,6 @@ internal class PointerInputServiceImpl(
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
 
-        return event.consumed.also {
-            window.layer.canvas.isFocusable = !it
-        }
+        return event.consumed
     }
 }

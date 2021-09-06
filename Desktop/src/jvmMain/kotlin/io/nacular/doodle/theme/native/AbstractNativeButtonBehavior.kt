@@ -49,7 +49,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {
-            true -> if (!nativePeer.hasFocus()) nativePeer.requestFocus()
+            true -> if (!nativePeer.hasFocus()) nativePeer.requestFocusInWindow()
             else -> swingFocusManager.clearFocusOwner()
         }
     }
@@ -108,7 +108,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             window.add(nativePeer)
 
             if (view.hasFocus) {
-                nativePeer.requestFocus()
+                nativePeer.requestFocusInWindow()
             }
         }
     }

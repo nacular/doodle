@@ -204,7 +204,7 @@ internal class NativeTextFieldBehavior(
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {
             true -> if (!nativePeer.hasFocus()) {
-                nativePeer.requestFocus()
+                nativePeer.requestFocusInWindow()
             }
             else -> if ( nativePeer.hasFocus()) { swingFocusManager.clearFocusOwner() }
         }
@@ -267,7 +267,7 @@ internal class NativeTextFieldBehavior(
             nativePeer.revalidate()
 
             if (view.hasFocus) {
-                nativePeer.requestFocus()
+                nativePeer.requestFocusInWindow()
             }
 
             view.apply {

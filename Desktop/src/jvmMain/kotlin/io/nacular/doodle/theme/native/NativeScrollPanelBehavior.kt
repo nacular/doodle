@@ -233,7 +233,7 @@ internal class NativeScrollPanelBehavior(
             window.revalidate()
 
             if (view.hasFocus) {
-                nativePeer.requestFocus()
+                nativePeer.requestFocusInWindow()
             }
         }
     }

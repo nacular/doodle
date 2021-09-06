@@ -134,8 +134,8 @@ internal class NativeSliderBehavior(
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {
-            true -> nativePeer.requestFocus ()
-            else -> nativePeer.transferFocus()
+            true -> nativePeer.requestFocusInWindow()
+            else -> nativePeer.transferFocus       ()
         }
     }
 
@@ -188,7 +188,7 @@ internal class NativeSliderBehavior(
             window.add(nativePeer)
 
             if (view.hasFocus) {
-                nativePeer.requestFocus()
+                nativePeer.requestFocusInWindow()
             }
         }
     }
