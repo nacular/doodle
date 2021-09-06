@@ -42,13 +42,14 @@ internal class JRadioButtonPeer(focusManager: FocusManager?, button: ToggleButto
 }
 
 internal class NativeRadioButtonBehavior(
-        window              : SkiaWindow,
-        appScope            : CoroutineScope,
-        uiDispatcher        : CoroutineContext,
-        swingGraphicsFactory: SwingGraphicsFactory,
-        textMetrics         : TextMetrics,
-        swingFocusManager   : javax.swing.FocusManager,
-        focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<ToggleButton, JRadioButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+        window                   : SkiaWindow,
+        appScope                 : CoroutineScope,
+        uiDispatcher             : CoroutineContext,
+        swingGraphicsFactory     : SwingGraphicsFactory,
+        textMetrics              : TextMetrics,
+        swingFocusManager        : javax.swing.FocusManager,
+        focusManager             : FocusManager?,
+        nativePointerPreprocessor: NativePointerPreprocessor?
+): AbstractNativeButtonBehavior<ToggleButton, JRadioButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer(button: ToggleButton) = JRadioButtonPeer(focusManager, button)
 }

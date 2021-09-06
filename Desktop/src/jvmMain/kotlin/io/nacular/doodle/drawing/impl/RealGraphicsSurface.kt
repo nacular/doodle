@@ -117,7 +117,7 @@ internal class RealGraphicsSurface(
         picture = null
 
         when (parent) {
-            null -> layer?.needRedraw()
+            null -> layer?.needRedraw   ()
             else -> parent.needsRerender()
         }
     }

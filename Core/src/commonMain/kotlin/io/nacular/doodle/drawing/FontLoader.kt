@@ -7,13 +7,32 @@ import io.nacular.doodle.drawing.Font.Style
  * @property size of the Font
  * @property style of the Font
  * @property weight of the Font
- * @property family of the Font, NOTE: should only be a single family and NOT a comma-separated list
+ * @property families of the Font, in priority order (where subsequent names are fallbacks if previous ones cannot load)
  */
 public class FontInfo(
-        public var size  : Int    = 12,
-        public var style : Style  = Style.Normal,
-        public var weight: Int    = Normal,
-        public var family: String = "")
+        public var size    : Int          = 12,
+        public var style   : Style        = Style.Normal,
+        public var weight  : Int          = Normal,
+        public var families: List<String> = emptyList()) {
+
+    /**
+     * Single family name of the Font. Note this should not be a comma-separated list. Use [families] to get
+     * "fall-back" behavior for family names.
+     */
+    public var family: String
+        get(   ) = families.firstOrNull() ?: ""
+        set(new) {
+            families = listOf(new)
+        }
+
+    public companion object {
+        public operator fun invoke(
+                size  : Int    = 12,
+                style : Style  = Style.Normal,
+                weight: Int    = Normal,
+                family: String = ""): FontInfo = FontInfo(size, style, weight, listOf(family))
+    }
+}
 
 /**
  * Provides a mechanism to load or lookup [Font]s.

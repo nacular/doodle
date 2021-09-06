@@ -1,5 +1,7 @@
 package io.nacular.doodle.system.impl
 
+import io.nacular.doodle.core.View
+import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
@@ -54,10 +56,30 @@ import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import java.awt.Cursor as AwtCursor
 
+internal interface NativeScrollHandler {
+    operator fun invoke(event: MouseWheelEvent, pointInTarget: Point)
+}
+
+internal class NativeScrollHandlerFinder {
+    private val handlers = mutableMapOf<View, NativeScrollHandler>()
+
+    operator fun get(view: View) = handlers[view]
+
+    operator fun set(view: View, handler: NativeScrollHandler) {
+        handlers[view] = handler
+    }
+
+    fun remove(view: View) = handlers.remove(view)
+}
+
 /**
  * Created by Nicholas Eddy on 5/24/21.
  */
-internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerInputService, MouseAdapter(), MouseWheelListener, MouseMotionListener {
+internal class PointerInputServiceImpl(
+        private val window                   : SkiaWindow,
+        private val viewFinder               : ViewFinder,
+        private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?
+): PointerInputService, MouseAdapter(), MouseWheelListener, MouseMotionListener {
     private var started       = false
     private val listeners     = mutableSetOf<Listener>()
     private val preprocessors = mutableSetOf<Preprocessor>()
@@ -144,7 +166,30 @@ internal class PointerInputServiceImpl(private val window: SkiaWindow): PointerI
         notifyPointerEvent(e, Type.Move)
     }
 
-    override fun mouseWheelMoved(e: MouseWheelEvent) {}
+    override fun mouseWheelMoved(e: MouseWheelEvent) {
+        // TODO: Expose wheel events to View generally?
+        if (nativeScrollHandlerFinder == null) {
+            return
+        }
+
+        val windowScreenLocation = window.layeredPane.locationOnScreen
+        val absoluteLocation     = e.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
+        viewFinder.find(absoluteLocation)?.let {
+            var target = it as View?
+
+            while (target != null) {
+                val handler = nativeScrollHandlerFinder[target]
+
+                if (handler != null) {
+                    handler(e, target.fromAbsolute(absoluteLocation))
+
+                    break
+                }
+
+                target = target.parent
+            }
+        }
+    }
 
     private fun startUp() {
         if (!started) {

@@ -105,14 +105,15 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
 
 internal class NativeHyperLinkBehavior(
-        window              : SkiaWindow,
-        appScope            : CoroutineScope,
-        uiDispatcher        : CoroutineContext,
-        swingGraphicsFactory: SwingGraphicsFactory,
-        textMetrics         : TextMetrics,
-        swingFocusManager   : javax.swing.FocusManager,
-        focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+        window                   : SkiaWindow,
+        appScope                 : CoroutineScope,
+        uiDispatcher             : CoroutineContext,
+        swingGraphicsFactory     : SwingGraphicsFactory,
+        textMetrics              : TextMetrics,
+        swingFocusManager        : javax.swing.FocusManager,
+        focusManager             : FocusManager?,
+        nativePointerPreprocessor: NativePointerPreprocessor?
+): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer(button: HyperLink) = HyperLinkPeer(focusManager, button)
 
 }

@@ -42,13 +42,14 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
 }
 
 internal class NativeCheckBoxBehavior(
-        window              : SkiaWindow,
-        appScope            : CoroutineScope,
-        uiDispatcher        : CoroutineContext,
-        swingGraphicsFactory: SwingGraphicsFactory,
-        textMetrics         : TextMetrics,
-        swingFocusManager   : javax.swing.FocusManager,
-        focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+        window                   : SkiaWindow,
+        appScope                 : CoroutineScope,
+        uiDispatcher             : CoroutineContext,
+        swingGraphicsFactory     : SwingGraphicsFactory,
+        textMetrics              : TextMetrics,
+        swingFocusManager        : javax.swing.FocusManager,
+        focusManager             : FocusManager?,
+        nativePointerPreprocessor: NativePointerPreprocessor?
+): AbstractNativeButtonBehavior<ToggleButton, JCheckBoxPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer(button: ToggleButton) = JCheckBoxPeer(focusManager, button)
 }

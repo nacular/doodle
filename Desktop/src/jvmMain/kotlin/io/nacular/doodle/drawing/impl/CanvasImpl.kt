@@ -474,7 +474,7 @@ internal class CanvasImpl(
                                 Style.Dashed -> DASHED
                                 Style.Wavy   -> WAVY
                             },
-                            1f)
+                            2f)
                     }
                 })
                 builder.addText(text)

@@ -42,13 +42,14 @@ internal class JButtonPeer(focusManager: FocusManager?, button: Button): JButton
 }
 
 internal class NativeButtonBehavior(
-        window              : SkiaWindow,
-        appScope            : CoroutineScope,
-        uiDispatcher        : CoroutineContext,
-        swingGraphicsFactory: SwingGraphicsFactory,
-        textMetrics         : TextMetrics,
-        swingFocusManager   : javax.swing.FocusManager,
-        focusManager        : FocusManager?
-): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager) {
+        window                   : SkiaWindow,
+        appScope                 : CoroutineScope,
+        uiDispatcher             : CoroutineContext,
+        swingGraphicsFactory     : SwingGraphicsFactory,
+        textMetrics              : TextMetrics,
+        swingFocusManager        : javax.swing.FocusManager,
+        focusManager             : FocusManager?,
+        nativePointerPreprocessor: NativePointerPreprocessor?
+): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer (button: Button) = JButtonPeer(focusManager, button)
 }

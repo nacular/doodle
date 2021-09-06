@@ -30,8 +30,8 @@ private external interface FontFaceSet {
 
 internal class FontLoaderImpl(private val document: Document, private val fontSerializer: FontSerializer): FontLoader {
     override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font = FontInfo().apply(info).let {
-        val loadedFont = FontFace(it.family, "url($source)", jsObject {
-            family = it.family
+        val loadedFont = FontFace(it.families.joinToString(), "url($source)", jsObject {
+            family = it.families
             size   = it.size
             style  = it.style.styleText
             weight = "${it.weight}"

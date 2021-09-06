@@ -28,10 +28,13 @@ import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
+import io.nacular.doodle.theme.native.NativePointerPreprocessor
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
+import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 import org.kodein.di.singleton
 import java.net.URLDecoder
 
@@ -47,9 +50,11 @@ public class Modules {
         }
 
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bindSingleton<ViewFinder>          { ViewFinderImpl         (instance()                        ) }
-            bindSingleton<PointerInputService> { PointerInputServiceImpl(instance()                        ) }
-            bindSingleton<PointerInputManager> { PointerInputManagerImpl(instance(), instance(), instance()) }
+            bindInstance { NativePointerPreprocessor() }
+
+            bindSingleton<ViewFinder>          { ViewFinderImpl         (instance()                                                               ) }
+            bindSingleton<PointerInputService> { PointerInputServiceImpl(instance(), instance(), instanceOrNull()                                 ) }
+            bindSingleton<PointerInputManager> { PointerInputManagerImpl(instance(), instance(), instance(), instance<NativePointerPreprocessor>()) }
         }
 
         public val KeyboardModule: Module = Module(allowSilentOverride = true, name = "Keyboard") {

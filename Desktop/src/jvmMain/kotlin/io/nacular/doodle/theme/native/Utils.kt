@@ -49,12 +49,14 @@ import java.awt.event.MouseEvent.MOUSE_EXITED
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.awt.event.MouseEvent.MOUSE_PRESSED
 import java.awt.event.MouseEvent.MOUSE_RELEASED
+import java.awt.event.MouseWheelEvent
 import java.awt.font.TextAttribute.FAMILY
 import java.awt.font.TextAttribute.POSTURE
 import java.awt.font.TextAttribute.POSTURE_OBLIQUE
 import java.awt.font.TextAttribute.POSTURE_REGULAR
 import java.awt.font.TextAttribute.SIZE
 import java.awt.font.TextAttribute.WEIGHT
+import javax.swing.JComponent
 import org.jetbrains.skija.Font as SkijaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont
@@ -102,6 +104,17 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     }
 
     return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
+}
+
+internal fun MouseEvent.update(target: Component, location: java.awt.Point): MouseEvent = when (this) {
+    is MouseWheelEvent -> MouseWheelEvent(
+                        target,
+                        id,
+                        `when`,
+                        modifiersEx,
+                        location.x, location.y,
+                        clickCount, isPopupTrigger, scrollType, scrollAmount, wheelRotation)
+    else -> MouseEvent(target, id, `when`, modifiersEx, location.x, location.y, clickCount, isPopupTrigger)
 }
 
 internal fun AwtFont.skiaStyle(): FontStyle {

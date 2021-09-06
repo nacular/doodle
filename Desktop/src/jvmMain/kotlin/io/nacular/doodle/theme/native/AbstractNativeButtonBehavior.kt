@@ -11,6 +11,8 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.SystemPointerEvent.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
@@ -21,13 +23,14 @@ import kotlin.coroutines.CoroutineContext
 
 
 internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
-        private   val window              : SkiaWindow,
-        private   val appScope            : CoroutineScope,
-        private   val uiDispatcher        : CoroutineContext,
-                      textMetrics         : TextMetrics,
-        private   val swingGraphicsFactory: SwingGraphicsFactory,
-        private   val swingFocusManager   : javax.swing.FocusManager,
-        protected val focusManager        : FocusManager?
+        private   val window                   : SkiaWindow,
+        private   val appScope                 : CoroutineScope,
+        private   val uiDispatcher             : CoroutineContext,
+                      textMetrics              : TextMetrics,
+        private   val swingGraphicsFactory     : SwingGraphicsFactory,
+        private   val swingFocusManager        : javax.swing.FocusManager,
+        protected val focusManager             : FocusManager?,
+        private   val nativePointerPreprocessor: NativePointerPreprocessor?
 ): CommonTextButtonBehavior<T>(textMetrics) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
 
     internal interface Peer {
@@ -78,6 +81,14 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
 
         nativePeer = createPeer(view)
 
+        nativePointerPreprocessor?.set(view, object: NativeMouseHandler {
+            override fun invoke(event: PointerEvent) {
+                nativePeer.ignoreSelectionChange = event.type == Type.Up
+                nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+                nativePeer.ignoreSelectionChange = false
+            }
+        })
+
         view.apply {
             oldIdealSize         = idealSize
             focusChanged        += this@AbstractNativeButtonBehavior.focusChanged
@@ -115,6 +126,8 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             focusabilityChanged -= this@AbstractNativeButtonBehavior.focusableChanged
         }
 
+        nativePointerPreprocessor?.remove(view)
+
         appScope.launch(uiDispatcher) {
             window.remove(nativePeer)
 
@@ -130,30 +143,30 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         }
     }
 
-    override fun entered(event: PointerEvent) {
-        super.entered(event)
-        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun exited(event: PointerEvent) {
-        super.exited(event)
-        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun pressed(event: PointerEvent) {
-        super.pressed(event)
-        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun clicked(event: PointerEvent) {
-        super.clicked(event)
-        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun released(event: PointerEvent) {
-        nativePeer.ignoreSelectionChange = true
-        super.released(event)
-        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-        nativePeer.ignoreSelectionChange = false
-    }
+//    override fun entered(event: PointerEvent) {
+//        super.entered(event)
+//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+//    }
+//
+//    override fun exited(event: PointerEvent) {
+//        super.exited(event)
+//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+//    }
+//
+//    override fun pressed(event: PointerEvent) {
+//        super.pressed(event)
+//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+//    }
+//
+//    override fun clicked(event: PointerEvent) {
+//        super.clicked(event)
+//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+//    }
+//
+//    override fun released(event: PointerEvent) {
+//        nativePeer.ignoreSelectionChange = true
+//        super.released(event)
+//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+//        nativePeer.ignoreSelectionChange = false
+//    }
 }

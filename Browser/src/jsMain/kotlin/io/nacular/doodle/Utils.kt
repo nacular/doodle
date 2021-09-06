@@ -35,6 +35,6 @@ internal class FontSerializerImpl(htmlFactory: HtmlFactory): FontSerializer {
         override val size   get() = info.size
         override val style  get() = info.style
         override val weight get() = info.weight
-        override val family get() = info.family
+        override val family get() = info.families.joinToString()
     })
 }

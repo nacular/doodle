@@ -14,12 +14,16 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
+import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.SystemPointerEvent.Type
 import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import io.nacular.doodle.utils.Orientation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
+import java.awt.Event.MOUSE_DOWN
+import java.awt.Event.MOUSE_DRAG
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
@@ -92,12 +96,13 @@ private open class DoubleSlider(slider: Slider, precision: Int = 2): JSlider(Mod
 }
 
 internal class NativeSliderBehavior(
-        private val appScope            : CoroutineScope,
-        private val uiDispatcher        : CoroutineContext,
-        private val window              : SkiaWindow,
-        private val swingGraphicsFactory: SwingGraphicsFactory,
-        private val focusManager        : FocusManager?
-): Behavior<Slider>, PointerListener, PointerMotionListener {
+        private val appScope                 : CoroutineScope,
+        private val uiDispatcher             : CoroutineContext,
+        private val window                   : SkiaWindow,
+        private val swingGraphicsFactory     : SwingGraphicsFactory,
+        private val focusManager             : FocusManager?,
+        private val nativePointerPreprocessor: NativePointerPreprocessor?
+): Behavior<Slider> {
 
     private inner class JSliderPeer(slider: Slider): DoubleSlider(slider) {
         private val slider: Slider? = slider
@@ -150,20 +155,26 @@ internal class NativeSliderBehavior(
         nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
     }
 
-    override fun mirrorWhenRightToLeft(view: Slider) = false
-
     override fun install(view: Slider) {
         super.install(view)
 
         nativePeer = JSliderPeer(view)
 
+        nativePointerPreprocessor?.set(view, object: NativeMouseHandler {
+            override fun invoke(event: PointerEvent) {
+                nativePeer.processMouseEvent(event.toAwt(nativePeer))
+
+//                if (event.type == Down || event.type == Drag) {
+//                    event.consume()
+//                }
+            }
+        })
+
         view.apply {
-            focusChanged         += this@NativeSliderBehavior.focusChanged
-            boundsChanged        += this@NativeSliderBehavior.boundsChanged
-            enabledChanged       += this@NativeSliderBehavior.enabledChanged
-            pointerChanged       += this@NativeSliderBehavior
-            focusabilityChanged  += this@NativeSliderBehavior.focusableChanged
-            pointerMotionChanged += this@NativeSliderBehavior
+            focusChanged        += this@NativeSliderBehavior.focusChanged
+            boundsChanged       += this@NativeSliderBehavior.boundsChanged
+            enabledChanged      += this@NativeSliderBehavior.enabledChanged
+            focusabilityChanged += this@NativeSliderBehavior.focusableChanged
         }
 
         appScope.launch(uiDispatcher) {
@@ -189,44 +200,14 @@ internal class NativeSliderBehavior(
             cursor    = oldCursor
             idealSize = oldIdealSize
 
-            focusChanged         -= this@NativeSliderBehavior.focusChanged
-            boundsChanged        -= this@NativeSliderBehavior.boundsChanged
-            enabledChanged       -= this@NativeSliderBehavior.enabledChanged
-            pointerChanged       -= this@NativeSliderBehavior
-            focusabilityChanged  -= this@NativeSliderBehavior.focusableChanged
-            pointerMotionChanged -= this@NativeSliderBehavior
+            focusChanged        -= this@NativeSliderBehavior.focusChanged
+            boundsChanged       -= this@NativeSliderBehavior.boundsChanged
+            enabledChanged      -= this@NativeSliderBehavior.enabledChanged
+            focusabilityChanged -= this@NativeSliderBehavior.focusableChanged
         }
 
         appScope.launch(uiDispatcher) {
             window.remove(nativePeer)
         }
-    }
-
-    override fun entered(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun pressed(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun released(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun clicked(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun moved(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun dragged(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
-    }
-
-    override fun exited(event: PointerEvent) {
-        nativePeer.processMouseEvent(event.toAwt(nativePeer))
     }
 }
