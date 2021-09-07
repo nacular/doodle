@@ -8,6 +8,8 @@ Doodle supports accessibility through a number of features. Simply include the
 [`AccessibilityModule`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Modules.kt#L104)
 in your app to fully enable them.
 
+!> Only Web apps support this feature currently, as Desktop is still in alpha.
+
 ```kotlin
 class MyApp(/*...*/) {
     // use accessibility features

@@ -3,6 +3,7 @@
 
 Doodle allows you to load [`Image`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/Image.kt#L6)s
 into your app for rendering using the [`ImageLoader`](https://github.com/nacular/doodle/blob/master/Core/src/commonMain/kotlin/io/nacular/doodle/image/ImageLoader.kt#L3).
+This loader is available to apps via the `ImageModule`.
 
 ```kotlin
 import kotlinx.coroutines.GlobalScope

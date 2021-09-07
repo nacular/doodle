@@ -4,7 +4,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter     ()
 }
 
 val kotlinVersion = "1.5.30" //: String by System.getProperties()

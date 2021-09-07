@@ -1,14 +1,19 @@
 <div style="text-align:center"><img src="docs/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
-<div style="text-align:center"><h1>A pure Kotlin, UI framework for the Web</h1></div>
+<div style="text-align:center"><h1>A pure Kotlin, UI framework</h1></div>
 
-[![Kotlin 1.4.31](https://img.shields.io/badge/Kotlin-1.4.31-blue.svg?style=for-the-badge&logo=kotlin)](http://kotlinlang.org)
+[![Kotlin 1.5.30](https://img.shields.io/badge/Kotlin-1.5.30-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 [![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
-### Single-language
-Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle [Applications](applications.md) do not use HTML,
+### Single Language
+Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle Web [Applications](applications.md) do not use HTML,
 CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all, and can be written entirely
 as common (cross-platform) code in [multi-platform](https://kotlinlang.org/docs/reference/platform-specific-declarations.html) setups.
+
+### Multiple Platforms
+Doodle supports both JS (Browser) and JVM (alpha) targets; so common code apps are able to run in the Browser and Desktop (with other platforms
+planned) without modification. This means you write widgets once and use them on either platform. The only difference is how apps are launched on each 
+platform.
 
 ### Expressive
 Creating expressive, intuitive apps is natural with Doodle. It makes complex rendering easy with powerful, vector-oriented rendering,

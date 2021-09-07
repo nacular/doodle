@@ -59,8 +59,8 @@ class MyApp(display: Display): View() {
 
 ## Launch mode changes the Display
 
-A [**Stand-Alone**](applications.md?id=stand-alone) app that uses the entire page will have a Display tied to the page body. While
-an app hosted in an element will have a Display that is tied to that element.
+A [**Stand-Alone**](applications.md?id=stand-alone) Web app that uses the entire page will have a Display tied to the page body. While
+one hosted in an element will have a Display that is tied to that element.
 
 This is transparent to the app.
 

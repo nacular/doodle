@@ -20,12 +20,12 @@ class UsefulApp: Application {
 You can either launch an app **top-level**, or **nested** within another app. The Application class does not change regardless of the
 launch mode. That is because apps have no knowledge of the mode they will run in, making them independent of browser concepts by default.
 
-?> Doodle does not expose any browser concepts to apps. The launch step is the only place where HTML elements are directly accepted, 
-and this is only to support running Doodle apps within a non-Doodle page.
+?> Doodle does not expose any browser or desktop-specific concepts to apps. The launch step is the only place where HTML elements are directly accepted
+for Web apps, and this is only to support running Doodle apps within a non-Doodle page.
 
 ### Top-level Apps
 
-Most apps will run independent of others and exist purely within the context of a page (or element within it). Use the [`application`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Application.kt#L65)
+Most apps will run independent of others and exist purely within the context of a page, or element within it (for Web apps). Use the [`application`](https://github.com/nacular/doodle/blob/master/Browser/src/jsMain/kotlin/io/nacular/doodle/application/Application.kt#L65)
 function to launch apps this way. The result is a full-screen experience by default, with the app taking up the entire page and control all
 aspects of it. You can also provide an HTML element when launching a top-level app. This allows you to host Doodle apps in non-Doodle contexts. 
 The apps in this documentation are top-level within specific elements.
@@ -43,7 +43,7 @@ fun main() {
 
 ### Nested Apps
 
-Doodle apps can also be run within other Doodle apps. This is done by placing the nested app in a [**View**](views.md?id=creating-views)
+Doodle Web apps can also be run within other Doodle Web apps. This is done by placing the nested app in a [**View**](views.md?id=creating-views)
 that the host app manages. An app launched this way has the same functionality as a top-level one. Its lifecycle however, is tied to
 the host View.
 
@@ -93,3 +93,21 @@ the app by removing the host View from the Display.
 Doodle uses [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) when creating apps. The
 lambda provided when launching an app is actually a [Kodein](https://github.com/Kodein-Framework/Kodein-DI) binding
 context that lets you inject instances from Doodle modules, or your own.
+
+```kotlin
+import io.nacular.doodle.application.application
+import io.nacular.doodle.application.Modules.Companion.PointerModule
+import org.kodein.di.instance
+
+fun main() {
+    application(modules = listOf(
+        PointerModule, 
+        // ...,
+        Module(name = "A Custom Module") {
+            // custom Kodein bind statements
+        },
+        /*...*/) {
+        MyApp(instance())
+    })
+}
+```
