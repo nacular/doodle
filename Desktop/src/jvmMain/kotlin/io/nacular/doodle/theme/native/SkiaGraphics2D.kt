@@ -1,34 +1,34 @@
 package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
-import org.jetbrains.skija.BlendMode
-import org.jetbrains.skija.Canvas
-import org.jetbrains.skija.ColorAlphaType
-import org.jetbrains.skija.ColorType
-import org.jetbrains.skija.FilterTileMode
-import org.jetbrains.skija.FilterTileMode.CLAMP
-import org.jetbrains.skija.FilterTileMode.MIRROR
-import org.jetbrains.skija.Font
-import org.jetbrains.skija.FontStyle
-import org.jetbrains.skija.GradientStyle
-import org.jetbrains.skija.ImageInfo
-import org.jetbrains.skija.Matrix33
-import org.jetbrains.skija.Paint
-import org.jetbrains.skija.PaintMode
-import org.jetbrains.skija.PaintStrokeCap
-import org.jetbrains.skija.PaintStrokeCap.BUTT
-import org.jetbrains.skija.PaintStrokeCap.ROUND
-import org.jetbrains.skija.PaintStrokeCap.SQUARE
-import org.jetbrains.skija.PaintStrokeJoin
-import org.jetbrains.skija.PaintStrokeJoin.BEVEL
-import org.jetbrains.skija.PaintStrokeJoin.MITER
-import org.jetbrains.skija.Path
-import org.jetbrains.skija.PathEffect
-import org.jetbrains.skija.PathFillMode
-import org.jetbrains.skija.Rect
-import org.jetbrains.skija.Shader
-import org.jetbrains.skija.Typeface
-import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skia.BlendMode
+import org.jetbrains.skia.Canvas
+import org.jetbrains.skia.ColorAlphaType
+import org.jetbrains.skia.ColorType
+import org.jetbrains.skia.FilterTileMode
+import org.jetbrains.skia.FilterTileMode.CLAMP
+import org.jetbrains.skia.FilterTileMode.MIRROR
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.FontStyle
+import org.jetbrains.skia.GradientStyle
+import org.jetbrains.skia.ImageInfo
+import org.jetbrains.skia.Matrix33
+import org.jetbrains.skia.Paint
+import org.jetbrains.skia.PaintMode
+import org.jetbrains.skia.PaintStrokeCap
+import org.jetbrains.skia.PaintStrokeCap.BUTT
+import org.jetbrains.skia.PaintStrokeCap.ROUND
+import org.jetbrains.skia.PaintStrokeCap.SQUARE
+import org.jetbrains.skia.PaintStrokeJoin
+import org.jetbrains.skia.PaintStrokeJoin.BEVEL
+import org.jetbrains.skia.PaintStrokeJoin.MITER
+import org.jetbrains.skia.Path
+import org.jetbrains.skia.PathEffect
+import org.jetbrains.skia.PathFillMode
+import org.jetbrains.skia.Rect
+import org.jetbrains.skia.Shader
+import org.jetbrains.skia.Typeface
+import org.jetbrains.skia.paragraph.FontCollection
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
@@ -89,7 +89,7 @@ import java.awt.image.renderable.RenderableImage
 import java.text.AttributedCharacterIterator
 import java.util.Hashtable
 import kotlin.math.max
-import org.jetbrains.skija.Image as SkiaImage
+import org.jetbrains.skia.Image as SkiaImage
 import java.awt.Font as AwtFont
 import java.awt.Paint as AwtPaint
 
@@ -131,18 +131,18 @@ import java.awt.Paint as AwtPaint
 internal class SkiaFontMetrics(private val skiaFont: Font, awtFont: java.awt.Font?, private val textMetrics: TextMetricsImpl): FontMetrics(awtFont) {
     private inner class AwtFontWrapper(f: java.awt.Font): java.awt.Font(f) {
         override fun getStringBounds(chars: CharArray, beginIndex: Int, limit: Int, frc: FontRenderContext?): Rectangle2D = textMetrics.size(
-                String(chars, beginIndex, limit - beginIndex), skiaFont
+                String(chars, beginIndex, limit - beginIndex), skiaFont.textStyle()
         ).run { Rectangle2D.Double(0.0, 0.0, width, height) }
     }
 
-    private val metrics: org.jetbrains.skija.FontMetrics = skiaFont.metrics
+    private val metrics: org.jetbrains.skia.FontMetrics = skiaFont.metrics
 
     override fun getFont   (                                   ): java.awt.Font = AwtFontWrapper(super.getFont())
     override fun getLeading(                                   ) = metrics.leading.toInt()
     override fun getAscent (                                   ) = (-metrics.ascent).toInt()
     override fun getDescent(                                   ) = metrics.descent.toInt()
-    override fun charWidth (ch: Char                           ) = textMetrics.width(ch.toString(), skiaFont).toInt()
-    override fun charsWidth(data: CharArray, off: Int, len: Int) = textMetrics.width(String(data, off, len), skiaFont).toInt()
+    override fun charWidth (ch: Char                           ) = textMetrics.width(ch.toString(), skiaFont.textStyle()).toInt()
+    override fun charsWidth(data: CharArray, off: Int, len: Int) = textMetrics.width(String(data, off, len), skiaFont.textStyle()).toInt()
 }
 
 private class SkiaGraphicsConfiguration(private val width: Int, private val height: Int): GraphicsConfiguration() {
@@ -329,7 +329,7 @@ internal class SkiaGraphics2D(
         composite = newComposite
 
         if (newComposite is AlphaComposite) {
-            skiaPaint.alphaf = newComposite.alpha
+            skiaPaint.setAlphaf(newComposite.alpha)
 
             when (newComposite.rule) {
                 AlphaComposite.CLEAR    -> skiaPaint.setBlendMode(BlendMode.CLEAR   )

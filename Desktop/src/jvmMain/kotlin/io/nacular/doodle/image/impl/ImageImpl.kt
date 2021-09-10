@@ -2,15 +2,15 @@ package io.nacular.doodle.image.impl
 
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
-import org.jetbrains.skija.Canvas
-import org.jetbrains.skija.Rect
-import org.jetbrains.skija.svg.SVGDOM
-import org.jetbrains.skija.Image as SkijaImage
+import org.jetbrains.skia.Canvas
+import org.jetbrains.skia.Rect
+import org.jetbrains.skia.svg.SVGDOM
+import org.jetbrains.skia.Image as SkiaImage
 
 /**
  * Created by Nicholas Eddy on 5/20/21.
  */
-internal class ImageImpl(val skiaImage: SkijaImage, override val source: String): Image {
+internal class ImageImpl(val skiaImage: SkiaImage, override val source: String): Image {
     override val size: Size by lazy { Size(skiaImage.imageInfo.width, skiaImage.imageInfo.height) }
 }
 

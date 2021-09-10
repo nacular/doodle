@@ -71,7 +71,7 @@ public class Modules {
         }
 
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
-            bind<FontLoader>() with singleton { FontLoaderImpl() }
+            bind<FontLoader>() with singleton { FontLoaderImpl(instance()) }
         }
 
         /**

@@ -42,42 +42,43 @@ import io.nacular.doodle.utils.isOdd
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Measure
-import org.jetbrains.skija.Bitmap
-import org.jetbrains.skija.FilterBlurMode.NORMAL
-import org.jetbrains.skija.FilterTileMode.REPEAT
-import org.jetbrains.skija.ImageFilter
-import org.jetbrains.skija.MaskFilter
-import org.jetbrains.skija.PathEffect
-import org.jetbrains.skija.PathFillMode.*
-import org.jetbrains.skija.SamplingMode.MITCHELL
-import org.jetbrains.skija.Shader
-import org.jetbrains.skija.paragraph.BaselineMode.IDEOGRAPHIC
-import org.jetbrains.skija.paragraph.DecorationLineStyle.*
-import org.jetbrains.skija.paragraph.DecorationStyle
-import org.jetbrains.skija.paragraph.FontCollection
-import org.jetbrains.skija.paragraph.Paragraph
-import org.jetbrains.skija.paragraph.ParagraphBuilder
-import org.jetbrains.skija.paragraph.ParagraphStyle
-import org.jetbrains.skija.paragraph.PlaceholderAlignment.BASELINE
-import org.jetbrains.skija.paragraph.PlaceholderStyle
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.FilterBlurMode.NORMAL
+import org.jetbrains.skia.FilterTileMode.REPEAT
+import org.jetbrains.skia.ImageFilter
+import org.jetbrains.skia.MaskFilter
+import org.jetbrains.skia.PathEffect
+import org.jetbrains.skia.PathFillMode.*
+import org.jetbrains.skia.SamplingMode.Companion.MITCHELL
+import org.jetbrains.skia.Shader
+import org.jetbrains.skia.paragraph.BaselineMode.IDEOGRAPHIC
+import org.jetbrains.skia.paragraph.DecorationLineStyle.*
+import org.jetbrains.skia.paragraph.DecorationStyle
+import org.jetbrains.skia.paragraph.FontCollection
+import org.jetbrains.skia.paragraph.Paragraph
+import org.jetbrains.skia.paragraph.ParagraphBuilder
+import org.jetbrains.skia.paragraph.ParagraphStyle
+import org.jetbrains.skia.paragraph.PlaceholderAlignment.BASELINE
+import org.jetbrains.skia.paragraph.PlaceholderStyle
+import org.jetbrains.skia.paragraph.TextStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
 import kotlin.math.max
-import org.jetbrains.skija.Canvas as SkijaCanvas
-import org.jetbrains.skija.Font as SkijaFont
-import org.jetbrains.skija.Paint as SkijaPaint
-import org.jetbrains.skija.Path as SkijaPath
+import org.jetbrains.skia.Canvas as SkiaCanvas
+import org.jetbrains.skia.Font   as SkiaFont
+import org.jetbrains.skia.Paint  as SkiaPaint
+import org.jetbrains.skia.Path   as SkiaPath
 
 
 /**
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class CanvasImpl(
-        internal val skiaCanvas: SkijaCanvas,
-        private val defaultFont: SkijaFont,
+        internal val skiaCanvas: SkiaCanvas,
+        private val defaultFont: SkiaFont,
         private val fontCollection: FontCollection
 ): Canvas {
-    private fun Paint.skia(): SkijaPaint {
-        val result = SkijaPaint()
+    private fun Paint.skia(): SkiaPaint {
+        val result = SkiaPaint()
 
         when (this) {
             is ColorPaint          -> result.color  = color.skia()
@@ -90,7 +91,7 @@ internal class CanvasImpl(
                     allocN32Pixels(size.width.toInt(), size.height.toInt())
                 }
 
-                val bitmapCanvas = SkijaCanvas(bitmap)
+                val bitmapCanvas = SkiaCanvas(bitmap)
 
                 paint(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size })
 
@@ -103,7 +104,7 @@ internal class CanvasImpl(
         return result
     }
 
-    private fun Stroke.skia(): SkijaPaint = fill.skia().also {
+    private fun Stroke.skia(): SkiaPaint = fill.skia().also {
         it.setStroke(true)
         it.strokeWidth = thickness.toFloat()
         dashes?.let { dashes ->
@@ -352,7 +353,7 @@ internal class CanvasImpl(
         clip(ellipse.toPath().skia(), block)
     }
 
-    private fun clip(path: SkijaPath, block: Canvas.() -> Unit) {
+    private fun clip(path: SkiaPath, block: Canvas.() -> Unit) {
         skiaCanvas.save()
         skiaCanvas.clipPath(path)
         block(this)
@@ -378,14 +379,14 @@ internal class CanvasImpl(
         // no-op
     }
 
-    private val Font?.skia get() = when (this) {
-        is FontImpl -> skiaFont
-        else        -> defaultFont
+    private val Font?.textStyle get() = when (this) {
+        is FontImpl -> textStyle
+        else        -> defaultFont.textStyle()
     }
 
-    private fun drawOuterShadows(operation: SkijaCanvas.(SkijaPaint) -> Unit) {
+    private fun drawOuterShadows(operation: SkiaCanvas.(SkiaPaint) -> Unit) {
         shadows.filterIsInstance<OuterShadow>().forEach {
-            val blur = SkijaPaint().apply {
+            val blur = SkiaPaint().apply {
                 color       = it.color.skia()
                 isAntiAlias = true
                 if (it.blurRadius > 0f) {
@@ -404,7 +405,7 @@ internal class CanvasImpl(
         val path: Path by lazy { pathProvider() }
 
         shadows.filterIsInstance<InnerShadow>().forEach {
-            val blur = SkijaPaint().apply {
+            val blur = SkiaPaint().apply {
                 color       = it.color.opacity(it.color.opacity * 0.4f).skia()
                 isAntiAlias = true
                 strokeWidth = it.blurRadius.toFloat()
@@ -430,9 +431,9 @@ internal class CanvasImpl(
 
     private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, fill: Paint) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia())
 
-    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, paint: SkijaPaint): Paragraph {
+    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, paint: SkiaPaint): Paragraph {
         val style = ParagraphStyle().apply {
-            textStyle = font.skia.textStyle().apply { foreground = paint }
+            textStyle = font.textStyle.apply { foreground = paint }
         }
 
         val builder = ParagraphBuilder(style, fontCollection).run {
@@ -453,10 +454,10 @@ internal class CanvasImpl(
         return paragraph
     }
 
-    private fun StyledText.paragraph(paint: SkijaPaint? = null): Paragraph {
+    private fun StyledText.paragraph(paint: SkiaPaint? = null): Paragraph {
         val builder = ParagraphBuilder(ParagraphStyle(), fontCollection).also { builder ->
             this.forEach { (text, style) ->
-                builder.pushStyle(style.font.skia.textStyle().apply {
+                builder.pushStyle(style.font.textStyle.apply {
                     foreground = paint ?: style.foreground?.skia() ?: Black.paint.skia()
 
                     style.background?.skia()?.let { background = it }

@@ -63,13 +63,13 @@ internal class FontLoaderImpl(private val document: Document, private val fontSe
     }
 
     private fun FontFace.toFont(size: Int): Font {
-        val w = when (weight.toLowerCase()) {
+        val w = when (weight.lowercase()) {
             "bold"   -> 700
             "normal" -> 400
             else     -> weight.toInt()
         }
 
-        val lowerCaseStyle = style.toLowerCase()
+        val lowerCaseStyle = style.lowercase()
 
         val s = when {
             lowerCaseStyle == "italic"           -> Italic

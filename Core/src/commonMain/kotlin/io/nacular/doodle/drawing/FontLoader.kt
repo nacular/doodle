@@ -44,7 +44,7 @@ public interface FontLoader {
      * @param info of the font
      * @return the font IFF found
      */
-    public suspend operator fun invoke(info: FontInfo.() -> Unit): Font
+    public suspend operator fun invoke(info: FontInfo.() -> Unit): Font?
 
     /**
      * Tries to find a loaded font matching the given font with info overrides.
@@ -60,7 +60,7 @@ public interface FontLoader {
      * @param info of the font
      * @return the font IFF found
      */
-    public suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit): Font = invoke {
+    public suspend operator fun invoke(font: Font, info: FontInfo.() -> Unit): Font? = invoke {
         size   = font.size
         style  = font.style
         weight = font.weight
@@ -75,5 +75,5 @@ public interface FontLoader {
      * @param info of the font
      * @return the font IFF found
      */
-    public suspend operator fun invoke(source: String, info: FontInfo.() -> Unit): Font
+    public suspend operator fun invoke(source: String, info: FontInfo.() -> Unit): Font?
 }

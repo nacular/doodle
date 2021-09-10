@@ -29,13 +29,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.swing.Swing
 import kotlinx.datetime.Clock
-import org.jetbrains.skija.Font
-import org.jetbrains.skija.FontMgr
-import org.jetbrains.skija.FontSlant.UPRIGHT
-import org.jetbrains.skija.FontStyle
-import org.jetbrains.skija.PathMeasure
-import org.jetbrains.skija.Typeface
-import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.FontMgr
+import org.jetbrains.skia.FontSlant.UPRIGHT
+import org.jetbrains.skia.FontStyle
+import org.jetbrains.skia.PathMeasure
+import org.jetbrains.skia.Typeface
+import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaWindow
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
@@ -88,7 +88,7 @@ private open class ApplicationHolderImpl protected constructor(
     }
     private val defaultFont    = Font(Typeface.makeFromName("Courier", FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
-        setDefaultFontManager(FontMgr.getDefault())
+        setDefaultFontManager(FontMgr.default)
     }
 
     protected var injector = direct {

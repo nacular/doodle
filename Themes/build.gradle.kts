@@ -21,7 +21,7 @@ kotlin {
 
     sourceSets {
         all {
-            languageSettings.useExperimentalAnnotation("io.nacular.doodle.core.Internal")
+            languageSettings.optIn("io.nacular.doodle.core.Internal")
         }
 
         val commonMain by getting {

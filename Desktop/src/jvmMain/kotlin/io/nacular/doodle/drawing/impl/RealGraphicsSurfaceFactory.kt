@@ -1,8 +1,8 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.core.View
-import org.jetbrains.skija.Font
-import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaWindow
 
 /**

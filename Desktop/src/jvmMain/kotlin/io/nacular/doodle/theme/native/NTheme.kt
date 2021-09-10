@@ -16,7 +16,7 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
-import org.jetbrains.skija.Canvas
+import org.jetbrains.skia.Canvas
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
 import org.kodein.di.bindInstance

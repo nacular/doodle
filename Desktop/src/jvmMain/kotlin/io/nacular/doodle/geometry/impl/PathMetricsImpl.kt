@@ -5,7 +5,7 @@ import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.skia.skia
-import org.jetbrains.skija.PathMeasure
+import org.jetbrains.skia.PathMeasure
 
 public class PathMetricsImpl(private val pathMeasure: PathMeasure): PathMetrics {
     override fun width (path: Path): Double    = path.skia().computeTightBounds().width.toDouble ()

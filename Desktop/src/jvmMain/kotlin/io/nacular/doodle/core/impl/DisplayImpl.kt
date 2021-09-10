@@ -34,8 +34,8 @@ import io.nacular.doodle.utils.observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.jetbrains.skija.Font
-import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
@@ -43,7 +43,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
-import org.jetbrains.skija.Canvas as SkiaCanvas
+import org.jetbrains.skia.Canvas as SkiaCanvas
 
 
 /**

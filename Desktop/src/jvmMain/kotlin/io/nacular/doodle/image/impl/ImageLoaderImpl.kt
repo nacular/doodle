@@ -3,10 +3,10 @@ package io.nacular.doodle.image.impl
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
-import org.jetbrains.skija.Data
-import org.jetbrains.skija.svg.SVGDOM
+import org.jetbrains.skia.Data
+import org.jetbrains.skia.svg.SVGDOM
 import java.io.InputStream
-import org.jetbrains.skija.Image as SkijaImage
+import org.jetbrains.skia.Image as SkiaImage
 
 public interface UrlDecoder {
     public fun decode(string: String, encoding: String): String
@@ -23,7 +23,7 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder): ImageLoader {
         loadedImages[source]?.let { return it }
 
         try {
-            loadedImages[source] = when (val file: InputStream? = javaClass.getResourceAsStream(source)) {
+            loadedImages[source] = when (val file: InputStream? = Thread.currentThread().contextClassLoader.getResourceAsStream(source)) {
                 null -> {
                     dataImageRegex.find(source)?.let {
                         val encoding = it.groups["encoding"]?.value
@@ -38,13 +38,13 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder): ImageLoader {
                             "image/svg+xml" -> {
                                 SvgImage(SVGDOM(Data.makeFromBytes(urlDecoder.decode(data, encoding).toByteArray())))
                             }
-                            else -> data.let { ImageImpl(SkijaImage.makeFromEncoded(it.encodeToByteArray()), source) }
+                            else -> data.let { ImageImpl(SkiaImage.makeFromEncoded(it.encodeToByteArray()), source) }
                         }
                     } ?:
 
-                    ImageImpl(SkijaImage.makeFromEncoded(source.encodeToByteArray()), source)
+                    ImageImpl(SkiaImage.makeFromEncoded(source.encodeToByteArray()), source)
                 }
-                else -> ImageImpl(SkijaImage.makeFromEncoded(file.readBytes()), source)
+                else -> ImageImpl(SkiaImage.makeFromEncoded(file.readBytes()), source)
             }
         } catch (ignored: Throwable) { ignored.printStackTrace() }
 
@@ -53,7 +53,7 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder): ImageLoader {
 
     override suspend fun load(file: LocalFile): Image? {
         try {
-            return ImageImpl(SkijaImage.makeFromEncoded(file.read()), file.name)
+            return ImageImpl(SkiaImage.makeFromEncoded(file.read()), file.name)
         } catch (ignored: Throwable) { ignored.printStackTrace() }
 
         return null

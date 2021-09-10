@@ -20,7 +20,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import io.nacular.doodle.utils.HorizontalAlignment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skija.Typeface
+import org.jetbrains.skia.Typeface
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -38,7 +38,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.JTextComponent
 import kotlin.coroutines.CoroutineContext
-import org.jetbrains.skija.Font as SkiaFont
+import org.jetbrains.skia.Font as SkiaFont
 
 private class PlaceHolderLabel(text: String, private val component: JTextComponent): JLabel(), DocumentListener {
     private fun updateVisibility() {

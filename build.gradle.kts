@@ -13,7 +13,7 @@ buildscript {
 }
 
 plugins {
-    id    ("org.jetbrains.dokka") version "0.10.1"
+    id    ("org.jetbrains.dokka") version "1.5.0"
     signing
 }
 
@@ -21,9 +21,10 @@ allprojects {
     apply (plugin = "org.jetbrains.dokka")
     apply (plugin = "maven-publish"      )
     apply (plugin = "signing"            )
+    apply (plugin = "org.jetbrains.dokka")
 
     repositories {
-        maven       { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }
+        maven       { url = uri("https://dl.bintray.com/kotlin/kotlin-eap"              ) }
         maven       { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         mavenCentral()
         mavenLocal  ()
@@ -33,33 +34,28 @@ allprojects {
         group = JavaBasePlugin.DOCUMENTATION_GROUP
         description = "Assembles Kotlin docs with Dokka"
         archiveClassifier.set("javadoc")
-        from(tasks.dokka)
+        from(tasks.dokkaHtml)
     }
 
     setupPublication(dokkaJar)
 
     setupSigning()
 
-    tasks {
-        val dokka by getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
-            outputFormat    = "html"
-            outputDirectory = "$buildDir/javadoc"
-            subProjects     = listOf("Animation", "Browser", "Controls", "Core", "Themes")
+    tasks.dokkaHtml {
+        outputDirectory.set(buildDir.resolve("javadoc"))
 
-            multiplatform {
-                val global by creating {
-                    // Use to include or exclude non public members.
-                    includeNonPublic = false
+        dokkaSourceSets {
+            configureEach {
+                includeNonPublic.set(false)
 
-                    // Do not output deprecated members. Applies globally, can be overridden by packageOptions
-                    skipDeprecated = true
+                // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+                skipDeprecated.set(true)
 
-                    // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
-                    reportUndocumented = true
+                // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+                reportUndocumented.set(true)
 
-                    // Do not create index pages for empty packages
-                    skipEmptyPackages = true
-                }
+                // Do not create index pages for empty packages
+                skipEmptyPackages.set(true)
             }
         }
     }

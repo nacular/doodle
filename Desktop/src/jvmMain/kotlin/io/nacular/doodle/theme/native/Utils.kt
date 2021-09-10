@@ -24,12 +24,12 @@ import io.nacular.measured.units.div
 import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlinx.datetime.Clock
-import org.jetbrains.skija.FontSlant.ITALIC
-import org.jetbrains.skija.FontSlant.OBLIQUE
-import org.jetbrains.skija.FontSlant.UPRIGHT
-import org.jetbrains.skija.FontStyle
-import org.jetbrains.skija.paragraph.BaselineMode.IDEOGRAPHIC
-import org.jetbrains.skija.paragraph.TextStyle
+import org.jetbrains.skia.FontSlant.ITALIC
+import org.jetbrains.skia.FontSlant.OBLIQUE
+import org.jetbrains.skia.FontSlant.UPRIGHT
+import org.jetbrains.skia.FontStyle
+import org.jetbrains.skia.paragraph.BaselineMode.IDEOGRAPHIC
+import org.jetbrains.skia.paragraph.TextStyle
 import java.awt.Component
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
@@ -57,7 +57,7 @@ import java.awt.font.TextAttribute.POSTURE_REGULAR
 import java.awt.font.TextAttribute.SIZE
 import java.awt.font.TextAttribute.WEIGHT
 import javax.swing.JComponent
-import org.jetbrains.skija.Font as SkijaFont
+import org.jetbrains.skia.Font as SkiaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont
 
@@ -137,7 +137,7 @@ internal fun AwtFont.skiaStyle(): FontStyle {
     })
 }
 
-internal fun SkijaFont.toAwt() = AwtFont(mutableMapOf(
+internal fun SkiaFont.toAwt() = AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to typefaceOrDefault.familyName,
         WEIGHT  to typefaceOrDefault.fontStyle.weight / 1000f,
@@ -150,7 +150,7 @@ internal fun SkijaFont.toAwt() = AwtFont(mutableMapOf(
         }
 ))
 
-internal fun Font?.toAwt(default: SkijaFont) = when (this) {
+internal fun Font?.toAwt(default: SkiaFont) = when (this) {
     null -> default.toAwt()
     else -> AwtFont(mutableMapOf(
         SIZE    to size,
@@ -166,7 +166,7 @@ internal fun Font?.toAwt(default: SkijaFont) = when (this) {
     ))
 }
 
-internal fun SkijaFont.textStyle() = TextStyle().apply {
+internal fun SkiaFont.textStyle() = TextStyle().apply {
     fontSize     = size
     typeface     = typefaceOrDefault
     fontStyle    = typefaceOrDefault.fontStyle

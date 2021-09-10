@@ -10,16 +10,16 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.skia.skia
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
-import org.jetbrains.skija.ClipMode
-import org.jetbrains.skija.Font
-import org.jetbrains.skija.Paint
-import org.jetbrains.skija.Picture
-import org.jetbrains.skija.PictureRecorder
-import org.jetbrains.skija.paragraph.FontCollection
+import org.jetbrains.skia.ClipMode
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.Paint
+import org.jetbrains.skia.Picture
+import org.jetbrains.skia.PictureRecorder
+import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaWindow
 import kotlin.properties.ReadWriteProperty
-import org.jetbrains.skija.Canvas as SkijaCanvas
+import org.jetbrains.skia.Canvas as SkiaCanvas
 
 /**
  * Created by Nicholas Eddy on 5/19/21.
@@ -82,7 +82,7 @@ internal class RealGraphicsSurface(
         }
     }
 
-    internal fun onRender(skiaCanvas: SkijaCanvas) {
+    internal fun onRender(skiaCanvas: SkiaCanvas) {
         if (picture == null) {
             val canvas = pictureRecorder.beginRecording(bounds.atOrigin.skia())
             drawToCanvas(canvas)
@@ -122,12 +122,12 @@ internal class RealGraphicsSurface(
         }
     }
 
-    private fun drawToCanvas(skiaCanvas: SkijaCanvas) {
+    private fun drawToCanvas(skiaCanvas: SkiaCanvas) {
         if (visible && !size.empty) {
             when (opacity) {
                 1f   -> skiaCanvas.save()
                 else -> skiaCanvas.saveLayer(null, Paint().apply {
-                    alpha = (255 * opacity).toInt()
+                    setAlpha((255 * opacity).toInt())
                 })
             }
 
