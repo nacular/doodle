@@ -7,6 +7,7 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
+import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
@@ -45,6 +46,7 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
 import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinnerBehavior
@@ -543,6 +545,32 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             tabContainer?.let { { panel: TabbedPanel<Any>, tabProducer: TabProducer<Any> ->
                                 it(this@bindBehavior, panel, tabProducer)
                             } } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) })
+                }
+            }
+        }
+
+        public fun basicDropdownBehavior(
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                foregroundColor    : Color?  = null,
+                cornerRadius       : Double? = null,
+                buttonWidth        : Double? = null,
+                rowHeight          : Double? = null): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
+            bindBehavior<Dropdown<Any, ListModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicDropdownBehavior<Any, ListModel<Any>>(
+                            rowHeight           = rowHeight           ?: 20.0,
+                            textMetrics         = instance(),
+                            buttonWidth         = buttonWidth         ?: 20.0,
+                            focusManager        = instanceOrNull(),
+                            cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                            backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                            foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                    ).apply {
+                        hoverColorMapper     = this@run.hoverColorMapper
+                        disabledColorMapper  = this@run.disabledColorMapper
+                    }
                 }
             }
         }

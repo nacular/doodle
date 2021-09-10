@@ -63,7 +63,7 @@ private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): Lis
 public open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
                                        override val generator   : RowGenerator<T>,
                                        private  val patternFill : PatternPaint? = null,
-                                             rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
+                                                    rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
     override fun install(view: List<T, *>) {
@@ -111,6 +111,6 @@ public open class BasicListBehavior<T>(private  val focusManager: FocusManager? 
                 oddRowColor          : Color?        = null,
                 selectionColor       : Color?        = null,
                 selectionBlurredColor: Color?        = null,
-                rowHeight            : Double): BasicListBehavior<T> = BasicListBehavior<T>(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
+                rowHeight            : Double): BasicListBehavior<T> = BasicListBehavior(focusManager, BasicItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
     }
 }

@@ -136,6 +136,7 @@ public class BasicSpinnerBehavior(
             behavior      = SpinnerButtonBehavior(false)
         }
 
+        // FIXME: need to cleanup in uninstall
         view.changed += {
             updateCenter(view)
 
