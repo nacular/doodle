@@ -94,7 +94,7 @@ import java.awt.Font as AwtFont
 import java.awt.Paint as AwtPaint
 
 /**
- * Classes are derived works from []https://github.com/jfree/skijagraphics2d/tree/main/src/main/java/org/jfree/skija],
+ * Classes are derived works from [https://github.com/jfree/skijagraphics2d/tree/main/src/main/java/org/jfree/skija],
  * which have the following copyright.
  *
  * Copyright (c) 2021, Object Refinery Limited.
@@ -236,7 +236,7 @@ internal class SkiaGraphics2D(
         }
     }
 
-    override fun drawImage(image: Image, xform: AffineTransform?, observer: ImageObserver?): Boolean {
+    override fun drawImage(image: Image?, xform: AffineTransform?, observer: ImageObserver?): Boolean {
         val savedTransform = getTransform()
 
         if (xform != null) {
@@ -249,7 +249,7 @@ internal class SkiaGraphics2D(
         return result
     }
 
-    override fun drawImage(image: BufferedImage, imageOp: BufferedImageOp?, x: Int, y: Int) {
+    override fun drawImage(image: BufferedImage?, imageOp: BufferedImageOp?, x: Int, y: Int) {
         var imageToDraw = image
         if (imageOp != null) {
             imageToDraw = imageOp.filter(image, null)
@@ -689,7 +689,8 @@ internal class SkiaGraphics2D(
         }
     }
 
-    override fun drawImage(image: Image, x: Int, y: Int, width: Int, height: Int, observer: ImageObserver?) = when {
+    override fun drawImage(image: Image?, x: Int, y: Int, width: Int, height: Int, observer: ImageObserver?) = when {
+        image == null             -> true
         width <= 0 || height <= 0 -> true
         else                      -> {
             canvas.drawImageRect(image.skia, Rect(x.toFloat(), y.toFloat(), (x + width).toFloat(), (y + height).toFloat()))
@@ -697,9 +698,9 @@ internal class SkiaGraphics2D(
         }
     }
 
-    override fun drawImage(image: Image?, x: Int, y: Int, bgcolor: Color, observer: ImageObserver) = image?.let { drawImage(it, x, y, image.getWidth(null), image.getHeight(null), bgcolor, observer) } ?: true
+    override fun drawImage(image: Image?, x: Int, y: Int, bgcolor: Color, observer: ImageObserver?) = image?.let { drawImage(it, x, y, image.getWidth(null), image.getHeight(null), bgcolor, observer) } ?: true
 
-    override fun drawImage(image: Image, x: Int, y: Int, width: Int, height: Int, bgcolor: Color, observer: ImageObserver): Boolean {
+    override fun drawImage(image: Image?, x: Int, y: Int, width: Int, height: Int, bgcolor: Color, observer: ImageObserver?): Boolean {
         val saved = paint
         paint = bgcolor
         fillRect(x, y, width, height)
@@ -707,7 +708,7 @@ internal class SkiaGraphics2D(
         return drawImage(image, x, y, width, height, observer)
     }
 
-    override fun drawImage(image: Image, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int, observer: ImageObserver): Boolean {
+    override fun drawImage(image: Image?, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int, observer: ImageObserver?): Boolean {
         val width  = dx2 - dx1
         val height = dy2 - dy1
         val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
@@ -715,7 +716,7 @@ internal class SkiaGraphics2D(
         return drawImage(bufferedImage, dx1, dy1, null)
     }
 
-    override fun drawImage(image: Image, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int, bgcolor: Color, observer: ImageObserver): Boolean {
+    override fun drawImage(image: Image?, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int, bgcolor: Color, observer: ImageObserver?): Boolean {
         val saved = paint
         paint = bgcolor
         fillRect(dx1, dy1, dx2 - dx1, dy2 - dy1)
