@@ -4,6 +4,7 @@ import io.nacular.doodle.accessibility.ListRole
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.IntProgressionModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
@@ -401,14 +402,3 @@ public open class List<T, out M: ListModel<T>>(
     }
 }
 
-private class IntProgressionModel(private val progression: IntProgression): ListModel<Int> {
-    override val size = progression.run { (last - first) / step }
-
-    override fun get(index: Int) = progression.elementAt(index)
-
-    override fun section(range: ClosedRange<Int>) = progression.asSequence().drop(range.start).take(range.endInclusive - range.start).toList()
-
-    override fun contains(value: Int) = progression.contains(value)
-
-    override fun iterator() = progression.iterator()
-}
