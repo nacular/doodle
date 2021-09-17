@@ -566,13 +566,15 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
         }
     }
 
-    init {
-        selectionModel?.let { it.changed += selectionChanged_ }
-    }
-
     internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*, *, *>)?.view?.rerender() }
+
+    override fun addedToDisplay() {
+        selectionModel?.let { it.changed += selectionChanged_ }
+
+        super.addedToDisplay()
+    }
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }

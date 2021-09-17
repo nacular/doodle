@@ -81,8 +81,10 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
      */
     public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
-    init {
+    override fun addedToDisplay() {
         model.changed += modelChanged
+
+        super.addedToDisplay()
     }
 
     override fun removedFromDisplay() {

@@ -212,8 +212,6 @@ public open class List<T, out M: ListModel<T>>(
 
         monitorsDisplayRect = true
 
-        selectionModel?.let { it.changed += selectionChanged_ }
-
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
@@ -236,6 +234,12 @@ public open class List<T, out M: ListModel<T>>(
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
+    }
+
+    override fun addedToDisplay() {
+        selectionModel?.let { it.changed += selectionChanged_ }
+
+        super.addedToDisplay()
     }
 
     override fun removedFromDisplay() {

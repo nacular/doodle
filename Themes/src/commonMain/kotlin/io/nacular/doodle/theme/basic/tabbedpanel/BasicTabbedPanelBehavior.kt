@@ -163,14 +163,18 @@ public open class BasicTab<T>(
 
         styleChanged += { rerender() }
 
-        panel.selectionChanged += selectionChanged
-
         if (selected) {
             backgroundColor = selectedColorMapper(tabColor)
             role.selected   = true
         }
 
         path = updatePath()
+    }
+
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
+        panel.selectionChanged += selectionChanged
     }
 
     override fun removedFromDisplay() {

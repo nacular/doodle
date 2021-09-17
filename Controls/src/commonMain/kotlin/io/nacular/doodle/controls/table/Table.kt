@@ -241,15 +241,17 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
-    init {
-        selectionModel?.let { it.changed += selectionChanged_ }
-    }
-
     internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
     public operator fun get(index: Int): T? = model[index]
+
+    override fun addedToDisplay() {
+        selectionModel?.let { it.changed += selectionChanged_ }
+
+        super.addedToDisplay()
+    }
 
     override fun removedFromDisplay() {
         selectionModel?.let { it.changed -= selectionChanged_ }

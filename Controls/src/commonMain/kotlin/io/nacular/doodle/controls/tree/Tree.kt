@@ -158,8 +158,6 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         monitorsDisplayRect = true
 
-        selectionModel?.let { it.changed += selectionChanged_ }
-
         updateNumRows()
 
         layout = object: Layout {
@@ -179,6 +177,12 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
+    }
+
+    override fun addedToDisplay() {
+        selectionModel?.let { it.changed += selectionChanged_ }
+
+        super.addedToDisplay()
     }
 
     override fun removedFromDisplay() {
