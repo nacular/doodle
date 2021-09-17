@@ -29,7 +29,14 @@ public interface SelectableListKeyHandler {
                                 }
                             }
                         }
-                        else -> list.lastSelection?.let { if (event.key == ArrowUp) list.previous(it) else list.next(it) }?.let { list.setSelection(setOf(it)) }
+                        else -> {
+                            val newSelection = when (val selection = list.lastSelection) {
+                                null -> if (event.key == ArrowUp) list.lastSelectable      else list.firstSelectable
+                                else -> if (event.key == ArrowUp) list.previous(selection) else list.next(selection)
+                            }
+
+                            newSelection?.let { list.setSelection(setOf(it)) }
+                        }
                     }
                 }
 

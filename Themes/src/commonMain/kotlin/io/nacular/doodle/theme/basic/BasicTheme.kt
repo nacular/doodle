@@ -112,7 +112,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public val darkBackgroundColor   : Color  get() = Color(0xaaaaaau)
         public val lightBackgroundColor  : Color  get() = Color(0xf3f4f5u)
         public val defaultBackgroundColor: Color  get() = backgroundColor
-        public val cornerRadius          : Double get() = 4.0
+        public val cornerRadius          : Double get() = 6.0
         public val hoverColorMapper      : (Color) -> Color get() = { color: Color -> color.darker(0.1f) }
         public val disabledColorMapper   : (Color) -> Color get() = { color: Color -> color.lighter()    }
     }
@@ -550,23 +550,22 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicDropdownBehavior(
-                backgroundColor    : Color?  = null,
-                darkBackgroundColor: Color?  = null,
-                foregroundColor    : Color?  = null,
-                cornerRadius       : Double? = null,
-                buttonWidth        : Double? = null,
-                rowHeight          : Double? = null): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
+                backgroundColor      : Color?  = null,
+                darkBackgroundColor  : Color?  = null,
+                foregroundColor      : Color?  = null,
+                cornerRadius         : Double? = null,
+                buttonWidth          : Double? = null): Module = basicThemeModule(name = "BasicDropdownBehavior") {
             bindBehavior<Dropdown<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicDropdownBehavior<Any, ListModel<Any>>(
-                            rowHeight           = rowHeight           ?: 20.0,
-                            textMetrics         = instance(),
-                            buttonWidth         = buttonWidth         ?: 20.0,
-                            focusManager        = instanceOrNull(),
-                            cornerRadius        = cornerRadius        ?: this.cornerRadius,
-                            backgroundColor     = backgroundColor     ?: this.backgroundColor,
-                            foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                            darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                            display               = instance(),
+                            textMetrics           = instance(),
+                            buttonWidth           = buttonWidth         ?: 20.0,
+                            focusManager          = instanceOrNull(),
+                            cornerRadius          = cornerRadius        ?: this.cornerRadius,
+                            backgroundColor       = backgroundColor     ?: this.backgroundColor,
+                            foregroundColor       = foregroundColor     ?: this.foregroundColor,
+                            darkBackgroundColor   = darkBackgroundColor ?: this.darkBackgroundColor
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
@@ -585,6 +584,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicSliderBehavior(),
                 basicSpinnerBehavior(),
                 basicCheckBoxBehavior(),
+                basicDropdownBehavior(),
                 basicSplitPanelBehavior(),
                 basicRadioButtonBehavior(),
                 basicMutableListBehavior(),

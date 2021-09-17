@@ -95,9 +95,9 @@ public class BasicSpinnerBehavior(
         override fun render(view: Button, canvas: Canvas) {
             canvas.rect(
                 Rectangle(
-                    -cornerRadius,
+                    0.0,
                     0.0 - if (!isTop) cornerRadius else 0.0,
-                    view.width  + cornerRadius,
+                    view.width,
                     view.height + cornerRadius),
                 cornerRadius, colors(view).fillColor.paint)
 
@@ -161,15 +161,15 @@ public class BasicSpinnerBehavior(
             center.right    = next.left
             center.bottom   = parent.bottom
 
-            next.top        = parent.top
-            next.right      = parent.right
+            next.top        = parent.top   + INSET
+            next.right      = parent.right - INSET
             next.bottom     = parent.centerY
             next.width      = constant(buttonWidth)
 
             previous.top    = next.bottom
             previous.left   = next.left
             previous.right  = next.right
-            previous.bottom = parent.bottom
+            previous.bottom = parent.bottom - INSET
         }
 
         view.keyChanged     += this
@@ -218,4 +218,8 @@ public class BasicSpinnerBehavior(
     }
 
     internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View? = spinner.children.firstOrNull { it !is PushButton }
+
+    public companion object {
+        private const val INSET = 4.0
+    }
 }

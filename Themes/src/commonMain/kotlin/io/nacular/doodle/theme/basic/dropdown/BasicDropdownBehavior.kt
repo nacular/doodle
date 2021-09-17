@@ -1,67 +1,79 @@
 package io.nacular.doodle.theme.basic.dropdown
 
+import io.nacular.doodle.controls.IndexedItem
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.SimpleIndexedItem
+import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
+import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
-import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.toString
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.core.center
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.event.KeyCode.Companion.Enter
+import io.nacular.doodle.event.KeyCode.Companion.Escape
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.ConstraintBlockContext
 import io.nacular.doodle.layout.ConstraintLayout
+import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.fill
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
-import io.nacular.doodle.theme.basic.list.BasicItemGenerator
+import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
+import io.nacular.doodle.theme.basic.list.BasicListPositioner
 import io.nacular.doodle.utils.Anchor
+import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 9/9/21.
  */
 public class BasicDropdownBehavior<T, M: ListModel<T>>(
+        private val display            : Display,
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
         private val foregroundColor    : Color,
         private val cornerRadius       : Double,
-        private val generator          : ListBehavior.RowGenerator<T>,
-        private val rowHeight          : Double,
-        private val patternFill        : PatternPaint? = null,
         private val buttonWidth        : Double = 20.0,
         private val focusManager       : FocusManager? = null,
-): DropdownBehavior<T, M>, KeyListener, PointerListener {
+): DropdownBehavior<T, M> {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
-    private inner class ButtonIcon: Icon<Button> {
-        override fun size(view: Button) = Size(view.width * 0.5, view.height * 0.3)
+    private inner class ButtonIcon(private val colors: (Button) -> Color): Icon<Button> {
+        override fun size(view: Button) = Size(buttonWidth, max(0.0, view.height - 2 * INSET))
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
-            val size = size(view)
+            val iconSize      = size(view)
+            val arrowSize     = iconSize.run { Size(width * 0.5, height * 0.6) }
+            val arrowPosition = at + Point(x = (iconSize.width - arrowSize.width) / 2, y = (iconSize.height - arrowSize.height) / 2)
 
             val stroke = Stroke(when {
                 view.enabled -> foregroundColor
@@ -69,13 +81,19 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             }, 1.5)
 
             val points = listOf(
-                Point(at.x,                  at.y + size.height),
-                Point(at.x + size.width / 2, at.y              ),
-                Point(at.x + size.width,     at.y + size.height)
+                    Point(arrowPosition.x,                       arrowPosition.y + arrowSize.height * 0.3),
+                    Point(arrowPosition.x + arrowSize.width / 2, arrowPosition.y                         ),
+                    Point(arrowPosition.x + arrowSize.width,     arrowPosition.y + arrowSize.height * 0.3)
             )
 
+            canvas.rect(view.bounds.atOrigin.inset(Insets(
+                    left   = view.width - buttonWidth - INSET,
+                    top    = INSET,
+                    right  = INSET,
+                    bottom = INSET)), cornerRadius, colors(view).paint)
+
             canvas.path(points, stroke)
-            canvas.transform(Identity.flipVertically(view.height / 2)) {
+            canvas.transform(Identity.flipVertically(arrowPosition.y + arrowSize.height / 2)) {
                 path(points, stroke)
             }
         }
@@ -94,113 +112,236 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
 
         override fun install(view: Button) {
-            view.icon = ButtonIcon()
+            view.icon       = ButtonIcon { colors(it).fillColor }
+            view.iconAnchor = Anchor.Right
 
             super.install(view)
         }
 
         override fun render(view: Button, canvas: Canvas) {
-            canvas.rect(Rectangle(view.width + cornerRadius, view.height + cornerRadius), cornerRadius, colors(view).fillColor.paint)
-
             icon(view)?.let {
-                it.render(view, canvas, iconPosition(view, icon = it))
+                it.render(view, canvas, iconPosition(view, icon = it) - Point(INSET, 0.0))
             }
         }
     }
 
-    private val itemVisualizer by lazy { toString<T?, Unit>(TextVisualizer(fitText = emptySet())) }
+    private val itemVisualizer by lazy { toString<T, IndexedItem>(TextVisualizer(fitText = emptySet())) }
+
+    private val changeObserver: ChangeObserver<Dropdown<T, M>> = {
+        it.list?.setSelection(setOf(it.selection))
+    }
+
+    private inner class CustomListRow(
+                        dropdown      : Dropdown<T, M>,
+                        list          : List<T, *>,
+                        row           : T,
+                        index         : Int,
+                        itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            private val cornerRadius  : Double,
+    ): ListRow<T>(list,
+            row,
+            index,
+            itemVisualizer,
+            backgroundSelectionColor        = hoverColorMapper(this@BasicDropdownBehavior.backgroundColor),
+            backgroundSelectionBlurredColor = null) {
+        init {
+            pointerFilter += clicked {
+                dropdown.selection = index
+                hideList(dropdown)
+            }
+        }
+
+        override fun pointerOver(value: Boolean) {
+            when {
+                value -> list.setSelection   (setOf(index))
+                else  -> list.removeSelection(setOf(index))
+            }
+        }
+
+        override fun render(canvas: Canvas) {
+            backgroundColor?.let { canvas.rect(bounds.atOrigin, cornerRadius, it.paint) }
+        }
+    }
+
+    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.RowGenerator<T> {
+        override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
+            is ListRow<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, row, index) }
+            else          -> CustomListRow(
+                    dropdown       = dropdown,
+                    list           = list,
+                    row            = row,
+                    index          = index,
+                    cornerRadius   = cornerRadius,
+                    itemVisualizer = list.itemVisualizer ?: toString(TextVisualizer())
+            )
+        }.apply {
+            list.cellAlignment?.let { positioner = it }
+        }
+    }
+
+    override fun render(view: Dropdown<T, M>, canvas: Canvas) {
+        canvas.rect(view.bounds.atOrigin, cornerRadius, backgroundColor.paint)
+    }
+
+    private fun showList(view: Dropdown<T, M>) {
+        view.list?.let {
+            // FIXME Do better placement?
+            val rowHeight = view.height - 2 * INSET
+
+            it.x     = view.x
+            it.y     = view.center.y - view.height / 2 - (view.selection * rowHeight)
+            it.width = view.width
+            display.children += it
+
+            it.setSelection(setOf(view.selection))
+
+            focusManager?.requestFocus(it)
+        }
+    }
+
+    private fun hideList(view: Dropdown<T, M>) {
+        view.list?.let { display.children -= it }
+    }
 
     override fun install(view: Dropdown<T, M>) {
         super.install(view)
 
-        view.list.behavior = BasicListBehavior(focusManager, generator, patternFill, rowHeight)
+        view.list = List(view.model, selectionModel = SingleItemSelectionModel()).apply {
+            insets = Insets(INSET)
 
-        val center = (view.comboItemVisualizer ?: itemVisualizer)(view.value, null, Unit)
+            cellAlignment = {
+                centerX = parent.centerX - buttonWidth / 2
+                centerY = parent.centerY
+            }
+
+            behavior = object: BasicListBehavior<T>(focusManager, ItemGenerator(view), null, 0.0) {
+                override val positioner: ListBehavior.RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
+                    override val height get() = view.height - 2 * INSET
+                }
+
+                override fun render(view: List<T, *>, canvas: Canvas) {
+                    canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
+                }
+            }
+
+            acceptsThemes = false
+
+            focusChanged += { _,_,focused ->
+                if (!focused) {
+                    hideList(view)
+                }
+            }
+
+            keyChanged += KeyListener.released { event ->
+                if (displayed) {
+                    when (event.code) {
+                        Enter  -> firstSelection?.let { index ->
+                            view.selection = index
+                            hideList(view)
+                        }
+                        Escape -> hideList(view)
+                    }
+                }
+            }
+        }
+
+        val center = (view.boxItemVisualizer ?: itemVisualizer)(view.value, null, SimpleIndexedItem(view.selection, true))
         val button = PushButton().apply {
+            focusable     = false
             iconAnchor    = Anchor.Leading
             acceptsThemes = false
-            focusable     = false
             behavior      = ButtonBehavior()
-        }
+            enabled       = !view.isEmpty
 
-        // FIXME: need to cleanup in uninstall
-        view.changed += {
-            updateCenter(view)
-        }
-
-        button.fired += {
-
+            fired += {
+                showList(view)
+            }
         }
 
         view.children.clear()
-        view.children += listOf(center, button)
 
-        view.layout = constrain(center, button) { center, button ->
-            center.top      = parent.top
-            center.left     = parent.left
-            center.right    = button.left
-            center.bottom   = parent.bottom
+        center?.let {
+            view.children += it
 
-            button.top        = parent.top
-            button.right      = parent.right
-            button.bottom     = parent.bottom
-            button.width      = constant(buttonWidth)
+            constrainCenter(view, it)
         }
 
-        view.keyChanged     += this
-        view.pointerChanged += this
+        view.children += button
+
+        view.layout = when (val l = view.layout) {
+            is ConstraintLayout -> l.constrain(button) { fill(it) }
+            else                -> constrain  (button) { fill(it) }
+        }
+
+        view.changed += changeObserver
     }
 
     override fun uninstall(view: Dropdown<T, M>) {
         super.uninstall(view)
 
-        view.list.behavior = null
+        hideList(view)
+
+        view.list?.behavior  = null
+        view.list            = null
+        view.changed        -= changeObserver
     }
 
-    internal val centerChanged: Pool<(Dropdown<*, *>, View?, View) -> Unit> = SetPool()
+    override fun changed(dropdown: Dropdown<T, M>) {
+        updateCenter(dropdown)
+    }
 
-    internal fun updateCenter(dropdown: Dropdown<T, M>, oldCenter: View? = visualizedValue(dropdown), newCenter: View = (dropdown.comboItemVisualizer ?: itemVisualizer)(dropdown.value, oldCenter, Unit)) {
+    internal val centerChanged: Pool<(Dropdown<*, *>, View?, View?) -> Unit> = SetPool()
+
+    internal fun updateCenter(dropdown: Dropdown<T, M>, oldCenter: View? = visualizedValue(dropdown), newCenter: View? = (dropdown.boxItemVisualizer ?: itemVisualizer)(dropdown.value, oldCenter, SimpleIndexedItem(dropdown.selection, true)))  {
         if (oldCenter != null && newCenter != oldCenter) {
             dropdown.children -= oldCenter
             (dropdown.layout as? ConstraintLayout)?.unconstrain(oldCenter)
 
-            dropdown.children += newCenter
+            newCenter?.let {
+                dropdown.children += it
 
-            (dropdown.layout as? ConstraintLayout)?.constrain(newCenter, dropdown.children[0]) { center, button ->
-                center.top    = parent.top
-                center.left   = parent.left
-                center.right  = button.left
-                center.bottom = parent.bottom
+                constrainCenter(dropdown, newCenter)
             }
 
             (centerChanged as SetPool).forEach { it(dropdown, oldCenter, newCenter) }
         }
     }
 
+    private fun constrainCenter(dropdown: Dropdown<T, M>, center: View) {
+        val constrains: ConstraintBlockContext.(Constraints) -> Unit = {
+            it.top    = parent.top    + INSET
+            it.left   = parent.left   + INSET
+            it.right  = parent.right  - constant(buttonWidth + INSET)
+            it.bottom = parent.bottom - INSET
+        }
+
+        when (val l = dropdown.layout) {
+            is ConstraintLayout -> l.constrain(center, constrains)
+            else                -> dropdown.layout = constrain(center, constrains)
+        }
+    }
+
     internal fun visualizedValue(dropdown: Dropdown<T, M>): View? = dropdown.children.firstOrNull { it !is PushButton }
 
     public companion object {
+        private const val INSET = 4.0
+
         public operator fun <T, M: ListModel<T>> invoke(
+                display              : Display,
                 textMetrics          : TextMetrics,
                 backgroundColor      : Color,
                 darkBackgroundColor  : Color,
                 foregroundColor      : Color,
                 cornerRadius         : Double,
-                patternFill          : PatternPaint? = null,
-                buttonWidth          : Double = 20.0,
-                focusManager         : FocusManager? = null,
-                selectionColor       : Color?        = null,
-                selectionBlurredColor: Color?        = null,
-                rowHeight            : Double): BasicDropdownBehavior<T, M> = BasicDropdownBehavior(
+                buttonWidth          : Double        = 20.0,
+                focusManager         : FocusManager? = null): BasicDropdownBehavior<T, M> = BasicDropdownBehavior(
+                    display             = display,
                     textMetrics         = textMetrics,
                     backgroundColor     = backgroundColor,
                     darkBackgroundColor = darkBackgroundColor,
                     focusManager        = focusManager,
-                    rowHeight           = rowHeight,
-                    generator           = BasicItemGenerator(selectionColor, selectionBlurredColor),
                     foregroundColor     = foregroundColor,
                     cornerRadius        = cornerRadius,
-                    patternFill         = patternFill,
                     buttonWidth         = buttonWidth,
         )
     }

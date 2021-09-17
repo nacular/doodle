@@ -9,7 +9,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
-import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Rectangle
@@ -22,18 +22,39 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import kotlin.math.max
+import kotlin.properties.Delegates.observable
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
 public open class ListRow<T>(
-        public  var list                           : ListLike,
+                    list                           : ListLike,
         public  var row                            : T,
         public  var index                          : Int,
-        private val itemVisualizer                 : ItemVisualizer<T, IndexedIem>,
+        private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
         private val backgroundSelectionColor       : Color? = Blue,
         private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
         private val role                           : ListItemRole = ListItemRole()): View(role) {
+
+    public var list: ListLike = list
+        private set(new) {
+            field.focusChanged -= listFocusChanged
+
+            field = new
+
+            when {
+                field.selected(index) -> {
+                    field.focusChanged += listFocusChanged
+
+                    backgroundColor = if (field.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
+                }
+                else                  -> {
+                    field.focusChanged -= listFocusChanged
+
+                    backgroundColor = null
+                }
+            }
+        }
 
     public var insetTop: Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
 
@@ -48,7 +69,11 @@ public open class ListRow<T>(
             layout = constrainLayout(children[0])
         }
 
-    private var pointerOver = false
+    private var pointerOver by observable(false) { _,_,new ->
+        pointerOver(new)
+    }
+
+    protected open fun pointerOver(value: Boolean) {}
 
     private val listFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (list.selected(index)) {
@@ -92,7 +117,7 @@ public open class ListRow<T>(
                                         }
                                     }
                                 }
-                                else                                               -> setSelection(it)
+                                else                                                -> setSelection(it)
                             }
                         }
                     }
@@ -105,35 +130,22 @@ public open class ListRow<T>(
     }
 
     public fun update(list: ListLike, row: T, index: Int) {
-        this.list  = list
         this.row   = row
         this.index = index
-        val listSelected = list.selected(index)
 
         role.index    = index
         role.listSize = list.numRows
 
-        children[0] = itemVisualizer.invoke(row, children.firstOrNull(), SimpleIndexedItem(index, listSelected))
+        children[0] = itemVisualizer(row, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
 
         idealSize = children[0].idealSize?.let { Size(it.width, it.height + insetTop) }
         layout    = constrainLayout(children[0])
 
-        when {
-            listSelected -> {
-                list.focusChanged += listFocusChanged
-
-                backgroundColor = if (list.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
-            }
-            else         -> {
-                list.focusChanged -= listFocusChanged
-
-                backgroundColor = null
-            }
-        }
+        this.list  = list
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorPaint(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), it.paint) }
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
@@ -148,7 +160,7 @@ public open class ListRow<T>(
     }
 }
 
-public open class ListPositioner(private val height: Double, private val spacing: Double = 0.0) {
+public open class ListPositioner(protected open val height: Double, protected open val spacing: Double = 0.0) {
     public fun rowFor(insets: Insets, y: Double): Int = max(0, ((y - insets.top) / (height + spacing)).toInt())
 
     public fun totalHeight(numItems: Int, insets: Insets): Double = numItems * height + insets.run { top + bottom }

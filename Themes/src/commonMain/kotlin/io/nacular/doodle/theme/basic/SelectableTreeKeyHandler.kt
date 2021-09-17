@@ -42,11 +42,18 @@ public interface SelectableTreeKeyHandler {
                                 }
                             }
                         }
-                        else -> tree.lastSelection?.let { if (event.key == ArrowUp) tree.previous(it) else tree.next(it) }?.let { tree.setSelection(setOf(it)) }
+                        else -> {
+                            val newSelection = when (val selection = tree.lastSelection) {
+                                null -> if (event.key == ArrowUp) tree.lastSelectable      else tree.firstSelectable
+                                else -> if (event.key == ArrowUp) tree.previous(selection) else tree.next(selection)
+                            }
+
+                            newSelection?.let { tree.setSelection(setOf(it)) }
+                        }
                     }?.let { Unit } ?: Unit
                 }
-                collapseKey        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } }?.let { Unit } ?: Unit
-                expandKey          -> tree.selection.firstOrNull()?.also { tree.expand(it) }?.let { Unit } ?: Unit
+                collapseKey        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } } ?: Unit
+                expandKey          -> tree.selection.firstOrNull()?.also { tree.expand(it) } ?: Unit
                 KeyText("a"), KeyText("A") -> {
                     if (Ctrl in event || Meta in event) {
                         tree.selectAll()

@@ -9,13 +9,14 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.PatternPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.theme.basic.ListPositioner
 import io.nacular.doodle.theme.basic.ListRow
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
@@ -24,8 +25,7 @@ import io.nacular.doodle.theme.basic.SelectableListKeyHandler
  * Created by Nicholas Eddy on 3/20/18.
  */
 
-public open class BasicItemGenerator<T>(private val selectionColor       : Color? = null,
-                                 private val selectionBlurredColor: Color? = null): RowGenerator<T> {
+public open class BasicItemGenerator<T>(private val selectionColor: Color? = null, private val selectionBlurredColor: Color? = null): RowGenerator<T> {
 
     override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
         is ListRow<*> -> (current as ListRow<T>).apply { update(list, row, index) }
@@ -52,17 +52,17 @@ public fun <T> basicItemGenerator(
     }
 }
 
-private class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
-    override fun row(of: List<T, *>, atY: Double) = super.rowFor(of.insets, atY)
+public open class BasicListPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
+    override fun row(of: List<T, *>, atY: Double): Int = super.rowFor(of.insets, atY)
 
-    override fun totalRowHeight(of: List<T, *>) = super.totalHeight(of.numRows, of.insets)
+    override fun totalRowHeight(of: List<T, *>): Double = super.totalHeight(of.numRows, of.insets)
 
-    override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = super.rowBounds(of.width, of.insets, index, view)
+    override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?): Rectangle = super.rowBounds(of.width, of.insets, index, view)
 }
 
 public open class BasicListBehavior<T>(private  val focusManager: FocusManager? = null,
                                        override val generator   : RowGenerator<T>,
-                                       private  val patternFill : PatternPaint? = null,
+                                       private  val fill        : Paint? = null,
                                                     rowHeight   : Double): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
     override val positioner: RowPositioner<T> = BasicListPositioner(rowHeight)
 
@@ -79,7 +79,7 @@ public open class BasicListBehavior<T>(private  val focusManager: FocusManager? 
     }
 
     override fun render(view: List<T, *>, canvas: Canvas) {
-        patternFill?.let { canvas.rect(view.bounds.atOrigin, it) }
+        fill?.let { canvas.rect(view.bounds.atOrigin, it) }
     }
 
     override fun pressed(event: KeyEvent) {
