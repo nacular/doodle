@@ -838,6 +838,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             Down  -> it.pressed (event)
             Exit  -> it.exited  (event)
             Enter -> it.entered (event)
+            Click -> it.clicked (event)
             else  -> return
         }
     }

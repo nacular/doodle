@@ -38,6 +38,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
+import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
@@ -589,6 +590,11 @@ class ViewTests {
         verify(exactly = 1) { listener.released(event) }
     }
 
+    @Test @JsName("pointerClickedWorks")
+    fun `pointer clicked works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
+        verify(exactly = 1) { listener.clicked(event) }
+    }
+
     @Test @JsName("pointerMoveWorks")
     fun `pointer move works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
         verify(exactly = 1) { listener.moved(event) }
@@ -622,6 +628,11 @@ class ViewTests {
     @Test @JsName("filterPointerPressedWorks")
     fun `filter pointer pressed works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
         verify(exactly = 1) { listener.pressed(event) }
+    }
+
+    @Test @JsName("filterPointerClickedWorks")
+    fun `filter pointer clicked works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
+        verify(exactly = 1) { listener.clicked(event) }
     }
 
     @Test @JsName("filterPointerDragWorks")
