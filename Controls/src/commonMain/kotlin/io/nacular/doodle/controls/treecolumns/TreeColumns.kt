@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.treecolumns
 
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
@@ -38,8 +38,8 @@ private interface Focusable {
 // TODO: Use filtered SelectionModel to avoid selecting hidden items?
 public open class TreeColumns<T, M: TreeModel<T>>(
         protected val model         : M,
-        public    val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
-                      selectionModel: SelectionModel<Path<Int>>?     = null): View(), Selectable<Path<Int>>, Focusable {
+        public    val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+                      selectionModel: SelectionModel<Path<Int>>?      = null): View(), Selectable<Path<Int>>, Focusable {
 
     protected class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
         public var root: Path<Int>? = null as Path<Int>?
@@ -151,7 +151,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private class CustomMutableList<T>(
             model         : SimpleMutableListModel<T>,
-            itemGenerator : ItemVisualizer<T, IndexedIem>? = null,
+            itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             val localSelectionModel: LocalSelectionModel?  = null,
             fitContent    : Boolean                   = true,
             scrollCache   : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {

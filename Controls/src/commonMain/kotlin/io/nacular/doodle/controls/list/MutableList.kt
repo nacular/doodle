@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.list
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.MutableListModel
@@ -42,10 +42,10 @@ public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, ro
  */
 public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
-        itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
-        selectionModel: SelectionModel<Int>?           = null,
-        fitContent    : Boolean                        = true,
-        scrollCache   : Int                            = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
+        itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+        selectionModel: SelectionModel<Int>?            = null,
+        fitContent    : Boolean                         = true,
+        scrollCache   : Int                             = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
 
     /**
      * Indicates whether the list is currently being edited.
@@ -167,7 +167,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
     public companion object {
         public operator fun invoke(
                 progression   : IntProgression,
-                itemVisualizer: ItemVisualizer<Int, IndexedIem>,
+                itemVisualizer: ItemVisualizer<Int, IndexedItem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): MutableList<Int, MutableListModel<Int>> =
@@ -175,7 +175,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
 
         public inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedIem>,
+                itemVisualizer: ItemVisualizer<T, IndexedItem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
@@ -190,7 +190,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
 
         public operator fun  <T, M: MutableListModel<T>>invoke(
                 model         : M,
-                itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+                itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
                 scrollCache   : Int                            = 10): MutableList<T, M> =

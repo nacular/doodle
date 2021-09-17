@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.accessibility.TreeItemRole
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.tree.TreeLike
@@ -79,7 +79,7 @@ public class TreeRow<T>(
                  node                 : T,
      public  var path                 : Path<Int>,
      private var index                : Int,
-     private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
+     private val itemVisualizer       : ItemVisualizer<T, IndexedItem>,
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon,

@@ -2,7 +2,7 @@ package io.nacular.doodle.theme.basic.table
 
 import io.nacular.doodle.controls.ColorPicker
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.list.ListLike
@@ -62,7 +62,7 @@ private class TableListRow<T>(
                     list                 : ListLike,
                     row                  : T,
                     index                : Int,
-                    itemVisualizer       : ItemVisualizer<T, IndexedIem>,
+                    itemVisualizer       : ItemVisualizer<T, IndexedItem>,
                     selectionColor       : Color? = Blue,
                     selectionBlurredColor: Color? = selectionColor): ListRow<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
 
@@ -88,7 +88,7 @@ private class TableListRow<T>(
 }
 
 public open class BasicCellGenerator<T>: CellGenerator<T> {
-    override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?): View = when (current) {
+    override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
         is TableListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
         else               -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
     }
@@ -271,7 +271,7 @@ public open class BasicMutableTableBehavior<T>(
     }
 
     override val cellGenerator: BasicCellGenerator<T> = object: BasicCellGenerator<T>() {
-        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedIem>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?) = super.invoke(table, column, cell, row, itemGenerator, current).also {
             if (current !is TableListRow<*>) {
                 val result = it as TableListRow<*>
 

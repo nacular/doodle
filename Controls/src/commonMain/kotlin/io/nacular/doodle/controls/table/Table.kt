@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
@@ -107,8 +107,8 @@ public open class Table<T, M: ListModel<T>>(
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: ItemVisualizer<R, IndexedIem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedIem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<R> {
+                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: ItemVisualizer<R, IndexedItem> {
+                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<R> {
                                 override val column         = this@InternalListColumn
                                 override val index          = index
                                 override val selected get() = context.selected

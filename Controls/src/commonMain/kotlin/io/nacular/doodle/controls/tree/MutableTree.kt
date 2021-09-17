@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.tree
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.core.View
@@ -18,7 +18,7 @@ public interface TreeEditor<T> {
 }
 
 public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
-                                                    itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+                                                    itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
                                                     selectionModel: SelectionModel<Path<Int>>? = null
 ): DynamicTree<T, M>(model, itemVisualizer, selectionModel), Editable {
     init {

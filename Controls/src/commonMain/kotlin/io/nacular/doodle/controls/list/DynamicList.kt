@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.list
 
 import io.nacular.doodle.controls.DynamicListModel
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
@@ -33,10 +33,10 @@ public typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, a
  */
 public open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
-        itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
-        selectionModel: SelectionModel<Int>?           = null,
-        fitContent    : Boolean                        = true,
-        scrollCache   : Int                            = 10): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+        itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+        selectionModel: SelectionModel<Int>?            = null,
+        fitContent    : Boolean                         = true,
+        scrollCache   : Int                             = 10): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
 
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
@@ -130,7 +130,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
     public companion object {
         public operator fun invoke(
                 progression   : IntProgression,
-                itemVisualizer: ItemVisualizer<Int, IndexedIem>,
+                itemVisualizer: ItemVisualizer<Int, IndexedItem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): DynamicList<Int, MutableListModel<Int>> =
@@ -138,7 +138,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
         public inline operator fun <reified T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedIem>,
+                itemVisualizer: ItemVisualizer<T, IndexedItem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): DynamicList<T, MutableListModel<T>> =
@@ -153,7 +153,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
         public operator fun <T, M: DynamicListModel<T>> invoke(
                 model         : M,
-                itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
+                itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
                 scrollCache   : Int                            = 10): DynamicList<T, M> =

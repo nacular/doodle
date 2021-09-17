@@ -82,9 +82,12 @@ public fun <T, C> toString(delegate: ItemVisualizer<String, C>): ItemVisualizer<
  * @property index of the item
  * @property selected is `true` for selected items
  */
-public interface IndexedIem {
+public interface IndexedItem {
     public val index: Int
     public val selected: Boolean
 }
 
-public class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedIem
+@Deprecated(message = "Replaced due to misspelling", replaceWith = ReplaceWith("IndexedItem"))
+public typealias IndexedIem = IndexedItem
+
+public class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedItem

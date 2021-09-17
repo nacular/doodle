@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.list
 
 import io.nacular.doodle.accessibility.ListRole
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
@@ -121,10 +121,10 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
  */
 public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
-        public         val itemVisualizer: ItemVisualizer<T, IndexedIem>? = null,
-        protected      val selectionModel: SelectionModel<Int>?           = null,
-        private        val fitContent    : Boolean                        = true,
-        private        val scrollCache   : Int                            = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+        protected      val selectionModel: SelectionModel<Int>?            = null,
+        private        val fitContent    : Boolean                         = true,
+        private        val scrollCache   : Int                             = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
@@ -366,7 +366,7 @@ public open class List<T, out M: ListModel<T>>(
     public companion object {
         public operator fun invoke(
                 progression    : IntProgression,
-                itemVisualizer : ItemVisualizer<Int, IndexedIem>,
+                itemVisualizer : ItemVisualizer<Int, IndexedItem>,
                 selectionModel : SelectionModel<Int>? = null,
                 fitContent     : Boolean              = true,
                 scrollCache    : Int                  = 10): List<Int, ListModel<Int>> =
@@ -374,7 +374,7 @@ public open class List<T, out M: ListModel<T>>(
 
         public operator fun <T> invoke(
                 values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedIem>,
+                itemVisualizer: ItemVisualizer<T, IndexedItem>,
                 selectionModel: SelectionModel<Int>? = null,
                 fitContent    : Boolean              = true,
                 scrollCache   : Int                  = 10): List<T, ListModel<T>> =
@@ -389,7 +389,7 @@ public open class List<T, out M: ListModel<T>>(
 
         public operator fun <T, M: ListModel<T>>invoke(
                 model         : M,
-                itemGenerator : ItemVisualizer<T, IndexedIem>? = null,
+                itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
                 selectionModel: SelectionModel<Int>?           = null,
                 fitContent    : Boolean                        = true,
                 scrollCache   : Int                            = 10): List<T, M> =

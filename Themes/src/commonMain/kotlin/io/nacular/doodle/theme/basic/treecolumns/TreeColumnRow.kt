@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.treecolumns
 
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.treecolumns.TreeColumns
@@ -59,7 +59,7 @@ public class TreeColumnRow<T>(
                     node                 : T,
         public  var path                 : Path<Int>,
         private var index                : Int,
-        private val itemVisualizer       : ItemVisualizer<T, IndexedIem>,
+        private val itemVisualizer       : ItemVisualizer<T, IndexedItem>,
         private val selectionColor       : Color? = Color.Green,
         private val selectionBlurredColor: Color? = selectionColor,
         private val iconFactory          : () -> TreeColumnRowIcon): View() {

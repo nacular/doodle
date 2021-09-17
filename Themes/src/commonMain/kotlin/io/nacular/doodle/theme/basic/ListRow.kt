@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.accessibility.ListItemRole
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.list.ListLike

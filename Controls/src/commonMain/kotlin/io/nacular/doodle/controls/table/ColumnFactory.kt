@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
@@ -29,7 +29,7 @@ internal class MutableColumnBuilderImpl<T>: ColumnBuilderImpl(), MutableColumnBu
     override var editor: TableEditor<T>? = null
 }
 
-public interface CellInfo<T>: IndexedIem {
+public interface CellInfo<T>: IndexedItem {
     // TODO: Include Table/TreeTable?
     public val column: Column<T>
 }

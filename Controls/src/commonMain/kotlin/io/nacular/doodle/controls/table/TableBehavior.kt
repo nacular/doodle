@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.table
 
-import io.nacular.doodle.controls.IndexedIem
+import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
@@ -153,7 +153,7 @@ public abstract class TableBehavior<T>: AbstractTableBehavior<Table<T, *>> {
                 column       : Column<A>,
                 cell         : A,
                 row          : Int,
-                itemGenerator: ItemVisualizer<A, IndexedIem>,
+                itemGenerator: ItemVisualizer<A, IndexedItem>,
                 current      : View? = null
         ): View
     }
@@ -235,7 +235,7 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
                 cell         : A,
                 path         : Path<Int>,
                 row          : Int,
-                itemGenerator: ItemVisualizer<A, IndexedIem>,
+                itemGenerator: ItemVisualizer<A, IndexedItem>,
                 current      : View? = null
         ): View
     }
@@ -262,7 +262,7 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
                 cell         : A,
                 path         : Path<Int>,
                 row          : Int,
-                itemGenerator: ItemVisualizer<A, IndexedIem>,
+                itemGenerator: ItemVisualizer<A, IndexedItem>,
                 current      : View? = null
         ): View
     }

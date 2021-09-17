@@ -17,7 +17,7 @@ import io.nacular.doodle.layout.constrain
 import kotlin.math.max
 
 // FIXME: Centralize
-public typealias Extractor<T, R>  = T.() -> R
+public typealias Extractor<T, R> = T.() -> R
 
 public abstract class Field<T>: Positionable
 
