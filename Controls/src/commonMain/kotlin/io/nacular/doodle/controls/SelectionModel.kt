@@ -24,6 +24,8 @@ public interface Selectable<T> {
     public val lastSelection  : T?
     public val selectionAnchor: T?
     public val selection      : Set<T>
+    public val firstSelectable: T?
+    public val lastSelectable : T?
 }
 
 public interface SelectionModel<T>: Iterable<T> {
@@ -167,41 +169,7 @@ public class ListSelectionManager(private val selectionModel: SelectionModel<Int
     override val lastSelection  : Int?     get() = selectionModel?.last
     override val selectionAnchor: Int?     get() = selectionModel?.anchor
     override val selection      : Set<Int> get() = selectionModel?.toSet() ?: emptySet()
-}
 
-//class TreeSelectionManager(private val selectionModel: SelectionModel<Path<Int>>?, private val pathFromRow: (Int) -> Path<Int>, private val numChildren: (Path<Int>) -> Int): Selectable<Path<Int>> {
-//    override fun selected       (item : Path<Int>     ) = selectionModel?.contains  (item ) ?: false
-//    override fun selectAll      (                     ) { selectionModel?.addAll((0 .. numRows).mapNotNull {
-//            pathFromRow(it)
-//        }.toList())
-//    }
-//    override fun addSelection   (items: Set<Path<Int>>) { selectionModel?.addAll    (items) }
-//    override fun setSelection   (items: Set<Path<Int>>) { selectionModel?.replaceAll(items) }
-//    override fun removeSelection(items: Set<Path<Int>>) { selectionModel?.removeAll (items) }
-//    override fun toggleSelection(items: Set<Path<Int>>) { selectionModel?.toggle    (items) }
-//    override fun clearSelection (                     ) { selectionModel?.clear     (    ) }
-//
-//    override fun next(after: Path<Int>) = item(after, withOffset = 1)
-//
-//    override fun previous(before: Path<Int>) = item(before, withOffset = -1)
-//
-//    override val firstSelection  get() = selectionModel?.first
-//    override val lastSelection   get() = selectionModel?.last
-//    override val selectionAnchor get() = selectionModel?.anchor
-//    override val selection       get() = selectionModel?.toSet() ?: emptySet()
-//
-//    private fun item(from: Path<Int>, withOffset: Int): Path<Int>? {
-//        return from.bottom?.let { index ->
-//            from.parent?.let { parent ->
-//                val targetIndex = index + withOffset
-//                val numChildren = numChildren(parent)
-//
-//                when {
-//                    targetIndex in 0..(numChildren - 1) -> parent + withOffset
-//                    targetIndex < 0                     -> item(parent, targetIndex)
-//                    else                                -> item(parent, targetIndex - numChildren)
-//                }
-//            }
-//        }
-//    }
-//}
+    override val firstSelectable: Int get() = 0
+    override val lastSelectable : Int get() = numRows() - 1
+}

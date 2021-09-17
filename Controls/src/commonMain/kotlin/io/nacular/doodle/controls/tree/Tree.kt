@@ -119,6 +119,8 @@ public open class Tree<T, out M: TreeModel<T>>(
     override val lastSelection  : Path<Int>?     get() = selectionModel?.last
     override val selectionAnchor: Path<Int>?     get() = selectionModel?.anchor
     override val selection      : Set<Path<Int>> get() = selectionModel?.toSet() ?: emptySet()
+    override val firstSelectable: Path<Int>?     get() = pathFromRow(firstVisibleRow)
+    override val lastSelectable : Path<Int>?     get() = pathFromRow(lastVisibleRow)
 
     private   var generator    : RowGenerator<T>? = null
     protected var rowPositioner: RowPositioner<T>? = null
@@ -139,7 +141,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     protected var lastVisibleRow : Int = -1
 
     @Suppress("PrivatePropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)
         }

@@ -63,9 +63,11 @@ public fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int
     override fun previous(before: Int): Int? = this@map.previous(mapper(before))?.let(unmapper)
 
     override val selection      : Set<Int> get() = this@map.selection.map(unmapper).toSet()
-    override val lastSelection  : Int?     get() = this@map.lastSelection?.let(unmapper)
-    override val firstSelection : Int?     get() = this@map.firstSelection?.let(unmapper)
+    override val lastSelection  : Int?     get() = this@map.lastSelection?.let  (unmapper)
+    override val firstSelection : Int?     get() = this@map.firstSelection?.let (unmapper)
     override val selectionAnchor: Int?     get() = this@map.selectionAnchor?.let(unmapper)
+    override val firstSelectable: Int?     get() = this@map.firstSelectable?.let(unmapper)
+    override val lastSelectable : Int?     get() = this@map.lastSelectable?.let (unmapper)
 }
 
 public open class BasicTreeTableBehavior<T>(

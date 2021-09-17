@@ -363,6 +363,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     override val lastSelection  : Path<Int>?     get() = selectionModel?.last
     override val selectionAnchor: Path<Int>?     get() = selectionModel?.anchor
     override val selection      : Set<Path<Int>> get() = selectionModel?.toSet() ?: emptySet()
+    override val firstSelectable: Path<Int>?     get() = columns.lastOrNull()?.run { path + (list.lastSelectable  ?: 0) }
+    override val lastSelectable : Path<Int>?     get() = columns.lastOrNull()?.run { path + (list.firstSelectable ?: 0) }
 
     internal fun columnDirty(path: Path<Int>) {
         // FIXME: IMPLEMENT

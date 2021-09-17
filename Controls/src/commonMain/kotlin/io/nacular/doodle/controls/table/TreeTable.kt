@@ -152,6 +152,8 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     override val lastSelection  : Path<Int>?     get() = tree.lastSelection
     override val firstSelection : Path<Int>?     get() = tree.firstSelection
     override val selectionAnchor: Path<Int>?     get() = tree.selectionAnchor
+    override val firstSelectable: Path<Int>?     get() = tree.firstSelectable
+    override val lastSelectable : Path<Int>?     get() = tree.lastSelectable
 
     public val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
     public val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
