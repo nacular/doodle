@@ -1,7 +1,7 @@
 apply plugin: 'jacoco'
 
 jacoco {
-    toolVersion = '0.8.6'
+    toolVersion = '0.8.7'
 }
 
 project.afterEvaluate {
@@ -33,12 +33,12 @@ project.afterEvaluate {
         ]
 
         getAdditionalSourceDirs().from(files(coverageSourceDirs))
-        getSourceDirectories().from(files(coverageSourceDirs))
-        getExecutionData().from(files("${project.buildDir}/jacoco/jvmTest.exec"))
+        getSourceDirectories   ().from(files(coverageSourceDirs))
+        getExecutionData       ().from(files("${project.buildDir}/jacoco/jvmTest.exec"))
 
         reports {
-            xml.enabled  = true
-            html.enabled = true
+            xml.required.set (true)
+            html.required.set(true)
         }
     }
 }
