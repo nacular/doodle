@@ -105,8 +105,8 @@ internal fun Style.setTextDecoration(value: TextDecoration?) {
         else -> {
             textDecorationLine      = value.lines.joinToString(" ") { it.styleText }.takeUnless { it == "" } ?: ""
             textDecorationColor     = value.color?.let { rgba(it) } ?: ""
-            textDecorationStyle     = "${value.style}".toLowerCase()
-            textDecorationThickness = when (val t = value.thickNess) {
+            textDecorationStyle     = "${value.style}".lowercase()
+            textDecorationThickness = when (val t = value.thickness) {
                 FromFont              -> "from-font"
                 is Percent            -> "${t.value}%"
                 is ThickNess.Absolute -> em(t.value)

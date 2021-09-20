@@ -31,8 +31,8 @@ public sealed class AccessibilityRole {
     @Internal public      var manager: AccessibilityManager? = null
     @Internal public      var view   : View?                 = null
     @Internal public open val name   : String?               = when {
-        this::class.simpleName?.toLowerCase()?.endsWith("role") == true -> this::class.simpleName?.toLowerCase()?.dropLast(4)
-        else                                                            -> this::class.simpleName?.toLowerCase()
+        this::class.simpleName?.lowercase()?.endsWith("role") == true -> this::class.simpleName?.toLowerCase()?.dropLast(4)
+        else                                                          -> this::class.simpleName?.toLowerCase()
     }
 }
 
