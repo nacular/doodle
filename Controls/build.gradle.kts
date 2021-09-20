@@ -16,6 +16,10 @@ kotlin {
     val logbackVersion: String by project
 
     sourceSets {
+        all {
+            languageSettings.optIn("io.nacular.doodle.core.Internal")
+        }
+
         val commonMain by getting {
             dependencies {
                 api(project(":core"))

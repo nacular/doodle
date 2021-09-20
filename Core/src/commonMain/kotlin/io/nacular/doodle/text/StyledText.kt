@@ -1,5 +1,6 @@
 package io.nacular.doodle.text
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
@@ -14,13 +15,17 @@ import io.nacular.doodle.text.TextDecoration.Style.Solid
  * Created by Nicholas Eddy on 10/31/17.
  */
 public class TextDecoration(
-        public val lines    : Set<Line> = emptySet(),
-        public val color    : Color? = null,
-        public val style    : Style = Solid,
-        public val thickNess: ThickNess? = null
+        public val lines    : Set<Line>  = emptySet(),
+        public val color    : Color?     = null,
+        public val style    : Style      = Solid,
+        public val thickness: ThickNess? = null
 ) {
+    @Deprecated(message = "Removed due to typo", replaceWith = ReplaceWith("thickness"))
+    public inline val thickNess: ThickNess? get() = thickness
+
     public enum class Line { Under, Over, Through }
     public enum class Style { Solid, Double, Dotted, Dashed, Wavy }
+
     public sealed class ThickNess {
         public object FromFont: ThickNess()
         public class Absolute(public val value: Double): ThickNess()
@@ -30,6 +35,14 @@ public class TextDecoration(
     public companion object {
         public val UnderLine  : TextDecoration = TextDecoration(lines = setOf(Under  ))
         public val LineThrough: TextDecoration = TextDecoration(lines = setOf(Through))
+
+        @Deprecated(message = "Removed due to typo in parameter name. Use constructor instead")
+        public operator fun invoke(
+                lines    : Set<Line>  = emptySet(),
+                color    : Color?     = null,
+                style    : Style      = Solid,
+                thickNess: ThickNess? = null
+        ): TextDecoration = TextDecoration(lines, color, style, thickNess)
     }
 }
 
@@ -73,6 +86,11 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
 
     public fun copy(): StyledText = StyledText(mutableListOf(*data.map { MutablePair(it.first, it.second.copy()) }.toTypedArray()))
 
+    @Internal
+    public fun mapStyle(block: (Style) -> Style): StyledText = StyledText(data.mapTo(mutableListOf()) {
+        MutablePair(it.first, StyleImpl(block(it.second)))
+    })
+
     private fun add(pair: MutablePair<String, StyleImpl>) {
         val (_, style) = data.last()
 
@@ -110,7 +128,9 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
             override var foreground: Paint? = null,
             override var background: Paint? = null,
             override var decoration: TextDecoration? = null
-    ): Style
+    ): Style {
+        constructor(other: Style): this(other.font, other.foreground, other.background, other.decoration)
+    }
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)

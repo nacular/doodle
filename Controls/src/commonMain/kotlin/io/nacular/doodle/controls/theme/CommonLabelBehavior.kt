@@ -3,15 +3,22 @@ package io.nacular.doodle.controls.theme
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.LabelBehavior
 import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.rect
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.text.Style
+import io.nacular.doodle.text.TextDecoration
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.HorizontalAlignment.Right
+import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.VerticalAlignment.Bottom
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
@@ -24,12 +31,21 @@ public open class CommonLabelBehavior(
         protected open val foregroundColor: Color? = null,
         protected open val backgroundColor: Color? = null
 ): LabelBehavior {
+
+    public var disabledColorMapper: (Color) -> Color = { it.lighter() }
+
+    private val enabledChanged: PropertyObserver<View, Boolean> = { view,_,_ ->
+        view.rerender()
+    }
+
     override fun install(view: Label) {
+        view.enabledChanged += enabledChanged
         foregroundColor?.let { view.foregroundColor = it }
         backgroundColor?.let { view.backgroundColor = it }
     }
 
     override fun uninstall(view: Label) {
+        view.enabledChanged -= enabledChanged
         view.foregroundColor = null // FIXME: This might override a user-pref
     }
 
@@ -47,14 +63,45 @@ public open class CommonLabelBehavior(
                 Right  ->  width - textSize.width
             }
 
-            backgroundColor?.let {
+            val bgColor = when {
+                view.enabled -> backgroundColor
+                else         -> backgroundColor?.let(disabledColorMapper)
+            }
+
+            bgColor?.let {
                 canvas.rect(bounds.atOrigin, color = it)
             }
 
+            val renderedText = when {
+                view.enabled -> styledText
+                else         -> styledText.mapStyle {
+                    object: Style {
+                        override val font       get() = it.font
+                        override val foreground get() = when (val paint = it.foreground) {
+                            is ColorPaint -> disabledColorMapper(paint.color).paint
+                            else          -> paint
+                        }
+                        override val background get() = when (val paint = it.background) {
+                            is ColorPaint -> disabledColorMapper(paint.color).paint
+                            else          -> paint
+                        }
+                        override val decoration: TextDecoration? get() = when (val d = it.decoration) {
+                            null -> null
+                            else -> TextDecoration(
+                                    d.lines,
+                                    d.color?.let { disabledColorMapper(it) },
+                                    d.style,
+                                    d.thickness
+                            )
+                        }
+                    }
+                }
+            }
+
             if (wrapsWords) {
-                canvas.wrapped(styledText, Point(x, y), 0.0, width)
+                canvas.wrapped(renderedText, Point(x, y), 0.0, width)
             } else {
-                canvas.text(styledText, Point(x, y))
+                canvas.text(renderedText, Point(x, y))
             }
         }
     }

@@ -227,7 +227,11 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
         public fun basicLabelBehavior(foregroundColor: Color? = null): Module = basicThemeModule(name = "BasicLabelBehavior") {
             bindBehavior<Label>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { CommonLabelBehavior(instance(), foregroundColor ?: this.foregroundColor) }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    CommonLabelBehavior(instance(), foregroundColor ?: this.foregroundColor).apply {
+                        disabledColorMapper  = this@run.disabledColorMapper
+                    }
+                }
             }
         }
 
