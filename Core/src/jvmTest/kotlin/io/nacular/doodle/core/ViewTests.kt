@@ -66,43 +66,48 @@ class ViewTests {
         expect(true) { object: View() {}.shouldYieldFocus() }
 
         mapOf(
-                View::x                     to 0.0,
-                View::y                     to 0.0,
-                View::font                  to null,
-                View::size                  to Size.Empty,
-                View::width                 to 0.0,
-                View::parent                to null,
-                View::height                to 0.0,
-                View::bounds                to Empty,
-                View::cursor                to null,
-                View::zOrder                to 0,
-                View::enabled               to true,
-                View::visible               to true,
-                View::opacity               to 1f,
-                View::insets_               to None,
-                View::layout_               to null,
-                View::position              to Origin,
-                View::hasFocus              to false,
-                View::display               to null,
-                View::displayed             to false,
-                View::focusable             to true,
-                View::idealSize             to null,
-                View::displayRect           to Empty,
-                View::minimumSize           to Size.Empty,
-                View::acceptsThemes         to true,
-                View::focusCycleRoot_       to null,
-                View::foregroundColor       to null,
-                View::backgroundColor       to null,
-                View::contentDirection      to LeftRight,
-                View::isFocusCycleRoot_     to false,
-                View::childrenClipPoly_     to null,
-                View::accessibilityLabel    to null,
-                View::clipCanvasToBounds_   to true,
-                View::mirrorWhenRightLeft   to true,
-                View::monitorsDisplayRect   to false,
-                View::needsMirrorTransform  to false,
-                View::focusTraversalPolicy_ to null,
-                View::localContentDirection to null,
+                View::x                                to 0.0,
+                View::y                                to 0.0,
+                View::font                             to null,
+                View::size                             to Size.Empty,
+                View::width                            to 0.0,
+                View::parent                           to null,
+                View::height                           to 0.0,
+                View::bounds                           to Empty,
+                View::cursor                           to null,
+                View::zOrder                           to 0,
+                View::enabled                          to true,
+                View::visible                          to true,
+                View::opacity                          to 1f,
+                View::insets_                          to None,
+                View::layout_                          to null,
+                View::position                         to Origin,
+                View::hasFocus                         to false,
+                View::display                          to null,
+                View::displayed                        to false,
+                View::focusable                        to true,
+                View::idealSize                        to null,
+                View::displayRect                      to Empty,
+                View::minimumSize                      to Size.Empty,
+                View::dropReceiver                     to null,
+                View::acceptsThemes                    to true,
+                View::dragRecognizer                   to null,
+                View::focusCycleRoot_                  to null,
+                View::foregroundColor                  to null,
+                View::backgroundColor                  to null,
+                View::contentDirection                 to LeftRight,
+                View::isFocusCycleRoot_                to false,
+                View::childrenClipPoly_                to null,
+                View::accessibilityLabel               to null,
+                View::clipCanvasToBounds_              to true,
+                View::mirrorWhenRightLeft              to true,
+                View::monitorsDisplayRect              to false,
+                View::needsMirrorTransform             to false,
+                View::focusTraversalPolicy_            to null,
+                View::localContentDirection            to null,
+                View::nextInAccessibleReadOrder        to null,
+                View::accessibilityLabelProvider       to null,
+                View::accessibilityDescriptionProvider to null,
         ).forEach { validateDefault(it.key, it.value) }
     }
 
@@ -124,29 +129,33 @@ class ViewTests {
             expect(value, "toolTipText set to $value") { it.toolTipText }
         }
 
-        validateSetter(View::x,                     -5.0                           )
-        validateSetter(View::y,                     6.0                            )
-        validateSetter(View::font,                  null                           )
-        validateSetter(View::size,                  Size.Empty                     )
-        validateSetter(View::width,                 99.0                           )
-        validateSetter(View::zOrder,                56                             )
-        validateSetter(View::height,                45.0                           )
-        validateSetter(View::bounds,                Rectangle(4.5, -3.0, 2.0, 45.5))
-        validateSetter(View::cursor,                Crosshair                      )
-        validateSetter(View::enabled,               false                          )
-        validateSetter(View::visible,               false                          )
-        validateSetter(View::opacity,               0.3f                           )
-        validateSetter(View::position,              Origin                         )
-        validateSetter(View::focusable,             false                          )
-        validateSetter(View::idealSize,             Size(20.0, 37.6)               )
-        validateSetter(View::minimumSize,           Size.Empty                     )
-        validateSetter(View::foregroundColor,       Red                            )
-        validateSetter(View::backgroundColor,       Green                          )
-        validateSetter(View::isFocusCycleRoot_,     true                           )
-        validateSetter(View::clipCanvasToBounds_,   false, shouldRerender = true   )
-        validateSetter(View::monitorsDisplayRect,   true                           )
-        validateSetter(View::localContentDirection, RightLeft                      )
-        validateSetter(View::accessibilityLabel,    "foo bar"                      )
+        validateSetter(View::x,                                -5.0                           )
+        validateSetter(View::y,                                6.0                            )
+        validateSetter(View::font,                             mockk()                        )
+        validateSetter(View::size,                             Size.Empty                     )
+        validateSetter(View::width,                            99.0                           )
+        validateSetter(View::zOrder,                           56                             )
+        validateSetter(View::height,                           45.0                           )
+        validateSetter(View::bounds,                           Rectangle(4.5, -3.0, 2.0, 45.5))
+        validateSetter(View::cursor,                           Crosshair                      )
+        validateSetter(View::enabled,                          false                          )
+        validateSetter(View::visible,                          false                          )
+        validateSetter(View::opacity,                          0.3f                           )
+        validateSetter(View::position,                         Origin                         )
+        validateSetter(View::focusable,                        false                          )
+        validateSetter(View::idealSize,                        Size(20.0, 37.6)               )
+        validateSetter(View::minimumSize,                      Size.Empty                     )
+        validateSetter(View::foregroundColor,                  Red                            )
+        validateSetter(View::backgroundColor,                  Green                          )
+        validateSetter(View::isFocusCycleRoot_,                true                           )
+        validateSetter(View::accessibilityLabel,               "foo bar"                      )
+        validateSetter(View::clipCanvasToBounds_,              false, shouldRerender = true   )
+        validateSetter(View::monitorsDisplayRect,              true                           )
+        validateSetter(View::localContentDirection,            RightLeft                      )
+        validateSetter(View::nextInAccessibleReadOrder,        mockk()                        )
+        validateSetter(View::accessibilityLabelProvider,       mockk()                        )
+        validateSetter(View::accessibilityDescriptionProvider, mockk()                        )
+
     }
 
     @Test @JsName("traversalKeySettersWork")
@@ -188,11 +197,28 @@ class ViewTests {
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
 
+        view.rerenderNow()
+
         view.addedToDisplay(display, renderManager, null)
 
         view.rerenderNow()
 
         verify(exactly = 1) { renderManager.renderNow(view) }
+    }
+
+    @Test @JsName("mostRecentAncestor")
+    fun `most recent ancestor`() {
+        val child       = object: View() {}
+        val parent      = container {}
+        val grandParent = container {}
+
+        parent.children      += child
+        grandParent.children += parent
+
+        expect(parent     ) { child.mostRecentAncestor       { true                              } }
+        expect(grandParent) { child.mostRecentAncestor       { it != parent                      } }
+        expect(null       ) { child.mostRecentAncestor       { it != parent && it != grandParent } }
+        expect(null       ) { grandParent.mostRecentAncestor { true                              } }
     }
 
     @Test @JsName("clipCanvasToBoundsRerenders")
@@ -512,9 +538,10 @@ class ViewTests {
 
     @Test @JsName("fontFallsBackToParent")
     fun `font falls back to parent`() {
-        val font   = mockk<Font>()
-        val child  = object: View() {}
-        val parent = object: View() {}.apply {
+        val font  = mockk<Font>()
+        val child = object: View() {}
+
+        object: View() {}.apply {
             this.font = font
             children_ += child
         }
@@ -526,7 +553,8 @@ class ViewTests {
     fun `content direction falls back to parent`() {
         val direction = mockk<ContentDirection>()
         val child     = object: View() {}
-        val parent    = object: View() {}.apply {
+
+        object: View() {}.apply {
             localContentDirection = direction
             children_ += child
         }
@@ -756,6 +784,20 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncEnabled(view) }
     }
 
+    @Test @JsName("accessibilityRoleChangeWorks")
+    fun `accessiblit role change works`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.accessibilityRole = mockk()
+
+        verify(exactly = 1) { accessibilityManager.roleAbandoned(view) }
+        verify(exactly = 1) { accessibilityManager.roleAdopted  (view) }
+    }
+
     @Test @JsName("accessibleLabelChangeWorks")
     fun `accessible label change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
@@ -767,6 +809,45 @@ class ViewTests {
         view.accessibilityLabel = "hello there"
 
         verify(exactly = 2) { accessibilityManager.syncLabel(view) }
+    }
+
+    @Test @JsName("accessibleLabelProviderChangeWorks")
+    fun `accessible label provider change works`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.accessibilityLabelProvider = mockk()
+
+        verify(exactly = 2) { accessibilityManager.syncLabel(view) }
+    }
+
+    @Test @JsName("accessibleDescriptionProviderChangeWorks")
+    fun `accessible description provider change works`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.accessibilityDescriptionProvider = mockk()
+
+        verify(exactly = 2) { accessibilityManager.syncDescription(view) }
+    }
+
+    @Test @JsName("nextInAccessibleReadOrderChangeWorks")
+    fun `next in accessibility read order change works`() {
+        val accessibilityManager = mockk<AccessibilityManager>()
+
+        val view = view {}
+
+        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+
+        view.nextInAccessibleReadOrder = mockk()
+
+        verify(exactly = 2) { accessibilityManager.syncNextReadOrder(view) }
     }
 
     @Test @JsName("zOrderChangeWorks")
@@ -781,6 +862,22 @@ class ViewTests {
         view.zOrder         = new
 
         verify(exactly = 1) { observer(view, old, new) }
+    }
+
+    @Test @JsName("containsChildWorks")
+    fun `contains child works`() {
+        val view1 = object: View() {}
+        val view2 = object: View() {}
+        val view  = object: View() {
+            init {
+                children += view1
+            }
+
+            fun has(child: View): Boolean = child in this
+        }
+
+        expect(true,  "$view contains $view1") { view.has(view1) }
+        expect(false, "$view contains $view2") { view.has(view2) }
     }
 
     @Test @JsName("containsPointWorks")

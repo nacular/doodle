@@ -80,6 +80,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var accessibilityRole: AccessibilityRole? = accessibilityRole
         internal set(new) {
             if (field != new) {
+                accessibilityManager?.roleAbandoned(this)
                 field = new
                 accessibilityManager?.roleAdopted(this)
             }
