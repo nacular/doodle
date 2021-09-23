@@ -115,5 +115,4 @@ internal class NativeHyperLinkBehavior(
         nativePointerPreprocessor: NativePointerPreprocessor?
 ): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer(button: HyperLink) = HyperLinkPeer(focusManager, button)
-
 }
