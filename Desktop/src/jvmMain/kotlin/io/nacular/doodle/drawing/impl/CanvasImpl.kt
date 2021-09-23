@@ -380,7 +380,13 @@ internal class CanvasImpl(
     }
 
     private val Font?.textStyle get() = when (this) {
-        is FontImpl -> textStyle
+        is FontImpl -> TextStyle().apply {
+            fontSize     = textStyle.fontSize
+            typeface     = textStyle.typeface
+            fontStyle    = textStyle.fontStyle
+            fontFamilies = textStyle.fontFamilies
+            baselineMode = textStyle.baselineMode
+        }
         else        -> defaultFont.textStyle()
     }
 
