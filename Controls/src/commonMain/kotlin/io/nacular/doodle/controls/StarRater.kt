@@ -36,9 +36,10 @@ import kotlin.properties.Delegates.observable
 public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): View() {
     public var max: Int = max(0, max)
         set(new) {
+            val old = field
             field = max(0, new)
+            if (old > 0) value = value / old * new
             updateStar()
-            value = min(field.toDouble(), value)
         }
 
     public var innerRadiusRatio: Float? by observable(null) { _,_,_ -> updateStar() }
@@ -122,9 +123,9 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
                     outerShadow(color = it, horizontal = 0.0, vertical = 1.0, blurRadius = 4.0) {
                         poly(star, Stroke(Lightgray opacity 0.7f), backgroundColor?.paint)
                     }
-                } ?: {
+                } ?: run {
                     poly(star, Stroke(Lightgray opacity 0.7f), backgroundColor?.paint)
-                }()
+                }
             })
         }
 
