@@ -12,6 +12,7 @@ import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
@@ -27,7 +28,11 @@ import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.KeyCode.Companion.Enter
 import io.nacular.doodle.event.KeyCode.Companion.Escape
+import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyText
+import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
@@ -62,10 +67,12 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         private val cornerRadius       : Double,
         private val buttonWidth        : Double = 20.0,
         private val focusManager       : FocusManager? = null,
-): DropdownBehavior<T, M> {
+): DropdownBehavior<T, M>, PointerListener, KeyListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
+
+    internal var buttonAlignment: (Constraints.() -> Unit) = fill
 
     private inner class ButtonIcon(private val colors: (Button) -> Color): Icon<Button> {
         override fun size(view: Button) = Size(buttonWidth, max(0.0, view.height - 2 * INSET))
@@ -260,20 +267,20 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         view.children.clear()
 
-        center?.let {
-            view.children += it
+        view.children += center
 
-            constrainCenter(view, it)
-        }
+        constrainCenter(view, center)
 
         view.children += button
 
         view.layout = when (val l = view.layout) {
-            is ConstraintLayout -> l.constrain(button) { fill(it) }
-            else                -> constrain  (button) { fill(it) }
+            is ConstraintLayout -> l.constrain(button) { buttonAlignment(it) }
+            else                -> constrain  (button) { buttonAlignment(it) }
         }
 
-        view.changed += changeObserver
+        view.changed        += changeObserver
+        view.keyChanged     += this
+        view.pointerChanged += this
     }
 
     override fun uninstall(view: Dropdown<T, M>) {
@@ -284,13 +291,28 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         view.list?.behavior  = null
         view.list            = null
         view.changed        -= changeObserver
+        view.keyChanged     -= this
+        view.pointerChanged -= this
     }
 
     override fun changed(dropdown: Dropdown<T, M>) {
         updateCenter(dropdown)
     }
 
-    internal val centerChanged: Pool<(Dropdown<*, *>, View?, View?) -> Unit> = SetPool()
+    override fun pressed(event: KeyEvent) {
+        (event.source as? Dropdown<T, M>)?.apply {
+            when (event.key) {
+                KeyText.ArrowUp   -> selection -= 1
+                KeyText.ArrowDown -> selection += 1
+            }
+        }
+    }
+
+    override fun pressed(event: PointerEvent) {
+        focusManager?.requestFocus(event.source)
+    }
+
+    internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()
 
     internal fun updateCenter(dropdown: Dropdown<T, M>, oldCenter: View? = visualizedValue(dropdown), newCenter: View? = (dropdown.boxItemVisualizer ?: itemVisualizer)(dropdown.value, oldCenter, SimpleIndexedItem(dropdown.selection, true)))  {
         if (oldCenter != null && newCenter != oldCenter) {
@@ -324,7 +346,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     internal fun visualizedValue(dropdown: Dropdown<T, M>): View? = dropdown.children.firstOrNull { it !is PushButton }
 
     public companion object {
-        private const val INSET = 4.0
+        internal const val INSET = 4.0
 
         public operator fun <T, M: ListModel<T>> invoke(
                 display              : Display,

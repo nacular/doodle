@@ -1,8 +1,8 @@
 package io.nacular.doodle.controls.dropdown
 
 import io.nacular.doodle.controls.IndexedItem
-import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.IntProgressionModel
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.list.List
@@ -16,6 +16,9 @@ import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 
+/**
+ * Provides presentation and behavior customization for [Dropdown].
+ */
 public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> {
     public val Dropdown<T, M>.model   : M                    get() = _model
     public var Dropdown<T, M>.list    : List<T, M>?          get() = list;    set(new) { list = new }
@@ -23,16 +26,28 @@ public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> 
     public var Dropdown<T, M>.insets  : Insets               get() = _insets; set(new) { _insets = new }
     public var Dropdown<T, M>.layout  : Layout?              get() = _layout; set(new) { _layout = new }
 
+    /**
+     * Called whenever the Dropdown's value or selection changes. This is an explicit API to ensure that
+     * behaviors receive the notification before listeners to [Dropdown.changed].
+     *
+     * @param dropdown with change
+     */
     public fun changed(dropdown: Dropdown<T, M>) {}
 }
 
+/**
+ * Controls used to select an item within a list.
+ *
+ * @property model used to represent the underlying choices
+ * @property boxItemVisualizer to render the selected item within the drop-down box
+ * @property listItemVisualizer to render each item within the list of choices
+ */
+@Suppress("PropertyName")
 public open class Dropdown<T, M: ListModel<T>>(
         protected open val model             : M,
         public         val boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
         public         val listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer,
 ): View() {
-    public data class SelectedValue<T>(val value: T, val index: Int)
-
     // Expose container APIs for behavior
     internal val _model    get() = model
     internal val _children get() = children
@@ -43,23 +58,29 @@ public open class Dropdown<T, M: ListModel<T>>(
 
     public val isEmpty: Boolean get() = model.isEmpty
 
+    /**
+     * Index of currently selected value
+     */
     public var selection: Int = 0
         set(new) {
             new.takeIf { it != field && it >= 0 && it < model.size }?.let { selection ->
                 field = selection
-                value = model[selection]!!
-
                 behavior?.changed(this)
                 changed_()
             }
         }
 
-    public var value: T = model[selection] as T // FIXME: Change ListModel so it just returns T and throws
-        private set
+    /**
+     * Currently selected value
+     */
+    public open val value: T get() = model[selection] as T // FIXME: Change ListModel so it just returns T and throws
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { ChangeObserversImpl(this) }
 
+    /**
+     * Broadcasts changes Dropdown
+     */
     public val changed: ChangeObservers<Dropdown<T, M>> = changed_
 
     public var behavior: DropdownBehavior<T, M>? by behavior()

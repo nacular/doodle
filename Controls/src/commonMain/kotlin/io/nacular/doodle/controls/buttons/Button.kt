@@ -28,7 +28,7 @@ public abstract class Button protected constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
             model: ButtonModel   = ButtonModelImpl(),
-            role : ButtonRole        = ButtonRole()): View(accessibilityRole = role) {
+            role : ButtonRole    = ButtonRole()): View(accessibilityRole = role) {
 
     private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
     private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl)(old, new) }

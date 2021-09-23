@@ -2,7 +2,7 @@
 ----------------------
 
 Doodle has several UI components in the Controls library. Here are a few of the common ones. Access these by adding a dependency to
-the Controls library in your build file.
+the `Controls` library in your build file.
 
 <!-- tabs:start -->
 
@@ -41,8 +41,6 @@ them for the controls you use.
 Holds and displays static text with support for basic styling. You can construct it using the [`LabelFactory`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/text/Label.kt#L22).
 
 ```kotlin
-val Label: LabelFactory // injectable to app and Views
-
 val label = Label("Some Text")
 ``` 
 
@@ -168,7 +166,7 @@ This one draws a path using [`PathProgressBehavior`](https://github.com/nacular/
 ```
 
 ```kotlin
-val BlueColor = Color(0x5AE0FCu) opacity 0.85f
+val blueColor = Color(0x5AE0FCu) opacity 0.85f
 
 object: ProgressIndicator() {
     init {
@@ -177,7 +175,7 @@ object: ProgressIndicator() {
         behavior = PathProgressIndicatorBehavior(
             pathMetrics,          // injected
             path                = path("M10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80")!!,
-            foreground          = LinearGradientPaint(Black, BlueColor, Origin, Point(width, 0.0)),
+            foreground          = LinearGradientPaint(Black, blueColor, Origin, Point(width, 0.0)),
             foregroundThickness = 5.0,
             background          = Lightgray.paint,
             backgroundThickness = 5.0
@@ -237,8 +235,33 @@ val spinner2 = Spinner(listOf("Monday", "Tuesday", "Wednesday"))
 }
 ```
 
-?> Rendering requires a `SpinnerBehavior`. [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L210) provides one.
+?> Rendering requires a [`SpinnerBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/spinner/Spinner.kt#L31). [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L210) provides one.
 
+---
+### [Dropdown](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/dropdown/Dropdown.kt#L42)
+
+Dropdown is a list data structure similar to Spinner. It also lets you represent a list of choices where only one is visible (selected) at a time.
+But unlike a Spinner, the choices are shown in a list when the control is activated. They work well when the list of options is relatively small.
+
+Dropdown takes a [`ListModel`](https://github.com/nacular/doodle/blob/master/Controls/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/ListModel.kt#L12) that works like an `Iterator`. This allows them to represent an open-ended list of items that do not need
+to be loaded up front. 
+
+```kotlin
+val dropdown1 = Dropdown(1..9 step 2)
+val dropdown2 = Dropdown(listOf("Left", "Center", "Right"))
+```
+
+```doodle
+{
+    "border": false,
+    "height": "200px",
+    "run"   : "DocApps.dropdown"
+}
+```
+
+?> Rendering requires a [`DropdownBehavior`](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/dropdown/Dropdown.kt#L22). [`BasicTheme`](https://github.com/nacular/doodle/blob/master/Themes/src/commonMain/kotlin/io/nacular/doodle/theme/basic/BasicTheme.kt#L559) provides one.
+
+---
 ### [StarRater](https://github.com/nacular/doodle/blob/master/Controls/src/commonMain/kotlin/io/nacular/doodle/controls/StarRater.kt#L30)
 
 A highly customizable control that displays a rating between [0, n] using stars. It also lets the user change the underlying value.
