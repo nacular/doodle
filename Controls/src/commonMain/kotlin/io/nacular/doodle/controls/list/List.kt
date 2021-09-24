@@ -32,6 +32,7 @@ import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.addOrAppend
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.properties.Delegates.observable
 
 
 public interface ListLike: Selectable<Int> {
@@ -167,7 +168,13 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Defines how the contents of a row should be aligned within that row.
      */
-    public var cellAlignment: (Constraints.() -> Unit)? = null
+    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_,_ ->
+        children.batch {
+            (firstVisibleRow .. lastVisibleRow).forEach {
+                update(this, it)
+            }
+        }
+    }
 
     public fun contains(value: T): Boolean = value in model
 

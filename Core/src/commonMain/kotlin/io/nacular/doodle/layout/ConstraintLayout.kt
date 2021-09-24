@@ -15,7 +15,7 @@ import kotlin.math.min
  */
 
 public val center              : (Constraints.() -> Unit) = { center = parent.center                                                             }
-public val fill                : (Constraints.() -> Unit) = { top = parent.top; left = parent.left; width = parent.width; height = parent.height }
+public val fill                : (Constraints.() -> Unit) = { top    = parent.top; left = parent.left; width = parent.width; height = parent.height }
 public fun fill(insets: Insets): (Constraints.() -> Unit) = {
     top    = parent.top    + insets.top
     left   = parent.left   + insets.left
@@ -421,15 +421,15 @@ public interface Constraints: ParentConstraints {
 
 private open class ParentConstraintsImpl(val target: View): ParentConstraints {
     override val top       = VerticalConstraint (target      ) { 0.0                       }
-    override val centerY   = VerticalConstraint (target      ) { it.height / 2             }
-    override val bottom    = VerticalConstraint (target      ) { it.height                 }
     override val height    = MagnitudeConstraint(target      ) { it.height                 }
+    override val bottom    = VerticalConstraint (target      ) { it.height                 }
+    override val centerY   = VerticalConstraint (target      ) { it.height / 2             }
     override val minHeight = MagnitudeConstraint(IgnoreTarget) { target.minimumSize.height }
 
     override val left     = HorizontalConstraint(target      ) { 0.0                      }
-    override val centerX  = HorizontalConstraint(target      ) { it.width  / 2            }
-    override val right    = HorizontalConstraint(target      ) { it.width                 }
     override val width    = MagnitudeConstraint (target      ) { it.width                 }
+    override val right    = HorizontalConstraint(target      ) { it.width                 }
+    override val centerX  = HorizontalConstraint(target      ) { it.width  / 2            }
     override val minWidth = MagnitudeConstraint (IgnoreTarget) { target.minimumSize.width }
 
 //    override fun toString() = "P $target -> top: $top, left: $left, centerX: $centerX, centerY: $centerY, right: $right, bottom: $bottom"

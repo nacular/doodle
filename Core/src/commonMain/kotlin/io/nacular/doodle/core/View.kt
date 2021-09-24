@@ -1055,9 +1055,9 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
             behavior.install(thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
-
-            afterChange(old, behavior)
         }
+
+        afterChange(old, behavior)
     }
 }
 

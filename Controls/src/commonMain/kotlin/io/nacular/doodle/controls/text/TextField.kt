@@ -53,15 +53,16 @@ public open class TextField(text: String = ""): TextInput(text) {
             (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
         }
 
-    public var behavior: TextFieldBehavior? by behavior { _,_ ->
-        mirrorWhenRightLeft = false
-
-        fitText()
-    }
+    public var behavior: TextFieldBehavior? by behavior(
+            beforeChange = { _,_ -> mirrorWhenRightLeft = false },
+            afterChange  = { _,_ -> fitText() }
+    )
 
     init {
-        boundsChanged += { _,_,_ ->
-            fitText()
+        boundsChanged += { _,old,new ->
+            if (new.size != old.size) {
+                fitText()
+            }
         }
     }
 
