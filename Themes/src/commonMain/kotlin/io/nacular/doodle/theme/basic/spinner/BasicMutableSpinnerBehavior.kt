@@ -49,10 +49,10 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
     public var hoverColorMapper   : ColorMapper get() = delegate.hoverColorMapper;    set(new) { delegate.hoverColorMapper    = new }
     public var disabledColorMapper: ColorMapper get() = delegate.disabledColorMapper; set(new) { delegate.disabledColorMapper = new }
 
-    override fun contains(view: Spinner<T, M>, point: Point): Boolean = delegate.contains(view as Spinner<Any, Model<Any>>, point)
-    override fun mirrorWhenRightToLeft(view: Spinner<T, M>): Boolean = delegate.mirrorWhenRightToLeft(view as Spinner<Any, Model<Any>>)
-    override fun clipCanvasToBounds(view: Spinner<T, M>): Boolean = delegate.clipCanvasToBounds(view as Spinner<Any, Model<Any>>)
-    override fun install(view: Spinner<T, M>) { delegate.install(view as Spinner<Any, Model<Any>>) }
+    override fun contains             (view: Spinner<T, M>, point: Point): Boolean = delegate.contains(view as Spinner<Any, Model<Any>>, point)
+    override fun mirrorWhenRightToLeft(view: Spinner<T, M>              ): Boolean = delegate.mirrorWhenRightToLeft(view as Spinner<Any, Model<Any>>)
+    override fun clipCanvasToBounds   (view: Spinner<T, M>              ): Boolean = delegate.clipCanvasToBounds(view as Spinner<Any, Model<Any>>)
+    override fun install              (view: Spinner<T, M>              ) { delegate.install(view as Spinner<Any, Model<Any>>) }
 
     override fun uninstall(view: Spinner<T, M>): Unit = delegate.uninstall(view as Spinner<Any, Model<Any>>)
 

@@ -3,12 +3,18 @@ package io.nacular.doodle.controls.dropdown
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
+import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Editable
 
 public interface DropdownEditor<T> {
     public fun edit(dropdown: MutableDropdown<T, *>, value: T, current: View): EditOperation<T>
+}
+
+public inline fun <T> dropdownEditor(crossinline block: (dropdown: MutableDropdown<T, *>, value: T, current: View) -> EditOperation<T>): DropdownEditor<T> = object: DropdownEditor<T> {
+    override fun edit(dropdown: MutableDropdown<T, *>, value: T, current: View): EditOperation<T> = block(dropdown, value, current)
 }
 
 public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: DropdownBehavior<T, M> {
@@ -36,15 +42,23 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
         listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer,
 ): Dropdown<T, M>(model, boxItemVisualizer, listItemVisualizer), Editable {
-    public fun set(value: T) {
-        model[selection] = value
-    }
+    public override var value: T
+        get(   ) = super.value
+        set(new) { model[selection] = new }
 
     private var editOperation = null as EditOperation<T>?
 
     public val editing: Boolean get() = editOperation != null
 
     public var editor: DropdownEditor<T>? = null
+
+    private val modelChanged: ModelObserver<T> = { _,_,_,_ ->
+        behavior?.changed(this)
+    }
+
+    init {
+        this.model.changed += modelChanged
+    }
 
     public fun startEditing() {
         cancelEditing()
@@ -60,7 +74,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
 
             cleanupEditing()
 
-            set(result)
+            value = result
         }
     }
 

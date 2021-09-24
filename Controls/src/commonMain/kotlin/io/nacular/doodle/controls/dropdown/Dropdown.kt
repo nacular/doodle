@@ -11,10 +11,12 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
+import kotlin.properties.Delegates
 
 /**
  * Provides presentation and behavior customization for [Dropdown].
@@ -33,6 +35,13 @@ public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> 
      * @param dropdown with change
      */
     public fun changed(dropdown: Dropdown<T, M>) {}
+
+    /**
+     * Called whenever [Dropdown.boxItemVisualizer] or [Dropdown.listCellAlignment] change.
+     *
+     * @param dropdown with change
+     */
+    public fun alignmentChanged(dropdown: Dropdown<T, M>) {}
 }
 
 /**
@@ -74,6 +83,20 @@ public open class Dropdown<T, M: ListModel<T>>(
      * Currently selected value
      */
     public open val value: T get() = model[selection] as T // FIXME: Change ListModel so it just returns T and throws
+
+    /**
+     * Defines how the contents within the drop-down box should be aligned.
+     */
+    public var boxCellAlignment: (Constraints.() -> Unit)? by Delegates.observable(null) { _,_,_ ->
+        behavior?.alignmentChanged(this)
+    }
+
+    /**
+     * Defines how the contents of each choice be aligned.
+     */
+    public var listCellAlignment: (Constraints.() -> Unit)? by Delegates.observable(null) { _,_,_ ->
+        behavior?.alignmentChanged(this)
+    }
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { ChangeObserversImpl(this) }

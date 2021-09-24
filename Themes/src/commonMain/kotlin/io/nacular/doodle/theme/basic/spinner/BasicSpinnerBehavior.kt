@@ -187,8 +187,8 @@ public class BasicSpinnerBehavior(
     override fun pressed(event: KeyEvent) {
         (event.source as? Spinner<*,*>)?.apply {
             when (event.key) {
-                ArrowUp   -> next    ()
-                ArrowDown -> previous()
+                ArrowUp   -> { next    (); event.consume() }
+                ArrowDown -> { previous(); event.consume() }
             }
         }
     }
