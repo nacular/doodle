@@ -297,19 +297,34 @@ The model represents the data within the List, and the visualizer provides a way
 the List.
 
 ```kotlin
-val list = List(listOf(
-    "Alabama",
-    "Alaska",
-    "Arizona",
-    "Arkansas",
-    "California"
-    // ...
-    ),
-    selectionModel = MultiSelectionModel(),
-    itemVisualizer = highlightingTextVisualizer)
-```
+val model = SimpleMutableListModel<Country>()
 
-This creates a List using a factory that takes a list collection and creates a ListModel from it.
+launch {
+    listOf(
+        "United Kingdom" to "images/197374.svg",
+        "United States"  to "images/197484.svg",
+        "France"         to "images/197560.svg",
+        "Germany"        to "images/197571.svg",
+        "Spain"          to "images/197593.svg",
+        // ...
+        ).
+    sortedBy { it.first }.map { (name, path) ->
+        imageLoader.load(path)?.let { image ->
+            model.add(Country(name, image))
+        }
+    }
+}
+
+val list = DynamicList(
+    model,
+    selectionModel = MultiSelectionModel(),
+    itemVisualizer = CountryVisualizer(textVisualizer)
+).apply {
+    cellAlignment = fill
+}
+```
+This List displays a set of countries, with each having a name and flag image. A `DynamicList` is used here because
+the underlying `model` changes as each country is added asynchronously when its image loads. 
 
 Lists provide memory optimization by only rendering the contents within their viewport, recycling items to display
 new rows. The default setting caches 10 extra items; but this can be changed with the `scrollCache` property when creating 
