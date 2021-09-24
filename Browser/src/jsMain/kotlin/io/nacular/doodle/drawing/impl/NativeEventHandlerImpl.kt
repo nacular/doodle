@@ -91,8 +91,8 @@ internal class NativeEventHandlerImpl(
         return false
     }
 
-    private fun onBlur    (target: EventTarget?) = true.also { listener.onFocusLost  (target); focusManager?.hasFocusOwner = false }
-    private fun onFocus   (target: EventTarget?) = true.also { listener.onFocusGained(target); focusManager?.hasFocusOwner = true  }
+    private fun onBlur    (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (target) }
+    private fun onFocus   (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(target) }
     private fun onKeyUp   (target: EventTarget?) = true.also { listener.onKeyUp      (target) }
     private fun onKeyDown (target: EventTarget?) = true.also { listener.onKeyDown    (target) }
     private fun onKeyPress(target: EventTarget?) = true.also { listener.onKeyPress   (target) }
@@ -101,6 +101,6 @@ internal class NativeEventHandlerImpl(
     private fun onChange  (target: EventTarget?) = true.also { listener.onChange     (target) }
     private fun onInput   (target: EventTarget?) = true.also { listener.onInput      (target) }
 
-    private fun onFocusIn (target: EventTarget?) = true.also { listener.onFocusGained(target); focusManager?.hasFocusOwner = true  }
-    private fun onFocusOut(target: EventTarget?) = true.also { listener.onFocusLost  (target); focusManager?.hasFocusOwner = false }
+    private fun onFocusIn (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(target) }
+    private fun onFocusOut(target: EventTarget?) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (target) }
 }
