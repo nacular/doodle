@@ -37,7 +37,7 @@ public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> 
     public fun changed(dropdown: Dropdown<T, M>) {}
 
     /**
-     * Called whenever [Dropdown.boxItemVisualizer] or [Dropdown.listCellAlignment] change.
+     * Called whenever [Dropdown.boxCellAlignment] or [Dropdown.listCellAlignment] change.
      *
      * @param dropdown with change
      */

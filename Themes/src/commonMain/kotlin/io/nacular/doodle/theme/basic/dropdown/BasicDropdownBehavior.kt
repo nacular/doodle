@@ -333,7 +333,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()
 
     internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = (dropdown.boxItemVisualizer ?: itemVisualizer)(dropdown.value, null, SimpleIndexedItem(dropdown.selection, true))) {
-        (viewContainer(dropdown) as? Container)?.let { centerView ->
+        viewContainer(dropdown)?.let { centerView ->
             centerView.firstOrNull()?.let {
                 (centerView.layout as? ConstraintLayout)?.unconstrain(it)
             }

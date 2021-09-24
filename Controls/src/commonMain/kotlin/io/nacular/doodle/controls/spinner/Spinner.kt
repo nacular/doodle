@@ -6,10 +6,12 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
+import kotlin.properties.Delegates
 
 
 /**
@@ -40,6 +42,13 @@ public abstract class SpinnerBehavior<T, M: Model<T>>: Behavior<Spinner<T, M>> {
      * @param spinner with change
      */
     public abstract fun changed(spinner: Spinner<T, M>)
+
+    /**
+     * Called whenever [Spinner.cellAlignment] changes.
+     *
+     * @param spinner with change
+     */
+    public fun alignmentChanged(spinner: Spinner<T, M>) {}
 }
 
 /**
@@ -59,6 +68,13 @@ public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: I
 
     public var itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = itemVisualizer
         protected set
+
+    /**
+     * Defines how the contents within the spinner should be aligned.
+     */
+    public var cellAlignment: (Constraints.() -> Unit)? by Delegates.observable(null) { _,_,_ ->
+        behavior?.alignmentChanged(this)
+    }
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

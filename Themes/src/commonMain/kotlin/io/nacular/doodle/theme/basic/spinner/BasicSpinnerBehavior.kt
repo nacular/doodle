@@ -7,8 +7,10 @@ import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
 import io.nacular.doodle.controls.toString
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -28,7 +30,10 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.ConstraintBlockContext
 import io.nacular.doodle.layout.ConstraintLayout
+import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.center
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
@@ -108,7 +113,7 @@ public class BasicSpinnerBehavior(
         }
     }
 
-    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer(fitText = emptySet())) }
+    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer()) }
 
     override fun changed(spinner: Spinner<Any, Model<Any>>) {}
 
@@ -119,7 +124,7 @@ public class BasicSpinnerBehavior(
     override fun install(view: Spinner<Any, Model<Any>>) {
         super.install(view)
 
-        val center = (view.itemVisualizer ?: itemVisualizer)(view.value, null, view)
+        val center = Container()
         val next = PushButton().apply {
             iconAnchor    = Leading
             enabled       = view.hasNext
@@ -156,10 +161,10 @@ public class BasicSpinnerBehavior(
         view.children += listOf(center, next, previous)
 
         view.layout = constrain(center, next, previous) { center, next, previous ->
-            center.top      = parent.top
-            center.left     = parent.left
-            center.right    = next.left
-            center.bottom   = parent.bottom
+            center.top      = parent.top    + INSET
+            center.left     = parent.left   + INSET
+            center.right    = next.left     - INSET
+            center.bottom   = parent.bottom - INSET
 
             next.top        = parent.top   + INSET
             next.right      = parent.right - INSET
@@ -171,6 +176,8 @@ public class BasicSpinnerBehavior(
             previous.right  = next.right
             previous.bottom = parent.bottom - INSET
         }
+
+        updateCenter(view)
 
         view.keyChanged     += this
         view.pointerChanged += this
@@ -200,24 +207,38 @@ public class BasicSpinnerBehavior(
     internal val centerChanged: Pool<(Spinner<*, *>, View?, View) -> Unit> = SetPool()
 
     internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter, spinner)) {
-        if (oldCenter != null && newCenter != oldCenter) {
-            spinner.children -= oldCenter
-            (spinner.layout as? ConstraintLayout)?.unconstrain(oldCenter)
+        if (newCenter != oldCenter) {
+            viewContainer(spinner)?.let { centerView ->
+                centerView.firstOrNull()?.let {
+                    (centerView.layout as? ConstraintLayout)?.unconstrain(it)
+                }
 
-            spinner.children += newCenter
+                centerView.children.clear()
 
-            (spinner.layout as? ConstraintLayout)?.constrain(newCenter, spinner.children[0]) { center, next ->
-                center.top    = parent.top
-                center.left   = parent.left
-                center.right  = next.left
-                center.bottom = parent.bottom
+                centerView += newCenter
+
+                updateAlignment(spinner, centerView)
             }
 
             (centerChanged as SetPool).forEach { it(spinner, oldCenter, newCenter) }
         }
     }
 
-    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View? = spinner.children.firstOrNull { it !is PushButton }
+    private fun updateAlignment(spinner: Spinner<Any, Model<Any>>, centerView: Container) {
+        val constrains: ConstraintBlockContext.(Constraints) -> Unit = {
+            (spinner.cellAlignment ?: center)(it)
+        }
+
+        centerView.firstOrNull()?.let { child ->
+            when (val l = centerView.layout) {
+                is ConstraintLayout -> { l.unconstrain(child); l.constrain(child, constrains) }
+                else                -> centerView.layout = constrain(child, constrains)
+            }
+        }
+    }
+
+    private  fun viewContainer  (spinner: Spinner<Any, Model<Any>>): Container? =  spinner.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View?      = viewContainer(spinner)?.firstOrNull()
 
     public companion object {
         private const val INSET = 4.0
