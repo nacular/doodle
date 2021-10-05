@@ -77,9 +77,10 @@ public open class MimeType<T> internal constructor(private val primary: String, 
     }
 
     public companion object {
-        public operator fun <T> invoke(primary   : String,
-                                secondary : String,
-                                parameters: Map<String, String> = emptyMap()
+        public operator fun <T> invoke(
+                primary   : String,
+                secondary : String,
+                parameters: Map<String, String> = emptyMap()
         ): MimeType<T> = MimeType(primary, secondary, parameters)
     }
 }
@@ -118,7 +119,7 @@ public open class ApplicationType<T> internal constructor(type: String): MimeTyp
  */
 public class Image(type: String): MimeType<LocalFile>("image", type)
 
-public class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>("reference<${type.simpleName}>") {
+public class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>("doodle-reference-${type.simpleName}") {
     override fun equals(other: Any?): Boolean {
         if (this === other            ) return true
         if (other !is ReferenceType<*>) return false
@@ -158,6 +159,11 @@ public interface DataBundle {
     public operator fun <T> contains(type: MimeType<T>): Boolean
 
     /**
+     * List of [MimeType]s contained in the bundle
+     */
+    public val includedTypes: List<MimeType<*>>
+
+    /**
      * Creates a [CompositeBundle] by joining this with the given bundle
      *
      * @param other bundle to combine with this
@@ -176,6 +182,7 @@ public inline fun <reified T: Any> DataBundle.contains(): Boolean = ReferenceTyp
 public class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
     override fun <T> get     (type: MimeType<T>): T? = if (type in this) item as? T else null
     override fun <T> contains(type: MimeType<T>): Boolean = this.type.assignableTo(type)
+    override val includedTypes: List<MimeType<*>> by lazy { listOf(type) }
 }
 
 /**
@@ -184,8 +191,10 @@ public class SingleItemBundle<Item>(private val type: MimeType<Item>, private va
 public class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBundle {
     public constructor(vararg bundles: DataBundle): this(sequenceOf(*bundles))
 
-    override fun <T> get     (type: MimeType<T>): T? = bundles.find { type in it }?.let { it[type] }
+    override fun <T> get     (type: MimeType<T>): T?      = bundles.find { type in it }?.let { it[type] }
     override fun <T> contains(type: MimeType<T>): Boolean = bundles.find { type in it }?.let { true } ?: false
+
+    override val includedTypes: List<MimeType<*>> by lazy { bundles.flatMap { it.includedTypes }.toList() }
 
     override operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(bundles + other)
 }

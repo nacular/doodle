@@ -191,17 +191,36 @@ internal class DragManagerImpl(
         return mimeTypes.isEmpty() || (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.find { it.type in mimeTypes } != null
     }
 
-    private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let {
+    private val mimeRegex by lazy { Regex("(application|audio|font|example|image|message|model|multipart|text|video|\\*|x-(?:[0-9A-Za-z!#\$%&'*+.^_`|~-]+))\\/([0-9A-Za-z!#\$%&'*+.^_`|~-]+)((?:[ \\t]*;[ \\t]*[0-9A-Za-z!#\$%&'*+.^_`|~-]+=(?:[0-9A-Za-z!#\$%&'*+.^_`|~-]+|\"(?:[^\"\\\\]|\\\\.)*\"))*)") }
+
+    private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let { transfer ->
         object: DataBundle {
             override fun <T> get(type: MimeType<T>) = when (type) {
-                is Files -> getFiles(it, type) as? T
-                in this  -> it.getData(type.toString()) as? T
-                else    -> null
+                is Files -> getFiles(transfer, type) as? T
+                in this  -> transfer.getData(type.toString()) as? T
+                else     -> null
             }
 
             override fun <T> contains(type: MimeType<T>) = when (type) {
-                is Files -> contains(it, type)
-                else     -> type.toString() in it.types
+                is Files -> contains(transfer, type)
+                else     -> type.toString() in transfer.types
+            }
+
+            override val includedTypes: List<MimeType<*>> by lazy {
+                (0 .. transfer.items.length).mapNotNull {
+                    transfer.items[it]?.type?.let {
+                        mimeRegex.matchEntire(it)?.let { match ->
+                            val primary   = match.groups[1]?.value ?: return@let null
+                            val secondary = match.groups[2]?.value ?: return@let null
+                            val params    = match.groups[3]?.value ?: return@let null
+                            val splits    = params.split(";").map { it.trim() }.filter { it.isNotBlank() }.map {
+                                it.split("=").let { it[0].trim() to it[1].trim() }
+                            }
+
+                            MimeType<Any>(primary, secondary, splits.associate { it.first to it.second })
+                        }
+                    }
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package io.nacular.doodle.system.impl
 import io.nacular.doodle.core.View
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.swing.location
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
 import io.nacular.doodle.system.Cursor.Companion.Default
@@ -32,7 +33,11 @@ import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button2
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button3
 import io.nacular.doodle.system.SystemPointerEvent.Type
+import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
+import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
+import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
+import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Cursor.CROSSHAIR_CURSOR
@@ -49,8 +54,6 @@ import java.awt.Cursor.S_RESIZE_CURSOR
 import java.awt.Cursor.TEXT_CURSOR
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.W_RESIZE_CURSOR
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
@@ -174,8 +177,8 @@ internal class PointerInputServiceImpl(
             return
         }
 
-        val windowScreenLocation = window.layeredPane.locationOnScreen
-        val absoluteLocation     = e.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
+        val absoluteLocation = e.location(window)
+
         viewFinder.find(absoluteLocation)?.let {
             var target = it as View?
 
@@ -217,40 +220,51 @@ internal class PointerInputServiceImpl(
     }
 
     private fun notifyPointerEvent(mouseEvent: MouseEvent, type: Type): Boolean {
-        var buttons = when (mouseEvent.button) {
-            1    -> setOf(Button1)
-            2    -> setOf(Button2)
-            3    -> setOf(Button3)
-            else -> emptySet()
-        }
-
-        // FIXME: Change browser behavior to track released button instead of doing this
-        if (type == Up) {
-            buttons = emptySet()
-        }
-
-        val modifiers = mutableSetOf<Modifier>()
-
-        if (mouseEvent.isShiftDown  ) modifiers += Shift
-        if (mouseEvent.isAltDown    ) modifiers += Alt
-        if (mouseEvent.isMetaDown   ) modifiers += Meta
-        if (mouseEvent.isControlDown) modifiers += Ctrl
-
-        val windowScreenLocation = window.layeredPane.locationOnScreen
-        val location             = mouseEvent.locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
-
-        val event = SystemPointerEvent(
-                id                = 0,
-                type              = type,
-                location          = location,
-                buttons           = buttons,
-                clickCount        = mouseEvent.clickCount,
-                modifiers         = modifiers,
-                nativeScrollPanel = false)
+        val event = mouseEvent.toDoodle(window, type)
 
         preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
         listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
 
         return event.consumed
     }
+}
+
+private val MouseEvent.type: Type get() = when (id) {
+    MouseEvent.MOUSE_ENTERED  -> Enter
+    MouseEvent.MOUSE_EXITED   -> Exit
+    MouseEvent.MOUSE_PRESSED  -> Down
+    MouseEvent.MOUSE_RELEASED -> Up
+    MouseEvent.MOUSE_CLICKED  -> Click
+    MouseEvent.MOUSE_DRAGGED  -> Drag
+    else                      -> Type.Move
+}
+
+internal fun MouseEvent.toDoodle(window: SkiaWindow, type: Type = this.type): SystemPointerEvent {
+    var buttons = when (button) {
+        1    -> setOf(Button1)
+        2    -> setOf(Button2)
+        3    -> setOf(Button3)
+        else -> emptySet()
+    }
+
+    // FIXME: Change browser behavior to track released button instead of doing this
+    if (type == Up) {
+        buttons = emptySet()
+    }
+
+    val modifiers = mutableSetOf<Modifier>()
+
+    if (isShiftDown  ) modifiers += Shift
+    if (isAltDown    ) modifiers += Alt
+    if (isMetaDown   ) modifiers += Meta
+    if (isControlDown) modifiers += Ctrl
+
+    return SystemPointerEvent(
+            id                = 0,
+            type              = type,
+            location          = location(window),
+            buttons           = buttons,
+            clickCount        = clickCount,
+            modifiers         = modifiers,
+            nativeScrollPanel = false)
 }

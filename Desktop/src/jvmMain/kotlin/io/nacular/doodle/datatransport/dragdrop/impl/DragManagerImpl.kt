@@ -5,7 +5,9 @@ import io.nacular.doodle.datatransport.DataBundle
 import io.nacular.doodle.datatransport.Files
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
+import io.nacular.doodle.datatransport.PlainText
 import io.nacular.doodle.datatransport.dragdrop.DragManager
+import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragOperation.Action
 import io.nacular.doodle.datatransport.dragdrop.DragOperation.Action.Copy
 import io.nacular.doodle.datatransport.dragdrop.DragOperation.Action.Link
@@ -13,26 +15,40 @@ import io.nacular.doodle.datatransport.dragdrop.DragOperation.Action.Move
 import io.nacular.doodle.datatransport.dragdrop.DropEvent
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
 import io.nacular.doodle.deviceinput.ViewFinder
-import io.nacular.doodle.drawing.GraphicsDevice
-import io.nacular.doodle.drawing.Renderable
-import io.nacular.doodle.drawing.impl.RealGraphicsSurface
+import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.swing.location
 import io.nacular.doodle.system.PointerInputService
-import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.impl.toDoodle
 import io.nacular.measured.units.BinarySize.Companion.bytes
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
 import kotlinx.coroutines.CancellationException
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.Canvas
+import org.jetbrains.skia.Font
+import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaWindow
+import org.jetbrains.skiko.toBufferedImage
+import java.awt.Cursor
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
+import java.awt.dnd.DnDConstants.ACTION_COPY_OR_MOVE
+import java.awt.dnd.DnDConstants.ACTION_LINK
+import java.awt.dnd.DragGestureEvent
+import java.awt.dnd.DragGestureListener
+import java.awt.dnd.DragSource
+import java.awt.dnd.DragSourceAdapter
+import java.awt.dnd.DragSourceDropEvent
+import java.awt.event.MouseEvent
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files.probeContentType
 import java.util.Base64
+import javax.swing.JComponent
 import javax.swing.TransferHandler
 import javax.swing.TransferHandler.COPY
 import javax.swing.TransferHandler.COPY_OR_MOVE
@@ -43,25 +59,22 @@ import javax.swing.TransferHandler.TransferSupport
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import kotlin.math.abs
+import java.awt.Point as AwtPoint
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-        private val window                 : SkiaWindow,
-        private val viewFinder             : ViewFinder,
-        private val scheduler              : Scheduler,
-        private val pointerInputService    : PointerInputService,
-        private val graphicsDevice         : GraphicsDevice<RealGraphicsSurface>): DragManager {
-    private var pointerDown            = null as PointerEvent?
+        private val window             : SkiaWindow,
+        private val viewFinder         : ViewFinder,
+        private val defaultFont        : Font,
+        private val fontCollection     : FontCollection): DragManager, DragGestureListener {
+
     private var dropAllowed            = false
     private var currentAction          = null as Action?
-    private var allowedActions         = "all"
     private var currentDropHandler     = null as Pair<View, DropReceiver>?
     private var currentPointerLocation = Origin
-    private var dataBundle             = null as DataBundle?
-
-    private lateinit var visualCanvas: RealGraphicsSurface
+    private var dragOperation          = null as DragOperation?
+    private val dragSource             = DragSource()
 
     private class SimpleFile(private val delegate: File): LocalFile {
         override val name: String get() = delegate.name
@@ -143,28 +156,24 @@ internal class DragManagerImpl(
 
     private fun createBundle(support: TransferSupport) = object: DataBundle {
         override fun <T> get(type: MimeType<T>) = when (type) {
-            is Files -> support.getFiles(type) as? T
-            in this  -> support.transferable.getTransferData(DataFlavor(type.toString(), null)) as? T
-            else    -> null
+            is Files     -> support.getFiles(type) as? T
+            is PlainText -> DataFlavor(type.toString(), null).getReaderForText(support.transferable).readText() as T
+            in this      -> support.transferable.getTransferData(DataFlavor(type.toString(), null)) as? T
+            else         -> null
         }
+
+        override val includedTypes: List<MimeType<*>>
+            get() = support.transferable.transferDataFlavors.map { MimeType<Any>(it.primaryType, it.subType, emptyMap()) }
 
         override fun <T> contains(type: MimeType<T>) = type in support
     }
 
     init {
-//        pointerInputService += object: Preprocessor {
-//            override fun preprocess(event: SystemPointerEvent) {
-//                when (event.type) {
-//                    Up   -> pointerUp  (     )
-//                    Down -> pointerDown(event)
-//                    else -> pointerDrag(event)
-//                }
-//            }
-//        }
+        dragSource.createDefaultDragGestureRecognizer(window.layer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
 
         window.layer.transferHandler = object: TransferHandler() {
             override fun canImport(support: TransferSupport): Boolean {
-                (dataBundle ?: createBundle(support)).let {
+                (dragOperation?.bundle ?: createBundle(support)).let {
                     if (currentDropHandler == null) {
                         dropAllowed = false
                     }
@@ -175,28 +184,31 @@ internal class DragManagerImpl(
                 return dropAllowed
             }
 
-//            override fun getDragImage(): Image {
-//                return super.getDragImage()
-//            }
-//
-//            override fun getDragImageOffset(): java.awt.Point {
-//                return super.getDragImageOffset()
-//            }
+            override fun getSourceActions(c: JComponent?): Int {
+                var result = NONE
 
-            override fun importData(support: TransferSupport): Boolean {
-                if (dataBundle == null) {
-                    createBundle(support).let {
-                        currentDropHandler?.let { (view, handler) ->
-                            handler.drop(DropEvent(view, view.fromAbsolute(support.dropLocation.dropPoint.run { Point(x, y) }), it, action(support)))
-
-                            currentDropHandler = null
-                        }
-                    }
-
-                    return true
+                dragOperation?.allowedActions?.forEach {
+                    result = result.or(when (it) {
+                        Copy -> COPY
+                        Move -> MOVE
+                        Link -> LINK
+                    })
                 }
 
-                return false
+                return result
+            }
+
+            override fun importData(support: TransferSupport): Boolean {
+                var succeeded = false
+                val bundle    = dragOperation?.bundle ?: createBundle(support)
+
+                currentDropHandler?.let { (view, handler) ->
+                    succeeded = handler.drop(DropEvent(view, view.fromAbsolute(support.dropLocation.dropPoint.run { Point(x, y) }), bundle, action(support)))
+
+                    currentDropHandler = null
+                }
+
+                return succeeded
             }
         }
     }
@@ -204,60 +216,19 @@ internal class DragManagerImpl(
     override fun shutdown() {
     }
 
-    private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(view, event)
-
-    private fun pointerDrag(event: SystemPointerEvent) {
-        pointerDown?.let {
-            viewFinder.find(event.location)?.let { view ->
-
-                if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
-                    view.dragRecognizer?.dragRecognized(pointerEvent(event, view))?.let { dragOperation ->
-                        dataBundle = dragOperation.bundle
-
-                        dragOperation.visual?.let { visual ->
-                            createVisual(visual)
-
-//                            visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
-//
-//                            scheduler.now { visualCanvas.release() } // FIXME: This doesn't happen fast enough
-//
-//                            visualCanvas.rootElement.apply {
-//                                ondragstart = {
-//                                    it.dataTransfer?.apply {
-//                                        effectAllowed = allowedActions(dragOperation.allowedActions)
-//
-//                                        setOf(PlainText, UriList).forEach { mimeType ->
-//                                            dragOperation.bundle[mimeType]?.let { text ->
-//                                                it.dataTransfer?.setData("$it", text)
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-                        }
-
-//                        registerListeners(dragOperation, rootElement)
-
-                        // FIXME: Need to find way to avoid dragging selected inputs even when they aren't being dragged
-//                        if(document.asDynamic()["selection"] != undefined) {
-//                            document.asDynamic().selection.empty()
-//                        }
-
-//                        visualCanvas.rootElement.asDynamic().dragDrop()
-
-                        pointerDown = null
-                    }
-                }
-            }
+    override fun dragGestureRecognized(event: DragGestureEvent?) {
+        if (event == null) {
+            return
         }
-    }
 
-    private fun pointerDown(event: SystemPointerEvent) {
-        viewFinder.find(event.location).let {
+        val mouseEvent = event.triggerEvent as? MouseEvent
+        val location   = mouseEvent?.location(window) ?: return
+
+        viewFinder.find(location).let {
             var view = it
 
             while (view != null) {
-                if (tryDrag(view, event)) {
+                if (tryDrag(view, PointerEvent(view, mouseEvent.toDoodle(window)), event)) {
                     break
                 }
 
@@ -266,37 +237,64 @@ internal class DragManagerImpl(
         }
     }
 
-    private fun tryDrag(view: View, event: SystemPointerEvent): Boolean {
-        if (!view.enabled || !view.visible) {
-            return false
-        }
+    private fun tryDrag(view: View, event: PointerEvent, dragEvent: DragGestureEvent): Boolean {
+        view.dragRecognizer?.dragRecognized(event)?.let { dragOperation ->
+            this.dragOperation = dragOperation
 
-        val pointerEvent = pointerEvent(event, view)
+            val transferable = dragOperation.bundle.let { bundle ->
+                object: Transferable {
+                    override fun getTransferDataFlavors(): Array<DataFlavor> = bundle.includedTypes.map {
+                        when (it) {
+                            PlainText -> DataFlavor.plainTextFlavor
+                            else      -> DataFlavor(it.toString())
+                        }
+                    }.toTypedArray()
 
-        view.dragRecognizer?.dragRecognized(pointerEvent)?.let { dragOperation ->
+                    // TODO: Cannot get flavor.mimeType b/c it is shadowed by flavor.getMimeType, which returns a string
+                    override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor != null && MimeType<Any>(flavor.primaryType, flavor.subType) in bundle
 
-            dataBundle            = dragOperation.bundle
+                    // TODO: Cannot get flavor.mimeType b/c it is shadowed by flavor.getMimeType, which returns a string
+                    override fun getTransferData(flavor: DataFlavor?): Any? = flavor?.run { bundle[MimeType<Any>(primaryType, subType)] }
+                }
+            }
 
-//            rootElement.ondragstart = {
-//
-//                it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
-//
-//                dragOperation.visual?.let { visual ->
-//                    createVisual(visual)
-//
-//                    it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
-//                }
-//
-//                setOf(PlainText, UriList).forEach { mimeType ->
-//                    dragOperation.bundle[mimeType]?.let { text ->
-//                        it.dataTransfer?.setData("$mimeType", text)
-//                    }
-//                }
-//
-//                dragOperation.started()
-//            }
-//
-//            registerListeners(dragOperation, rootElement)
+            val dragListener = object: DragSourceAdapter() {
+                override fun dragDropEnd(dropEvent: DragSourceDropEvent?) {
+                    dropEvent?.let { event ->
+                        val dropAction = action(event.dropAction)
+
+                        when {
+                            event.dropSuccess && dropAction != null -> dragOperation.completed(dropAction)
+                            else                                    -> dragOperation.canceled (          )
+                        }
+                    }
+
+                    this@DragManagerImpl.dragOperation = null
+                }
+            }
+
+            when {
+                DragSource.isDragImageSupported() -> {
+                    val image = dragOperation.visual?.let { visual ->
+                        val bitmap = Bitmap().apply {
+                            allocN32Pixels(visual.size.width.toInt(), visual.size.height.toInt())
+                        }
+
+                        val bitmapCanvas = Canvas(bitmap)
+
+                        visual.render(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = visual.size })
+
+                        bitmap.toBufferedImage()
+                    }
+
+                    val offset = dragOperation.visualOffset.run { AwtPoint(-x.toInt(), -y.toInt()) }
+
+                    dragEvent.startDrag(Cursor.getDefaultCursor(), image, offset, transferable, dragListener)
+                }
+                else                              -> dragEvent.startDrag(Cursor.getDefaultCursor(), transferable, dragListener)
+            }
+
+            dragOperation.started()
 
             return true
         }
@@ -304,30 +302,7 @@ internal class DragManagerImpl(
         return false
     }
 
-    private fun pointerUp() {
-        pointerDown = null
-        dataBundle  = null
-    }
-
-    private fun allowedActions(actions: Set<Action>): String {
-        val builder = StringBuilder()
-
-        if (Copy in actions) builder.append("copy")
-        if (Link in actions) builder.append("Link")
-        if (Move in actions) builder.append("Move")
-
-        return when (val string = builder.toString()) {
-            "copyLinkMove" -> "all"
-            ""             -> "none"
-            else           -> string.decapitalize()
-        }.also {
-            allowedActions = it
-        }
-    }
-
-//    private fun pointerLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
-
-    private fun action(support: TransferSupport) = when (support.dropAction) {
+    private fun action(awtAction: Int) = when (awtAction) {
         NONE         -> null
         COPY         -> Copy
         MOVE         -> Move
@@ -336,47 +311,7 @@ internal class DragManagerImpl(
         else         -> null
     }
 
-//    private fun action(dataTransfer: DataTransfer?) = action(dataTransfer?.run {
-//        when {
-//            effectAllowed != allowedActions && effectAllowed != "uninitialized" -> effectAllowed
-//            dropEffect    == "none"                                             -> "move"
-//            else                                                                -> dropEffect
-//        }
-//    })
-
-//    private fun registerListeners(dragOperation: DragOperation, element: HTMLElement) {
-//        element.ondragenter = {
-//            if (it.target !is HTMLInputElement) {
-//                it.preventDefault ()
-//                it.stopPropagation()
-//            }
-//        }
-//        element.ondragend = {
-//            element.draggable   = false
-//            element.ondragenter = null
-//            element.ondragstart = null
-//
-//            val action = action(it.dataTransfer?.dropEffect)
-//
-//            if (action == null) {
-//                dragOperation.canceled()
-//            } else {
-//                currentDropHandler?.let { (view, handler) ->
-//                    if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
-//                        dragOperation.completed(action)
-//                    } else {
-//                        dragOperation.canceled()
-//                    }
-//                } ?: dragOperation.completed(action)
-//            }
-//
-//            currentDropHandler = null
-//
-//            pointerUp()
-//
-//            null
-//        }
-//    }
+    private fun action(support: TransferSupport) = action(support.dropAction)
 
     private fun dragUpdate(bundle: DataBundle, desired: Action?, location: Point): Boolean {
         var dropAllowed = this.dropAllowed
@@ -424,26 +359,6 @@ internal class DragManagerImpl(
         return dropAllowed
     }
 
-    private fun createVisual(visual: Renderable) {
-//        class CanvasWrapper(private val delegate: NativeCanvas): NativeCanvas by delegate {
-//            override fun addData(elements: List<HTMLElement>, at: Point) {
-//                delegate.addData(elements.map { it.cloneNode(deep = true) as HTMLElement }, at)
-//            }
-//        }
-//
-//        // TODO: Make this a general purpose View -> Image generator
-//        visualCanvas = graphicsDevice.create()
-//
-//        visualCanvas.rootElement.style.setTop(-visual.size.height)
-//
-//        visualCanvas.zOrder = -Int.MAX_VALUE
-//        visualCanvas.size   = visual.size
-//
-//        (visualCanvas.canvas as? NativeCanvas)?.let {
-//            visual.render(CanvasWrapper(it))
-//        }
-    }
-
     private fun getDropEventHandler(view: View?): Pair<View, DropReceiver>? {
         var current = view
         var handler = null as DropReceiver?
@@ -459,9 +374,5 @@ internal class DragManagerImpl(
         }
 
         return if (handler != null && current != null) current to handler else null
-    }
-
-    private companion object {
-        private const val DRAG_THRESHOLD = 5.0
     }
 }

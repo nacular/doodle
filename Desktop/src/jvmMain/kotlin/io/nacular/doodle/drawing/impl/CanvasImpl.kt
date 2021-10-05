@@ -73,9 +73,9 @@ import org.jetbrains.skia.Path   as SkiaPath
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class CanvasImpl(
-        internal val skiaCanvas: SkiaCanvas,
-        private val defaultFont: SkiaFont,
-        private val fontCollection: FontCollection
+        internal val skiaCanvas    : SkiaCanvas,
+        private  val defaultFont   : SkiaFont,
+        private  val fontCollection: FontCollection
 ): Canvas {
     private fun Paint.skia(): SkiaPaint {
         val result = SkiaPaint()

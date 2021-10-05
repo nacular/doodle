@@ -81,7 +81,7 @@ public class Modules {
         public val DragDropModule: Module = Module(allowSilentOverride = true, name = "DragDrop") {
             importOnce(PointerModule)
 
-            bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance(), instance()) }
+            bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance()) }
         }
 
         public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
