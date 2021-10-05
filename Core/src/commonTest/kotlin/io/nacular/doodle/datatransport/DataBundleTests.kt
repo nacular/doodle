@@ -21,7 +21,7 @@ class DataBundleTests {
                 UriList                 to "text/uri-list",
                 PlainText               to "text/plain",
                 PlainText("utf-8")      to "text/plain;charset=utf-8",
-                ReferenceType<Double>() to "application/reference<Double>"
+                ReferenceType<Double>() to "application/doodle-reference-Double"
         ).forEach { (mime, string) ->
             expect(string) { mime.toString() }
         }
