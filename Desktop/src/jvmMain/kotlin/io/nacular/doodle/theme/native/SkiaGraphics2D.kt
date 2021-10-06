@@ -195,7 +195,7 @@ internal class SkiaGraphics2D(
     private var height = 0
 
     private var skiaFont     = defaultFont
-    private val skiaPaint    = Paint().setColor(-0x1000000)
+    private val skiaPaint    = Paint().apply { color =-0x1000000 }
     private val typefaceMap  = mutableMapOf<Pair<String, FontStyle>, Typeface?>()
     private var restoreCount = 0
 
@@ -332,17 +332,17 @@ internal class SkiaGraphics2D(
             skiaPaint.setAlphaf(newComposite.alpha)
 
             when (newComposite.rule) {
-                AlphaComposite.CLEAR    -> skiaPaint.setBlendMode(BlendMode.CLEAR   )
-                AlphaComposite.SRC      -> skiaPaint.setBlendMode(BlendMode.SRC     )
-                AlphaComposite.SRC_OVER -> skiaPaint.setBlendMode(BlendMode.SRC_OVER)
-                AlphaComposite.DST_OVER -> skiaPaint.setBlendMode(BlendMode.DST_OVER)
-                AlphaComposite.SRC_IN   -> skiaPaint.setBlendMode(BlendMode.SRC_IN  )
-                AlphaComposite.DST_IN   -> skiaPaint.setBlendMode(BlendMode.DST_IN  )
-                AlphaComposite.SRC_OUT  -> skiaPaint.setBlendMode(BlendMode.SRC_OUT )
-                AlphaComposite.DST_OUT  -> skiaPaint.setBlendMode(BlendMode.DST_OUT )
-                AlphaComposite.DST      -> skiaPaint.setBlendMode(BlendMode.DST     )
-                AlphaComposite.SRC_ATOP -> skiaPaint.setBlendMode(BlendMode.SRC_ATOP)
-                AlphaComposite.DST_ATOP -> skiaPaint.setBlendMode(BlendMode.DST_ATOP)
+                AlphaComposite.CLEAR    -> skiaPaint.apply { blendMode = BlendMode.CLEAR    }
+                AlphaComposite.SRC      -> skiaPaint.apply { blendMode = BlendMode.SRC      }
+                AlphaComposite.SRC_OVER -> skiaPaint.apply { blendMode = BlendMode.SRC_OVER }
+                AlphaComposite.DST_OVER -> skiaPaint.apply { blendMode = BlendMode.DST_OVER }
+                AlphaComposite.SRC_IN   -> skiaPaint.apply { blendMode = BlendMode.SRC_IN   }
+                AlphaComposite.DST_IN   -> skiaPaint.apply { blendMode = BlendMode.DST_IN   }
+                AlphaComposite.SRC_OUT  -> skiaPaint.apply { blendMode = BlendMode.SRC_OUT  }
+                AlphaComposite.DST_OUT  -> skiaPaint.apply { blendMode = BlendMode.DST_OUT  }
+                AlphaComposite.DST      -> skiaPaint.apply { blendMode = BlendMode.DST      }
+                AlphaComposite.SRC_ATOP -> skiaPaint.apply { blendMode = BlendMode.SRC_ATOP }
+                AlphaComposite.DST_ATOP -> skiaPaint.apply { blendMode = BlendMode.DST_ATOP }
             }
         }
     }

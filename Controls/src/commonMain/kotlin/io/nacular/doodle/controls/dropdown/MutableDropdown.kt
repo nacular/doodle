@@ -36,7 +36,14 @@ public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: Dropdo
     public abstract fun editingEnded(dropdown: MutableDropdown<T, M>)
 }
 
-
+/**
+ * A dropdown control that can be edited.
+ * @see [Dropdown]
+ *
+ * @param model used to represent the underlying choices
+ * @param boxItemVisualizer to render the selected item within the drop-down box
+ * @param listItemVisualizer to render each item within the list of choices
+ */
 public class MutableDropdown<T, M: MutableListModel<T>>(
         model             : M,
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
@@ -46,11 +53,13 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         get(   ) = super.value
         set(new) { model[selection] = new }
 
-    private var editOperation = null as EditOperation<T>?
-
+    /** Indicates whether there is an ongoing edit operation */
     public val editing: Boolean get() = editOperation != null
 
+    /** Controls how editing is done */
     public var editor: DropdownEditor<T>? = null
+
+    private var editOperation = null as EditOperation<T>?
 
     private val modelChanged: ModelObserver<T> = { _,_,_,_ ->
         behavior?.changed(this)
@@ -60,6 +69,12 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         this.model.changed += modelChanged
     }
 
+    /**
+     * Initiate editing of the control. This will notify the `Behavior` that editing is starting. The behavior
+     * can then use the `editor` to control the process.
+     *
+     * NOTE: this has no effect if no `editor` or `behavior` are installed.
+     */
     public fun startEditing() {
         cancelEditing()
 
@@ -68,6 +83,10 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         }
     }
 
+    /**
+     * Requests that the existing edit operation be completed. This will try to fetch a valid
+     * result and update the underlying value if possible.
+     */
     public override fun completeEditing() {
         editOperation?.let { operation ->
             val result = operation.complete() ?: return
@@ -78,8 +97,12 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         }
     }
 
-    // FIXME: Cancel editing on selection/focus change
+    /**
+     * Requests that the existing edit operation be canceled. This will discard the current
+     * process and retain the underlying value before editing started.
+     */
     public override fun cancelEditing() {
+        // FIXME: Cancel editing on selection/focus change
         cleanupEditing()
     }
 
@@ -89,9 +112,5 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
             editOperation = null
             (behavior as? MutableDropdownBehavior<T, M>)?.editingEnded(this)
         }
-    }
-
-    public companion object {
-//        public operator fun <T> invoke(values: List<T>, itemVisualizer: ItemVisualizer<T, Any>?   = null): MutableSpinner<T, io.nacular.doodle.controls.spinner.MutableListModel<T>> = MutableSpinner(io.nacular.doodle.controls.spinner.MutableListModel(values), itemVisualizer)
     }
 }

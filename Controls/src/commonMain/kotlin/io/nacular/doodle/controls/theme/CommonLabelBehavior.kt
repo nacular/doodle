@@ -24,7 +24,7 @@ import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
 
 /**
- * Created by Nicholas Eddy on 9/25/19.
+ * Behavior providing basic rendering of [Label]s.
  */
 public open class CommonLabelBehavior(
         private        val textMetrics    : TextMetrics,
@@ -32,6 +32,7 @@ public open class CommonLabelBehavior(
         protected open val backgroundColor: Color? = null
 ): LabelBehavior {
 
+    /** Controls how [Color]s are changed when the rendered [Label] is disabled. */
     public var disabledColorMapper: (Color) -> Color = { it.lighter() }
 
     private val enabledChanged: PropertyObserver<View, Boolean> = { view,_,_ ->

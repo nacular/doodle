@@ -45,7 +45,7 @@ public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> 
 }
 
 /**
- * Controls used to select an item within a list.
+ * Control used to select an item within a hidden list.
  *
  * @property model used to represent the underlying choices
  * @property boxItemVisualizer to render the selected item within the drop-down box
@@ -65,6 +65,9 @@ public open class Dropdown<T, M: ListModel<T>>(
 
     internal var list: List<T, M>? = null
 
+    /**
+     * Indicates whether the option list is empty
+     */
     public val isEmpty: Boolean get() = model.isEmpty
 
     /**
@@ -82,7 +85,7 @@ public open class Dropdown<T, M: ListModel<T>>(
     /**
      * Currently selected value
      */
-    public open val value: T get() = model[selection] as T // FIXME: Change ListModel so it just returns T and throws
+    public open val value: T get() = model[selection] as T // FIXME: Change ListModel so it just returns T and throws IndexOutOfBounds
 
     /**
      * Defines how the contents within the drop-down box should be aligned.
@@ -106,6 +109,7 @@ public open class Dropdown<T, M: ListModel<T>>(
      */
     public val changed: ChangeObservers<Dropdown<T, M>> = changed_
 
+    /** Controls the Dropdown's look and behavior. */
     public var behavior: DropdownBehavior<T, M>? by behavior()
 
     override fun render(canvas: Canvas) {

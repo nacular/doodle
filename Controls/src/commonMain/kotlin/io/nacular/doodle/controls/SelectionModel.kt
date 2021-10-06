@@ -24,8 +24,8 @@ public interface Selectable<T> {
     public val lastSelection  : T?
     public val selectionAnchor: T?
     public val selection      : Set<T>
-    public val firstSelectable: T?
-    public val lastSelectable : T?
+    public val firstSelectable: T? get() = null
+    public val lastSelectable : T? get() = null
 }
 
 public interface SelectionModel<T>: Iterable<T> {

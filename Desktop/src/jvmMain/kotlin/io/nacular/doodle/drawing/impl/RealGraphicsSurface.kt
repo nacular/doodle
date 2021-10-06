@@ -127,7 +127,7 @@ internal class RealGraphicsSurface(
             when (opacity) {
                 1f   -> skiaCanvas.save()
                 else -> skiaCanvas.saveLayer(null, Paint().apply {
-                    setAlpha((255 * opacity).toInt())
+                    alpha = (255 * opacity).toInt()
                 })
             }
 
