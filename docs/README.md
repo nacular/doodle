@@ -40,11 +40,13 @@ with bundle size. Apps written with Doodle are also dependency-injected; and the
 ## Hello World
 ```kotlin
 import io.nacular.doodle.application.Application
+import io.nacular.doodle.application.application
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.text
+import org.kodein.di.instance
 
 class HelloWorld(display: Display): Application {
     init {
