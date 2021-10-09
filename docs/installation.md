@@ -36,9 +36,9 @@ kotlin {
         implementation ("io.nacular.doodle:browser:$doodleVersion")
 
         // Optional
-        // implementation ("io.nacular.doodle:controls:doodleVersion" )
-        // implementation ("io.nacular.doodle:animation:doodleVersion")
-        // implementation ("io.nacular.doodle:themes:doodleVersion"   )
+        // implementation ("io.nacular.doodle:controls:$doodleVersion" )
+        // implementation ("io.nacular.doodle:animation:$doodleVersion")
+        // implementation ("io.nacular.doodle:themes:$doodleVersion"   )
     }
 }
 ```
@@ -112,9 +112,9 @@ kotlin {
         implementation ("io.nacular.doodle:desktop:$doodleVersion")
 
         // Optional
-        // implementation ("io.nacular.doodle:controls:doodleVersion" )
-        // implementation ("io.nacular.doodle:animation:doodleVersion")
-        // implementation ("io.nacular.doodle:themes:doodleVersion"   )
+        // implementation ("io.nacular.doodle:controls:$doodleVersion" )
+        // implementation ("io.nacular.doodle:animation:$doodleVersion")
+        // implementation ("io.nacular.doodle:themes:$doodleVersion"   )
     }
 }
 
@@ -211,9 +211,9 @@ kotlin {
                 implementation ("io.nacular.doodle:core:$doodleVersion")
 
                 // Optional
-                // implementation ("io.nacular.doodle:controls:doodleVersion" )
-                // implementation ("io.nacular.doodle:animation:doodleVersion")
-                // implementation ("io.nacular.doodle:themes:doodleVersion"   )
+                // implementation ("io.nacular.doodle:controls:$doodleVersion" )
+                // implementation ("io.nacular.doodle:animation:$doodleVersion")
+                // implementation ("io.nacular.doodle:themes:$doodleVersion"   )
             }
         }
 
