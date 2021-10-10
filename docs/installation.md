@@ -96,6 +96,9 @@ group   = "com.my.cool.app"
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
 }
 
 kotlin {
@@ -136,6 +139,9 @@ group   = 'com.my.cool.app'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://maven.pkg.jetbrains.space/public/p/compose/dev"
+    }
 }
 
 ext {
