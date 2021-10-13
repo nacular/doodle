@@ -148,6 +148,13 @@ public inline fun Display.fill(color: Color): Unit = fill(color.paint)
 public inline operator fun Display.plusAssign(view: View): Unit = children.plusAssign(view)
 
 /**
+ * Adds [container] to the Display.
+ *
+ * @param container to be added
+ */
+public inline operator fun Display.plusAssign(container: Container): Unit = children.plusAssign(container)
+
+/**
  * Adds the given [views] to the Display.
  *
  * @param views to be added
@@ -160,6 +167,13 @@ public inline operator fun Display.plusAssign(views: Iterable<View>): Unit = chi
  * @param view to be removed
  */
 public inline operator fun Display.minusAssign(view: View): Unit = children.minusAssign(view)
+
+/**
+ * Removes [container] from the Display.
+ *
+ * @param container to be removed
+ */
+public inline operator fun Display.minusAssign(container: Container): Unit = children.minusAssign(container)
 
 /**
  * Removes the given [views] from the Display.

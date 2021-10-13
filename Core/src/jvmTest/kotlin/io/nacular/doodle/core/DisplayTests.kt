@@ -41,7 +41,7 @@ class DisplayTests {
         expect(Point(size.width / 2, size.height / 2)) { display.center  }
     }
 
-    @Test @JsName("plusAssignWorks") fun `+= works`() {
+    @Test @JsName("plusAssignViewWorks") fun `+= view works`() {
         val view    = mockk<View>   ()
         val display = mockk<Display>(relaxed = true)
 
@@ -50,13 +50,31 @@ class DisplayTests {
         verify (exactly = 1) { display.children += view }
     }
 
-    @Test @JsName("minusAssignWorks") fun `-= works`() {
+    @Test @JsName("plusAssignContainerWorks") fun `+= container works`() {
+        val container = mockk<Container>()
+        val display   = mockk<Display>  (relaxed = true)
+
+        display += container
+
+        verify (exactly = 1) { display.children += container }
+    }
+
+    @Test @JsName("minusAssignViewWorks") fun `-= view works`() {
         val view    = mockk<View>   ()
         val display = mockk<Display>(relaxed = true)
 
         display -= view
 
         verify (exactly = 1) { display.children -= view }
+    }
+
+    @Test @JsName("minusAssignContainerWorks") fun `-= container works`() {
+        val container = mockk<Container>()
+        val display   = mockk<Display>  (relaxed = true)
+
+        display -= container
+
+        verify (exactly = 1) { display.children -= container }
     }
 
     @Test @JsName("plusAssignIterableWorks") fun `+= iterable works`() {
