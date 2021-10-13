@@ -38,13 +38,21 @@ Themes are handles by the [`ThemeManager`](https://github.com/nacular/doodle/blo
 It provides an API for selecting the active Theme. Inject it into your app to work with Themes.
 
 ```kotlin
-class MyApp(display: Display,
-            manager: ThemeManager,
-            theme  : NativeTheme): Application {
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.application.application
+import io.nacular.doodle.theme.ThemeManager
+import io.nacular.doodle.theme.native.NativeTheme
+import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
+import org.kodein.di.instance
+
+class MyApp(display: Display, manager: ThemeManager, theme: NativeTheme): Application {
 
     init {
         manager.selected = theme
+        // ...
     }
+
+    override fun shutdown() {}
 }
 
 fun main() {
@@ -78,9 +86,7 @@ class CustomTheme: Theme {
 !> Themes defined this way are not very portable due to their heavy bundle cost
 
 ```kotlin
-class MyApp(display: Display,
-            manager: ThemeManager,
-            theme  : NativeTheme): Application {
+class MyApp(display: Display, manager: ThemeManager, theme: CustomTheme): Application {
             
     init {
         manager.selected = theme
@@ -104,14 +110,22 @@ DynamicThemes require explicit Behavior registration to work. The built-in Theme
 arbitrary groupings within apps.
 
 ```kotlin
-class MyApp(display: Display,
-            manager: ThemeManager,
-            theme  : DynamicTheme): Application {
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.application.application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.theme.ThemeManager
+import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.native.NativeTheme.Companion.nativeButtonBehavior
+import org.kodein.di.instance
+
+class MyApp(display: Display, manager: ThemeManager, theme: DynamicTheme): Application {
 
     init {
         manager.selected = theme
         // use buttons
     }
+
+    override fun shutdown() {}
 }
 
 fun main() {
