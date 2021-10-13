@@ -27,8 +27,13 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>, priva
         changed_(old, new)
     }
 
+    private val limitChangedHandler: (ConfinedValueModel<Double>, ClosedRange<Double>, ClosedRange<Double>) -> Unit = { _,old,new ->
+        limitsChanged_(old, new)
+    }
+
     init {
-        model.valueChanged += changedHandler
+        model.valueChanged  += changedHandler
+        model.limitsChanged += limitChangedHandler
     }
 
     /**
@@ -39,12 +44,14 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>, priva
     /**
      * Underlying model representing the current progress within a range.
      */
-    public var model: ConfinedValueModel<Double> =  model
+    public var model: ConfinedValueModel<Double> = model
         set(new) {
-            field.valueChanged -= changedHandler
+            field.valueChanged  -= changedHandler
+            field.limitsChanged -= limitChangedHandler
 
             field = new.also {
-                it.valueChanged += changedHandler
+                it.valueChanged  += changedHandler
+                it.limitsChanged += limitChangedHandler
                 roleBinding = role.bind(it)
             }
         }
@@ -89,5 +96,9 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>, priva
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }
 
+    @Suppress("PrivatePropertyName")
+    private val limitsChanged_ by lazy { PropertyObserversImpl<ProgressIndicator, ClosedRange<Double>>(this) }
+
     public val changed: PropertyObservers<ProgressIndicator, Double> = changed_
+    public val limitsChanged: PropertyObservers<ProgressIndicator, ClosedRange<Double>> = limitsChanged_
 }

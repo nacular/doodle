@@ -92,7 +92,7 @@ public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
     override fun iterator(                       ): Iterator<T> = list.iterator(                                   )
 }
 
-public open class SimpleMutableListModel<T> protected constructor(private val list: ObservableList<T>): SimpleListModel<T>(list), MutableListModel<T> {
+public open class SimpleMutableListModel<T>(private val list: ObservableList<T>): SimpleListModel<T>(list), MutableListModel<T> {
     init {
         list.changed += { _,removed,added,moved ->
             (changed as SetPool).forEach {
