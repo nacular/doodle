@@ -16,6 +16,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -418,7 +419,6 @@ class RenderManagerImplTests {
         val renderManager = renderManager(display)
 
         container.children -= child
-
         container.children += child
 
         verifyChildAddedProperly(renderManager, display, child, 2)
@@ -601,7 +601,7 @@ class RenderManagerImplTests {
         verify(exactly = 2) { themeManager.update(child    ) }
     }
 
-    @Test @JsName("removesWhenReAddedTopLevel")
+    @Test @JsName("rendersWhenReAddedTopLevel")
     fun `renders removed when re-added (top-level)`() {
         val child     = spyk(view())
         val display   = display(child)
@@ -616,6 +616,31 @@ class RenderManagerImplTests {
         // Add happens before next render
 
         display.children += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, child, 2)
+    }
+
+    @Test @JsName("rendersMovedFromParentToDisplay")
+    fun `renders moved from parent to display`() {
+        val child     = spyk(view())
+        val container = container()
+
+        container.children += child
+
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, child)
+
+        // Add happens before next render
+
+        display += child
 
         scheduler.runJobs()
 
@@ -670,7 +695,6 @@ class RenderManagerImplTests {
 
         // Add happens before next render
 
-        container1.children -= child
         container2.children += child
 
         scheduler.runJobs()
@@ -695,13 +719,12 @@ class RenderManagerImplTests {
 
         verifyChildAddedProperly(renderManager, display, child)
 
-        container1.children -= child
         container2.children += child
 
         // Add happens before next render
 
-        display.children -= container1 as View
-        display.children += container2 as View
+        display.children -= container1
+        display.children += container2
 
         scheduler.runJobs()
 
