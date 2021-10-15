@@ -161,7 +161,7 @@ class DisplayImplTests {
         expect(false) { display ancestorOf mockk() }
         expect(false) { display ancestorOf child   }
 
-        display.children += parent as View
+        display.children += parent
         parent.children  += child
 
         expect(true) { display ancestorOf parent }
