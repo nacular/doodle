@@ -12,6 +12,7 @@ import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -233,8 +234,8 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             insets = Insets(INSET)
 
             behavior = object: BasicListBehavior<T>(focusManager, ItemGenerator(view), null, 0.0) {
-                override val positioner: ListBehavior.RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
-                    override val height get() = view.height - 2 * INSET
+                override val positioner: RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
+                    override val height get() = max(0.0, view.height - 2 * INSET)
                 }
 
                 override fun render(view: List<T, *>, canvas: Canvas) {
