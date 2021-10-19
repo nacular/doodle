@@ -24,13 +24,29 @@ public fun fill(insets: Insets): (Constraints.() -> Unit) = {
 }
 
 public abstract class ConstraintLayout: Layout {
-    public abstract fun constrain(a: View,                                     block: ConstraintBlockContext.(Constraints                                                    ) -> Unit): ConstraintLayout
-    public abstract fun constrain(a: View, b: View,                            block: ConstraintBlockContext.(Constraints, Constraints                                       ) -> Unit): ConstraintLayout
-    public abstract fun constrain(a: View, b: View, c: View,                   block: ConstraintBlockContext.(Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout
-    public abstract fun constrain(a: View, b: View, c: View, d: View,          block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout
+    public abstract fun constrain(a: View, block: ConstraintBlockContext.(Constraints) -> Unit): ConstraintLayout
+
+    @Deprecated(message = "Replace constrain(a, b) { a, b -> } with constrain(a, b) { (a, b) -> }`")
+    public abstract fun constrain(a: View, b: View, block: ConstraintBlockContext.(Constraints, Constraints) -> Unit): ConstraintLayout
+
+    @Deprecated(message = "Replace constrain(a, b, c) { a, b, c -> } with constrain(a, b, c) { (a, b, c) -> }`")
+    public abstract fun constrain(a: View, b: View, c: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+
+    @Deprecated(message = "Replace constrain(a, b, c, d) { a, b, c, d -> } with constrain(a, b, c, d) { (a, b, c, d) -> }`")
+    public abstract fun constrain(a: View, b: View, c: View, d: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
+
+    @Deprecated(message = "Replace constrain(a, b, c, d, e) { a, b, c, d, e -> } with constrain(a, b, c, d, e) { (a, b, c, d, e) -> }`")
     public abstract fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout
 
-    public abstract fun unconstrain(vararg views: View): ConstraintLayout
+    public abstract fun constrain(a: View, b: View, vararg others: View, block: ConstraintBlockContext.(List<Constraints>) -> Unit): ConstraintLayout
+
+    public abstract fun unconstrain(a: View, vararg others: View): ConstraintLayout
+
+    @Deprecated(message = "Will be replaced with version that requires at least 1 View")
+    public abstract fun unconstrain(views: Array<View>): ConstraintLayout
+
+    @Deprecated(message = "You will need to provide at least 1 View to unconstrain in an upcoming version.")
+    public fun unconstrain(): ConstraintLayout = unconstrain(views = emptyArray())
 }
 
 private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
@@ -76,7 +92,20 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
         }
     }
 
-    override fun unconstrain(vararg views: View): ConstraintLayout {
+    override fun constrain(a: View, b: View, vararg others: View, block: ConstraintBlockContext.(List<Constraints>) -> Unit): ConstraintLayout {
+        constraints(a, b, *others).let { block(ConstraintBlockContextImpl(it.first().parent), it)
+            return this
+        }
+    }
+
+    override fun unconstrain(a: View, vararg others: View): ConstraintLayout {
+        constraints.remove(a)
+        others.forEach { constraints.remove(it) }
+
+        return this
+    }
+
+    override fun unconstrain(views: Array<View>): ConstraintLayout {
         views.forEach { constraints.remove(it) }
 
         return this
@@ -516,11 +545,21 @@ public interface ConstraintBlockContext {
 
 private class ConstraintBlockContextImpl(override val parent: ParentConstraints): ConstraintBlockContext
 
-public fun constrain(a: View,                                     block: ConstraintBlockContext.(Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,             block) }
-public fun constrain(a: View, b: View,                            block: ConstraintBlockContext.(Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,          block) }
-public fun constrain(a: View, b: View, c: View,                   block: ConstraintBlockContext.(Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,       block) }
-public fun constrain(a: View, b: View, c: View, d: View,          block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,    block) }
+public fun constrain(a: View, block: ConstraintBlockContext.(Constraints                                                    ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a,             block) }
+
+@Deprecated(message = "Replace constrain(a, b) { a, b -> } with constrain(a, b) { (a, b) -> }`")
+public fun constrain(a: View, b: View, block: ConstraintBlockContext.(Constraints, Constraints                                       ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b,          block) }
+
+@Deprecated(message = "Replace constrain(a, b, c) { a, b, c -> } with constrain(a, b, c) { (a, b, c) -> }`")
+public fun constrain(a: View, b: View, c: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints                          ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c,       block) }
+
+@Deprecated(message = "Replace constrain(a, b, c, d) { a, b, c, d -> } with constrain(a, b, c, d) { (a, b, c, d) -> }`")
+public fun constrain(a: View, b: View, c: View, d: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints             ) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d,    block) }
+
+@Deprecated(message = "Replace constrain(a, b, c, d, e) { a, b, c, d, e -> } with constrain(a, b, c, d, e) { (a, b, c, d, e) -> }`")
 public fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintBlockContext.(Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, c, d, e, block) }
+
+public fun constrain(a: View, b: View, vararg others: View, block: ConstraintBlockContext.(List<Constraints>) -> Unit): ConstraintLayout = ConstraintLayoutImpl().also { it.constrain(a, b, others = others, block) }
 
 public fun max(a: Double, b: HorizontalConstraint): HorizontalConstraint = HorizontalConstraint(b.target, b.dependencies, false) { max(a, b.invoke()) }
 public inline fun max(a: HorizontalConstraint, b: Double): HorizontalConstraint = max(b, a)
