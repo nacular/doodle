@@ -2,8 +2,6 @@ buildscript {
     val kotlinVersion: String by System.getProperties()
 
     repositories {
-        maven       { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }
-        maven       { url = uri("https://plugins.gradle.org/m2/"          ) }
         mavenCentral()
     }
 
@@ -13,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id    ("org.jetbrains.dokka") version "1.5.0"
+    id ("org.jetbrains.dokka") version "1.5.0"
     signing
 }
 
@@ -24,9 +22,8 @@ allprojects {
     apply (plugin = "org.jetbrains.dokka")
 
     repositories {
-        maven       { url = uri("https://dl.bintray.com/kotlin/kotlin-eap"              ) }
-        maven       { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         mavenCentral()
+        maven       { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         mavenLocal  ()
     }
 
