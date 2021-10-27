@@ -9,6 +9,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.ConstraintBlockContext
 import io.nacular.doodle.layout.Constraints
@@ -17,6 +18,7 @@ import io.nacular.doodle.layout.constrain
 import kotlin.math.max
 
 // FIXME: Centralize
+@Deprecated(message = "Use io.nacular.doodle.utils.Extractor instead")
 public typealias Extractor<T, R> = T.() -> R
 
 public abstract class Field<T>: Positionable
@@ -100,4 +102,6 @@ public open class Inspector<T>(public val value: T, private val block: FieldFact
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
     }
+
+    override fun contains(point: Point): Boolean = behavior?.contains(this, point) ?: super.contains(point)
 }

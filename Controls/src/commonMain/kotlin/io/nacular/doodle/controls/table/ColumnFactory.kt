@@ -36,6 +36,7 @@ public interface CellInfo<T>: IndexedItem {
 
 public typealias CellVisualizer<T> = ItemVisualizer<T, CellInfo<T>>
 
+@Deprecated(message = "Use io.nacular.doodle.utils.Extractor instead")
 public typealias Extractor<T, R>  = T.() -> R
 public typealias Sorter<T, S>     = Extractor<T, S> //T.() -> S
 
