@@ -3,7 +3,10 @@ package io.nacular.doodle.drawing
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.AffineMatrix3D
+import io.nacular.doodle.utils.div
 import io.nacular.doodle.utils.matrixOf
+import io.nacular.doodle.utils.minus
+import io.nacular.doodle.utils.plus
 import io.nacular.doodle.utils.times
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.acos
@@ -21,7 +24,7 @@ import kotlin.math.sqrt
  * @see AffineMatrix3D to see the underlying matrix used for such a transform.
  */
 @Suppress("ReplaceSingleLineLet")
-public class AffineTransform private constructor(private val matrix: AffineMatrix3D) {
+public class AffineTransform internal constructor(internal val matrix: AffineMatrix3D) {
 
     /**
      * Creates a transform with the given properties.
@@ -293,6 +296,14 @@ public fun AffineTransform.computeAngle(): Measure<Angle> {
     return when {
         angle > 90 * degrees && sign > 0 -> 360 * degrees - angle
         angle < 90 * degrees && sign < 0 -> 360 * degrees - angle
-        else                                   -> angle
+        else                             -> angle
     }
 }
+
+public operator fun AffineTransform.times(value: Number): AffineTransform = AffineTransform(matrix * value)
+
+public operator fun AffineTransform.div(value: Number): AffineTransform = AffineTransform(matrix / value)
+
+public operator fun AffineTransform.plus(other: AffineTransform): AffineTransform = AffineTransform((matrix + other.matrix))
+
+public operator fun AffineTransform.minus(other: AffineTransform): AffineTransform = AffineTransform((matrix - other.matrix))

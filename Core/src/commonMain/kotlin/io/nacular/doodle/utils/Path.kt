@@ -77,5 +77,5 @@ public class Path<T>(private val items: List<T>): Iterable<T> {
 
     override fun hashCode(): Int         = hashCode
     override fun iterator(): Iterator<T> = items.iterator()
-    override fun toString(): String      = items.toString()
+    override fun toString(): String      = items.joinToString("/")
 }

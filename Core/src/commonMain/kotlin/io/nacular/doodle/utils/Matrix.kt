@@ -181,7 +181,41 @@ public operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> 
 
     for (r1 in 0 until numRows) {
         for (c2 in 0 until other.numColumns) {
-            values[r1][c2] = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+            values[r1][c2] = (0 until other.numRows).sumOf { this[r1, it] * other[it, c2] }
+        }
+    }
+
+    return MatrixImpl(values)
+}
+
+/**
+ * [Matrix subtraction](https://en.wikipedia.org/wiki/Matrix_addition) of two [Matrix]es.
+ */
+public operator fun Matrix<Double>.minus(other: Matrix<Double>): Matrix<Double> {
+    require (other.numRows == numColumns) { "matrix column and row counts do not match" }
+
+    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+
+    for (row in 0 until numRows) {
+        for (col in 0 until numColumns) {
+            values[row][col] = this[row, col] - other[row, col]
+        }
+    }
+
+    return MatrixImpl(values)
+}
+
+/**
+ * [Matrix addition](https://en.wikipedia.org/wiki/Matrix_addition) of two [Matrix]es.
+ */
+public operator fun Matrix<Double>.plus(other: Matrix<Double>): Matrix<Double> {
+    require (other.numRows == numColumns) { "matrix column and row counts do not match" }
+
+    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+
+    for (row in 0 until numRows) {
+        for (col in 0 until numColumns) {
+            values[row][col] = this[row, col] + other[row, col]
         }
     }
 
@@ -209,7 +243,7 @@ public operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Do
  *     |An1 An2 ... Ann|   |λAn1 λAn2 ... λAnn|
  * ```
  */
-public operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
+public operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { toDouble() * it.toDouble() }
 
 /**
  * Right [Scalar multiplication](https://en.wikipedia.org/wiki/Scalar_multiplication) of a [SquareMatrix].
@@ -221,7 +255,7 @@ public operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatr
  * |An1 An2 ... Ann|       |An1λ An2λ ... Annλ|
  * ```
  */
-public operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { toDouble() * it.toDouble() }
+public operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
 
 /**
  * [Matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication) of two [SquareMatrix]es.
@@ -239,7 +273,7 @@ public operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): Squ
 
     for (c2 in 0 until other.numColumns) {
         for (r1 in 0 until numRows) {
-            val sum = (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+            val sum = (0 until other.numRows).sumOf { this[r1, it] * other[it, c2] }
 
             values[r1][c2] = sum
         }
@@ -248,13 +282,34 @@ public operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): Squ
     return SquareMatrix(values)
 }
 
-/**
- * @see times
- */
 public operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
     AffineMatrix3D(
             this[0, 0] * it, this[0, 1] * it, this[0, 2] * it,
             this[1, 0] * it, this[1, 1] * it, this[1, 2] * it)
+}
+
+public operator fun AffineMatrix3D.div(value: Number): AffineMatrix3D = value.toDouble().let {
+    AffineMatrix3D(
+            this[0, 0] / it, this[0, 1] / it, this[0, 2] / it,
+            this[1, 0] / it, this[1, 1] / it, this[1, 2] / it)
+}
+
+/**
+ * @see plus
+ */
+public operator fun AffineMatrix3D.plus(other: AffineMatrix3D): AffineMatrix3D {
+    return AffineMatrix3D(
+            this[0, 0] + other[0, 0], this[0, 1] + other[0, 1], this[0, 2] + other[0, 2],
+            this[1, 0] + other[1, 0], this[1, 1] + other[1, 1], this[1, 2] + other[1, 2])
+}
+
+/**
+ * @see minus
+ */
+public operator fun AffineMatrix3D.minus(other: AffineMatrix3D): AffineMatrix3D {
+    return AffineMatrix3D(
+            this[0, 0] - other[0, 0], this[0, 1] - other[0, 1], this[0, 2] - other[0, 2],
+            this[1, 0] - other[1, 0], this[1, 1] - other[1, 1], this[1, 2] - other[1, 2])
 }
 
 /**
