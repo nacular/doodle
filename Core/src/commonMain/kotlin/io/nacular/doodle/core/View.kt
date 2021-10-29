@@ -540,7 +540,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * `true` if the View's [contentDirection] is [RightLeft] and [mirrorWhenRightLeft] is `true`.
      */
-    private val mirrored get() = contentDirection == RightLeft && mirrorWhenRightLeft
+    public val mirrored: Boolean get() = contentDirection == RightLeft && mirrorWhenRightLeft
 
     /**
      * Refresh [needsMirrorTransform] flag to allow rerender if needed.

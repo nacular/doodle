@@ -2,7 +2,9 @@ package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ToggleButton
+import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
@@ -24,15 +26,31 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         private val spacing            : Double = 2.0,
         private val disabledColorMapper: (Color) -> Color = { it.lighter() }): CommonTextButtonBehavior<T>(textMetrics) {
 
+    private val contentDirectionChanged: (source: View) -> Unit = { it.rerender() }
+
     protected val insets: Insets = Insets()
 
     override fun render(view: T, canvas: Canvas) {
-        val icon      = icon(view)
-        val textColor = if (view.enabled) textColor else disabledColorMapper(textColor)
+        val icon         = icon(view)
+        val textColor    = if (view.enabled) textColor else disabledColorMapper(textColor)
+        val textPosition = textPosition(view, icon = icon)
 
-        canvas.text(view.text, font(view), textPosition(view, icon = icon), ColorPaint(textColor))
+        when {
+            view.mirrored -> canvas.flipHorizontally(around = textPosition.x + textMetrics.width(view.text, view.font) / 2) {
+                text(view.text, font(view), textPosition, ColorPaint(textColor))
+            }
+            else          -> canvas.text(view.text, font(view), textPosition, ColorPaint(textColor))
+        }
 
-        icon?.render(view, canvas, iconPosition(view, icon = this.icon as Icon<Button>))
+        icon?.let {
+            val iconPosition = iconPosition(view, icon = this.icon as Icon<Button>)
+            when {
+                view.mirrored -> canvas.flipHorizontally(around = iconPosition.x + icon.size(view).width / 2) {
+                    icon.render(view, canvas, iconPosition(view, icon = this@CheckRadioButtonBehavior.icon))
+                }
+                else          -> icon.render(view, canvas, iconPosition(view, icon = this.icon))
+            }
+        }
     }
 
     override fun install(view: T) {
@@ -42,15 +60,22 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         val textSize   = textMetrics.size(view.text, font(view))
         val idealWidth = iconSize.width + if (textSize.width > 0) spacing + textSize.width else 0.0
 
-        view.icon                = icon as Icon<Button>
-        view.iconAnchor          = Anchor.Left
-        view.iconTextSpacing     = spacing
-        view.horizontalAlignment = Left
+        view.icon                     = icon as Icon<Button>
+        view.iconAnchor               = Anchor.Left
+        view.iconTextSpacing          = spacing
+        view.horizontalAlignment      = Left
+        view.contentDirectionChanged += contentDirectionChanged
 
         Size(idealWidth, max(iconSize.height, if (!textSize.empty) textSize.height else 0.0)).let {
             view.size        = it
             view.idealSize   = it
             view.minimumSize = it
         }
+    }
+
+    override fun uninstall(view: T) {
+        super.uninstall(view)
+
+        view.contentDirectionChanged -= contentDirectionChanged
     }
 }

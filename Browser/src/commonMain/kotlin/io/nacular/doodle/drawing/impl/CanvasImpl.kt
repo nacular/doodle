@@ -326,7 +326,9 @@ internal open class CanvasImpl(
             } ?: renderRegion.add(clipRect)
         }
 
-        clipRect.style.setSize(size)
+        clipRect.style.setSize        (size)
+        clipRect.style.setBorderRadius(null)
+        clipRect.style.background = ""
 
         configure(clipRect)
 
