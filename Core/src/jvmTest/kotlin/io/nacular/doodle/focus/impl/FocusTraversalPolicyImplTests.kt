@@ -9,12 +9,38 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.ObservableList
 import JsName
+import io.nacular.doodle.utils.Path
 import kotlin.test.Test
 import kotlin.test.expect
 
 /**
  * Created by Nicholas Eddy on 9/17/20.
  */
+
+private class TreeNode<T>(val value: T,
+        val children        : List<TreeNode<T>> = emptyList(),
+        val focusable       : Boolean,
+        val isFocusCycleRoot: Boolean?) {
+    operator fun get(index: Int): TreeNode<T> = children[index]
+}
+
+private class NodeBuilder<T>(var value: T, val children: MutableList<NodeBuilder<T>> = mutableListOf()) {
+    var focusable:        Boolean  = true
+    var isFocusCycleRoot: Boolean? = null
+
+    fun build(): TreeNode<T> = TreeNode(value, children.map { it.build() }, focusable, isFocusCycleRoot)
+
+    fun child(value: T, block: NodeBuilder<T>.() -> Unit = {}): NodeBuilder<T> {
+        val node = NodeBuilder(value).also { block(it) }
+
+        children.add(node)
+
+        return node
+    }
+}
+
+private fun <T> rootNode(value: T, block: NodeBuilder<T>.() -> Unit = {}): TreeNode<T> = NodeBuilder(value).also { block(it) }.build()
+
 class FocusTraversalPolicyImplTests {
     @Test @JsName("defaultContainerWorks")
     fun `default in container works`() {
@@ -57,26 +83,137 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
+    private interface ValidationContext<T> {
+        fun next(within: Path<T>, from: Path<T>): Path<T>?
+    }
+
+    private class ContainerValidationContext<T>(root: TreeNode<T>): ValidationContext<T> {
+        private val pathToView = mutableMapOf<Path<T>, View>()
+        private val viewToPath = mutableMapOf<View, Path<T>>()
+
+        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+            val view = slot<View>()
+            every { this@apply(capture(view)) } answers {
+                view.captured.focusable
+            }
+        }
+
+        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
+
+        init {
+            createHierarchy(root, Path(root.value))
+        }
+
+        override fun next(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next(pathToView[within]!!, pathToView[from])]
+
+        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
+            return io.nacular.doodle.core.container {
+                focusable = node.focusable
+                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
+                children += node.children.map { createHierarchy(it, path + it.value) }
+            }.also {
+                pathToView[path] = it
+                viewToPath[it  ] = path
+            }
+        }
+    }
+
+    private class DisplayValidationContext<T>(nodes: List<TreeNode<T>>): ValidationContext<T> {
+        private val pathToView = mutableMapOf<Path<T>, View>()
+        private val viewToPath = mutableMapOf<View, Path<T>>()
+
+        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+            val view = slot<View>()
+            every { this@apply(capture(view)) } answers {
+                view.captured.focusable
+            }
+        }
+
+        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
+
+        init {
+//            createHierarchy(nodes)
+        }
+
+        override fun next(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next(pathToView[within]!!, pathToView[from])]
+
+        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
+            return io.nacular.doodle.core.container {
+                focusable = node.focusable
+                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
+                children += node.children.map { createHierarchy(it, path + it.value) }
+            }.also {
+                pathToView[path] = it
+                viewToPath[it  ] = path
+            }
+        }
+    }
+
+    private fun <T> validate(root: TreeNode<T>, validation: ValidationContext<T>.() -> Unit) {
+        validation(ContainerValidationContext(root))
+    }
+
     @Test @JsName("nextSimpleContainerWorks")
     fun `next in simple container works`() {
-        container(5).also { container ->
+        val root = rootNode("container") {
+            child("0")
+            child("1")
+            child("2")
+            child("3") { focusable = false }
+            child("4")
+        }
+
+        validate(root) {
+            val container = Path("container")
+
             listOf(
                     0 to 1,
                     1 to 2,
-                    2 to 4, // 3 is not focusable, see below
+                    2 to 4, // 3 is not focusable, see above
                     4 to 0
-            ).forEach { (from, to) ->
-                val view = slot<View>()
-                val focusabilityChecker = mockk<FocusabilityChecker>().apply {
-                    every { this@apply(capture(view)) } answers  { view.captured != container.children[3] }
-
-                }
-                FocusTraversalPolicyImpl(focusabilityChecker).apply {
-                    expect(container.children[to], "$from -> $to") {
-                        next(within = container, from = container.children[from])
-                    }
-                }
+            ).forEach {
+                val from = container + "${it.first}"
+                val to   = container + "${it.second}"
+                expect(to, "next($container, $from)") { next(container, from) }
             }
+        }
+    }
+
+    @Test @JsName("nextGoesToFirstInChildContainer")
+    fun `next goes to first in child container`() {
+        val root = rootNode("container") {
+            child("0")
+            child("1") {
+                child("0")
+                child("1")
+            }
+        }
+
+        validate(root) {
+            val container = Path("container")
+            val from      = container + "1"
+            val to        = container + "1" + "0"
+            expect(to, "next($container, $from)") { next(container, from) }
+        }
+    }
+
+    @Test @JsName("nextGoesFromLastInContainerToFirstInParent")
+    fun `next goes from last in container to first in parent`() {
+        val root = rootNode("container") {
+            child("0")
+            child("1") {
+                isFocusCycleRoot = false
+                child("0")
+                child("1")
+            }
+        }
+
+        validate(root) {
+            val parent    = Path("container")
+            val container = parent    + "1"
+            val from      = container + "1"
+            val to        = parent    + "0"
+            expect(to, "next($parent, $from)") { next(parent, from) }
         }
     }
 

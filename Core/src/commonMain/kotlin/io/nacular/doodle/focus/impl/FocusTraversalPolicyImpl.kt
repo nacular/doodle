@@ -10,22 +10,48 @@ import kotlin.math.max
  */
 public class FocusTraversalPolicyImpl(private val focusabilityChecker: FocusabilityChecker): FocusTraversalPolicy {
 
-    override fun default(within: View): View? = first(within)
-    override fun first  (within: View): View? = within.children_.firstOrNull { focusabilityChecker(it) }
-    override fun last   (within: View): View? = within.children_.lastOrNull  { focusabilityChecker(it) }
+    override fun default(within: View): View? = first         (within          )
+    override fun first  (within: View): View? = firstRecursive(within.children_)
+    override fun last   (within: View): View? = lastRecursive (within.children_)
 
     override fun next    (within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
-    override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { last (it) ?: previous(within, it.parent, it) }
+    override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { /*last (it) ?:*/ previous(within, it.parent, it) }
 
-    override fun default(display: Display): View? = first(display)
-    override fun first  (display: Display): View? = display.children.firstOrNull { focusabilityChecker(it) }
-    override fun last   (display: Display): View? = display.children.lastOrNull  { focusabilityChecker(it) }
+    override fun default(display: Display): View? = first         (display         )
+    override fun first  (display: Display): View? = firstRecursive(display.children)
+    override fun last   (display: Display): View? = lastRecursive (display.children)
 
     override fun next    (display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
-    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { last (it) ?: previous(DisplayView(display), it.parent, it) }
+    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { /*last (it) ?:*/ previous(DisplayView(display), it.parent, it) }
 
     private class DisplayView(val display_: Display): View() {
         override val children get() = display_.children
+    }
+
+    private fun firstRecursive(children: List<View>): View? {
+        children.forEach {
+            if (focusabilityChecker(it)) {
+                return it
+            }
+            firstRecursive(it.children_)?.let{
+                return it
+            }
+        }
+
+        return null
+    }
+
+    private fun lastRecursive(children: List<View>): View? {
+        children.asReversed().forEach {
+            if (focusabilityChecker(it)) {
+                return it
+            }
+            firstRecursive(it.children_)?.let{
+                return it
+            }
+        }
+
+        return null
     }
 
     private fun next(cycleRoot: View, parentView: View?, current: View): View? {
@@ -91,7 +117,7 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
                         var child = it
 
                         if (child.isContainer) {
-                            val lastView = lastViewInTree(child)
+                            val lastView = lastRecursive(child.children_)
 
                             if (lastView != null) {
                                 child = lastView
@@ -111,7 +137,7 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
                         var child = it
 
                         if (child.isContainer) {
-                            val lastView = lastViewInTree(child)
+                            val lastView = lastRecursive(child.children_)
 
                             if (lastView != null) {
                                 child = lastView
@@ -132,17 +158,6 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
         }
 
         return null
-    }
-
-    private fun lastViewInTree(within: View): View? {
-        within.children_.reversed().forEach {
-            when {
-                it.children_.isNotEmpty()  -> return lastViewInTree(it)
-                focusabilityChecker(it) -> return it
-            }
-        }
-
-        return within
     }
 
     private val View.isContainer: Boolean get() = children_.isNotEmpty()
