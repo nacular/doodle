@@ -189,6 +189,11 @@ public open class List<T, out M: ListModel<T>>(
 
             children.clear()
 
+            minVisibleY     =  0.0
+            maxVisibleY     =  0.0
+            firstVisibleRow =  0
+            lastVisibleRow  = -1
+
             updateVisibleHeight()
         }
     }
@@ -223,7 +228,7 @@ public open class List<T, out M: ListModel<T>>(
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
-                    model[it]?.let { row ->
+                    (model[it] as T).let { row ->
                         children.getOrNull(it % children.size)?.let { child ->
                             layout(child, row, it)
                         }
@@ -279,8 +284,8 @@ public open class List<T, out M: ListModel<T>>(
                 else                          -> min(model.size - 1, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            model[firstVisibleRow]?.let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
-            model[lastVisibleRow ]?.let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
+            (model[firstVisibleRow] as T).let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
+            (model[lastVisibleRow ] as T).let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
 
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
@@ -322,7 +327,7 @@ public open class List<T, out M: ListModel<T>>(
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
             rowGenerator?.let { uiGenerator ->
-                model[index]?.let { row ->
+                (model[index] as T).let { row ->
                     val i = index % children.size
 
                     uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
@@ -340,7 +345,7 @@ public open class List<T, out M: ListModel<T>>(
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
         rowGenerator?.let { uiGenerator ->
-            model[index]?.let { row ->
+            (model[index] as T).let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
                         children.addOrAppend(index, ui)
