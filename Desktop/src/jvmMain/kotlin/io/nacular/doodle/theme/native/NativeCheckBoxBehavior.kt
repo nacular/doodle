@@ -19,8 +19,9 @@ internal class JCheckBoxPeer(focusManager: FocusManager?, button: ToggleButton):
     override var selected_ get() = isSelected; set(value) { isSelected = value }
 
     init {
-        text       = button.text
-        isSelected = button.selected
+        text                      = button.text
+        isSelected                = button.selected
+        focusTraversalKeysEnabled = false
 
         addFocusListener(object: FocusListener {
             override fun focusGained(e: FocusEvent?) { focusManager?.requestFocus(button) }

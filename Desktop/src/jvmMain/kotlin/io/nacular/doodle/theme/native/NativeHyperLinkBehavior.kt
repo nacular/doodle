@@ -59,7 +59,8 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
     override var ignoreSelectionChange = false
 
     init {
-        text = "<html><a href='${button.url}'>${button.text}</a></html>"
+        text                      = "<html><a href='${button.url}'>${button.text}</a></html>"
+        focusTraversalKeysEnabled = false
 
         button.size = preferredSize.run { Size(width, height) }
 

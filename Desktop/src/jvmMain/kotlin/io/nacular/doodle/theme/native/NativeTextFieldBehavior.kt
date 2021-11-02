@@ -107,7 +107,8 @@ internal class NativeTextFieldBehavior(
         private var defaultBorder = border
 
         init {
-            text = textField.text
+            text                      = textField.text
+            focusTraversalKeysEnabled = false
 
             stylesChanged()
 
