@@ -9,22 +9,11 @@ import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
 
-/**
- * Allows full control over how native [HyperLink]s are styled. The given behavior is delegated
- * to for all visual styling, but the browser will also treat the view as it does un-styled links.
- */
-public interface NativeHyperLinkBehaviorBuilder {
-    /**
-     * Wraps [behavior] with other native styling for hyper links.
-     *
-     * @param behavior to be "wrapped"
-     * @return a new Behavior for the link
-     */
-    public operator fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink>
-}
+@Deprecated("Replace with `NativeHyperLinkStyler`", replaceWith = ReplaceWith("NativeHyperLinkStyler"))
+public typealias NativeHyperLinkBehaviorBuilder = NativeHyperLinkStyler
 
-internal class NativeHyperLinkBehaviorBuilderImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
-        NativeHyperLinkBehaviorBuilder {
+internal class NativeHyperLinkStylerImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
+        NativeHyperLinkStyler {
     override fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink> = NativeHyperLinkBehaviorWrapper(
             nativeHyperLinkFactory,
             hyperLink,

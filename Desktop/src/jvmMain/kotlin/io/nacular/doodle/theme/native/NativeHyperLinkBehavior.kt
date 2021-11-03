@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
@@ -17,21 +16,7 @@ import java.net.URI
 import javax.swing.JLabel
 import kotlin.coroutines.CoroutineContext
 
-/**
- * Allows full control over how native [HyperLink]s are styled. The given behavior is delegated
- * to for all visual styling, but the app will also treat the view as it does un-styled links.
- */
-public interface NativeHyperLinkBehaviorBuilder {
-    /**
-     * Wraps [behavior] with other native styling for hyper links.
-     *
-     * @param behavior to be "wrapped"
-     * @return a new Behavior for the link
-     */
-    public operator fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink>
-}
-
-internal class NativeHyperLinkBehaviorBuilderImpl: NativeHyperLinkBehaviorBuilder {
+internal class NativeHyperLinkStylerImpl: NativeHyperLinkStyler {
     override fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink> = NativeHyperLinkBehaviorWrapper(
             hyperLink,
             behavior

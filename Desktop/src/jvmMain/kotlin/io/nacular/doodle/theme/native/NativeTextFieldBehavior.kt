@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFieldBehavior
 import io.nacular.doodle.controls.text.TextInput
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -40,6 +41,106 @@ import javax.swing.text.JTextComponent
 import kotlin.coroutines.CoroutineContext
 import org.jetbrains.skia.Font as SkiaFont
 
+/**
+ * Behavior that modifies the background and foreground of a [TextField].
+ */
+public interface NativeTextFieldBehaviorModifier: Behavior<TextField> {
+    /**
+     * Allows custom rendering for [textField]'s background
+     * NOTE: implementations should most likely update [TextField.backgroundColor] to
+     * ensure the results of this call are visible.
+     *
+     * @param textField being rendered
+     * @param canvas to render onto
+     */
+    public fun renderBackground(textField: TextField, canvas: Canvas) {}
+
+    /**
+     * Allows custom rendering for [textField]'s foreground.
+     *
+     * @param textField being rendered
+     * @param canvas to render onto
+     */
+    public fun renderForeground(textField: TextField, canvas: Canvas) {}
+}
+
+/**
+ * Allows more control over how native [TextField]s are styled. The given behavior is delegated
+ * to for all visual styling, and has the ability to render any background or foreground along with
+ * the browser's layer.
+ */
+public interface NativeTextFieldBehaviorModifierBuilder {
+    /**
+     * Wraps [behavior] with other native styling for text fields.
+     *
+     * @param textField to apply [behavior] to
+     * @param behavior to be "wrapped"
+     * @return a new Behavior for the text field
+     */
+    public operator fun invoke(textField: TextField, behavior: NativeTextFieldBehaviorModifier): TextFieldBehavior
+}
+
+internal class NativeTextFieldStylerImpl(
+        private val window              : SkiaWindow,
+        private val appScope            : CoroutineScope,
+        private val uiDispatcher        : CoroutineContext,
+        private val defaultFont         : SkiaFont,
+        private val swingGraphicsFactory: SwingGraphicsFactory,
+        private val swingFocusManager   : javax.swing.FocusManager,
+        private val textMetrics         : TextMetricsImpl,
+        private val focusManager        : FocusManager?
+): NativeTextFieldStyler {
+    override fun invoke(textField: TextField, behavior: NativeTextFieldBehaviorModifier): TextFieldBehavior = NativeTextFieldBehaviorWrapper(
+            window,
+            appScope,
+            uiDispatcher,
+            defaultFont,
+            swingGraphicsFactory,
+            swingFocusManager,
+            textMetrics,
+            focusManager,
+            behavior
+    )
+}
+
+private class NativeTextFieldBehaviorWrapper(
+                    window              : SkiaWindow,
+                    appScope            : CoroutineScope,
+                    uiDispatcher        : CoroutineContext,
+                    defaultFont         : SkiaFont,
+                    swingGraphicsFactory: SwingGraphicsFactory,
+                    swingFocusManager   : javax.swing.FocusManager,
+                    textMetrics         : TextMetricsImpl,
+                    focusManager        : FocusManager?,
+        private val delegate            : NativeTextFieldBehaviorModifier): NativeTextFieldBehavior(
+        window,
+        appScope,
+        uiDispatcher,
+        defaultFont,
+        swingGraphicsFactory,
+        swingFocusManager,
+        textMetrics,
+        focusManager), Behavior<TextField> by delegate {
+
+    override fun render(view: TextField, canvas: Canvas) {
+        delegate.renderBackground(view, canvas)
+        super<NativeTextFieldBehavior>.render(view, canvas)
+        delegate.renderForeground(view, canvas)
+    }
+
+    override fun fitTextSize(textField: TextField): Size = super.fitTextSize(textField)
+
+    override fun install(view: TextField) {
+        super<NativeTextFieldBehavior>.install(view)
+        delegate.install(view)
+    }
+
+    override fun uninstall(view: TextField) {
+        super<NativeTextFieldBehavior>.uninstall(view)
+        delegate.uninstall(view)
+    }
+}
+
 private class PlaceHolderLabel(text: String, private val component: JTextComponent): JLabel(), DocumentListener {
     private fun updateVisibility() {
         isVisible = component.document.length == 0
@@ -67,10 +168,8 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
         component.remove(this)
     }
 }
-/**
- * Created by Nicholas Eddy on 6/14/21.
- */
-internal class NativeTextFieldBehavior(
+
+internal open class NativeTextFieldBehavior(
         private val window              : SkiaWindow,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,

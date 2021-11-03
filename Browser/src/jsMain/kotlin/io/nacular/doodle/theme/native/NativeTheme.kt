@@ -108,6 +108,7 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
                     instance(),
                     spellCheck)
             }
+            bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(instance()) }
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(instance(), it) }
         }
@@ -115,8 +116,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeHyperLinkFactory        > { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
-            bindSingleton<NativeHyperLinkBehaviorBuilder> { NativeHyperLinkBehaviorBuilderImpl(instance()) }
+            bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                      ) }
 
             bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), it) as Behavior<Button> }
         }
