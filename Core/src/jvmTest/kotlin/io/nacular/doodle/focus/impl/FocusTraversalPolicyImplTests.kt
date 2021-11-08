@@ -83,76 +83,6 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    private interface ValidationContext<T> {
-        fun next(within: Path<T>, from: Path<T>): Path<T>?
-    }
-
-    private class ContainerValidationContext<T>(root: TreeNode<T>): ValidationContext<T> {
-        private val pathToView = mutableMapOf<Path<T>, View>()
-        private val viewToPath = mutableMapOf<View, Path<T>>()
-
-        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
-            val view = slot<View>()
-            every { this@apply(capture(view)) } answers {
-                view.captured.focusable
-            }
-        }
-
-        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
-
-        init {
-            createHierarchy(root, Path(root.value))
-        }
-
-        override fun next(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next(pathToView[within]!!, pathToView[from])]
-
-        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
-            return io.nacular.doodle.core.container {
-                focusable = node.focusable
-                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
-                children += node.children.map { createHierarchy(it, path + it.value) }
-            }.also {
-                pathToView[path] = it
-                viewToPath[it  ] = path
-            }
-        }
-    }
-
-    private class DisplayValidationContext<T>(nodes: List<TreeNode<T>>): ValidationContext<T> {
-        private val pathToView = mutableMapOf<Path<T>, View>()
-        private val viewToPath = mutableMapOf<View, Path<T>>()
-
-        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
-            val view = slot<View>()
-            every { this@apply(capture(view)) } answers {
-                view.captured.focusable
-            }
-        }
-
-        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
-
-        init {
-//            createHierarchy(nodes)
-        }
-
-        override fun next(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next(pathToView[within]!!, pathToView[from])]
-
-        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
-            return io.nacular.doodle.core.container {
-                focusable = node.focusable
-                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
-                children += node.children.map { createHierarchy(it, path + it.value) }
-            }.also {
-                pathToView[path] = it
-                viewToPath[it  ] = path
-            }
-        }
-    }
-
-    private fun <T> validate(root: TreeNode<T>, validation: ValidationContext<T>.() -> Unit) {
-        validation(ContainerValidationContext(root))
-    }
-
     @Test @JsName("nextSimpleContainerWorks")
     fun `next in simple container works`() {
         val root = rootNode("container") {
@@ -238,6 +168,47 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
+    @Test @JsName("previousGoesToPreviousSiblingFromNestedContainer")
+    fun `previous goes to previous sibling from nested container`() {
+        val root = rootNode("container") {
+            child("0")
+            child("1") {
+                focusable = false
+                child("0")
+                child("1")
+            }
+        }
+
+        validate(root) {
+            val container = Path("container")
+            val from      = container + "1" + "0"
+            val to        = container + "0"
+            expect(to, "previous($container, $from)") { previous(container, from) }
+        }
+    }
+
+    @Test @JsName("previousGoesToLastInSiblingFromNestedContainer")
+    fun `previous goes to last in sibling from nested container`() {
+        val root = rootNode("container") {
+            child("0") {
+                child("0")
+                child("1")
+            }
+            child("1") {
+                focusable = false
+                child("0")
+                child("1")
+            }
+        }
+
+        validate(root) {
+            val container = Path("container")
+            val from      = container + "1" + "0"
+            val to        = container + "0" + "1"
+            expect(to, "previous($container, $from)") { previous(container, from) }
+        }
+    }
+
     // =====
 
     @Test @JsName("defaultDisplayWorks")
@@ -304,6 +275,79 @@ class FocusTraversalPolicyImplTests {
                 }
             }
         }
+    }
+
+    private interface ValidationContext<T> {
+        fun next(within: Path<T>, from: Path<T>): Path<T>?
+        fun previous(within: Path<T>, from: Path<T>): Path<T>?
+    }
+
+    private class ContainerValidationContext<T>(root: TreeNode<T>): ValidationContext<T> {
+        private val pathToView = mutableMapOf<Path<T>, View>()
+        private val viewToPath = mutableMapOf<View, Path<T>>()
+
+        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+            val view = slot<View>()
+            every { this@apply(capture(view)) } answers {
+                view.captured.focusable
+            }
+        }
+
+        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
+
+        init {
+            createHierarchy(root, Path(root.value))
+        }
+
+        override fun next    (within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next(pathToView[within]!!, pathToView[from])]
+        override fun previous(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.previous(pathToView[within]!!, pathToView[from])]
+
+        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
+            return io.nacular.doodle.core.container {
+                focusable = node.focusable
+                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
+                children += node.children.map { createHierarchy(it, path + it.value) }
+            }.also {
+                pathToView[path] = it
+                viewToPath[it  ] = path
+            }
+        }
+    }
+
+    private class DisplayValidationContext<T>(nodes: List<TreeNode<T>>): ValidationContext<T> {
+        private val pathToView = mutableMapOf<Path<T>, View>()
+        private val viewToPath = mutableMapOf<View, Path<T>>()
+
+        private val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+            val view = slot<View>()
+            every { this@apply(capture(view)) } answers {
+                view.captured.focusable
+            }
+        }
+
+        private val policy = FocusTraversalPolicyImpl(focusabilityChecker)
+
+        init {
+//            createHierarchy(nodes)
+        }
+
+        override fun next    (within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.next    (pathToView[within]!!, pathToView[from])]
+        override fun previous(within: Path<T>, from: Path<T>): Path<T>? = viewToPath[policy.previous(pathToView[within]!!, pathToView[from])]
+
+        private fun createHierarchy(node: TreeNode<T>, path: Path<T>): Container {
+            return io.nacular.doodle.core.container {
+                focusable = node.focusable
+                node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
+                children += node.children.map { createHierarchy(it, path + it.value) }
+            }.also {
+                pathToView[path] = it
+                viewToPath[it  ] = path
+            }
+        }
+    }
+
+    private fun <T> validate(root: TreeNode<T>, validation: ValidationContext<T>.() -> Unit) {
+        validation(ContainerValidationContext(root))
     }
 
     private val alwaysFocusable = mockk<FocusabilityChecker>().apply {
