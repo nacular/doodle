@@ -98,7 +98,7 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
 public open class DropdownTextEditOperation<T>(
                     focusManager: FocusManager?,
                     mapper      : Encoder<T, String>,
-        private val dropdown     : MutableDropdown<T, *>,
+        private val dropdown    : MutableDropdown<T, *>,
                     value       : T,
                     current     : View): GenericTextEditOperation<T, MutableDropdown<T, *>>(focusManager, mapper, dropdown, value, current) {
 

@@ -37,7 +37,7 @@ public open class GenericTextEditOperation<T, V>(
     protected open val selectAllInitially: Boolean = true
 
     protected val textField: TextField = TextField().apply {
-        text                = mapper.encode(value) ?: ""
+        text                = mapper.to(value).getOrDefault("")
         borderVisible       = false
         font                = current.font
         foregroundColor     = current.foregroundColor
@@ -71,7 +71,7 @@ public open class GenericTextEditOperation<T, V>(
 
     override fun invoke(): View = textField
 
-    override fun complete(): T? = mapper.decode(textField.text)
+    override fun complete(): T? = mapper.from(textField.text).getOrNull()
 
     override fun cancel() {}
 }
