@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.form.Form.Field
+import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
@@ -11,17 +12,44 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.observable
 
-
+/**
+ * Defines the visualization of a [Field] within a [Form].
+ */
 public interface FieldVisualizer<T> {
+    /**
+     * @return a view to associate with [field]
+     */
     public operator fun invoke(field: Field<T>): View
 }
 
+/**
+ * Helper for creating a [FieldVisualizer] from a lambda.
+ *
+ * @param block is called by the returned visualizer to create a view
+ */
 public fun <T> field(block: Field<T>.() -> View): FieldVisualizer<T> = object: FieldVisualizer<T> {
     override fun invoke(field: Field<T>) = block(field)
 }
 
+/**
+ * A visual component that serves as a strongly-typed constructor of some arbitrary type. Forms are very similar to constructors
+ * in that they have typed parameter lists (fields), and can only create instances when all their inputs are valid. Like
+ * any constructor, a Form can have optional fields, default values, and arbitrary types for its fields.
+ *
+ * Forms also have a `Behavior`, `Layout` and some other properties of a Container to allow customization.
+ */
+@Suppress("UNCHECKED_CAST")
 public class Form private constructor(first: Field<*>, vararg rest: Field<*>, stateChanged: PropertyObserver<Form, State>): View() {
+
+    /**
+     * The current state of a [Field].
+     */
     public sealed class FieldState<T>
+
+    /**
+     * [Field]s with this state are invalid and will prevent their [Form] from
+     * becoming ready.
+     */
     public class Invalid<T>: FieldState<T>() {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -33,6 +61,11 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             return this::class.hashCode()
         }
     }
+
+    /**
+     * [Field]s with this state have a value and no longer block their [Form] from
+     * becoming ready.
+     */
     @Suppress("EqualsOrHashCode")
     public class Valid<T>(public val value: T): FieldState<T>() {
         override fun equals(other: Any?): Boolean {
@@ -45,10 +78,17 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
         }
     }
 
-    public class Field<T>(internal val visualizer: FieldVisualizer<T>, initial: FieldState<T> = Invalid()) {
+    /**
+     * An entry within a [Form] that represents a single parameter and value that will be presented
+     * when the form becomes ready.
+     */
+    public class Field<T> internal constructor(internal val visualizer: FieldVisualizer<T>, initial: FieldState<T> = Invalid()) {
         internal var index = 0
 
-        public var value: FieldState<T> = initial
+        /**
+         * The field's current state
+         */
+        public var state: FieldState<T> = initial
             internal set(new) {
                 if (new == field) {
                     return
@@ -57,11 +97,6 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                 field = new
                 form.updateState()
             }
-
-        public fun valueOr(default: T): T = when (val v = value) {
-            is Valid<T> -> v.value
-            else        -> default
-        }
 
         internal lateinit var form: Form
     }
@@ -103,7 +138,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
 
     private fun updateState() {
         state = when {
-            fields.all { it.value is Valid } -> Ready(fields.map { (it.value as Valid).value })
+            fields.all { it.state is Valid } -> Ready(fields.map { (it.state as Valid).value })
             else                             -> NotReady
         }
     }
@@ -124,31 +159,97 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
 
     public companion object {
 
-        public fun <T> field(            visualizer: FieldVisualizer<T>): Field<T> = Field(visualizer                )
-        public fun <T> field(initial: T, visualizer: FieldVisualizer<T>): Field<T> = Field(visualizer, Valid(initial))
-
         public class FormDefinition internal constructor(internal val form: Form)
 
         public class FormBuildContext internal constructor() {
-            public infix fun <T> T.to(visualizer: FieldVisualizer<T>): Field<T> = field(initial = this, visualizer)
+            /**
+             * DSL for binding an arbitrary value to a [FieldVisualizer] to create a [Field] with
+             * an initial state of `Valid(this)` within a [Form].
+             *
+             * NOTE: the [FieldVisualizer] ultimately decides what inputs are valid, so the value
+             * of [T] used may be ignored if the visualizer deemed it invalid.
+             *
+             * ```kotlin
+             * Form {
+             *     this(
+             *         someValue to field { ... }, // trys to bind someValue to the created Field
+             *         ...
+             *     ) { first, ... ->
+             *         ...
+             *     }
+             * }
+             * ```
+             */
+            public infix fun <T> T.to(visualizer: FieldVisualizer<T>): Field<T> = Field(visualizer, initial = Valid(this))
+
+            /**
+             * DSL for binding a [FieldState] to a [FieldVisualizer] to create a [Field] with
+             * an initial state equal to the given FieldState within a [Form].
+             *
+             * NOTE: the [FieldVisualizer] ultimately decides what inputs are valid, so a [Valid] [FieldState]
+             * may be ignored if the visualizer deems it invalid.
+             *
+             * ```kotlin
+             * Form {
+             *     this(
+             *         someField to field { ... }, // trys to bind someField to the created Field
+             *         ...
+             *     ) { first, ... ->
+             *         ...
+             *     }
+             * }
+             * ```
+             */
             public infix fun <T> FieldState<T>.to(visualizer: FieldVisualizer<T>): Field<T> = Field(visualizer, initial = this)
+
+            /**
+             * DSL for adding a [Field] with an initial value of [Invalid] to a [Form].
+             * The [FieldVisualizer] can put the created field into a [Valid] state; so
+             * there is no guarantee that the created field is actually invalid.
+             *
+             * ```kotlin
+             * Form {
+             *     this(
+             *         + field { ... }, // Field defaults to invalid unless its visualizer sets a valid value
+             *         ...
+             *     ) { first, ... ->
+             *         ...
+             *     }
+             * }
+             * ```
+             */
             public operator fun <T> FieldVisualizer<T>.unaryPlus(): Field<T> = Field(this, initial = Invalid())
 
+            /**
+             * Defines a [Form] with a single [Field].
+             *
+             * @param a the form's only field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun <A> invoke(
                     a        : Field<A>,
-                    onInvalid: ( ) -> Unit = {       },
-                    onReady  : (A) -> Unit = { _, -> }): FormDefinition = FormDefinition(Form(a) { _,_,state ->
+                    onInvalid: ( ) -> Unit,
+                    onReady  : (A) -> Unit): FormDefinition = FormDefinition(Form(a) { _,_,state ->
                 when (state) {
                     is Ready -> onReady  (state.values[0] as A)
                     else     -> onInvalid()
                 }
             })
 
+            /**
+             * Defines a [Form] with a 2 [Field]s.
+             *
+             * @param a the form's first field
+             * @param b the form's second field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun <A, B> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
-                    onInvalid: (   ) -> Unit = {        },
-                    onReady  : (A,B) -> Unit = { _,_ -> }): FormDefinition = FormDefinition(Form(a, b) { _,_,state ->
+                    onInvalid: (   ) -> Unit,
+                    onReady  : (A,B) -> Unit): FormDefinition = FormDefinition(Form(a, b) { _,_,state ->
                 var i = 0
 
                 when (state) {
@@ -157,12 +258,21 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                 }
             })
 
+            /**
+             * Defines a [Form] with a 3 [Field]s.
+             *
+             * @param a the form's first field
+             * @param b the form's second field
+             * @param c the form's third field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun <A, B, C> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
                     c        : Field<C>,
-                    onInvalid: (     ) -> Unit = {          },
-                    onReady  : (A,B,C) -> Unit = { _,_,_ -> }): FormDefinition = FormDefinition(Form(a, b, c) { _,_,state ->
+                    onInvalid: (     ) -> Unit,
+                    onReady  : (A,B,C) -> Unit): FormDefinition = FormDefinition(Form(a, b, c) { _,_,state ->
                 var i = 0
                 when (state) {
                     is Ready -> onReady(state.values[i++] as A, state.values[i++] as B, state.values[i] as C)
@@ -170,6 +280,16 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                 }
             })
 
+            /**
+             * Defines a [Form] with a 4 [Field]s.
+             *
+             * @param a the form's first field
+             * @param b the form's second field
+             * @param c the form's third field
+             * @param d the form's fourth field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun <A, B, C, D> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
@@ -184,14 +304,25 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                 }
             })
 
+            /**
+             * Defines a [Form] with a 5 [Field]s.
+             *
+             * @param a the form's first field
+             * @param b the form's second field
+             * @param c the form's third field
+             * @param d the form's fourth field
+             * @param e the form's fifth field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun <A, B, C, D, E> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
                     c        : Field<C>,
                     d        : Field<D>,
                     e        : Field<E>,
-                    onInvalid: (             ) -> Unit = {              },
-                    onReady  : (A, B, C, D, E) -> Unit = { _,_,_,_,_ -> }): FormDefinition = FormDefinition(Form(a, b, c, d, e) { _,_,state ->
+                    onInvalid: (             ) -> Unit,
+                    onReady  : (A, B, C, D, E) -> Unit): FormDefinition = FormDefinition(Form(a, b, c, d, e) { _,_,state ->
                 var i = 0
                 when (state) {
                     is Ready -> onReady(state.values[i++] as A, state.values[i++] as B, state.values[i++] as C, state.values[i++] as D, state.values[i] as E)
@@ -199,12 +330,21 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                 }
             })
 
+            /**
+             * Defines a weakly-typed [Form] with at least 2 [Field]s.
+             *
+             * @param first the form's first field
+             * @param second the form's second field
+             * @param rest the form's remaining fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             */
             public operator fun invoke(
                            first    : Field<*>,
                            second   : Field<*>,
                     vararg rest     : Field<*>,
-                           onInvalid: (       ) -> Unit = {},
-                           onReady  : (List<*>) -> Unit = {}): FormDefinition = FormDefinition(Form(first, second, *rest) { _,_,state ->
+                           onInvalid: (       ) -> Unit,
+                           onReady  : (List<*>) -> Unit): FormDefinition = FormDefinition(Form(first, second, *rest) { _,_,state ->
                 when (state) {
                     is Ready -> onReady(state.values)
                     else     -> onInvalid()
@@ -212,21 +352,42 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
         }
 
+        /**
+         * [Form] builder DSL that allows constructs as follows:
+         *
+         * ```kotlin
+         * Form {
+         *     this(
+         *         someValue to field { ... },
+         *         +            field { ... }
+         *     ) { first, second ->
+         *         SomeType(first, second)
+         *     }
+         * }
+         * ```
+         */
         public operator fun invoke(builder: FormBuildContext.() -> FormDefinition): Form = builder(FormBuildContext()).form
     }
 }
 
+/**
+ * Returns the result of [onValid] if this instance is [valid][Form.Valid] or [default] if it is [invalid][Form.Invalid].
+ */
 public inline fun <R, T> Field<T>.fold(
     onValid: (value: T) -> R,
     default: R
-): R = when (val v = value) {
+): R = when (val v = state) {
     is Form.Valid<T> -> onValid(v.value)
     else -> default
 }
 
+/**
+ * Returns a [valid][Form.Valid] state from the result of [onValid] if this instance is [valid][Form.Valid] or [invalid][Form.Invalid] otherwise.
+ */
+@Suppress("unused")
 public inline fun <T, R> Field<T>.mapValue(
     onValid: (value: T) -> R,
-): Form.FieldState<R> = when (val v = value) {
+): FieldState<R> = when (val v = state) {
     is Form.Valid<T> -> Form.Valid(onValid(v.value))
     else -> Form.Invalid()
 }

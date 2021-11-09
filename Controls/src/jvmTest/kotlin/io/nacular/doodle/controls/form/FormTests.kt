@@ -27,14 +27,14 @@ class FormTests {
             + field<String> {
                 view {
                     nameChanged += { _, _, new ->
-                        value = new?.let { Valid(it) } ?: Invalid()
+                        state = new?.let { Valid(it) } ?: Invalid()
                     }
                 }
             },
             + field<Gender> {
                 view {
                     genderChanged += { _, _, new ->
-                        value = new?.let { Valid(it) } ?: Invalid()
+                        state = new?.let { Valid(it) } ?: Invalid()
                     }
                 }
             },
@@ -66,14 +66,14 @@ class FormTests {
                 "Jennifer" to field {
                     view {
                         nameChanged += { _,_,new ->
-                            value = new?.let { Valid(it) } ?: Invalid()
+                            state = new?.let { Valid(it) } ?: Invalid()
                         }
                     }
                 },
                 Female to field {
                     view {
                         genderChanged += { _,_, new ->
-                            value = new?.let { Valid(it) } ?: Invalid()
+                            state = new?.let { Valid(it) } ?: Invalid()
                         }
                     }
                 },
@@ -101,14 +101,14 @@ class FormTests {
             + field<String> {
                 view {
                     nameChanged += { _,_,new ->
-                        value = new?.let { Valid(it) } ?: Invalid()
+                        state = new?.let { Valid(it) } ?: Invalid()
                     }
                 }
             },
             Male to field {
                 view {
                     genderChanged += { _,_,new ->
-                        value = new?.let { Valid(it) } ?: Invalid()
+                        state = new?.let { Valid(it) } ?: Invalid()
                     }
                 }
             },
