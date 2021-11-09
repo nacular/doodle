@@ -77,15 +77,12 @@ internal class SystemStylerImpl(
                 insertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
                 insertRule("${prefix("body")} pre { overflow:visible }", numStyles)
                 insertRule("${prefix("body")} div { display:inline }", numStyles)
-
                 insertRule("${prefix("body")} div:focus { outline:none }", numStyles)
+                insertRule("${prefix("body")} b { pointer-events:none }", numStyles)
 
-                insertRule("${prefix()} pre { margin:0 }", numStyles)
-                insertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible }", numStyles)
+                insertRule("${prefix()} pre { margin:0;pointer-events:none }", numStyles)
+                insertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible;pointer-events:none }", numStyles)
                 insertRule("${prefix()} svg * { position:absolute }", numStyles)
-
-//            insertRule(".custom-button { border:none;outline:none;user-select:none;padding:0 }", numStyles)
-//            insertRule("button * { top:0;left:0 }", numStyles)
 
                 try {
                     insertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
