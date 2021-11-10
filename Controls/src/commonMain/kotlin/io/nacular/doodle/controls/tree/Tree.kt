@@ -175,7 +175,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    override var isFocusCycleRoot: Boolean = true
+    public override var isFocusCycleRoot: Boolean = true
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

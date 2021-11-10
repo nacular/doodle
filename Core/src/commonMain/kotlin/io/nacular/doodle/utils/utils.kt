@@ -42,7 +42,7 @@ public fun <T> MutableList<T>.addOrAppend(at: Int, value: T): Unit = when {
 /**
  * Splits the character sequence based on a regex into a set of [MatchedChunk]s,
  * which indicates the match and the delimiter that separates it from its neighbor
- * on on the right.
+ * on the right.
  *
  * ```
  *

@@ -123,6 +123,10 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
         }
     }
 
+    // Used to ignore any calls to update state until after all fields have been
+    // initialized. This is important to allow all fields to validate initial data
+    private var initializing = true
+
     init {
         fields.forEachIndexed { index, field ->
             field.form  = this
@@ -133,10 +137,16 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             (field as Field<Any>).visualizer.invoke(field)
         }
 
+        initializing = false
+
         updateState()
     }
 
     private fun updateState() {
+        if (initializing) {
+            return
+        }
+
         state = when {
             fields.all { it.state is Valid } -> Ready(fields.map { (it.state as Valid).value })
             else                             -> NotReady

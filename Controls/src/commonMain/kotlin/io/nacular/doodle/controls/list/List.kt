@@ -243,7 +243,7 @@ public open class List<T, out M: ListModel<T>>(
      */
     public operator fun get(index: Int): T? = model[index]
 
-    override var isFocusCycleRoot: Boolean = true
+    public override var isFocusCycleRoot: Boolean = true
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

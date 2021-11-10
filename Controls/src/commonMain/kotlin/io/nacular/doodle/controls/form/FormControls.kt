@@ -4,6 +4,8 @@ package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
@@ -14,6 +16,7 @@ import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
+import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit.Width
@@ -62,26 +65,10 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
 public fun <T> textField(
         pattern: Regex = Regex(".*"),
         encoder: Encoder<T, String>,
-        config : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    private lateinit var configObject: TextFieldConfig<T>
+        config : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+    lateinit var configObject: TextFieldConfig<T>
 
-    override operator fun invoke(field: Field<T>) = TextField().apply {
-        textChanged  += { _,_,new      -> validate(field, new) }
-        focusChanged += { _,_,hasFocus ->
-            if (!hasFocus) {
-                validate(field, text)
-            }
-        }
-
-        configObject = TextFieldConfig(this@apply)
-        config(configObject)
-
-        when (val value = field.state) {
-            is Valid -> encoder.to(value.value).getOrNull()?.let { text = it }
-        }
-    }
-
-    private fun validate(field: Field<T>, value: String) {
+    fun validate(field: Field<T>, value: String) {
         when {
             pattern.matches(value) -> {
                 encoder.from(value).onSuccess { decoded ->
@@ -96,6 +83,22 @@ public fun <T> textField(
                 field.state = Invalid()
                 configObject.onInvalid(IllegalArgumentException("Invalid input: $value"))
             }
+        }
+    }
+
+    TextField().apply {
+        textChanged  += { _,_,new      -> validate(this@field, new) }
+        focusChanged += { _,_,hasFocus ->
+            if (!hasFocus) {
+                validate(this@field, text)
+            }
+        }
+
+        configObject = TextFieldConfig(this@apply)
+        config(configObject)
+
+        when (val value = this@field.state) {
+            is Valid -> encoder.to(value.value).getOrNull()?.let { text = it }
         }
     }
 }
@@ -139,21 +142,19 @@ public class OptionListConfig<T> internal constructor() {
 public fun <T> radioList(
                first : T,
         vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>): Container {
-        val builder = OptionListConfig<T>().also(config)
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+    val builder = OptionListConfig<T>().also(config)
 
-        return buildRadioList(
-                first        = first,
-                rest         = rest,
-                spacing      = builder.spacing,
-                itemHeight   = builder.itemHeight,
-                namer        = builder.label,
-                initialValue = (field.state as? Valid<T>)?.value) { value, button ->
-            button.selectedChanged += { _,_,selected ->
-                if (selected) {
-                    field.state = Valid(value)
-                }
+    buildRadioList(
+        first        = first,
+        rest         = rest,
+        spacing      = builder.spacing,
+        itemHeight   = builder.itemHeight,
+        label        = builder.label,
+        initialValue = (state as? Valid<T>)?.value) { value, button ->
+        button.selectedChanged += { _,_,selected ->
+            if (selected) {
+                state = Valid(value)
             }
         }
     }
@@ -172,73 +173,114 @@ public fun <T> radioList(
 public fun <T: Any> optionalRadioList(
                first     : T,
         vararg rest      : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = object: FieldVisualizer<T?> {
-    override fun invoke(field: Field<T?>): Container {
-        val builder = OptionListConfig<T>().also(config)
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field {
+    val builder = OptionListConfig<T>().also(config)
 
-        return buildRadioList(
-                first        = first,
-                rest         = rest,
-                spacing      = builder.spacing,
-                itemHeight   = builder.itemHeight,
-                namer        = builder.label,
-                initialValue = (field.state as? Valid<T?>)?.value) { value, button ->
-            button.selectedChanged += { _,_,selected ->
-                if (selected) {
-                    field.state = Valid(value)
-                }
+    buildRadioList(
+            first        = first,
+            rest         = rest,
+            spacing      = builder.spacing,
+            itemHeight   = builder.itemHeight,
+            label        = builder.label,
+            initialValue = this.fold({ it }, null)) { value, button ->
+        button.selectedChanged += { _,_,selected ->
+            if (selected) {
+                state = Valid(value)
             }
-        }.also {
-            field.state = Valid(null)
         }
+    }.also {
+        state = Valid(null)
     }
 }
 
 /**
- * Creates a list of [CheckBox]s that is bound to a [Field].
- * This controls lets a user select multiple options from a list. This control lets a user
- * ignore selection entirely, which would result in an empty set.
+ * Creates a list of [CheckBox]s that is bound to a [Field]. This controls lets a user select multiple
+ * options from a list. This control lets a user ignore selection entirely, which would result in an empty list.
  *
  * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
-public fun <T> checkList(
-               first : T,
-        vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<Set<T>> = object: FieldVisualizer<Set<T>> {
-    override fun invoke(field: Field<Set<T>>): View {
-        val selection    = mutableSetOf<T>()
-        val initialValue = (field.state as? Valid)?.value
-        val builder      = OptionListConfig<T>().also(config)
+public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field {
+    val builder   = OptionListConfig<T>().also(config)
+    val selection = mutableListOf<T>()
 
-        field.state = Valid(emptySet())
+    container {
+        focusable     = false
+        val items     = listOf(first) + rest
+        var itemIndex = 0
 
-        return container {
-            focusable  = false
-            children  += (listOf(first) + rest).map { value ->
-                CheckBox(builder.label(value)).apply {
-                    initialValue?.let {
-                        selected = value in it
-                    }
+        this@field.fold({it}, emptyList()).forEachIndexed { _, value ->
+            (itemIndex until items.size).forEach {
+                itemIndex += 1
 
-                    selectedChanged += { _,_,selected ->
-                        when {
-                            selected -> selection += value
-                            else     -> selection -= value
-                        }
-
-                        field.state = Valid(selection)
-                    }
-                    sizePreferencesChanged += { _,_,_ ->
-                        relayout()
-                    }
+                if (items[it] == value) {
+                    selection += value
+                    return@forEachIndexed
                 }
             }
-            layout = ExpandingListLayout(this, builder.spacing, builder.itemHeight)
+
+            if (itemIndex >= items.size) {
+                return@forEachIndexed
+            }
         }
+
+        state = Valid(selection)
+
+        children  += items.map { value ->
+            CheckBox(builder.label(value)).apply {
+                selected         = value in selection
+                selectedChanged += { _,_,selected ->
+                    when {
+                        selected -> selection += value
+                        else     -> selection -= value
+                    }
+
+                    state = Valid(selection)
+                }
+                sizePreferencesChanged += { _,_,_ ->
+                    relayout()
+                }
+            }
+        }
+        layout = ExpandingListLayout(this, builder.spacing, builder.itemHeight)
     }
+}
+
+/**
+ * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param model for the dropdown
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T, M: ListModel<T>> dropDown(
+        model             : M,
+        boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+        listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+        config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    Dropdown(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { dropdown ->
+        when (state) {
+            is Valid<T> -> model.forEachIndexed { index, item ->
+                if (item == state) {
+                    dropdown.selection = index
+                    return@forEachIndexed
+                }
+            }
+            else        -> state = Valid(dropdown.value)
+        }
+
+        dropdown.changed += {
+            state = Valid(dropdown.value)
+        }
+    }.also(config)
 }
 
 /**
@@ -260,30 +302,12 @@ public fun <T> dropDown(
         vararg rest              : T,
                boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
                listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-               config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>): Dropdown<T, *> {
-        val model = SimpleListModel(listOf(first) + rest)
-        return Dropdown(
-                model,
-                boxItemVisualizer  = boxItemVisualizer,
-                listItemVisualizer = listItemVisualizer).also { dropdown ->
-
-            when (field.state) {
-                is Valid<T> -> model.forEachIndexed { index, item ->
-                    if (item == field.state) {
-                        dropdown.selection = index
-                        return@forEachIndexed
-                    }
-                }
-                else    -> field.state = Valid(dropdown.value)
-            }
-
-            dropdown.changed += {
-                field.state = Valid(dropdown.value)
-            }
-        }.also(config)
-    }
-}
+               config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = dropDown(
+        SimpleListModel(listOf(first) + rest),
+        boxItemVisualizer,
+        listItemVisualizer,
+        config
+)
 
 /**
  * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
@@ -327,19 +351,19 @@ public fun <T: Any> dropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>): Dropdown<T?, *> = buildDropDown(
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    buildDropDown(
             first                        = first,
             rest                         = rest,
             boxItemVisualizer            = boxItemVisualizer,
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = field.fold( { it }, null )).apply {
+            initialValue                 = fold({it}, null)).apply {
         changed += {
-            when (val v = value) {
-                null -> field.state = Invalid( )
-                else -> field.state = Valid  (v)
+            state = when (val v = value) {
+                null -> Invalid( )
+                else -> Valid  (v)
             }
         }
 
@@ -379,6 +403,43 @@ public fun <T: Any> dropDown(
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
  * @param T is the type of the bounded field
+ * @param model for the dropdown
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
+ * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T: Any, M: ListModel<T>> optionalDropDown(
+        model                       : M,
+        boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+        listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+        unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+        unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+    buildDropDown(
+            model                        = SimpleListModel(listOf(null) + model.section(0 until model.size)),
+            boxItemVisualizer            = boxItemVisualizer,
+            listItemVisualizer           = listItemVisualizer,
+            unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
+            unselectedListItemVisualizer = unselectedListItemVisualizer,
+            initialValue                 = fold({it}, null)).apply {
+        changed += {
+            state = Valid(value)
+        }
+
+        state = Valid(null)
+
+        config(this)
+    }
+}
+
+/**
+ * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
+ * ignore selection entirely and therefore the resulting type is [T]?.
+ *
+ * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
  * @param boxItemVisualizer used to render the drop-down's box item
@@ -394,20 +455,20 @@ public fun <T: Any> optionalDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = object: FieldVisualizer<T?> {
-    override fun invoke(field: Field<T?>) = buildDropDown(
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+    buildDropDown(
             first                        = first,
             rest                         = rest,
             boxItemVisualizer            = boxItemVisualizer,
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = field.fold( { it }, null )).apply {
+            initialValue                 = fold( { it }, null )).apply {
         changed += {
-            field.state = Valid(value)
+            state = Valid(value)
         }
 
-        field.state = Valid(null)
+        state = Valid(null)
 
         config(this)
     }
@@ -439,6 +500,83 @@ public fun <T: Any> optionalDropDown(
         config                      = config)
 
 /**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
+ * which would result in an empty list. It is similar to a [checkList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param model for the list
+ * @param itemVisualizer used to render items in the list
+ * @param config used to control the resulting component
+ */
+@Suppress("UNCHECKED_CAST")
+public fun <T, M: ListModel<T>> list(
+        model         : M,
+        itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+        config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
+    io.nacular.doodle.controls.list.List(
+            model,
+            itemVisualizer,
+            selectionModel = MultiSelectionModel(),
+            fitContent     = false
+    ).apply {
+        var itemIndex = 0
+        val items     = model.asIterable().iterator()
+        val selection = mutableListOf<Int>()
+
+        this@field.fold({it}, emptyList()).forEach { value ->
+            while (items.hasNext()) {
+                val item = items.next()
+
+                if (item == value) {
+                    selection += itemIndex++
+                    break
+                }
+
+                itemIndex += 1
+            }
+
+            if (itemIndex >= model.size) {
+                return@forEach
+            }
+        }
+
+        state            = Valid(selection.map { this[it] as T })
+        focusable        = false
+        isFocusCycleRoot = false
+
+        setSelection(selection.toSet())
+
+        selectionChanged += { _,_,new ->
+            state = Valid(new.map { this[it] as T })
+        }
+
+        config(this)
+    }
+}
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
+ * which would result in an empty list. It is similar to a [checkList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param itemVisualizer used to render items in the list
+ * @param config used to control the resulting component
+ */
+public fun <T> list(
+               first: T,
+        vararg rest : T,
+               itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+               config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
+    SimpleListModel(listOf(first) + rest),
+    itemVisualizer,
+    config
+)
+
+/**
  * Config for [named] controls.
  */
 public class NamedVisualizerConfig internal constructor() {
@@ -461,8 +599,8 @@ public class NamedVisualizerConfig internal constructor() {
  */
 public fun <T> named(
         name      : StyledText,
-        visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>) = container {
+        visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    container {
         val builder = NamedVisualizerConfig()
         val visualization = visualizer(builder)
 
@@ -470,7 +608,7 @@ public fun <T> named(
 
         val label = UninteractiveLabel(name)
 
-        children += listOf(label, visualization(field)).onEach {
+        children += listOf(label, visualization(this@field)).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -522,10 +660,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
     public operator fun <T, A> invoke(
             a        : Field<A>,
             onInvalid: ( ) -> Unit = {},
-            onReady  : (A) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+            onReady  : (A) -> T): FieldVisualizer<T> = field {
+        Form {
             this(a, onInvalid = { field.state = Invalid(); onInvalid() }) { a ->
-                field.state = Valid(onReady(a))
+                state = Valid(onReady(a))
             }
         }.apply {
             focusable = false
@@ -538,10 +676,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
             a        : Field<A>,
             b        : Field<B>,
             onInvalid: (    ) -> Unit = {},
-            onReady  : (A, B) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+            onReady  : (A, B) -> T): FieldVisualizer<T> = field {
+        Form {
             this(a, b, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b ->
-                field.state = Valid(onReady(a, b))
+                state = Valid(onReady(a, b))
             }
         }.apply {
             focusable = false
@@ -555,10 +693,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
             b        : Field<B>,
             c        : Field<C>,
             onInvalid: (       ) -> Unit = {},
-            onReady  : (A, B, C) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+            onReady  : (A, B, C) -> T): FieldVisualizer<T> = field {
+        Form {
             this(a, b, c, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c ->
-                field.state = Valid(onReady(a, b, c))
+                state = Valid(onReady(a, b, c))
             }
         }.apply {
             focusable = false
@@ -573,10 +711,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
             c        : Field<C>,
             d        : Field<D>,
             onInvalid: (          ) -> Unit = {},
-            onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+            onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = field {
+        Form {
             this(a, b, c, d, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d ->
-                field.state = Valid(onReady(a, b, c, d))
+                state = Valid(onReady(a, b, c, d))
             }
         }.apply {
             focusable = false
@@ -592,10 +730,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
             d        : Field<D>,
             e        : Field<E>,
             onInvalid: (             ) -> Unit = {},
-            onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+            onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = field {
+        Form {
             this(a, b, c, d, e, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d, e ->
-                field.state = Valid(onReady(a, b, c, d, e))
+                state = Valid(onReady(a, b, c, d, e))
             }
         }.apply {
             focusable = false
@@ -609,10 +747,10 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
                    second   : Field<*>,
             vararg rest     : Field<*>,
                    onInvalid: (       ) -> Unit = {},
-                   onReady  : (List<*>) -> T): FieldVisualizer<T> = object: FieldVisualizer<T> {
-        override fun invoke(field: Field<T>) = Form {
+                   onReady  : (List<*>) -> T): FieldVisualizer<T> = field {
+        Form {
             this(first, second, *rest, onInvalid = { field.state = Invalid(); onInvalid() }) { fields ->
-                field.state = Valid(onReady(fields))
+                state = Valid(onReady(fields))
             }
         }.apply {
             focusable = false
@@ -622,16 +760,16 @@ public class FormControlBuildContext<T> internal constructor(public val field: F
 }
 
 private fun <T> buildRadioList(
-               first     : T,
-        vararg rest      : T,
-               spacing   : Double  = 0.0,
-               itemHeight: Double? = null,
-               namer     : (T) -> String = { it.toString() },
+               first       : T,
+        vararg rest        : T,
+               spacing     : Double  = 0.0,
+               itemHeight  : Double? = null,
+               label       : (T) -> String = { it.toString() },
                initialValue: T? = null,
-               config    : (T, RadioButton) -> Unit): Container = container {
+               config      : (T, RadioButton) -> Unit): Container = container {
     val group  = ButtonGroup()
     children  += (listOf(first) + rest).map { value ->
-        RadioButton(namer(value)).apply {
+        RadioButton(label(value)).apply {
             group += this
 
             initialValue?.let {
@@ -645,6 +783,38 @@ private fun <T> buildRadioList(
     layout    = ExpandingListLayout(this, spacing, itemHeight)
 }
 
+private fun <T: Any, M: ListModel<T?>> buildDropDown(
+        model                       : M,
+        boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+        listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+        unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+        unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+        initialValue                : T? = null
+): Dropdown<T?, M> = Dropdown(
+        model,
+        boxItemVisualizer = itemVisualizer { item, previous, context ->
+            when (item) {
+                null -> unselectedBoxItemVisualizer(Unit, previous, context)
+                else -> boxItemVisualizer          (item, previous, context)
+            }
+        },
+        listItemVisualizer = itemVisualizer { item, previous, context ->
+            when (item) {
+                null -> unselectedListItemVisualizer(Unit, previous, context)
+                else -> listItemVisualizer          (item, previous, context)
+            }
+        }
+).apply {
+    if (initialValue != null) {
+        model.forEachIndexed { index, item ->
+            if (item == initialValue) {
+                selection = index
+                return@forEachIndexed
+            }
+        }
+    }
+}
+
 private fun <T: Any> buildDropDown(
         first                       : T,
         vararg rest                 : T,
@@ -652,34 +822,15 @@ private fun <T: Any> buildDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        initialValue                : T? = null,): Dropdown<T?, *> {
-    val model = SimpleListModel(listOf(null, first) + rest)
-
-    return Dropdown(
-            model,
-            boxItemVisualizer = object: ItemVisualizer<T?, IndexedItem> {
-                override fun invoke(item: T?, previous: View?, context: IndexedItem): View = when (item) {
-                    null -> unselectedBoxItemVisualizer(Unit, previous, context)
-                    else -> boxItemVisualizer          (item, previous, context)
-                }
-            },
-            listItemVisualizer = object: ItemVisualizer<T?, IndexedItem> {
-                override fun invoke(item: T?, previous: View?, context: IndexedItem): View = when (item) {
-                    null -> unselectedListItemVisualizer(Unit, previous, context)
-                    else -> listItemVisualizer          (item, previous, context)
-                }
-            }
-    ).apply {
-        if (initialValue != null) {
-            model.forEachIndexed { index, item ->
-                if (item == initialValue) {
-                    selection = index
-                    return@forEachIndexed
-                }
-            }
-        }
-    }
-}
+        initialValue                : T? = null
+): Dropdown<T?, *> = buildDropDown(
+        SimpleListModel(listOf(null, first) + rest),
+        boxItemVisualizer,
+        listItemVisualizer,
+        unselectedBoxItemVisualizer,
+        unselectedListItemVisualizer,
+        initialValue
+)
 
 private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
