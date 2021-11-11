@@ -3,6 +3,7 @@
 package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.IndexedItem
+import io.nacular.doodle.controls.IntProgressionModel
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.MultiSelectionModel
@@ -17,6 +18,7 @@ import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit.Width
@@ -97,8 +99,8 @@ public fun <T> textField(
         configObject = TextFieldConfig(this@apply)
         config(configObject)
 
-        initial.ifValid {
-            encoder.to(it).getOrNull()?.let { text = it }
+        initial.ifValid { value ->
+            encoder.to(value).getOrNull()?.let { text = it }
         }
     }
 }
@@ -171,8 +173,8 @@ public fun <T> radioList(
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalRadioList(
-               first     : T,
-        vararg rest      : T,
+               first : T,
+        vararg rest  : T,
                config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field { initial ->
     val builder = OptionListConfig<T>().also(config)
 
@@ -507,18 +509,20 @@ public fun <T: Any> optionalDropDown(
  * @param T is the type of the items in the bounded field
  * @param model for the list
  * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 @Suppress("UNCHECKED_CAST")
 public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+        fitContents   : Boolean = false,
         config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field { initial ->
     io.nacular.doodle.controls.list.List(
             model,
             itemVisualizer,
             selectionModel = MultiSelectionModel(),
-            fitContent     = false
+            fitContent     = fitContents
     ).apply {
         var itemIndex = 0
         val items     = model.asIterable().iterator()
@@ -564,22 +568,47 @@ public fun <T, M: ListModel<T>> list(
  * @param first item in the list
  * @param rest of the items in the list
  * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T> list(
                first: T,
         vararg rest : T,
                itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+               fitContents   : Boolean = false,
                config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
+    fitContents,
+    config
+)
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
+ * which would result in an empty list. It is similar to a [checkList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param progression to use for values
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun list(
+        progression   : IntProgression,
+        itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+        fitContents   : Boolean = false,
+        config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
+    IntProgressionModel(progression),
+    itemVisualizer,
+    fitContents,
     config
 )
 
 /**
  * Config for [named] controls.
  */
-public class NamedVisualizerConfig internal constructor() {
+public class NamedConfig internal constructor() {
     /**
      * Defines the layout for the named container.
      */
@@ -599,9 +628,9 @@ public class NamedVisualizerConfig internal constructor() {
  */
 public fun <T> named(
         name      : StyledText,
-        visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
+        visualizer: NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
     container {
-        val builder = NamedVisualizerConfig()
+        val builder = NamedConfig()
         val visualization = visualizer(builder)
 
         focusable = false
@@ -625,7 +654,27 @@ public fun <T> named(
  * @param name used in the label
  * @param visualizer being decorated
  */
-public fun <T> named(name: String, visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = named(StyledText(name), visualizer)
+public fun <T> named(name: String, visualizer: NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = named(StyledText(name), visualizer)
+
+
+/**
+ * Config for [scrolling] controls.
+ *
+ * @property scrollPanel used for scrolling
+ */
+public class ScrollingConfig internal constructor(public val scrollPanel: ScrollPanel)
+
+/**
+ * Creates a [ScrollPanel] with the result of [visualizer] as its content, that is bound to a [Field].
+ * This control simply wraps an existing one with a configurable scroll panel.
+ *
+ * @param visualizer being decorated
+ */
+public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
+    ScrollPanel().apply {
+        content = visualizer(ScrollingConfig(this))(this@field, initial)
+    }
+}
 
 /**
  * Creates a [Form] component that is bound to a [Field]. This control allows nesting of forms using

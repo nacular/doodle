@@ -109,18 +109,19 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit it's rows width and total height
+ * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
  *
  * @property model that holds the data for this List
  * @property itemVisualizer that maps [T] to [View] for each item in the List
  * @property selectionModel that manages the List's selection state
- * @property fitContent determines whether the List scales to fit it's rows width and total height
+ * @property fitContent determines whether the List scales to fit its rows width and total height
  * @property scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
 
  */
+@Suppress("LeakingThis")
 public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
