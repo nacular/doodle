@@ -65,7 +65,7 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
 public fun <T> textField(
         pattern: Regex = Regex(".*"),
         encoder: Encoder<T, String>,
-        config : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+        config : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
     lateinit var configObject: TextFieldConfig<T>
 
     fun validate(field: Field<T>, value: String) {
@@ -97,8 +97,8 @@ public fun <T> textField(
         configObject = TextFieldConfig(this@apply)
         config(configObject)
 
-        when (val value = this@field.state) {
-            is Valid -> encoder.to(value.value).getOrNull()?.let { text = it }
+        initial.ifValid {
+            encoder.to(it).getOrNull()?.let { text = it }
         }
     }
 }
@@ -142,7 +142,7 @@ public class OptionListConfig<T> internal constructor() {
 public fun <T> radioList(
                first : T,
         vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
     val builder = OptionListConfig<T>().also(config)
 
     buildRadioList(
@@ -151,7 +151,7 @@ public fun <T> radioList(
         spacing      = builder.spacing,
         itemHeight   = builder.itemHeight,
         label        = builder.label,
-        initialValue = (state as? Valid<T>)?.value) { value, button ->
+        initialValue = initial.fold({ it }, null)) { value, button ->
         button.selectedChanged += { _,_,selected ->
             if (selected) {
                 state = Valid(value)
@@ -173,7 +173,7 @@ public fun <T> radioList(
 public fun <T: Any> optionalRadioList(
                first     : T,
         vararg rest      : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field {
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field { initial ->
     val builder = OptionListConfig<T>().also(config)
 
     buildRadioList(
@@ -182,7 +182,7 @@ public fun <T: Any> optionalRadioList(
             spacing      = builder.spacing,
             itemHeight   = builder.itemHeight,
             label        = builder.label,
-            initialValue = this.fold({ it }, null)) { value, button ->
+            initialValue = initial.fold({ it }, null)) { value, button ->
         button.selectedChanged += { _,_,selected ->
             if (selected) {
                 state = Valid(value)
@@ -202,7 +202,7 @@ public fun <T: Any> optionalRadioList(
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
-public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field {
+public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field { initial ->
     val builder   = OptionListConfig<T>().also(config)
     val selection = mutableListOf<T>()
 
@@ -211,7 +211,7 @@ public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T
         val items     = listOf(first) + rest
         var itemIndex = 0
 
-        this@field.fold({it}, emptyList()).forEachIndexed { _, value ->
+        initial.fold({ it }, emptyList()).forEachIndexed { _, value ->
             (itemIndex until items.size).forEach {
                 itemIndex += 1
 
@@ -265,9 +265,9 @@ public fun <T, M: ListModel<T>> dropDown(
         model             : M,
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
         listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-        config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+        config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
     Dropdown(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { dropdown ->
-        when (state) {
+        when (initial) {
             is Valid<T> -> model.forEachIndexed { index, item ->
                 if (item == state) {
                     dropdown.selection = index
@@ -351,7 +351,7 @@ public fun <T: Any> dropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
     buildDropDown(
             first                        = first,
             rest                         = rest,
@@ -359,7 +359,7 @@ public fun <T: Any> dropDown(
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = fold({it}, null)).apply {
+            initialValue                 = initial.fold({it}, null)).apply {
         changed += {
             state = when (val v = value) {
                 null -> Invalid( )
@@ -416,14 +416,14 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field { initial ->
     buildDropDown(
             model                        = SimpleListModel(listOf(null) + model.section(0 until model.size)),
             boxItemVisualizer            = boxItemVisualizer,
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = fold({it}, null)).apply {
+            initialValue                 = initial.fold({it}, null)).apply {
         changed += {
             state = Valid(value)
         }
@@ -455,7 +455,7 @@ public fun <T: Any> optionalDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field { initial ->
     buildDropDown(
             first                        = first,
             rest                         = rest,
@@ -463,7 +463,7 @@ public fun <T: Any> optionalDropDown(
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = fold( { it }, null )).apply {
+            initialValue                 = initial.fold( { it }, null )).apply {
         changed += {
             state = Valid(value)
         }
@@ -513,7 +513,7 @@ public fun <T: Any> optionalDropDown(
 public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
-        config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
+        config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field { initial ->
     io.nacular.doodle.controls.list.List(
             model,
             itemVisualizer,
@@ -524,7 +524,7 @@ public fun <T, M: ListModel<T>> list(
         val items     = model.asIterable().iterator()
         val selection = mutableListOf<Int>()
 
-        this@field.fold({it}, emptyList()).forEach { value ->
+        initial.fold({it}, emptyList()).forEach { value ->
             while (items.hasNext()) {
                 val item = items.next()
 
@@ -599,7 +599,7 @@ public class NamedVisualizerConfig internal constructor() {
  */
 public fun <T> named(
         name      : StyledText,
-        visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+        visualizer: NamedVisualizerConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
     container {
         val builder = NamedVisualizerConfig()
         val visualization = visualizer(builder)
@@ -608,7 +608,7 @@ public fun <T> named(
 
         val label = UninteractiveLabel(name)
 
-        children += listOf(label, visualization(this@field)).onEach {
+        children += listOf(label, visualization(this@field, initial)).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -634,12 +634,15 @@ public fun <T> named(name: String, visualizer: NamedVisualizerConfig.() -> Field
  * @param builder used to construct the form
  */
 public fun <T> form(builder: FormControlBuildContext<T>.() -> FieldVisualizer<T>): FieldVisualizer<T> {
-    return field {
-        builder(FormControlBuildContext(this))(this)
+    return field { initial ->
+        builder(FormControlBuildContext(this, initial))(this, initial)
     }
 }
 
-public class FormControlBuildContext<T> internal constructor(public val field: Field<T>) {
+/**
+ * @property initial value of the field this form is bound to.
+ */
+public class FormControlBuildContext<T> internal constructor(private val field: Field<T>, public val initial: FieldState<T>) {
     /** @see Form.Companion.FormBuildContext.to */
     public infix fun <T> T.to(visualizer: FieldVisualizer<T>): Field<T> = Field(visualizer, initial = Valid(this))
 

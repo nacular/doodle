@@ -17,18 +17,21 @@ import io.nacular.doodle.utils.observable
  */
 public interface FieldVisualizer<T> {
     /**
+     * @param field the view is being associated with
+     * @param initial state of the field
      * @return a view to associate with [field]
      */
-    public operator fun invoke(field: Field<T>): View
+    public operator fun invoke(field: Field<T>, initial: FieldState<T>): View
 }
 
 /**
  * Helper for creating a [FieldVisualizer] from a lambda.
  *
  * @param block is called by the returned visualizer to create a view
+ * @see [FieldVisualizer.invoke]
  */
-public fun <T> field(block: Field<T>.() -> View): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>) = block(field)
+public fun <T> field(block: Field<T>.(initial: FieldState<T>) -> View): FieldVisualizer<T> = object: FieldVisualizer<T> {
+    override fun invoke(field: Field<T>, initial: FieldState<T>) = block(field, initial)
 }
 
 /**
@@ -82,13 +85,13 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
      * An entry within a [Form] that represents a single parameter and value that will be presented
      * when the form becomes ready.
      */
-    public class Field<T> internal constructor(internal val visualizer: FieldVisualizer<T>, initial: FieldState<T> = Invalid()) {
+    public class Field<T> internal constructor(internal val visualizer: FieldVisualizer<T>, internal val initial: FieldState<T> = Invalid()) {
         internal var index = 0
 
         /**
          * The field's current state
          */
-        public var state: FieldState<T> = initial
+        public var state: FieldState<T> = Invalid()
             internal set(new) {
                 if (new == field) {
                     return
@@ -123,10 +126,6 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
         }
     }
 
-    // Used to ignore any calls to update state until after all fields have been
-    // initialized. This is important to allow all fields to validate initial data
-    private var initializing = true
-
     init {
         fields.forEachIndexed { index, field ->
             field.form  = this
@@ -134,19 +133,13 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
         }
 
         children += fields.map { field ->
-            (field as Field<Any>).visualizer.invoke(field)
+            (field as Field<Any>).visualizer.invoke(field, field.initial)
         }
-
-        initializing = false
 
         updateState()
     }
 
     private fun updateState() {
-        if (initializing) {
-            return
-        }
-
         state = when {
             fields.all { it.state is Valid } -> Ready(fields.map { (it.state as Valid).value })
             else                             -> NotReady
@@ -383,11 +376,8 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
 /**
  * Returns the result of [onValid] if this instance is [valid][Form.Valid] or [default] if it is [invalid][Form.Invalid].
  */
-public inline fun <R, T> Field<T>.fold(
-    onValid: (value: T) -> R,
-    default: R
-): R = when (val v = state) {
-    is Form.Valid<T> -> onValid(v.value)
+public inline fun <R, T> FieldState<T>.fold(onValid: (value: T) -> R, default: R): R = when (this) {
+    is Form.Valid<T> -> onValid(value)
     else -> default
 }
 
@@ -395,9 +385,31 @@ public inline fun <R, T> Field<T>.fold(
  * Returns a [valid][Form.Valid] state from the result of [onValid] if this instance is [valid][Form.Valid] or [invalid][Form.Invalid] otherwise.
  */
 @Suppress("unused")
-public inline fun <T, R> Field<T>.mapValue(
-    onValid: (value: T) -> R,
-): FieldState<R> = when (val v = state) {
-    is Form.Valid<T> -> Form.Valid(onValid(v.value))
+public inline fun <T, R> FieldState<T>.map(onValid: (value: T) -> R): FieldState<R> = when (this) {
+    is Form.Valid<T> -> Form.Valid(onValid(value))
     else -> Form.Invalid()
 }
+
+/**
+ * Does the action of [onValid] if this instance is [valid][Form.Valid].
+ */
+public inline fun <T> FieldState<T>.ifValid(onValid: (value: T) -> Unit): Unit = if (this is Form.Valid) {
+    onValid(this.value)
+} else Unit
+
+/**
+ * Returns the result of [onValid] if this instance is [valid][Form.Valid] or [default] if it is [invalid][Form.Invalid].
+ */
+public inline fun <R, T> Field<T>.fold(onValid: (value: T) -> R, default: R): R = state.fold(onValid, default)
+
+/**
+ * Returns a [valid][Form.Valid] state from the result of [onValid] if this instance is [valid][Form.Valid] or [invalid][Form.Invalid] otherwise.
+ */
+@Suppress("unused")
+public inline fun <T, R> Field<T>.mapValue(onValid: (value: T) -> R): FieldState<R> = state.map(onValid)
+
+/**
+ * Does the action of [onValid] if this instance is [valid][Form.Valid].
+ */
+@Suppress("unused")
+public inline fun <T> Field<T>.ifValid(onValid: (value: T) -> Unit): Unit = state.ifValid(onValid)
