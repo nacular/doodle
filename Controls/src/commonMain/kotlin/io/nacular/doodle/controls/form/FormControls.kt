@@ -62,20 +62,24 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
  * @param T is the type of the bounded field
  * @param pattern used to validate input to the field
  * @param encoder used to map [String] -> [T]
+ * @param validator used to validate value from [encoder]
  * @param config used to control the resulting component
  */
 public fun <T> textField(
-        pattern: Regex = Regex(".*"),
-        encoder: Encoder<T, String>,
-        config : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
+        pattern  : Regex = Regex(".*"),
+        encoder  : Encoder<T, String>,
+        validator: (T) -> Boolean = { true },
+        config   : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
     lateinit var configObject: TextFieldConfig<T>
 
     fun validate(field: Field<T>, value: String) {
         when {
             pattern.matches(value) -> {
                 encoder.from(value).onSuccess { decoded ->
-                    field.state = Valid(decoded)
-                    configObject.onValid(decoded)
+                    when {
+                        validator(decoded) -> field.state = Valid(decoded)
+                        else               -> configObject.onValid(decoded)
+                    }
                 }.onFailure {
                     field.state = Invalid()
                     configObject.onInvalid(it)
@@ -100,7 +104,9 @@ public fun <T> textField(
         config(configObject)
 
         initial.ifValid { value ->
-            encoder.to(value).getOrNull()?.let { text = it }
+            if (validator(value)) {
+                encoder.to(value).getOrNull()?.let { text = it }
+            }
         }
     }
 }
@@ -111,9 +117,14 @@ public fun <T> textField(
  * [pattern].
  *
  * @param pattern used to validate input to the field
+ * @param validator used to validate value after [pattern]
  * @param config used to control the resulting component
  */
-public fun textField(pattern: Regex = Regex(".*"), config: TextFieldConfig<String>.() -> Unit = {}): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), config)
+public fun textField(
+        pattern  : Regex = Regex(".*"),
+        validator: (String) -> Boolean = { true },
+        config   : TextFieldConfig<String>.() -> Unit = {}
+): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), validator, config)
 
 /**
  * Configuration for radio and check lists.
@@ -154,6 +165,10 @@ public fun <T> radioList(
         itemHeight   = builder.itemHeight,
         label        = builder.label,
         initialValue = initial.fold({ it }, null)) { value, button ->
+        if (button.selected) {
+            state = Valid(value)
+        }
+
         button.selectedChanged += { _,_,selected ->
             if (selected) {
                 state = Valid(value)
@@ -185,13 +200,19 @@ public fun <T: Any> optionalRadioList(
             itemHeight   = builder.itemHeight,
             label        = builder.label,
             initialValue = initial.fold({ it }, null)) { value, button ->
+        if (button.selected) {
+            state = Valid(value)
+        }
+
         button.selectedChanged += { _,_,selected ->
             if (selected) {
                 state = Valid(value)
             }
         }
     }.also {
-        state = Valid(null)
+        if (state is Invalid) {
+            state = Valid(null)
+        }
     }
 }
 
@@ -269,19 +290,20 @@ public fun <T, M: ListModel<T>> dropDown(
         listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
         config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
     Dropdown(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { dropdown ->
-        when (initial) {
-            is Valid<T> -> model.forEachIndexed { index, item ->
-                if (item == state) {
+        initial.ifValid {
+            model.forEachIndexed { index, item ->
+                if (item == it) {
                     dropdown.selection = index
                     return@forEachIndexed
                 }
             }
-            else        -> state = Valid(dropdown.value)
         }
 
         dropdown.changed += {
             state = Valid(dropdown.value)
         }
+
+        state = Valid(dropdown.value)
     }.also(config)
 }
 
@@ -354,19 +376,35 @@ public fun <T: Any> dropDown(
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
         config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
+    val model = SimpleListModel(listOf(null, first) + rest)
+
     buildDropDown(
-            first                        = first,
-            rest                         = rest,
-            boxItemVisualizer            = boxItemVisualizer,
-            listItemVisualizer           = listItemVisualizer,
-            unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
-            unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = initial.fold({it}, null)).apply {
+        model                        = model,
+        boxItemVisualizer            = boxItemVisualizer,
+        listItemVisualizer           = listItemVisualizer,
+        unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
+        unselectedListItemVisualizer = unselectedListItemVisualizer,
+        initialValue                 = initial.fold({it}, null)
+    ).apply {
+        initial.ifValid {
+            model.forEachIndexed { index, item ->
+                if (item == it) {
+                    selection = index
+                    return@forEachIndexed
+                }
+            }
+        }
+
         changed += {
             state = when (val v = value) {
                 null -> Invalid( )
                 else -> Valid  (v)
             }
+        }
+
+        state = when (val v = value) {
+            null -> Invalid( )
+            else -> Valid  (v)
         }
 
         config(this)
@@ -430,7 +468,7 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
             state = Valid(value)
         }
 
-        state = Valid(null)
+        state = Valid(value)
 
         config(this)
     }
@@ -458,19 +496,30 @@ public fun <T: Any> optionalDropDown(
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
         config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field { initial ->
+    val model = SimpleListModel(listOf(null, first) + rest)
+
     buildDropDown(
-            first                        = first,
-            rest                         = rest,
+            model                        = model,
             boxItemVisualizer            = boxItemVisualizer,
             listItemVisualizer           = listItemVisualizer,
             unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
             unselectedListItemVisualizer = unselectedListItemVisualizer,
-            initialValue                 = initial.fold( { it }, null )).apply {
+            initialValue                 = initial.fold({ it }, null)
+    ).apply {
+        initial.ifValid {
+            model.forEachIndexed { index, item ->
+                if (item == it) {
+                    selection = index
+                    return@forEachIndexed
+                }
+            }
+        }
+
         changed += {
             state = Valid(value)
         }
 
-        state = Valid(null)
+        state = Valid(value)
 
         config(this)
     }
@@ -864,22 +913,22 @@ private fun <T: Any, M: ListModel<T?>> buildDropDown(
     }
 }
 
-private fun <T: Any> buildDropDown(
-        first                       : T,
-        vararg rest                 : T,
-        boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-        listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-        unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-        unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        initialValue                : T? = null
-): Dropdown<T?, *> = buildDropDown(
-        SimpleListModel(listOf(null, first) + rest),
-        boxItemVisualizer,
-        listItemVisualizer,
-        unselectedBoxItemVisualizer,
-        unselectedListItemVisualizer,
-        initialValue
-)
+//private fun <T: Any> buildDropDown(
+//        first                       : T,
+//        vararg rest                 : T,
+//        boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+//        listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+//        unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+//        unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+//        initialValue                : T? = null
+//): Dropdown<T?, *> = buildDropDown(
+//        SimpleListModel(listOf(null, first) + rest),
+//        boxItemVisualizer,
+//        listItemVisualizer,
+//        unselectedBoxItemVisualizer,
+//        unselectedListItemVisualizer,
+//        initialValue
+//)
 
 private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
