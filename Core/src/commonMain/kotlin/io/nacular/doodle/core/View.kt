@@ -53,7 +53,6 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
-import kotlin.properties.Delegates.observable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -541,7 +540,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * `true` if the View's [contentDirection] is [RightLeft] and [mirrorWhenRightLeft] is `true`.
      */
-    private val mirrored get() = contentDirection == RightLeft && mirrorWhenRightLeft
+    public val mirrored: Boolean get() = contentDirection == RightLeft && mirrorWhenRightLeft
 
     /**
      * Refresh [needsMirrorTransform] flag to allow rerender if needed.
@@ -559,7 +558,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal val layout_ get() = layout
 
     /** Layout responsible for positioning of this View's children */
-    protected open var layout: Layout? by observable(null) { _,_,_ ->
+    protected open var layout: Layout? by observable(null) { _,_ ->
         // TODO: Have RenderManager manage the layout?
         relayout()
     }

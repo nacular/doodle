@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
@@ -35,6 +36,9 @@ public open class BasicButtonBehavior(
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     private var insets = Insets(insets)
+    private val contentDirectionChanged: (source: View) -> Unit = {
+        it.rerender()
+    }
 
     protected class RenderColors(public val fillColor: Color, public val textColor: Color, public val borderColor: Color?)
 
@@ -73,12 +77,27 @@ public open class BasicButtonBehavior(
 
         if (text.isNotBlank()) {
             textPosition = textPosition(view, icon = icon)
-            canvas.text(text, font(view), textPosition, ColorPaint(colors.textColor))
+
+            when {
+                view.mirrored -> canvas.flipHorizontally(around = textPosition.x + textMetrics.width(view.text, view.font) / 2) {
+                    text(text, font(view), textPosition, ColorPaint(colors.textColor))
+                }
+                else          -> canvas.text(text, font(view), textPosition, ColorPaint(colors.textColor))
+            }
         }
 
-        when (textPosition) {
-            null -> icon?.render(view, canvas, iconPosition(view, icon = icon))
-            else -> icon?.render(view, canvas, iconPosition(view, icon = icon, stringPosition = textPosition))
+        icon?.let {
+            val iconPosition = when (textPosition) {
+                null -> iconPosition(view, icon = it)
+                else -> iconPosition(view, icon = it, stringPosition = textPosition)
+            }
+
+            when {
+                view.mirrored -> canvas.flipHorizontally(around = iconPosition.x + icon.size(view).width / 2) {
+                    it.render(view, this, iconPosition)
+                }
+                else          -> it.render(view, canvas, iconPosition)
+            }
         }
     }
 
@@ -91,7 +110,14 @@ public open class BasicButtonBehavior(
     override fun install(view: Button) {
         super.install(view)
 
+        view.contentDirectionChanged += contentDirectionChanged
         recalculateSize(view)
+    }
+
+    override fun uninstall(view: Button) {
+        super.uninstall(view)
+
+        view.contentDirectionChanged -= contentDirectionChanged
     }
 
     private fun recalculateSize(button: Button) {

@@ -12,6 +12,7 @@ import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -37,6 +38,7 @@ import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.ConstraintBlockContext
 import io.nacular.doodle.layout.ConstraintLayout
@@ -149,6 +151,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
+    private val boundsChanged: PropertyObserver<View, Rectangle> = { dropdown, old, new ->
+        if (old.height != new.height) {
+            (dropdown as? Dropdown<T, M>)?.apply {
+                list?.behavior = listBehavior(dropdown)
+            }
+        }
+    }
+
     private inner class CustomListRow(
                         dropdown      : Dropdown<T, M>,
                         list          : List<T, *>,
@@ -210,6 +220,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             it.x     = viewAbsolute.x
             it.y     = viewAbsolute.y - view.selection * (view.height - 2 * INSET)
             it.width = view.width
+
             display.children += it
 
             it.setSelection(setOf(view.selection))
@@ -226,22 +237,22 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
+    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(focusManager, ItemGenerator(dropdown), null, 0.0) {
+        override val positioner: RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
+            override val height get() = max(0.0, dropdown.height - 2 * INSET)
+        }
+
+        override fun render(view: List<T, *>, canvas: Canvas) {
+            canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
+        }
+    }
+
     override fun install(view: Dropdown<T, M>) {
         super.install(view)
 
-        view.list = List(view.model, selectionModel = SingleItemSelectionModel()).apply {
-            insets = Insets(INSET)
-
-            behavior = object: BasicListBehavior<T>(focusManager, ItemGenerator(view), null, 0.0) {
-                override val positioner: ListBehavior.RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
-                    override val height get() = view.height - 2 * INSET
-                }
-
-                override fun render(view: List<T, *>, canvas: Canvas) {
-                    canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
-                }
-            }
-
+        view.list = List(view.model, selectionModel = SingleItemSelectionModel(), itemVisualizer = view.listItemVisualizer).apply {
+            insets        = Insets(INSET)
+            behavior      = listBehavior(view)
             acceptsThemes = false
 
             focusChanged += { _,_,focused ->
@@ -263,7 +274,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             }
         }
 
-        val center = Container()
+        val center = Container().apply { focusable = false }
         val button = PushButton().apply {
             focusable     = false
             iconAnchor    = Anchor.Leading
@@ -279,7 +290,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         view.children.clear()
 
         view.children += listOf(center, button)
-        view.layout = constrain(center, button) { center, button ->
+        view.layout = constrain(center, button) { (center, button) ->
             center.top    = parent.top    + INSET
             center.left   = parent.left   + INSET
             center.right  = parent.right  - constant(buttonWidth + INSET)
@@ -292,6 +303,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         view.changed        += changeObserver
         view.keyChanged     += this
+        view.boundsChanged  += boundsChanged // FIXME: This is a hack b/c List doesn't behave well if row dimensions are changed dynamically. That will eventually be fixed.
         view.pointerChanged += this
         view.enabledChanged += enabledChanged
     }
@@ -305,6 +317,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         view.list            = null
         view.changed        -= changeObserver
         view.keyChanged     -= this
+        view.boundsChanged  -= boundsChanged // FIXME: This is a hack b/c List doesn't behave well if row dimensions are changed dynamically. That will eventually be fixed.
         view.pointerChanged -= this
         view.enabledChanged -= enabledChanged
     }

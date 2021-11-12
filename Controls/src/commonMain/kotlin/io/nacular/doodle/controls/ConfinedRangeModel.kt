@@ -67,6 +67,11 @@ public class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, ra
 
     override val rangeChanged : PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>> = rangeChanged_
     override val limitsChanged: PropertyObservers<ConfinedRangeModel<T>, ClosedRange<T>> = limitsChanged_
+
+    init {
+        this.limits = limit
+        this.range  = range
+    }
 }
 
 @Suppress("PrivatePropertyName")

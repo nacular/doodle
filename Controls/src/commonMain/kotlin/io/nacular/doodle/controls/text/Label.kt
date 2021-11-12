@@ -14,7 +14,7 @@ import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import kotlin.properties.Delegates.observable
+import io.nacular.doodle.utils.observable
 
 
 public interface LabelBehavior: Behavior<Label> {
@@ -76,8 +76,8 @@ public open class Label(styledText         : StyledText          = StyledText(""
             }
         }
 
-    public var verticalAlignment  : VerticalAlignment   by observable(verticalAlignment  ) { _,_,_ -> measureText(); rerender() }
-    public var horizontalAlignment: HorizontalAlignment by observable(horizontalAlignment) { _,_,_ -> measureText(); rerender() }
+    public var verticalAlignment  : VerticalAlignment   by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
+    public var horizontalAlignment: HorizontalAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
 
     internal val _textSize get() = textSize
 

@@ -108,6 +108,8 @@ internal class NativeSliderBehavior(
         private val slider: Slider? = slider
 
         init {
+            focusTraversalKeysEnabled = false
+
             addFocusListener(object : FocusListener {
                 override fun focusGained(e: FocusEvent?) {
                     focusManager?.requestFocus(slider)

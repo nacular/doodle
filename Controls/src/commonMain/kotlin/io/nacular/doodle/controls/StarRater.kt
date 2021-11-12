@@ -20,6 +20,7 @@ import io.nacular.doodle.geometry.withRadius
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
 import io.nacular.doodle.utils.roundToNearest
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -28,7 +29,6 @@ import io.nacular.measured.units.times
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.properties.Delegates.observable
 
 /**
  * Created by Nicholas Eddy on 4/25/20.
@@ -42,13 +42,13 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
             updateStar()
         }
 
-    public var innerRadiusRatio: Float? by observable(null) { _,_,_ -> updateStar() }
+    public var innerRadiusRatio: Float? by observable(null) { _,_ -> updateStar() }
 
-    public var minSpacing: Double by observable(0.0) { _,_,_ -> updateStar() }
+    public var minSpacing: Double by observable(0.0) { _,_ -> updateStar() }
 
-    public var numStarPoints: Int by observable(5) { _,_,_ -> updateStar() }
+    public var numStarPoints: Int by observable(5) { _,_ -> updateStar() }
 
-    public var starRotation: Measure<Angle> by observable(0 * degrees) { _,_,_ -> updateStar() }
+    public var starRotation: Measure<Angle> by observable(0 * degrees) { _,_ -> updateStar() }
 
     public var shadowColor: Color? by renderProperty(Black opacity 0.2f)
 

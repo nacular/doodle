@@ -21,12 +21,13 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
-import kotlin.properties.Delegates.observable
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
+@Suppress("LeakingThis")
 public open class ListRow<T>(
                     list                           : ListLike,
         public  var row                            : T,
@@ -69,7 +70,7 @@ public open class ListRow<T>(
             layout = constrainLayout(children[0])
         }
 
-    private var pointerOver by observable(false) { _,_,new ->
+    private var pointerOver by observable(false) { _,new ->
         pointerOver(new)
     }
 
@@ -86,6 +87,7 @@ public open class ListRow<T>(
 
         children += itemVisualizer.invoke(row, context = SimpleIndexedItem(index, listSelected))
 
+        focusable       = false
         styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
             private var pressed = false
@@ -165,6 +167,7 @@ public open class ListPositioner(protected open val height: Double, protected op
 
     public fun totalHeight(numItems: Int, insets: Insets): Double = numItems * height + insets.run { top + bottom }
 
+    @Suppress("UNUSED_PARAMETER")
     public fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
             insets.left,
             insets.top + index * height + (index + 1) * spacing,

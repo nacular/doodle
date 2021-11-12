@@ -334,8 +334,6 @@ public open class RenderManagerImpl(
 
                 viewList?.forEach {
                     releaseResources(null, it)
-
-                    graphicsDevice.release(it)
                 }
 
                 pendingCleanup -= view
@@ -398,6 +396,8 @@ public open class RenderManagerImpl(
         view.opacityChanged             -= opacityChanged_
 
         unregisterDisplayRectMonitoring(view)
+
+        graphicsDevice.release(view)
     }
 
     protected open fun addToCleanupList(parent: View, child: View) {
@@ -418,7 +418,6 @@ public open class RenderManagerImpl(
                 if (oldParent != parent) {
                     // The child is being moved to a different parent, so we force clean-up
                     releaseResources(it.key, child)
-                    graphicsDevice.release(child)
                 }
 
                 if (views.isEmpty()) {
@@ -447,8 +446,6 @@ public open class RenderManagerImpl(
         } else {
             pendingCleanup[parent]?.forEach {
                 releaseResources(parent, it)
-
-                graphicsDevice.release(it)
             }
 
             parent.doLayout_()
@@ -456,6 +453,12 @@ public open class RenderManagerImpl(
     }
 
     private fun childAdded(parent: View?, child: View) {
+        if (parent == null) {
+            // Avoid edge case where a View is added to the Display
+            // after it is already withing another View
+            child.parent?.children_?.remove(child)
+        }
+
         removeFromCleanupList(parent, child)
 
         if (child.visible) {
@@ -467,12 +470,9 @@ public open class RenderManagerImpl(
     }
 
     private fun childRemoved(parent: View?, child: View) {
-        if (parent != null) {
-            addToCleanupList(parent, child)
-        } else {
-            releaseResources(parent, child)
-
-            graphicsDevice.release(child)
+        when {
+            parent != null -> addToCleanupList(parent, child)
+            else           -> releaseResources(parent, child)
         }
     }
 

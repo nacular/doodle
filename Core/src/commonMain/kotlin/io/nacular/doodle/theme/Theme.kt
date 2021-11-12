@@ -8,8 +8,7 @@ import io.nacular.doodle.utils.Node
 import io.nacular.doodle.utils.ObservableSet
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
-import kotlin.properties.Delegates.observable
-
+import io.nacular.doodle.utils.observable
 
 /**
  * Themes are able to visually style [View]s within the [Display]. Installing one will trigger an update and provide the full set of [View]s
@@ -55,7 +54,7 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 public class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
-    override var selected: Theme? by observable(null) { _,old,new ->
+    override var selected: Theme? by observable(null) { old,new ->
         new?.apply {
             themes += this
             install(display, allViews)

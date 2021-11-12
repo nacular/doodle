@@ -13,6 +13,8 @@ public class ThemePicker(themeManager: ThemeManager): View() {
     private val spinner = Spinner(model)
 
     init {
+        focusable = false
+
         updateAvailableThemes(emptySet(), themeManager.themes)
 
         updateSelected(themeManager.selected)

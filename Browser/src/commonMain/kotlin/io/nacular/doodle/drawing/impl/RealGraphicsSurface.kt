@@ -30,7 +30,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import kotlin.properties.Delegates.observable
+import io.nacular.doodle.utils.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
 private fun canvasElement(view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
@@ -164,9 +164,7 @@ internal class RealGraphicsSurface private constructor(
             updateTransform(position)
         }
 
-    override var size: Size by observable(Empty) { _,old,new ->
-        if (old == new) { return@observable }
-
+    override var size: Size by observable(Empty) { old,new ->
         rootElement.parent?.let {
             rootElement.style.setSize(new)
 
@@ -217,10 +215,8 @@ internal class RealGraphicsSurface private constructor(
     internal val rootElement     = canvasElement
     private  var childrenElement = rootElement
 
-    override var position: Point by observable(Origin) { _,old,new ->
-        if (new != old) {
-            updateTransform(new)
-        }
+    override var position: Point by observable(Origin) { old,new ->
+        updateTransform(new)
     }
 
     init {

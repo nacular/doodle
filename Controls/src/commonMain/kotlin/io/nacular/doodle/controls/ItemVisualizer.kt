@@ -69,12 +69,13 @@ public open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
 }
 
 /**
- * Visualizes the item's `toString()` using the delegate.
+ * Visualizes a string representation of the item (obtained from [mapper]) using [delegate].
  *
- * @param delegate to visualize the item's `toString()`
+ * @param delegate to visualize the item's string representation
+ * @param mapper to convert the item to a string
  */
-public fun <T, C> toString(delegate: ItemVisualizer<String, C>): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
-    override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(item.toString(), previous, context)
+public fun <T, C> toString(delegate: ItemVisualizer<String, C>, mapper: (T) -> String = { it.toString() }): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
+    override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(mapper(item), previous, context)
 }
 
 /**

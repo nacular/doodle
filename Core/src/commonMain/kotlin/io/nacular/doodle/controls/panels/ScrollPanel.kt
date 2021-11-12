@@ -52,6 +52,7 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  * @constructor
  * @param content to host in the panel
  */
+@Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
         idealSize = new.idealSize
@@ -81,6 +82,7 @@ public open class ScrollPanel(content: View? = null): View() {
             field?.let {
                 children += it
                 it.sizePreferencesChanged += sizePreferencesListener
+                (layout as? ViewLayout)?.updateConstraints()
             }
 
             (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }

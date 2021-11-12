@@ -124,7 +124,7 @@ public class BasicSpinnerBehavior(
     override fun install(view: Spinner<Any, Model<Any>>) {
         super.install(view)
 
-        val center = Container()
+        val center = Container().apply { focusable = false }
         val next = PushButton().apply {
             iconAnchor    = Leading
             enabled       = view.hasNext

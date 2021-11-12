@@ -30,9 +30,9 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.addOrAppend
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.properties.Delegates.observable
 
 
 public interface ListLike: Selectable<Int> {
@@ -109,18 +109,19 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit it's rows width and total height
+ * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
  *
  * @property model that holds the data for this List
  * @property itemVisualizer that maps [T] to [View] for each item in the List
  * @property selectionModel that manages the List's selection state
- * @property fitContent determines whether the List scales to fit it's rows width and total height
+ * @property fitContent determines whether the List scales to fit its rows width and total height
  * @property scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
 
  */
+@Suppress("LeakingThis")
 public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
@@ -168,7 +169,7 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Defines how the contents of a row should be aligned within that row.
      */
-    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_,_ ->
+    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_ ->
         children.batch {
             (firstVisibleRow .. lastVisibleRow).forEach {
                 update(this, it)
@@ -188,6 +189,11 @@ public open class List<T, out M: ListModel<T>>(
             rowPositioner = it.positioner
 
             children.clear()
+
+            minVisibleY     =  0.0
+            maxVisibleY     =  0.0
+            firstVisibleRow =  0
+            lastVisibleRow  = -1
 
             updateVisibleHeight()
         }
@@ -223,7 +229,7 @@ public open class List<T, out M: ListModel<T>>(
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
-                    model[it]?.let { row ->
+                    (model[it] as T).let { row ->
                         children.getOrNull(it % children.size)?.let { child ->
                             layout(child, row, it)
                         }
@@ -238,7 +244,7 @@ public open class List<T, out M: ListModel<T>>(
      */
     public operator fun get(index: Int): T? = model[index]
 
-    override var isFocusCycleRoot: Boolean = true
+    public override var isFocusCycleRoot: Boolean = true
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -279,8 +285,8 @@ public open class List<T, out M: ListModel<T>>(
                 else                          -> min(model.size - 1, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            model[firstVisibleRow]?.let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
-            model[lastVisibleRow ]?.let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
+            (model[firstVisibleRow] as T).let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
+            (model[lastVisibleRow ] as T).let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
 
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)
@@ -322,7 +328,7 @@ public open class List<T, out M: ListModel<T>>(
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
             rowGenerator?.let { uiGenerator ->
-                model[index]?.let { row ->
+                (model[index] as T).let { row ->
                     val i = index % children.size
 
                     uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
@@ -340,7 +346,7 @@ public open class List<T, out M: ListModel<T>>(
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
         rowGenerator?.let { uiGenerator ->
-            model[index]?.let { row ->
+            (model[index] as T).let { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
                         children.addOrAppend(index, ui)

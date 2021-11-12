@@ -48,14 +48,12 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
-import kotlin.properties.Delegates.observable
-
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, private val rootElement: HTMLElement): InternalDisplay {
 
     override var insets = None
 
-    override var layout: Layout? by observable(null) { _,_,_ ->
+    override var layout: Layout? by observable(null) { _,_ ->
         relayout()
     }
 
@@ -241,6 +239,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         rootElement.apply {
             style.setTransform(null)
+            style.background = ""
 
             clear()
         }

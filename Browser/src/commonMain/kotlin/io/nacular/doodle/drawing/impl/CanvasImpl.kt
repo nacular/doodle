@@ -273,6 +273,7 @@ internal open class CanvasImpl(
     }
 
     override fun addData(elements: List<HTMLElement>, at: Point) = elements.forEach { element ->
+        updateRenderPosition()
 
         if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
         if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)
@@ -291,7 +292,7 @@ internal open class CanvasImpl(
             renderRegion.add(element)
         }
     }.also {
-        vectorRenderer.clear() // FIXME: THIS IS A HACK.  Should communicate this better to the VectorRenderer
+        vectorRenderer.flush()
     }
 
     protected open fun isSimple(fill: Paint) = when {
@@ -326,7 +327,9 @@ internal open class CanvasImpl(
             } ?: renderRegion.add(clipRect)
         }
 
-        clipRect.style.setSize(size)
+        clipRect.style.setSize        (size)
+        clipRect.style.setBorderRadius(null)
+        clipRect.style.background = ""
 
         configure(clipRect)
 

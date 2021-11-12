@@ -7,11 +7,11 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.DI.Builder
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
+import org.kodein.di.bindSet
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.erasedSet
 import org.kodein.di.inSet
 import org.kodein.di.instance
-import org.kodein.di.setBinding
 import org.kodein.di.singleton
 import kotlin.reflect.KClass
 
@@ -36,7 +36,7 @@ public class Modules {
         public val DynamicThemeModule: Module = Module(name = "DynamicThemeModule") {
             importOnce(ThemeModule, allowOverride = true)
 
-            bind() from setBinding<BehaviorResolver>()
+            bindSet<BehaviorResolver>()
 
             bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
         }

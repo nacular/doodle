@@ -18,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skia.Canvas
 import org.kodein.di.DI.Module
-import org.kodein.di.bind
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
 import org.kodein.di.erasedSet
@@ -118,12 +117,23 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
                     swingGraphicsFactory = instance(),
                     textMetrics          = instance()
             ) }
+
+            bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(
+                    window               = instance(),
+                    appScope             = instance(),
+                    defaultFont          = instance(),
+                    uiDispatcher         = Dispatchers.Swing,
+                    focusManager         = instanceOrNull(),
+                    swingFocusManager    = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory = instance(),
+                    textMetrics          = instance()
+            ) }
         }
 
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeHyperLinkBehaviorBuilder> { NativeHyperLinkBehaviorBuilderImpl() }
+            bindSingleton<NativeHyperLinkStyler> { NativeHyperLinkStylerImpl() }
 
             bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(
                     window                    = instance(),

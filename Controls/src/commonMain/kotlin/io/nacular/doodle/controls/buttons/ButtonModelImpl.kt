@@ -3,7 +3,6 @@ package io.nacular.doodle.controls.buttons
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.observable
-import kotlin.properties.Delegates.observable
 
 /**
  * Created by Nicholas Eddy on 11/10/17.
@@ -18,7 +17,7 @@ public open class ButtonModelImpl: ButtonModel {
     override var armed       : Boolean                                     by observable(false, armedChanged)
 
     override val pressedChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl(this) }
-    override var pressed: Boolean by observable(false) { _,old,new ->
+    override var pressed: Boolean by observable(false) { old,new ->
         // TODO: should this just call fire()?  It's strange that armed remains true after this
         if (!new && armed) { fired() }
 

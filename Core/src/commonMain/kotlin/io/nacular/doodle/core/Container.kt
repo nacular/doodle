@@ -54,6 +54,12 @@ public open class Container: View(), PositionableContainer, Iterable<View> {
  */
 public inline operator fun Container.plusAssign(view: View): Unit = children.plusAssign(view)
 
+/**
+ * Adds [container] to the Display.
+ *
+ * @param container to be added
+ */
+public inline operator fun Container.plusAssign(container: Container): Unit = children.plusAssign(container)
 
 /**
  * Adds the given [views] to the Container.
@@ -68,6 +74,13 @@ public inline operator fun Container.plusAssign(views: Iterable<View>): Unit = c
  * @param view to be removed
  */
 public inline operator fun Container.minusAssign(view: View): Unit = children.minusAssign(view)
+
+/**
+ * Removes [container] from the Display.
+ *
+ * @param container to be removed
+ */
+public inline operator fun Container.minusAssign(container: Container): Unit = children.minusAssign(container)
 
 /**
  * Removes the given [views] from the Container.
