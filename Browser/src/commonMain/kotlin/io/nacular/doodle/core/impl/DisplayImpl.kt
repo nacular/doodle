@@ -239,6 +239,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         rootElement.apply {
             style.setTransform(null)
+            style.background = ""
 
             clear()
         }

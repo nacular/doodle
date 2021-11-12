@@ -525,15 +525,15 @@ public fun <T, M: ListModel<T>> list(
             fitContent     = fitContents
     ).apply {
         var itemIndex = 0
-        val items     = model.asIterable().iterator()
-        val selection = mutableListOf<Int>()
+        val items            = model.asIterable().iterator()
+        val initialSelection = mutableListOf<Int>()
 
         initial.fold({it}, emptyList()).forEach { value ->
             while (items.hasNext()) {
                 val item = items.next()
 
                 if (item == value) {
-                    selection += itemIndex++
+                    initialSelection += itemIndex++
                     break
                 }
 
@@ -545,14 +545,13 @@ public fun <T, M: ListModel<T>> list(
             }
         }
 
-        state            = Valid(selection.map { this[it] as T })
-        focusable        = false
+        state            = Valid(initialSelection.map { this[it] as T })
         isFocusCycleRoot = false
 
-        setSelection(selection.toSet())
+        setSelection(initialSelection.toSet())
 
-        selectionChanged += { _,_,new ->
-            state = Valid(new.map { this[it] as T })
+        selectionChanged += { _,_,_ ->
+            state = Valid(selection.sorted().map { this[it] as T })
         }
 
         config(this)
@@ -588,7 +587,6 @@ public fun <T> list(
  * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
  * which would result in an empty list. It is similar to a [checkList].
  *
- * @param T is the type of the items in the bounded field
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
  * @param fitContents signaling whether the list should scale with its contents
@@ -608,11 +606,11 @@ public fun list(
 /**
  * Config for [named] controls.
  */
-public class NamedConfig internal constructor() {
+public class NamedConfig internal constructor(public val label: Label) {
     /**
      * Defines the layout for the named container.
      */
-    public var layout: (container: View, label: Label, field: View) -> Layout? = { container, label,_ ->
+    public var layout: (container: View, field: View) -> Layout? = { container,_ ->
         label.fitText = setOf(Width)
 
         ExpandingListLayout(container, 2.0, 32.0)
@@ -630,12 +628,11 @@ public fun <T> named(
         name      : StyledText,
         visualizer: NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
     container {
-        val builder = NamedConfig()
+        val label         = UninteractiveLabel(name)
+        val builder       = NamedConfig(label)
         val visualization = visualizer(builder)
 
         focusable = false
-
-        val label = UninteractiveLabel(name)
 
         children += listOf(label, visualization(this@field, initial)).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
@@ -643,7 +640,7 @@ public fun <T> named(
             }
         }
 
-        layout = builder.layout(this, label, children[1])
+        layout = builder.layout(this, children[1])
     }
 }
 

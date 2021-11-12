@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.text
 
+import io.nacular.doodle.controls.text.TextFit.*
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
@@ -73,15 +74,13 @@ public open class TextField(text: String = ""): TextInput(text) {
     override var text: String
         get(   ) = super.text
         set(new) {
-            super.text = new
-
+            super.text  = new
             displayText = when (val m = mask) {
                 null -> new
                 else -> {
-                    if (displayText.length > text.length) {
-                        displayText.substring(0, text.length)
-                    } else {
-                        displayText.padEnd(text.length - displayText.length, m)
+                    when {
+                        displayText.length > text.length -> displayText.substring(0, text.length)
+                        else                             -> displayText.padEnd   (text.length - displayText.length, m)
                     }
                 }
             }
@@ -101,8 +100,8 @@ public open class TextField(text: String = ""): TextInput(text) {
         behavior?.let {
             val size = it.fitTextSize(this)
 
-            if (TextFit.Width  in fitText) width  = size.width
-            if (TextFit.Height in fitText) height = size.height
+            if (Width  in fitText) width  = size.width
+            if (Height in fitText) height = size.height
         }
     }
 }

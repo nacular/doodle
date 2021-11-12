@@ -124,6 +124,7 @@ public class TreeRow<T>(
     private lateinit var constraintLayout: ConstraintLayout
 
     init {
+        focusable     = false
         children     += content
         styleChanged += { rerender() }
         pointerChanged += object: PointerListener {

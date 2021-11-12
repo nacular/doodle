@@ -123,8 +123,7 @@ internal class NativeTextField(
 
     var size = Empty
 
-    private val selection
-        get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
+    private val selection get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 
     private var ignoreSync     = false
     private val inputElement   = htmlFactory.createInput()
@@ -171,7 +170,7 @@ internal class NativeTextField(
         inputElement.run {
             placeholder = textField.placeHolder
 
-            if (textField.placeHolderColor ?: textField.placeHolderFont != null) {
+            if ((textField.placeHolderColor ?: textField.placeHolderFont) != null) {
                 ensureId()
                 val css = """#$id::placeholder {
                     |${textField.placeHolderColor?.let { "color:${rgba(it)};" } ?: ""}

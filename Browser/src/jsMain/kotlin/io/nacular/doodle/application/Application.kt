@@ -324,6 +324,8 @@ private open class ApplicationHolderImpl protected constructor(
             injector.instance<SystemStyler>().shutdown()
         }
 
+        (injector.instance<Scheduler> () as? SchedulerImpl)?.shutdown()
+        injector.instance<DisplayImpl>().shutdown()
         injector.instanceOrNull<DragManager>             ()?.shutdown()
         injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
         injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()

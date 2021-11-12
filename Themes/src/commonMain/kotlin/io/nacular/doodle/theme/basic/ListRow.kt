@@ -27,6 +27,7 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
+@Suppress("LeakingThis")
 public open class ListRow<T>(
                     list                           : ListLike,
         public  var row                            : T,
@@ -86,6 +87,7 @@ public open class ListRow<T>(
 
         children += itemVisualizer.invoke(row, context = SimpleIndexedItem(index, listSelected))
 
+        focusable       = false
         styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
             private var pressed = false
@@ -165,6 +167,7 @@ public open class ListPositioner(protected open val height: Double, protected op
 
     public fun totalHeight(numItems: Int, insets: Insets): Double = numItems * height + insets.run { top + bottom }
 
+    @Suppress("UNUSED_PARAMETER")
     public fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
             insets.left,
             insets.top + index * height + (index + 1) * spacing,
