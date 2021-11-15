@@ -334,7 +334,9 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
 
             /**
-             * Defines a weakly-typed [Form] with at least 2 [Field]s.
+             * Defines a [Form] with at least 2 [Field]s. The values provided to [onReady], though untyped,
+             * are in the definition order within invoke. This allows the consumer to cast them to the expected
+             * types.
              *
              * @param first the form's first field
              * @param second the form's second field
