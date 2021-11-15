@@ -1,7 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.dom.EventTarget
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.Overflow.Hidden
 import io.nacular.doodle.dom.Overflow.Scroll
 import io.nacular.doodle.dom.scrollTo
@@ -67,7 +67,7 @@ internal class NativeScrollPanel internal constructor(
 
     private var scroll = Origin
 
-    override fun onScroll(target: EventTarget?) = true.also {
+    override fun onScroll(event: Event) = true.also {
         scroll = Point(x = rootElement.scrollLeft, y = rootElement.scrollTop)
 
         scrolled(scroll)

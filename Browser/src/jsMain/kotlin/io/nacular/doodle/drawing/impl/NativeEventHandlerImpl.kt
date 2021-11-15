@@ -3,7 +3,6 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.focus.NativeFocusManager
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
-import org.w3c.dom.events.EventTarget
 
 
 internal class NativeEventHandlerImpl(
@@ -30,8 +29,8 @@ internal class NativeEventHandlerImpl(
     override fun stopConsumingSelectionEvents () { element.onselect = null              }
 
     override fun registerFocusListener  () {
-        element.onblur  = { onBlur (it.target) }
-        element.onfocus = { onFocus(it.target) }
+        element.onblur  = { onBlur (it) }
+        element.onfocus = { onFocus(it) }
     }
 
     override fun unregisterFocusListener() {
@@ -39,13 +38,9 @@ internal class NativeEventHandlerImpl(
         element.onfocus = null
     }
 
-    private fun focusIn(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
-        onFocusIn(event?.target)
-    }
+    private fun focusIn(event: Event) { onFocusIn(event) }
 
-    private fun focusOut(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
-        onFocusOut(event?.target)
-    }
+    private fun focusOut(event: Event) { onFocusOut(event) }
 
     override fun registerFocusInListener() {
         element.addEventListener("focusin",  ::focusIn )
@@ -58,9 +53,9 @@ internal class NativeEventHandlerImpl(
     }
 
     override fun registerKeyListener  () {
-        element.onkeyup    = { onKeyUp   (it.target) }
-        element.onkeydown  = { onKeyDown (it.target) }
-        element.onkeypress = { onKeyPress(it.target) }
+        element.onkeyup    = { onKeyUp   (it) }
+        element.onkeydown  = { onKeyDown (it) }
+        element.onkeypress = { onKeyPress(it) }
     }
 
     override fun unregisterKeyListener() {
@@ -69,17 +64,17 @@ internal class NativeEventHandlerImpl(
         element.onkeypress = null
     }
 
-    override fun registerClickListener   () { element.onclick  = { onClick(it.target) } }
-    override fun unregisterClickListener () { element.onclick  = null          }
+    override fun registerClickListener   () { element.onclick  = { onClick(it) } }
+    override fun unregisterClickListener () { element.onclick  = null            }
 
-    override fun registerScrollListener  () { element.onscroll = { onScroll(it.target) } }
-    override fun unregisterScrollListener() { element.onscroll = null           }
+    override fun registerScrollListener  () { element.onscroll = { onScroll(it) } }
+    override fun unregisterScrollListener() { element.onscroll = null             }
 
-    override fun registerChangeListener  () { element.onchange = { onChange(it.target) } }
-    override fun unregisterChangeListener() { element.onchange = null          }
+    override fun registerChangeListener  () { element.onchange = { onChange(it) } }
+    override fun unregisterChangeListener() { element.onchange = null             }
 
-    override fun registerInputListener   () { element.oninput  = { onInput(it.target) } }
-    override fun unregisterInputListener () { element.oninput  = null          }
+    override fun registerInputListener   () { element.oninput  = { onInput(it) } }
+    override fun unregisterInputListener () { element.oninput  = null            }
 
     private fun muteEvent(event: Event, onlySelf: Boolean = false): Boolean {
         if (onlySelf && event.target != element) {
@@ -91,16 +86,16 @@ internal class NativeEventHandlerImpl(
         return false
     }
 
-    private fun onBlur    (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (target) }
-    private fun onFocus   (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(target) }
-    private fun onKeyUp   (target: EventTarget?) = true.also { listener.onKeyUp      (target) }
-    private fun onKeyDown (target: EventTarget?) = true.also { listener.onKeyDown    (target) }
-    private fun onKeyPress(target: EventTarget?) = true.also { listener.onKeyPress   (target) }
-    private fun onClick   (target: EventTarget?) = true.also { listener.onClick      (target) }
-    private fun onScroll  (target: EventTarget?) = true.also { listener.onScroll     (target) }
-    private fun onChange  (target: EventTarget?) = true.also { listener.onChange     (target) }
-    private fun onInput   (target: EventTarget?) = true.also { listener.onInput      (target) }
+    private fun onBlur    (event: Event) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (event) }
+    private fun onFocus   (event: Event) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(event) }
+    private fun onKeyUp   (event: Event) = true.also { listener.onKeyUp      (event) }
+    private fun onKeyDown (event: Event) = true.also { listener.onKeyDown    (event) }
+    private fun onKeyPress(event: Event) = true.also { listener.onKeyPress   (event) }
+    private fun onClick   (event: Event) = true.also { listener.onClick      (event) }
+    private fun onScroll  (event: Event) = true.also { listener.onScroll     (event) }
+    private fun onChange  (event: Event) = true.also { listener.onChange     (event) }
+    private fun onInput   (event: Event) = true.also { listener.onInput      (event) }
 
-    private fun onFocusIn (target: EventTarget?) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(target) }
-    private fun onFocusOut(target: EventTarget?) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (target) }
+    private fun onFocusIn (event: Event) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(event) }
+    private fun onFocusOut(event: Event) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (event) }
 }

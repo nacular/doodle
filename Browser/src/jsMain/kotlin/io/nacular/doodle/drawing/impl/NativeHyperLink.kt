@@ -2,6 +2,7 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.View
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.setColor
@@ -16,7 +17,6 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.events.EventTarget
 
 /**
  * Created by Nicholas Eddy on 12/7/19.
@@ -120,6 +120,11 @@ internal class NativeHyperLink internal constructor(
     }
 
     fun discard() {
+        nativeEventHandler.apply {
+            unregisterFocusListener()
+            unregisterClickListener()
+        }
+
         hyperLink.apply {
             textChanged         -= this@NativeHyperLink.textChanged
             focusChanged        -= this@NativeHyperLink.focusChanged
@@ -150,12 +155,13 @@ internal class NativeHyperLink internal constructor(
         }
     }
 
-//    override fun onClick(): Boolean {
-//        hyperLink.click()
-//        return true
-//    }
+    override fun onClick(event: Event) = true.also {
+        if (isKeyboardClick(event)) {
+            hyperLink.click()
+        }
+    }
 
-    override fun onFocusGained(target: EventTarget?): Boolean {
+    override fun onFocusGained(event: Event): Boolean {
         if (!hyperLink.focusable) {
             return false
         }
@@ -165,7 +171,7 @@ internal class NativeHyperLink internal constructor(
         return true
     }
 
-    override fun onFocusLost(target: EventTarget?): Boolean {
+    override fun onFocusLost(event: Event): Boolean {
         if (hyperLink === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }

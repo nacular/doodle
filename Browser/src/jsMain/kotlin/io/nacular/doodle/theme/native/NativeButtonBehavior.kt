@@ -57,7 +57,7 @@ internal class NativeButtonBehavior(nativeButtonFactory: NativeButtonFactory, te
 
     override fun pointerChanged(button: Button) {}
 
-    override fun released(event: KeyEvent) {}
+    override fun released(event: KeyEvent) { /* intentional no-op */ }
 
-    override fun pressed(event: KeyEvent) {}
+    override fun pressed(event: KeyEvent) { /* intentional no-op */ }
 }

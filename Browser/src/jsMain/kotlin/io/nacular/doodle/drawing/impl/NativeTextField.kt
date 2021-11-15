@@ -7,6 +7,7 @@ import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStyler.Style
@@ -30,7 +31,6 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.IdGenerator
-import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 
@@ -293,10 +293,10 @@ internal class NativeTextField(
         Size(max(8.0, width) + borderSize.width, h + borderSize.height)
     }
 
-    override fun onKeyUp(target: EventTarget?) = true.also { syncTextField() }
-    override fun onInput(target: EventTarget?) = true.also { syncTextField() }
+    override fun onKeyUp(event: Event) = true.also { syncTextField() }
+    override fun onInput(event: Event) = true.also { syncTextField() }
 
-    override fun onFocusGained(target: EventTarget?) = true.also {
+    override fun onFocusGained(event: Event) = true.also {
         elementFocused = true
 
         mobileKeyboardManager.hide()
@@ -306,7 +306,7 @@ internal class NativeTextField(
         }
     }
 
-    override fun onFocusLost(target: EventTarget?) = true.also {
+    override fun onFocusLost(event: Event) = true.also {
         elementFocused = false
 
         if (!ignoreSync && focusManager?.focusOwner == textField) {

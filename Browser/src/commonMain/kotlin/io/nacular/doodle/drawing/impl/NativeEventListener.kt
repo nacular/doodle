@@ -1,16 +1,16 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.EventTarget
+import io.nacular.doodle.dom.Event
 
 
 internal interface NativeEventListener {
-    fun onClick      (target: EventTarget?) = true
-    fun onFocusGained(target: EventTarget?) = true
-    fun onFocusLost  (target: EventTarget?) = true
-    fun onKeyUp      (target: EventTarget?) = true
-    fun onKeyDown    (target: EventTarget?) = true
-    fun onKeyPress   (target: EventTarget?) = true
-    fun onScroll     (target: EventTarget?) = true
-    fun onChange     (target: EventTarget?) = true
-    fun onInput      (target: EventTarget?) = true
+    fun onClick      (event: Event) = true
+    fun onFocusGained(event: Event) = true
+    fun onFocusLost  (event: Event) = true
+    fun onKeyUp      (event: Event) = true
+    fun onKeyDown    (event: Event) = true
+    fun onKeyPress   (event: Event) = true
+    fun onScroll     (event: Event) = true
+    fun onChange     (event: Event) = true
+    fun onInput      (event: Event) = true
 }

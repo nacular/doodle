@@ -1,8 +1,10 @@
 package io.nacular.doodle.accessibility
 
+import io.nacular.doodle.HTMLButtonElement
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.View
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.EventTarget
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -173,26 +175,29 @@ internal class AccessibilityManagerImpl(
         return false
     }
 
-    override fun onClick(target: EventTarget?): Boolean {
-        view(target)?.let {
-            when (it) {
-                is Button -> it.click()
+    @Suppress("UNUSED_PARAMETER")
+    override fun onClick(event: Event): Boolean {
+        if (event.target is HTMLButtonElement) {
+            view(event.target)?.let {
+                when (it) {
+                    is Button -> it.click()
+                }
             }
         }
 
         return false
     }
 
-    override fun onFocusGained(target: EventTarget?): Boolean {
-        view(target)?.let {
+    override fun onFocusGained(event: Event): Boolean {
+        view(event.target)?.let {
             focusManager.requestFocus(it)
         }
 
         return false
     }
 
-    override fun onFocusLost(target: EventTarget?): Boolean {
-        view(target)?.let {
+    override fun onFocusLost(event: Event): Boolean {
+        view(event.target)?.let {
             if (it === focusManager.focusOwner) {
                 focusManager.clearFocus()
             }
@@ -256,7 +261,7 @@ internal class AccessibilityManagerImpl(
         updateRelationship(view, provider, "aria-labelledby")
     }
 
-    private fun syncDescription(view: View, root: HTMLElement) {
+    private fun syncDescription(view: View, @Suppress("UNUSED_PARAMETER") root: HTMLElement) {
         val provider = view.accessibilityDescriptionProvider
 
         // will clear field when provider is null
@@ -308,7 +313,7 @@ internal class AccessibilityManagerImpl(
             }
 
             when (role) {
-                is SliderRole -> updateAttribute("aria-orientation", role.orientation?.name?.toLowerCase())
+                is SliderRole -> updateAttribute("aria-orientation", role.orientation?.name?.lowercase())
             }
         }
     }

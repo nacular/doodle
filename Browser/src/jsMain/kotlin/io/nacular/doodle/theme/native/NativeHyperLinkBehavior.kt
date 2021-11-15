@@ -96,7 +96,7 @@ internal class NativeHyperLinkBehavior(
         }
     }
 
-    override fun released(event: KeyEvent) {}
+    override fun released(event: KeyEvent) { /* intentional no-op */ }
 
-    override fun pressed(event: KeyEvent) {}
+    override fun pressed(event: KeyEvent) { /* intentional no-op */ }
 }

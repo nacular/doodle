@@ -10,6 +10,7 @@ import io.nacular.doodle.drawing.impl.Type
 import io.nacular.doodle.drawing.impl.Type.Check
 import io.nacular.doodle.drawing.impl.Type.Radio
 import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
@@ -62,6 +63,16 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
             }
             cursor    = oldCursor
             idealSize = oldIdealSize
+        }
+    }
+
+    override fun released(event: PointerEvent) {
+        val button = event.source as Button
+        val model  = button.model
+
+        if (button.enabled && event.buttons.isEmpty()) {
+            model.pressed = false
+            model.armed   = false
         }
     }
 

@@ -5,6 +5,7 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.BorderStyle.None
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
@@ -37,7 +38,6 @@ import io.nacular.doodle.utils.VerticalAlignment.Bottom
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 import kotlin.math.min
 
@@ -323,12 +323,13 @@ internal class NativeButton internal constructor(
         }
     }
 
-//    override fun onClick(): Boolean {
-//        button.click()
-//        return true
-//    }
+    override fun onClick(event: Event) = true.also {
+        if (isKeyboardClick(event)) {
+            button.click()
+        }
+    }
 
-    override fun onFocusGained(target: EventTarget?): Boolean {
+    override fun onFocusGained(event: Event): Boolean {
         if (!button.focusable) {
             return false
         }
@@ -338,15 +339,18 @@ internal class NativeButton internal constructor(
         return true
     }
 
-    override fun onFocusLost(target: EventTarget?): Boolean {
+    override fun onFocusLost(event: Event) = true.also {
         if (button === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }
-
-        return true
     }
 
     fun discard() {
+        nativeEventHandler.apply {
+            unregisterFocusListener()
+            unregisterClickListener()
+        }
+
         button.apply {
             textChanged         -= this@NativeButton.textChanged
             focusChanged        -= this@NativeButton.focusChanged

@@ -3,6 +3,7 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
@@ -14,7 +15,6 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.size
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.events.EventTarget
 import kotlin.math.max
 
 /**
@@ -112,7 +112,6 @@ internal class NativeSlider internal constructor(
     init {
         nativeEventHandler = handlerFactory(sliderElement, this).apply {
             registerFocusListener()
-            registerClickListener()
             registerInputListener()
         }
 
@@ -131,6 +130,11 @@ internal class NativeSlider internal constructor(
     }
 
     fun discard() {
+        nativeEventHandler.apply {
+            unregisterFocusListener()
+            unregisterInputListener()
+        }
+
         slider.apply {
             changed             -= this@NativeSlider.changed
             focusChanged        -= this@NativeSlider.focusChanged
@@ -153,7 +157,7 @@ internal class NativeSlider internal constructor(
         }
     }
 
-    override fun onFocusGained(target: EventTarget?): Boolean {
+    override fun onFocusGained(event: Event): Boolean {
         if (!slider.focusable) {
             return false
         }
@@ -163,7 +167,7 @@ internal class NativeSlider internal constructor(
         return true
     }
 
-    override fun onFocusLost(target: EventTarget?): Boolean {
+    override fun onFocusLost(event: Event): Boolean {
         if (slider === focusManager?.focusOwner) {
             focusManager.clearFocus()
         }
@@ -171,7 +175,7 @@ internal class NativeSlider internal constructor(
         return true
     }
 
-    override fun onInput(target: EventTarget?): Boolean {
+    override fun onInput(event: Event): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
             slider.value = slider.model.limits.start + (it / 100 * slider.model.limits.size)
         }
