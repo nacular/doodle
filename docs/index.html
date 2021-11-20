@@ -1,92 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" dir="ltr">
 <head>
-    <title>Doodle</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta charset="UTF-8">
-
-    <meta property="og:site_name" content="Doodle">
-    <meta property="og:description" content="A pure Kotlin, UI framework for the Web (and Desktop). Doodle is written entirely in Kotlin and so are its apps. Doodle web apps do not use HTML, CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all.">
-    <meta property="og:image" content="https://nacular.github.io/doodle/doodle.png">
-    <meta property="og:image:width" content="380">
-    <meta property="og:image:height" content="78">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-    <link rel="stylesheet" href="https://unpkg.com/prism-theme-one-dark/prism-onedark.css">
-
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons" rel="stylesheet">
-
-    <link rel="stylesheet" href="demo.css">
-
-    <link rel="icon" href="favicon.png" type="image/x-icon">
-    <style>
-        :root {
-            --code-block-border-radius     : 4px;
-            --code-inline-border-radius    : 4px;
-            --code-inline-background       : #bbeffd4d;
-            --code-block-margin            : 3em 0;
-            --search-input-border-radius   : 0px;
-            --sidebar-border-width         : 0px;
-            --sidebar-background           : unset;
-            --search-margin                : 1.5rem;
-            --search-input-background-image: unset;
-            --search-input-border-width    : 1px;
-            --search-input-margin          : unset;
-            --search-input-padding         : 0.5em;
-            --sidebar-border-color         : unset;
-            --search-input-border-color    : var(--mono-tint1);
-            --link-color                   : var(--notice-tip-border-color, var(--notice-border-color));
-            --heading-h3-margin            : 0.5m;
-            --heading-h2-border-width      : 0;
-            --content-max-width            : 65em;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="Docusaurus v2.0.0-beta.9">
+<title data-react-helmet="true">Doodle | Doodle</title><meta data-react-helmet="true" property="og:title" content="Doodle | Doodle"><meta data-react-helmet="true" name="twitter:card" content="summary_large_image"><meta data-react-helmet="true" property="og:image" content="https://nacular.github.io/doodle/img/doodle.png"><meta data-react-helmet="true" name="twitter:image" content="https://nacular.github.io/doodle/img/doodle.png"><meta data-react-helmet="true" name="description" content="A pure Kotlin, UI framework for the Web (and Desktop). Doodle is written entirely in Kotlin and so are its apps. Doodle web apps do not use HTML, CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all."><meta data-react-helmet="true" property="og:description" content="A pure Kotlin, UI framework for the Web (and Desktop). Doodle is written entirely in Kotlin and so are its apps. Doodle web apps do not use HTML, CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all."><meta data-react-helmet="true" property="og:url" content="https://nacular.github.io/doodle/"><meta data-react-helmet="true" name="docusaurus_locale" content="en"><meta data-react-helmet="true" name="docusaurus_tag" content="default"><meta data-react-helmet="true" name="og:image:width" content="380"><meta data-react-helmet="true" name="og:image:height" content="78"><link data-react-helmet="true" rel="shortcut icon" href="/img/favicon.png"><link data-react-helmet="true" rel="canonical" href="https://nacular.github.io/doodle/"><link data-react-helmet="true" rel="alternate" href="https://nacular.github.io/doodle/" hreflang="en"><link data-react-helmet="true" rel="alternate" href="https://nacular.github.io/doodle/" hreflang="x-default"><script data-react-helmet="true">function maybeInsertBanner(){window.__DOCUSAURUS_INSERT_BASEURL_BANNER&&insertBanner()}function insertBanner(){var n=document.getElementById("docusaurus-base-url-issue-banner-container");if(n){n.innerHTML='\n<div id="docusaurus-base-url-issue-banner" style="border: thick solid red; background-color: rgb(255, 230, 179); margin: 20px; padding: 20px; font-size: 20px;">\n   <p style="font-weight: bold; font-size: 30px;">Your Docusaurus site did not load properly.</p>\n   <p>A very common reason is a wrong site <a href="https://docusaurus.io/docs/docusaurus.config.js/#baseurl" style="font-weight: bold;">baseUrl configuration</a>.</p>\n   <p>Current configured baseUrl = <span style="font-weight: bold; color: red;">/</span>  (default value)</p>\n   <p>We suggest trying baseUrl = <span id="docusaurus-base-url-issue-banner-suggestion-container" style="font-weight: bold; color: green;"></span></p>\n</div>\n';var e=document.getElementById("docusaurus-base-url-issue-banner-suggestion-container"),s=window.location.pathname,r="/"===s.substr(-1)?s:s+"/";e.innerHTML=r}}window.__DOCUSAURUS_INSERT_BASEURL_BANNER=!0,document.addEventListener("DOMContentLoaded",maybeInsertBanner)</script><link rel="stylesheet" href="/assets/css/styles.b9d77e20.css">
+<link rel="preload" href="/assets/js/runtime~main.9b39d79d.js" as="script">
+<link rel="preload" href="/assets/js/main.08392aa4.js" as="script">
 </head>
 <body>
-<div id="app"></div>
-<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-
-<script>
-    window.$docsify = {
-        repo       : '/nacular/doodle',
-        loadSidebar: true,
-
-        tabs: {
-            theme  : 'material',
-        }
-    }
-</script>
-
-<script src="//unpkg.com/prismjs/components/prism-kotlin.min.js"></script>
-<script src="//unpkg.com/prismjs/components/prism-groovy.min.js"></script>
-<script src="https://unpkg.com/docsify-themeable"></script>
-<script src="https://unpkg.com/docsify-copy-code"></script>
-<script src="https://unpkg.com/docsify/lib/plugins/search.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
-
-<script src="//unpkg.com/mermaid/dist/mermaid.js"></script>
-
-<script>
-    mermaid.initialize({
-        startOnLoad: true,
-        sequence: {
-            diagramMarginX: 0,
-            diagramMarginY: 0,
-            boxTextMargin: 0,
-            noteMargin: 0,
-            messageMargin: 35,
-            messageFontSize: 16,
-            messageFontFamily: "Open-Sans, sans-serif",
-            actorFontSize: 18,
-            messageFontWeight: 100,
-            mirrorActors: true
-        }, theme: 'neutral'
-    });
-</script>
-
-<script src="//unpkg.com/docsify-mermaid@latest/dist/docsify-mermaid.js"></script>
-<script src="DocApps.js"></script>
-<script src="doodle_plugin.js"></script>
+<script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
+<div id="docusaurus-base-url-issue-banner-container"></div><div><a href="#" class="skipToContent_OuoZ">Skip to main content</a></div><nav class="navbar navbar--fixed-top navbarHideable_RReh"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Navigation bar toggle" class="navbar__toggle clean-btn" type="button" tabindex="0"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/img/Doodle.svg" alt="Doodle Logo" class="themedImage_TMUO themedImage--light_4Vu1"><img src="/img/Doodle.svg" alt="Doodle Logo" class="themedImage_TMUO themedImage--dark_uzRr"></div></a><a class="navbar__item navbar__link" href="/docs/introduction">Guide</a><a href="https://nacular.github.io/doodle-tutorials" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link"><span>Tutorials<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_wgqa"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></span></a></div><div class="navbar__items navbar__items--right"><a href="https://github.com/nacular/doodle" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href="https://kotlinlang.slack.com/messages/doodle" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div class="main-wrapper"><header class="hero hero--primary heroBanner_etFc"><div class="container"><img class="margin-vert--md" src="/img/doodle.svg" alt="Doodle"><h1 class="hero__title">A pure Kotlin, UI framework</h1><div class="buttons_+YzY"><a class="button button--secondary button--lg" href="/docs/Introduction">Get Started  →</a></div></div></header><main><section class="features_n4mZ"><div class="container"><div class="row"><div class="col col--4"><div class="text--center"></div><div class="text--center padding-horiz--md"><h1>Expressive</h1><p>Complex UIs are easy with powerful, vector-oriented rendering, fully customizable layouts and simple pointer and keyboard handling.</p></div></div><div class="col col--4"><div class="text--center"></div><div class="text--center padding-horiz--md"><h1>Single Language</h1><p>Doodle apps are written entirely in <a href="https://kotlinlang.org">Kotlin</a>. This means no CSS or Javascript libraries.</p></div></div><div class="col col--4"><div class="text--center"></div><div class="text--center padding-horiz--md"><h1>Multi-platform</h1><p>Target both JS (Browser) and JVM (alpha) using common widgets and business logic.</p></div></div></div></div></section></main></div><footer class="footer footer--dark"><div class="container"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Guide</div><ul class="footer__items"><li class="footer__item"><a class="footer__link-item" href="/docs/introduction">Introduction</a></li></ul></div><div class="col footer__col"><div class="footer__title">Community</div><ul class="footer__items"><li class="footer__item"><a href="https://kotlinlang.slack.com/messages/doodle" target="_blank" rel="noopener noreferrer" class="footer__link-item"><span>Slack<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_wgqa"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></span></a></li><li class="footer__item"><a href="https://twitter.com/nicholas_s_eddy" target="_blank" rel="noopener noreferrer" class="footer__link-item"><span>Twitter<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_wgqa"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></span></a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items"><li class="footer__item"><a href="https://github.com/nacular/doodle" target="_blank" rel="noopener noreferrer" class="footer__link-item"><span>GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_wgqa"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></span></a></li></ul></div></div><div class="footer__bottom text--center"></div></div></footer></div>
+<script src="/assets/js/runtime~main.9b39d79d.js"></script>
+<script src="/assets/js/main.08392aa4.js"></script>
 </body>
 </html>
