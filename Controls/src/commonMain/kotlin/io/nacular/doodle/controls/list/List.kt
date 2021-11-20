@@ -229,9 +229,11 @@ public open class List<T, out M: ListModel<T>>(
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
-                    (model[it] as T).let { row ->
-                        children.getOrNull(it % children.size)?.let { child ->
-                            layout(child, row, it)
+                    if (it < model.size) {
+                        (model[it] as T).let { row ->
+                            children.getOrNull(it % children.size)?.let { child ->
+                                layout(child, row, it)
+                            }
                         }
                     }
                 }
@@ -285,8 +287,12 @@ public open class List<T, out M: ListModel<T>>(
                 else                          -> min(model.size - 1, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            (model[firstVisibleRow] as T).let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y      }
-            (model[lastVisibleRow ] as T).let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow ).bottom }
+            if (firstVisibleRow in 0 until model.size) {
+                (model[firstVisibleRow] as T).let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y }
+            }
+            if (lastVisibleRow in 0 until model.size) {
+                (model[lastVisibleRow] as T).let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow).bottom }
+            }
 
             if (oldFirst > firstVisibleRow) {
                 val end = min(oldFirst, lastVisibleRow)

@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.panels
 
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
@@ -55,7 +56,7 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
 @Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
-        idealSize = new.idealSize
+        if (matchContentIdealSize) idealSize = new.idealSize
         relayout()
     }
 
@@ -120,6 +121,12 @@ public open class ScrollPanel(content: View? = null): View() {
             scrollTo(it, force = true)
         }
     }
+
+    /**
+     * The Panel will match its content's ideal size if this set to `true`
+     */
+    @Internal
+    public var matchContentIdealSize: Boolean = true
 
     // Expose container APIs for behavior
     internal val _children         get() = children

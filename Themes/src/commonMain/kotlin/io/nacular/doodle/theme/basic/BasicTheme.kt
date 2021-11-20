@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.MutableListModel
@@ -41,6 +43,7 @@ import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.SegmentBuilder
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
@@ -127,6 +130,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         override var config = object: BasicThemeConfig {}
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     public companion object {
         public fun basicThemeModule(name: String, init: DI.Builder.() -> Unit): Module = Module(name = name) {
             importOnce(Config, allowOverride = true)
@@ -399,6 +403,30 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         instance(),
                         iconInset           = iconInset           ?: 0.0f,
                         checkInset          = checkInset          ?: 0.5f,
+                        iconSpacing         = iconSpacing         ?: 8.0,
+                        cornerRadius        = cornerRadius        ?: this.cornerRadius,
+                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                        hoverColorMapper    = this@run.hoverColorMapper,
+                        disabledColorMapper = this@run.disabledColorMapper) as Behavior<Button>
+                }
+            }
+        }
+
+        public fun basicCheckBoxBehavior(
+                foregroundColor    : Color?  = null,
+                backgroundColor    : Color?  = null,
+                darkBackgroundColor: Color?  = null,
+                cornerRadius       : Double? = null,
+                iconSpacing        : Double? = null,
+                iconSize           : ((CheckBox) -> Size)? = null
+        ): Module = basicThemeModule(name = "BasicCheckBoxBehavior") {
+            bindBehavior<CheckBox>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicCheckBoxBehavior(
+                        instance(),
+                        size                = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
                         iconSpacing         = iconSpacing         ?: 8.0,
                         cornerRadius        = cornerRadius        ?: this.cornerRadius,
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,

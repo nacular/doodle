@@ -162,6 +162,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         updateNumRows()
 
+        @Suppress("LeakingThis")
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
@@ -419,7 +420,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         selectionModel?.removeAll(items)
     }
 
-    override fun clearSelection(): Unit = selectionModel?.clear().let { Unit }
+    override fun clearSelection(): Unit = selectionModel?.clear().let {}
 
     override fun next(after: Path<Int>): Path<Int>? = rowFromPath(after)?.let { it + 1 }?.let { pathFromRow(it) }
 

@@ -9,6 +9,8 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.utils.ChangeObservers
+import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.observable
 
@@ -17,11 +19,23 @@ import io.nacular.doodle.utils.observable
  */
 public interface FieldVisualizer<T> {
     /**
-     * @param field the view is being associated with
-     * @param initial state of the field
+     * @param fieldInfo the view is being associated with
      * @return a view to associate with [field]
      */
-    public operator fun invoke(field: Field<T>, initial: FieldState<T>): View
+    public operator fun invoke(fieldInfo: FieldInfo<T>): View
+}
+
+public class FieldInfo<T> internal constructor(public val field: Field<T>, public val initial: FieldState<T>) {
+    /**
+     * Field's state
+     */
+    public var state: FieldState<T> get() = this.field.state; set(value) { this.field.state = value }
+
+    /**
+     * Notifies of changes to the Field's state
+     */
+    @Suppress("unused")
+    public val stateChanged: ChangeObservers<Field<T>> = field.stateChanged
 }
 
 /**
@@ -30,13 +44,13 @@ public interface FieldVisualizer<T> {
  * @param block is called by the returned visualizer to create a view
  * @see [FieldVisualizer.invoke]
  */
-public fun <T> field(block: Field<T>.(initial: FieldState<T>) -> View): FieldVisualizer<T> = object: FieldVisualizer<T> {
-    override fun invoke(field: Field<T>, initial: FieldState<T>) = block(field, initial)
+public fun <T> field(block: FieldInfo<T>.() -> View): FieldVisualizer<T> = object: FieldVisualizer<T> {
+    override fun invoke(fieldInfo: FieldInfo<T>) = block(fieldInfo)
 }
 
 /**
  * A visual component that serves as a strongly-typed constructor of some arbitrary type. Forms are very similar to constructors
- * in that they have typed parameter lists (fields), and can only create instances when all their inputs are valid. Like
+ * in that they have typed parameter lists (fields), and can only "create" instances when all their inputs are valid. Like
  * any constructor, a Form can have optional fields, default values, and arbitrary types for its fields.
  *
  * Forms also have a `Behavior`, `Layout` and some other properties of a Container to allow customization.
@@ -99,7 +113,10 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
 
                 field = new
                 form.updateState()
+                (stateChanged as ChangeObserversImpl)()
             }
+
+        internal val stateChanged: ChangeObservers<Field<T>> = ChangeObserversImpl(this)
 
         internal lateinit var form: Form
     }
@@ -133,7 +150,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
         }
 
         children += fields.map { field ->
-            (field as Field<Any>).visualizer.invoke(field, field.initial)
+            (field as Field<Any>).visualizer.invoke(FieldInfo(field, field.initial))
         }
 
         updateState()

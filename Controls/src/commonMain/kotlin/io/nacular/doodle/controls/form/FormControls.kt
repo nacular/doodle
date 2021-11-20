@@ -69,44 +69,49 @@ public fun <T> textField(
         pattern  : Regex = Regex(".*"),
         encoder  : Encoder<T, String>,
         validator: (T) -> Boolean = { true },
-        config   : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
+        config   : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
     lateinit var configObject: TextFieldConfig<T>
 
-    fun validate(field: Field<T>, value: String) {
+    fun invalidateField(field: Field<T>, error: Throwable, notify: Boolean = true) {
+        field.state = Invalid()
+        if (notify) configObject.onInvalid(error)
+    }
+
+    fun validate(field: Field<T>, value: String, notify: Boolean = true) {
         when {
             pattern.matches(value) -> {
                 encoder.from(value).onSuccess { decoded ->
                     when {
-                        validator(decoded) -> field.state = Valid(decoded)
-                        else               -> configObject.onValid(decoded)
+                        validator(decoded) -> {
+                            field.state = Valid(decoded)
+                            if (notify) configObject.onValid(decoded)
+                        }
+                        else -> invalidateField(field, IllegalArgumentException("Invalid"), notify)
                     }
                 }.onFailure {
-                    field.state = Invalid()
-                    configObject.onInvalid(it)
+                    invalidateField(field, it, notify)
                 }
             }
             else                   -> {
-                field.state = Invalid()
-                configObject.onInvalid(IllegalArgumentException("Invalid input: $value"))
+                invalidateField(field, IllegalArgumentException("Must match $pattern"), notify)
             }
         }
     }
 
     TextField().apply {
-        textChanged  += { _,_,new      -> validate(this@field, new) }
+        textChanged  += { _,_,new      -> validate(field, new) }
         focusChanged += { _,_,hasFocus ->
             if (!hasFocus) {
-                validate(this@field, text)
+                validate(field, text)
             }
         }
 
         configObject = TextFieldConfig(this@apply)
         config(configObject)
 
-        initial.ifValid { value ->
-            if (validator(value)) {
-                encoder.to(value).getOrNull()?.let { text = it }
-            }
+        when {
+            initial is Valid && validator(initial.value) -> encoder.to(initial.value).getOrNull()?.let { text = it }
+            else                                         -> validate(field, text, notify = false)
         }
     }
 }
@@ -155,7 +160,7 @@ public class OptionListConfig<T> internal constructor() {
 public fun <T> radioList(
                first : T,
         vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field { initial ->
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
     val builder = OptionListConfig<T>().also(config)
 
     buildRadioList(
@@ -190,7 +195,7 @@ public fun <T> radioList(
 public fun <T: Any> optionalRadioList(
                first : T,
         vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field { initial ->
+               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field {
     val builder = OptionListConfig<T>().also(config)
 
     buildRadioList(
@@ -225,7 +230,7 @@ public fun <T: Any> optionalRadioList(
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
-public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field { initial ->
+public fun <T> checkList(first: T, vararg rest: T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field {
     val builder   = OptionListConfig<T>().also(config)
     val selection = mutableListOf<T>()
 
@@ -267,7 +272,7 @@ public fun <T> checkList(first : T, vararg rest  : T, config: OptionListConfig<T
                 }
             }
         }
-        layout = ExpandingListLayout(this, builder.spacing, builder.itemHeight)
+        layout = ExpandingVerticalLayout(this, builder.spacing, builder.itemHeight)
     }
 }
 
@@ -288,7 +293,7 @@ public fun <T, M: ListModel<T>> dropDown(
         model             : M,
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
         listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-        config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
+        config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
     Dropdown(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { dropdown ->
         initial.ifValid {
             model.forEachIndexed { index, item ->
@@ -375,7 +380,7 @@ public fun <T: Any> dropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field { initial ->
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
     buildDropDown(
@@ -456,7 +461,7 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field { initial ->
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
     buildDropDown(
             model                        = SimpleListModel(listOf(null) + model.section(0 until model.size)),
             boxItemVisualizer            = boxItemVisualizer,
@@ -495,7 +500,7 @@ public fun <T: Any> optionalDropDown(
         listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
         unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
         unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field { initial ->
+        config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
     buildDropDown(
@@ -542,7 +547,7 @@ public fun <T: Any> optionalDropDown(
         vararg rest    : T,
         label          : (T) -> String = { it.toString() },
         unselectedLabel: String,
-        config                      : (Dropdown<T?, *>) -> Unit = {}
+        config         : (Dropdown<T?, *>) -> Unit = {}
 ): FieldVisualizer<T?> = optionalDropDown(
         first,
         *rest,
@@ -566,7 +571,7 @@ public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
         fitContents   : Boolean = false,
-        config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field { initial ->
+        config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
             model,
             itemVisualizer,
@@ -653,7 +658,7 @@ public fun list(
 )
 
 /**
- * Config for [named] controls.
+ * Config for [labeled] controls.
  */
 public class NamedConfig internal constructor(public val label: Label) {
     /**
@@ -662,8 +667,41 @@ public class NamedConfig internal constructor(public val label: Label) {
     public var layout: (container: View, field: View) -> Layout? = { container,_ ->
         label.fitText = setOf(Width)
 
-        ExpandingListLayout(container, 2.0, 32.0)
+        ExpandingVerticalLayout(container, DEFAULT_SPACING, DEFAULT_HEIGHT)
     }
+}
+
+/**
+ * Defines style of indicator to use when showing [labeled] fields as required.
+ *
+ * @see labeled
+ */
+public sealed class RequiredIndicatorStyle(internal val text: StyledText)
+
+/**
+ * Always appends the indicator.
+ *
+ * @see labeled
+ * @param text to append to field name
+ */
+public class Always(text: StyledText): RequiredIndicatorStyle(text) {
+    /**
+     * @param text to append to field name
+     */
+    public constructor(text: String): this(StyledText(text))
+}
+
+/**
+ * Only appends the indicator after a field is initially (or becomes) [invalid][Invalid].
+ *
+ * @see labeled
+ * @param text to append to field name
+ */
+public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
+    /**
+     * @param text to append to field name
+     */
+    public constructor(text: String): this(StyledText(text))
 }
 
 /**
@@ -671,11 +709,13 @@ public class NamedConfig internal constructor(public val label: Label) {
  * This control simply wraps an existing one with a configurable text label.
  *
  * @param name used in the label
+ * @param showRequired used to indicate whether the field is required.
  * @param visualizer being decorated
  */
-public fun <T> named(
-        name      : StyledText,
-        visualizer: NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
+public fun <T> labeled(
+        name        : StyledText,
+        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val label         = UninteractiveLabel(name)
         val builder       = NamedConfig(label)
@@ -683,9 +723,17 @@ public fun <T> named(
 
         focusable = false
 
-        children += listOf(label, visualization(this@field, initial)).onEach {
+        children += listOf(label, visualization(this@field)).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
+            }
+        }
+
+        showRequired?.let {
+            if (it is Always || state is Invalid<T>) label.styledText = name.copy() + showRequired.text
+
+            stateChanged += {
+                if (it.state is Invalid<T>) label.styledText = name.copy() + showRequired.text
             }
         }
 
@@ -698,10 +746,88 @@ public fun <T> named(
  * This control simply wraps an existing one with a configurable text label.
  *
  * @param name used in the label
+ * @param showRequired used to indicate whether the field is required.
  * @param visualizer being decorated
  */
-public fun <T> named(name: String, visualizer: NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = named(StyledText(name), visualizer)
+public fun <T> labeled(
+        name        : String,
+        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
 
+/**
+ * Config for [labeled] controls.
+ */
+public class LabeledConfig internal constructor(public val name: Label, public val help: Label) {
+    /**
+     * Defines the layout for the named container.
+     */
+    public var layout: (container: View, field: View) -> Layout? = { container,_ ->
+        name.fitText = setOf(Width)
+        help.fitText = setOf(Width)
+
+        ExpandingVerticalLayout(container, DEFAULT_SPACING, DEFAULT_HEIGHT)
+    }
+}
+
+/**
+ * Creates a component with a name [Label], the result of [visualizer] and a helper [Label] that is bound to a [Field].
+ * This control simply wraps an existing one with configurable text labels.
+ *
+ * @param name used in the name label
+ * @param help used as helper text
+ * @param showRequired used to indicate whether the field is required.
+ * @param visualizer being decorated
+ */
+public fun <T> labeled(
+        name        : StyledText,
+        help        : StyledText,
+        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    container {
+        val nameLabel     = UninteractiveLabel(name)
+        val helperLabel   = UninteractiveLabel(help)
+        val builder       = LabeledConfig(nameLabel, helperLabel)
+        val visualization = visualizer(builder)
+
+        focusable = false
+
+        children += listOf(nameLabel, visualization(this@field), helperLabel).onEach {
+            it.sizePreferencesChanged += { _, _, _ ->
+                relayout()
+            }
+        }
+
+        showRequired?.let {
+            if (it is Always || state is Invalid<T>)  nameLabel.styledText = name.copy() + showRequired.text
+
+            stateChanged += {
+                if (it.state is Invalid<T>) nameLabel.styledText = name.copy() + showRequired.text
+            }
+        }
+
+        layout = builder.layout(this, children[1])
+    }
+}
+
+/**
+ * Creates a component with a name [Label], the result of [visualizer] and a helper [Label] that is bound to a [Field].
+ * This control simply wraps an existing one with configurable text labels.
+ *
+ * @param name used in the label
+ * @param help used as helper text
+ * @param showRequired used to indicate whether the field is required.
+ * @param visualizer being decorated
+ */
+public fun <T> labeled(
+        name        : String,
+        help        : String,
+        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(
+        StyledText(name),
+        StyledText(help),
+        showRequired,
+        visualizer
+)
 
 /**
  * Config for [scrolling] controls.
@@ -716,9 +842,10 @@ public class ScrollingConfig internal constructor(public val scrollPanel: Scroll
  *
  * @param visualizer being decorated
  */
-public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field { initial ->
+public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     ScrollPanel().apply {
-        content = visualizer(ScrollingConfig(this))(this@field, initial)
+        matchContentIdealSize = false
+        content               = visualizer(ScrollingConfig(this))(this@field)
     }
 }
 
@@ -729,8 +856,8 @@ public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): 
  * @param builder used to construct the form
  */
 public fun <T> form(builder: FormControlBuildContext<T>.() -> FieldVisualizer<T>): FieldVisualizer<T> {
-    return field { initial ->
-        builder(FormControlBuildContext(this, initial))(this, initial)
+    return field {
+        builder(FormControlBuildContext(field, initial))(this)
     }
 }
 
@@ -751,7 +878,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
      * Defines what [Layout] to use with the resulting [Form].
      */
     public var layout: (form: Form) -> Layout? = {
-        ExpandingListLayout(it, 12.0, 32.0)
+        ExpandingVerticalLayout(it, DEFAULT_FORM_SPACING, DEFAULT_HEIGHT)
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -857,6 +984,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
     }
 }
 
+public fun verticalLayout(container: View, spacing: Double = 2.0, itemHeight: Double? = null): Layout = ExpandingVerticalLayout(container, spacing, itemHeight)
+
 private fun <T> buildRadioList(
                first       : T,
         vararg rest        : T,
@@ -878,7 +1007,7 @@ private fun <T> buildRadioList(
         }
     }
     focusable = false
-    layout    = ExpandingListLayout(this, spacing, itemHeight)
+    layout    = ExpandingVerticalLayout(this, spacing, itemHeight)
 }
 
 private fun <T: Any, M: ListModel<T?>> buildDropDown(
@@ -934,7 +1063,7 @@ private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
 }
 
-private class ExpandingListLayout(private val container: View, spacing: Double, private val itemHeight: Double? = null): Layout {
+private class ExpandingVerticalLayout(private val form: View, spacing: Double, private val itemHeight: Double? = null): Layout {
     private val delegate = ListLayout(spacing = spacing, widthSource = WidthSource.Parent)
 
     private fun maxOrNull(first: Double?, second: Double?): Double? = when {
@@ -945,13 +1074,18 @@ private class ExpandingListLayout(private val container: View, spacing: Double, 
 
     override fun layout(container: PositionableContainer) {
         container.children.forEach { child ->
-            maxOrNull(child.idealSize?.height, itemHeight)?.let { child.height = it }
+            (child.idealSize?.height ?: itemHeight)?.let { child.height = it }
+//            maxOrNull(child.idealSize?.height, itemHeight)?.let { child.height = it }
         }
 
         delegate.layout(container)
 
         val size = Size(container.width, container.children.last().bounds.bottom + container.insets.bottom)
-        this.container.idealSize = size
-        this.container.size      = Size(size.width, max(size.height, this.container.height))
+        this.form.idealSize = size
+        this.form.size      = Size(size.width, max(size.height, this.form.height))
     }
 }
+
+private const val DEFAULT_HEIGHT       = 32.0
+private const val DEFAULT_SPACING      =  2.0
+private const val DEFAULT_FORM_SPACING = 12.0

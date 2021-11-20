@@ -63,7 +63,7 @@ class FormTests {
         val genderChanged = PropertyObserversImpl<Any?, Gender?>(null)
 
         Form { this (
-                "Jennifer" to field { initial ->
+                "Jennifer" to field {
                     view {
                         nameChanged += { _,_,new ->
                             state = new?.let { Valid(it) } ?: Invalid()
@@ -72,7 +72,7 @@ class FormTests {
                         state = initial
                     }
                 },
-                Female to field { initial ->
+                Female to field {
                     view {
                         genderChanged += { _,_, new ->
                             state = new?.let { Valid(it) } ?: Invalid()
@@ -102,7 +102,7 @@ class FormTests {
         val genderChanged = PropertyObserversImpl<Any?, Gender?>(null)
 
         Form { this(
-            + field<String> { initial ->
+            + field<String> {
                 view {
                     nameChanged += { _,_,new ->
                         state = new?.let { Valid(it) } ?: Invalid()
@@ -111,7 +111,7 @@ class FormTests {
                     state = initial
                 }
             },
-            Male to field { initial ->
+            Male to field {
                 view {
                     genderChanged += { _,_,new ->
                         state = new?.let { Valid(it) } ?: Invalid()
