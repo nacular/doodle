@@ -1,4 +1,4 @@
-<div style="text-align:center"><img src="docs/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
+<div style="text-align:center"><img src="docs/img/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div style="text-align:center"><h1>A pure Kotlin, UI framework</h1></div>
 
 [![Kotlin 1.5.30](https://img.shields.io/badge/Kotlin-1.5.30-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
