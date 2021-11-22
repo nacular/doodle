@@ -1,12 +1,12 @@
-<div style="text-align:center"><img src="docs/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
+<div style="text-align:center"><img src="docs/img/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div style="text-align:center"><h1>A pure Kotlin, UI framework</h1></div>
 
-[![Kotlin 1.5.30](https://img.shields.io/badge/Kotlin-1.5.30-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
+[![Kotlin 1.5.31](https://img.shields.io/badge/Kotlin-1.5.31-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 [![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
 ### Single Language
-Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle Web [Applications](https://nacular.github.io/doodle/#/applications) do not use HTML,
+Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle Web [Applications](https://nacular.github.io/doodle/docs/applications) do not use HTML,
 CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all, and can be written entirely
 as common (cross-platform) code in [multi-platform](https://kotlinlang.org/docs/reference/platform-specific-declarations.html) setups.
 
