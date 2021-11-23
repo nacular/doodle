@@ -12,58 +12,72 @@ import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Vertical
+import io.nacular.doodle.utils.observable
 
 
 public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
     public var behavior: SplitPanelBehavior? by behavior { _,new ->
+        divider?.let { children -= it }
 
-            divider?.let { children -= it }
+        new?.also { behavior ->
+            divider = behavior.divider(this)
 
-            new?.also { behavior ->
-                divider = behavior.divider(this)
-
-                divider?.let {
-                    if (behavior.dividerVisible) {
-                        panelSpacing = it.width
-                    }
-
-                    children += it
-
-                    it.zOrder = 1
+            divider?.let {
+                if (behavior.dividerVisible) {
+                    panelSpacing = it.width
                 }
 
-                if (divider != null) {
-                    updateLayout()
-                }
+                children += it
+
+                it.zOrder = 1
+            }
+
+            if (divider != null) {
+                updateLayout()
             }
         }
-
-    public var firstItem: View? = null; set(new) {
-        if (new == field) { return }
-
-        field?.let { children -= it }
-
-        field  = new
-
-        field?.let { children += it }
-
-        fireChanged()
     }
 
-    public var lastItem: View? = null; set(new) {
-        if (new == field) { return }
+    public var firstItem: View? by observable(null) { old,new ->
+        old?.let { children -= it }
+        new?.let { children += it }
 
-        field?.let { children -= it }
-
-        field  = new
-
-        field?.let { children += it }
-
-        fireChanged()
+        updateLayout    ()
+        contentsChanged_()
+        fireLegacyChanged()
     }
 
-    public var orientation: Orientation = orientation; set(new) { if (new != field) { field = new; fireChanged() } }
+    public var lastItem: View? by observable(null) { old,new ->
+        old?.let { children -= it }
+        new?.let { children += it }
+
+        updateLayout()
+        contentsChanged_()
+        fireLegacyChanged()
+    }
+
+    @Suppress("PrivatePropertyName")
+    private val contentsChanged_ = ChangeObserversImpl(this)
+
+    public val contentsChanged: ChangeObservers<SplitPanel> = contentsChanged_
+
+    @Suppress("PrivatePropertyName")
+    private val orientationChanged_ = ChangeObserversImpl(this)
+
+    public val orientationChanged: ChangeObservers<SplitPanel> = orientationChanged_
+
+    public var orientation: Orientation by observable(orientation) { _,_ ->
+        updateLayout()
+        orientationChanged_()
+        fireLegacyChanged()
+    }
+
+    // FIXME: Remove in 0.7.0
+    @Deprecated("Remove in 0.7.0")
+    private fun fireLegacyChanged() {
+        changed_()
+    }
 
     public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
@@ -89,11 +103,6 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
 
     override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
-    private fun fireChanged() {
-        updateLayout()
-        changed_()
-    }
-
     @Suppress("NAME_SHADOWING")
     private fun updateLayout() {
         val first   = firstItem
@@ -103,14 +112,28 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         val layout = when {
             first != null && last != null -> {
                 constrain(first, last) { first, last ->
-                    first.top    = first.parent.top    + { insets.top    }
-                    first.left   = first.parent.left   + { insets.left   }
-                    first.bottom = first.parent.bottom - { insets.bottom }
-                    first.right  = first.left + (first.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
-                    last.top     = first.top
-                    last.left    = first.right + { panelSpacing }
-                    last.bottom  = first.bottom
-                    last.right   = last.parent.right - { insets.right }
+                    when (orientation) {
+                        Vertical -> {
+                            first.top    = parent.top    + { insets.top    }
+                            first.left   = parent.left   + { insets.left   }
+                            first.bottom = parent.bottom - { insets.bottom }
+                            first.right  = first.left + (parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
+                            last.top     = first.top
+                            last.left    = first.right + { panelSpacing }
+                            last.bottom  = first.bottom
+                            last.right   = parent.right - { insets.right }
+                        }
+                        else -> {
+                            first.top    = parent.top    + { insets.top    }
+                            first.left   = parent.left   + { insets.left   }
+                            first.bottom = first.top + (parent.height - { panelSpacing + insets.top + insets.bottom }) * { ratio }
+                            first.right  = parent.right - { insets.right }
+                            last.top     = first.bottom + { panelSpacing }
+                            last.left    = first.left
+                            last.right   = first.right
+                            last.bottom  = parent.bottom - { insets.bottom }
+                        }
+                    }
                 }
             }
 
@@ -122,9 +145,18 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         layout?.let {
             if (divider != null && first != null) {
                 it.constrain(divider, first) { divider, first ->
-                    divider.top     = first.top
-                    divider.bottom  = first.bottom
-                    divider.centerX = divider.parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
+                    when (orientation) {
+                        Vertical -> {
+                            divider.top     = first.top
+                            divider.bottom  = first.bottom
+                            divider.centerX = parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
+                        }
+                        else -> {
+                            divider.left    = first.left
+                            divider.right   = first.right
+                            divider.centerY = parent.top + { insets.top } + (divider.parent.height - { panelSpacing + insets.top + insets.bottom }) * { ratio }
+                        }
+                    }
                 }
             }
         }

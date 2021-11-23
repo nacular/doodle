@@ -19,11 +19,23 @@ public interface SplitPanelBehavior: Behavior<SplitPanel> {
     public val dividerVisible: Boolean
 }
 
-public abstract class CommonSplitPanelBehavior(private val divider: View, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
+public abstract class CommonSplitPanelBehavior(private val divider: View = object: View() {}, private val size: Double, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
 
     private var splitPanel      = null as SplitPanel?
-    private var orientation     = Vertical
     private var pressedLocation = 0.0
+
+    private val orientationChanged: (source: SplitPanel) -> Unit = {
+        when (it.orientation) {
+            Vertical   -> {
+                divider.cursor = ColResize
+                divider.width  = size
+            }
+            Horizontal -> {
+                divider.cursor = RowResize
+                divider.height = size
+            }
+        }
+    }
 
     init {
         divider.pointerChanged       += this
@@ -34,33 +46,34 @@ public abstract class CommonSplitPanelBehavior(private val divider: View, overri
 
     override fun install(view: SplitPanel) {
         splitPanel  = view
-        orientation = view.orientation
 
-        when (view.orientation) {
-            Vertical   -> divider.cursor = ColResize
-            Horizontal -> divider.cursor = RowResize
-        }
+        orientationChanged(view)
+
+        view.orientationChanged += orientationChanged
     }
 
     override fun uninstall(view: SplitPanel) {
+        splitPanel?.orientationChanged?.minusAssign(orientationChanged)
+
         splitPanel = null
     }
 
     override fun pressed(event: PointerEvent) {
-        pressedLocation = when (orientation) {
-            Vertical   -> event.location.x
-            Horizontal -> event.location.y
+        splitPanel?.orientation?.let {
+            pressedLocation = when (it) {
+                Vertical   -> event.location.x
+                Horizontal -> event.location.y
+            }
         }
     }
 
     override fun dragged(event: PointerEvent) {
         splitPanel?.let { splitPanel ->
-
             var minPosition = 0.0
-            var maxPosition = 0.0
             var position    = 0.0
+            var maxPosition = 0.0
 
-            when (orientation) {
+            when (splitPanel.orientation) {
                 Vertical   -> {
                     minPosition = splitPanel.insets.left
                     position    = divider.x + event.location.x - pressedLocation
@@ -68,10 +81,9 @@ public abstract class CommonSplitPanelBehavior(private val divider: View, overri
                 }
 
                 Horizontal -> {
-
                     minPosition = splitPanel.insets.top
                     position    = divider.y + event.location.y - pressedLocation
-                    maxPosition = splitPanel.run { height - divider.width - insets.run { bottom } }
+                    maxPosition = splitPanel.run { height - divider.height - insets.run { bottom } }
                 }
             }
 
