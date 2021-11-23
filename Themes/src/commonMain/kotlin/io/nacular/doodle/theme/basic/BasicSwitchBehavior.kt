@@ -67,9 +67,7 @@ public open class BasicSwitchBehavior(
         val circleColor     = color(view, offForeground, onForeground)
         val backgroundColor = color(view, offBackground, onBackground)
 
-//        canvas.innerShadow(blurRadius = 5.0) {
         canvas.rect(view.bounds.atOrigin, radius, ColorPaint(backgroundColor))
-//        }
 
         val center = Point(radius + (view.width - 2 * radius) * progress, radius)
 
