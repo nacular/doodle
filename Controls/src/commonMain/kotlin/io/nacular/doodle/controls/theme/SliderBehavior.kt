@@ -1,6 +1,8 @@
 package io.nacular.doodle.controls.theme
 
-import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.range.Slider2
+import io.nacular.doodle.controls.range.cast
+import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.event.KeyEvent
@@ -15,29 +17,34 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
-import io.nacular.doodle.utils.size
 import kotlin.math.round
 
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-public abstract class SliderBehavior(private val focusManager: FocusManager?): Behavior<Slider>, PointerListener, PointerMotionListener, KeyListener {
+@Deprecated("Will be replaced soon with typed version soon.")
+public typealias SliderBehavior = SliderBehavior2<Double>
 
-    private   var lastStart          : Double = -1.0
+public abstract class SliderBehavior2<T>(
+        private val focusManager: FocusManager?
+): Behavior<Slider2<T>>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
+
+    private   lateinit var lastStart          : T
     protected var lastPointerPosition: Double = -1.0
         private set
 
-    private val changed: (Slider, Double, Double) -> Unit = { it,_,_ -> it.rerender() }
+    private val changed: (Slider2<T>, T, T) -> Unit = { it,_,_ -> it.rerender() }
 
-    override fun install(view: Slider) {
+    override fun install(view: Slider2<T>) {
+        lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
         view.pointerChanged       += this
         view.pointerMotionChanged += this
     }
 
-    override fun uninstall(view: Slider) {
+    override fun uninstall(view: Slider2<T>) {
         view.changed              -= changed
         view.keyChanged           -= this
         view.pointerChanged       -= this
@@ -45,7 +52,8 @@ public abstract class SliderBehavior(private val focusManager: FocusManager?): B
     }
 
     override fun pressed(event: PointerEvent) {
-        val slider      = event.source as Slider
+        @Suppress("UNCHECKED_CAST")
+        val slider      = event.source as Slider2<T>
         val scaleFactor = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
 
         val offset = when (slider.orientation) {
@@ -57,7 +65,7 @@ public abstract class SliderBehavior(private val focusManager: FocusManager?): B
         val barPosition = barPosition(slider)
 
         if (offset < barPosition || offset > barPosition + barSize) {
-            slider.value += scaleFactor * (offset - (barPosition + barSize / 2))
+            slider.value = (slider.value.toDouble() + scaleFactor * (offset - (barPosition + barSize / 2))).cast(slider.value::class) //+= scaleFactor * (offset - (barPosition + barSize / 2))
         }
 
         lastPointerPosition = offset
@@ -69,13 +77,14 @@ public abstract class SliderBehavior(private val focusManager: FocusManager?): B
     }
 
     override fun released(event: PointerEvent) {
-        lastStart           = -1.0
         lastPointerPosition = -1.0
     }
 
     override fun pressed(event: KeyEvent) {
-        val slider    = event.source as Slider
-        val increment = slider.range.size / 100
+        @Suppress("UNCHECKED_CAST")
+        val slider    = event.source as Slider2<T>
+        lastStart     = slider.value
+        val increment = slider.range.size.toDouble() / 100
 
         val (incrementKey, decrementKey) = when (slider.contentDirection) {
             LeftRight -> ArrowRight to ArrowLeft
@@ -83,13 +92,14 @@ public abstract class SliderBehavior(private val focusManager: FocusManager?): B
         }
 
         when (event.key) {
-            ArrowUp,   incrementKey -> slider.value += increment
-            ArrowDown, decrementKey -> slider.value -= increment
+            ArrowUp,   incrementKey -> slider.value = (slider.value.toDouble() + increment).cast(slider.value::class)
+            ArrowDown, decrementKey -> slider.value = (slider.value.toDouble() - increment).cast(slider.value::class)
         }
     }
 
     override fun dragged(event: PointerEvent) {
-        val slider = event.source as Slider
+        @Suppress("UNCHECKED_CAST")
+        val slider = event.source as Slider2<T>
 
         val delta = when (slider.orientation) {
             Horizontal -> event.location.x - lastPointerPosition
@@ -98,18 +108,18 @@ public abstract class SliderBehavior(private val focusManager: FocusManager?): B
 
         val deltaValue = delta / scaleFactor(slider)
 
-        slider.value = lastStart + deltaValue
+        slider.value = (lastStart.toDouble() + deltaValue).cast(slider.value::class)
 
         event.consume()
     }
 
-    private fun scaleFactor(slider: Slider): Float {
+    private fun scaleFactor(slider: Slider2<T>): Float {
         val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
 
-        return if (!slider.range.isEmpty()) (size / slider.range.size).toFloat() else 0f
+        return if (!slider.range.isEmpty()) (size / (slider.range.size.toDouble() - 1)).toFloat() else 0f
     }
 
-    protected fun barPosition(slider: Slider): Double = round((slider.value - slider.range.start) * scaleFactor(slider))
+    protected fun barPosition(slider: Slider2<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))
 
-    protected fun barSize(slider: Slider): Double = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun barSize(slider: Slider2<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
 }

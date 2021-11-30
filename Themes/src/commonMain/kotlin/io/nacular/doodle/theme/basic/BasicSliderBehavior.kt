@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic
 
-import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.theme.SliderBehavior
+import io.nacular.doodle.controls.range.Slider2
+import io.nacular.doodle.controls.theme.SliderBehavior2
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -14,15 +14,18 @@ import io.nacular.doodle.utils.Orientation.Horizontal
 import kotlin.math.max
 import kotlin.math.min
 
-public class BasicSliderBehavior(
+@Deprecated("Will be replaced soon with typed version soon.")
+public typealias BasicSliderBehavior = BasicSliderBehavior2<Double>
+
+public class BasicSliderBehavior2<T>(
         private val barColor            : Color = Lightgray,
         private val knobColor           : Color = Blue,
                     grooveThicknessRatio: Float = 0.6f,
                     focusManager        : FocusManager? = null
-): SliderBehavior(focusManager) {
+): SliderBehavior2<T>(focusManager) where T: Number, T: Comparable<T> {
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
 
-    override fun render(view: Slider, canvas: Canvas) {
+    override fun render(view: Slider2<T>, canvas: Canvas) {
         val rect1: Rectangle
         val rect2: Rectangle
 

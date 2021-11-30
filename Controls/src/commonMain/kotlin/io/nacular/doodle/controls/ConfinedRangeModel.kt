@@ -99,19 +99,19 @@ public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, va
 /**
  * Creates a binding between the role and model, keeping the role synchronized with the given model
  */
-public fun RangeRole.bind(model: ConfinedValueModel<Double>): Binding {
-    min = model.limits.start
-    max = model.limits.endInclusive
-    value = model.value
+public fun <T> RangeRole.bind(model: ConfinedValueModel<T>): Binding where T: Number, T: Comparable<T> {
+    min   = model.limits.start.toDouble()
+    max   = model.limits.endInclusive.toDouble()
+    value = model.value.toDouble()
 
     return object: Binding {
-        val limitsChanged: PropertyObserver<ConfinedValueModel<Double>, ClosedRange<Double>> = { _,_,new ->
-            min = new.start
-            max = new.endInclusive
+        val limitsChanged: PropertyObserver<ConfinedValueModel<T>, ClosedRange<T>> = { _,_,new ->
+            min = new.start.toDouble()
+            max = new.endInclusive.toDouble()
         }
 
-        val valueChanged: PropertyObserver<ConfinedValueModel<Double>, Double> = { _,_,new ->
-            value = new
+        val valueChanged: PropertyObserver<ConfinedValueModel<T>, T> = { _,_,new ->
+            value = new.toDouble()
         }
 
         init {

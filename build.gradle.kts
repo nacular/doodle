@@ -16,7 +16,6 @@ plugins {
 }
 
 allprojects {
-    apply (plugin = "org.jetbrains.dokka")
     apply (plugin = "maven-publish"      )
     apply (plugin = "signing"            )
     apply (plugin = "org.jetbrains.dokka")

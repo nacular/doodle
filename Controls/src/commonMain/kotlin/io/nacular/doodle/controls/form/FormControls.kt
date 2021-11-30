@@ -12,6 +12,8 @@ import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
+import io.nacular.doodle.controls.buttons.Switch
+import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
@@ -28,13 +30,17 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
+import io.nacular.doodle.layout.constant
+import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.PassThroughEncoder
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 
 /**
@@ -132,6 +138,50 @@ public fun textField(
 ): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), validator, config)
 
 /**
+ * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param label used to annotate the switch
+ */
+public fun switch(label: View): FieldVisualizer<Boolean> = field {
+    container {
+        focusable = false
+        this += label
+        this += Switch().apply {
+            initial.ifValid { selected = it }
+
+            selectedChanged += { _,_,_ ->
+                state = Valid(selected)
+            }
+
+            size  = Size(30, 20)
+            state = Valid(selected)
+        }
+
+        layout = constrain(children[0], children[1]) { label, switch ->
+            switch.right   = parent.right
+            switch.centerY = parent.centerY
+
+            label.left     = parent.left
+            label.centerY  = switch.centerY
+        }
+    }
+}
+
+/**
+ * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param text used to annotate the switch
+ */
+public fun switch(text: StyledText): FieldVisualizer<Boolean> = switch(Label(text))
+
+/**
+ * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param text used to annotate the switch
+ */
+public fun switch(text: String): FieldVisualizer<Boolean> = switch(Label(text))
+
+/**
  * Configuration for radio and check lists.
  */
 public class OptionListConfig<T> internal constructor() {
@@ -142,7 +192,11 @@ public class OptionListConfig<T> internal constructor() {
     public var itemHeight: Double? = null
 
     /** Provides a label for each item in the list */
-    public var label: (T) -> String = { it.toString() }
+    public var label: (T) -> String by observable({ it.toString() }) { _,new ->
+        visualizer = { Label(new(it)) }
+    }
+
+    public var visualizer: (T) -> View = { Label(label(it)) }
 }
 
 /**
@@ -168,7 +222,7 @@ public fun <T> radioList(
         rest         = rest,
         spacing      = builder.spacing,
         itemHeight   = builder.itemHeight,
-        label        = builder.label,
+        visualizer   = builder.visualizer,
         initialValue = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
             state = Valid(value)
@@ -203,7 +257,7 @@ public fun <T: Any> optionalRadioList(
             rest         = rest,
             spacing      = builder.spacing,
             itemHeight   = builder.itemHeight,
-            label        = builder.label,
+            visualizer   = builder.visualizer,
             initialValue = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
             state = Valid(value)
@@ -230,51 +284,39 @@ public fun <T: Any> optionalRadioList(
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
-public fun <T> checkList(first: T, vararg rest: T, config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<List<T>> = field {
-    val builder   = OptionListConfig<T>().also(config)
-    val selection = mutableListOf<T>()
+public fun <T> checkList(
+        first      : T,
+        vararg rest: T,
+        config     : OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) { CheckBox().apply { width = 16.0 } }
 
-    container {
-        focusable     = false
-        val items     = listOf(first) + rest
-        var itemIndex = 0
+/**
+ * Creates a list of [Switch][io.nacular.doodle.controls.buttons.Switch]es that is bound to a [Field]. This controls
+ * lets a user select multiple options from a list. This control lets a user ignore selection entirely, which would
+ * result in an empty list.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param config used to control the resulting component
+ */
+public fun <T> switchList(
+        first      : T,
+        vararg rest: T,
+        config     : OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<List<T>> = buildToggleList(
+        first,
+        rest = rest,
+        config,
+        layout = { switch, label -> constrain(label, switch) { label_, switch_ ->
+            switch_.width   = constant(30.0)
+            switch_.height  = constant(20.0)
+            switch_.right   = parent.right
+            switch_.centerY = parent.centerY
 
-        initial.fold({ it }, emptyList()).forEachIndexed { _, value ->
-            (itemIndex until items.size).forEach {
-                itemIndex += 1
-
-                if (items[it] == value) {
-                    selection += value
-                    return@forEachIndexed
-                }
-            }
-
-            if (itemIndex >= items.size) {
-                return@forEachIndexed
-            }
-        }
-
-        state = Valid(selection)
-
-        children  += items.map { value ->
-            CheckBox(builder.label(value)).apply {
-                selected         = value in selection
-                selectedChanged += { _,_,selected ->
-                    when {
-                        selected -> selection += value
-                        else     -> selection -= value
-                    }
-
-                    state = Valid(selection)
-                }
-                sizePreferencesChanged += { _,_,_ ->
-                    relayout()
-                }
-            }
-        }
-        layout = ExpandingVerticalLayout(this, builder.spacing, builder.itemHeight)
-    }
-}
+            label_.left     = parent.left
+            label_.centerY  = switch_.centerY
+        } }) { Switch() }
 
 /**
  * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
@@ -714,7 +756,7 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  */
 public fun <T> labeled(
         name        : StyledText,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(" *"),
         visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val label         = UninteractiveLabel(name)
@@ -723,7 +765,7 @@ public fun <T> labeled(
 
         focusable = false
 
-        children += listOf(label, visualization(this@field)).onEach {
+        this += listOf(label, visualization(this@field)).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -791,7 +833,7 @@ public fun <T> labeled(
 
         focusable = false
 
-        children += listOf(nameLabel, visualization(this@field), helperLabel).onEach {
+        this += listOf(nameLabel, visualization(this@field), helperLabel).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -986,24 +1028,89 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
 
 public fun verticalLayout(container: View, spacing: Double = 2.0, itemHeight: Double? = null): Layout = ExpandingVerticalLayout(container, spacing, itemHeight)
 
+private fun <T> buildToggleList(
+        first        : T,
+        vararg rest         : T,
+        config       : OptionListConfig<T>.() -> Unit = {},
+        layout       : (button: ToggleButton, label: View) -> Layout? = { _,_ ->null },
+        toggleBuilder: () -> ToggleButton): FieldVisualizer<List<T>> = field {
+    val builder   = OptionListConfig<T>().also(config)
+    val selection = mutableListOf<T>()
+
+    container {
+        focusable     = false
+        val items     = listOf(first) + rest
+        var itemIndex = 0
+
+        initial.fold({ it }, emptyList()).forEachIndexed { _, value ->
+            (itemIndex until items.size).forEach {
+                itemIndex += 1
+
+                if (items[it] == value) {
+                    selection += value
+                    return@forEachIndexed
+                }
+            }
+
+            if (itemIndex >= items.size) {
+                return@forEachIndexed
+            }
+        }
+
+        state = Valid(selection)
+
+        this += items.map { value ->
+            container {
+                focusable = false
+                this += builder.visualizer(value)
+                this += toggleBuilder().apply {
+                    selected         = value in selection
+                    selectedChanged += { _, _, selected ->
+                        when {
+                            selected -> selection += value
+                            else     -> selection -= value
+                        }
+
+                        state = Valid(selection)
+                    }
+                    sizePreferencesChanged += { _, _, _ ->
+                        relayout()
+                    }
+                }
+
+                this.layout = layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0])
+            }
+        }
+        this.layout = ExpandingVerticalLayout(this, builder.spacing, builder.itemHeight)
+    }
+}
+
 private fun <T> buildRadioList(
                first       : T,
         vararg rest        : T,
                spacing     : Double  = 0.0,
                itemHeight  : Double? = null,
-               label       : (T) -> String = { it.toString() },
+               visualizer  : (T) -> View,
                initialValue: T? = null,
                config      : (T, RadioButton) -> Unit): Container = container {
     val group  = ButtonGroup()
     children  += (listOf(first) + rest).map { value ->
-        RadioButton(label(value)).apply {
-            group += this
+        container {
+            focusable = false
+            this += visualizer(value)
+            this += RadioButton().apply {
+                group += this
 
-            initialValue?.let {
-                selected = value == it
+                initialValue?.let {
+                    selected = value == it
+                }
+
+                config(value, this)
+
+                width = 16.0
             }
 
-            config(value, this)
+            layout = buttonItemLayout(button = children[1], label = children[0])
         }
     }
     focusable = false
@@ -1042,23 +1149,6 @@ private fun <T: Any, M: ListModel<T?>> buildDropDown(
     }
 }
 
-//private fun <T: Any> buildDropDown(
-//        first                       : T,
-//        vararg rest                 : T,
-//        boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-//        listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-//        unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-//        unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-//        initialValue                : T? = null
-//): Dropdown<T?, *> = buildDropDown(
-//        SimpleListModel(listOf(null, first) + rest),
-//        boxItemVisualizer,
-//        listItemVisualizer,
-//        unselectedBoxItemVisualizer,
-//        unselectedListItemVisualizer,
-//        initialValue
-//)
-
 private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
 }
@@ -1075,7 +1165,6 @@ private class ExpandingVerticalLayout(private val form: View, spacing: Double, p
     override fun layout(container: PositionableContainer) {
         container.children.forEach { child ->
             (child.idealSize?.height ?: itemHeight)?.let { child.height = it }
-//            maxOrNull(child.idealSize?.height, itemHeight)?.let { child.height = it }
         }
 
         delegate.layout(container)
@@ -1084,6 +1173,14 @@ private class ExpandingVerticalLayout(private val form: View, spacing: Double, p
         this.form.idealSize = size
         this.form.size      = Size(size.width, max(size.height, this.form.height))
     }
+}
+
+private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
+    button_.width  = parent.width
+    button_.height = parent.height
+
+    label_.left     = parent.left + labelOffset
+    label_.centerY  = button_.centerY
 }
 
 private const val DEFAULT_HEIGHT       = 32.0

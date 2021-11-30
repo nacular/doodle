@@ -16,7 +16,7 @@ import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.range.CircularSlider
-import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.range.Slider2
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.Spinner
@@ -328,9 +328,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicSliderBehavior(barColor: Color? = null, knobColor: Color? = null, grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
-            bindBehavior<Slider>(BTheme::class) {
+            bindBehavior<Slider2<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSliderBehavior(
+                    BasicSliderBehavior2(
                             barColor             ?: defaultBackgroundColor,
                             knobColor            ?: darkBackgroundColor,
                             grooveThicknessRatio ?: 0.5f,
