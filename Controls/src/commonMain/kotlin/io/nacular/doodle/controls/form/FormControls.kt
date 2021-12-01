@@ -34,6 +34,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -168,6 +169,8 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
 
             label.left     = parent.left
             label.centerY  = switch.centerY
+        }.then {
+            idealSize = Size(width, children.maxOf { it.height })
         }
     }
 }
@@ -992,6 +995,28 @@ public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): 
     ScrollPanel().apply {
         matchContentIdealSize = false
         content               = visualizer(ScrollingConfig(this))(this@field)
+    }
+}
+
+/**
+ * Config for [framed] controls.
+ *
+ * @property container used to frame the control
+ */
+public class FramedConfig internal constructor(public val container: Container)
+
+/**
+ * Creates a [Container] with the result of [visualizer] as its only child, that is bound to a [Field].
+ * This control simply wraps an existing one with a configurable container.
+ *
+ * @param visualizer being decorated
+ */
+public fun <T> framed(visualizer: FramedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    container {
+        layout    = verticalLayout(this)
+        focusable = false
+
+        this += visualizer(FramedConfig(this))(this@field)
     }
 }
 

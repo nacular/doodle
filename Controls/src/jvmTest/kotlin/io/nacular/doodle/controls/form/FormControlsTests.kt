@@ -177,6 +177,70 @@ class FormControlsTests {
         verify(exactly = 0) { onInvalid(            ) }
     }
 
+    @Test @JsName("switchListDefaultsToEmpty")
+    fun `switch list defaults to empty`() {
+        val onValid   = mockk<(List<Int>) -> Unit>(relaxed = true)
+        val onInvalid = mockk<(         ) -> Unit>(relaxed = true)
+
+        Form { this (
+                + switchList(1, 2, 3),
+                onInvalid = onInvalid
+        ) {
+            onValid(it)
+        } }
+
+        verify(exactly = 1) { onValid  (emptyList()) }
+        verify(exactly = 0) { onInvalid(           ) }
+    }
+
+    @Test @JsName("switchListAcceptsValidInitialValue")
+    fun `switch list accepts valid initial value`() {
+        val onValid   = mockk<(List<Int>) -> Unit>(relaxed = true)
+        val onInvalid = mockk<(         ) -> Unit>(relaxed = true)
+
+        Form { this (
+                listOf(2, 3) to switchList(1, 2, 3),
+                onInvalid = onInvalid
+        ) {
+            onValid(it)
+        } }
+
+        verify(exactly = 1) { onValid  (listOf(2, 3)) }
+        verify(exactly = 0) { onInvalid(            ) }
+    }
+
+    @Test @JsName("switchListIgnoresInValidInitialValue")
+    fun `switch list ignores invalid initial value`() {
+        val onValid   = mockk<(List<Int>) -> Unit>(relaxed = true)
+        val onInvalid = mockk<(         ) -> Unit>(relaxed = true)
+
+        Form { this (
+                listOf(23) to switchList(1, 2, 3),
+                onInvalid = onInvalid
+        ) {
+            onValid(it)
+        } }
+
+        verify(exactly = 1) { onValid  (emptyList()) }
+        verify(exactly = 0) { onInvalid(           ) }
+    }
+
+    @Test @JsName("switchListPartiallyAcceptsInValidInitialValue")
+    fun `switch list partially accepts invalid initial value`() {
+        val onValid   = mockk<(List<Int>) -> Unit>(relaxed = true)
+        val onInvalid = mockk<(         ) -> Unit>(relaxed = true)
+
+        Form { this (
+                listOf(1, 3, 23, 5) to switchList(1, 2, 3, 4, 5),
+                onInvalid = onInvalid
+        ) {
+            onValid(it)
+        } }
+
+        verify(exactly = 1) { onValid  (listOf(1, 3)) }
+        verify(exactly = 0) { onInvalid(            ) }
+    }
+
     @Test @JsName("dropDownDefaultsToFirst")
     fun `dropdown defaults to first`() {
         val onValid   = mockk<(Gender) -> Unit>(relaxed = true)
