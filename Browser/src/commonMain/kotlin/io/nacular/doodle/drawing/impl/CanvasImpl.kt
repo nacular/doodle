@@ -85,16 +85,16 @@ internal open class CanvasImpl(
     private var innerShadowCount  = 0
     private var vectorRenderDirty = false
 
-    override fun rect(rectangle: Rectangle,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
+    override fun rect(rectangle: Rectangle,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, radius, stroke, fill)
 
-    override fun circle(circle: Circle,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
+    override fun circle(circle: Circle,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
     override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) = vectorRenderer.circle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,                 fill: Paint) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = vectorRenderer.ellipse(ellipse, stroke, fill)
 
     // =============== Complex =============== //
@@ -105,34 +105,18 @@ internal open class CanvasImpl(
     override fun path(points: List<Point>,                 fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points,         fill, fillRule)
     override fun path(points: List<Point>, stroke: Stroke, fill: Paint, fillRule: FillRule?) = vectorRenderer.path(points, stroke, fill, fillRule)
 
-    override fun path(path: Path, stroke: Stroke                                 ) = vectorRenderer.path(path, stroke                )
+    override fun path(path: Path, stroke: Stroke                                  ) = vectorRenderer.path(path, stroke                )
     override fun path(path: Path,                 fill: Paint, fillRule: FillRule?) = vectorRenderer.path(path,         fill, fillRule)
     override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: FillRule?) = vectorRenderer.path(path, stroke, fill, fillRule)
 
-    override fun poly(polygon: Polygon,                 fill: Paint) = vectorRenderer.poly(polygon,         fill)
+    override fun poly(polygon: Polygon,                 fill: Paint ) = vectorRenderer.poly(polygon,         fill)
     override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) = vectorRenderer.poly(polygon, stroke, fill)
 
-    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint) = vectorRenderer.arc(center, radius, sweep, rotation,         fill)
+    override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = vectorRenderer.arc(center, radius, sweep, rotation,         fill)
     override fun arc(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.arc(center, radius, sweep, rotation, stroke, fill)
 
-    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
+    override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
-
-//    override val imageData: ImageData
-//        get () {
-//            val elements = (0 until region.numChildren).mapTo(mutableListOf()) { region.childAt(it)!! }
-//
-//            return ImageDataImpl(elements)
-//        }
-
-//    override fun import(imageData: ImageData, at: Point) {
-//        if (imageData is ImageDataImpl) {
-//            val elements = imageData.elements
-//            val clones   = elements.mapTo(ArrayList(elements.size)) { it.cloneNode(deep = true) as HTMLElement }
-//
-//            addData(clones, at)
-//        }
-//    }
 
     override fun text(text: StyledText, at: Point) {
         when {
@@ -152,23 +136,29 @@ internal open class CanvasImpl(
     override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createWrappedTextGlyph(fill,
-                                                                  text,
-                                                                  font,
-                                                                  at,
-                                                                  leftMargin,
-                                                                  rightMargin)) }
+            fill is ColorPaint              -> {
+                updateRenderPosition()
+                completeOperation(createWrappedTextGlyph(fill,
+                                                         text,
+                                                         font,
+                                                         at,
+                                                         leftMargin,
+                                                         rightMargin))
+            }
             else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill)
         }
     }
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
         when {
-            isSimple(text) -> { updateRenderPosition(); completeOperation(createWrappedStyleTextGlyph(
+            isSimple(text) -> {
+                updateRenderPosition()
+                completeOperation(createWrappedStyleTextGlyph(
                     text,
                     at,
                     leftMargin,
-                    rightMargin)) }
+                    rightMargin))
+            }
             else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin)
         }
     }
@@ -370,9 +360,7 @@ internal open class CanvasImpl(
 
     private fun getRect(rectangle: Rectangle): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
         getRectElement().also {
-            /*
-         * This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
-         */
+            // This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
 
             var transform = Identity.translate(rectangle.position)
             var width = rectangle.width
@@ -497,5 +485,3 @@ internal open class CanvasImpl(
         return result as HTMLImageElement
     }
 }
-
-//class ImageDataImpl(val elements: List<HTMLElement>): ImageData

@@ -94,24 +94,22 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
     private fun applyStyle(element: HTMLElement, style: Style) {
         style.foreground?.let {
-            if (it is ColorPaint) {
-                element.style.setColor(it.color)
-            } else {
-                // TODO: Implement
+            when (it) {
+                is ColorPaint -> element.style.setColor(it.color)
+                else          -> { /* TODO: Implement */ }
             }
-        } ?: {
+        } ?: run {
             element.style.setColor(null)
-        }()
+        }
 
         style.background?.let {
-            if (it is ColorPaint) {
-                element.style.setBackgroundColor(it.color)
-            } else {
-                // TODO: Implement
+            when (it) {
+                is ColorPaint -> element.style.setBackgroundColor(it.color)
+                else          -> { /* TODO: Implement */ }
             }
-        } ?: {
+        } ?: run {
             element.style.setBackgroundColor(null)
-        }()
+        }
 
         element.style.setTextDecoration(style.decoration)
     }

@@ -1,5 +1,3 @@
-apply (from = "../jacoco.gradle")
-
 plugins {
     kotlin("multiplatform")
 

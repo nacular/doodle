@@ -162,7 +162,7 @@ public open class ScrollPanel(content: View? = null): View() {
     }
 
     /**
-     * Scrolls the viewport by point.x and and point.y in the x and y directions respectively.
+     * Scrolls the viewport by [delta].x and [delta].y in the x and y directions respectively.
      *
      * @param delta
      */
