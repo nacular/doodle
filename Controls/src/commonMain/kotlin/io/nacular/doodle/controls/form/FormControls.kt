@@ -21,18 +21,23 @@ import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.controls.spinner.Model
+import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.controls.toString
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constant
@@ -185,18 +190,33 @@ public fun switch(text: String): FieldVisualizer<Boolean> = switch(Label(text))
  * Configuration for radio and check lists.
  */
 public class OptionListConfig<T> internal constructor() {
-    /** Spacing between items in the list */
+    /** Spacing between items in the list. */
     public var spacing: Double = 0.0
 
-    /** Height of each item */
+    /** Height of each item. */
     public var itemHeight: Double? = null
 
-    /** Provides a label for each item in the list */
+    /**
+     * Specifies how much the list of items is inset from the parent container.
+     */
+    public var insets: Insets = Insets.None
+
+    /**
+     * Provides a label for each item in the list. This is short-hand for using [visualizer].
+     */
     public var label: (T) -> String by observable({ it.toString() }) { _,new ->
         visualizer = { Label(new(it)) }
     }
 
+    /**
+     * Defines how each item is represented in the list,
+     */
     public var visualizer: (T) -> View = { Label(label(it)) }
+
+    /**
+     * Allows customized rendering of the container holding the list.
+     */
+    public var render: Canvas.(container: View) -> Unit = {}
 }
 
 /**
@@ -215,15 +235,11 @@ public fun <T> radioList(
                first : T,
         vararg rest  : T,
                config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
-    val builder = OptionListConfig<T>().also(config)
-
     buildRadioList(
-        first        = first,
-        rest         = rest,
-        spacing      = builder.spacing,
-        itemHeight   = builder.itemHeight,
-        visualizer   = builder.visualizer,
-        initialValue = initial.fold({ it }, null)) { value, button ->
+        first            = first,
+        rest             = rest,
+        optionListConfig = OptionListConfig<T>().also(config),
+        initialValue     = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
             state = Valid(value)
         }
@@ -250,15 +266,11 @@ public fun <T: Any> optionalRadioList(
                first : T,
         vararg rest  : T,
                config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field {
-    val builder = OptionListConfig<T>().also(config)
-
     buildRadioList(
-            first        = first,
-            rest         = rest,
-            spacing      = builder.spacing,
-            itemHeight   = builder.itemHeight,
-            visualizer   = builder.visualizer,
-            initialValue = initial.fold({ it }, null)) { value, button ->
+            first            = first,
+            rest             = rest,
+            optionListConfig = OptionListConfig<T>().also(config),
+            initialValue     = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
             state = Valid(value)
         }
@@ -598,6 +610,74 @@ public fun <T: Any> optionalDropDown(
         config                      = config)
 
 /**
+ * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param model for the dropdown
+ * @param itemVisualizer used to render the drop-down's box item
+ * @param config used to control the resulting component
+ */
+public fun <T, M: Model<T>> spinner(
+        model          : M,
+        itemVisualizer : ItemVisualizer<T, Spinner<T, M>> = toString(TextVisualizer()),
+        config         : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
+    Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
+        spinner.changed += {
+            state = Valid(spinner.value)
+        }
+
+        state = Valid(spinner.value)
+    }.also(config)
+}
+
+/**
+ * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param itemVisualizer used to render the drop-down's box item
+ * @param config used to control the resulting component
+ */
+public fun <T> spinner(
+        first          : T,
+        vararg rest    : T,
+        itemVisualizer : ItemVisualizer<T, Spinner<T, *>> = toString(TextVisualizer()),
+        config         : (Spinner<T, *>) -> Unit = {}): FieldVisualizer<T> = spinner(
+        io.nacular.doodle.controls.spinner.ListModel(listOf(first) + rest),
+        itemVisualizer,
+        config
+)
+
+/**
+ * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param label used to render the drop-down's box and list items
+ * @param config used to control the resulting component
+ */
+public fun <T> spinner(
+        first : T,
+        vararg rest  : T,
+        label : (T) -> String = { it.toString() },
+        config: (Spinner<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(TextVisualizer(), label), config = config)
+
+/**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
  * which would result in an empty list. It is similar to a [checkList].
@@ -711,6 +791,16 @@ public class NamedConfig internal constructor(public val label: Label) {
 
         ExpandingVerticalLayout(container, DEFAULT_SPACING, DEFAULT_HEIGHT)
     }
+
+    /**
+     * Specifies named container insets.
+     */
+    public var insets: Insets = Insets.None
+
+    /**
+     * Allows customized rendering of the named container.
+     */
+    public var render: Canvas.(container: View) -> Unit = {}
 }
 
 /**
@@ -763,6 +853,8 @@ public fun <T> labeled(
         val builder       = NamedConfig(label)
         val visualization = visualizer(builder)
 
+        insets    = builder.insets
+        render    = { builder.render(this, this@container) }
         focusable = false
 
         this += listOf(label, visualization(this@field)).onEach {
@@ -809,6 +901,16 @@ public class LabeledConfig internal constructor(public val name: Label, public v
 
         ExpandingVerticalLayout(container, DEFAULT_SPACING, DEFAULT_HEIGHT)
     }
+
+    /**
+     * Specifies named container insets.
+     */
+    public var insets: Insets = Insets.None
+
+    /**
+     * Allows customized rendering of the named container.
+     */
+    public var render: Canvas.(container: View) -> Unit = {}
 }
 
 /**
@@ -831,6 +933,8 @@ public fun <T> labeled(
         val builder       = LabeledConfig(nameLabel, helperLabel)
         val visualization = visualizer(builder)
 
+        insets    = builder.insets
+        render    = { builder.render(this, this@container) }
         focusable = false
 
         this += listOf(nameLabel, visualization(this@field), helperLabel).onEach {
@@ -923,6 +1027,16 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         ExpandingVerticalLayout(it, DEFAULT_FORM_SPACING, DEFAULT_HEIGHT)
     }
 
+    /**
+     * Defines the insets of the resulting [Form].
+     */
+    public var insets: Insets = Insets.None
+
+    /**
+     * Specifies a behavior to use with the resulting [Form].
+     */
+    public var behavior: Behavior<Form>? = null
+
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A> invoke(
             a        : Field<A>,
@@ -932,10 +1046,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(a, onInvalid = { field.state = Invalid(); onInvalid() }) { a ->
                 state = Valid(onReady(a))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -948,10 +1059,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(a, b, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b ->
                 state = Valid(onReady(a, b))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -965,10 +1073,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(a, b, c, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c ->
                 state = Valid(onReady(a, b, c))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -983,10 +1088,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(a, b, c, d, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d ->
                 state = Valid(onReady(a, b, c, d))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -1002,10 +1104,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(a, b, c, d, e, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d, e ->
                 state = Valid(onReady(a, b, c, d, e))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -1019,10 +1118,14 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
             this(first, second, *rest, onInvalid = { field.state = Invalid(); onInvalid() }) { fields ->
                 state = Valid(onReady(fields))
             }
-        }.apply {
-            focusable = false
-            layout    = layout(this)
-        }
+        }.apply { configure(this) }
+    }
+
+    private fun configure(form: Form) {
+        form.layout    = layout(form)
+        form.insets    = insets
+        form.behavior  = behavior
+        form.focusable = false
     }
 }
 
@@ -1030,7 +1133,7 @@ public fun verticalLayout(container: View, spacing: Double = 2.0, itemHeight: Do
 
 private fun <T> buildToggleList(
         first        : T,
-        vararg rest         : T,
+        vararg rest  : T,
         config       : OptionListConfig<T>.() -> Unit = {},
         layout       : (button: ToggleButton, label: View) -> Layout? = { _,_ ->null },
         toggleBuilder: () -> ToggleButton): FieldVisualizer<List<T>> = field {
@@ -1038,6 +1141,8 @@ private fun <T> buildToggleList(
     val selection = mutableListOf<T>()
 
     container {
+        insets        = builder.insets
+        render        = { builder.render(this, this@container) }
         focusable     = false
         val items     = listOf(first) + rest
         var itemIndex = 0
@@ -1088,16 +1193,16 @@ private fun <T> buildToggleList(
 private fun <T> buildRadioList(
                first       : T,
         vararg rest        : T,
-               spacing     : Double  = 0.0,
-               itemHeight  : Double? = null,
-               visualizer  : (T) -> View,
+               optionListConfig: OptionListConfig<T>,
                initialValue: T? = null,
                config      : (T, RadioButton) -> Unit): Container = container {
+    insets     = optionListConfig.insets
+    render     = { optionListConfig.render(this, this@container) }
     val group  = ButtonGroup()
     children  += (listOf(first) + rest).map { value ->
         container {
             focusable = false
-            this += visualizer(value)
+            this += optionListConfig.visualizer(value)
             this += RadioButton().apply {
                 group += this
 
@@ -1114,7 +1219,7 @@ private fun <T> buildRadioList(
         }
     }
     focusable = false
-    layout    = ExpandingVerticalLayout(this, spacing, itemHeight)
+    layout    = ExpandingVerticalLayout(this, optionListConfig.spacing, optionListConfig.itemHeight)
 }
 
 private fun <T: Any, M: ListModel<T?>> buildDropDown(
