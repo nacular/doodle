@@ -152,3 +152,15 @@ public infix fun Layout.then(onLayout: (PositionableContainer) -> Unit): Layout 
 
     onLayout(container)
 }
+
+/**
+ * Helper for creating simple [Layout]s.
+ *
+ * @param block that is called during layout
+ * @return a Layout that performs the operations of [block]
+ */
+public fun layout(block: (PositionableContainer) -> Unit): Layout = object: Layout {
+    override fun layout(container: PositionableContainer) {
+        block(container)
+    }
+}

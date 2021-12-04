@@ -144,6 +144,23 @@ public fun textField(
 ): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), validator, config)
 
 /**
+ * Creates a [CheckBox] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param label used for the checkbox
+ */
+public fun check(label: String): FieldVisualizer<Boolean> = field {
+    CheckBox(label).apply {
+        initial.ifValid { selected = it }
+
+        selectedChanged += { _,_,_ ->
+            state = Valid(selected)
+        }
+
+        state = Valid(selected)
+    }
+}
+
+/**
  * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
  *
  * @param label used to annotate the switch
@@ -1283,7 +1300,7 @@ private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
 }
 
-private class ExpandingVerticalLayout(private val form: View, spacing: Double, private val itemHeight: Double? = null): Layout {
+private class ExpandingVerticalLayout(private val view: View, spacing: Double, private val itemHeight: Double? = null): Layout {
     private val delegate = ListLayout(spacing = spacing, widthSource = WidthSource.Parent)
 
     private fun maxOrNull(first: Double?, second: Double?): Double? = when {
@@ -1299,9 +1316,9 @@ private class ExpandingVerticalLayout(private val form: View, spacing: Double, p
 
         delegate.layout(container)
 
-        val size = Size(container.width, container.children.last().bounds.bottom + container.insets.bottom)
-        this.form.idealSize = size
-        this.form.size      = Size(size.width, max(size.height, this.form.height))
+        val size       = Size(container.width, container.children.last().bounds.bottom + container.insets.bottom)
+        view.size      = Size(size.width, max(size.height, this.view.height))
+        view.idealSize = size
     }
 }
 

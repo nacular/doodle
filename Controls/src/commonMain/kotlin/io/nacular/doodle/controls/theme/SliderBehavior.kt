@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.range.cast
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.ContentDirection.LeftRight
+import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyText.Companion.ArrowDown
@@ -36,12 +37,15 @@ public abstract class SliderBehavior2<T>(
 
     private val changed: (Slider2<T>, T, T) -> Unit = { it,_,_ -> it.rerender() }
 
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
+
     override fun install(view: Slider2<T>) {
         lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
         view.pointerChanged       += this
         view.pointerMotionChanged += this
+        view.enabledChanged       += enabledChanged
     }
 
     override fun uninstall(view: Slider2<T>) {
@@ -49,6 +53,7 @@ public abstract class SliderBehavior2<T>(
         view.keyChanged           -= this
         view.pointerChanged       -= this
         view.pointerMotionChanged -= this
+        view.enabledChanged       -= enabledChanged
     }
 
     override fun pressed(event: PointerEvent) {

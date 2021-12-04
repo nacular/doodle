@@ -86,6 +86,9 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
             val iconSize      = size(view)
+
+            if (iconSize.empty) return
+
             val arrowSize     = iconSize.run { Size(width * 0.5, height * 0.6) }
             val arrowPosition = at + Point(x = (iconSize.width - arrowSize.width) / 2, y = (iconSize.height - arrowSize.height) / 2)
 
@@ -145,12 +148,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         it.list?.setSelection(setOf(it.selection))
     }
 
+    @Suppress("UNCHECKED_CAST")
     private val enabledChanged: PropertyObserver<View, Boolean> = { dropdown,_,_ ->
         if (!dropdown.enabled) {
             (dropdown as? Dropdown<T, M>)?.let { hideList(it) }
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private val boundsChanged: PropertyObserver<View, Rectangle> = { dropdown, old, new ->
         if (old.height != new.height) {
             (dropdown as? Dropdown<T, M>)?.apply {
@@ -192,6 +197,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     }
 
     private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.RowGenerator<T> {
+        @Suppress("UNCHECKED_CAST")
         override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
             is ListRow<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, row, index) }
             else          -> CustomListRow(
@@ -331,6 +337,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     }
 
     override fun pressed(event: KeyEvent) {
+        @Suppress("UNCHECKED_CAST")
         (event.source as? Dropdown<T, M>)?.apply {
             when (event.key) {
                 KeyText.ArrowUp   -> { selection -= 1; event.consume() }
@@ -340,7 +347,8 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     }
 
     override fun pressed(event: PointerEvent) {
-        focusManager?.requestFocus(event.source)
+        // FIXME: This caused an issue on mobile where the list would not show. Need to figure out why that happens
+//        focusManager?.requestFocus(event.source)
     }
 
     internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()

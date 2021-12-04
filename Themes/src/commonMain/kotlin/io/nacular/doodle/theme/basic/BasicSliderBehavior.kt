@@ -6,7 +6,8 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
@@ -24,6 +25,8 @@ public class BasicSliderBehavior2<T>(
                     focusManager        : FocusManager? = null
 ): SliderBehavior2<T>(focusManager) where T: Number, T: Comparable<T> {
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
+
+    public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
     override fun render(view: Slider2<T>, canvas: Canvas) {
         val rect1: Rectangle
@@ -49,7 +52,9 @@ public class BasicSliderBehavior2<T>(
             }
         }
 
-        canvas.rect(rect1, rect1.height / 2, ColorPaint(barColor))
-        canvas.circle(Circle(rect2.center, rect2.width / 2), ColorPaint(knobColor))
+        canvas.rect  (rect1, rect1.height / 2,               adjust(view, barColor).paint )
+        canvas.circle(Circle(rect2.center, rect2.width / 2), adjust(view, knobColor).paint)
     }
+
+    private fun adjust(view: Slider2<T>, color: Color) = if (view.enabled) color  else disabledColorMapper(color)
 }
