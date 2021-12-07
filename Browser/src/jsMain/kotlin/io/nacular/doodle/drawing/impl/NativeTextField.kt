@@ -282,9 +282,10 @@ internal class NativeTextField(
 
         if (textField.hasFocus && !elementFocused) {
             inputElement.focus()
-        }
 
-        select(textField.selection.run { start .. end })
+            // This forces the element to take focus, so only doing if it should be focused
+            select(textField.selection.run { start .. end })
+        }
     }
 
     fun fitTextSize() = textMetrics.size(textField.displayText, textField.font).run {
@@ -297,6 +298,8 @@ internal class NativeTextField(
     override fun onInput(event: Event) = true.also { syncTextField() }
 
     override fun onFocusGained(event: Event) = true.also {
+        println("onFocusGained")
+
         elementFocused = true
 
         mobileKeyboardManager.hide()

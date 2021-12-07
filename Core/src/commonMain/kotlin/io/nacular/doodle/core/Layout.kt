@@ -2,6 +2,7 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -93,6 +94,12 @@ public interface Layout {
      */
     public fun layout(container: PositionableContainer)
 
+    public fun requiresLayout(container: PositionableContainer, old: Size, new: Size): Boolean = true
+
+    public fun requiresLayout(child: Positionable, old: Rectangle, new: Rectangle): Boolean = true
+
+    public fun requiresLayout(child: Positionable, old: SizePreferences, new: SizePreferences): Boolean = false
+
     /**
      * Returns the minimum size of the Positionable based on its contents.
      *
@@ -151,4 +158,16 @@ public infix fun Layout.then(onLayout: (PositionableContainer) -> Unit): Layout 
     layout(container)
 
     onLayout(container)
+}
+
+/**
+ * Helper for creating simple [Layout]s.
+ *
+ * @param block that is called during layout
+ * @return a Layout that performs the operations of [block]
+ */
+public fun layout(block: (PositionableContainer) -> Unit): Layout = object: Layout {
+    override fun layout(container: PositionableContainer) {
+        block(container)
+    }
 }

@@ -30,8 +30,10 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.then
@@ -142,6 +144,23 @@ public fun textField(
         validator: (String) -> Boolean = { true },
         config   : TextFieldConfig<String>.() -> Unit = {}
 ): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), validator, config)
+
+/**
+ * Creates a [CheckBox] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param label used for the checkbox
+ */
+public fun check(label: String): FieldVisualizer<Boolean> = field {
+    CheckBox(label).apply {
+        initial.ifValid { selected = it }
+
+        selectedChanged += { _,_,_ ->
+            state = Valid(selected)
+        }
+
+        state = Valid(selected)
+    }
+}
 
 /**
  * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
@@ -1283,7 +1302,7 @@ private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
 }
 
-private class ExpandingVerticalLayout(private val form: View, spacing: Double, private val itemHeight: Double? = null): Layout {
+private class ExpandingVerticalLayout(private val view: View, spacing: Double, private val itemHeight: Double? = null): Layout {
     private val delegate = ListLayout(spacing = spacing, widthSource = WidthSource.Parent)
 
     private fun maxOrNull(first: Double?, second: Double?): Double? = when {
@@ -1292,16 +1311,20 @@ private class ExpandingVerticalLayout(private val form: View, spacing: Double, p
         else                            -> second
     }
 
+    override fun requiresLayout(child: Positionable, old: SizePreferences, new: SizePreferences) =
+            (itemHeight == null && old.idealSize != new.idealSize) || delegate.requiresLayout(child, old, new)
+
     override fun layout(container: PositionableContainer) {
         container.children.forEach { child ->
+            // TODO: Fix so that itemHeight is used over ideal height if set
             (child.idealSize?.height ?: itemHeight)?.let { child.height = it }
         }
 
         delegate.layout(container)
 
-        val size = Size(container.width, container.children.last().bounds.bottom + container.insets.bottom)
-        this.form.idealSize = size
-        this.form.size      = Size(size.width, max(size.height, this.form.height))
+        val size       = Size(container.width, container.children.last().bounds.bottom + container.insets.bottom)
+        view.size      = Size(size.width, max(size.height, this.view.height))
+        view.idealSize = size
     }
 }
 
@@ -1313,6 +1336,6 @@ private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26
     label_.centerY  = button_.centerY
 }
 
-private const val DEFAULT_HEIGHT       = 32.0
+private const val DEFAULT_HEIGHT       = 32.2
 private const val DEFAULT_SPACING      =  2.0
 private const val DEFAULT_FORM_SPACING = 12.0
