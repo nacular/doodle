@@ -19,10 +19,11 @@ import io.nacular.doodle.utils.NoOpCompletable
 
 
 public open class BasicSwitchBehavior(
-        private val onBackground      : Color = Blue,
-        private val onForeground      : Color = White,
-        private val offBackground     : Color = Lightgray,
-        private val offForeground     : Color = onForeground): CommonButtonBehavior<Switch>() {
+        private val onBackground : Color         = Blue,
+        private val onForeground : Color         = White,
+        private val offBackground: Color         = Lightgray,
+        private val offForeground: Color         = onForeground,
+                    focusManager : FocusManager? = null): CommonButtonBehavior<Switch>(focusManager) {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }

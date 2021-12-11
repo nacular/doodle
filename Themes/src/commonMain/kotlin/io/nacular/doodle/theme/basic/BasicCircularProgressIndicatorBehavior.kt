@@ -10,6 +10,7 @@ import io.nacular.doodle.geometry.SegmentBuilder
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.geometry.ring
 import io.nacular.doodle.geometry.ringSection
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.RotationDirection
 import io.nacular.doodle.utils.RotationDirection.Clockwise
 import io.nacular.measured.units.Angle
@@ -48,6 +49,8 @@ public class BasicCircularProgressIndicatorBehavior(
         public var startCap  : SegmentBuilder    = { _,it -> lineTo(it) },
         public var endCap    : SegmentBuilder    = { _,_  ->            }
 ): ProgressIndicatorBehavior<ProgressIndicator>() {
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
     override fun render(view: ProgressIndicator, canvas: Canvas) {
         val stroke = outline?.let { if (thickness > 2 * it.thickness) outline else null }
 
@@ -57,7 +60,8 @@ public class BasicCircularProgressIndicatorBehavior(
         val outlineOffset   = (stroke?.let { stroke.thickness / 2 } ?: 0.0)
         val ringOuterRadius = outerRadius - outlineOffset
         val ringInnerRadius = innerRadius + outlineOffset
-        val bground         = background
+        val bground         = background?.let { if (view.enabled) it else disabledPaintMapper(it) }
+        val fground         = if (view.enabled) foreground else disabledPaintMapper(foreground)
 
         when {
             stroke  != null && bground != null -> canvas.path(ring(center, ringInnerRadius, ringOuterRadius), stroke, bground)
@@ -71,8 +75,8 @@ public class BasicCircularProgressIndicatorBehavior(
         }
 
         when {
-            view.progress < 1.0 -> canvas.path(ringSection(center, ringInnerRadius, ringOuterRadius, start = startAngle, end = operation(startAngle, 360 * degrees * view.progress), startCap, endCap), foreground)
-            else                -> canvas.path(ring       (center, ringInnerRadius, ringOuterRadius),                                                                                                   foreground)
+            view.progress < 1.0 -> canvas.path(ringSection(center, ringInnerRadius, ringOuterRadius, start = startAngle, end = operation(startAngle, 360 * degrees * view.progress), startCap, endCap), fground)
+            else                -> canvas.path(ring       (center, ringInnerRadius, ringOuterRadius),                                                                                                   fground)
         }
     }
 

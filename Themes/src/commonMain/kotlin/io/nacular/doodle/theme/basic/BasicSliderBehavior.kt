@@ -8,11 +8,11 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
-import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
@@ -30,14 +30,7 @@ public class BasicSliderBehavior2<T>(
             barColor            : Color = Lightgray,
             knobColor           : Color = Blue,
             grooveThicknessRatio: Float = 0.6f,
-            focusManager        : FocusManager? = null): this(barColor.paint, knobColor.paint, grooveThicknessRatio, focusManager) {
-                disabledPaintMapper = {
-                    when (it) {
-                        is ColorPaint -> it.color.lighter().paint
-                        else          -> it
-                    }
-                }
-            }
+            focusManager        : FocusManager? = null): this(barColor.paint, knobColor.paint, grooveThicknessRatio, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
 
@@ -53,12 +46,7 @@ public class BasicSliderBehavior2<T>(
         disabledPaintMapper = new.toPaintMapper()
     }
 
-    public var disabledPaintMapper: PaintMapper = {
-        when (it) {
-            is ColorPaint -> it.color.lighter().paint
-            else          -> it
-        }
-    }
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
     override fun render(view: Slider2<T>, canvas: Canvas) {
         val rect1: Rectangle
