@@ -10,14 +10,16 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.reflect.KClass
 
-@Deprecated("Will be replaced soon with typed version soon.")
 public typealias ValueSlider = ValueSlider2<Double>
 
-public abstract class ValueSlider2<T> private constructor(
-        model: ConfinedValueModel<T>,
-        protected val role: SliderRole = SliderRole()): View(role) where T: Number, T: Comparable<T> {
-    public constructor(model: ConfinedValueModel<T>): this(model, SliderRole())
-    public constructor(range: ClosedRange<T>, value: T = range.start): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>)
+public abstract class ValueSlider2<T> internal constructor(
+                     model: ConfinedValueModel<T>,
+        protected val role: SliderRole = SliderRole(),
+        private val type: KClass<T>): View(role) where T: Number, T: Comparable<T> {
+
+    protected constructor(model: ConfinedValueModel<T>, type: KClass<T>): this(model, role = SliderRole(), type)
+
+    public constructor(range: ClosedRange<T>, value: T = range.start, type: KClass<T>): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, type)
 
     private var roleBinding by binding(role.bind(model))
 
@@ -43,8 +45,16 @@ public abstract class ValueSlider2<T> private constructor(
     public var value: T
         get(   ) = model.value
         set(new) {
-            model.value = if (snapToTicks && snapSize > 0) (round(new.toDouble() / snapSize) * snapSize).cast(value::class) else new
+            model.value = if (snapToTicks && snapSize > 0) cast((round(new.toDouble() / snapSize) * snapSize)) else new
         }
+
+    internal fun set(to: Double) {
+        value = cast(to)
+    }
+
+    internal fun adjust(by: Double) {
+        value = cast(value.toDouble() + by)
+    }
 
     public var range: ClosedRange<T>
         get(   ) = model.limits
@@ -58,6 +68,19 @@ public abstract class ValueSlider2<T> private constructor(
 
     private var snapSize = 0.0
 
+    private fun cast(value: Double): T {
+        return when (type) {
+            Int::class    -> value.toInt           () as T
+            Float::class  -> value.toFloat         () as T
+            Double::class -> value                    as T
+            Long::class   -> value.toLong          () as T
+            Char::class   -> value.toInt().toChar  () as T
+            Short::class  -> value.toInt().toShort () as T
+            Byte::class   -> value.toInt().toByte  () as T
+            else          -> value                    as T
+        }
+    }
+
     init {
         model.valueChanged += modelChanged
     }
@@ -65,17 +88,3 @@ public abstract class ValueSlider2<T> private constructor(
 
 @Suppress("UNCHECKED_CAST")
 internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() + 1) as T
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T> Number.cast(type: KClass<*>): T {
-    return when (type) {
-        Int::class    -> this.toInt   () as T
-        Float::class  -> this.toFloat () as T
-        Double::class -> this.toDouble() as T
-        Long::class   -> this.toLong  () as T
-        Char::class   -> this.toChar  () as T
-        Short::class  -> this.toShort () as T
-        Byte::class   -> this.toByte  () as T
-        else          -> this            as T
-    }
-}

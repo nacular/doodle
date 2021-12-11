@@ -546,7 +546,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Refresh [needsMirrorTransform] flag to allow rerender if needed.
      */
     internal fun updateNeedsMirror() {
-        needsMirrorTransform = mirrored != (parent?.mirrored ?: display?.mirrored == true)
+        needsMirrorTransform = mirrored != ((parent?.mirrored ?: display?.mirrored) == true)
     }
 
     // ================= Container ================= //
@@ -975,7 +975,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         bounds = Rectangle(x, y, width, height)
     }
 
-    private val positionableWrapper by lazy { PositionableContainerWrapper(this) }
+    internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 
     public companion object {
         /**

@@ -11,6 +11,7 @@ import io.nacular.doodle.drawing.impl.Type.Check
 import io.nacular.doodle.drawing.impl.Type.Radio
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
@@ -21,8 +22,9 @@ import io.nacular.doodle.system.Cursor.Companion.Default
 internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
         private val nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
                     textMetrics                     : TextMetrics,
+                    focusManager                    : FocusManager?,
         private val button                          : Button,
-        private val type                            : Type): CommonTextButtonBehavior<ToggleButton>(textMetrics) {
+        private val type                            : Type): CommonTextButtonBehavior<ToggleButton>(textMetrics, focusManager = focusManager) {
 
     private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
 
@@ -84,16 +86,19 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 internal class NativeCheckBoxBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
-        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Check)
+        focusManager                    : FocusManager?,
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, focusManager, button, Check)
 
 
 internal class NativeRadioButtonBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
-        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Radio)
+        focusManager                    : FocusManager?,
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, focusManager, button, Radio)
 
 
 internal class NativeSwitchBehavior(
         nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
         textMetrics                     : TextMetrics,
-        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, button, Check)
+        focusManager                    : FocusManager?,
+        button                          : Button): CommonNativeCheckBoxRadioButtonBehavior(nativeCheckBoxRadioButtonFactory, textMetrics, focusManager, button, Check)

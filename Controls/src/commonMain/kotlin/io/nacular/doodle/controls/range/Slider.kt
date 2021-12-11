@@ -10,8 +10,8 @@ import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import kotlin.reflect.KClass
 
-@Deprecated("Will be replaced with typed version soon.")
 public typealias Slider = Slider2<Double>
 
 /**
@@ -23,15 +23,13 @@ public typealias Slider = Slider2<Double>
  */
 public open class Slider2<T>(
         model: ConfinedValueModel<T>,
-        public val orientation: Orientation = Horizontal): ValueSlider2<T>(model) where T: Number, T: Comparable<T>  {
-    /**
-     * Creates a Slider with a given range and starting value.
-     *
-     * @param range of the bar
-     * @param value to start with
-     * @param orientation of the control
-     */
-    public constructor(range: ClosedRange<Double> = 0.0 .. 100.0, value: Double = range.start, orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation)
+        public val orientation: Orientation = Horizontal,
+        type: KClass<T>): ValueSlider2<T>(model, type) where T: Number, T: Comparable<T>  {
+
+    public constructor(
+            range: ClosedRange<Double> = 0.0..100.0,
+            value: Double = range.start,
+            orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, Double::class as KClass<T>)
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<Slider2<T>, T>(this) }
@@ -55,6 +53,26 @@ public open class Slider2<T>(
     }
 
     public companion object {
-        public operator fun <T> invoke(range: ClosedRange<T>): Slider2<T> where T: Number, T: Comparable<T> = Slider2(BasicConfinedValueModel(range, range.start) as ConfinedValueModel<T>)
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        public inline operator fun <reified T> invoke(
+                range      : ClosedRange<T>,
+                value      : T = range.start,
+                orientation: Orientation = Horizontal): Slider2<T> where T: Number, T: Comparable<T> = Slider2(model = BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, T::class)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        public inline operator fun <reified T> invoke(
+                model      : ConfinedValueModel<T>,
+                orientation: Orientation = Horizontal): Slider2<T> where T: Number, T: Comparable<T> = Slider2(model, orientation, T::class)
     }
 }

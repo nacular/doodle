@@ -3,7 +3,9 @@ package io.nacular.doodle.layout
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -21,6 +23,13 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
                                   private val horizontalSpacing: Double              = 1.0,
                                   private val verticalAlignment: VerticalAlignment   = Top): Layout {
 
+    public constructor(justification    : HorizontalAlignment = Left,
+                       spacing          : Double              = 1.0,
+                       verticalAlignment: VerticalAlignment   = Top): this(justification, spacing, spacing, verticalAlignment)
+
+    override fun requiresLayout(container: PositionableContainer, old: Size, new: Size): Boolean = old.width != new.width
+
+    override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences): Boolean = old.idealSize != new.idealSize
 
     override fun layout(container: PositionableContainer) {
         var y            = container.insets.top
@@ -61,6 +70,8 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
         if (itemList.isNotEmpty()) {
             layoutLine(itemList, container, lineWidth, y, lineHeight)
         }
+
+        container.idealSize = Size(container.width, container.children.last().bounds.bottom)
     }
 
     private fun layoutLine(itemList: List<Positionable>, parent: PositionableContainer, lineWidth: Double, lineY: Double, lineHeight: Double) {

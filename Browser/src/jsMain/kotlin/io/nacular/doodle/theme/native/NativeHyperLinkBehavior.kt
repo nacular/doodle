@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.focus.FocusManager
 
 @Deprecated("Replace with `NativeHyperLinkStyler`", replaceWith = ReplaceWith("NativeHyperLinkStyler"))
 public typealias NativeHyperLinkBehaviorBuilder = NativeHyperLinkStyler
@@ -40,9 +41,10 @@ private class NativeHyperLinkBehaviorWrapper(
 internal class NativeHyperLinkBehavior(
                     nativeHyperLinkFactory: NativeHyperLinkFactory,
                     textMetrics           : TextMetrics,
+                    focusManager          : FocusManager?,
                     hyperLink             : HyperLink,
         private val customRenderer        : (CommonTextButtonBehavior<HyperLink>.(HyperLink, Canvas) -> Unit)? = null
-): CommonTextButtonBehavior<HyperLink>(textMetrics) {
+): CommonTextButtonBehavior<HyperLink>(textMetrics, focusManager = focusManager) {
 
     private val nativePeer by lazy {
         val renderer: ((HyperLink, Canvas) -> Unit)? = customRenderer?.let { renderer ->

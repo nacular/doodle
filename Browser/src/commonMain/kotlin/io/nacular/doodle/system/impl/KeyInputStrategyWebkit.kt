@@ -4,6 +4,7 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.event.KeyCode
+import io.nacular.doodle.event.KeyCode.Companion.Space
 import io.nacular.doodle.event.KeyCode.Companion.Tab
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.event.KeyState.Type
@@ -44,13 +45,19 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
         }
     }
 
+    private var previousKeyDownResponse = false
+
     private fun allowKey(event: KeyboardEvent) = when (KeyCode(event.code)) {
         Tab  -> false
         else -> isNativeElement(event.target)
     }
 
-    private fun keyUp  (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ) || isNativeElement(event.target)
-    private fun keyDown(event: KeyboardEvent) = dispatchKeyEvent(event, Down) || allowKey(event)
+    private fun keyUp   (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ) || isNativeElement(event.target)
+    private fun keyDown (event: KeyboardEvent) = dispatchKeyEvent(event, Down).also { previousKeyDownResponse = it } || allowKey(event)
+    private fun keyPress(event: KeyboardEvent) = when (KeyCode(event.code)) {
+        Space -> previousKeyDownResponse || isNativeElement(event.target)
+        else  -> true
+    }
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.invoke(
         KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
@@ -64,8 +71,9 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup   = { this@KeyInputStrategyWebkit.keyUp  (it) }
-        onkeydown = { this@KeyInputStrategyWebkit.keyDown(it) }
+        onkeyup    = { this@KeyInputStrategyWebkit.keyUp  (it) }
+        onkeydown  = { this@KeyInputStrategyWebkit.keyDown(it) }
+        onkeypress = { this@KeyInputStrategyWebkit.keyPress(it) }
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {

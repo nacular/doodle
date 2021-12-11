@@ -1,7 +1,9 @@
 package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.WidthSource.Children
@@ -16,6 +18,8 @@ public enum class WidthSource {
 public class ListLayout(private val spacing: Double = 0.0, private val widthSource: WidthSource = Children): Layout {
 
     public constructor(spacing: Int, widthSource: WidthSource = Children): this(spacing.toDouble(), widthSource)
+
+    override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences): Boolean = widthSource != Parent && old.idealSize != new.idealSize
 
     override fun layout(container: PositionableContainer) {
         // TODO: Can this be cleaned up to use idealSize?
@@ -56,7 +60,7 @@ public class ListLayout(private val spacing: Double = 0.0, private val widthSour
 
         container.children.filter { it.visible }.forEach {
             if (widthSource == Children) {
-                width = max(width, it.idealSize?.width ?: it.width + insets.left + insets.right)
+                width = max(width, (it.idealSize?.width ?: it.width) + insets.left + insets.right)
             }
 
             y += it.height + if (++i < container.children.size) spacing else 0.0

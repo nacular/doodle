@@ -94,17 +94,46 @@ public interface Layout {
      */
     public fun layout(container: PositionableContainer)
 
+    /**
+     * Indicates whether a layout is needed because of the given size change to the Container.
+     * This is called whenever the container's `size` changes.
+     *
+     * @param container managed by this Layout
+     * @param old size of the container
+     * @param new size of the container
+     * @return `true` if a layout is needed
+     */
     public fun requiresLayout(container: PositionableContainer, old: Size, new: Size): Boolean = true
 
-    public fun requiresLayout(child: Positionable, old: Rectangle, new: Rectangle): Boolean = true
+    /**
+     * Indicates whether a layout is needed because of the given bounds change to a child of the given Container.
+     * This is called whenever the container's `size` changes.
+     *
+     * @param child whose bounds has changed
+     * @param of the given container
+     * @param old bounds of the child
+     * @param new bounds of the child
+     * @return `true` if a layout is needed
+     */
+    public fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle, new: Rectangle): Boolean = true
 
-    public fun requiresLayout(child: Positionable, old: SizePreferences, new: SizePreferences): Boolean = false
+    /**
+     * Indicates whether a layout is needed because of the given size preferences change to a child of the given Container.
+     * This is called whenever the container's `size` changes.
+     *
+     * @param child whose bounds has changed
+     * @param of the given container
+     * @param old preferences of the child
+     * @param new preferences of the child
+     * @return `true` if a layout is needed
+     */
+    public fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences): Boolean = false
 
     /**
      * Returns the minimum size of the Positionable based on its contents.
      *
-     * @param  container The Positionable being investigated
-     * @param  default The size to use if one can't be calculated
+     * @param  container managed by this Layout
+     * @param  default size to use if one can't be calculated
      * @return the minimum size
      */
     public fun minimumSize(container: PositionableContainer, default: Size = Empty): Size = default
@@ -158,16 +187,4 @@ public infix fun Layout.then(onLayout: (PositionableContainer) -> Unit): Layout 
     layout(container)
 
     onLayout(container)
-}
-
-/**
- * Helper for creating simple [Layout]s.
- *
- * @param block that is called during layout
- * @return a Layout that performs the operations of [block]
- */
-public fun layout(block: (PositionableContainer) -> Unit): Layout = object: Layout {
-    override fun layout(container: PositionableContainer) {
-        block(container)
-    }
 }

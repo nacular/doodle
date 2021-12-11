@@ -15,7 +15,7 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
-import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.controls.range.CircularSlider2
 import io.nacular.doodle.controls.range.Slider2
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
@@ -31,11 +31,17 @@ import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.GradientPaint
+import io.nacular.doodle.drawing.ImagePaint
+import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.grayScale
@@ -47,6 +53,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
@@ -118,8 +125,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public val lightBackgroundColor  : Color  get() = Color(0xf3f4f5u)
         public val defaultBackgroundColor: Color  get() = backgroundColor
         public val cornerRadius          : Double get() = 6.0
-        public val hoverColorMapper      : (Color) -> Color get() = { color: Color -> color.darker(0.1f) }
-        public val disabledColorMapper   : (Color) -> Color get() = { color: Color -> color.lighter()    }
+        public val hoverColorMapper      : ColorMapper get() = { it.darker(0.1f) }
+        public val disabledColorMapper   : ColorMapper get() = { it.lighter()    }
+        public val disabledPaintMapper   : PaintMapper get() = defaultDisabledPaintMapper
     }
 
     public interface ConfigProvider {
@@ -319,7 +327,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             borderColor         = borderColor         ?: this.borderColor,
                             borderWidth         = borderWidth         ?: 0.0,
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
-                            insets              = insets              ?: 8.0).apply {
+                            insets              = insets              ?: 8.0,
+                            focusManager        = instanceOrNull()).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
                     }
@@ -327,18 +336,32 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public fun basicSliderBehavior(barColor: Color? = null, knobColor: Color? = null, grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
+        public fun basicSliderBehavior(
+                barFill             : Paint? = null,
+                knobFill            : Paint? = null,
+                grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider2<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSliderBehavior2(
-                            barColor             ?: defaultBackgroundColor,
-                            knobColor            ?: darkBackgroundColor,
+                    BasicSliderBehavior2<Double>(
+                            barFill             ?: defaultBackgroundColor.paint,
+                            knobFill            ?: darkBackgroundColor.paint,
                             grooveThicknessRatio ?: 0.5f,
                             instanceOrNull()
-                    )
+                    ).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
                 }
             }
         }
+
+        public inline fun basicSliderBehavior(
+                barColor            : Color?,
+                grooveThicknessRatio: Float? = null): Module = basicSliderBehavior(barColor?.paint, null, grooveThicknessRatio)
+
+        public inline fun basicSliderBehavior(
+                barColor            : Color? = null,
+                knobColor           : Color?,
+                grooveThicknessRatio: Float? = null): Module = basicSliderBehavior(barColor?.paint, knobColor?.paint, grooveThicknessRatio)
 
         public fun basicSpinnerBehavior(
                 backgroundColor    : Color?  = null,
@@ -433,7 +456,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
                         hoverColorMapper    = this@run.hoverColorMapper,
-                        disabledColorMapper = this@run.disabledColorMapper) as Behavior<Button>
+                        disabledColorMapper = this@run.disabledColorMapper,
+                        focusManager        = instanceOrNull()
+                    ) as Behavior<Button>
                 }
             }
         }
@@ -452,7 +477,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
                         innerCircleInset    = innerCircleInset    ?: 4.0,
-                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                        focusManager        = instanceOrNull(),
                 ) as Behavior<Button> }
             }
         }
@@ -469,7 +495,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             onBackground ?: Blue,
                             onForeground ?: White,
                             offBackground?: backgroundColor,
-                            offForeground?: onForeground ?: White).apply {
+                            offForeground?: onForeground ?: White,
+                            focusManager = instanceOrNull()).apply {
                         hoverColorMapper    = this@run.hoverColorMapper
                         disabledColorMapper = this@run.disabledColorMapper
                     } as Behavior<Button>
@@ -496,7 +523,10 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             foreground       = foreground ?: darkBackgroundColor.paint,
                             outlineColor     = outlineColor,
                             backgroundRadius = backgroundRadius ?: cornerRadius,
-                            foregroundRadius = foregroundRadius ?: 0.0) as Behavior<ProgressIndicator> }
+                            foregroundRadius = foregroundRadius ?: 0.0).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    } as Behavior<ProgressIndicator>
+                }
             }
         }
 
@@ -519,7 +549,10 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         startAngle,
                         direction,
                         startCap,
-                        endCap)
+                        endCap
+                    ).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
                 }
             }
         }
@@ -541,7 +574,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         background          = background ?: defaultBackgroundColor.paint,
                         foregroundThickness = foregroundThickness,
                         backgroundThickness = backgroundThickness,
-                        direction           = direction)
+                        direction           = direction).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
                 }
             }
         }
@@ -551,14 +586,16 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 knobFill : Paint? = null,
                 thickness: Double = 20.0
         ): Module = basicThemeModule(name = "BasicCircularSliderBehavior") {
-            bindBehavior<CircularSlider>(BTheme::class) {
+            bindBehavior<CircularSlider2<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicCircularSliderBehavior(
+                    BasicCircularSliderBehavior2<Double>(
                         barFill      = barFill  ?: defaultBackgroundColor.paint,
                         knobFill     = knobFill ?: darkBackgroundColor.paint,
                         thickness    = thickness,
                         focusManager = instanceOrNull()
-                    )
+                    ).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
                 }
             }
         }
@@ -570,15 +607,18 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             bindBehavior<TabbedPanel<Any>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicTabbedPanelBehavior(
-                            tabProducer     ?: BasicTabProducer(
-                                    tabColor            = backgroundColor ?: this.backgroundColor,
-                                    hoverColorMapper    = this@run.hoverColorMapper,
-                                    selectedColorMapper = { foregroundColor.inverted }
-                            ),
-                            backgroundColor ?: this.backgroundColor,
-                            tabContainer?.let { { panel: TabbedPanel<Any>, tabProducer: TabProducer<Any> ->
+                        tabProducer ?: BasicTabProducer(
+                                tabColor            = backgroundColor ?: this.backgroundColor,
+                                hoverColorMapper    = this@run.hoverColorMapper,
+                                selectedColorMapper = { foregroundColor.inverted }
+                        ),
+                        backgroundColor ?: this.backgroundColor,
+                        tabContainer?.let {
+                            { panel: TabbedPanel<Any>, tabProducer: TabProducer<Any> ->
                                 it(this@bindBehavior, panel, tabProducer)
-                            } } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) })
+                            }
+                        } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) }
+                    )
                 }
             }
         }
