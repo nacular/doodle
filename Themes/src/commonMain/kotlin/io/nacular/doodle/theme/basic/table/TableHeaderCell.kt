@@ -5,9 +5,10 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Gray
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
+import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -19,9 +20,11 @@ import io.nacular.doodle.system.Cursor.Companion.EResize
 import io.nacular.doodle.system.Cursor.Companion.EWResize
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.system.Cursor.Companion.WResize
+import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Pool
+import kotlin.Double.Companion.MAX_VALUE
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
@@ -45,6 +48,8 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
         it.headerAlignment?.let { positioner = it }
     }
 
+    private var disabledColorMapper: ColorMapper = { it.lighter() }
+
     init {
         var resizing        = false
         var pointerDown     = false
@@ -57,9 +62,9 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
         }
 
         fun newCursor() = when {
-            column.width > column.minWidth && column.width < column.maxWidth ?: Double.MAX_VALUE -> EWResize
-            column.width < column.maxWidth ?: Double.MAX_VALUE                                   -> EResize
-            else                                                                                 -> WResize
+            column.width > column.minWidth && column.width < (column.maxWidth ?: MAX_VALUE) -> EWResize
+            column.width < (column.maxWidth ?: MAX_VALUE)                                   -> EResize
+            else                                                                            -> WResize
         }
 
         fun overHandle(pointerLocation: Point) = pointerLocation.x in width - 5.0..width
@@ -164,8 +169,13 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
     override fun render(canvas: Canvas) {
         val x = width - lineThickness / 2
 
-        backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorPaint(it)) }
-        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(headerColor?.inverted ?: Gray, lineThickness))
+        backgroundColor?.let {
+            canvas.rect(bounds.atOrigin, (if (enabled) it else disabledColorMapper(it)).paint)
+        }
+
+        val strokeColor = (headerColor?.inverted ?: Gray).let { if (enabled) it else disabledColorMapper(it) }
+
+        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(strokeColor, lineThickness))
     }
 
     private companion object {

@@ -23,14 +23,15 @@ internal class ElementRulerImpl(htmlFactory: HtmlFactory): ElementRuler {
 
         element.style.willChange = "transform"
 
-        return if (element.parent == null) {
-            ruler.insert(element, 0)
+        return when (element.parent) {
+            null -> {
+                ruler.insert(element, 0)
 
-            element.run(block).also {
-                ruler.removeChild(element)
+                element.run(block).also {
+                    ruler.removeChild(element)
+                }
             }
-        } else {
-            element.run(block)
+            else -> element.run(block)
         }.also {
             element.style.willChange = old
         }

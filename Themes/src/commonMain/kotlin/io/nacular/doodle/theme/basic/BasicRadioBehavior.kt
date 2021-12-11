@@ -11,6 +11,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -60,14 +61,15 @@ private class BasicRadioIcon(
 
 public class BasicRadioBehavior private constructor(
         textMetrics        : TextMetrics,
-        foregroundColor    : Color = Black,
-        backgroundColor    : Color = Lightgray,
-        darkBackgroundColor: Color = backgroundColor.darker(),
-        iconSpacing        : Double = 8.0,
+        foregroundColor    : Color                   = Black,
+        backgroundColor    : Color                   = Lightgray,
+        darkBackgroundColor: Color                   = backgroundColor.darker(),
+        iconSpacing        : Double                  = 8.0,
         innerCircleInset   : (RadioButton) -> Double = { 4.0 },
-        size               : (RadioButton) -> Size = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-        hoverColorMapper   : ColorMapper = { it.darker(0.1f) },
-        disabledColorMapper: ColorMapper = { it.lighter()    }
+        size               : (RadioButton) -> Size   = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+        hoverColorMapper   : ColorMapper             = { it.darker(0.1f) },
+        disabledColorMapper: ColorMapper             = { it.lighter()    },
+        focusManager       : FocusManager?           = null,
 ): CheckRadioButtonBehavior<RadioButton>(
         textMetrics,
         foregroundColor,
@@ -81,18 +83,20 @@ public class BasicRadioBehavior private constructor(
                 disabledColorMapper = disabledColorMapper
         ),
         iconSpacing,
-        disabledColorMapper
+        disabledColorMapper,
+        focusManager
 ) {
     @Deprecated("Use constructor with size instead")
     public constructor(
             textMetrics        : TextMetrics,
-            foregroundColor    : Color = Black,
-            backgroundColor    : Color = Lightgray,
-            darkBackgroundColor: Color = backgroundColor.darker(),
-            iconSpacing        : Double = 8.0,
-            innerCircleInset   : Double = 4.0,
-            hoverColorMapper   : ColorMapper = { it.darker(0.1f) },
-            disabledColorMapper: ColorMapper = { it.lighter()    }): this(
+            foregroundColor    : Color         = Black,
+            backgroundColor    : Color         = Lightgray,
+            darkBackgroundColor: Color         = backgroundColor.darker(),
+            iconSpacing        : Double        = 8.0,
+            innerCircleInset   : Double        = 4.0,
+            hoverColorMapper   : ColorMapper   = { it.darker(0.1f) },
+            disabledColorMapper: ColorMapper   = { it.lighter()    },
+            focusManager       : FocusManager? = null): this(
             textMetrics         = textMetrics,
             foregroundColor     = foregroundColor,
             backgroundColor     = backgroundColor,
@@ -100,18 +104,20 @@ public class BasicRadioBehavior private constructor(
             iconSpacing         = iconSpacing,
             innerCircleInset    = { innerCircleInset },
             hoverColorMapper    = hoverColorMapper,
-            disabledColorMapper = disabledColorMapper)
+            disabledColorMapper = disabledColorMapper,
+            focusManager        = focusManager)
 
     public companion object {
         public operator fun invoke(
             textMetrics        : TextMetrics,
-            foregroundColor    : Color = Black,
-            backgroundColor    : Color = Lightgray,
-            darkBackgroundColor: Color = backgroundColor.darker(),
-            iconSpacing        : Double = 8.0,
-            innerCircleInset   : Double = 4.0,
-            hoverColorMapper   : ColorMapper = { it.darker(0.1f) },
-            disabledColorMapper: ColorMapper = { it.lighter()    }): BasicRadioBehavior = BasicRadioBehavior(
+            foregroundColor    : Color         = Black,
+            backgroundColor    : Color         = Lightgray,
+            darkBackgroundColor: Color         = backgroundColor.darker(),
+            iconSpacing        : Double        = 8.0,
+            innerCircleInset   : Double        = 4.0,
+            hoverColorMapper   : ColorMapper   = { it.darker(0.1f) },
+            disabledColorMapper: ColorMapper   = { it.lighter()    },
+            focusManager       : FocusManager? = null): BasicRadioBehavior = BasicRadioBehavior(
                 textMetrics,
                 foregroundColor,
                 backgroundColor,
@@ -119,7 +125,8 @@ public class BasicRadioBehavior private constructor(
                 iconSpacing,
                 innerCircleInset,
                 hoverColorMapper,
-                disabledColorMapper)
+                disabledColorMapper,
+                focusManager)
 
         public operator fun invoke(
                 textMetrics        : TextMetrics,
@@ -128,9 +135,10 @@ public class BasicRadioBehavior private constructor(
                 darkBackgroundColor: Color = backgroundColor.darker(),
                 iconSpacing        : Double = 8.0,
                 innerCircleInset   : (RadioButton) -> Double = { 4.0 },
-                iconSize           : (RadioButton) -> Size = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-                hoverColorMapper   : ColorMapper = { it.darker(0.1f) },
-                disabledColorMapper: ColorMapper = { it.lighter()    }): BasicRadioBehavior = BasicRadioBehavior(
+                iconSize           : (RadioButton) -> Size   = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+                hoverColorMapper   : ColorMapper             = { it.darker(0.1f) },
+                disabledColorMapper: ColorMapper             = { it.lighter()    },
+                focusManager       : FocusManager?           = null): BasicRadioBehavior = BasicRadioBehavior(
                 textMetrics,
                 foregroundColor,
                 backgroundColor,
@@ -139,6 +147,7 @@ public class BasicRadioBehavior private constructor(
                 innerCircleInset,
                 iconSize,
                 hoverColorMapper,
-                disabledColorMapper)
+                disabledColorMapper,
+                focusManager)
     }
 }

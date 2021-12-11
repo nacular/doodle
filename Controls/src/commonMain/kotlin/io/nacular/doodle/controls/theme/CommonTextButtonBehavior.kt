@@ -6,9 +6,11 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -23,10 +25,10 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 10/3/18.
  */
 public abstract class CommonTextButtonBehavior<in T: Button>(
-        private val textMetrics: TextMetrics,
-        private val defaultFont: Font?  = null,
-        private val insets     : Insets = Insets.None): CommonButtonBehavior<T>() {
-
+        private val textMetrics : TextMetrics,
+        private val defaultFont : Font?         = null,
+        private val insets      : Insets        = None,
+                    focusManager: FocusManager? = null): CommonButtonBehavior<T>(focusManager) {
 
     protected open val textChanged: (Button, String, String) -> Unit = { button,_,_ ->
         button.rerender()
@@ -124,6 +126,15 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
     public fun font(button: Button): Font? = button.font ?: defaultFont
 }
 
-public inline fun <T: Button> simpleTextButtonRenderer(textMetrics: TextMetrics, crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics) {
+public inline fun <T: Button> simpleTextButtonRenderer(
+        textMetrics : TextMetrics,
+        focusManager: FocusManager?,
+        crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
+    override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
+}
+
+public inline fun <T: Button> simpleTextButtonRenderer(
+        textMetrics : TextMetrics,
+        crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = null) {
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }

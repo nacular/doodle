@@ -706,8 +706,17 @@ public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<
         override val darkBackgroundColor   : Color = super.darkBackgroundColor.inverted
         override val lightBackgroundColor  : Color = Color(0x282928u)
         override val defaultBackgroundColor: Color = super.defaultBackgroundColor.inverted
-        override val hoverColorMapper      : (Color) -> Color = { color: Color -> color.lighter(0.3f) }
-        override val disabledColorMapper   : (Color) -> Color = { color: Color -> color.darker()      }
+        override val hoverColorMapper      : ColorMapper = { it.lighter(0.3f) }
+        override val disabledColorMapper   : ColorMapper = { it.darker()      }
+        override val disabledPaintMapper   : PaintMapper = {
+            when (it) {
+                is ColorPaint          -> it.color.darker().paint
+                is LinearGradientPaint -> LinearGradientPaint(it.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = it.start, end = it.end)
+                is RadialGradientPaint -> RadialGradientPaint(it.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = it.start, end = it.end)
+                is ImagePaint          -> ImagePaint(image = it.image, size = it.size, opacity = it.opacity * 0.5f)
+                else                   -> it
+            }
+        }
     }
 
     override val config: BasicThemeConfig = DarkBasicThemeConfig()

@@ -20,6 +20,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
@@ -55,7 +56,8 @@ public class MaterialButtonBehavior(
         private val fonts          : FontLoader,
         private val textColor      : Color,
         private val backgroundColor: Color,
-        private val cornerRadius   : Double = 0.0): CommonTextButtonBehavior<Button>(textMetrics), PointerListener {
+        private val cornerRadius   : Double        = 0.0,
+                    focusManager   : FocusManager? = null): CommonTextButtonBehavior<Button>(textMetrics, focusManager = focusManager), PointerListener {
 
     private var fontTimer          = null as Cancelable?; set(new) { field?.cancel(); field = new }
     private var fontLoadJob        = null as Job?; set(new) {

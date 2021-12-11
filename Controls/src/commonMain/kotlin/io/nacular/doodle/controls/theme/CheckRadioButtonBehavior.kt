@@ -2,7 +2,6 @@ package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ToggleButton
-import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -10,6 +9,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.Anchor
@@ -24,7 +24,8 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         private val textColor          : Color,
         private val icon               : Icon<T>,
         private val spacing            : Double = 2.0,
-        private val disabledColorMapper: (Color) -> Color = { it.lighter() }): CommonTextButtonBehavior<T>(textMetrics) {
+        private val disabledColorMapper: (Color) -> Color = { it.lighter() },
+                    focusManager       : FocusManager? = null): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
 
     private val contentDirectionChanged: (source: View) -> Unit = { it.rerender() }
 
