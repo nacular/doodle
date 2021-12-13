@@ -78,7 +78,7 @@ public class ColorPicker(color: Color): View() {
                 (changed as PropertyObserversImpl).forEach { it(this, old, new) }
             }
 
-        private var selection = 1f to 0f
+        private var selection = color.saturation to 1f - color.value
             set(new) {
                 if (field == new) return
 

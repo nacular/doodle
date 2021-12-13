@@ -29,9 +29,12 @@ import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
+import io.nacular.doodle.core.ContainerBuilder
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.then
@@ -142,6 +145,31 @@ public fun textField(
         validator: (String) -> Boolean = { true },
         config   : TextFieldConfig<String>.() -> Unit = {}
 ): FieldVisualizer<String> = textField(pattern, PassThroughEncoder(), validator, config)
+
+/**
+ * Creates a [CheckBox] control that is bound to a [Field] (of type [Boolean]).
+ *
+ * @param label used to annotate the switch
+ */
+public fun check(label: View): FieldVisualizer<Boolean> = field {
+    container {
+        focusable = false
+        this += label
+        this += CheckBox().apply {
+            initial.ifValid { selected = it }
+
+            selectedChanged += { _,_,_ ->
+                state = Valid(selected)
+            }
+
+            state = Valid(selected)
+        }
+
+        layout = buttonItemLayout(children[1], children[0]).then {
+            idealSize = Size(width, children.maxOf { it.height })
+        }
+    }
+}
 
 /**
  * Creates a [CheckBox] control that is bound to a [Field] (of type [Boolean]).
@@ -1016,24 +1044,17 @@ public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): 
 }
 
 /**
- * Config for [framed] controls.
- *
- * @property container used to frame the control
- */
-public class FramedConfig internal constructor(public val container: Container)
-
-/**
  * Creates a [Container] with the result of [visualizer] as its only child, that is bound to a [Field].
  * This control simply wraps an existing one with a configurable container.
  *
  * @param visualizer being decorated
  */
-public fun <T> framed(visualizer: FramedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+public fun <T> framed(visualizer: ContainerBuilder.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
-        layout    = verticalLayout(this)
+        layout    = verticalLayout(this, itemHeight = DEFAULT_HEIGHT)
         focusable = false
 
-        this += visualizer(FramedConfig(this))(this@field)
+        this += visualizer(this)(this@field)
     }
 }
 
@@ -1220,12 +1241,11 @@ private fun <T> buildToggleList(
 
                         state = Valid(selection)
                     }
-                    sizePreferencesChanged += { _, _, _ ->
-                        relayout()
-                    }
                 }
 
-                this.layout = layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0])
+                this.layout = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0])).then {
+                    idealSize = Size(width, children.maxOf { it.height })
+                }
             }
         }
         this.layout = ExpandingVerticalLayout(this, builder.spacing, builder.itemHeight)
@@ -1257,7 +1277,9 @@ private fun <T> buildRadioList(
                 width = 16.0
             }
 
-            layout = buttonItemLayout(button = children[1], label = children[0])
+            layout = buttonItemLayout(button = children[1], label = children[0]).then {
+                idealSize = Size(width, children.maxOf { it.height })
+            }
         }
     }
     focusable = false
@@ -1309,8 +1331,12 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
         else                            -> second
     }
 
+    override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) =
+            (itemHeight == null && old.idealSize != new.idealSize) || delegate.requiresLayout(child, of, old, new)
+
     override fun layout(container: PositionableContainer) {
         container.children.forEach { child ->
+            // TODO: Fix so that itemHeight is used over ideal height if set
             (child.idealSize?.height ?: itemHeight)?.let { child.height = it }
         }
 
@@ -1325,9 +1351,8 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
     button_.width  = parent.width
     button_.height = parent.height
-
-    label_.left     = parent.left + labelOffset
-    label_.centerY  = button_.centerY
+    label_.left    = parent.left + labelOffset
+    label_.centerY = button_.centerY
 }
 
 private const val DEFAULT_HEIGHT       = 32.0

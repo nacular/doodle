@@ -6,27 +6,47 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Orientation.Horizontal
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
 
-@Deprecated("Will be replaced soon with typed version soon.")
 public typealias BasicSliderBehavior = BasicSliderBehavior2<Double>
 
 public class BasicSliderBehavior2<T>(
-        private val barColor            : Color = Lightgray,
-        private val knobColor           : Color = Blue,
+        private val barFill            : Paint,
+        private val knobFill           : Paint,
                     grooveThicknessRatio: Float = 0.6f,
                     focusManager        : FocusManager? = null
 ): SliderBehavior2<T>(focusManager) where T: Number, T: Comparable<T> {
+    public constructor(
+            barColor            : Color = Lightgray,
+            knobColor           : Color = Blue,
+            grooveThicknessRatio: Float = 0.6f,
+            focusManager        : FocusManager? = null): this(barColor.paint, knobColor.paint, grooveThicknessRatio, focusManager)
+
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
 
-    public var disabledColorMapper: ColorMapper = { it.lighter()    }
+    private fun ColorMapper.toPaintMapper(): PaintMapper = {
+        when (it) {
+            is ColorPaint -> this(it.color).paint
+            else          -> it
+        }
+    }
+
+    @Deprecated("Slider now uses Paint for fills. Use disabledPaintMapper instead.")
+    public var disabledColorMapper: ColorMapper by observable({ it }) { _,new ->
+        disabledPaintMapper = new.toPaintMapper()
+    }
+
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
     override fun render(view: Slider2<T>, canvas: Canvas) {
         val rect1: Rectangle
@@ -52,9 +72,9 @@ public class BasicSliderBehavior2<T>(
             }
         }
 
-        canvas.rect  (rect1, rect1.height / 2,               adjust(view, barColor).paint )
-        canvas.circle(Circle(rect2.center, rect2.width / 2), adjust(view, knobColor).paint)
+        canvas.rect  (rect1, rect1.height / 2,               adjust(view, barFill ))
+        canvas.circle(Circle(rect2.center, rect2.width / 2), adjust(view, knobFill))
     }
 
-    private fun adjust(view: Slider2<T>, color: Color) = if (view.enabled) color  else disabledColorMapper(color)
+    private fun adjust(view: Slider2<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)
 }

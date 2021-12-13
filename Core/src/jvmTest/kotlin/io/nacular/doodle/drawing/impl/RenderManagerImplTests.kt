@@ -15,6 +15,7 @@ import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
+import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -941,7 +942,7 @@ class RenderManagerImplTests {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.layout    = mockk()
+        container.layout    = layout()
         container.children += child
 
         renderManager(display(container))
@@ -1014,7 +1015,12 @@ class RenderManagerImplTests {
         return result
     }
 
-    private fun display(vararg children: View): InternalDisplay = mockk<InternalDisplay>().apply {
+    private fun layout(): Layout = mockk {
+        every { requiresLayout(any(), any(), any<Rectangle>(), any()) } returns true
+        every { requiresLayout(any(), any(), any()) } returns true
+    }
+
+    private fun display(vararg children: View, layout: Layout = layout()): InternalDisplay = mockk<InternalDisplay>().apply {
         val displayChildren = ObservableList<View>()
 
         displayChildren.addAll(children)
@@ -1050,6 +1056,7 @@ class RenderManagerImplTests {
 
             result
         }
+        every { this@apply.layout                    } returns layout
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>().apply {

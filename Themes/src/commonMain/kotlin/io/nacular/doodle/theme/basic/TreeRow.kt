@@ -13,6 +13,8 @@ import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
@@ -29,6 +31,7 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Path
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
@@ -43,7 +46,9 @@ public abstract class TreeRowIcon: View() {
     public abstract var selected: Boolean
 }
 
-public class SimpleTreeRowIcon(private val color: Color = Black, private val selectedColor: Color = White): TreeRowIcon() {
+public class SimpleTreeRowIcon(private val fill: Paint, private val selectedFill: Paint): TreeRowIcon() {
+    public constructor(color: Color = Black, selectedColor: Color = White): this(color.paint, selectedColor.paint)
+
     override var expanded: Boolean = false
         set (new) {
             field = new
@@ -68,8 +73,18 @@ public class SimpleTreeRowIcon(private val color: Color = Black, private val sel
                                  Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
                                  Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
 
+        val paint = (if (selected) selectedFill else fill).let { if (enabled) it else disabledPaintMapper(it) }
+
         canvas.transform(transform) {
-            path(path, ColorPaint(if (selected) selectedColor else color))
+            path(path, paint)
+        }
+    }
+
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
+    init {
+        enabledChanged += { _,_,_ ->
+            rerender()
         }
     }
 }
@@ -83,7 +98,7 @@ public class TreeRow<T>(
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon,
-     private val role: TreeItemRole       = TreeItemRole()): View(role) {
+     private val role                 : TreeItemRole = TreeItemRole()): View(role) {
 
     public var insetTop: Double = 1.0
 

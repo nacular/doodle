@@ -13,10 +13,11 @@ import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 
 
-public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
+public abstract class CommonButtonBehavior<in T: Button>(private val focusManager: FocusManager? = null): Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)
@@ -53,8 +54,6 @@ public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerLi
         (view as? ToggleButton)?.let { it.selectedChanged -= selectionChanged }
     }
 
-//    fun keyTyped(aKeyEvent: KeyEvent) {}
-//
     override fun released(event: KeyEvent) {
         val button = event.source as Button
 
@@ -63,6 +62,8 @@ public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerLi
                 pressed = false
                 armed   = false
             }
+
+            event.consume()
         }
     }
 
@@ -74,6 +75,8 @@ public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerLi
                 armed   = true
                 pressed = true
             }
+
+            event.consume()
         }
     }
 
@@ -116,6 +119,8 @@ public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerLi
             pointerChanged(button)
 
             event.consume()
+
+            focusManager?.requestFocus(button)
         }
     }
 
@@ -159,6 +164,10 @@ public abstract class CommonButtonBehavior<in T: Button>: Behavior<T>, PointerLi
     }
 }
 
-public inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>() {
+public inline fun <T: Button> simpleButtonRenderer(focusManager: FocusManager?, crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(focusManager) {
+    override fun render(view: T, canvas: Canvas) = render(view, canvas)
+}
+
+public inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(null) {
     override fun render(view: T, canvas: Canvas) = render(view, canvas)
 }

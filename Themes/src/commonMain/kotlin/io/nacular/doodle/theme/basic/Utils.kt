@@ -5,12 +5,20 @@ import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.GradientPaint
+import io.nacular.doodle.drawing.ImagePaint
+import io.nacular.doodle.drawing.LinearGradientPaint
+import io.nacular.doodle.drawing.RadialGradientPaint
+import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.KeyListener.Companion.released
 import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.ParentConstraints
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
@@ -74,4 +82,17 @@ public open class GenericTextEditOperation<T, V>(
     override fun complete(): T? = mapper.from(textField.text).getOrNull()
 
     override fun cancel() {}
+}
+
+/**
+ * Simple mapper that lightens the colors/images within a [Paint][io.nacular.doodle.drawing.Paint].
+ */
+public val defaultDisabledPaintMapper: PaintMapper = {
+    when (it) {
+        is ColorPaint          -> it.color.lighter().paint
+        is LinearGradientPaint -> LinearGradientPaint(it.colors.map { GradientPaint.Stop(it.color.lighter(), it.offset) }, start = it.start, end = it.end)
+        is RadialGradientPaint -> RadialGradientPaint(it.colors.map { GradientPaint.Stop(it.color.lighter(), it.offset) }, start = it.start, end = it.end)
+        is ImagePaint          -> ImagePaint(image = it.image, size = it.size, opacity = it.opacity * 0.5f)
+        else                   -> it
+    }
 }

@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.range.Slider2
-import io.nacular.doodle.controls.range.cast
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.ContentDirection.LeftRight
@@ -24,7 +23,6 @@ import kotlin.math.round
  * Created by Nicholas Eddy on 2/13/18.
  */
 
-@Deprecated("Will be replaced soon with typed version soon.")
 public typealias SliderBehavior = SliderBehavior2<Double>
 
 public abstract class SliderBehavior2<T>(
@@ -70,7 +68,7 @@ public abstract class SliderBehavior2<T>(
         val barPosition = barPosition(slider)
 
         if (offset < barPosition || offset > barPosition + barSize) {
-            slider.value = (slider.value.toDouble() + scaleFactor * (offset - (barPosition + barSize / 2))).cast(slider.value::class) //+= scaleFactor * (offset - (barPosition + barSize / 2))
+            slider.adjust(by = scaleFactor * (offset - (barPosition + barSize / 2)))
         }
 
         lastPointerPosition = offset
@@ -97,8 +95,8 @@ public abstract class SliderBehavior2<T>(
         }
 
         when (event.key) {
-            ArrowUp,   incrementKey -> slider.value = (slider.value.toDouble() + increment).cast(slider.value::class)
-            ArrowDown, decrementKey -> slider.value = (slider.value.toDouble() - increment).cast(slider.value::class)
+            ArrowUp,   incrementKey -> slider.adjust(by = increment)
+            ArrowDown, decrementKey -> slider.adjust(by =-increment)
         }
     }
 
@@ -111,9 +109,7 @@ public abstract class SliderBehavior2<T>(
             Vertical   -> event.location.y - lastPointerPosition
         }
 
-        val deltaValue = delta / scaleFactor(slider)
-
-        slider.value = (lastStart.toDouble() + deltaValue).cast(slider.value::class)
+        slider.set(to = lastStart.toDouble() + delta / scaleFactor(slider))
 
         event.consume()
     }
@@ -122,6 +118,14 @@ public abstract class SliderBehavior2<T>(
         val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
 
         return if (!slider.range.isEmpty()) (size / (slider.range.size.toDouble() - 1)).toFloat() else 0f
+    }
+
+    protected fun Slider2<T>.set(to: Double) {
+        this.set(to)
+    }
+
+    protected fun Slider2<T>.adjust(by: Double) {
+        this.adjust(by)
     }
 
     protected fun barPosition(slider: Slider2<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))

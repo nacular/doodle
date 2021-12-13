@@ -4,10 +4,11 @@ import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Orientation.Vertical
 
 /**
@@ -21,6 +22,8 @@ public class BasicProgressBarBehavior(
         private val foregroundRadius: Double = backgroundRadius,
         private val outlineThickness: Double = 1.0): ProgressIndicatorBehavior<ProgressBar>() {
 
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
     override fun install(view: ProgressBar) {
         super.install(view)
 
@@ -28,8 +31,8 @@ public class BasicProgressBarBehavior(
     }
 
     override fun render(view: ProgressBar, canvas: Canvas) {
-        val bGround = background ?: view.backgroundColor?.let { ColorPaint(it) }
-        val fGround = foreground ?: view.foregroundColor?.let { ColorPaint(it) }
+        val bGround = (background ?: view.backgroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }
+        val fGround = (foreground ?: view.foregroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }
 
         if (bGround == null && fGround == null) {
             return
@@ -37,7 +40,13 @@ public class BasicProgressBarBehavior(
 
         val rect = Rectangle(size = view.size)
 
-        val stroke = if (outlineColor != null && view.height > 2 * outlineThickness) Stroke(outlineColor, outlineThickness) else null
+        val stroke = when {
+            outlineColor != null && view.height > 2 * outlineThickness -> {
+                val color = if (view.enabled) outlineColor.paint else disabledPaintMapper(outlineColor.paint)
+                Stroke(color, outlineThickness)
+            }
+            else                                                       -> null
+        }
 
         // Draw background with optional outline
         when {

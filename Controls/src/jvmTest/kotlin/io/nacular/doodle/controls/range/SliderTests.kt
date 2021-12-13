@@ -7,12 +7,10 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 11/23/21.
  */
-class ValueSliderTests {
+class SliderTests {
     @Test @JsName("snapsToTicks")
     fun `snaps to ticks`() {
-        val slider = object: ValueSlider2<Double>(28.0 .. 31.0) {
-            override fun changed(old: Double, new: Double) {}
-        }
+        val slider = Slider(28.0 .. 31.0)
 
         slider.ticks       = 4
         slider.snapToTicks = true
@@ -21,16 +19,27 @@ class ValueSliderTests {
         expect(31.0) { slider.value }
     }
 
-    @Test @JsName("snapsToTicks2")
-    fun `snaps to ticks 2`() {
-        val slider = object: ValueSlider2<Int>(28 .. 31) {
-            override fun changed(old: Int, new: Int) {}
-        }
+    @Test @JsName("snapsToTicksInt")
+    fun `snaps to ticks int`() {
+        val slider = Slider(28 .. 31)
 
         slider.ticks       = 4
         slider.snapToTicks = true
         slider.value       = 31
 
         expect(31) { slider.value }
+    }
+
+    @Test @JsName("canChangeFromZero")
+    fun `can change from 0`() {
+        val slider = Slider(0.0f .. 1.0f)
+
+        slider.value = 0.0f
+
+        expect(0.0f) { slider.value }
+
+        slider.value = 0.5f
+
+        expect(0.5f) { slider.value }
     }
 }

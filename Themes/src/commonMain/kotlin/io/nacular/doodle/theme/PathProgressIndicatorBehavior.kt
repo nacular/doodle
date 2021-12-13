@@ -5,7 +5,6 @@ import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.paint
@@ -14,6 +13,7 @@ import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction.Backward
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction.Forward
+import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
 import kotlin.math.max
 import kotlin.math.min
 
@@ -54,6 +54,8 @@ public class PathProgressIndicatorBehavior(
         Forward, Backward
     }
 
+    public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
     private val maxThickNess = max(if (background != null) backgroundThickness else 0.0, foregroundThickness)
 
     private val pathBounds by lazy { pathMetrics.bounds(path) }
@@ -66,8 +68,8 @@ public class PathProgressIndicatorBehavior(
     }
 
     override fun render(view: ProgressIndicator, canvas: Canvas) {
-        val fFill = foreground ?: view.foregroundColor?.let { ColorPaint(it) }
-        val bFill = background ?: view.backgroundColor?.let { ColorPaint(it) }
+        val fFill = (foreground ?: view.foregroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }
+        val bFill = (background ?: view.backgroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }
 
         if (fFill == null && bFill == null) {
             return

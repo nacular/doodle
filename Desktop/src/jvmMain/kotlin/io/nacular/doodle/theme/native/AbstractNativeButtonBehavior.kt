@@ -31,7 +31,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         private   val swingFocusManager        : javax.swing.FocusManager,
         protected val focusManager             : FocusManager?,
         private   val nativePointerPreprocessor: NativePointerPreprocessor?
-): CommonTextButtonBehavior<T>(textMetrics) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
+): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
 
     internal interface Peer {
         var selected_            : Boolean

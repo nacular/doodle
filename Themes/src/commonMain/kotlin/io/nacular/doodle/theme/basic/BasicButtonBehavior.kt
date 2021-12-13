@@ -12,6 +12,7 @@ import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -24,13 +25,14 @@ import kotlin.math.max
  */
 public open class BasicButtonBehavior(
         private val textMetrics        : TextMetrics,
-        private val backgroundColor    : Color  = Lightgray,
-        private val darkBackgroundColor: Color  = backgroundColor.darker(),
-        private val foregroundColor    : Color  = White,
-        private val borderColor        : Color? = null,
-        private val borderWidth        : Double = 0.0,
-        private val cornerRadius       : Double = 4.0,
-                    insets             : Double = 4.0): CommonTextButtonBehavior<Button>(textMetrics) {
+        private val backgroundColor    : Color         = Lightgray,
+        private val darkBackgroundColor: Color         = backgroundColor.darker(),
+        private val foregroundColor    : Color         = White,
+        private val borderColor        : Color?        = null,
+        private val borderWidth        : Double        = 0.0,
+        private val cornerRadius       : Double        = 4.0,
+                    insets             : Double        = 4.0,
+                    focusManager       : FocusManager? = null): CommonTextButtonBehavior<Button>(textMetrics, focusManager = focusManager) {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }

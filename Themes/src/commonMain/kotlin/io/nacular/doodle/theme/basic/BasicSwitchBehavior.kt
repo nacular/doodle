@@ -12,6 +12,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.interpolate
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Completable
@@ -19,15 +20,16 @@ import io.nacular.doodle.utils.NoOpCompletable
 
 
 public open class BasicSwitchBehavior(
-        private val onBackground      : Color = Blue,
-        private val onForeground      : Color = White,
-        private val offBackground     : Color = Lightgray,
-        private val offForeground     : Color = onForeground): CommonButtonBehavior<Switch>() {
+        private val onBackground : Color         = Blue,
+        private val onForeground : Color         = White,
+        private val offBackground: Color         = Lightgray,
+        private val offForeground: Color         = onForeground,
+                    focusManager : FocusManager? = null): CommonButtonBehavior<Switch>(focusManager) {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
-    private var progress  = 0f
+    private var progress         = 0f
     private var activeTransition = null as Completable?
         private set(new) {
             field?.cancel()

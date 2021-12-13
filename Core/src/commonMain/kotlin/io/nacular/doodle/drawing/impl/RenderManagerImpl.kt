@@ -3,13 +3,18 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
+import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.SizePreferences
+import io.nacular.doodle.core.height
+import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
@@ -37,10 +42,11 @@ public open class RenderManagerImpl(
     private var paintTask                   = null as Task?
     private val boundsChanged_              = ::boundsChanged
     private val zOrderChanged_              = ::zOrderChanged
+    private val opacityChanged_             = ::opacityChangedFunc
     private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
     private val transformChanged_           = ::transformChanged
     private val visibilityChanged_          = ::visibilityChangedFunc
-    private val opacityChanged_             = ::opacityChangedFunc
+    private val sizePreferencesChanged_     = ::sizePreferencesChanged
     private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
 
     protected open val views              : MutableSet<View>                   = mutableSetOf <View>()
@@ -173,6 +179,7 @@ public open class RenderManagerImpl(
                 view.childrenChanged_           += childrenChanged_
                 view.displayRectHandlingChanged += displayRectHandlingChanged_
                 view.opacityChanged             += opacityChanged_
+                view.sizePreferencesChanged     += sizePreferencesChanged_
             }
 
             views += view
@@ -394,6 +401,7 @@ public open class RenderManagerImpl(
         view.childrenChanged_           -= childrenChanged_
         view.displayRectHandlingChanged -= displayRectHandlingChanged_
         view.opacityChanged             -= opacityChanged_
+        view.sizePreferencesChanged     -= sizePreferencesChanged_
 
         unregisterDisplayRectMonitoring(view)
 
@@ -536,6 +544,33 @@ public open class RenderManagerImpl(
         }
     }
 
+    private fun sizePreferencesChanged(view: View, old: SizePreferences, new: SizePreferences) {
+        val parent = view.parent
+
+        // Early exit if this event was triggered by an item as it is being removed from the container tree.
+        //
+        // Same for invisible items.
+        if ((parent == null && view !in display) || !view.visible) {
+            return
+        }
+
+        when (parent) {
+            null -> if (display.layout?.requiresLayout(view, displayPositionableContainer, old, new) == true) display.relayout()
+            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper,   old, new) == true) pendingLayout += parent
+        }
+    }
+
+    private val displayPositionableContainer = object: PositionableContainer {
+        override val size        get() = display.size
+        override val width       get() = display.width
+        override val height      get() = display.height
+        override var idealSize   get() = null as Size?; set(_) {}
+        override var minimumSize get() = Size.Empty;    set(_) {}
+
+        override val insets      get() = display.insets
+        override val children    get() = display.children
+    }
+
     private fun boundsChanged(view: View, old: Rectangle, new: Rectangle) {
         val parent = view.parent
 
@@ -552,21 +587,21 @@ public open class RenderManagerImpl(
 
         if (old.size != new.size) {
             reRender = true
-            if (view.children_.isNotEmpty() && view.layout_ != null) {
-                if (layingOut !== view) {
-                    pendingLayout += view
-                } else {
+            if (view.children_.isNotEmpty() && view.layout_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true) {
+                when {
+                    layingOut !== view -> pendingLayout += view
+
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
-                    view.doLayout_()
+                    else               -> view.doLayout_()
                 }
             }
         }
 
         when (parent) {
-            null -> display.relayout()
+            null -> if (display.layout?.requiresLayout(view, displayPositionableContainer, old, new) == true) display.relayout()
 //            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
-            else -> if (parent.layout_ != null) pendingLayout += parent
+            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper, old, new) == true) pendingLayout += parent
         }
 
         if (reRender) {
