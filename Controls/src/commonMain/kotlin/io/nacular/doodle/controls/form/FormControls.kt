@@ -1225,7 +1225,7 @@ private fun <T> buildToggleList(
             }
         }
 
-        state = Valid(selection)
+        state = Valid(ArrayList(selection))
 
         this += items.map { value ->
             container {
@@ -1239,7 +1239,7 @@ private fun <T> buildToggleList(
                             else     -> selection -= value
                         }
 
-                        state = Valid(selection)
+                        state = Valid(ArrayList(selection))
                     }
                 }
 
