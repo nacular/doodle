@@ -31,9 +31,9 @@ import io.nacular.doodle.textDecorationThickness
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
-internal val defaultFontWeight = 500
-internal val defaultFontFamily = "monospace"
-internal val defaultFontSize   = 13
+internal const val defaultFontWeight = 500
+internal const val defaultFontFamily = "monospace"
+internal const val defaultFontSize   = 13
 
 private typealias Style = CSSStyleDeclaration
 
