@@ -371,7 +371,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 buttonWidth        : Double? = null): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
             bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSpinnerBehavior(
+                    BasicSpinnerBehavior<Any, SpinnerModel<Any>>(
                             instance(),
                             buttonWidth         = buttonWidth         ?: 20.0,
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,

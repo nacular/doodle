@@ -85,7 +85,7 @@ public open class ListRow<T>(
     init {
         val listSelected = list.selected(index)
 
-        children += itemVisualizer.invoke(row, context = SimpleIndexedItem(index, listSelected))
+        children += itemVisualizer(row, context = SimpleIndexedItem(index, listSelected))
 
         focusable       = false
         styleChanged   += { rerender() }

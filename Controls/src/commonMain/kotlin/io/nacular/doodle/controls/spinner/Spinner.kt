@@ -11,6 +11,8 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
+import kotlin.Result.Companion.failure
+import kotlin.Result.Companion.success
 import kotlin.properties.Delegates
 
 
@@ -60,9 +62,9 @@ public open class Spinner<T, M: Model<T>>(public val model: M, itemVisualizer: I
     public fun next    (): Unit = model.next    ()
     public fun previous(): Unit = model.previous()
 
-    public open val value      : T       get() = model.value
-    public      val hasPrevious: Boolean get() = model.hasPrevious
-    public      val hasNext    : Boolean get() = model.hasNext
+    public open val value      : Result<T> get() = runCatching { model.value }
+    public      val hasPrevious: Boolean   get() = model.hasPrevious
+    public      val hasNext    : Boolean   get() = model.hasNext
 
     public var behavior: SpinnerBehavior<T, M>? by behavior()
 

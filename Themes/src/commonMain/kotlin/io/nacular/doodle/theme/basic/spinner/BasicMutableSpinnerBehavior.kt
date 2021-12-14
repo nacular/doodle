@@ -1,7 +1,6 @@
 package io.nacular.doodle.theme.basic.spinner
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.MutableSpinnerBehavior
@@ -18,8 +17,6 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
 
-/**
- */
 public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
         textMetrics        : TextMetrics,
         backgroundColor    : Color,
@@ -29,7 +26,7 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
         buttonWidth        : Double,
         focusManager       : FocusManager? = null): MutableSpinnerBehavior<T, M>(), PointerListener {
 
-    private val delegate = BasicSpinnerBehavior(
+    private val delegate = BasicSpinnerBehavior<T, M>(
             textMetrics,
             backgroundColor,
             darkBackgroundColor,
@@ -49,28 +46,28 @@ public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
     public var hoverColorMapper   : ColorMapper get() = delegate.hoverColorMapper;    set(new) { delegate.hoverColorMapper    = new }
     public var disabledColorMapper: ColorMapper get() = delegate.disabledColorMapper; set(new) { delegate.disabledColorMapper = new }
 
-    override fun contains             (view: Spinner<T, M>, point: Point): Boolean = delegate.contains(view as Spinner<Any, Model<Any>>, point)
-    override fun mirrorWhenRightToLeft(view: Spinner<T, M>              ): Boolean = delegate.mirrorWhenRightToLeft(view as Spinner<Any, Model<Any>>)
-    override fun clipCanvasToBounds   (view: Spinner<T, M>              ): Boolean = delegate.clipCanvasToBounds(view as Spinner<Any, Model<Any>>)
-    override fun install              (view: Spinner<T, M>              ) { delegate.install(view as Spinner<Any, Model<Any>>) }
+    override fun contains             (view: Spinner<T, M>, point: Point): Boolean = delegate.contains(view, point)
+    override fun mirrorWhenRightToLeft(view: Spinner<T, M>              ): Boolean = delegate.mirrorWhenRightToLeft(view)
+    override fun clipCanvasToBounds   (view: Spinner<T, M>              ): Boolean = delegate.clipCanvasToBounds(view)
+    override fun install              (view: Spinner<T, M>              ) { delegate.install(view) }
 
-    override fun uninstall(view: Spinner<T, M>): Unit = delegate.uninstall(view as Spinner<Any, Model<Any>>)
+    override fun uninstall(view: Spinner<T, M>): Unit = delegate.uninstall(view)
 
-    override fun render(view: Spinner<T, M>, canvas: Canvas) { delegate.render(view as Spinner<Any, Model<Any>>, canvas) }
+    override fun render(view: Spinner<T, M>, canvas: Canvas) { delegate.render(view, canvas) }
 
-    override fun editingStarted(spinner: MutableSpinner<T, M>): EditOperation<T>? {
-        val center = delegate.visualizedValue(spinner as Spinner<Any, Model<Any>>)
+    override fun editingStarted(spinner: MutableSpinner<T, M>, value: T): EditOperation<T>? {
+        val center = delegate.visualizedValue(spinner)
 
-        return spinner.editor?.edit(spinner, spinner.value, center!!)?.also { operation ->
+        return spinner.editor?.edit(spinner, value, center!!)?.also { operation ->
             operation()?.let { newCenter -> delegate.updateCenter(spinner, oldCenter = center, newCenter) }
         }
     }
 
     override fun editingEnded(spinner: MutableSpinner<T, M>) {
-        delegate.updateCenter(spinner as Spinner<Any, Model<Any>>)
+        delegate.updateCenter(spinner)
     }
 
-    override fun changed(spinner: Spinner<T, M>): Unit = delegate.changed(spinner as Spinner<Any, Model<Any>>)
+    override fun changed(spinner: Spinner<T, M>): Unit = delegate.changed(spinner)
 
     override fun pressed(event: PointerEvent) {
         event.source.let { spinner ->

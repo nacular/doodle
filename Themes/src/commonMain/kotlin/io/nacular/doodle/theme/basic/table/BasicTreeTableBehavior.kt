@@ -190,8 +190,8 @@ public open class BasicTreeTableBehavior<T>(
         if (color != null) {
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
-                row?.let {
-                    canvas.rect(rowPositioner.rowBounds(table, path, row, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorPaint(color))
+                row.onSuccess {
+                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorPaint(color))
                 }
             }
         }

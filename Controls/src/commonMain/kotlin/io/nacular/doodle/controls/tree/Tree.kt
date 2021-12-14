@@ -166,7 +166,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         layout = object: Layout {
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
-                    model[path]?.let { value ->
+                    model[path].onSuccess { value ->
                         children.getOrNull(index % children.size)?.let { child ->
                             layout(child, value, path, index)
                         }
@@ -217,8 +217,8 @@ public open class Tree<T, out M: TreeModel<T>>(
                 else                          -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
             }
 
-            pathFromRow(firstVisibleRow)?.let { path -> model[path]?.let { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow).y      } }
-            pathFromRow(lastVisibleRow )?.let { path -> model[path]?.let { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow ).bottom } }
+            pathFromRow(firstVisibleRow)?.let { path -> model[path].onSuccess { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow).y      } }
+            pathFromRow(lastVisibleRow )?.let { path -> model[path].onSuccess { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow ).bottom } }
 
             children.batch {
                 if (oldFirst > firstVisibleRow) {
@@ -254,17 +254,17 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    public operator fun get(path: Path<Int>): T? = model[path]
+    public operator fun get(path: Path<Int>): Result<T> = model[path]
 
-    public operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
+    public operator fun get(row: Int): Result<T> = pathFromRow(row)?.let { model[it] } ?: Result.failure(IllegalArgumentException())
 
     override fun isLeaf(path: Path<Int>): Boolean = model.isLeaf(path)
 
     public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
-    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
-    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): Result<T> = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int       = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int       = model.indexOfChild(parent, child)
 
     override fun expanded(path: Path<Int>): Boolean = path in expandedPaths
 
@@ -463,7 +463,7 @@ public open class Tree<T, out M: TreeModel<T>>(
             // Path index not found (could be invisible)
             if (index in firstVisibleRow..lastVisibleRow) {
                 generator?.let { rowGenerator ->
-                    model[path]?.let { value ->
+                    model[path].onSuccess { value ->
                         // pathToRow[path ] = index
 
                         val i = index % children.size
@@ -566,7 +566,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         rowToPath[index] = path
         generator?.let {
-            model[path]?.let { value ->
+            model[path].onSuccess { value ->
 //                    pathToRow[path ] = index
 
                 val expanded = expanded(path)
@@ -743,12 +743,13 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     public fun scrollTo(path: Path<Int>) {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            val item  = this[path]
             val index = rowFromPath(path)
 
-            if (item != null && index != null) {
-                rowPositioner?.rowBounds(this, item, path, index)?.let {
-                    parent.scrollVerticallyToVisible(it.y .. it.bottom)
+            if (index != null) {
+                this[path].onSuccess { item ->
+                    rowPositioner?.rowBounds(this, item, path, index)?.let {
+                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
+                    }
                 }
             }
         }

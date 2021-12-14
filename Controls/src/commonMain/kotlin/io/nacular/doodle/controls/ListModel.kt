@@ -5,6 +5,8 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.sortWith
 import io.nacular.doodle.utils.sortWithDescending
+import kotlin.Result.Companion.failure
+import kotlin.Result.Companion.success
 
 /**
  * Holds data in a list-like structure for use with controls like [List][io.nacular.doodle.controls.list.List].
@@ -19,7 +21,7 @@ public interface ListModel<T>: Iterable<T> {
      * @param index to retrieve
      * @return item found at the index or `null` if index invalid
      */
-    public operator fun get(index: Int): T?
+    public operator fun get(index: Int): Result<T>
 
     /**
      * @param range of data to extract
@@ -50,14 +52,14 @@ public interface DynamicListModel<T>: ListModel<T> {
  */
 public interface MutableListModel<T>: DynamicListModel<T> {
 
-    public operator fun set(index: Int, value: T): T?
+    public operator fun set(index: Int, value: T): Result<T>
 
     public fun notifyChanged(index: Int)
 
     public fun add        (value  : T                         )
     public fun add        (index  : Int, value: T             )
     public fun remove     (value  : T                         )
-    public fun removeAt   (index  : Int                       ): T?
+    public fun removeAt   (index  : Int                       ): Result<T>
     public fun addAll     (values : Collection<T>             )
     public fun addAll     (index  : Int, values: Collection<T>)
     public fun removeAll  (values : Collection<T>             )
@@ -86,7 +88,7 @@ public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
     override val size: Int get() = list.size
 
-    override fun get     (index: Int             ): T?          = list.getOrNull(index)
+    override fun get     (index: Int             ): Result<T>   = runCatching { list[index]}
     override fun section (range: ClosedRange<Int>): List<T>     = list.subList (range.start, range.endInclusive + 1)
     override fun contains(value: T               ): Boolean     = list.contains(value                              )
     override fun iterator(                       ): Iterator<T> = list.iterator(                                   )
@@ -101,20 +103,21 @@ public open class SimpleMutableListModel<T>(private val list: ObservableList<T>)
         }
     }
 
-    override fun set(index: Int, value: T): T    = list.set(index, value)
-    override fun add(value: T            ): Unit = list.add(value).run { Unit }
-    override fun add(index: Int, value: T): Unit = list.add(index, value)
+    override fun set(index: Int, value: T): Result<T> = runCatching { list.set(index, value) }
+
+    override fun add(value: T            ): Unit      = list.add(value).run {}
+    override fun add(index: Int, value: T): Unit      = list.add(index, value)
 
     override fun notifyChanged(index: Int): Unit = list.notifyChanged(index)
 
-    override fun remove     (value  : T                         ): Unit = list.remove   (value        ).run { Unit }
-    override fun removeAt   (index  : Int                       ): T    = list.removeAt (index        )
-    override fun addAll     (values : Collection<T>             ): Unit = list.addAll   (values       ).run { Unit }
-    override fun addAll     (index  : Int, values: Collection<T>): Unit = list.addAll   (index, values).run { Unit }
-    override fun removeAll  (values : Collection<T>             ): Unit = list.removeAll(values       ).run { Unit }
-    override fun retainAll  (values : Collection<T>             ): Unit = list.retainAll(values       ).run { Unit }
-    override fun removeAllAt(indexes: Collection<Int>           ): Unit = list.batch { indexes.sortedDescending().forEach { list.removeAt(it) } }
-    override fun replaceAll (values : Collection<T>             ): Unit = list.replaceAll(values).run { Unit }
+    override fun remove     (value  : T                         ): Unit      = list.remove   (value        ).run {}
+    override fun removeAt   (index  : Int                       ): Result<T> = runCatching { list.removeAt(index) }
+    override fun addAll     (values : Collection<T>             ): Unit      = list.addAll   (values       ).run {}
+    override fun addAll     (index  : Int, values: Collection<T>): Unit      = list.addAll   (index, values).run {}
+    override fun removeAll  (values : Collection<T>             ): Unit      = list.removeAll(values       ).run {}
+    override fun retainAll  (values : Collection<T>             ): Unit      = list.retainAll(values       ).run {}
+    override fun removeAllAt(indexes: Collection<Int>           ): Unit      = list.batch { indexes.sortedDescending().forEach { list.removeAt(it) } }
+    override fun replaceAll (values : Collection<T>             ): Unit      = list.replaceAll(values).run {}
 
     override fun clear(): Unit = list.clear()
 

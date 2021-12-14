@@ -230,7 +230,7 @@ public open class List<T, out M: ListModel<T>>(
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).forEach {
                     if (it < model.size) {
-                        (model[it] as T).let { row ->
+                        model[it].onSuccess { row ->
                             children.getOrNull(it % children.size)?.let { child ->
                                 layout(child, row, it)
                             }
@@ -244,7 +244,7 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Returns the item at [index] if one exists, `null` otherwise.
      */
-    public operator fun get(index: Int): T? = model[index]
+    public operator fun get(index: Int): Result<T> = model[index]
 
     public override var isFocusCycleRoot: Boolean = true
 
@@ -288,10 +288,10 @@ public open class List<T, out M: ListModel<T>>(
             }
 
             if (firstVisibleRow in 0 until model.size) {
-                (model[firstVisibleRow] as T).let { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y }
+                model[firstVisibleRow].onSuccess { minVisibleY = positioner.rowBounds(this, it, firstVisibleRow).y }
             }
             if (lastVisibleRow in 0 until model.size) {
-                (model[lastVisibleRow] as T).let { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow).bottom }
+                model[lastVisibleRow].onSuccess { maxVisibleY = positioner.rowBounds(this, it, lastVisibleRow).bottom }
             }
 
             if (oldFirst > firstVisibleRow) {
@@ -334,7 +334,7 @@ public open class List<T, out M: ListModel<T>>(
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
         if (index in firstVisibleRow .. lastVisibleRow) {
             rowGenerator?.let { uiGenerator ->
-                (model[index] as T).let { row ->
+                model[index].onSuccess { row ->
                     val i = index % children.size
 
                     uiGenerator(this, row, index, children.getOrNull(i)).also { ui ->
@@ -352,7 +352,7 @@ public open class List<T, out M: ListModel<T>>(
 
     private fun insert(children: kotlin.collections.MutableList<View>, index: Int) {
         rowGenerator?.let { uiGenerator ->
-            (model[index] as T).let { row ->
+            model[index].onSuccess { row ->
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
                     uiGenerator(this, row, index).also { ui ->
                         children.addOrAppend(index, ui)
@@ -372,7 +372,7 @@ public open class List<T, out M: ListModel<T>>(
      */
     public fun scrollTo(row: Int) {
         mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            this[row]?.let {
+            this[row].onSuccess {
                 rowPositioner?.rowBounds(this, it, row)?.let {
                     parent.scrollVerticallyToVisible(it.y .. it.bottom)
                 }

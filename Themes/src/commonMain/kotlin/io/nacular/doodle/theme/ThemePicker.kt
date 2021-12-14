@@ -37,17 +37,19 @@ public class ThemePicker(themeManager: ThemeManager): View() {
         }
 
         spinner.changed += {
-            themeManager.selected = it.value
+            it.value.onSuccess {
+                themeManager.selected = it
+            }
         }
     }
 
     private fun updateSelected(theme: Theme?) {
         spinner.apply {
-            while (value != theme && hasNext) {
+            while (value.getOrNull() != theme && hasNext) {
                 next()
             }
 
-            while (value != theme && hasPrevious) {
+            while (value.getOrNull() != theme && hasPrevious) {
                 previous()
             }
         }

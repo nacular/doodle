@@ -191,8 +191,8 @@ public open class BasicTableBehavior<T>(
         if (color != null) {
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
-                row?.let {
-                    canvas.rect(rowPositioner.rowBounds(table, row, index).inset(Insets(top = 1.0)), ColorPaint(color))
+                row.onSuccess {
+                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(Insets(top = 1.0)), ColorPaint(color))
                 }
             }
         }

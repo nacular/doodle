@@ -311,9 +311,9 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
-    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
-    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): Result<T> = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int       = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int       = model.indexOfChild(parent, child)
 
     override fun selected(item: Path<Int>): Boolean = selectionModel?.contains(item) ?: false
 

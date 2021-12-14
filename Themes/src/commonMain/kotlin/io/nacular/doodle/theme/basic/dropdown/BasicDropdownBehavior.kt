@@ -19,6 +19,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -353,7 +354,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()
 
-    internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = (dropdown.boxItemVisualizer ?: itemVisualizer)(dropdown.value, null, SimpleIndexedItem(dropdown.selection, true))) {
+    internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = centerView(dropdown)) {
         viewContainer(dropdown)?.let { centerView ->
             centerView.firstOrNull()?.let {
                 (centerView.layout as? ConstraintLayout)?.unconstrain(it)
@@ -366,6 +367,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             updateAlignment(dropdown, centerView)
         }
     }
+
+    private fun centerView(dropdown: Dropdown<T, M>) = dropdown.value.fold(
+        onSuccess = { (dropdown.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(dropdown.selection, true)) },
+        onFailure = { view {  } }
+    )
 
     private  fun viewContainer  (dropdown: Dropdown<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container
     internal fun visualizedValue(dropdown: Dropdown<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()

@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import JsName
+import kotlin.Result.Companion.success
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -31,18 +32,18 @@ class TreeTests {
 
         expect(3) { tree.numRows }
 
-        expect(1) { tree[Path(0)] }
-        expect(2) { tree[Path(1)] }
-        expect(3) { tree[Path(2)] }
+        expect(success(1)) { tree[Path(0)] }
+        expect(success(2)) { tree[Path(1)] }
+        expect(success(3)) { tree[Path(2)] }
 
         tree = tree(root).apply { rootVisible = true }
 
         expect(4) { tree.numRows }
 
-        expect(0) { tree[Path( )] }
-        expect(1) { tree[Path(0)] }
-        expect(2) { tree[Path(1)] }
-        expect(3) { tree[Path(2)] }
+        expect(success(0)) { tree[Path( )] }
+        expect(success(1)) { tree[Path(0)] }
+        expect(success(2)) { tree[Path(1)] }
+        expect(success(3)) { tree[Path(2)] }
     }
 
     @Test @JsName("hasRightChildren")
@@ -76,12 +77,12 @@ class TreeTests {
         expect(true ) { tree.visible(3) }
         expect(true ) { tree.visible(4) }
 
-        expect("child1"  ) { tree[Path(0)    ] }
-        expect("child1_1") { tree[Path(0) + 0] }
-        expect("child1_2") { tree[Path(0) + 1] }
-        expect("child2"  ) { tree[Path(1)    ] }
-        expect("child2_1") { tree[Path(1) + 0] }
-        expect("child3"  ) { tree[Path(2)    ] }
+        expect(success("child1"  )) { tree[Path(0)    ] }
+        expect(success("child1_1")) { tree[Path(0) + 0] }
+        expect(success("child1_2")) { tree[Path(0) + 1] }
+        expect(success("child2"  )) { tree[Path(1)    ] }
+        expect(success("child2_1")) { tree[Path(1) + 0] }
+        expect(success("child3"  )) { tree[Path(2)    ] }
     }
 
     @Test @JsName("getWorks")
@@ -212,7 +213,7 @@ class TreeTests {
         val tree = tree(root).also { block(it) }
 
         expected.forEachIndexed { index, value ->
-            expect(value) { tree[index] }
+            expect(success(value)) { tree[index] }
         }
     }
 
@@ -220,7 +221,7 @@ class TreeTests {
         val tree = tree(root).also{ block(it) }
 
         expected.forEach { (path, value) ->
-            expect(value) { tree[path] }
+            expect(success(value)) { tree[path] }
         }
     }
 

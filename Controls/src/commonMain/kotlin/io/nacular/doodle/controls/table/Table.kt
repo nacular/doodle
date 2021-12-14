@@ -88,7 +88,7 @@ public open class Table<T, M: ListModel<T>>(
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
 
-            override fun get(index: Int) = model[index]?.let(extractor)
+            override fun get(index: Int) = model[index].map(extractor)
 
             override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
 
@@ -117,7 +117,7 @@ public open class Table<T, M: ListModel<T>>(
                     }
 
                     override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@Table, model[index]!!, index).run { Rectangle(0.0, y, of.width, height) }
+                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@Table, model[index].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
 
                         override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.row(this@Table, atY)
 
@@ -245,7 +245,7 @@ public open class Table<T, M: ListModel<T>>(
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
-    public operator fun get(index: Int): T? = model[index]
+    public operator fun get(index: Int): Result<T> = model[index]
 
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }

@@ -24,9 +24,10 @@ public abstract class MutableSpinnerBehavior<T, M: MutableModel<T>>: SpinnerBeha
      * the Spinner accordingly.
      *
      * @param spinner being edited
+     * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(spinner: MutableSpinner<T, M>): EditOperation<T>?
+    public abstract fun editingStarted(spinner: MutableSpinner<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the MutableSpinner. This lets the behavior reconfigure
@@ -37,11 +38,10 @@ public abstract class MutableSpinnerBehavior<T, M: MutableModel<T>>: SpinnerBeha
     public abstract fun editingEnded(spinner: MutableSpinner<T, M>)
 }
 
-
 public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = null): Spinner<T, M>(model, itemVisualizer), Editable {
-    override var value: T
-        get(   ) = super.value
-        set(new) { model.value = new }
+    public fun set(value: T) {
+        model.value = value
+    }
 
     private var editOperation = null as EditOperation<T>?
 
@@ -52,8 +52,10 @@ public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: Ite
     public fun startEditing() {
         cancelEditing()
 
-        editor?.let {
-            editOperation = (behavior as? MutableSpinnerBehavior<T,M>)?.editingStarted(this)
+        value.onSuccess { value ->
+            editor?.let {
+                editOperation = (behavior as? MutableSpinnerBehavior<T,M>)?.editingStarted(this, value)
+            }
         }
     }
 

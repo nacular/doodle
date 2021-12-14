@@ -83,15 +83,15 @@ public open class MutableList<T, M: MutableListModel<T>>(
         }
     }
 
-    public fun add      (value : T                         ): Unit = model.add      (value        )
-    public fun add      (index : Int, values: T            ): Unit = model.add      (index, values)
-    public fun remove   (value : T                         ): Unit = model.remove   (value        )
-    public fun removeAt (index : Int                       ): T?   = model.removeAt (index        )
-    public fun addAll   (values: Collection<T>             ): Unit = model.addAll   (values       )
-    public fun addAll   (index : Int, values: Collection<T>): Unit = model.addAll   (index, values)
-    public fun removeAll(values: Collection<T>             ): Unit = model.removeAll(values       )
-    public fun retainAll(values: Collection<T>             ): Unit = model.retainAll(values       )
-    public fun clear    (                                  ): Unit = model.clear()
+    public fun add      (value : T                         ): Unit      = model.add      (value        )
+    public fun add      (index : Int, values: T            ): Unit      = model.add      (index, values)
+    public fun remove   (value : T                         ): Unit      = model.remove   (value        )
+    public fun removeAt (index : Int                       ): Result<T> = model.removeAt (index        )
+    public fun addAll   (values: Collection<T>             ): Unit      = model.addAll   (values       )
+    public fun addAll   (index : Int, values: Collection<T>): Unit      = model.addAll   (index, values)
+    public fun removeAll(values: Collection<T>             ): Unit      = model.removeAll(values       )
+    public fun retainAll(values: Collection<T>             ): Unit      = model.retainAll(values       )
+    public fun clear    (                                  ): Unit      = model.clear    (             )
 
     /**
      * Initiates editing of the list at the given [index]. This will cancel any other edit operation and
@@ -101,7 +101,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
         cancelEditing()
 
         editor?.let {
-            model[index]?.let { row ->
+            model[index].onSuccess { row ->
                 val i = index % children.size
 
                 editingRow    = index

@@ -110,7 +110,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
 
             override val size get() = model.size
 
-            override fun get(index: Int) = model[index]?.let(extractor)
+            override fun get(index: Int): Result<A> = model[index].map(extractor)
 
             override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
 

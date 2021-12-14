@@ -23,9 +23,10 @@ public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: Dropdo
      * the Dropdown accordingly.
      *
      * @param dropdown being edited
+     * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(dropdown: MutableDropdown<T, M>): EditOperation<T>?
+    public abstract fun editingStarted(dropdown: MutableDropdown<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the MutableDropdown. This lets the behavior reconfigure
@@ -49,9 +50,9 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
         listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer,
 ): Dropdown<T, M>(model, boxItemVisualizer, listItemVisualizer), Editable {
-    public override var value: T
-        get(   ) = super.value
-        set(new) { model[selection] = new }
+    public fun set(value: T) {
+        model[selection] = value
+    }
 
     /** Indicates whether there is an ongoing edit operation */
     public val editing: Boolean get() = editOperation != null
@@ -78,8 +79,10 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
     public fun startEditing() {
         cancelEditing()
 
-        editor?.let {
-            editOperation = (behavior as? MutableDropdownBehavior<T, M>)?.editingStarted(this)
+        value.getOrNull()?.let { value ->
+            editor?.let {
+                editOperation = (behavior as? MutableDropdownBehavior<T, M>)?.editingStarted(this, value)
+            }
         }
     }
 
@@ -93,7 +96,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
 
             cleanupEditing()
 
-            value = result
+            set(result)
         }
     }
 

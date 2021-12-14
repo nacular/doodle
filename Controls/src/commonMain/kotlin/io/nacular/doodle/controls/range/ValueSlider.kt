@@ -29,7 +29,7 @@ public abstract class ValueSlider2<T> internal constructor(
         set(new) {
             field = max(0, new)
 
-            snapSize = if (field > 0) range.size.toDouble() / field else 0.0
+            snapSize = if (field > 0) (range.size.toDouble() + 1) / field else 0.0
         }
 
     public var model: ConfinedValueModel<T> = model

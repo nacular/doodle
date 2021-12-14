@@ -407,10 +407,10 @@ public fun <T, M: ListModel<T>> dropDown(
         }
 
         dropdown.changed += {
-            state = Valid(dropdown.value)
+            state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
         }
 
-        state = Valid(dropdown.value)
+        state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
     }.also(config)
 }
 
@@ -503,16 +503,16 @@ public fun <T: Any> dropDown(
         }
 
         changed += {
-            state = when (val v = value) {
-                null -> Invalid( )
-                else -> Valid  (v)
-            }
+            state = value.fold(
+                onSuccess = { it?.let { Valid(it) } ?: Invalid() },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = when (val v = value) {
-            null -> Invalid( )
-            else -> Valid  (v)
-        }
+        state = value.fold(
+                onSuccess = { it?.let { Valid(it) } ?: Invalid() },
+                onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -572,10 +572,16 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
             unselectedListItemVisualizer = unselectedListItemVisualizer,
             initialValue                 = initial.fold({it}, null)).apply {
         changed += {
-            state = Valid(value)
+            state = value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(value)
+        state = value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -623,10 +629,16 @@ public fun <T: Any> optionalDropDown(
         }
 
         changed += {
-            state = Valid(value)
+            state = value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(value)
+        state = value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -675,10 +687,16 @@ public fun <T, M: Model<T>> spinner(
         config         : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
     Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
         spinner.changed += {
-            state = Valid(spinner.value)
+            state = spinner.value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(spinner.value)
+        state = spinner.value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
     }.also(config)
 }
 
@@ -743,10 +761,10 @@ public fun <T, M: ListModel<T>> list(
         fitContents   : Boolean = false,
         config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
-            model,
-            itemVisualizer,
-            selectionModel = MultiSelectionModel(),
-            fitContent     = fitContents
+        model,
+        itemVisualizer,
+        selectionModel = MultiSelectionModel(),
+        fitContent     = fitContents
     ).apply {
         var itemIndex = 0
         val items            = model.asIterable().iterator()
@@ -769,13 +787,13 @@ public fun <T, M: ListModel<T>> list(
             }
         }
 
-        state            = Valid(initialSelection.map { this[it] as T })
+        state            = Valid(initialSelection.mapNotNull { this[it].getOrNull() })
         isFocusCycleRoot = false
 
         setSelection(initialSelection.toSet())
 
         selectionChanged += { _,_,_ ->
-            state = Valid(selection.sorted().map { this[it] as T })
+            state = Valid(selection.sorted().mapNotNull { this[it].getOrNull() })
         }
 
         config(this)
@@ -1225,7 +1243,7 @@ private fun <T> buildToggleList(
             }
         }
 
-        state = Valid(selection)
+        state = Valid(ArrayList(selection))
 
         this += items.map { value ->
             container {
@@ -1239,7 +1257,7 @@ private fun <T> buildToggleList(
                             else     -> selection -= value
                         }
 
-                        state = Valid(selection)
+                        state = Valid(ArrayList(selection))
                     }
                 }
 
