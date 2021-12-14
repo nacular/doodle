@@ -119,32 +119,32 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // region Bounds
 
     /** Left edge of [bounds] */
-    override var x: Double
+    final override var x: Double
         get( ) = bounds.x
         set(x) = setBounds(x, y, width, height)
 
     /** Top edge of [bounds] */
-    override var y: Double
+    final override var y: Double
         get( ) = bounds.y
         set(y) = setBounds(x, y, width, height)
 
     /** Top-left corner of [bounds] */
-    override var position: Point
+    final override var position: Point
         get(        ) = bounds.position
         set(position) = setBounds(position.x, position.y, width, height)
 
     /** Horizontal extent of [bounds] */
-    override var width: Double
+    final override var width: Double
         get(     ) = bounds.width
         set(width) = setBounds(x, y, width, height)
 
     /** Vertical extent of [bounds] */
-    override var height: Double
+    final override var height: Double
         get(      ) = bounds.height
         set(height) = setBounds(x, y, width, height)
 
     /** Width-height of [bounds]*/
-    override var size: Size
+    final override var size: Size
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
@@ -155,7 +155,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
+    final override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { old, new ->
         boundingBox = transform(new).boundingRectangle
     }
 
@@ -197,7 +197,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var boundingBox: Rectangle = bounds; private set
 
     /** Size that would best display this View, or `null` if no preference */
-    override var idealSize: Size? = null
+    final override var idealSize: Size? = null
         get(   ) = layout?.idealSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
@@ -209,7 +209,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
-    override var minimumSize: Size = Size.Empty
+    final override var minimumSize: Size = Size.Empty
         get(   ) = layout?.minimumSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
@@ -247,7 +247,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible. The default is `true`. */
-    override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
+    final override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
         accessibilityManager?.syncVisibility(this)
     }
 
