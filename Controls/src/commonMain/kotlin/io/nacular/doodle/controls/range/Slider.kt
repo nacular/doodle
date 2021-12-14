@@ -12,8 +12,6 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.reflect.KClass
 
-public typealias Slider = Slider2<Double>
-
 /**
  * Represents a selection slider that can be [Horizontal] or [Vertical][io.nacular.doodle.utils.Orientation.Vertical].
  *
@@ -21,22 +19,17 @@ public typealias Slider = Slider2<Double>
  * @param model containing range and value
  * @param orientation of the control
  */
-public open class Slider2<T>(
+public open class Slider<T>(
         model: ConfinedValueModel<T>,
         public val orientation: Orientation = Horizontal,
-        type: KClass<T>): ValueSlider2<T>(model, type) where T: Number, T: Comparable<T>  {
-
-    public constructor(
-            range: ClosedRange<Double> = 0.0..100.0,
-            value: Double = range.start,
-            orientation: Orientation = Horizontal): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, Double::class as KClass<T>)
+        type: KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T>  {
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { PropertyObserversImpl<Slider2<T>, T>(this) }
+    private val changed_ by lazy { PropertyObserversImpl<Slider<T>, T>(this) }
 
-    public val changed: PropertyObservers<Slider2<T>, T> = changed_
+    public val changed: PropertyObservers<Slider<T>, T> = changed_
 
-    public var behavior: Behavior<Slider2<T>>? by behavior()
+    public var behavior: Behavior<Slider<T>>? by behavior()
 
     init {
         role.orientation = orientation
@@ -63,7 +56,7 @@ public open class Slider2<T>(
         public inline operator fun <reified T> invoke(
                 range      : ClosedRange<T>,
                 value      : T = range.start,
-                orientation: Orientation = Horizontal): Slider2<T> where T: Number, T: Comparable<T> = Slider2(model = BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, T::class)
+                orientation: Orientation = Horizontal): Slider<T> where T: Number, T: Comparable<T> = Slider(model = BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, T::class)
 
         /**
          * Creates a Slider with the given model.
@@ -73,6 +66,6 @@ public open class Slider2<T>(
          */
         public inline operator fun <reified T> invoke(
                 model      : ConfinedValueModel<T>,
-                orientation: Orientation = Horizontal): Slider2<T> where T: Number, T: Comparable<T> = Slider2(model, orientation, T::class)
+                orientation: Orientation = Horizontal): Slider<T> where T: Number, T: Comparable<T> = Slider(model, orientation, T::class)
     }
 }

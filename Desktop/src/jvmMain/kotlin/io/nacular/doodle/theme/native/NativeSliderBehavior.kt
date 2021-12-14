@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.theme.SliderBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -33,79 +34,88 @@ import javax.swing.event.ChangeListener
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.pow
 
-
-private class ModelAdapter(private val delegate: ConfinedValueModel<Double>, precision: Int): BoundedRangeModel {
-    private val listeners = mutableListOf<ChangeListener>()
-    private var valueAdjusting = false
-    private val multiplier = 10.0.pow(precision.toDouble())
-
-    override fun getMinimum() = (delegate.limits.start * multiplier).toInt()
-
-    override fun setMinimum(newMinimum: Int) {
-        delegate.limits = newMinimum / multiplier .. delegate.limits.endInclusive
-    }
-
-    override fun getMaximum() = (delegate.limits.endInclusive * multiplier).toInt()
-
-    override fun setMaximum(newMaximum: Int) {
-        delegate.limits = delegate.limits.start .. newMaximum / multiplier
-    }
-
-    override fun getValue() = (delegate.value * multiplier).toInt()
-
-    override fun setValue(newValue: Int) {
-        delegate.value = newValue / multiplier
-    }
-
-    override fun setValueIsAdjusting(b: Boolean) {
-        valueAdjusting = b
-    }
-
-    override fun getValueIsAdjusting() = valueAdjusting
-
-    override fun getExtent() = 0
-
-    override fun setExtent(newExtent: Int) {
-        // no-op
-    }
-
-    override fun setRangeProperties(value: Int, extent: Int, min: Int, max: Int, adjusting: Boolean) {
-        minimum = min
-        maximum = max
-        setValue (value )
-        setExtent(extent)
-        valueAdjusting = adjusting
-    }
-
-    override fun addChangeListener(listener: ChangeListener) {
-        listeners += listener
-    }
-
-    override fun removeChangeListener(listener: ChangeListener) {
-        listeners -= listener
-    }
-}
-
-private open class DoubleSlider(slider: Slider, precision: Int = 2): JSlider(ModelAdapter(slider.model, precision)) {
-    init {
-        this.orientation = when (slider.orientation) {
-            Orientation.Vertical -> VERTICAL
-            else                 -> HORIZONTAL
-        }
-    }
-}
-
-internal class NativeSliderBehavior(
+internal class NativeSliderBehavior<T>(
         private val appScope                 : CoroutineScope,
         private val uiDispatcher             : CoroutineContext,
         private val window                   : SkiaWindow,
         private val swingGraphicsFactory     : SwingGraphicsFactory,
         private val focusManager             : FocusManager?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?
-): Behavior<Slider> {
+): SliderBehavior<T> where T: Number, T: Comparable<T> {
 
-    private inner class JSliderPeer(slider: Slider): DoubleSlider(slider) {
-        private val slider: Slider? = slider
+    private inner class ModelAdapter<T>(
+            private val delegate: Slider<T>,
+            precision: Int,
+            private val setValue: (Slider<T>, Double) -> Unit,
+            private val setRange: (Slider<T>, ClosedRange<Double>) -> Unit
+    ): BoundedRangeModel where T: Number, T: Comparable<T> {
+        private val listeners = mutableListOf<ChangeListener>()
+        private var valueAdjusting = false
+        private val multiplier = 10.0.pow(precision.toDouble())
+
+        override fun getMinimum() = (delegate.range.start.toDouble() * multiplier).toInt()
+
+        override fun setMinimum(newMinimum: Int) {
+            setRange(delegate, newMinimum / multiplier .. delegate.range.endInclusive.toDouble())
+        }
+
+        override fun getMaximum() = (delegate.range.endInclusive.toDouble() * multiplier).toInt()
+
+        override fun setMaximum(newMaximum: Int) {
+            setRange(delegate, delegate.range.start.toDouble() .. newMaximum / multiplier)
+        }
+
+        override fun getValue() = (delegate.value.toDouble() * multiplier).toInt()
+
+        override fun setValue(newValue: Int) {
+            setValue(delegate, newValue / multiplier)
+        }
+
+        override fun setValueIsAdjusting(b: Boolean) {
+            valueAdjusting = b
+        }
+
+        override fun getValueIsAdjusting() = valueAdjusting
+
+        override fun getExtent() = 0
+
+        override fun setExtent(newExtent: Int) {
+            // no-op
+        }
+
+        override fun setRangeProperties(value: Int, extent: Int, min: Int, max: Int, adjusting: Boolean) {
+            minimum = min
+            maximum = max
+            setValue (value )
+            setExtent(extent)
+            valueAdjusting = adjusting
+        }
+
+        override fun addChangeListener(listener: ChangeListener) {
+            listeners += listener
+        }
+
+        override fun removeChangeListener(listener: ChangeListener) {
+            listeners -= listener
+        }
+    }
+
+    private open inner class DoubleSlider<T>(
+            slider: Slider<T>,
+            precision: Int = 2,
+            setValue: (Slider<T>, Double) -> Unit,
+            setRange: (Slider<T>, ClosedRange<Double>) -> Unit
+    ): JSlider(ModelAdapter(slider, precision, setValue, setRange)) where T: Number, T: Comparable<T> {
+        init {
+            this.orientation = when (slider.orientation) {
+                Orientation.Vertical -> VERTICAL
+                else                 -> HORIZONTAL
+            }
+        }
+    }
+
+    private inner class JSliderPeer(slider: Slider<T>): DoubleSlider<T>(slider, setValue = { s,d -> s.set(d) }, setRange = { s,r -> s.set(r) }) {
+        private val slider: Slider<T>? = slider
 
         init {
             focusTraversalKeysEnabled = false
@@ -153,11 +163,11 @@ internal class NativeSliderBehavior(
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
-    override fun render(view: Slider, canvas: Canvas) {
+    override fun render(view: Slider<T>, canvas: Canvas) {
         nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
     }
 
-    override fun install(view: Slider) {
+    override fun install(view: Slider<T>) {
         super.install(view)
 
         nativePeer = JSliderPeer(view)
@@ -195,7 +205,7 @@ internal class NativeSliderBehavior(
         }
     }
 
-    override fun uninstall(view: Slider) {
+    override fun uninstall(view: Slider<T>) {
         super.uninstall(view)
 
         view.apply {

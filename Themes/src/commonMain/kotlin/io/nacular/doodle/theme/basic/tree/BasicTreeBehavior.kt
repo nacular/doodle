@@ -39,6 +39,7 @@ import io.nacular.doodle.theme.basic.TreeRow
 import io.nacular.doodle.theme.basic.TreeRowIcon
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment.Left
+import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.RelativePositionMonitor
 import kotlin.math.max
@@ -258,11 +259,6 @@ public class TreeTextEditor<T>(
     override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
 
     public companion object {
-        public operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {
-            return TreeTextEditor(focusManager, object: Encoder<String, String> {
-                override fun decode(b: String) = b
-                override fun encode(a: String) = a
-            }, display, positionMonitor)
-        }
+        public operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> = TreeTextEditor(focusManager, PassThroughEncoder(), display, positionMonitor)
     }
 }

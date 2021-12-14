@@ -24,9 +24,9 @@ import io.nacular.doodle.text.TextDecoration.Line
 import io.nacular.doodle.text.TextDecoration.Line.Over
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
-import io.nacular.doodle.text.TextDecoration.ThickNess
-import io.nacular.doodle.text.TextDecoration.ThickNess.FromFont
-import io.nacular.doodle.text.TextDecoration.ThickNess.Percent
+import io.nacular.doodle.text.TextDecoration.Thickness
+import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
+import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.textDecorationThickness
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
@@ -109,7 +109,7 @@ internal fun Style.setTextDecoration(value: TextDecoration?) {
             textDecorationThickness = when (val t = value.thickness) {
                 FromFont              -> "from-font"
                 is Percent            -> "${t.value}%"
-                is ThickNess.Absolute -> em(t.value)
+                is Thickness.Absolute -> em(t.value)
                 null                  -> ""
             }
         }

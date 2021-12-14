@@ -13,7 +13,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.utils.size
 import org.w3c.dom.HTMLElement
 import kotlin.math.max
 
@@ -21,7 +20,7 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 11/20/18.
  */
 internal interface NativeSliderFactory {
-    operator fun invoke(slider: Slider): NativeSlider
+    operator fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit): NativeSlider<T> where T: Number, T: Comparable<T>
 }
 
 internal class NativeSliderFactoryImpl internal constructor(
@@ -52,24 +51,26 @@ internal class NativeSliderFactoryImpl internal constructor(
         })
     }
 
-    override fun invoke(slider: Slider) = NativeSlider(
+    override fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit) where T: Number, T: Comparable<T> = NativeSlider(
             htmlFactory,
             nativeEventHandlerFactory,
             focusManager,
             defaultSize,
             sizeDifference,
-            slider
+            slider,
+            valueSetter
     )
 }
 
-internal class NativeSlider internal constructor(
+internal class NativeSlider<T> internal constructor(
                     htmlFactory   : HtmlFactory,
                     handlerFactory: NativeEventHandlerFactory,
         private val focusManager  : FocusManager?,
         private val defaultSize   : Size,
         private val marginSize    : Size,
-        private val slider        : Slider
-): NativeEventListener {
+        private val slider        : Slider<T>,
+        private val valueSetter   : (Slider<T>, Double) -> Unit
+): NativeEventListener where T: Number, T: Comparable<T> {
 
     private val oldSliderHeight = slider.height
 
@@ -83,8 +84,8 @@ internal class NativeSlider internal constructor(
         style.setOverflow(Visible())
     }
 
-    private val changed: (Slider, Double, Double) -> Unit = { it,_,_ ->
-        sliderElement.value = "${it.value / slider.model.limits.size * 100}"
+    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
+        sliderElement.value = "${it.value.toDouble() / slider.model.limits.size * 100}"
     }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
@@ -122,7 +123,7 @@ internal class NativeSlider internal constructor(
             enabledChanged      += this@NativeSlider.enabledChanged
             focusabilityChanged += this@NativeSlider.focusableChanged
 
-            changed      (this, 0.0,             value )
+            changed      (this, 0.0 as T,        value )
             boundsChanged(this, Rectangle.Empty, bounds)
 
             height = this@NativeSlider.defaultSize.height + this@NativeSlider.marginSize.height
@@ -177,9 +178,11 @@ internal class NativeSlider internal constructor(
 
     override fun onInput(event: Event): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
-            slider.value = slider.model.limits.start + (it / 100 * slider.model.limits.size)
+            valueSetter(slider, slider.model.limits.start.toDouble() + (it / 100 * slider.model.limits.size))
         }
 
         return true
     }
+
+    internal val <T> ClosedRange<T>.size: Double where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() + 1)
 }

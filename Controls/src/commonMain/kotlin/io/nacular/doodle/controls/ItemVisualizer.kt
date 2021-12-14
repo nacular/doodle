@@ -88,7 +88,4 @@ public interface IndexedItem {
     public val selected: Boolean
 }
 
-@Deprecated(message = "Replaced due to misspelling", replaceWith = ReplaceWith("IndexedItem"))
-public typealias IndexedIem = IndexedItem
-
 public class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedItem

@@ -90,7 +90,7 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
 
             bindSingleton<NativeSliderFactory> { NativeSliderFactoryImpl(instance(), instance(), instance(), instanceOrNull()) }
 
-            bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
+            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
 
         public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {

@@ -37,12 +37,6 @@ public abstract class ConstraintLayout: Layout {
     public abstract fun constrain(a: View, b: View, vararg others: View, block: ConstraintBlockContext.(List<Constraints>) -> Unit): ConstraintLayout
 
     public abstract fun unconstrain(a: View, vararg others: View): ConstraintLayout
-
-    @Deprecated(message = "Will be replaced with version that requires at least 1 View")
-    public abstract fun unconstrain(views: Array<View>): ConstraintLayout
-
-    @Deprecated(message = "You will need to provide at least 1 View to unconstrain in an upcoming version.")
-    public fun unconstrain(): ConstraintLayout = unconstrain(views = emptyArray())
 }
 
 private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
@@ -81,12 +75,6 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
     override fun unconstrain(a: View, vararg others: View): ConstraintLayout {
         constraints.remove(a)
         others.forEach { constraints.remove(it) }
-
-        return this
-    }
-
-    override fun unconstrain(views: Array<View>): ConstraintLayout {
-        views.forEach { constraints.remove(it) }
 
         return this
     }

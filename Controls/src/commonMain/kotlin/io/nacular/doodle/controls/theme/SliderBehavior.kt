@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.theme
 
-import io.nacular.doodle.controls.range.Slider2
+import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.ContentDirection.LeftRight
@@ -22,22 +22,33 @@ import kotlin.math.round
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
+public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Number, T: Comparable<T> {
+    public fun Slider<T>.set(to: Double) {
+        this.set(to)
+    }
 
-public typealias SliderBehavior = SliderBehavior2<Double>
+    public fun Slider<T>.adjust(by: Double) {
+        this.adjust(by)
+    }
 
-public abstract class SliderBehavior2<T>(
+    public fun Slider<T>.set(range: ClosedRange<Double>) {
+        this.set(range)
+    }
+}
+
+public abstract class AbstractSliderBehavior<T>(
         private val focusManager: FocusManager?
-): Behavior<Slider2<T>>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
+): SliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
 
     private   lateinit var lastStart          : T
     protected var lastPointerPosition: Double = -1.0
         private set
 
-    private val changed: (Slider2<T>, T, T) -> Unit = { it,_,_ -> it.rerender() }
+    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ -> it.rerender() }
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
 
-    override fun install(view: Slider2<T>) {
+    override fun install(view: Slider<T>) {
         lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
@@ -46,7 +57,7 @@ public abstract class SliderBehavior2<T>(
         view.enabledChanged       += enabledChanged
     }
 
-    override fun uninstall(view: Slider2<T>) {
+    override fun uninstall(view: Slider<T>) {
         view.changed              -= changed
         view.keyChanged           -= this
         view.pointerChanged       -= this
@@ -56,7 +67,7 @@ public abstract class SliderBehavior2<T>(
 
     override fun pressed(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider      = event.source as Slider2<T>
+        val slider      = event.source as Slider<T>
         val scaleFactor = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
 
         val offset = when (slider.orientation) {
@@ -85,7 +96,7 @@ public abstract class SliderBehavior2<T>(
 
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider    = event.source as Slider2<T>
+        val slider    = event.source as Slider<T>
         lastStart     = slider.value
         val increment = slider.range.size.toDouble() / 100
 
@@ -102,7 +113,7 @@ public abstract class SliderBehavior2<T>(
 
     override fun dragged(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider = event.source as Slider2<T>
+        val slider = event.source as Slider<T>
 
         val delta = when (slider.orientation) {
             Horizontal -> event.location.x - lastPointerPosition
@@ -114,21 +125,13 @@ public abstract class SliderBehavior2<T>(
         event.consume()
     }
 
-    private fun scaleFactor(slider: Slider2<T>): Float {
+    private fun scaleFactor(slider: Slider<T>): Float {
         val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
 
-        return if (!slider.range.isEmpty()) (size / (slider.range.size.toDouble() - 1)).toFloat() else 0f
+        return if (!slider.range.isEmpty()) (size / slider.range.size.toDouble()).toFloat() else 0f
     }
 
-    protected fun Slider2<T>.set(to: Double) {
-        this.set(to)
-    }
+    protected fun barPosition(slider: Slider<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))
 
-    protected fun Slider2<T>.adjust(by: Double) {
-        this.adjust(by)
-    }
-
-    protected fun barPosition(slider: Slider2<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))
-
-    protected fun barSize(slider: Slider2<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun barSize(slider: Slider<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
 }

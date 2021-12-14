@@ -45,7 +45,6 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
 
         updateLayout    ()
         contentsChanged_()
-        fireLegacyChanged()
     }
 
     public var lastItem: View? by observable(null) { old,new ->
@@ -54,7 +53,6 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
 
         updateLayout()
         contentsChanged_()
-        fireLegacyChanged()
     }
 
     @Suppress("PrivatePropertyName")
@@ -70,13 +68,6 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
     public var orientation: Orientation by observable(orientation) { _,_ ->
         updateLayout()
         orientationChanged_()
-        fireLegacyChanged()
-    }
-
-    // FIXME: Remove in 0.7.0
-    @Deprecated("Remove in 0.7.0")
-    private fun fireLegacyChanged() {
-        changed_()
     }
 
     public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }

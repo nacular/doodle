@@ -10,9 +10,7 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.reflect.KClass
 
-public typealias ValueSlider = ValueSlider2<Double>
-
-public abstract class ValueSlider2<T> internal constructor(
+public abstract class ValueSlider<T> internal constructor(
                      model: ConfinedValueModel<T>,
         protected val role: SliderRole = SliderRole(),
         private val type: KClass<T>): View(role) where T: Number, T: Comparable<T> {
@@ -60,6 +58,11 @@ public abstract class ValueSlider2<T> internal constructor(
         get(   ) = model.limits
         set(new) { model.limits = new }
 
+
+    internal fun set(range: ClosedRange<Double>) {
+        model.limits = cast(range.start) .. cast(range.endInclusive)
+    }
+
     protected abstract fun changed(old: T, new: T)
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
@@ -87,4 +90,4 @@ public abstract class ValueSlider2<T> internal constructor(
 }
 
 @Suppress("UNCHECKED_CAST")
-internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() + 1) as T
+internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() /*+ 1*/) as T

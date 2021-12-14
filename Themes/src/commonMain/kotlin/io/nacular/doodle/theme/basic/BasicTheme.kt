@@ -15,8 +15,8 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
-import io.nacular.doodle.controls.range.CircularSlider2
-import io.nacular.doodle.controls.range.Slider2
+import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.Spinner
@@ -340,9 +340,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 barFill             : Paint? = null,
                 knobFill            : Paint? = null,
                 grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
-            bindBehavior<Slider2<Double>>(BTheme::class) {
+            bindBehavior<Slider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSliderBehavior2<Double>(
+                    BasicSliderBehavior<Double>(
                             barFill             ?: defaultBackgroundColor.paint,
                             knobFill            ?: darkBackgroundColor.paint,
                             grooveThicknessRatio ?: 0.5f,
@@ -353,15 +353,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 }
             }
         }
-
-        public inline fun basicSliderBehavior(
-                barColor            : Color?,
-                grooveThicknessRatio: Float? = null): Module = basicSliderBehavior(barColor?.paint, null, grooveThicknessRatio)
-
-        public inline fun basicSliderBehavior(
-                barColor            : Color? = null,
-                knobColor           : Color?,
-                grooveThicknessRatio: Float? = null): Module = basicSliderBehavior(barColor?.paint, knobColor?.paint, grooveThicknessRatio)
 
         public fun basicSpinnerBehavior(
                 backgroundColor    : Color?  = null,
@@ -417,39 +408,15 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 darkBackgroundColor: Color?  = null,
                 cornerRadius       : Double? = null,
                 iconSpacing        : Double? = null,
-                iconInset          : Float?  = null,
-                checkInset         : Float?  = null
-        ): Module = basicThemeModule(name = "BasicCheckBoxBehavior") {
-            bindBehavior<CheckBox>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run {
-                    BasicCheckBoxBehavior(
-                        instance(),
-                        iconInset           = iconInset           ?: 0.0f,
-                        checkInset          = checkInset          ?: 0.5f,
-                        iconSpacing         = iconSpacing         ?: 8.0,
-                        cornerRadius        = cornerRadius        ?: this.cornerRadius,
-                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
-                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
-                        hoverColorMapper    = this@run.hoverColorMapper,
-                        disabledColorMapper = this@run.disabledColorMapper) as Behavior<Button>
-                }
-            }
-        }
-
-        public fun basicCheckBoxBehavior(
-                foregroundColor    : Color?  = null,
-                backgroundColor    : Color?  = null,
-                darkBackgroundColor: Color?  = null,
-                cornerRadius       : Double? = null,
-                iconSpacing        : Double? = null,
+                checkInset         : ((CheckBox) -> Float)? = null,
                 iconSize           : ((CheckBox) -> Size)? = null
         ): Module = basicThemeModule(name = "BasicCheckBoxBehavior") {
             bindBehavior<CheckBox>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCheckBoxBehavior(
                         instance(),
-                        size                = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+                        iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+                        checkInset          = checkInset          ?: { 0.5f },
                         iconSpacing         = iconSpacing         ?: 8.0,
                         cornerRadius        = cornerRadius        ?: this.cornerRadius,
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
@@ -464,19 +431,21 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicRadioButtonBehavior(
-                foregroundColor    : Color?  = null,
-                backgroundColor    : Color?  = null,
-                darkBackgroundColor: Color?  = null,
-                iconSpacing        : Double? = null,
-                innerCircleInset   : Double? = null
+                foregroundColor    : Color?                     = null,
+                backgroundColor    : Color?                     = null,
+                darkBackgroundColor: Color?                     = null,
+                iconSpacing        : Double?                    = null,
+                innerCircleInset   : ((RadioButton) -> Double)? = null,
+                iconSize           : ((RadioButton) -> Size  )? = null,
         ): Module = basicThemeModule(name = "BasicRadioButtonBehavior") {
             bindBehavior<RadioButton>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
                         instance(),
                         iconSpacing         = iconSpacing         ?: 8.0,
+                        iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                        innerCircleInset    = innerCircleInset    ?: 4.0,
+                        innerCircleInset    = innerCircleInset    ?: { 4.0 },
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
                         focusManager        = instanceOrNull(),
                 ) as Behavior<Button> }
@@ -586,9 +555,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 knobFill : Paint? = null,
                 thickness: Double = 20.0
         ): Module = basicThemeModule(name = "BasicCircularSliderBehavior") {
-            bindBehavior<CircularSlider2<Double>>(BTheme::class) {
+            bindBehavior<CircularSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicCircularSliderBehavior2<Double>(
+                    BasicCircularSliderBehavior<Double>(
                         barFill      = barFill  ?: defaultBackgroundColor.paint,
                         knobFill     = knobFill ?: darkBackgroundColor.paint,
                         thickness    = thickness,
@@ -681,6 +650,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicButtonBehavior(),
                 basicSwitchBehavior(),
                 basicSliderBehavior(),
+                basicCircularSliderBehavior(),
                 basicSpinnerBehavior(),
                 basicCheckBoxBehavior(),
                 basicDropdownBehavior(),
