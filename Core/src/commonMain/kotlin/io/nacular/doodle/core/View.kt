@@ -157,6 +157,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     final override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { old, new ->
         boundingBox = transform(new).boundingRectangle
+        renderManager?.boundsChanged(this, old, new)
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
@@ -189,8 +190,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
-    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { _, new ->
+    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { old, new ->
         boundingBox = new(bounds).boundingRectangle
+        renderManager?.transformChanged(this, old, new)
     }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
@@ -203,9 +205,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             if (field == new) return
             val old = field
             field = new
-            (sizePreferencesChanged as PropertyObserversImpl).forEach {
-                it(this, SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
-            }
+
+            notifySizePreferencesChanged(SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
         }
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
@@ -215,9 +216,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             if (field == new) return
             val old = field
             field = new
-            (sizePreferencesChanged as PropertyObserversImpl).forEach {
-                it(this, SizePreferences(idealSize, old), SizePreferences(idealSize, new))
-            }
+
+            notifySizePreferencesChanged(SizePreferences(idealSize, old), SizePreferences(idealSize, new))
         }
 
     /** Indicates the minimum and ideal sizes for a View. */
@@ -241,13 +241,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
-    public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>)
+    public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>) { old, new ->
+        renderManager?.zOrderChanged(this, old, new)
+    }
 
     /** Notifies changes to [visible] */
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible. The default is `true`. */
-    final override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
+    final override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+        renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
     }
 
@@ -259,7 +262,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * [visible] might still be `true`). This property also does not affect how events (i.e.
      * pointer and keyboard) are sent to the View.
      */
-    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>)
+    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>) { old, new ->
+        renderManager?.opacityChanged(this, old, new)
+    }
 
     /** Notifies changes to [enabled] */
     public val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
@@ -439,7 +444,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
-    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
+    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+        renderManager?.displayRectHandlingChanged(this, old, new)
+    }
 
     /**
      * Indicates the direction of content within the View; used to support right-to-left locales.
@@ -583,6 +590,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                     it.parent = this@View
                 }
 
+                renderManager?.childrenChanged(this@View, removed, added, moved)
                 (childrenChanged_ as ChildObserversImpl).invoke(removed, added, moved)
             }
         }
@@ -976,6 +984,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
+
+    private fun notifySizePreferencesChanged(old: SizePreferences, new: SizePreferences) {
+        renderManager?.sizePreferencesChanged(this, old, new)
+
+        (sizePreferencesChanged as PropertyObserversImpl).forEach {
+            it(this, old, new)
+        }
+    }
 
     public companion object {
         /**

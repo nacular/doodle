@@ -10,6 +10,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
@@ -514,11 +515,29 @@ class RenderManagerImplTests {
     @Test @JsName("laysOutParentOnSizeChanged")
     fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
 
+    @Test @JsName("doesNotLayOutParentOnSizeChangedWhenIgnored")
+    fun `does not lay out parent on size changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.size *= 2.0 }
+
     @Test @JsName("laysOutParentOnPositionChanged")
     fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
 
+    @Test @JsName("doesNotLayOutParentOnPositionChangedIgnored")
+    fun `does not lay out parent on position changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.x += 2.0 }
+
     @Test @JsName("laysOutParentOnVisibilityChanged")
     fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
+
+    @Test @JsName("doesNotLayOutParentOnIdealSizeChanged")
+    fun `does not lay out parent on ideal-size changed`() = verifyLayout(count = 1) { it.idealSize = Size(100) }
+
+    @Test @JsName("laysOutParentOnIdealSizeChangedNotIgnored")
+    fun `lays out parent on ideal-size changed when not ignored`() = verifyLayout(layout(ignoreChildIdealSize = false)) { it.idealSize = Size(100) }
+
+    @Test @JsName("doesNotLayOutParentOnMinSizeChanged")
+    fun `does not lay out parent on min-size changed`() = verifyLayout(count = 1) { it.minimumSize = Size(100) }
+
+    @Test @JsName("laysOutParentOnMinSizeChangedNotIgnored")
+    fun `lays out parent on min-size changed when not ignored`() = verifyLayout(layout(ignoreChildMinSize = false)) { it.minimumSize = Size(100) }
 
     @Test @JsName("reflectsVisibilityChange")
     fun `reflects visibility change`() {
@@ -550,9 +569,8 @@ class RenderManagerImplTests {
     fun `reflects transform change`() {
         val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
-        val childSurface   = mockk<GraphicsSurface>  ()
+        val childSurface   = mockk<GraphicsSurface>()
         val graphicsDevice = graphicsDevice(mapOf(child to childSurface))
-
 
         renderManager(display(child), graphicsDevice = graphicsDevice)
 
@@ -911,38 +929,31 @@ class RenderManagerImplTests {
 
     @Test @JsName("stopsMonitoringDisplayRectWhenDisabled")
     fun `stops monitoring display rect when disabled`() {
-        val boundsChange   = slot<PropertyObserver<View, Rectangle>>()
-        val handlingChange = slot<PropertyObserver<View, Boolean>>()
-
-        val child = mockk<View>().apply {
-            every { parent                                                } returns null
-            every { visible                                               } returns true
-            every { monitorsDisplayRect                                   } returns true
-            every { boundsChanged              += capture(boundsChange  ) } just Runs
-            every { displayRectHandlingChanged += capture(handlingChange) } just Runs
+        val child = spyk(view()).apply {
+            monitorsDisplayRect = true
         }
 
         val display   = display(child)
         val scheduler = ManualAnimationScheduler()
 
-        renderManager(display, scheduler = scheduler)
+        val (renderManager, _) = renderManager(display, scheduler = scheduler)
 
-        handlingChange.captured(child, true, false) // disable monitoring
+        renderManager.displayRectHandlingChanged(child, old = true, new = false)
+
+        child.bounds = Rectangle(100, 100)
+
+        scheduler.runJobs()
 
         verify(exactly = 1) {
-            child.displayRectHandlingChanged += handlingChange.captured
+            child.handleDisplayRectEvent_(Rectangle.Empty, Rectangle( 10,  10))
         }
-
-        boundsChange.captured(child, Rectangle.Empty, Rectangle(100, 100))
-
-        verify(exactly = 0) { child.handleDisplayRectEvent_(Rectangle.Empty, Rectangle(100, 100)) }
     }
 
-    private fun verifyLayout(block: (View) -> Unit) {
+    private fun verifyLayout(layout: Layout = layout(), count: Int = 2, block: (View) -> Unit) {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.layout    = layout()
+        container.layout    = layout
         container.children += child
 
         renderManager(display(container))
@@ -951,7 +962,7 @@ class RenderManagerImplTests {
 
         block(child)
 
-        verify(exactly = 2) { container.doLayout_() }
+        verify(exactly = count) { container.doLayout_() }
     }
 
     private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: Display, view: View, times: Int = 1) {
@@ -1015,9 +1026,15 @@ class RenderManagerImplTests {
         return result
     }
 
-    private fun layout(): Layout = mockk {
-        every { requiresLayout(any(), any(), any<Rectangle>(), any()) } returns true
-        every { requiresLayout(any(), any(), any()) } returns true
+    private fun layout(
+        ignoreChildBounds   : Boolean = false,
+        ignoreParentBounds  : Boolean = false,
+        ignoreChildIdealSize: Boolean = true,
+        ignoreChildMinSize  : Boolean = true,
+    ): Layout = mockk {
+        every { requiresLayout(any(), any(), any<Rectangle>(), any())            } returns !ignoreChildBounds
+        every { requiresLayout(any(), any(), any())                              } returns !ignoreParentBounds
+        every { requiresLayout(any(), any(), any<View.SizePreferences>(), any()) } returns !(ignoreChildIdealSize && ignoreChildMinSize)
     }
 
     private fun display(vararg children: View, layout: Layout = layout()): InternalDisplay = mockk<InternalDisplay>().apply {

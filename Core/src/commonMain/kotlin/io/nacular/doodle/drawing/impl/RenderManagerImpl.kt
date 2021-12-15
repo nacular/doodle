@@ -28,7 +28,7 @@ public open class RenderManagerImpl(
         private val scheduler           : AnimationScheduler,
         private val themeManager        : InternalThemeManager?,
         private val accessibilityManager: AccessibilityManager?,
-        private val graphicsDevice      : GraphicsDevice<*>): RenderManager {
+        private val graphicsDevice      : GraphicsDevice<*>): RenderManager() {
 
     protected object AncestorComparator: Comparator<View> {
         override fun compare(a: View, b: View): Int = when {
@@ -38,18 +38,10 @@ public open class RenderManagerImpl(
         }
     }
 
-    private var layingOut                   = null as View?
-    private var paintTask                   = null as Task?
-    private val boundsChanged_              = ::boundsChanged
-    private val zOrderChanged_              = ::zOrderChanged
-    private val opacityChanged_             = ::opacityChangedFunc
-    private val childrenChanged_            = ::childrenChanged   // This is b/c Kotlin doesn't translate inline functions in a way that allows them to be used in maps
-    private val transformChanged_           = ::transformChanged
-    private val visibilityChanged_          = ::visibilityChangedFunc
-    private val sizePreferencesChanged_     = ::sizePreferencesChanged
-    private val displayRectHandlingChanged_ = ::displayRectHandlingChanged
+    private var layingOut = null as View?
+    private var paintTask = null as Task?
 
-    protected open val views              : MutableSet<View>                   = mutableSetOf <View>()
+    protected open val views              : MutableSet<View>                   = mutableSetOf()
     protected open val dirtyViews         : MutableSet<View>                   = mutableSetOf()
     protected open val displayTree        : MutableMap<View?, DisplayRectNode> = mutableMapOf()
     protected open val neverRendered      : MutableSet<View>                   = mutableSetOf()
@@ -171,15 +163,6 @@ public open class RenderManagerImpl(
                 if (!recursivelyVisible(view)) {
                     addedInvisible += view
                 }
-
-                view.boundsChanged              += boundsChanged_
-                view.zOrderChanged              += zOrderChanged_
-                view.transformChanged           += transformChanged_
-                view.visibilityChanged          += visibilityChanged_
-                view.childrenChanged_           += childrenChanged_
-                view.displayRectHandlingChanged += displayRectHandlingChanged_
-                view.opacityChanged             += opacityChanged_
-                view.sizePreferencesChanged     += sizePreferencesChanged_
             }
 
             views += view
@@ -394,15 +377,6 @@ public open class RenderManagerImpl(
             pendingCleanup[parent]?.remove(view)
         }
 
-        view.boundsChanged              -= boundsChanged_
-        view.zOrderChanged              -= zOrderChanged_
-        view.transformChanged           -= transformChanged_
-        view.visibilityChanged          -= visibilityChanged_
-        view.childrenChanged_           -= childrenChanged_
-        view.displayRectHandlingChanged -= displayRectHandlingChanged_
-        view.opacityChanged             -= opacityChanged_
-        view.sizePreferencesChanged     -= sizePreferencesChanged_
-
         unregisterDisplayRectMonitoring(view)
 
         graphicsDevice.release(view)
@@ -437,11 +411,11 @@ public open class RenderManagerImpl(
         }
     }
 
-    private fun childrenChanged(parent: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) {
-        removed.values.forEach { childRemoved(parent, it) }
-        added.values.forEach   { childAdded  (parent, it) }
+    override fun childrenChanged(view: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) {
+        removed.values.forEach { childRemoved(view, it) }
+        added.values.forEach   { childAdded  (view, it) }
 
-        if (parent !in pendingRender) {
+        if (view !in pendingRender) {
             moved.forEach {
                 val surface = graphicsDevice[it.value.second]
 
@@ -449,14 +423,14 @@ public open class RenderManagerImpl(
             }
         }
 
-        if (parent.visible && !parent.size.empty) {
-            parent.revalidate_()
+        if (view.visible && !view.size.empty) {
+            view.revalidate_()
         } else {
-            pendingCleanup[parent]?.forEach {
-                releaseResources(parent, it)
+            pendingCleanup[view]?.forEach {
+                releaseResources(view, it)
             }
 
-            parent.doLayout_()
+            view.doLayout_()
         }
     }
 
@@ -472,8 +446,8 @@ public open class RenderManagerImpl(
         if (child.visible) {
             record(child)
         } else {
-            addedInvisible          += child
-            child.visibilityChanged += visibilityChanged_
+            addedInvisible += child
+            child.visibilityChanged += ::visibilityChanged
         }
     }
 
@@ -485,7 +459,7 @@ public open class RenderManagerImpl(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun visibilityChangedFunc(view: View, old: Boolean, new: Boolean) {
+    override fun visibilityChanged(view: View, old: Boolean, new: Boolean) {
         val parent            = view.parent
         val wasAddedInvisible = view in addedInvisible
 
@@ -493,6 +467,7 @@ public open class RenderManagerImpl(
             record(view)
 
             addedInvisible -= view
+            view.visibilityChanged -= ::visibilityChanged
         }
 
         if (!(parent == null || view in display)) {
@@ -527,24 +502,24 @@ public open class RenderManagerImpl(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun opacityChangedFunc(view: View, old: Float, new: Float) {
+    override fun opacityChanged(view: View, old: Float, new: Float) {
         graphicsDevice[view].opacity = new
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun zOrderChanged(view: View, old: Int, new: Int) {
+    override fun zOrderChanged(view: View, old: Int, new: Int) {
         graphicsDevice[view].zOrder = new
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean) {
+    override fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean) {
         when (new) {
             true -> registerDisplayRectMonitoring  (view)
             else -> unregisterDisplayRectMonitoring(view)
         }
     }
 
-    private fun sizePreferencesChanged(view: View, old: SizePreferences, new: SizePreferences) {
+    override fun sizePreferencesChanged(view: View, old: SizePreferences, new: SizePreferences) {
         val parent = view.parent
 
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
@@ -556,7 +531,10 @@ public open class RenderManagerImpl(
 
         when (parent) {
             null -> if (display.layout?.requiresLayout(view, displayPositionableContainer, old, new) == true) display.relayout()
-            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper,   old, new) == true) pendingLayout += parent
+            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper,   old, new) == true) {
+                pendingLayout += parent
+                schedulePaint()
+            }
         }
     }
 
@@ -571,7 +549,7 @@ public open class RenderManagerImpl(
         override val children    get() = display.children
     }
 
-    private fun boundsChanged(view: View, old: Rectangle, new: Rectangle) {
+    override fun boundsChanged(view: View, old: Rectangle, new: Rectangle) {
         val parent = view.parent
 
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
@@ -604,15 +582,14 @@ public open class RenderManagerImpl(
             else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper, old, new) == true) pendingLayout += parent
         }
 
-        if (reRender) {
-            render(view, true)
-        } else {
-            schedulePaint()
+        when {
+            reRender -> render(view, true)
+            else     -> schedulePaint()
         }
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
+    override fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
         graphicsDevice[view].transform = new
     }
 
