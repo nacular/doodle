@@ -25,11 +25,12 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsSurface
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.utils.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
@@ -93,8 +94,8 @@ internal class RealGraphicsSurface private constructor(
             updateTransform(position)
         }
 
-    private fun setupChildrenClipRect() {
-        val needsClipping = !(clipCanvasToBounds && childrenClipPoly == null)
+    private fun setupChildrenClipPath() {
+        val needsClipping = !(clipCanvasToBounds && childrenClipPath == null)
 
         when {
             needsClipping -> if (isContainer && childrenElement == rootElement) {
@@ -124,7 +125,7 @@ internal class RealGraphicsSurface private constructor(
         }
 
         if (childrenElement != rootElement) {
-            childrenElement.style.setClipPath(childrenClipPoly)
+            childrenElement.style.setClipPath(childrenClipPath)
         }
     }
 
@@ -133,7 +134,7 @@ internal class RealGraphicsSurface private constructor(
             if (field != new) {
                 field = new
 
-                setupChildrenClipRect()
+                setupChildrenClipPath()
 
                 when (field) {
                     true -> {
@@ -148,12 +149,12 @@ internal class RealGraphicsSurface private constructor(
             }
         }
 
-    override var childrenClipPoly: Polygon? = null
+    override var childrenClipPath: Path? = null
         set(new) {
             if (field != new) {
                 field = new
 
-                setupChildrenClipRect()
+                setupChildrenClipPath()
             }
         }
 
@@ -299,7 +300,7 @@ internal class RealGraphicsSurface private constructor(
     private fun add(@Suppress("UNUSED_PARAMETER") child: RealGraphicsSurface) {
         if (++numChildren == 1) {
             isContainer = true
-            setupChildrenClipRect()
+            setupChildrenClipPath()
         }
 
         childrenElement.add(child.rootElement)

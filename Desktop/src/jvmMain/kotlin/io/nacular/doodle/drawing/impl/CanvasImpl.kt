@@ -353,6 +353,10 @@ internal class CanvasImpl(
         clip(ellipse.toPath().skia(), block)
     }
 
+    override fun clip(path: Path, block: Canvas.() -> Unit) {
+        clip(path.skia(), block)
+    }
+
     private fun clip(path: SkiaPath, block: Canvas.() -> Unit) {
         skiaCanvas.save()
         skiaCanvas.clipPath(path)

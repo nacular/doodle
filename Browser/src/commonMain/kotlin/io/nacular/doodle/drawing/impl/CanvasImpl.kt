@@ -49,6 +49,7 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
@@ -242,12 +243,12 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setClipPath(polygon)
-    }
+    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = clip(polygon.toPath(), block)
 
-    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setClipPath(ellipse)
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = clip(ellipse.toPath(), block)
+
+    override fun clip(path: Path, block: Canvas.() -> Unit) = subFrame(block) {
+        it.style.setClipPath(path)
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {

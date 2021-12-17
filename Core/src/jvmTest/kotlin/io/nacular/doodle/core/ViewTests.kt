@@ -102,7 +102,7 @@ class ViewTests {
                 View::backgroundColor                  to null,
                 View::contentDirection                 to LeftRight,
                 View::isFocusCycleRoot_                to false,
-                View::childrenClipPoly_                to null,
+                View::childrenClipPath_                to null,
                 View::accessibilityLabel               to null,
                 View::clipCanvasToBounds_              to true,
                 View::mirrorWhenRightLeft              to true,
@@ -313,7 +313,7 @@ class ViewTests {
         val parent = object: View() {
             init {
                 children_        += child
-                childrenClipPoly  = Rectangle(6, 6)
+                childrenClipPath  = PolyClipPath(Rectangle(6, 6))
             }
         }
 
@@ -373,7 +373,7 @@ class ViewTests {
         val parent = object: View() {
             init {
                 children_        += child
-                childrenClipPoly  = Rectangle(3, 3)
+                childrenClipPath  = PolyClipPath(Rectangle(3, 3))
             }
         }
 

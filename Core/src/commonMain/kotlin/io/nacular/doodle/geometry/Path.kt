@@ -109,6 +109,9 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
     }
 }.close()
 
+/**
+ * Converts [Rectangle] with radius to [Path].
+ */
 public fun Rectangle.toPath(radius: Double): Path = PathBuilderImpl(points[0] + Point(radius, 0.0)).apply {
     lineTo(points[1] - Point(radius, 0.0))
     arcTo (points[1] + Point(0.0, radius), radius, largeArch = false, sweep = true)
@@ -148,9 +151,9 @@ public fun circle(center: Point, radius: Double, direction: RotationDirection): 
     val sweep = direction == Clockwise
 
     return path(Point(center.x, center.y - radius)).
-    arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
-    arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
-    close()
+        arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
+        arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
+        close()
 }
 
 /**

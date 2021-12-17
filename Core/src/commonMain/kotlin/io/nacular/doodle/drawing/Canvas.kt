@@ -4,6 +4,7 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
@@ -318,6 +319,14 @@ public interface Canvas: Renderer {
      * @param block to be clipped
      */
     public fun clip(ellipse: Ellipse, block: Canvas.() -> Unit)
+
+    /**
+     * Clips the operations within [block] within the given path.
+     *
+     * @param path to clip within
+     * @param block to be clipped
+     */
+    public fun clip(path: Path, block: Canvas.() -> Unit)
 
     /**
      * Adds a shadow to the operations within [block].

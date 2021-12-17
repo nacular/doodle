@@ -28,12 +28,16 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType
+import io.nacular.doodle.geometry.Circle
+import io.nacular.doodle.geometry.Ellipse
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
@@ -69,6 +73,44 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
  * @constructor
  */
 public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
+    /**
+     * Defines a clipping path for a View's children.
+     *
+     * @constructor
+     * @property path used for clipping
+     */
+    public abstract class ClipPath(public val path: Path) {
+        /**
+         * Indicates whether [point] falls within [path]
+         *
+         * @param point being checked
+         */
+        public abstract operator fun contains(point: Point): Boolean
+    }
+
+    /**
+     * [ClipPath] based on a [Polygon]. The contains check defaults to [Polygon.contains].
+     *
+     * @constructor
+     * @param polygon used for clipping
+     */
+    public class PolyClipPath(private val polygon: Polygon): ClipPath(polygon.toPath()) {
+        override fun contains(point: Point): Boolean = point in polygon
+    }
+
+    /**
+     * [ClipPath] based on a [Ellipse]. The contains check defaults to [Ellipse.contains].
+     *
+     * @constructor
+     * @param polygon used for clipping
+     */
+    public class EllipseClipPath(private val ellipse: Ellipse): ClipPath(ellipse.toPath()) {
+        public constructor(center: Point,  radius: Double                 ): this(Circle(center, radius))
+        public constructor(center: Point, xRadius: Double, yRadius: Double): this(Ellipse(center, xRadius, yRadius))
+
+        override fun contains(point: Point): Boolean = point in ellipse
+    }
+
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
@@ -172,14 +214,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected var clipCanvasToBounds: Boolean by renderProperty(true)
 
     /**
-     * A [Polygon] used to further clip the View's children within its [bounds]. The View's children cannot extend
+     * A [Path] used to further clip the View's children within its [bounds]. The View's children cannot extend
      * beyond its [bounds], so specifying a value larger than it will not enable that.
      *
      * The default is `null`.
      */
-    protected var childrenClipPoly: Polygon? by renderProperty(null)
+    protected var childrenClipPath: ClipPath? by renderProperty(null)
 
-    internal val childrenClipPoly_ get() = childrenClipPoly
+    internal var childrenClipPath_ get() = childrenClipPath; set(new) { childrenClipPath = new }
 
     /** Notifies changes to [transform] */
     public val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl(this) }
@@ -678,7 +720,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return The child (`null` if no child contains the given point)
      */
     protected open fun child(at: Point): View? = when {
-        false == childrenClipPoly?.contains(at) -> null
+        false == childrenClipPath?.contains(at) -> null
         else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
             null, Ignored -> {
                 var child     = null as View?
@@ -1057,6 +1099,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
     override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
 
     override operator fun setValue(thisRef: T, property: KProperty<*>, value: B?) {
+        thisRef.childrenClipPath_    = null
         thisRef.clipCanvasToBounds_  = true
         thisRef.mirrorWhenRightLeft_ = true
 
@@ -1068,6 +1111,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
 
         behavior = value?.also { behavior ->
             behavior.install(thisRef)
+            thisRef.childrenClipPath_    = behavior.childrenClipPath     (thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
         }

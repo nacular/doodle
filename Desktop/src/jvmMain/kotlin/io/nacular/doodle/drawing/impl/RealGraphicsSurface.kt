@@ -52,14 +52,14 @@ internal class RealGraphicsSurface(
                 it.needsRerender()
             }
         }
-    override var zOrder             by parentRedrawProperty    (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
-    override var visible            by redrawProperty          (true                       )
-    override var opacity            by redrawProperty          (0.5f                       )
-    override var position           by observable              (Origin                     ) { _,new -> updateTransform         (new     ) }
-    override var mirrored           by observable              (false                      ) { _,_   -> updateTransform         (position) }
-    override var transform          by observable              (Identity                   ) { _,_   -> updateTransform         (position) }
-    override var childrenClipPoly   by redrawProperty<Polygon?>(null                       )
-    override var clipCanvasToBounds by redrawProperty          (true                       )
+    override var zOrder             by parentRedrawProperty (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
+    override var visible            by redrawProperty       (true                       )
+    override var opacity            by redrawProperty       (0.5f                       )
+    override var position           by observable           (Origin                     ) { _,new -> updateTransform         (new     ) }
+    override var mirrored           by observable           (false                      ) { _,_   -> updateTransform         (position) }
+    override var transform          by observable           (Identity                   ) { _,_   -> updateTransform         (position) }
+    override var childrenClipPath   by redrawProperty<Path?>(null                       )
+    override var clipCanvasToBounds by redrawProperty       (true                       )
 
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block
@@ -132,7 +132,7 @@ internal class RealGraphicsSurface(
             }
 
             if (clipCanvasToBounds) {
-                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
             }
 
             skiaCanvas.save()
@@ -143,14 +143,14 @@ internal class RealGraphicsSurface(
 
             if (!clipCanvasToBounds) {
                 // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
-                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
             }
 
-            childrenClipPoly?.let {
+            childrenClipPath?.let {
                 if (!clipCanvasToBounds) {
-                    skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                    skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
                 }
-                skiaCanvas.clipPath(it.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipPath(it.skia(), INTERSECT)
             }
 
             children.forEach {

@@ -928,6 +928,10 @@ internal open class VectorRendererSvg constructor(
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
+        override fun clip(path: io.nacular.doodle.geometry.Path, block: Canvas.() -> Unit) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
         override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
             contextWrapper.shadows += shadow
             block (this  )

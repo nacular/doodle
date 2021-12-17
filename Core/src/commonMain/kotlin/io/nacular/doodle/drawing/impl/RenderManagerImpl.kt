@@ -334,7 +334,7 @@ public open class RenderManagerImpl(
 
                     graphicsSurface.apply {
                         clipCanvasToBounds = view.clipCanvasToBounds_
-                        childrenClipPoly  = view.childrenClipPoly_
+                        childrenClipPath   = view.childrenClipPath_?.path
                         mirrored           = view.needsMirrorTransform
 
                         render { canvas ->

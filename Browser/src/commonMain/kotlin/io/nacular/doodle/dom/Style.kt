@@ -11,10 +11,8 @@ import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.Font.Style.Italic
 import io.nacular.doodle.drawing.Font.Style.Normal
 import io.nacular.doodle.drawing.Font.Style.Oblique
-import io.nacular.doodle.geometry.Circle
-import io.nacular.doodle.geometry.Ellipse
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
@@ -59,18 +57,10 @@ internal fun Style.setBounds(value: Rectangle) {
     }
 }
 
-internal fun Style.setClipPath(value: Polygon?) {
+internal fun Style.setClipPath(value: Path?) {
     clipPath = when (value) {
         null -> ""
-        else -> "polygon(${value.points.joinToString(",") { "${it.x}px ${it.y}px" }})"
-    }
-}
-
-internal fun Style.setClipPath(value: Ellipse?) {
-    clipPath = when (value) {
-        null      -> ""
-        is Circle -> "circle(${value.radius}px at ${value.center.x}px ${value.center.y}px"
-        else      -> "ellipse(${value.xRadius}px ${value.yRadius}px at ${value.center.x}px ${value.center.y}px"
+        else -> "path('${value.data}')"
     }
 }
 

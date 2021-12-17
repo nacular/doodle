@@ -188,7 +188,7 @@ public class MaterialButtonBehavior(
             }
         }
 
-        val text = view.text.toUpperCase()
+        val text = view.text.uppercase()
 
         canvas.clip(bounds, cornerRadius) {
             canvas.text(text, view.font, textPosition(view, text, bounds = bounds), ColorPaint(textColor))
