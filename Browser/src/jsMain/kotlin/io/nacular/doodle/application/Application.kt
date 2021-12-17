@@ -258,12 +258,20 @@ private open class ApplicationHolderImpl protected constructor(
 
         root.parentNode?.let { parent ->
             mutations = MutationObserver { mutations, _ ->
+                mutations.filter { it.type == "dir" }.let {
+                    injector.instance<DisplayImpl>().updateContentDirection()
+                }
+
                 mutations.flatMap { it.removedNodes.asList() }.firstOrNull { root == it }?.let {
                     shutdown()
                 }
             }.apply {
                 observe(parent, object: MutationObserverInit {
                     override var childList: Boolean? = true
+                })
+
+                observe(root, object: MutationObserverInit {
+                    override var attributeFilter: Array<String>? = arrayOf("dir")
                 })
             }
         }
