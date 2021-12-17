@@ -481,7 +481,6 @@ class PointerInputManagerImplTests {
         }
     }
 
-    // FIXME: Tried converting to pure mockk for child, but had internal jvm failures (likely issue /w mocck)
     @Test @Ignore @JsName("pointersCleanedUpWhenViewDisabled")
     fun `pointers cleaned up when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()

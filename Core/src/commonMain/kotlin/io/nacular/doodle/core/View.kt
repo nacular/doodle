@@ -608,7 +608,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Layout responsible for positioning of this View's children */
     protected open var layout: Layout? by observable(null) { _,_ ->
-        // TODO: Have RenderManager manage the layout?
         relayout()
     }
 

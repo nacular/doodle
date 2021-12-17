@@ -47,7 +47,6 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 11/6/17.
  */
 class RenderManagerImplTests {
-    // TODO: Add layout tests
     // TODO: Add tests to make sure things in cleanup list never get rendered
 
     @Test @JsName("rendersAreBatched")

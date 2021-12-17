@@ -56,7 +56,6 @@ import java.awt.font.TextAttribute.POSTURE_OBLIQUE
 import java.awt.font.TextAttribute.POSTURE_REGULAR
 import java.awt.font.TextAttribute.SIZE
 import java.awt.font.TextAttribute.WEIGHT
-import javax.swing.JComponent
 import org.jetbrains.skia.Font as SkiaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont

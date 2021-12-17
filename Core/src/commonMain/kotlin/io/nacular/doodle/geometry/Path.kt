@@ -90,7 +90,7 @@ public interface PathBuilder {
  * @return the path, or `null`
  */
 // TODO: Validate data?
-public fun path(data: String): Path? = PathImpl(data)
+public fun path(data: String): Path = PathImpl(data)
 
 /**
  * Creates a Path at the given point and a builder to further define it.
