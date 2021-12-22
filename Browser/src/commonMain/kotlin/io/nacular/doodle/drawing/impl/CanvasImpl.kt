@@ -355,30 +355,31 @@ internal open class CanvasImpl(
             it.clear()
         }
 
-        it.style.setTransform()
         it.style.filter = ""
+        it.style.setTransform   (    )
+        it.style.setBorderRadius(null)
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
         getRectElement().also {
             // This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
 
+            var width     = rectangle.width
+            var height    = rectangle.height
             var transform = Identity.translate(rectangle.position)
-            var width = rectangle.width
-            var height = rectangle.height
 
             if (rectangle.height < 1) {
-                height *= 2
-                transform = transform.scale(y = 0.5)
+                height    *= 2
+                transform  = transform.scale(y = 0.5)
             }
 
             if (rectangle.width < 1) {
-                width *= 2
-                transform = transform.scale(x = 0.5)
+                width     *= 2
+                transform  = transform.scale(x = 0.5)
             }
 
-            it.style.setSize(Size(width, height))
-            it.style.setTransform(transform)
+            it.style.setSize        (Size(width, height))
+            it.style.setTransform   (transform          )
         }
     }
 
