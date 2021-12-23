@@ -48,7 +48,7 @@ public open class Label(styledText         : StyledText          = StyledText(""
         set(value) {
             field = value
             foregroundColor?.invoke { field }
-            font?.invoke { field }
+            font?.invoke            { field }
         }
 
     // this is the styled-text that is set by a caller
@@ -63,7 +63,7 @@ public open class Label(styledText         : StyledText          = StyledText(""
         }
 
     public var styledText: StyledText
-        get() = visibleStyledText
+        get(   ) = visibleStyledText
         set(new) {
             actualStyledText = new
         }
