@@ -8,6 +8,8 @@ import io.nacular.doodle.controls.binding
 import io.nacular.doodle.core.View
 import kotlin.math.max
 import kotlin.math.round
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import kotlin.reflect.KClass
 
 public abstract class ValueSlider<T> internal constructor(
@@ -73,14 +75,14 @@ public abstract class ValueSlider<T> internal constructor(
 
     private fun cast(value: Double): T {
         return when (type) {
-            Int::class    -> value.toInt           () as T
-            Float::class  -> value.toFloat         () as T
-            Double::class -> value                    as T
-            Long::class   -> value.toLong          () as T
-            Char::class   -> value.toInt().toChar  () as T
-            Short::class  -> value.toInt().toShort () as T
-            Byte::class   -> value.toInt().toByte  () as T
-            else          -> value                    as T
+            Int::class    -> value.roundToInt           () as T
+            Float::class  -> value.toFloat              () as T
+            Double::class -> value                         as T
+            Long::class   -> value.roundToLong          () as T
+            Char::class   -> value.roundToInt().toChar  () as T
+            Short::class  -> value.roundToInt().toShort () as T
+            Byte::class   -> value.roundToInt().toByte  () as T
+            else          -> value                         as T
         }
     }
 
