@@ -65,10 +65,9 @@ import org.kodein.di.bind
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
-import org.kodein.di.bindings.Singleton
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import org.kodein.type.generic
+import org.kodein.di.singleton
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
 import org.w3c.dom.Node
@@ -83,9 +82,7 @@ public inline fun <reified T: Application> application(
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
-    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
-//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator)
+    bind<Application> { singleton(creator = creator) }
 }, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> application(
@@ -93,10 +90,7 @@ public inline fun <reified T: Application> application(
                  allowDefaultDarkMode: Boolean     = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
-    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
-
-//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator)
+    bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> nestedApplication(
@@ -105,10 +99,7 @@ public inline fun <reified T: Application> nestedApplication(
                  allowDefaultDarkMode: Boolean      = false,
                  modules             : List<Module> = emptyList(),
         noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
-    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
-
-//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator) //singleton(creator = creator)
+    bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
 public fun createApplication(
