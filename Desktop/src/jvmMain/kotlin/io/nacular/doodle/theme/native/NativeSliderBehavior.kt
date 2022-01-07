@@ -1,34 +1,25 @@
 package io.nacular.doodle.theme.native
 
-import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.theme.SliderBehavior
-import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.event.PointerEvent
-import io.nacular.doodle.event.PointerListener
-import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
-import io.nacular.doodle.system.SystemPointerEvent
-import io.nacular.doodle.system.SystemPointerEvent.Type
-import io.nacular.doodle.system.SystemPointerEvent.Type.*
 import io.nacular.doodle.utils.Orientation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
-import java.awt.Event.MOUSE_DOWN
-import java.awt.Event.MOUSE_DRAG
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import javax.swing.BoundedRangeModel
+import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.event.ChangeListener
 import kotlin.coroutines.CoroutineContext
@@ -37,7 +28,7 @@ import kotlin.math.pow
 internal class NativeSliderBehavior<T>(
         private val appScope                 : CoroutineScope,
         private val uiDispatcher             : CoroutineContext,
-        private val window                   : SkiaWindow,
+        private val window                   : JPanel,
         private val swingGraphicsFactory     : SwingGraphicsFactory,
         private val focusManager             : FocusManager?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?

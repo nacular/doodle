@@ -29,6 +29,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.swing.Swing
 import kotlinx.datetime.Clock
+import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontSlant.UPRIGHT
@@ -36,7 +37,12 @@ import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.PathMeasure
 import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaWindow
+import org.jetbrains.skiko.SkiaLayer
+import org.jetbrains.skiko.SkikoGestureEvent
+import org.jetbrains.skiko.SkikoInputEvent
+import org.jetbrains.skiko.SkikoKeyboardEvent
+import org.jetbrains.skiko.SkikoPointerEvent
+import org.jetbrains.skiko.SkikoView
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
 import org.kodein.di.DI.Module
@@ -46,10 +52,11 @@ import org.kodein.di.bindFactory
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
-import org.kodein.di.bindings.Singleton
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import org.kodein.type.generic
+import org.kodein.di.singleton
+import java.awt.Dimension
+import javax.swing.JFrame
 import javax.swing.JFrame.EXIT_ON_CLOSE
 
 /**
@@ -59,15 +66,28 @@ public inline fun <reified T: Application> application(
         allowDefaultDarkMode: Boolean     = false,
         modules             : List<Module> = emptyList(),
         noinline creator    : NoArgBindingDI<*>.() -> T): Application = createApplication(direct {
-    // FIXME: change when https://youtrack.jetbrains.com/issue/KT-39225 fixed
-    bind<Application> { Singleton(scope, contextType, explicitContext, generic(), null, true, creator) } //singleton(creator = creator)
-//    bind<Application>() with Singleton(scope, contextType, explicitContext, generic(), null, true, creator)
+    bind<Application> { singleton(creator = creator) }
 }, allowDefaultDarkMode, modules)
 
 public fun createApplication(
         injector            : DirectDI,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
+
+internal class CustomSkikoView: SkikoView {
+    internal var onRender       : (canvas: Canvas, width: Int, height: Int, nanoTime: Long) -> Unit = { _,_,_,_ -> }
+    internal var onKeyboardEvent: (SkikoKeyboardEvent) -> Unit = {}
+    internal var onPointerEvent : (SkikoPointerEvent ) -> Unit = {}
+    internal var onInputEvent   : (SkikoInputEvent   ) -> Unit = {}
+    internal var onGestureEvent : (SkikoGestureEvent ) -> Unit = {}
+
+    override fun onKeyboardEvent(event: SkikoKeyboardEvent) = onKeyboardEvent.invoke(event)
+    override fun onPointerEvent (event: SkikoPointerEvent ) = onPointerEvent.invoke (event)
+    override fun onInputEvent   (event: SkikoInputEvent   ) = onInputEvent.invoke   (event)
+    override fun onGestureEvent (event: SkikoGestureEvent ) = onGestureEvent.invoke (event)
+
+    override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) = onRender.invoke(canvas, width, height, nanoTime)
+}
 
 private open class ApplicationHolderImpl protected constructor(
         previousInjector    : DirectDI,
@@ -83,20 +103,26 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     private val appScope      = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val skiaWindow    = SkiaWindow().apply {
+    private val skiaWindow    = JFrame().apply {
         defaultCloseOperation = EXIT_ON_CLOSE
     }
+
+    private val skiaLayer = SkiaLayer().apply {
+        addView(CustomSkikoView())
+    }
+
     private val defaultFont    = Font(Typeface.makeFromName("Courier", FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.default)
     }
 
-    protected var injector = direct {
+    private var injector = direct {
         extend(previousInjector, copy = All)
 
         bindInstance                                               { appScope                                                                                                  }
         bindInstance                                               { Clock.System                                                                                              }
         bindInstance                                               { skiaWindow                                                                                                }
+        bindInstance                                               { skiaLayer                                                                                                 }
         bindInstance                                               { defaultFont                                                                                               }
         bindInstance                                               { fontCollection                                                                                            }
         bindFactory<Unit, PathMeasure>                             { PathMeasure               (                                                                             ) }
@@ -133,6 +159,12 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     protected fun run() {
+        skiaLayer.attachTo(skiaWindow.contentPane)
+
+        skiaWindow.preferredSize = Dimension(800, 600)
+        skiaWindow.pack()
+        skiaWindow.isVisible = true
+
         injector.instance      <RenderManager>       ()
         injector.instanceOrNull<PointerInputManager> ()
         injector.instanceOrNull<KeyboardFocusManager>()

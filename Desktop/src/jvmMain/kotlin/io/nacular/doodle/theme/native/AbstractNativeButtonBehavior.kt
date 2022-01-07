@@ -11,19 +11,18 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
 
 internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
-        private   val window                   : SkiaWindow,
+        private   val window                   : JPanel,
         private   val appScope                 : CoroutineScope,
         private   val uiDispatcher             : CoroutineContext,
                       textMetrics              : TextMetrics,

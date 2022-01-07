@@ -19,7 +19,7 @@ kotlin {
     val osName = System.getProperty("os.name")
     val targetOs = when {
         osName == "Mac OS X"       -> "macos"
-        osName.startsWith("Win")   -> "windows"
+        osName.startsWith("Win"  ) -> "windows"
         osName.startsWith("Linux") -> "linux"
         else                       -> error("Unsupported OS: $osName")
     }
@@ -60,7 +60,7 @@ kotlin {
         jvm().compilations["main"].defaultSourceSet {
             dependencies {
                 api("org.kodein.di:kodein-di:$kodeinVersion")
-                api("org.jetbrains.skiko:skiko-jvm-runtime-$target:$skikoVersion")
+                api("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
             }
         }
 

@@ -11,26 +11,21 @@ import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
-import io.nacular.doodle.event.PointerListener
-import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.system.SystemPointerEvent.Type.*
+import io.nacular.doodle.system.SystemPointerEvent.Type.Click
+import io.nacular.doodle.system.SystemPointerEvent.Type.Down
+import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
+import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.system.impl.NativeScrollHandler
 import io.nacular.doodle.system.impl.NativeScrollHandlerFinder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.Event.MOUSE_DOWN
-import java.awt.Event.MOUSE_UP
 import java.awt.Graphics
-import java.awt.event.MouseEvent
-import java.awt.event.MouseEvent.MOUSE_CLICKED
-import java.awt.event.MouseEvent.MOUSE_DRAGGED
 import java.awt.event.MouseWheelEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -44,7 +39,7 @@ import kotlin.coroutines.CoroutineContext
  * Created by Nicholas Eddy on 6/29/21.
  */
 internal class NativeScrollPanelBehavior(
-        private val window                   : SkiaWindow,
+        private val window                   : JPanel,
         private val appScope                 : CoroutineScope,
         private val uiDispatcher             : CoroutineContext,
         private val graphicsDevice           : GraphicsDevice<RealGraphicsSurface>,

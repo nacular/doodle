@@ -1,5 +1,6 @@
 package io.nacular.doodle.core.impl
 
+import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Display
@@ -36,9 +37,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaRenderer
-import org.jetbrains.skiko.SkiaWindow
-import java.awt.Dimension
+import org.jetbrains.skiko.SkiaLayer
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import kotlin.coroutines.CoroutineContext
@@ -53,7 +52,7 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
 internal class DisplayImpl(
         private val appScope      : CoroutineScope,
         private val uiDispatcher  : CoroutineContext,
-        private val window        : SkiaWindow,
+        private val skiaLayer     : SkiaLayer,
         private val defaultFont   : Font,
         private val fontCollection: FontCollection,
         private val device        : GraphicsDevice<RealGraphicsSurface>
@@ -116,7 +115,7 @@ internal class DisplayImpl(
     private fun requestRender() {
         if (renderJob == null || renderJob?.isActive != true) {
             renderJob = appScope.launch(uiDispatcher) {
-                window.layer.needRedraw()
+                skiaLayer.needRedraw()
             }
         }
     }
@@ -143,42 +142,35 @@ internal class DisplayImpl(
             requestRender()
         }
 
-    init {
-        window.layer.renderer = object: SkiaRenderer {
-            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            override fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-                skiaCanvas.save     ()
-                skiaCanvas.scale    (window.layer.contentScale, window.layer.contentScale)
-                skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skia()))
+    private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nano: Long) {
+        skiaCanvas.save     ()
+        skiaCanvas.scale    (skiaLayer.contentScale, skiaLayer.contentScale)
+        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skia()))
 
-                fill?.let {
-                    CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
-                        size = this@DisplayImpl.size
-                        rect(Rectangle(width, height), it)
-                    }
-                }
-
-                children.forEach {
-                    device[it].onRender(skiaCanvas)
-                }
-
-                skiaCanvas.restore()
+        fill?.let {
+            CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
+                size = this@DisplayImpl.size
+                rect(Rectangle(width, height), it)
             }
         }
 
-        window.addComponentListener(object: ComponentAdapter() {
+        children.forEach {
+            device[it].onRender(skiaCanvas)
+        }
+
+        skiaCanvas.restore()
+    }
+
+    init {
+        skiaLayer.addComponentListener(object: ComponentAdapter() {
             override fun componentResized(e: ComponentEvent) {
-                size = Size(window.contentPane.width, window.contentPane.height)
-                window.layer.setSize(window.contentPane.width, window.contentPane.height)
+                size = Size(skiaLayer.width, skiaLayer.height)
             }
         })
 
-        window.preferredSize = Dimension(800, 600)
-        window.pack()
-        window.isVisible = true
-        window.layout    = null
+        (skiaLayer.skikoView as CustomSkikoView).onRender = this::onRender
 
-        size = Size(window.contentPane.width, window.contentPane.height)
+        size = Size(skiaLayer.width, skiaLayer.height)
     }
 
     override fun fill(fill: Paint) {

@@ -5,10 +5,10 @@ import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import javax.swing.JPanel
 import javax.swing.JRadioButton
 import kotlin.coroutines.CoroutineContext
 
@@ -43,7 +43,7 @@ internal class JRadioButtonPeer(focusManager: FocusManager?, button: ToggleButto
 }
 
 internal class NativeRadioButtonBehavior(
-        window                   : SkiaWindow,
+        window                   : JPanel,
         appScope                 : CoroutineScope,
         uiDispatcher             : CoroutineContext,
         swingGraphicsFactory     : SwingGraphicsFactory,

@@ -3,15 +3,12 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
 import org.jetbrains.skia.BlendMode
 import org.jetbrains.skia.Canvas
-import org.jetbrains.skia.ColorAlphaType
-import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.FilterTileMode
 import org.jetbrains.skia.FilterTileMode.CLAMP
 import org.jetbrains.skia.FilterTileMode.MIRROR
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.GradientStyle
-import org.jetbrains.skia.ImageInfo
 import org.jetbrains.skia.Matrix33
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.PaintMode
@@ -29,6 +26,7 @@ import org.jetbrains.skia.Rect
 import org.jetbrains.skia.Shader
 import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.paragraph.FontCollection
+import org.jetbrains.skiko.toImage
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
@@ -80,7 +78,6 @@ import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImageOp
 import java.awt.image.ColorModel
-import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
 import java.awt.image.ImageObserver
 import java.awt.image.RenderedImage
@@ -771,32 +768,16 @@ internal class SkiaGraphics2D(
         return result
     }
 
-    private val Image.skia: SkiaImage get() {
-        val width         = getWidth(null)
-        val height        = getHeight(null)
-        val bufferedImage = when (this) {
-            is BufferedImage -> this
-            else             -> {
-                BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB).apply {
-                    val graphics = createGraphics()
-                    graphics.drawImage(this@skia, 0, 0, null)
-                    graphics.dispose()
-                }
+    private val Image.skia: SkiaImage get() = when (this) {
+        is BufferedImage -> this
+        else             -> {
+            BufferedImage(getWidth(null), getHeight(null), BufferedImage.TYPE_INT_ARGB).apply {
+                val graphics = createGraphics()
+                graphics.drawImage(this@skia, 0, 0, null)
+                graphics.dispose()
             }
         }
-
-        val pixels = (bufferedImage.raster.dataBuffer as DataBufferInt).data
-        val bytes  = ByteArray(pixels.size * 4)
-        for (i in pixels.indices) {
-            val p = pixels[i]
-            bytes[i * 4 + 3] = (p and -0x1000000 shr 24).toByte()
-            bytes[i * 4 + 2] = (p and  0xFF0000  shr 16).toByte()
-            bytes[i * 4 + 1] = (p and  0xFF00    shr  8).toByte()
-            bytes[i * 4    ] = (p and  0xFF            ).toByte()
-        }
-
-        return SkiaImage.makeRaster(ImageInfo(width, height, ColorType.BGRA_8888, ColorAlphaType.PREMUL), bytes, width * 4L)
-    }
+    }.toImage()
 
     private fun awtToSkiaLineCap(cap: Int): PaintStrokeCap = when (cap) {
         CAP_BUTT   -> BUTT
