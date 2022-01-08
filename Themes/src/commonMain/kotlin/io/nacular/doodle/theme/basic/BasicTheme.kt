@@ -15,7 +15,9 @@ import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.MutableModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
@@ -31,7 +33,6 @@ import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -61,6 +62,10 @@ import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicMutableDropdownBehavior
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
+import io.nacular.doodle.theme.basic.range.BasicCircularRangeSliderBehavior
+import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
+import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
+import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
 import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinnerBehavior
 import io.nacular.doodle.theme.basic.spinner.BasicSpinnerBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
@@ -339,14 +344,36 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public fun basicSliderBehavior(
                 barFill             : Paint? = null,
                 knobFill            : Paint? = null,
+                rangeFill           : Paint? = null,
                 grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicSliderBehavior<Double>(
-                            barFill             ?: defaultBackgroundColor.paint,
-                            knobFill            ?: darkBackgroundColor.paint,
-                            grooveThicknessRatio ?: 0.5f,
-                            instanceOrNull()
+                        barFill              = barFill              ?: defaultBackgroundColor.paint,
+                        knobFill             = knobFill             ?: darkBackgroundColor.paint,
+                        rangeFill            = rangeFill,
+                        grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        focusManager         = instanceOrNull()
+                    ).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
+                }
+            }
+        }
+
+        public fun basicRangeSliderBehavior(
+            barFill             : Paint? = null,
+            knobFill            : Paint? = null,
+            rangeFill           : Paint? = knobFill,
+            grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
+            bindBehavior<RangeSlider<Double>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicRangeSliderBehavior<Double>(
+                        barFill              ?: defaultBackgroundColor.paint,
+                        knobFill             ?: darkBackgroundColor.paint,
+                        rangeFill            ?: darkBackgroundColor.paint,
+                        grooveThicknessRatio ?: 0.5f,
+                        instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
                     }
@@ -553,13 +580,36 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public fun basicCircularSliderBehavior(
                 barFill  : Paint? = null,
                 knobFill : Paint? = null,
+                rangeFill: Paint? = null,
                 thickness: Double = 20.0
         ): Module = basicThemeModule(name = "BasicCircularSliderBehavior") {
             bindBehavior<CircularSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularSliderBehavior<Double>(
-                        barFill      = barFill  ?: defaultBackgroundColor.paint,
-                        knobFill     = knobFill ?: darkBackgroundColor.paint,
+                        barFill      = barFill   ?: defaultBackgroundColor.paint,
+                        knobFill     = knobFill  ?: darkBackgroundColor.paint,
+                        rangeFill    = rangeFill,
+                        thickness    = thickness,
+                        focusManager = instanceOrNull()
+                    ).apply {
+                        disabledPaintMapper = this@run.disabledPaintMapper
+                    }
+                }
+            }
+        }
+
+        public fun basicCircularRangeSliderBehavior(
+            barFill  : Paint? = null,
+            knobFill : Paint? = null,
+            rangeFill: Paint? = null,
+            thickness: Double = 20.0
+        ): Module = basicThemeModule(name = "BasicCircularRangeSliderBehavior") {
+            bindBehavior<CircularRangeSlider<Double>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicCircularRangeSliderBehavior<Double>(
+                        barFill      = barFill   ?: defaultBackgroundColor.paint,
+                        knobFill     = knobFill  ?: darkBackgroundColor.paint,
+                        rangeFill    = rangeFill ?: darkBackgroundColor.paint,
                         thickness    = thickness,
                         focusManager = instanceOrNull()
                     ).apply {
@@ -650,7 +700,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicButtonBehavior(),
                 basicSwitchBehavior(),
                 basicSliderBehavior(),
+                basicRangeSliderBehavior(),
                 basicCircularSliderBehavior(),
+                basicCircularRangeSliderBehavior(),
                 basicSpinnerBehavior(),
                 basicCheckBoxBehavior(),
                 basicDropdownBehavior(),

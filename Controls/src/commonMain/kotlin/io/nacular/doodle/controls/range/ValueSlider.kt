@@ -48,6 +48,10 @@ public abstract class ValueSlider<T> internal constructor(
             model.value = if (snapToTicks && snapSize > 0) cast((round(new.toDouble() / snapSize) * snapSize)) else new
         }
 
+    public var range: ClosedRange<T>
+        get(   ) = model.limits
+        set(new) { model.limits = new }
+
     internal fun set(to: Double) {
         value = cast(to)
     }
@@ -56,19 +60,19 @@ public abstract class ValueSlider<T> internal constructor(
         value = cast(value.toDouble() + by)
     }
 
-    public var range: ClosedRange<T>
-        get(   ) = model.limits
-        set(new) { model.limits = new }
-
-
     internal fun set(range: ClosedRange<Double>) {
         model.limits = cast(range.start) .. cast(range.endInclusive)
     }
 
-    protected abstract fun changed(old: T, new: T)
+    protected abstract fun changed      (old: T,              new: T             )
+    protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
         changed(old, new)
+    }
+
+    private val limitsChanged: (ConfinedValueModel<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,old,new ->
+        limitsChanged(old, new)
     }
 
     private var snapSize = 0.0
@@ -87,7 +91,8 @@ public abstract class ValueSlider<T> internal constructor(
     }
 
     init {
-        model.valueChanged += modelChanged
+        model.valueChanged  += modelChanged
+        model.limitsChanged += limitsChanged
     }
 }
 

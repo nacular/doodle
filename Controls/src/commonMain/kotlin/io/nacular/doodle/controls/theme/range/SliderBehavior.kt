@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.theme
+package io.nacular.doodle.controls.theme.range
 
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.range.size
@@ -40,29 +40,28 @@ public abstract class AbstractSliderBehavior<T>(
         private val focusManager: FocusManager?
 ): SliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
 
-    private   lateinit var lastStart          : T
-    protected var lastPointerPosition: Double = -1.0
-        private set
+    private lateinit var lastStart: T
 
-    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ -> it.rerender() }
+    private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
+    private val enabledChanged: (View,      Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
 
-    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
+    protected var lastPointerPosition: Double = -1.0; private set
 
     override fun install(view: Slider<T>) {
         lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
         view.pointerChanged       += this
-        view.pointerMotionChanged += this
         view.enabledChanged       += enabledChanged
+        view.pointerMotionChanged += this
     }
 
     override fun uninstall(view: Slider<T>) {
         view.changed              -= changed
         view.keyChanged           -= this
         view.pointerChanged       -= this
-        view.pointerMotionChanged -= this
         view.enabledChanged       -= enabledChanged
+        view.pointerMotionChanged -= this
     }
 
     override fun pressed(event: PointerEvent) {

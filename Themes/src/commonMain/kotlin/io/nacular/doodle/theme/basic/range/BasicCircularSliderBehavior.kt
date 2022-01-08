@@ -1,32 +1,38 @@
-package io.nacular.doodle.theme.basic
+package io.nacular.doodle.theme.basic.range
 
 import io.nacular.doodle.controls.range.CircularSlider
-import io.nacular.doodle.controls.theme.AbstractCircularSliderBehavior
+import io.nacular.doodle.controls.theme.range.AbstractCircularSliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.ring
+import io.nacular.doodle.geometry.ringSection
 import io.nacular.doodle.theme.PaintMapper
+import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
 import io.nacular.measured.units.Angle.Companion.cos
+import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 
 public class BasicCircularSliderBehavior<T>(
         private val barFill  : Paint,
         private val knobFill : Paint,
+        private val rangeFill: Paint? = null,
         private val thickness: Double = 20.0,
         focusManager: FocusManager? = null
 ): AbstractCircularSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
     public constructor(
             barColor    : Color         = Lightgray,
             knobColor   : Color         = Blue,
+            rangeFill   : Color?        = null,
             thickness   : Double        = 20.0,
-            focusManager: FocusManager? = null): this(barFill = ColorPaint(barColor), knobFill = ColorPaint(knobColor), thickness, focusManager)
+            focusManager: FocusManager? = null): this(barFill = barColor.paint, knobFill = knobColor.paint, rangeFill = rangeFill?.paint, thickness, focusManager)
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
@@ -34,10 +40,14 @@ public class BasicCircularSliderBehavior<T>(
         val center      = Point(view.width / 2, view.height / 2)
         val outerRadius = minOf(view.width,     view.height) / 2
         val innerRadius = maxOf(0.0, outerRadius - thickness)
+        val handleAngle          = handleAngle(view)
 
         canvas.path(ring(center, innerRadius, outerRadius), adjust(view, barFill))
 
-        val handleAngle          = handleAngle(view)
+        rangeFill?.let {
+            canvas.path(ringSection(center, innerRadius, outerRadius, start = _0, end = handleAngle), adjust(view, it))
+        }
+
         val radiusToHandleCenter = (innerRadius + outerRadius) / 2
         val handleCenter         = center + Point(radiusToHandleCenter * cos(handleAngle), radiusToHandleCenter * sin(handleAngle))
 

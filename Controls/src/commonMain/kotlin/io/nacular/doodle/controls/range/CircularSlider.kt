@@ -14,7 +14,11 @@ public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<CircularSlider<T>, T>(this) }
 
+    @Suppress("PrivatePropertyName")
+    private val limitsChanged_ by lazy { PropertyObserversImpl<CircularSlider<T>, ClosedRange<T>>(this) }
+
     public val changed: PropertyObservers<CircularSlider<T>, T> = changed_
+    public val limitsChanged: PropertyObservers<CircularSlider<T>, ClosedRange<T>> = limitsChanged_
 
     public var behavior: Behavior<CircularSlider<T>>? by behavior()
 
@@ -26,6 +30,10 @@ public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T
 
     override fun changed(old: T, new: T) {
         changed_(old, new)
+    }
+
+    override fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>) {
+        limitsChanged_(old, new)
     }
 
     public companion object {

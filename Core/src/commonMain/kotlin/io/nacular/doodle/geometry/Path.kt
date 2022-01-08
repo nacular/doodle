@@ -9,6 +9,8 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.abs
+import io.nacular.measured.units.normalize
+import io.nacular.measured.units.sign
 import io.nacular.measured.units.times
 
 /**
@@ -191,9 +193,9 @@ public fun ringSection(
         start      : Measure<Angle>,
         end        : Measure<Angle>,
         startCap   : SegmentBuilder = { _,it -> lineTo(it) },
-        endCap     : SegmentBuilder = { _,_  ->            }
+        endCap     : SegmentBuilder = { _,_  ->            },
 ): Path {
-    val sweep      = (end - start).amount > 1
+    val sweep      = (end - start).sign > 0
     val thickness  = outerRadius - innerRadius
     val cosStart   = cos(start)
     val sinStart   = sin(start)
@@ -203,16 +205,16 @@ public fun ringSection(
     val outerEnd   = center + Point(outerRadius * cosEnd,   outerRadius * sinEnd  )
     val innerStart = outerStart - thickness * Point(cosStart, sinStart)
     val innerEnd   = outerEnd   - thickness * Point(cosEnd,   sinEnd  )
-    val largeArch  = (abs(end - start) `in` degrees) % 360.0 > 180.0
+    val largeArch  = ((end - start).normalize() `in` degrees) > 180 //(abs(end - start) `in` degrees) % 360.0 > 180.0
 
     return path(outerStart).
-    arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
-        startCap(this, outerEnd, innerEnd)
-    }.
-    arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
-        endCap(this, innerStart, outerStart)
-    }.
-    close()
+        arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
+            startCap(this, outerEnd, innerEnd)
+        }.
+        arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
+            endCap(this, innerStart, outerStart)
+        }.
+        close()
 }
 
 private class PathImpl(override val data: String): Path {

@@ -1,15 +1,12 @@
 package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.theme.AbstractSliderBehavior
-import io.nacular.doodle.controls.theme.SliderBehavior
-import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeSliderFactory
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
-import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.system.Cursor.Companion.Default
 
 /**

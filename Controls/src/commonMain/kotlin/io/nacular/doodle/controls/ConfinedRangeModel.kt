@@ -37,7 +37,9 @@ public class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, ra
     override var range: ClosedRange<T> = range
         set(new) {
             val old = field
-            field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) .. maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
+
+            field = minOf(limits.endInclusive, maxOf(/*minOf(new.start, new.endInclusive)*/new.start, limits.start       )) ..
+                    maxOf(limits.start,        minOf(/*maxOf(new.start, new.endInclusive)*/new.endInclusive, limits.endInclusive))
 
             if (old != field) {
                 rangeChanged_(old, field)
