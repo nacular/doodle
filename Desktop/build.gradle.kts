@@ -2,6 +2,8 @@ plugins {
     kotlin("multiplatform")
 }
 
+val skikoVersion: String by project
+
 kotlin {
     explicitApi()
 
@@ -10,7 +12,6 @@ kotlin {
     val mockkVersion     : String by project
     val junitVersion     : String by project
     val log4jVersion     : String by project
-    val skikoVersion     : String by project
     val kodeinVersion    : String by project
     val logbackVersion   : String by project
     val dateTimeVersion  : String by project
@@ -60,7 +61,7 @@ kotlin {
         jvm().compilations["main"].defaultSourceSet {
             dependencies {
                 api("org.kodein.di:kodein-di:$kodeinVersion")
-                api("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
+                implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
             }
         }
 
@@ -72,6 +73,48 @@ kotlin {
                 implementation("org.slf4j:slf4j-api:$log4jVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("io.mockk:mockk:$mockkVersion")
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            jvmOs("linux-x64",   "skiko-awt-runtime-linux-x64"  )
+            jvmOs("linux-arm64", "skiko-awt-runtime-linux-arm64")
+            jvmOs("macos-x64",   "skiko-awt-runtime-macos-x64"  )
+            jvmOs("macos-arm64", "skiko-awt-runtime-macos-arm64")
+            jvmOs("windows-x64", "skiko-awt-runtime-windows-x64")
+        }
+    }
+}
+
+fun PublicationContainer.jvmOs(name: String, skikoArtifactId: String) {
+    create("jvm$name", MavenPublication::class) {
+        val projectGroup   = project.group
+        val projectName    = "${project.name}-jvm"
+        val projectVersion = project.version
+
+        artifactId = "$projectName-$name"
+
+        pom {
+            withXml {
+                val dependenciesNode = asNode().appendNode("dependencies")
+
+                dependenciesNode.appendNode("dependency").apply {
+                    appendNode("groupId",    projectGroup  )
+                    appendNode("artifactId", projectName   )
+                    appendNode("version",    projectVersion)
+                    appendNode("scope",      "compile"     )
+                }
+
+                dependenciesNode.appendNode("dependency").apply {
+                    appendNode("groupId",    "org.jetbrains.skiko")
+                    appendNode("artifactId", skikoArtifactId      )
+                    appendNode("version",    skikoVersion         )
+                    appendNode("scope",      "compile"            )
+                }
             }
         }
     }
