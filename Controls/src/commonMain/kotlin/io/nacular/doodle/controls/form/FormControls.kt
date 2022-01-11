@@ -72,7 +72,7 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
 /**
  * Creates a [TextField] control that is bounded to a [Field].
  * The associated field will only be valid if the text field's input matches
- * [pattern] and [encoder.from][Encoder.from] produces a valid [T] from it.
+ * [pattern] and [encoder.decode][Encoder.decode] produces a valid [T] from it.
  *
  * @param T is the type of the bounded field
  * @param pattern used to validate input to the field
@@ -95,7 +95,7 @@ public fun <T> textField(
     fun validate(field: Field<T>, value: String, notify: Boolean = true) {
         when {
             pattern.matches(value) -> {
-                encoder.from(value).onSuccess { decoded ->
+                encoder.decode(value).onSuccess { decoded ->
                     when {
                         validator(decoded) -> {
                             field.state = Valid(decoded)
@@ -125,7 +125,7 @@ public fun <T> textField(
         config(configObject)
 
         when {
-            initial is Valid && validator(initial.value) -> encoder.to(initial.value).getOrNull()?.let { text = it }
+            initial is Valid && validator(initial.value) -> encoder.encode(initial.value).getOrNull()?.let { text = it }
             else                                         -> validate(field, text, notify = false)
         }
     }

@@ -197,7 +197,7 @@ public open class TextEditOperation<T>(
     }
 
     init {
-        text                = encoder.to(node).getOrDefault("")
+        text                = encoder.encode(node).getOrDefault("")
         fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Origin))
         borderVisible       = false
@@ -241,7 +241,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.from(text).getOrNull().also {
+    override fun complete(): T? = encoder.decode(text).getOrNull().also {
         cancel()
     }
 

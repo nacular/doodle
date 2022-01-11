@@ -300,7 +300,7 @@ public open class TextEditOperation<T>(
     }
 
     init {
-        text                = encoder.to(row).getOrDefault("")
+        text                = encoder.encode(row).getOrDefault("")
         fitText             = setOf(TextFit.Width, TextFit.Height)
         borderVisible       = false
         foregroundColor     = current.foregroundColor
@@ -346,7 +346,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.from(text).getOrNull().also { cancel() }
+    override fun complete(): T? = encoder.decode(text).getOrNull().also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged
