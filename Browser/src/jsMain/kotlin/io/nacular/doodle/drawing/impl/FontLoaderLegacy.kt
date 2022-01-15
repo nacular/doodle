@@ -27,13 +27,16 @@ internal class FontLoaderLegacy(
 
     override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font = FontInfo().apply(info).let {
         if (source to it !in loadedFonts) {
-            systemStyler.insertRule("""
-            @font-face {
-                font-family: "${it.family}";
-                font-style: ${it.style.styleText};
-                font-weight: ${it.weight};
-                src: url($source)
-            }""".trimIndent())
+            it.families.forEach { family ->
+                systemStyler.insertRule("""
+                    @font-face {
+                        font-family: "$family";
+                        font-style: ${it.style.styleText};
+                        font-weight: ${it.weight};
+                        src: url($source)
+                    }""".trimIndent()
+                )
+            }
         }
 
         this(info)
@@ -44,8 +47,8 @@ internal class FontLoaderLegacy(
             val hash = getHash(family, weight, size, style)
 
             return when (waitIfLoading(hash)) {
-                // Only one coroutine will get here at a time. It will either load the Font or be canceled.  On success, all queued
-                // loads will be resolved and return.  Otherwise, the next in line is allowed to take a shot.
+                // Only one coroutine will get here at a time. It will either load the Font or be canceled. On success, all queued
+                // loads will be resolved and return. Otherwise, the next in line is allowed to take a shot.
                 Found -> FontImpl(size, weight, style, family)
                 else  -> {
                     try {
@@ -54,15 +57,24 @@ internal class FontLoaderLegacy(
                         }
 
                         fonts[hash] = Pending
+                        val families = families.joinToString(",")
 
-                        val text        = textFactory.create(TEXT, FontImpl(size, weight, style, "$family, $DEFAULT_FAMILY"))
-                        val defaultSize = elementRuler.size(textFactory.create(TEXT, FontImpl(size, weight, style, DEFAULT_FAMILY)))
+                        val text1 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, serif"          ))
+                        val text2 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, san-serif"      ))
+                        val text3 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, $DEFAULT_FAMILY"))
 
-                        scheduler.delayUntil { elementRuler.size(text) != defaultSize } // FIXME: Use approach that adds element and observes size/scroll like: https://github.com/bramstein/fontfaceobserver/blob/master/src/ruler.js
+                        // TODO: Consider using approach that adds element and observes size/scroll like: https://github.com/bramstein/fontfaceobserver/blob/master/src/ruler.js
+                        scheduler.delayUntil {
+                            val size1 = elementRuler.size(text1)
+                            val size2 = elementRuler.size(text2)
+                            val size3 = elementRuler.size(text3)
+
+                            size1 == size2 || size1 == size3 || size2 == size3
+                        }
 
                         fonts[hash] = Found
 
-                        return FontImpl(size, weight, style, family).also {
+                        return FontImpl(size, weight, style, families).also {
                             suspended[hash]?.forEach { it.resume(Found) }
                             suspended -= hash
                         }
