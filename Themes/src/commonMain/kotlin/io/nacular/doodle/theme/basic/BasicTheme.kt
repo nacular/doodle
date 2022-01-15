@@ -363,23 +363,36 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
         public fun basicRangeSliderBehavior(
             barFill             : Paint? = null,
-            knobFill            : Paint? = null,
-            rangeFill           : Paint? = knobFill,
+            startKnobFill       : Paint? = null,
+            endKnobFill         : Paint? = startKnobFill,
+            rangeFill           : Paint? = endKnobFill,
             grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
             bindBehavior<RangeSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicRangeSliderBehavior<Double>(
-                        barFill              ?: defaultBackgroundColor.paint,
-                        knobFill             ?: darkBackgroundColor.paint,
-                        rangeFill            ?: darkBackgroundColor.paint,
-                        grooveThicknessRatio ?: 0.5f,
-                        instanceOrNull()
+                        barFill              = barFill              ?: defaultBackgroundColor.paint,
+                        startKnobFill        = startKnobFill        ?: darkBackgroundColor.paint,
+                        endKnobFill          = endKnobFill          ?: startKnobFill ?: darkBackgroundColor.paint,
+                        rangeFill            = rangeFill            ?: darkBackgroundColor.paint,
+                        grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        focusManager         = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
                     }
                 }
             }
         }
+
+        public inline fun basicRangeSliderBehavior(
+            barFill             : Paint? = null,
+            knobFill            : Paint? = null,
+            rangeFill           : Paint? = knobFill,
+            grooveThicknessRatio: Float? = null): Module = basicRangeSliderBehavior(
+            barFill              = barFill,
+            startKnobFill        = knobFill,
+            rangeFill            = rangeFill,
+            grooveThicknessRatio = grooveThicknessRatio
+        )
 
         public fun basicSpinnerBehavior(
                 backgroundColor    : Color?  = null,
@@ -599,25 +612,38 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicCircularRangeSliderBehavior(
-            barFill  : Paint? = null,
-            knobFill : Paint? = null,
-            rangeFill: Paint? = null,
-            thickness: Double = 20.0
+            barFill       : Paint? = null,
+            startKnobFill : Paint? = null,
+            endKnobFill   : Paint? = startKnobFill,
+            rangeFill     : Paint? = endKnobFill,
+            thickness     : Double = 20.0
         ): Module = basicThemeModule(name = "BasicCircularRangeSliderBehavior") {
             bindBehavior<CircularRangeSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularRangeSliderBehavior<Double>(
-                        barFill      = barFill   ?: defaultBackgroundColor.paint,
-                        knobFill     = knobFill  ?: darkBackgroundColor.paint,
-                        rangeFill    = rangeFill ?: darkBackgroundColor.paint,
-                        thickness    = thickness,
-                        focusManager = instanceOrNull()
+                        barFill       = barFill       ?: defaultBackgroundColor.paint,
+                        startKnobFill = startKnobFill ?: darkBackgroundColor.paint,
+                        endKnobFill   = endKnobFill   ?: startKnobFill ?: darkBackgroundColor.paint,
+                        rangeFill     = rangeFill     ?: darkBackgroundColor.paint,
+                        thickness     = thickness,
+                        focusManager  = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
                     }
                 }
             }
         }
+
+        public inline fun basicCircularRangeSliderBehavior(
+            barFill  : Paint? = null,
+            knobFill : Paint? = null,
+            rangeFill: Paint? = knobFill,
+            thickness: Double = 20.0): Module = basicCircularRangeSliderBehavior(
+            barFill       = barFill,
+            startKnobFill = knobFill,
+            rangeFill     = rangeFill,
+            thickness     = thickness
+        )
 
         public fun basicTabbedPanelBehavior(
                 tabProducer    : TabProducer<Any>?         = null,

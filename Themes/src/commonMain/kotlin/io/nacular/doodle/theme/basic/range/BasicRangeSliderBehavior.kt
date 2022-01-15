@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic.range
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.theme.range.AbstractRangeSliderBehavior
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Paint
@@ -18,18 +17,20 @@ import kotlin.math.max
 import kotlin.math.min
 
 public class BasicRangeSliderBehavior<T>(
-        private val barFill             : Paint,
-        private val knobFill            : Paint,
-        private val rangeFill           : Paint = knobFill,
-                    grooveThicknessRatio: Float = 0.6f,
-                    focusManager        : FocusManager? = null
+        private val barFill             : (RangeSlider<T>) -> Paint,
+        private val startKnobFill       : (RangeSlider<T>) -> Paint,
+        private val endKnobFill         : (RangeSlider<T>) -> Paint,
+        private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
+                    grooveThicknessRatio: Float                     = 0.6f,
+                    focusManager        : FocusManager?             = null
 ): AbstractRangeSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
     public constructor(
-            barColor            : Color = Lightgray,
-            knobColor           : Color = Blue,
-            rangeColor          : Color = knobColor,
+            barFill            : Paint  = Lightgray.paint,
+            startKnobFill      : Paint  = Blue.paint,
+            endKnobFill        : Paint  = startKnobFill,
+            rangeFill          : Paint  = endKnobFill,
             grooveThicknessRatio: Float = 0.6f,
-            focusManager        : FocusManager? = null): this(barFill = barColor.paint, knobFill = knobColor.paint, rangeFill = rangeColor.paint, grooveThicknessRatio, focusManager)
+            focusManager        : FocusManager? = null): this(barFill = { barFill }, startKnobFill = { startKnobFill }, endKnobFill = { endKnobFill }, rangeFill = { rangeFill }, grooveThicknessRatio, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
 
@@ -66,11 +67,30 @@ public class BasicRangeSliderBehavior<T>(
             }
         }
 
-        canvas.rect  (grooveRect, grooveRect.height / 2, adjust(view, barFill  ))
-        canvas.rect  (rangeRect,                         adjust(view, rangeFill))
-        canvas.circle(Circle(firstKnobRect.center,  firstKnobRect.width  / 2), adjust(view, knobFill))
-        canvas.circle(Circle(secondKnobRect.center, secondKnobRect.width / 2), adjust(view, knobFill))
+        canvas.rect  (grooveRect, grooveRect.height / 2, adjust(view, barFill(view)  ))
+        canvas.rect  (rangeRect,                         adjust(view, rangeFill(view)))
+
+        canvas.circle(Circle(firstKnobRect.center,  firstKnobRect.width  / 2), adjust(view, startKnobFill(view)))
+        canvas.circle(Circle(secondKnobRect.center, secondKnobRect.width / 2), adjust(view, endKnobFill  (view)))
     }
 
     private fun adjust(view: RangeSlider<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)
+
+    public companion object {
+        public inline operator fun <T> invoke(
+            barFill             : Paint         = Lightgray.paint,
+            knobFill            : Paint         = Blue.paint,
+            rangeFill           : Paint         = knobFill,
+            grooveThicknessRatio: Float         = 0.6f,
+            focusManager        : FocusManager? = null): BasicRangeSliderBehavior<T> where T: Number, T: Comparable<T> {
+            return BasicRangeSliderBehavior(
+                barFill              = barFill,
+                startKnobFill        = knobFill,
+                endKnobFill          = knobFill,
+                rangeFill            = rangeFill,
+                grooveThicknessRatio = grooveThicknessRatio,
+                focusManager         = focusManager
+            )
+        }
+    }
 }

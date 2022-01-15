@@ -42,7 +42,7 @@ public interface CircularRangeSliderBehavior<T>: Behavior<CircularRangeSlider<T>
 
 public abstract class AbstractCircularRangeSliderBehavior<T>(
         private val focusManager: FocusManager?,
-        private val startAngle  : Measure<Angle> = /*_0 / */_270
+        private val startAngle  : Measure<Angle> = _270
 ): CircularRangeSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
 
     private lateinit var lastEnd       : T

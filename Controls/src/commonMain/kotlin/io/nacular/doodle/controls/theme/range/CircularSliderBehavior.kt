@@ -40,8 +40,8 @@ public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T:
 }
 
 public abstract class AbstractCircularSliderBehavior<T>(
-        private val focusManager: FocusManager?,
-        private val startAngle  : Measure<Angle> = _270
+        private   val focusManager: FocusManager?,
+        protected val startAngle  : Measure<Angle> = _270
 ): CircularSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
 
     private lateinit var lastStart : T
