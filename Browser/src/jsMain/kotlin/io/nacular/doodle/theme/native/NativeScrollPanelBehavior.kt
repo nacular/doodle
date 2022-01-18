@@ -10,8 +10,14 @@ import io.nacular.doodle.geometry.Point
  * Created by Nicholas Eddy on 2/5/18.
  */
 internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
+    private var hasRendered     = false
+    private var pendingScrollTo = null as Point?
+
     override fun scrollTo(panel: ScrollPanel, point: Point) {
-        nativePeer.scrollTo(point)
+        when {
+            hasRendered -> nativePeer.scrollTo(point)
+            else        -> pendingScrollTo = point
+        }
     }
 
     override var onScroll: ((Point) -> Unit)? = null
@@ -26,6 +32,12 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
         // Load on first render to avoid premature creation of Graphics Surface, which would
         // mess up element ordering.
         nativePeer
+
+        hasRendered = true
+
+        pendingScrollTo?.let {
+            scrollTo(view, it)
+        }
     }
 
     override fun install(view: ScrollPanel) {
