@@ -346,7 +346,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.decode(text).getOrNull().also { cancel() }
+    override fun complete(): Result<T> = encoder.decode(text).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged
@@ -394,7 +394,7 @@ public open class ColorEditOperation<T>(
         colorPicker.focusChanged += focusChanged
     }
 
-    override fun complete(): Color = colorPicker.color.also {
+    override fun complete(): Result<Color> = success(colorPicker.color).also {
         cancel()
     }
 
@@ -451,7 +451,7 @@ public open class BooleanEditOperation<T>(
 
     override fun invoke(): View? = this
 
-    override fun complete(): Boolean = checkBox.selected.also { cancel() }
+    override fun complete(): Result<Boolean> = success(checkBox.selected).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged

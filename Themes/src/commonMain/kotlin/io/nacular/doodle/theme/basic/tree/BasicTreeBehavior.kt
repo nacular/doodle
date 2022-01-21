@@ -241,7 +241,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.decode(text).getOrNull().also {
+    override fun complete(): Result<T> = encoder.decode(text).also {
         cancel()
     }
 

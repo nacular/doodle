@@ -92,11 +92,10 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
      */
     public override fun completeEditing() {
         editOperation?.let { operation ->
-            val result = operation.complete() ?: return
-
-            cleanupEditing()
-
-            set(result)
+            operation.complete().onSuccess {
+                cleanupEditing()
+                set(it)
+            }
         }
     }
 

@@ -109,11 +109,10 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
     public override fun completeEditing() {
         editOperation?.let { operation ->
             editingPath?.let { path ->
-                val result = operation.complete() ?: return
-
-                cleanupEditing()
-
-                updateModel(path, result)
+                operation.complete().onSuccess {
+                    cleanupEditing()
+                    updateModel(path, it)
+                }
             }
         }
     }

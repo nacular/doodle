@@ -19,7 +19,16 @@ import io.nacular.doodle.utils.observable
 
 
 public interface ListEditor<T> {
-    public fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T>
+    /**
+     * Called to initiate editing of a [MutableList].
+     *
+     * @param list to be edited
+     * @param item being edited within the list
+     * @param index of the item to be edited
+     * @param current View being used to display the item in the list
+     * @return an edit operation
+     */
+    public fun edit(list: MutableList<T, *>, item: T, index: Int, current: View): EditOperation<T>
 }
 
 public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>): ListEditor<T> = object: ListEditor<T> {
@@ -76,7 +85,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
      * Model accepts the change.
      */
     public operator fun set(index: Int, value: T) {
-        if (value == model.set(index, value)) {
+        if (value == model.set(index, value).getOrNull()) {
             // This is the case that the "new" value is the same as what was there
             // so need to explicitly update since the model won't fire a change
             update(children, index)
@@ -120,12 +129,11 @@ public open class MutableList<T, M: MutableListModel<T>>(
      */
     public override fun completeEditing() {
         editOperation?.let { operation ->
-            editingRow?.let { index ->
-                val result = operation.complete() ?: return
-
-                cleanupEditing()
-
-                this[index] = result
+            editingItem?.let { index ->
+                operation.complete().onSuccess {
+                    cleanupEditing()
+                    this[index] = it
+                }
             }
         }
     }

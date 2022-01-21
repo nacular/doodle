@@ -72,9 +72,9 @@ public class MutableTable<T, M: MutableListModel<T>>(
         private inner class ListEditorAdapter(private val editor: TableEditor<T>): ListEditor<R> {
             override fun edit(list: MutableList<R, *>, row: R, index: Int, current: View): EditOperation<R> = editor(this@MutableTable, model[index].getOrNull()!!, this@MutableInternalListColumn, index, current).let {
                 object: EditOperation<R> {
-                    override fun invoke  () = it.invoke()
-                    override fun complete() = it.complete()?.also { model[index] = it; editingColumn = null }?.let(extractor)
-                    override fun cancel  () = it.cancel()
+                    override fun invoke  () = it.invoke  ()
+                    override fun complete() = it.complete().map { r -> model[index] = r; editingColumn = null; extractor(r) }
+                    override fun cancel  () = it.cancel  ()
                 }
             }
         }

@@ -61,11 +61,10 @@ public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: Ite
 
     public override fun completeEditing() {
         editOperation?.let { operation ->
-            val result = operation.complete() ?: return
-
-            cleanupEditing()
-
-            model.value = result
+            operation.complete().onSuccess {
+                cleanupEditing()
+                model.value = it
+            }
         }
     }
 

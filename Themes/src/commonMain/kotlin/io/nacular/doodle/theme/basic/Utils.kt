@@ -79,7 +79,7 @@ public open class GenericTextEditOperation<T, V>(
 
     override fun invoke(): View = textField
 
-    override fun complete(): T? = mapper.decode(textField.text).getOrNull()
+    override fun complete(): Result<T> = mapper.decode(textField.text)
 
     override fun cancel() {}
 }
