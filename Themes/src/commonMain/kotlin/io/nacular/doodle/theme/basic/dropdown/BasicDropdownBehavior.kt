@@ -12,7 +12,6 @@ import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
-import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -53,9 +52,9 @@ import io.nacular.doodle.layout.fill
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.ConstraintWrapper
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
-import io.nacular.doodle.theme.basic.list.BasicListPositioner
+import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
@@ -172,7 +171,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
                         index         : Int,
                         itemVisualizer: ItemVisualizer<T, IndexedItem>,
             private val cornerRadius  : Double,
-    ): ListRow<T>(list,
+    ): ListItem<T>(list,
             row,
             index,
             itemVisualizer,
@@ -197,14 +196,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.RowGenerator<T> {
+    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.ItemGenerator<T> {
         @Suppress("UNCHECKED_CAST")
-        override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
-            is ListRow<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, row, index) }
-            else          -> CustomListRow(
+        override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
+            is ListItem<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
+            else           -> CustomListRow(
                     dropdown       = dropdown,
                     list           = list,
-                    row            = row,
+                    row            = item,
                     index          = index,
                     cornerRadius   = cornerRadius,
                     itemVisualizer = list.itemVisualizer ?: toString(TextVisualizer())
@@ -244,11 +243,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(focusManager, ItemGenerator(dropdown), null, 0.0) {
-        override val positioner: RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
+    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(
+        focusManager = focusManager,
+        generator    = ItemGenerator(dropdown),
+        fill         = null,
+        positioner   = object: BasicVerticalListPositioner<T>(0.0) {
             override val height get() = max(0.0, dropdown.height - 2 * INSET)
         }
-
+    ) {
         override fun render(view: List<T, *>, canvas: Canvas) {
             canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
         }

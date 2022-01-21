@@ -19,6 +19,8 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.mostRecentAncestor
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
@@ -124,11 +126,11 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     private   var generator    : RowGenerator<T>? = null
     protected var rowPositioner: RowPositioner<T>? = null
-    private   val expandedPaths = mutableSetOf<Path<Int>>()
-    private   val rowToPath     = mutableMapOf<Int, Path<Int>>()
-    private   var minVisibleY   = 0.0
-    private   var maxVisibleY   = 0.0
-    private   var minHeight     = 0.0
+    private   val expandedPaths      = mutableSetOf<Path<Int>>()
+    private   val rowToPath          = mutableMapOf<Int, Path<Int>>()
+    private   var minVisiblePosition = Origin
+    private   var maxVisiblePosition = Origin
+    private   var minHeight          = 0.0
         set(new) {
             field       = new
             height      = field
@@ -196,29 +198,29 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         rowPositioner?.let { positioner ->
-            if (maxVisibleY > new.bottom && minVisibleY < new.y) {
+            if (maxVisiblePosition.x > new.right && maxVisiblePosition.y > new.bottom && minVisiblePosition.x < new.x && minVisiblePosition.y < new.y) {
                 return
             }
 
             val oldFirst = firstVisibleRow
             val oldLast  = lastVisibleRow
 
-            var y = new.y
+            var position = new.position
 
             firstVisibleRow = when {
-                y == old.y && !old.empty -> firstVisibleRow
-                else                     -> max(0, findRowAt(y, firstVisibleRow) - scrollCache)
+                position == old.position && !old.empty -> firstVisibleRow
+                else                                   -> max(0, findRow(position, firstVisibleRow) - scrollCache)
             }
 
-            y = new.bottom
+            position = Point(new.right, new.bottom)
 
             lastVisibleRow = when {
-                y == old.bottom && !old.empty -> lastVisibleRow
-                else                          -> min(numRows, findRowAt(y, lastVisibleRow) + scrollCache)
+                position == Point(old.right, old.bottom) && !old.empty -> lastVisibleRow
+                else                                                   -> min(numRows, findRow(position, lastVisibleRow) + scrollCache)
             }
 
-            pathFromRow(firstVisibleRow)?.let { path -> model[path].onSuccess { minVisibleY = positioner.rowBounds(this, it, path, firstVisibleRow).y      } }
-            pathFromRow(lastVisibleRow )?.let { path -> model[path].onSuccess { maxVisibleY = positioner.rowBounds(this, it, path, lastVisibleRow ).bottom } }
+            pathFromRow(firstVisibleRow)?.let { path -> model[path].onSuccess { minVisiblePosition = positioner.rowBounds(this, it, path, firstVisibleRow).position                     } }
+            pathFromRow(lastVisibleRow )?.let { path -> model[path].onSuccess { maxVisiblePosition = positioner.rowBounds(this, it, path, lastVisibleRow ).run { Point(right, bottom) } } }
 
             children.batch {
                 if (oldFirst > firstVisibleRow) {
@@ -286,7 +288,7 @@ public open class Tree<T, out M: TreeModel<T>>(
                     pathsToUpdate -= it
 
                     numRows_  += rowsBelow(it)
-                    minHeight += rowPositioner?.height(this@Tree, below = it) ?: 0.0
+                    minHeight += rowPositioner?.minimumSize(this@Tree, below = it)?.height ?: 0.0
 
                     update        (this, it)
                     insertChildren(this, it)
@@ -300,9 +302,9 @@ public open class Tree<T, out M: TreeModel<T>>(
             }
         }
 
-        if (maxVisibleY < displayRect.bottom) {
+        if (maxVisiblePosition.y < displayRect.bottom || maxVisiblePosition.x < displayRect.right) {
             // TODO: Can this be done better?  It feels a bit hacky
-            handleDisplayRectEvent(Rectangle(0.0, minVisibleY, width, maxVisibleY - minVisibleY), displayRect)
+            handleDisplayRectEvent(Rectangle(0.0, minVisiblePosition.y, width, maxVisiblePosition.y - minVisiblePosition.y), displayRect)
         }
 
         expandedPaths.addAll(paths)
@@ -342,11 +344,11 @@ public open class Tree<T, out M: TreeModel<T>>(
                 updateNumRows()
 
                 // FIXME: This should be handled better
-                minHeight = rowPositioner?.height(this@Tree, below = Path()) ?: 0.0
+                minHeight = rowPositioner?.minimumSize(this@Tree, below = Path())?.height ?: 0.0
 
-                if (maxVisibleY < displayRect.bottom) {
+                if (maxVisiblePosition.y < displayRect.bottom || maxVisiblePosition.x < displayRect.right) {
                     // TODO: Can this be done better?  It feels a bit hacky
-                    handleDisplayRectEvent(displayRect, Rectangle(0.0, minVisibleY, width, maxVisibleY - minVisibleY))
+                    handleDisplayRectEvent(displayRect, Rectangle(0.0, minVisiblePosition.y, width, maxVisiblePosition.y - minVisiblePosition.y))
                 }
 
                 // Remove old children
@@ -499,7 +501,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         numRows_ = rowsBelow(Path()) + if(rootVisible) 1 else 0
     }
 
-    private fun findRowAt(y: Double, nearbyRow: Int) = min(numRows - 1, rowPositioner?.row(this, y) ?: nearbyRow)
+    private fun findRow(at: Point, nearbyRow: Int) = min(numRows - 1, rowPositioner?.row(this, at) ?: nearbyRow)
 
     private fun siblingsAfter(path: Path<Int>, parent: Path<Int>) = path.bottom?.let {
         (it + 1 until numChildren(parent)).map { parent + it }
@@ -526,14 +528,14 @@ public open class Tree<T, out M: TreeModel<T>>(
         val oldHeight = minHeight
 
         // FIXME: Move to better location; handle rootVisible case
-        minHeight = rowPositioner?.height(this, below = Path()) ?: 0.0 //heightBelow(root) + insets.run { top + bottom }
+        minHeight = rowPositioner?.minimumSize(this, below = Path())?.height ?: 0.0 //heightBelow(root) + insets.run { top + bottom }
 
         if (oldHeight == minHeight) {
             // FIXME: This reset logic could be handled better
-            minVisibleY     =  0.0
-            maxVisibleY     =  0.0
-            firstVisibleRow =  0
-            lastVisibleRow  = -1
+            minVisiblePosition =  Origin
+            maxVisiblePosition =  Origin
+            firstVisibleRow    =  0
+            lastVisibleRow     = -1
         }
 
         handleDisplayRectEvent(Empty, displayRect)

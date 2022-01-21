@@ -11,8 +11,12 @@ import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.MutableDropdown
+import io.nacular.doodle.controls.list.HorizontalList
+import io.nacular.doodle.controls.list.HorizontalMutableList
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
+import io.nacular.doodle.controls.list.VerticalList
+import io.nacular.doodle.controls.list.VerticalMutableList
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
@@ -60,8 +64,10 @@ import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicMutableDropdownBehavior
-import io.nacular.doodle.theme.basic.list.BasicListBehavior
-import io.nacular.doodle.theme.basic.list.BasicMutableListBehavior
+import io.nacular.doodle.theme.basic.list.horizontalBasicListBehavior
+import io.nacular.doodle.theme.basic.list.horizontalBasicMutableListBehavior
+import io.nacular.doodle.theme.basic.list.verticalBasicListBehavior
+import io.nacular.doodle.theme.basic.list.verticalBasicMutableListBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
@@ -96,16 +102,11 @@ import org.kodein.di.instanceOrNull
 import org.kodein.di.provider
 import org.kodein.di.singleton
 
-/**
- * Created by Nicholas Eddy on 2/12/18.
- */
-private typealias ListModel<T>        = io.nacular.doodle.controls.ListModel<T>
-private typealias SpinnerModel<T>     = io.nacular.doodle.controls.spinner.Model<T>
-private typealias MutableTreeModel<T> = io.nacular.doodle.controls.tree.MutableTreeModel<T>
-private typealias BTheme              = BasicTheme
-
+private typealias BTheme                 = BasicTheme
+private typealias ListModel<T>           = io.nacular.doodle.controls.ListModel<T>
+private typealias SpinnerModel<T>        = io.nacular.doodle.controls.spinner.Model<T>
+private typealias MutableTreeModel<T>    = io.nacular.doodle.controls.tree.MutableTreeModel<T>
 private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
-
 
 @Suppress("UNCHECKED_CAST")
 public open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
@@ -121,8 +122,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
     public interface BasicThemeConfig {
         public val borderColor           : Color  get() = Color(0x888888u)
-        public val oddRowColor           : Color  get() = foregroundColor.inverted
-        public val evenRowColor          : Color  get() = lightBackgroundColor
+        public val oddItemColor          : Color  get() = foregroundColor.inverted
+        public val evenItemColor         : Color  get() = lightBackgroundColor
         public val selectionColor        : Color  get() = Color(0x0063e1u)
         public val foregroundColor       : Color  get() = Black
         public val backgroundColor       : Color  get() = Color(0xccccccu)
@@ -163,41 +164,88 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicListBehavior(
-                rowHeight            : Double? = null,
-                evenRowColor         : Color?  = null,
-                oddRowColor          : Color?  = null,
-                selectionColor       : Color?  = null,
-                selectionBlurredColor: Color?  = null): Module = basicThemeModule(name = "BasicListBehavior") {
+            itemHeight           : Double? = null,
+            evenItemColor        : Color?  = null,
+            oddItemColor         : Color?  = null,
+            selectionColor       : Color?  = null,
+            selectionBlurredColor: Color?  = null
+        ): Module = basicThemeModule(name = "BasicListBehavior") {
             bindBehavior<List<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicListBehavior(
-                            focusManager          = instanceOrNull(),
-                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
-                            selectionColor        = selectionColor        ?: this.selectionColor,
-                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
-                            rowHeight             = rowHeight             ?: 20.0
+                    verticalBasicListBehavior(
+                        focusManager          = instanceOrNull(),
+                        evenItemColor         = evenItemColor         ?: this.evenItemColor,
+                        oddItemColor          = oddItemColor          ?: this.oddItemColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        itemHeight            = itemHeight            ?: 20.0,
+                        numColumns            = if (it is VerticalList) it.numColumns else 1
+                    )
+                }
+            }
+        }
+
+        public fun basicHorizontalListBehavior(
+            itemWidth            : Double? = null,
+            evenItemColor        : Color?  = null,
+            oddItemColor         : Color?  = null,
+            selectionColor       : Color?  = null,
+            selectionBlurredColor: Color?  = null
+        ): Module = basicThemeModule(name = "BasicHorizontalListBehavior") {
+            bindBehavior<HorizontalList<Any, ListModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    horizontalBasicListBehavior(
+                        focusManager          = instanceOrNull(),
+                        evenItemColor         = evenItemColor         ?: this.evenItemColor,
+                        oddItemColor          = oddItemColor          ?: this.oddItemColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        itemWidth             = itemWidth             ?: 20.0,
+                        numRows               = it.numRows
                     )
                 }
             }
         }
 
         public fun basicMutableListBehavior(
-                rowHeight            : Double? = null,
-                evenRowColor         : Color?  = null,
-                oddRowColor          : Color?  = null,
-                selectionColor       : Color?  = null,
-                selectionBlurredColor: Color?  = null): Module = basicThemeModule(name = "BasicMutableListBehavior") {
+            itemHeight           : Double? = null,
+            evenItemColor        : Color?  = null,
+            oddItemColor         : Color?  = null,
+            selectionColor       : Color?  = null,
+            selectionBlurredColor: Color?  = null
+        ): Module = basicThemeModule(name = "BasicMutableListBehavior") {
             bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicMutableListBehavior(
+                    verticalBasicMutableListBehavior(
                         focusManager          = instanceOrNull(),
-                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        evenItemColor         = evenItemColor         ?: this.evenItemColor,
+                        oddItemColor          = oddItemColor          ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
-                        rowHeight             = rowHeight             ?: 20.0
+                        itemHeight            = itemHeight            ?: 20.0,
+                        numColumns            = if (it is VerticalMutableList) it.numColumns else 1
                 ) }
+            }
+        }
+
+        public fun basicHorizontalMutableListBehavior(
+            itemWidth            : Double? = null,
+            evenItemColor        : Color?  = null,
+            oddItemColor         : Color?  = null,
+            selectionColor       : Color?  = null,
+            selectionBlurredColor: Color?  = null
+        ): Module = basicThemeModule(name = "BasicHorizontalMutableListBehavior") {
+            bindBehavior<HorizontalMutableList<Any, MutableListModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    horizontalBasicMutableListBehavior(
+                        focusManager          = instanceOrNull(),
+                        evenItemColor         = evenItemColor         ?: this.evenItemColor,
+                        oddItemColor          = oddItemColor          ?: this.oddItemColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        itemWidth             = itemWidth             ?: 20.0,
+                        numRows               = it.numRows
+                    ) }
             }
         }
 
@@ -213,8 +261,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                     BasicTreeBehavior(
                             focusManager          = instanceOrNull(),
                             rowHeight             = rowHeight             ?: 20.0,
-                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                            evenRowColor          = evenRowColor          ?: this.evenItemColor,
+                            oddRowColor           = oddRowColor           ?: this.oddItemColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
                             selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                             iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
@@ -235,8 +283,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                     BasicMutableTreeBehavior(
                             focusManager          = instanceOrNull(),
                             rowHeight             = rowHeight             ?: 20.0,
-                            evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                            oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                            evenRowColor          = evenRowColor          ?: this.evenItemColor,
+                            oddRowColor           = oddRowColor           ?: this.oddItemColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
                             selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                             iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
@@ -266,8 +314,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
                         headerColor           = headerColor           ?: this.backgroundColor,
-                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        evenRowColor          = evenRowColor          ?: this.evenItemColor,
+                        oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
                 ) }
@@ -286,8 +334,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
                         headerColor           = headerColor           ?: this.backgroundColor,
-                        evenRowColor          = evenRowColor          ?: this.evenRowColor,
-                        oddRowColor           = oddRowColor           ?: this.oddRowColor,
+                        evenRowColor          = evenRowColor          ?: this.evenItemColor,
+                        oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
                 ) }
@@ -306,7 +354,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
                         columnSeparatorColor  = columnSeparatorColor  ?: this.backgroundColor,
-                        backgroundColor       = backgroundColor       ?: this.oddRowColor,
+                        backgroundColor       = backgroundColor       ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         iconFactory           = iconFactory           ?: { SimpleTreeColumnRowIcon(foregroundColor, foregroundColor.inverted) }

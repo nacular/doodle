@@ -14,6 +14,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
@@ -198,28 +199,28 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private fun installBehavior(column: Column<T>, behavior: TreeColumnsBehavior<T>) {
         column.list.behavior = object: ListBehavior<T> {
-            override val generator = object: ListBehavior.RowGenerator<T> {
-                override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = behavior.generator(
+            override val generator = object: ListBehavior.ItemGenerator<T> {
+                override fun invoke(list: List<T, *>, item: T, index: Int, current: View?) = behavior.generator(
                         this@TreeColumns,
-                        row,
+                        item,
                         column.path + index,
                         index
                 )
             }
 
-            override val positioner = object: ListBehavior.RowPositioner<T> {
-                override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = behavior.positioner.rowBounds(
+            override val positioner = object: ListBehavior.ItemPositioner<T> {
+                override fun itemBounds(of: List<T, *>, item: T, index: Int, view: View?) = behavior.positioner.rowBounds(
                         this@TreeColumns,
                         of.width,
                         column.path + index,
-                        row,
+                        item,
                         index,
                         view
                 )
 
-                override fun row(of: List<T, *>, atY: Double) = behavior.positioner.row(this@TreeColumns, column.path, atY)
+                override fun item(of: List<T, *>, at: Point) = behavior.positioner.row(this@TreeColumns, column.path, at)
 
-                override fun totalRowHeight(of: List<T, *>) = behavior.positioner.totalRowHeight(this@TreeColumns, column.path)
+                override fun minimumSize(of: List<T, *>) = behavior.positioner.minimumSize(this@TreeColumns, column.path)
             }
 
             override fun render(view: List<T, *>, canvas: Canvas) {

@@ -5,7 +5,9 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
 import io.nacular.doodle.utils.Path
@@ -176,18 +178,18 @@ public abstract class TableBehavior<T>: AbstractTableBehavior<Table<T, *>> {
          * Indicates which row would be located at the given y offset.
          *
          * @param of the table where the row is
-         * @param y offset
+         * @param at position
          * @return index of the row
          */
-        public fun row(of: Table<T, *>, y: Double): Int
+        public fun row(of: Table<T, *>, at: Point): Int
 
         /**
-         * Indicates the total height of all rows in the given Table.
+         * Indicates the minimum size with all rows in the given Table.
          *
          * @param of the table where the row is
-         * @return total height of rows
+         * @return minimum size of rows
          */
-        public fun totalRowHeight(of: Table<T, *>): Double
+        public fun minimumSize(of: Table<T, *>): Size
     }
 
     public abstract val cellGenerator: CellGenerator<T>
@@ -288,19 +290,19 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
          * Indicates which row would be located at the given y offset.
          *
          * @param of the table where the row is
-         * @param y offset
+         * @param at position
          * @return index of the row
          */
-        public abstract fun rowFor(of: TreeTable<T, *>, y: Double): Int
+        public abstract fun row(of: TreeTable<T, *>, at: Point): Int
 
         /**
          * Indicates the total height of the path's descendant rows (recursively).
          *
          * @param of the table where the path is
          * @param below the given path
-         * @return total height of rows
+         * @return size of rows
          */
-        public abstract fun height(of: TreeTable<T, *>, below: Path<Int>): Double
+        public abstract fun size(of: TreeTable<T, *>, below: Path<Int>): Size
     }
 
     public abstract val treeCellGenerator: TreeCellGenerator<T>

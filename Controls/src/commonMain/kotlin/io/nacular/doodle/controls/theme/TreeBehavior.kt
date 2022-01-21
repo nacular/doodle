@@ -3,7 +3,9 @@ package io.nacular.doodle.controls.theme
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Path
 
 /**
@@ -20,8 +22,8 @@ public interface TreeBehavior<T>: Behavior<Tree<T, *>> {
         public abstract fun rowBounds    (tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View? = null): Rectangle
         public abstract fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View? = null): Rectangle
 
-        public abstract fun row(of: Tree<T, *>, atY: Double): Int
-        public abstract fun height(of: Tree<T, *>, below: Path<Int>): Double
+        public abstract fun row(of: Tree<T, *>, at: Point): Int
+        public abstract fun minimumSize(of: Tree<T, *>, below: Path<Int>): Size
     }
 
     public val generator : RowGenerator<T>

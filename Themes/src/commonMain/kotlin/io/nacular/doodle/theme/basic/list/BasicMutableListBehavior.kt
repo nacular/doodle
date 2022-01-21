@@ -2,7 +2,8 @@ package io.nacular.doodle.theme.basic.list
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.list.List
-import io.nacular.doodle.controls.list.ListBehavior.RowGenerator
+import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
+import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.text.TextFit.Width
@@ -12,6 +13,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
+import io.nacular.doodle.drawing.verticalStripedPaint
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Delete
@@ -20,16 +22,15 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment.Left
-import io.nacular.doodle.utils.ObservableSet
 
 
 public open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, selectionBlurredColor: Color? = null): BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
-    override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = super.invoke(list, row, index, current).also {
-        if (current !is ListRow<*>) {
-            val result = it as ListRow<*>
+    override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = super.invoke(list, item, index, current).also {
+        if (current !is ListItem<*>) {
+            val result = it as ListItem<*>
 
             it.pointerFilter += released { event ->
                 if (list.selected(result.index)) {
@@ -41,10 +42,12 @@ public open class BasicMutableItemGenerator<T>(selectionColor: Color? = null, se
     }
 }
 
-public open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null,
-                                              generator   : RowGenerator<T>,
-                                              patternFill : PatternPaint? = null,
-                                              rowHeight   : Double): BasicListBehavior<T>(focusManager, generator, patternFill, rowHeight) {
+public open class BasicMutableListBehavior<T>(
+    focusManager: FocusManager? = null,
+    generator   : ItemGenerator<T>,
+    positioner  : ItemPositioner<T>,
+    patternFill : PatternPaint? = null
+): BasicListBehavior<T>(focusManager, generator, positioner, patternFill) {
     override fun pressed(event: KeyEvent) {
         when (event.key) {
             Delete, Backspace -> (event.source as MutableList<*, *>).let { list ->
@@ -53,38 +56,78 @@ public open class BasicMutableListBehavior<T>(focusManager: FocusManager? = null
             else              -> super.pressed(event)
         }
     }
-
-    public companion object {
-        public operator fun <T> invoke(
-                focusManager: FocusManager?,
-                generator   : RowGenerator<T>,
-                evenRowColor: Color?,
-                oddRowColor : Color?,
-                rowHeight   : Double): BasicMutableListBehavior<T> = BasicMutableListBehavior(
-                    focusManager,
-                    generator,
-                    when {
-                        evenRowColor != null || oddRowColor != null -> horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor)
-                        else                                        -> null
-                    },
-                    rowHeight)
-
-        public operator fun <T> invoke(
-                focusManager         : FocusManager? = null,
-                evenRowColor         : Color?        = null,
-                oddRowColor          : Color?        = null,
-                selectionColor       : Color?        = null,
-                selectionBlurredColor: Color?        = null,
-                rowHeight            : Double): BasicMutableListBehavior<T> = BasicMutableListBehavior<T>(focusManager, BasicMutableItemGenerator(selectionColor, selectionBlurredColor), evenRowColor, oddRowColor, rowHeight)
-    }
 }
+
+public inline fun <T> verticalBasicMutableListBehavior(
+    focusManager : FocusManager?,
+    generator    : ItemGenerator<T>,
+    evenItemColor: Color?,
+    oddItemColor : Color?,
+    numColumns   : Int,
+    itemHeight   : Double): BasicMutableListBehavior<T> = BasicMutableListBehavior(
+    focusManager = focusManager,
+    generator    = generator,
+    positioner   = BasicVerticalListPositioner(itemHeight, numColumns),
+    patternFill  = when {
+        evenItemColor != null || oddItemColor != null -> horizontalStripedPaint(itemHeight, evenItemColor, oddItemColor)
+        else                                          -> null
+    }
+)
+
+public inline fun <T> verticalBasicMutableListBehavior(
+    focusManager         : FocusManager? = null,
+    evenItemColor        : Color?        = null,
+    oddItemColor         : Color?        = null,
+    selectionColor       : Color?        = null,
+    selectionBlurredColor: Color?        = null,
+    numColumns           : Int = 1,
+    itemHeight           : Double): BasicMutableListBehavior<T> = verticalBasicMutableListBehavior(
+    focusManager  = focusManager,
+    generator     = BasicMutableItemGenerator(selectionColor, selectionBlurredColor),
+    evenItemColor = evenItemColor,
+    oddItemColor  = oddItemColor,
+    numColumns    = numColumns,
+    itemHeight    = itemHeight
+)
+
+public inline fun <T> horizontalBasicMutableListBehavior(
+    focusManager : FocusManager?,
+    generator    : ItemGenerator<T>,
+    evenItemColor: Color?,
+    oddItemColor : Color?,
+    numRows      : Int,
+    itemWidth    : Double): BasicMutableListBehavior<T> = BasicMutableListBehavior(
+    focusManager = focusManager,
+    generator    = generator,
+    positioner   = BasicHorizontalListPositioner(itemWidth, numRows),
+    patternFill  = when {
+        evenItemColor != null || oddItemColor != null -> verticalStripedPaint(itemWidth, evenItemColor, oddItemColor)
+        else                                          -> null
+    }
+)
+
+public inline fun <T> horizontalBasicMutableListBehavior(
+    focusManager         : FocusManager? = null,
+    evenItemColor        : Color?        = null,
+    oddItemColor         : Color?        = null,
+    selectionColor       : Color?        = null,
+    selectionBlurredColor: Color?        = null,
+    numRows              : Int = 1,
+    itemWidth            : Double): BasicMutableListBehavior<T> = horizontalBasicMutableListBehavior(
+    focusManager  = focusManager,
+    generator     = BasicMutableItemGenerator(selectionColor, selectionBlurredColor),
+    evenItemColor = evenItemColor,
+    oddItemColor  = oddItemColor,
+    numRows       = numRows,
+    itemWidth     = itemWidth
+)
 
 public open class TextEditOperation<T>(
                     focusManager: FocusManager?,
                     mapper      : Encoder<T, String>,
         private val list        : MutableList<T, *>,
-                    row         : T,
-                    current     : View): GenericTextEditOperation<T, MutableList<T, *>>(focusManager, mapper, list, row, current) {
+                    item        : T,
+                    current     : View): GenericTextEditOperation<T, MutableList<T, *>>(focusManager, mapper, list, item, current) {
 
     private val listSelectionChanged = { _: List<T, *>, _: Set<Int>, _:  Set<Int> ->
         list.cancelEditing()
@@ -119,5 +162,5 @@ public open class TextEditOperation<T>(
 }
 
 public open class ListTextEditor<T>(private val focusManager: FocusManager?, private val encoder: Encoder<T, String>): ListEditor<T> {
-    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, list, row, current)
+    override fun edit(list: MutableList<T, *>, item: T, index: Int, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, list, item, current)
 }

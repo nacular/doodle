@@ -44,9 +44,9 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.ListPositioner
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
+import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.PassThroughEncoder
@@ -64,7 +64,7 @@ private class TableListRow<T>(
                     index                : Int,
                     itemVisualizer       : ItemVisualizer<T, IndexedItem>,
                     selectionColor       : Color? = Blue,
-                    selectionBlurredColor: Color? = selectionColor): ListRow<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
+                    selectionBlurredColor: Color? = selectionColor): ListItem<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
 
     private val alignmentChanged: (Column<*>) -> Unit = {
         it.cellAlignment?.let { positioner = it }
@@ -120,11 +120,11 @@ public open class BasicTableBehavior<T>(
     }
 
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T> {
-        private val delegate = ListPositioner(rowHeight)
+        private val delegate = VerticalListPositioner(rowHeight)
 
-        override fun rowBounds(of: Table<T, *>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
-        override fun row(of: Table<T, *>, y: Double)                = delegate.rowFor(of.insets,  y                )
-        override fun totalRowHeight(of: Table<T, *>)                = delegate.totalHeight(of.numRows, of.insets   )
+        override fun rowBounds  (of: Table<T, *>, row: T, index: Int) = delegate.itemBounds (of.size,   of.insets, index)
+        override fun row        (of: Table<T, *>, at: Point         ) = delegate.itemFor    (of.insets,  at              )
+        override fun minimumSize(of: Table<T, *>                    ) = delegate.minimumSize(of.numItems, of.insets       )
     }
 
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
@@ -152,9 +152,9 @@ public open class BasicTableBehavior<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pointerPressed) {
-                            val index = rowPositioner.row(table, event.location.y)
+                            val index = rowPositioner.row(table, event.location)
 
-                            if (index >= table.numRows) {
+                            if (index >= table.numItems) {
                                 return
                             }
 

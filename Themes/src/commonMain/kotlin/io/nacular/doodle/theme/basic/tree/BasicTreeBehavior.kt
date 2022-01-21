@@ -31,8 +31,10 @@ import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
@@ -63,11 +65,11 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
         }
     }
 
-    override fun row(of: Tree<T, *>, atY: Double): Int {
-        return max(0, ((atY - of.insets.top) / height).toInt())
+    override fun row(of: Tree<T, *>, at: Point): Int {
+        return max(0, ((at.y - of.insets.top) / height).toInt())
     }
 
-    override fun height(of: Tree<T, *>, below: Path<Int>) = of.rowsBelow(below) * height + of.insets.run { top + bottom }
+    override fun minimumSize(of: Tree<T, *>, below: Path<Int>) = Size(0.0, of.rowsBelow(below) * height + of.insets.run { top + bottom })
 }
 
 public open class BasicTreeRowGenerator<T>(

@@ -18,6 +18,9 @@ import io.nacular.doodle.utils.SortOrder.Descending
 import io.nacular.doodle.utils.observable
 
 
+/**
+ * Manages editing for a [MutableList].
+ */
 public interface ListEditor<T> {
     /**
      * Called to initiate editing of a [MutableList].
@@ -31,23 +34,28 @@ public interface ListEditor<T> {
     public fun edit(list: MutableList<T, *>, item: T, index: Int, current: View): EditOperation<T>
 }
 
-public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, row: T, index: Int, current: View) -> EditOperation<T>): ListEditor<T> = object: ListEditor<T> {
-    override fun edit(list: MutableList<T, *>, row: T, index: Int, current: View): EditOperation<T> = block(list, row, index, current)
+/**
+ * Creates a [ListEditor] that calls [block] to perform its edit operation.
+ *
+ * @param block that performs edit operation
+ */
+public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, item: T, index: Int, current: View) -> EditOperation<T>): ListEditor<T> = object: ListEditor<T> {
+    override fun edit(list: MutableList<T, *>, item: T, index: Int, current: View): EditOperation<T> = block(list, item, index, current)
 }
 
 /**
  * A [DynamicList] component that renders a mutable list of items of type [T] using a [ListBehavior]. Items are obtained via
  * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
- * efficiently, since List recycles the Views generated to render its rows.
+ * efficiently, since List recycles the Views generated to render its items.
  *
  * MutableList does not provide scrolling internally, so it should be embedded in a [ScrollPanel][io.nacular.doodle.controls.panels.ScrollPanel] or similar component if needed.
  *
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit it's rows width and total height
- * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
- * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
+ * @param fitContent determines whether the List scales to fit it's items width and total height
+ * @param scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
+ * only visible items are rendered, but quick scrolling is more likely to show blank areas.
  */
 public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
@@ -59,7 +67,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
     /**
      * Indicates whether the list is currently being edited.
      */
-    public val editing: Boolean get() = editingRow != null
+    public val editing: Boolean get() = editingItem != null
 
     /**
      * Controls whether and how the list can be edited. The list will not be editable without an editor specified.
@@ -73,7 +81,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
     public var sortOrder: SortOrder? by observable(null, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)
         private set
 
-    private var editingRow = null as Int?
+    private var editingItem = null as Int?
         set(new) {
             field = new?.also { selectionModel?.replaceAll(setOf(it)) }
         }
@@ -110,14 +118,14 @@ public open class MutableList<T, M: MutableListModel<T>>(
         cancelEditing()
 
         editor?.let {
-            model[index].onSuccess { row ->
+            model[index].onSuccess { item ->
                 val i = index % children.size
 
-                editingRow    = index
-                editOperation = it.edit(this, row, index, children[i]).also {
+                editingItem    = index
+                editOperation = it.edit(this, item, index, children[i]).also {
                     it()?.let { children[i] = it }
 
-                    layout(children[i], row, index)
+                    layout(children[i], item, index)
                 }
             }
         }
@@ -166,9 +174,9 @@ public open class MutableList<T, M: MutableListModel<T>>(
 
     private fun cleanupEditing(): Int? {
         editOperation?.cancel()
-        val result    = editingRow
+        val result    = editingItem
         editOperation = null
-        editingRow    = null
+        editingItem   = null
         return result
     }
 

@@ -16,6 +16,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
@@ -150,7 +151,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     override fun next           (after : Path<Int>     ): Path<Int>? = tree.next           (after )
     override fun previous       (before: Path<Int>     ): Path<Int>? = tree.previous       (before)
 
-    override val selection      : Set<Path<Int>> get() = tree.selection
+    override val selection      : Set<Path<Int>> get() = tree.selection.toSet()
     override val lastSelection  : Path<Int>?     get() = tree.lastSelection
     override val firstSelection : Path<Int>?     get() = tree.firstSelection
     override val selectionAnchor: Path<Int>?     get() = tree.selectionAnchor
@@ -278,9 +279,9 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
                         override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = rowBounds(tree, node, path, index, current) // FIXME
 
-                        override fun row(of: Tree<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
+                        override fun row(of: Tree<R, *>, at: Point) = it.rowPositioner.row(this@TreeTable, at)
 
-                        override fun height(of: Tree<R, *>, below: Path<Int>) = it.rowPositioner.height(this@TreeTable, below)
+                        override fun minimumSize(of: Tree<R, *>, below: Path<Int>) = it.rowPositioner.size(this@TreeTable, below)
                     }
 
                     override fun render(view: Tree<R, *>, canvas: Canvas) {
@@ -364,8 +365,8 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, row, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
+                    override val generator get() = object: ListBehavior.ItemGenerator<R> {
+                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
                             override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
                                 override val column = this@InternalListColumn
                                 override val index = index
@@ -374,12 +375,10 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                         }, current)
                     }
 
-                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
-
-                        override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
-
-                        override fun totalRowHeight(of: io.nacular.doodle.controls.list.List<R, *>) = it.rowPositioner.height(this@TreeTable, below = Path())
+                    override val positioner get() = object: ListBehavior.ItemPositioner<R> {
+                        override fun itemBounds (of: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
+                        override fun item       (of: io.nacular.doodle.controls.list.List<R, *>, at: Point                       ) = it.rowPositioner.row      (this@TreeTable, at)
+                        override fun minimumSize(of: io.nacular.doodle.controls.list.List<R, *>                                  ) = it.rowPositioner.size     (this@TreeTable, below = Path())
                     }
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {

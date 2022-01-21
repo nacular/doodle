@@ -3,7 +3,9 @@ package io.nacular.doodle.controls.treecolumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Path
 
 /**
@@ -17,9 +19,9 @@ public abstract class TreeColumnsBehavior<T>: Behavior<TreeColumns<T, *>> {
     public interface RowPositioner<T> {
         public fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View? = null): Rectangle
 
-        public fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double): Int
+        public fun row(of: TreeColumns<T, *>, path: Path<Int>, at: Point): Int
 
-        public fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>): Double
+        public fun minimumSize(of: TreeColumns<T, *>, path: Path<Int>): Size
     }
 
     public abstract val generator : CellGenerator<T>

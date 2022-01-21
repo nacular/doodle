@@ -44,18 +44,18 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
         itemsChanged(added = trueAdded, removed = trueRemoved, moved = moved)
 
-        val oldVisibleRange = firstVisibleRow..lastVisibleRow
+        val oldVisibleRange = firstVisibleItem..lastVisibleItem
 
-        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleRow }
+        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleItem }
 
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
             updateVisibleHeight()
         }
 
-        trueAdded = trueAdded.filterKeys   { it <= lastVisibleRow }
+        trueAdded = trueAdded.filterKeys   { it <= lastVisibleItem }
 
-        if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleRow..lastVisibleRow).size) {
-            val numToRemove = oldVisibleRange.size - (firstVisibleRow..lastVisibleRow).size
+        if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleItem..lastVisibleItem).size) {
+            val numToRemove = oldVisibleRange.size - (firstVisibleItem..lastVisibleItem).size
             children.batch {
                 for (it in 0 until numToRemove) {
                     if (size > 0) {
@@ -67,7 +67,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
         if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
             // FIXME: Make this more efficient
-            (firstVisibleRow..lastVisibleRow).forEach { update(children, it) }
+            (firstVisibleItem..lastVisibleItem).forEach { update(children, it) }
         } else {
             // These are the edited rows
             added.keys.filter { it in removed }.forEach { update(children, it) }

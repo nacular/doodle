@@ -12,9 +12,11 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.VerticalConstraint
 import io.nacular.doodle.layout.constrain
@@ -22,15 +24,16 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.utils.observable
+import kotlin.math.ceil
 import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
  */
 @Suppress("LeakingThis")
-public open class ListRow<T>(
+public open class ListItem<T>(
                     list                           : ListLike,
-        public  var row                            : T,
+        public  var item                           : T,
         public  var index                          : Int,
         private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
         private val backgroundSelectionColor       : Color? = Blue,
@@ -57,7 +60,8 @@ public open class ListRow<T>(
             }
         }
 
-    public var insetTop: Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
+    public var insetTop : Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
+    public var insetLeft: Double = 0.0
 
     public var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
         set(new) {
@@ -85,7 +89,7 @@ public open class ListRow<T>(
     init {
         val listSelected = list.selected(index)
 
-        children += itemVisualizer(row, context = SimpleIndexedItem(index, listSelected))
+        children += itemVisualizer(item, context = SimpleIndexedItem(index, listSelected))
 
         focusable       = false
         styleChanged   += { rerender() }
@@ -128,26 +132,26 @@ public open class ListRow<T>(
             }
         }
 
-        update(list, row, index)
+        update(list, item, index)
     }
 
-    public fun update(list: ListLike, row: T, index: Int) {
-        this.row   = row
+    public fun update(list: ListLike, item: T, index: Int) {
+        this.item  = item
         this.index = index
 
         role.index    = index
-        role.listSize = list.numRows
+        role.listSize = list.numItems
 
-        children[0] = itemVisualizer(row, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
+        children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
 
-        idealSize = children[0].idealSize?.let { Size(it.width, it.height + insetTop) }
+        idealSize = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
         layout    = constrainLayout(children[0])
 
         this.list  = list
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), it.paint) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop, left = insetLeft)), it.paint) }
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
@@ -155,23 +159,42 @@ public open class ListRow<T>(
             // Override the parent for content to confine it within a smaller region
             ConstraintWrapper(content) { parent ->
                 object: ParentConstraintWrapper(parent) {
-                    override val top = VerticalConstraint(this@ListRow) { insetTop }
+                    override val top  = VerticalConstraint  (this@ListItem) { insetTop  }
+                    override val left = HorizontalConstraint(this@ListItem) { insetLeft }
                 }
             }
         )
     }
 }
 
-public open class ListPositioner(protected open val height: Double, protected open val spacing: Double = 0.0) {
-    public fun rowFor(insets: Insets, y: Double): Int = max(0, ((y - insets.top) / (height + spacing)).toInt())
+public open class VerticalListPositioner(protected open val height: Double, numColumns: Int = 1, protected open val spacing: Double = 0.0) {
+    protected val numColumns: Int = max(1, numColumns)
 
-    public fun totalHeight(numItems: Int, insets: Insets): Double = numItems * height + insets.run { top + bottom }
+    public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.y - insets.top) / (height + spacing) * numColumns).toInt())
+
+    public fun minimumSize(numItems: Int, insets: Insets): Size = Size(0.0, ceil(numItems.toDouble() / numColumns) * height + insets.run { top + bottom })
 
     @Suppress("UNUSED_PARAMETER")
-    public fun rowBounds(width: Double, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
-            insets.left,
-            insets.top + index * height + (index + 1) * spacing,
-            max(0.0, width - insets.run { left + right }),
-            height
+    public fun itemBounds(size: Size, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
+        x      = insets.left + (index % numColumns) * size.width / numColumns,
+        y      = insets.top  + (index / numColumns) * height + (index / numColumns + 1) * spacing,
+        width  = max(0.0, size.width / numColumns - insets.run { left + right }),
+        height = height
+    )
+}
+
+public open class HorizontalListPositioner(protected open val width: Double, numRows: Int = 1, protected open val spacing: Double = 0.0) {
+    protected val numRows: Int = max(1, numRows)
+
+    public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.x - insets.left) / (width + spacing) * numRows).toInt())
+
+    public fun minimumSize(numItems: Int, insets: Insets): Size = Size(ceil(numItems.toDouble() / numRows) * width + insets.run { left + right }, 0.0)
+
+    @Suppress("UNUSED_PARAMETER")
+    public fun itemBounds(size: Size, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
+        x      = insets.left + (index / numRows) * width + (index / numRows + 1) * spacing,
+        y      = insets.top  + (index % numRows) * size.height / numRows,
+        width  = width,
+        height = max(size.height / numRows - insets.run { top + bottom }, 0.0)
     )
 }

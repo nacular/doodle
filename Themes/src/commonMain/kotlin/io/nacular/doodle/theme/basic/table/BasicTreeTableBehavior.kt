@@ -28,13 +28,14 @@ import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.ListPositioner
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.VerticalListPositioner
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
@@ -48,7 +49,7 @@ import io.nacular.doodle.utils.SetObserver
 public fun TreeLike.map(mapper: (Int) -> Path<Int>, unmapper: (Path<Int>) -> Int): ListLike = object: ListLike {
     override val hasFocus     get() = this@map.hasFocus
     override val focusChanged get() = this@map.focusChanged
-    override val numRows      get() = this@map.numRows
+    override val numItems      get() = this@map.numRows
 
     override fun selectAll     () = this@map.selectAll     ()
     override fun clearSelection() = this@map.clearSelection()
@@ -89,7 +90,7 @@ public open class BasicTreeTableBehavior<T>(
     }
 
     private val expansionChanged: ExpansionObserver<T> = { table,_ ->
-        if (table.selection.isNotEmpty()) {
+        if (table.selection.firstOrNull() != null) {
             table.bodyDirty()
         }
     }
@@ -109,8 +110,8 @@ public open class BasicTreeTableBehavior<T>(
 
     override val cellGenerator: CellGenerator<T> = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
-            is ListRow<*> -> (current as ListRow<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else          -> ListRow(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
+            is ListItem<*> -> (current as ListItem<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
+            else           -> ListItem(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
@@ -119,11 +120,11 @@ public open class BasicTreeTableBehavior<T>(
     }
 
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T>() {
-        private val delegate = ListPositioner(rowHeight)
+        private val delegate = VerticalListPositioner(rowHeight)
 
-        override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
-        override fun rowFor   (of: TreeTable<T, *>, y: Double)                           = delegate.rowFor(of.insets, y)
-        override fun height   (of: TreeTable<T, *>, below: Path<Int>)                    = delegate.totalHeight(of.rowsBelow(below), of.insets)
+        override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.itemBounds  (of.size, of.insets, index)
+        override fun row      (of: TreeTable<T, *>, at: Point)                           = delegate.itemFor     (of.insets, at)
+        override fun size     (of: TreeTable<T, *>, below: Path<Int>)                    = delegate.minimumSize(of.rowsBelow(below), of.insets)
     }
 
     override val headerCellGenerator: HeaderCellGenerator<TreeTable<T, *>> = object: HeaderCellGenerator<TreeTable<T, *>> {
@@ -151,7 +152,7 @@ public open class BasicTreeTableBehavior<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pointerPressed) {
-                            val index = rowPositioner.rowFor(table, event.location.y)
+                            val index = rowPositioner.row(table, event.location)
 
                             if (index >= table.numRows) {
                                 return
