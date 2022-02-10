@@ -45,6 +45,8 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
         super.install(view)
 
         view.rerender()
+
+        scrollTo(view, view.scroll)
     }
 
     override fun uninstall(view: ScrollPanel) {

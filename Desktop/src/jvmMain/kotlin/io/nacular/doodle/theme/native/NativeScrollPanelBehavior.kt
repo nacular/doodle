@@ -118,8 +118,7 @@ internal class NativeScrollPanelBehavior(
     override var onScroll: ((Point) -> Unit)? = null
 
     override fun scrollTo(panel: ScrollPanel, point: Point) {
-//        nativePeer.viewPortView.scrollRectToVisible(java.awt.Rectangle(nativePeer.viewport.width + point.x.toInt(), nativePeer.viewport.height + point.y.toInt(), 1, 1))
-//        nativePeer.revalidate()
+        // no-op
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
@@ -139,9 +138,7 @@ internal class NativeScrollPanelBehavior(
     }
 
     private fun updateNativePeerScroll(bounds: Rectangle) {
-//        nativePeer.viewport.viewPosition      = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
-//        nativePeer.viewport.viewSize          = bounds.size.run     { Dimension(width.toInt(), height.toInt()) }
-        nativePeer.viewPortView.location        = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
+        nativePeer.viewPortView.location      = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
         nativePeer.viewPortView.preferredSize = bounds.size.run     { Dimension(width.toInt(), height.toInt()) }
         nativePeer.viewPortView.revalidate()
         window.revalidate()
