@@ -20,7 +20,8 @@ import io.nacular.doodle.datatransport.dragdrop.DropReceiver
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.dom.DataTransfer
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.setTop
+import io.nacular.doodle.dom.setPosition
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Renderable
 import io.nacular.doodle.drawing.impl.NativeCanvas
@@ -42,6 +43,7 @@ import kotlinx.coroutines.CancellationException
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import org.w3c.dom.DragEvent
 import org.w3c.dom.get
 import org.w3c.files.FileReader
 import kotlin.coroutines.resume
@@ -296,7 +298,7 @@ internal class DragManagerImpl(
                         dataBundle = dragOperation.bundle
 
                         dragOperation.visual?.let { visual ->
-                            createVisual(visual)
+                            createVisual(visual, event.location + dragOperation.visualOffset)
 
                             visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
 
@@ -364,20 +366,35 @@ internal class DragManagerImpl(
             dataBundle            = dragOperation.bundle
             rootElement.draggable = true
 
-            rootElement.ondragstart = {
+            rootElement.ondragstart = { dragEvent: DragEvent ->
 
-                it.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
+                dragEvent.dataTransfer?.effectAllowed = allowedActions(dragOperation.allowedActions)
 
-                dragOperation.visual?.let { visual ->
-                    createVisual(visual)
+                val visual = dragOperation.visual ?: object: Renderable {
+                    override val size get() = view.size
 
-                    it.dataTransfer?.setDragImage(visualCanvas.rootElement, dragOperation.visualOffset.x.toInt(), dragOperation.visualOffset.y.toInt())
+                    override fun render(canvas: Canvas) {
+                        (canvas as? NativeCanvas)?.apply {
+                            addData(listOf((graphicsDevice[view].rootElement.cloneNode(deep = true) as HTMLElement)))
+                        }
+                    }
                 }
+
+                createVisual(visual, event.location + dragOperation.visualOffset)
+                dragEvent.dataTransfer?.setDragImage(visualCanvas.rootElement, -dragOperation.visualOffset.x.toInt(), -dragOperation.visualOffset.y.toInt())
+
+                var dataEmpty = true
 
                 setOf(PlainText, UriList).forEach { mimeType ->
                     dragOperation.bundle[mimeType]?.let { text ->
-                        it.dataTransfer?.setData("$mimeType", text)
+                        dragEvent.dataTransfer?.setData("$mimeType", text)
+                        dataEmpty = false
                     }
+                }
+
+                if (dataEmpty) {
+                    // Hack for Safari, which kills the drag immediately if it has no data
+                    dragEvent.dataTransfer?.setData("", "")
                 }
 
                 dragOperation.started()
@@ -513,7 +530,7 @@ internal class DragManagerImpl(
         return dropAllowed
     }
 
-    private fun createVisual(visual: Renderable) {
+    private fun createVisual(visual: Renderable, position: Point) {
         class CanvasWrapper(private val delegate: NativeCanvas): NativeCanvas by delegate {
             override fun addData(elements: List<HTMLElement>, at: Point) {
                 delegate.addData(elements.map { it.cloneNode(deep = true) as HTMLElement }, at)
@@ -523,7 +540,7 @@ internal class DragManagerImpl(
         // TODO: Make this a general purpose View -> Image generator
         visualCanvas = graphicsDevice.create()
 
-        visualCanvas.rootElement.style.setTop(-visual.size.height)
+        visualCanvas.rootElement.style.setPosition(position)
 
         visualCanvas.zOrder = -Int.MAX_VALUE
         visualCanvas.size   = visual.size
