@@ -37,6 +37,7 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
 
         pendingScrollTo?.let {
             scrollTo(view, it)
+            pendingScrollTo = null
         }
     }
 
