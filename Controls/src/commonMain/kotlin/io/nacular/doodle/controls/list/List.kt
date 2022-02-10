@@ -132,7 +132,7 @@ public open class List<T, out M: ListModel<T>>(
         private        val scrollCache   : Int                             = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
-    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { set,removed,added ->
+    private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         scrollToSelection() // FIXME: Avoid scrolling on selectAll, move to Behavior
 
         (selectionChanged as SetPool).forEach {
@@ -202,8 +202,8 @@ public open class List<T, out M: ListModel<T>>(
 
         if (oldSize == minimumSize) {
             // FIXME: This reset logic could be handled better
-            minVisiblePoint =  Origin
-            maxVisiblePoint =  Origin
+            minVisiblePoint  =  Origin
+            maxVisiblePoint  =  Origin
             firstVisibleItem =  0
             lastVisibleItem  = -1
         }

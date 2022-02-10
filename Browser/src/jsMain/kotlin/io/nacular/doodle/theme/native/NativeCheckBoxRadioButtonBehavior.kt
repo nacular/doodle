@@ -48,7 +48,7 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
             cursor    = Default
             idealSize = nativePeer.idealSize
-            idealSize?.let { view.size = it }
+            idealSize?.let { size = it }
 
             rerender()
         }

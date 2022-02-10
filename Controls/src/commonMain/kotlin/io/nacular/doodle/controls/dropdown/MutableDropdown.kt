@@ -5,7 +5,6 @@ import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.MutableListModel
-import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Editable
 

@@ -23,9 +23,10 @@ public interface LabelBehavior: Behavior<Label> {
     public fun measureText(label: Label): Size
 }
 
-public open class Label(styledText         : StyledText          = StyledText(""),
-                 verticalAlignment  : VerticalAlignment   = Middle,
-                 horizontalAlignment: HorizontalAlignment = Center): View() {
+public open class Label(
+    styledText         : StyledText          = StyledText(""),
+    verticalAlignment  : VerticalAlignment   = Middle,
+    horizontalAlignment: HorizontalAlignment = Center): View() {
 
     public constructor(
             text               : String,

@@ -52,6 +52,7 @@ import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetObserver
+import kotlin.Result.Companion.success
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
@@ -132,7 +133,7 @@ public open class BasicTableBehavior<T>(
     }
 
     override val overflowColumnConfig: OverflowColumnConfig<Table<T, *>> = object: OverflowColumnConfig<Table<T, *>> {
-        override fun body(table: Table<T, *>): View? = object: View() {
+        override fun body(table: Table<T, *>): View = object: View() {
             init {
                 pointerChanged += object: PointerListener {
                     private var pointerOver    = false
