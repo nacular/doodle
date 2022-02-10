@@ -2,9 +2,9 @@ package io.nacular.doodle.controls.list
 
 import io.nacular.doodle.accessibility.ListRole
 import io.nacular.doodle.controls.IndexedItem
+import io.nacular.doodle.controls.IntProgressionModel
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
-import io.nacular.doodle.controls.IntProgressionModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
@@ -18,7 +18,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.mostRecentAncestor
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -366,12 +366,9 @@ public open class List<T, out M: ListModel<T>>(
      * Scrolls [item] into view if the List is within a [ScrollPanel].
      */
     public fun scrollTo(item: Int) {
-        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            this[item].onSuccess {
-                itemPositioner?.itemBounds(this, it, item)?.let {
-                    parent.scrollToVisible(it)
-//                    parent.scrollVerticallyToVisible(it.y .. it.bottom)
-                }
+        this[item].onSuccess {
+            itemPositioner?.itemBounds(this, it, item)?.let { bounds ->
+                scrollTo(bounds)
             }
         }
     }

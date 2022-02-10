@@ -8,7 +8,6 @@ import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
-import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
@@ -17,7 +16,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.mostRecentAncestor
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -392,32 +391,24 @@ public open class Tree<T, out M: TreeModel<T>>(
         }.toList())
     }
 
-//    @JvmName("addSelectionRows")
-//    override fun addSelection(rows : Set<Int>      ) = addSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun addSelection(items: Set<Path<Int>>) {
         selectionModel?.addAll(items.filter { visible(it) })
 
         scrollToSelection()
     }
 
-//    @JvmName("toggleSelectionRows")
-//    override fun toggleSelection(rows : Set<Int>      ) = toggleSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun toggleSelection(items: Set<Path<Int>>) {
         selectionModel?.toggle(items.filter { visible(it) })
 
         scrollToSelection()
     }
 
-//    @JvmName("setSelectionRows")
-//    override fun setSelection(rows : Set<Int>      ) = setSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun setSelection(items: Set<Path<Int>>) {
         selectionModel?.replaceAll(items.filter { visible(it) })
 
         scrollToSelection()
     }
 
-//    @JvmName("removeSelectionRows")
-//    override fun removeSelection(rows : Set<Int>      ) = removeSelection(rows.asSequence().map { pathFromRow(it) }.filterNotNull().toSet())
     override fun removeSelection(items: Set<Path<Int>>) {
         selectionModel?.removeAll(items)
     }
@@ -744,14 +735,12 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     public fun scrollTo(path: Path<Int>) {
-        mostRecentAncestor { it is ScrollPanel }?.let { it as ScrollPanel }?.let { parent ->
-            val index = rowFromPath(path)
+        val index = rowFromPath(path)
 
-            if (index != null) {
-                this[path].onSuccess { item ->
-                    rowPositioner?.rowBounds(this, item, path, index)?.let {
-                        parent.scrollVerticallyToVisible(it.y .. it.bottom)
-                    }
+        if (index != null) {
+            this[path].onSuccess { item ->
+                rowPositioner?.rowBounds(this, item, path, index)?.let {
+                    scrollTo(it)
                 }
             }
         }

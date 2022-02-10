@@ -4,6 +4,7 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
@@ -1139,3 +1140,18 @@ public class ViewBuilder internal constructor(): View() {
  * @param block used to configure the View
  */
 public fun view(block: ViewBuilder.() -> Unit): View = ViewBuilder().also(block)
+
+/**
+ * Scrolls the View to the given region if it is within a [ScrollPanel].
+ *
+ * @param rectangle within the View's coordinate space
+ */
+public fun View.scrollTo(rectangle: Rectangle) {
+    val ancestor = if (parent is ScrollPanel) this else mostRecentAncestor { it.parent is ScrollPanel }
+
+    ancestor?.let {
+        val pointInAncestor = it.toLocal(rectangle.position, from = this)
+
+        (it.parent as? ScrollPanel)?.scrollToVisible(rectangle.at(pointInAncestor))
+    }
+}
