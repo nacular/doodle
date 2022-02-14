@@ -216,10 +216,6 @@ public open class List<T, out M: ListModel<T>>(
         set(new) { super.insets = new }
 
     init {
-        sizePreferencesChanged += { _,_,_ ->
-            idealSize = minimumSize
-        }
-
         monitorsDisplayRect = true
 
         layout = object: Layout {
@@ -314,14 +310,32 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
+    private var maxRight                = 0.0
+    private var maxBottom               = 0.0
+    private var maxIdealRight: Double?  = null
+    private var maxIdealBottom: Double? = null
+
+    private fun maxWithNull(first: Double?, second: Double?): Double? = when {
+        first != null && second != null -> max(first, second)
+        first == null -> second
+        else          -> first
+    }
+
     protected fun layout(view: View, item: T, index: Int) {
         itemPositioner?.let {
             view.bounds = it.itemBounds(this, item, index, view)
 
-//            idealSize = Size(max(idealSize?.width ?: 0.0, view.idealSize?.width ?: minimumSize.width), minimumSize.height)
+            maxRight       = max(maxRight,  view.bounds.right )
+            maxBottom      = max(maxBottom, view.bounds.bottom)
+            maxIdealRight  = maxWithNull(maxIdealRight,  view.x + (view.idealSize?.width  ?: 0.0))
+            maxIdealBottom = maxWithNull(maxIdealBottom, view.y + (view.idealSize?.height ?: 0.0))
+
+            minimumSize    = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
+            idealSize      = Size(maxOf(idealSize?.width  ?: 0.0, maxIdealRight  ?: 0.0, minimumSize.width ),
+                                  maxOf(idealSize?.height ?: 0.0, maxIdealBottom ?: 0.0, minimumSize.height))
 
             if (fitContent) {
-                size = Size(maxOf(width, view.bounds.right, minimumSize.width), maxOf(height, view.bounds.bottom, minimumSize.height))
+                size = minimumSize
             }
         }
     }
