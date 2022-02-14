@@ -9,6 +9,8 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
+import io.nacular.doodle.controls.date.DaysOfTheWeekPanel
+import io.nacular.doodle.controls.date.MonthPanel
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.MutableDropdown
 import io.nacular.doodle.controls.list.HorizontalList
@@ -37,6 +39,7 @@ import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -766,6 +769,40 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        public fun basicMonthPanelBehavior(backgroundColor: Color? = null): Module = basicThemeModule(name = "BasicMonthPanelBehavior") {
+            bindBehavior<MonthPanel>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    object: Behavior<MonthPanel> {
+                        override fun install(view: MonthPanel) {
+                            super.install(view)
+                            view.rerender()
+                        }
+
+                        override fun render(view: MonthPanel, canvas: Canvas) {
+                            canvas.rect(view.bounds.atOrigin, fill = (backgroundColor ?: this@run.backgroundColor).paint)
+                        }
+                    }
+                }
+            }
+        }
+
+        public fun basicDaysOfTheWeekPanelBehavior(backgroundColor: Color?  = null): Module = basicThemeModule(name = "BasicDaysOfTheWeekPanelBehavior") {
+            bindBehavior<DaysOfTheWeekPanel>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    object: Behavior<DaysOfTheWeekPanel> {
+                        override fun install(view: DaysOfTheWeekPanel) {
+                            super.install(view)
+                            view.rerender()
+                        }
+
+                        override fun render(view: DaysOfTheWeekPanel, canvas: Canvas) {
+                            canvas.rect(view.bounds.atOrigin, fill = (backgroundColor ?: this@run.backgroundColor).paint)
+                        }
+                    }
+                }
+            }
+        }
+
         public val basicThemeBehaviors: kotlin.collections.List<Module> = listOf(
                 basicListBehavior(),
                 basicTreeBehavior(),
@@ -789,7 +826,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicTabbedPanelBehavior(),
                 basicMutableTableBehavior(),
                 basicMutableSpinnerBehavior(),
-                basicMutableDropdownBehavior()
+                basicMutableDropdownBehavior(),
+                basicMonthPanelBehavior(),
+                basicDaysOfTheWeekPanelBehavior(),
         )
     }
 }
