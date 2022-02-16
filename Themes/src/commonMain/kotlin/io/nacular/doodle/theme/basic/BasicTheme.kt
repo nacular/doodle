@@ -17,6 +17,7 @@ import io.nacular.doodle.controls.list.HorizontalList
 import io.nacular.doodle.controls.list.HorizontalMutableList
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.MutableList
+import io.nacular.doodle.controls.list.VerticalDynamicList
 import io.nacular.doodle.controls.list.VerticalList
 import io.nacular.doodle.controls.list.VerticalMutableList
 import io.nacular.doodle.controls.panels.SplitPanel
@@ -183,7 +184,12 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         itemHeight            = itemHeight            ?: 20.0,
-                        numColumns            = if (it is VerticalList) it.numColumns else 1
+                        numColumns            = when (it) {
+                            is VerticalList        -> it.numColumns
+                            is VerticalDynamicList -> it.numColumns
+                            is VerticalMutableList -> it.numColumns
+                            else                   -> 1
+                        }
                     )
                 }
             }
