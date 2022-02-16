@@ -75,6 +75,7 @@ import io.nacular.doodle.theme.basic.range.BasicCircularRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
+import io.nacular.doodle.theme.basic.range.TickPresentation
 import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinnerBehavior
 import io.nacular.doodle.theme.basic.spinner.BasicSpinnerBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
@@ -393,10 +394,11 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicSliderBehavior(
-                barFill             : Paint? = null,
-                knobFill            : Paint? = null,
-                rangeFill           : Paint? = null,
-                grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
+                barFill             : Paint?            = null,
+                knobFill            : Paint?            = null,
+                rangeFill           : Paint?            = null,
+                grooveThicknessRatio: Float?            = null,
+                showTicks           : TickPresentation? = null): Module = basicThemeModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicSliderBehavior<Double>(
@@ -404,6 +406,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         knobFill             = knobFill             ?: darkBackgroundColor.paint,
                         rangeFill            = rangeFill,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        showTicks            = showTicks,
                         focusManager         = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
@@ -413,11 +416,13 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicRangeSliderBehavior(
-            barFill             : Paint? = null,
-            startKnobFill       : Paint? = null,
-            endKnobFill         : Paint? = startKnobFill,
-            rangeFill           : Paint? = endKnobFill,
-            grooveThicknessRatio: Float? = null): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
+            barFill             : Paint?            = null,
+            startKnobFill       : Paint?            = null,
+            endKnobFill         : Paint?            = startKnobFill,
+            rangeFill           : Paint?            = endKnobFill,
+            grooveThicknessRatio: Float?            = null,
+            showTicks           : TickPresentation? = null
+        ): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
             bindBehavior<RangeSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicRangeSliderBehavior<Double>(
@@ -426,6 +431,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         endKnobFill          = endKnobFill          ?: startKnobFill ?: darkBackgroundColor.paint,
                         rangeFill            = rangeFill            ?: darkBackgroundColor.paint,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        showTicks            = showTicks,
                         focusManager         = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
@@ -435,14 +441,16 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public inline fun basicRangeSliderBehavior(
-            barFill             : Paint? = null,
-            knobFill            : Paint? = null,
-            rangeFill           : Paint? = knobFill,
-            grooveThicknessRatio: Float? = null): Module = basicRangeSliderBehavior(
+            barFill             : Paint?            = null,
+            knobFill            : Paint?            = null,
+            rangeFill           : Paint?            = knobFill,
+            grooveThicknessRatio: Float?            = null,
+            showTicks           : TickPresentation? = null): Module = basicRangeSliderBehavior(
             barFill              = barFill,
             startKnobFill        = knobFill,
             rangeFill            = rangeFill,
-            grooveThicknessRatio = grooveThicknessRatio
+            grooveThicknessRatio = grooveThicknessRatio,
+            showTicks            = showTicks
         )
 
         public fun basicSpinnerBehavior(

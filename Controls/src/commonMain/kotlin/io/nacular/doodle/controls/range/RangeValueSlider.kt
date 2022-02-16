@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.range
 import io.nacular.doodle.controls.BasicConfinedRangeModel
 import io.nacular.doodle.controls.ConfinedRangeModel
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -15,13 +16,17 @@ public abstract class RangeValueSlider<T> internal constructor(
 
     public constructor(range: ClosedRange<T>, value: ClosedRange<T> = range.start .. range.start, type: KClass<T>): this(BasicConfinedRangeModel(range, value) as ConfinedRangeModel<T>, type)
 
-    public var snapToTicks: Boolean = false
+    public var snapToTicks: Boolean by observable(false) { _,new ->
+        if (new) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+    }
 
     public var ticks: Int = 0
         set(new) {
             field = max(0, new)
 
-            snapSize = if (field > 0) (range.size.toDouble() + 1) / field else 0.0
+            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else 0.0
         }
 
     public var model: ConfinedRangeModel<T> = model
@@ -60,6 +65,7 @@ public abstract class RangeValueSlider<T> internal constructor(
 
     protected abstract fun changed      (old: ClosedRange<T>, new: ClosedRange<T>)
     protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
+    protected abstract fun ticksChanged ()
 
     private val modelChanged: (ConfinedRangeModel<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,old,new ->
         changed(old, new)
@@ -69,7 +75,13 @@ public abstract class RangeValueSlider<T> internal constructor(
         limitsChanged(old, new)
     }
 
-    private var snapSize = 0.0
+    private var snapSize: Double by observable(0.0) { _,_ ->
+        if (snapToTicks) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+
+        ticksChanged()
+    }
 
     private fun cast(value: Double): T {
         return when (type) {

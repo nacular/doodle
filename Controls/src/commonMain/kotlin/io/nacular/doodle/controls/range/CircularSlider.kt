@@ -6,8 +6,11 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.utils.ChangeObservers
+import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import kotlin.js.JsName
 import kotlin.reflect.KClass
 
 public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T> {
@@ -17,8 +20,14 @@ public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T
     @Suppress("PrivatePropertyName")
     private val limitsChanged_ by lazy { PropertyObserversImpl<CircularSlider<T>, ClosedRange<T>>(this) }
 
-    public val changed: PropertyObservers<CircularSlider<T>, T> = changed_
+    @Suppress("PrivatePropertyName")
+    private val ticksChanged_ by lazy { ChangeObserversImpl(this) }
+
+    public val changed      : PropertyObservers<CircularSlider<T>, T> = changed_
     public val limitsChanged: PropertyObservers<CircularSlider<T>, ClosedRange<T>> = limitsChanged_
+
+    @JsName("ticksChangedEvent")
+    public val ticksChanged : ChangeObservers<CircularSlider<T>> = ticksChanged_
 
     public var behavior: Behavior<CircularSlider<T>>? by behavior()
 
@@ -34,6 +43,10 @@ public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T
 
     override fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>) {
         limitsChanged_(old, new)
+    }
+
+    override fun ticksChanged() {
+        ticksChanged_()
     }
 
     public companion object {

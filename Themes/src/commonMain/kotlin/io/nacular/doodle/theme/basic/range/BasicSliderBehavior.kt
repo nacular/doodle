@@ -21,18 +21,37 @@ public class BasicSliderBehavior<T>(
         private val knobFill            :  (Slider<T>) -> Paint,
         private val rangeFill           : ((Slider<T>) -> Paint)? = null,
                     grooveThicknessRatio: Float                   = 0.6f,
+        private val showTicks           : TickPresentation?       = null,
                     focusManager        : FocusManager?           = null
 ): AbstractSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
     public constructor(
-            barFill             : Paint         = Lightgray.paint,
-            knobFill            : Paint         = Blue.paint,
-            rangeFill           : Paint?        = null,
-            grooveThicknessRatio: Float         = 0.6f,
-            focusManager        : FocusManager? = null): this(barFill = { barFill }, knobFill = { knobFill }, rangeFill = rangeFill?.let { f -> { f } }, grooveThicknessRatio, focusManager)
+            barFill             : Paint             = Lightgray.paint,
+            knobFill            : Paint             = Blue.paint,
+            rangeFill           : Paint?            = null,
+            grooveThicknessRatio: Float             = 0.6f,
+            showTicks           : TickPresentation? = null,
+            focusManager        : FocusManager?     = null): this(barFill = { barFill }, knobFill = { knobFill }, rangeFill = rangeFill?.let { f -> { f } }, grooveThicknessRatio, showTicks, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
+    private val ticksChanged: (Slider<T>) -> Unit = { it.rerender() }
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
+    override fun install(view: Slider<T>) {
+        super.install(view)
+
+        if (showTicks != null) {
+            view.ticksChanged += ticksChanged
+        }
+    }
+
+    override fun uninstall(view: Slider<T>) {
+        super.uninstall(view)
+
+        if (showTicks != null) {
+            view.ticksChanged -= ticksChanged
+        }
+    }
 
     override fun render(view: Slider<T>, canvas: Canvas) {
         val grooveRect: Rectangle
@@ -67,10 +86,22 @@ public class BasicSliderBehavior<T>(
             }
         }
 
-        canvas.rect(grooveRect, grooveRect.height / 2, adjust(view, barFill(view)))
+        val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, it) }
+
+        when (clipInfo) {
+            null -> canvas.rect(grooveRect, grooveRect.height / 2, adjust(view, barFill(view)))
+            else -> canvas.clip(clipInfo.first) {
+                rect(grooveRect, grooveRect.height / 2, adjust(view, barFill(view)))
+            }
+        }
 
         rangeRect?.let {
-            canvas.rect(rangeRect, rangeRect.height / 2, adjust(view, rangeFill!!((view))))
+            when (clipInfo) {
+                null -> canvas.rect(rangeRect, rangeRect.height / 2, adjust(view, rangeFill!!((view))))
+                else -> canvas.clip(clipInfo.first) {
+                    rect(rangeRect, rangeRect.height / 2, adjust(view, rangeFill!!((view))))
+                }
+            }
         }
 
         canvas.circle(Circle(handleRect.center, handleRect.width / 2), adjust(view, knobFill(view)))

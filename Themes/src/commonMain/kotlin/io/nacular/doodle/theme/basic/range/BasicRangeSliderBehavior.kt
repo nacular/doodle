@@ -22,19 +22,38 @@ public class BasicRangeSliderBehavior<T>(
         private val endKnobFill         : (RangeSlider<T>) -> Paint,
         private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
                     grooveThicknessRatio: Float                     = 0.6f,
+        private val showTicks           : TickPresentation?         = null,
                     focusManager        : FocusManager?             = null
 ): AbstractRangeSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
     public constructor(
-            barFill            : Paint  = Lightgray.paint,
-            startKnobFill      : Paint  = Blue.paint,
-            endKnobFill        : Paint  = startKnobFill,
-            rangeFill          : Paint  = endKnobFill,
-            grooveThicknessRatio: Float = 0.6f,
-            focusManager        : FocusManager? = null): this(barFill = { barFill }, startKnobFill = { startKnobFill }, endKnobFill = { endKnobFill }, rangeFill = { rangeFill }, grooveThicknessRatio, focusManager)
+            barFill             : Paint             = Lightgray.paint,
+            startKnobFill       : Paint             = Blue.paint,
+            endKnobFill         : Paint             = startKnobFill,
+            rangeFill           : Paint             = endKnobFill,
+            grooveThicknessRatio: Float             = 0.6f,
+            showTicks           : TickPresentation? = null,
+            focusManager        : FocusManager?     = null): this(barFill = { barFill }, startKnobFill = { startKnobFill }, endKnobFill = { endKnobFill }, rangeFill = { rangeFill }, grooveThicknessRatio, showTicks, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
+    private val ticksChanged: (RangeSlider<T>) -> Unit = { it.rerender() }
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
+
+    override fun install(view: RangeSlider<T>) {
+        super.install(view)
+
+        if (showTicks != null) {
+            view.ticksChanged += ticksChanged
+        }
+    }
+
+    override fun uninstall(view: RangeSlider<T>) {
+        super.uninstall(view)
+
+        if (showTicks != null) {
+            view.ticksChanged -= ticksChanged
+        }
+    }
 
     override fun render(view: RangeSlider<T>, canvas: Canvas) {
         val grooveRect    : Rectangle
@@ -67,8 +86,16 @@ public class BasicRangeSliderBehavior<T>(
             }
         }
 
-        canvas.rect  (grooveRect, grooveRect.height / 2, adjust(view, barFill(view)  ))
-        canvas.rect  (rangeRect,                         adjust(view, rangeFill(view)))
+        when (val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, it) }) {
+            null -> {
+                canvas.rect(grooveRect, grooveRect.height / 2, adjust(view, barFill  (view)))
+                canvas.rect(rangeRect,                         adjust(view, rangeFill(view)))
+            }
+            else -> canvas.clip(clipInfo.first) {
+                rect(grooveRect, grooveRect.height / 2, adjust(view, barFill  (view)))
+                rect(rangeRect,                         adjust(view, rangeFill(view)))
+            }
+        }
 
         canvas.circle(Circle(firstKnobRect.center,  firstKnobRect.width  / 2), adjust(view, startKnobFill(view)))
         canvas.circle(Circle(secondKnobRect.center, secondKnobRect.width / 2), adjust(view, endKnobFill  (view)))

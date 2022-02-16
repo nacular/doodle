@@ -6,6 +6,7 @@ import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.controls.bind
 import io.nacular.doodle.controls.binding
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -23,13 +24,17 @@ public abstract class ValueSlider<T> internal constructor(
 
     private var roleBinding by binding(role.bind(model))
 
-    public var snapToTicks: Boolean = false
+    public var snapToTicks: Boolean by observable(false) { _,new ->
+        if (new) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+    }
 
     public var ticks: Int = 0
         set(new) {
             field = max(0, new)
 
-            snapSize = if (field > 0) (range.size.toDouble() + 1) / field else 0.0
+            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else 0.0
         }
 
     public var model: ConfinedValueModel<T> = model
@@ -66,6 +71,7 @@ public abstract class ValueSlider<T> internal constructor(
 
     protected abstract fun changed      (old: T,              new: T             )
     protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
+    protected abstract fun ticksChanged ()
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
         changed(old, new)
@@ -75,7 +81,13 @@ public abstract class ValueSlider<T> internal constructor(
         limitsChanged(old, new)
     }
 
-    private var snapSize = 0.0
+    private var snapSize: Double by observable(0.0) { _,_ ->
+        if (snapToTicks) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+
+        ticksChanged()
+    }
 
     private fun cast(value: Double): T {
         return when (type) {

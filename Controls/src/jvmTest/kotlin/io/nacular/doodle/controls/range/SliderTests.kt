@@ -10,13 +10,25 @@ import kotlin.test.expect
 class SliderTests {
     @Test @JsName("snapsToTicks")
     fun `snaps to ticks`() {
-        val slider = Slider(28.0 .. 31.0)
+        val slider = Slider(28.0 .. 31.0).apply {
+            ticks       = 4
+            snapToTicks = true
+        }
 
-        slider.ticks       = 4
-        slider.snapToTicks = true
-        slider.value       = 31.0
+        slider.value = 31.0
 
         expect(31.0) { slider.value }
+
+        val slider2 = Slider(0f .. 1f).apply {
+            ticks       = 4
+            snapToTicks = true
+        }
+
+        slider2.value = 0.1f
+        expect(0f) { slider2.value }
+
+        slider2.value = 0.27f
+        expect(1/3f) { slider2.value }
     }
 
     @Test @JsName("snapsToTicksInt")
