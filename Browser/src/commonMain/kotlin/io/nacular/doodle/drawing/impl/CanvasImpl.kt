@@ -356,6 +356,7 @@ internal open class CanvasImpl(
         }
 
         it.style.filter = ""
+        it.style.setClipPath    (null)
         it.style.setTransform   (    )
         it.style.setBorderRadius(null)
     }
