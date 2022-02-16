@@ -76,16 +76,15 @@ internal class NativeSlider<T> internal constructor(
 
     private val nativeEventHandler: NativeEventHandler
 
-    private val sliderElement = htmlFactory.createInput().apply {
-        type  = "range"
-        step  = "any"
-        value = slider.value.toString()
-
-        style.setOverflow(Visible())
+    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
+        sliderElement.value = "${it.value.toDouble() / slider.range.size * 100}"
     }
 
-    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
-        sliderElement.value = "${it.value.toDouble() / slider.model.limits.size * 100}"
+    private val ticksChanged: (Slider<T>) -> Unit = {
+        sliderElement.step = when {
+            it.snapToTicks && it.ticks > 1 -> "${it.range.size / (it.ticks - 1) * 100}"
+            else                           -> "any"
+        }
     }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
@@ -110,7 +109,16 @@ internal class NativeSlider<T> internal constructor(
         sliderElement.style.setBounds(Rectangle((new.width - width) / 2, (new.height - height) / 2, width, height))
     }
 
+    private val sliderElement = htmlFactory.createInput().apply {
+        type = "range"
+        style.setOverflow(Visible())
+    }
+
     init {
+        changed     (slider, slider.value, slider.value) // update value
+        ticksChanged(slider                            ) // update step
+
+
         nativeEventHandler = handlerFactory(sliderElement, this).apply {
             registerFocusListener()
             registerInputListener()
@@ -118,6 +126,7 @@ internal class NativeSlider<T> internal constructor(
 
         slider.apply {
             changed             += this@NativeSlider.changed
+            ticksChanged        += this@NativeSlider.ticksChanged
             focusChanged        += this@NativeSlider.focusChanged
             boundsChanged       += this@NativeSlider.boundsChanged
             enabledChanged      += this@NativeSlider.enabledChanged
@@ -138,6 +147,7 @@ internal class NativeSlider<T> internal constructor(
 
         slider.apply {
             changed             -= this@NativeSlider.changed
+            ticksChanged        -= this@NativeSlider.ticksChanged
             focusChanged        -= this@NativeSlider.focusChanged
             boundsChanged       -= this@NativeSlider.boundsChanged
             enabledChanged      -= this@NativeSlider.enabledChanged
@@ -184,5 +194,5 @@ internal class NativeSlider<T> internal constructor(
         return true
     }
 
-    internal val <T> ClosedRange<T>.size: Double where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() + 1)
+    internal val <T> ClosedRange<T>.size: Double where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble())
 }

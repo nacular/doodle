@@ -28,6 +28,8 @@ public abstract class ValueSlider<T> internal constructor(
         if (new) {
             value = value // update value to ensure snapped to the closest tick
         }
+
+        ticksChanged()
     }
 
     public var ticks: Int = 0
@@ -109,4 +111,4 @@ public abstract class ValueSlider<T> internal constructor(
 }
 
 @Suppress("UNCHECKED_CAST")
-internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble() /*+ 1*/) as T
+internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble()) as T

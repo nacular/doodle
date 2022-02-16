@@ -20,6 +20,8 @@ public abstract class RangeValueSlider<T> internal constructor(
         if (new) {
             value = value // update value to ensure snapped to the closest tick
         }
+
+        ticksChanged()
     }
 
     public var ticks: Int = 0

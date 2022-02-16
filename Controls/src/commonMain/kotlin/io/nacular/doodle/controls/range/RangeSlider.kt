@@ -72,8 +72,8 @@ public open class RangeSlider<T>(
          * @param orientation of the control
          */
         public inline operator fun <reified T> invoke(
-                limits      : ClosedRange<T>,
-                value       : ClosedRange<T> = limits.start .. limits.start,
+                limits     : ClosedRange<T>,
+                value      : ClosedRange<T> = limits.start .. limits.start,
                 orientation: Orientation = Horizontal): RangeSlider<T> where T: Number, T: Comparable<T> = RangeSlider(model = BasicConfinedRangeModel(limits, value) as ConfinedRangeModel<T>, orientation, T::class)
 
         /**
