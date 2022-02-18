@@ -8,6 +8,8 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.size
@@ -34,7 +36,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         selectionModel: SelectionModel<Int>?            = null,
-        fitContent    : Boolean                         = true,
+        fitContent    : Set<Dimension>                  = setOf(Width, Height),
         scrollCache   : Int                             = 10): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
 
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
@@ -130,34 +132,34 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
     public companion object {
         public operator fun invoke(
-                progression   : IntProgression,
-                itemVisualizer: ItemVisualizer<Int, IndexedItem>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): DynamicList<Int, DynamicListModel<Int>> =
-                DynamicList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
+            progression   : IntProgression,
+            itemVisualizer: ItemVisualizer<Int, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): DynamicList<Int, DynamicListModel<Int>> =
+            DynamicList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public inline operator fun <reified T> invoke(
-                values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedItem>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): DynamicList<T, DynamicListModel<T>> =
-                DynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<T>,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): DynamicList<T, DynamicListModel<T>> =
+            DynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun invoke(
-                values        : kotlin.collections.List<View>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): DynamicList<View, DynamicListModel<View>> =
-                DynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<View>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): DynamicList<View, DynamicListModel<View>> =
+            DynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun <T, M: DynamicListModel<T>> invoke(
-                model         : M,
-                itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
-                selectionModel: SelectionModel<Int>?           = null,
-                fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10): DynamicList<T, M> =
-                DynamicList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
+            model         : M,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+            selectionModel: SelectionModel<Int>?            = null,
+            fitContent    : Set<Dimension>                  = setOf(Width, Height),
+            scrollCache   : Int                             = 10): DynamicList<T, M> =
+            DynamicList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
     }
 }

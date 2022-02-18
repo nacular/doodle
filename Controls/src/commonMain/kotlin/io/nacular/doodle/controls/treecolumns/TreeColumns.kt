@@ -18,6 +18,8 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.Path
@@ -43,7 +45,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
                       selectionModel: SelectionModel<Path<Int>>?      = null): View(), Selectable<Path<Int>>, Focusable {
 
     protected class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
-        public var root: Path<Int>? = null as Path<Int>?
+        public var root: Path<Int>? = null
         public val children: kotlin.collections.MutableList<Int> = mutableListOf()
 
         init {
@@ -151,11 +153,11 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private class CustomMutableList<T>(
-            model         : SimpleMutableListModel<T>,
-            itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
-            val localSelectionModel: LocalSelectionModel?  = null,
-            fitContent    : Boolean                   = true,
-            scrollCache   : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {
+            model              : SimpleMutableListModel<T>,
+            itemGenerator      : ItemVisualizer<T, IndexedItem>? = null,
+        val localSelectionModel: LocalSelectionModel?            = null,
+            fitContent         : Set<Dimension>                  = setOf(Width, Height),
+            scrollCache        : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {
         public override val model = super.model
 
         fun enable() {
@@ -392,7 +394,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             SimpleMutableListModel(model.children(node).asSequence().toList()),
             itemVisualizer,
             selectionModel?.let { LocalSelectionModel(node, it) },
-            fitContent  = false,
+            fitContent  = setOf(Height),
             scrollCache = 10
         ).apply {
             acceptsThemes = false

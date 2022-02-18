@@ -1,12 +1,13 @@
 package io.nacular.doodle.controls.text
 
-import io.nacular.doodle.controls.text.TextFit.*
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.observable
@@ -30,7 +31,7 @@ public open class TextField(text: String = ""): TextInput(text) {
 
     public var selectionBackgroundColor: Color? by styleProperty(null)
 
-    public var fitText: Set<TextFit> by observable(emptySet()) { _,_ ->
+    public var fitText: Set<Dimension> by observable(emptySet()) { _,_ ->
         fitText()
     }
 

@@ -358,7 +358,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
         override val view = DynamicList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
         }
 

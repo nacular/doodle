@@ -9,6 +9,8 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -61,7 +63,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         selectionModel: SelectionModel<Int>?            = null,
-        fitContent    : Boolean                         = true,
+        fitContent    : Set<Dimension>                  = setOf(Width, Height),
         scrollCache   : Int                             = 10): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
 
     /**
@@ -182,35 +184,34 @@ public open class MutableList<T, M: MutableListModel<T>>(
 
     public companion object {
         public operator fun invoke(
-                progression   : IntProgression,
-                itemVisualizer: ItemVisualizer<Int, IndexedItem>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): MutableList<Int, MutableListModel<Int>> =
-                MutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
+            progression   : IntProgression,
+            itemVisualizer: ItemVisualizer<Int, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): MutableList<Int, MutableListModel<Int>> =
+            MutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public inline operator fun <reified T> invoke(
-                values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedItem>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
-                MutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<T>,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): MutableList<T, MutableListModel<T>> =
+            MutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun invoke(
-                values        : kotlin.collections.List<View>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): List<View, ListModel<View>> =
-                MutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<View>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+            MutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun  <T, M: MutableListModel<T>>invoke(
-                model         : M,
-                itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
-                selectionModel: SelectionModel<Int>?           = null,
-                fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10): MutableList<T, M> =
-                MutableList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
-
+            model         : M,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
+            selectionModel: SelectionModel<Int>?            = null,
+            fitContent    : Set<Dimension>                  = setOf(Width, Height),
+            scrollCache   : Int                             = 10): MutableList<T, M> =
+            MutableList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
     }
 }

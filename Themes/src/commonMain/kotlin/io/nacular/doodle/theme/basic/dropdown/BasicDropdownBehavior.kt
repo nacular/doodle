@@ -57,6 +57,7 @@ import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetPool
@@ -259,7 +260,12 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     override fun install(view: Dropdown<T, M>) {
         super.install(view)
 
-        view.list = List(view.model, selectionModel = SingleItemSelectionModel(), itemVisualizer = view.listItemVisualizer).apply {
+        view.list = List(
+            view.model,
+            selectionModel = SingleItemSelectionModel(),
+            itemVisualizer = view.listItemVisualizer,
+            fitContent     = setOf(Height)
+        ).apply {
             insets        = Insets(INSET)
             behavior      = listBehavior(view)
             acceptsThemes = false

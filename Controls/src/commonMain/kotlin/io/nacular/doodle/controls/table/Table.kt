@@ -101,7 +101,7 @@ public open class Table<T, M: ListModel<T>>(
 
         override val view: io.nacular.doodle.controls.list.List<R, *> = io.nacular.doodle.controls.list.List(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel, scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModel, scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
         }
 

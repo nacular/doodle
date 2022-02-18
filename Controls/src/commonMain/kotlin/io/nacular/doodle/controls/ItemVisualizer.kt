@@ -3,7 +3,7 @@ package io.nacular.doodle.controls
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
-import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
@@ -35,7 +35,7 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
 /**
  * Visualizes Strings using [Label]s.
  */
-public open class TextVisualizer(private val fitText: Set<TextFit>? = null): ItemVisualizer<String, Any> {
+public open class TextVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { text = item; this@TextVisualizer.fitText?.let { fitText = it } }
         else     -> Label(StyledText(item)).apply {

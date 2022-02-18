@@ -92,7 +92,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
         override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
 
             this@MutableInternalListColumn.editor?.let {

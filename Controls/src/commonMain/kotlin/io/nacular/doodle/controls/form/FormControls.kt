@@ -25,7 +25,6 @@ import io.nacular.doodle.controls.spinner.Model
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
@@ -47,6 +46,8 @@ import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.observable
@@ -758,7 +759,7 @@ public fun <T> spinner(
 public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
-        fitContents   : Boolean = false,
+        fitContents   : Set<Dimension> = setOf(Height),
         config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
         model,
@@ -816,7 +817,7 @@ public fun <T> list(
                first: T,
         vararg rest : T,
                itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
-               fitContents   : Boolean = false,
+               fitContents   : Set<Dimension> = setOf(Height),
                config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
@@ -837,7 +838,7 @@ public fun <T> list(
 public fun list(
         progression   : IntProgression,
         itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
-        fitContents   : Boolean = false,
+        fitContents   : Set<Dimension> = setOf(Height),
         config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
     IntProgressionModel(progression),
     itemVisualizer,

@@ -6,7 +6,7 @@ import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
 import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
-import io.nacular.doodle.controls.text.TextFit.Width
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color

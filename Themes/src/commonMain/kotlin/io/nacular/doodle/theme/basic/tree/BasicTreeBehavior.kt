@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.basic.tree
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit.Width
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner

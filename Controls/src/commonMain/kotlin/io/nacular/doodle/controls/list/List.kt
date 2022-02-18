@@ -27,6 +27,8 @@ import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
@@ -111,14 +113,14 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its items' width and total height
+ * @param fitContent determines whether the List scales to fit its items' width or total height
  * @param scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
  * only visible items are rendered, but quick scrolling is more likely to show blank areas.
  *
  * @property model that holds the data for this List
  * @property itemVisualizer that maps [T] to [View] for each item in the List
  * @property selectionModel that manages the List's selection state
- * @property fitContent determines whether the List scales to fit its items' width and total height
+ * @property fitContent determines whether the List scales to fit its items' width or total height
  * @property scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
  * only visible items are rendered, but quick scrolling is more likely to show blank areas.
 
@@ -128,7 +130,7 @@ public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Int>?            = null,
-        private        val fitContent    : Boolean                         = true,
+        private        val fitContent    : Set<Dimension>                  = setOf(Width, Height),
         private        val scrollCache   : Int                             = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
@@ -334,8 +336,12 @@ public open class List<T, out M: ListModel<T>>(
             idealSize      = Size(maxOf(idealSize?.width  ?: 0.0, maxIdealRight  ?: 0.0, minimumSize.width ),
                                   maxOf(idealSize?.height ?: 0.0, maxIdealBottom ?: 0.0, minimumSize.height))
 
-            if (fitContent) {
-                size = minimumSize
+            if (Width in fitContent) {
+                width = minimumSize.width
+            }
+
+            if (Height in fitContent) {
+                height = minimumSize.height
             }
         }
     }
@@ -396,35 +402,35 @@ public open class List<T, out M: ListModel<T>>(
 
     public companion object {
         public operator fun invoke(
-                progression    : IntProgression,
-                itemVisualizer : ItemVisualizer<Int, IndexedItem>,
-                selectionModel : SelectionModel<Int>? = null,
-                fitContent     : Boolean              = true,
-                scrollCache    : Int                  = 10): List<Int, ListModel<Int>> =
-                List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
+            progression   : IntProgression,
+            itemVisualizer: ItemVisualizer<Int, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): List<Int, ListModel<Int>> =
+            List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun <T> invoke(
-                values        : kotlin.collections.List<T>,
-                itemVisualizer: ItemVisualizer<T, IndexedItem>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): List<T, ListModel<T>> =
-                List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<T>,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): List<T, ListModel<T>> =
+            List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun invoke(
-                values        : kotlin.collections.List<View>,
-                selectionModel: SelectionModel<Int>? = null,
-                fitContent    : Boolean              = true,
-                scrollCache   : Int                  = 10): List<View, ListModel<View>> =
-                List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            values        : kotlin.collections.List<View>,
+            selectionModel: SelectionModel<Int>? = null,
+            fitContent    : Set<Dimension>       = setOf(Width, Height),
+            scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+            List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun <T, M: ListModel<T>>invoke(
-                model         : M,
-                itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
-                selectionModel: SelectionModel<Int>?           = null,
-                fitContent    : Boolean                        = true,
-                scrollCache   : Int                            = 10): List<T, M> =
-                List(model, itemGenerator, selectionModel, fitContent, scrollCache)
+            model         : M,
+            itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
+            selectionModel: SelectionModel<Int>?            = null,
+            fitContent    : Set<Dimension>                  = setOf(Width, Height),
+            scrollCache   : Int                             = 10): List<T, M> =
+            List(model, itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }
 

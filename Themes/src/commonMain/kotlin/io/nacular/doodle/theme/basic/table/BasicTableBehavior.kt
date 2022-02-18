@@ -17,7 +17,7 @@ import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -302,7 +302,7 @@ public open class TextEditOperation<T>(
 
     init {
         text                = encoder.encode(row).getOrDefault("")
-        fitText             = setOf(TextFit.Width, TextFit.Height)
+        fitText             = setOf(Dimension.Width, Dimension.Height)
         borderVisible       = false
         foregroundColor     = current.foregroundColor
         backgroundColor     = Transparent
