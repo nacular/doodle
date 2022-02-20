@@ -199,10 +199,10 @@ internal fun Style.setTransform(transform: AffineTransform? = null) {
 //internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }
 
 internal sealed class Display(val value: String)
-internal class None       : io.nacular.doodle.dom.Display("none"        )
-internal class Block      : io.nacular.doodle.dom.Display("block"       )
-internal class Inline     : io.nacular.doodle.dom.Display("inline"      )
-internal class InlineBlock: io.nacular.doodle.dom.Display("inline-block")
+internal class None       : Display("none"        )
+internal class Block      : Display("block"       )
+internal class Inline     : Display("inline"      )
+internal class InlineBlock: Display("inline-block")
 
 internal sealed class Position(val value: String)
 internal class Absolute: Position("absolute")
