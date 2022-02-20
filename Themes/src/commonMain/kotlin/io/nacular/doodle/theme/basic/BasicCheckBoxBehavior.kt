@@ -18,6 +18,7 @@ import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 4/25/19.
@@ -126,4 +127,10 @@ public class BasicCheckBoxBehavior(
         focusManager
 ) {
     override fun mirrorWhenRightToLeft(view: CheckBox): Boolean = false
+
+    override fun install(view: CheckBox) {
+        super.install(view)
+
+        view.idealSize = view.idealSize?.run { Size(max(16.0, width), max(16.0, height)) }
+    }
 }

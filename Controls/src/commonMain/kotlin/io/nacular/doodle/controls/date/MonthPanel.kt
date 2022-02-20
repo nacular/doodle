@@ -40,12 +40,14 @@ import kotlin.math.ceil
  */
 public class MonthPanel(
     date: LocalDate,
-    private val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel> = itemVisualizer { day, previous, _ ->
+    private val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel> = itemVisualizer { day, previous, panel ->
         val text = "${day.dayOfMonth}"
 
         when (previous) {
             is Label -> previous.apply    { fitText = emptySet(); this.text = text }
             else     -> Label(text).apply { fitText = emptySet()                   }
+        }.also {
+            it.enabled = day.month == panel.startDate.month
         }
     },
     private val selectionModel: SelectionModel<LocalDate>? = null,
