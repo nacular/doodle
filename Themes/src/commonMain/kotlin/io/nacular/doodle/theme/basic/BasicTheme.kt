@@ -2,6 +2,7 @@
 
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.controls.DynamicListModel
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.ProgressIndicator
@@ -13,6 +14,7 @@ import io.nacular.doodle.controls.date.DaysOfTheWeekPanel
 import io.nacular.doodle.controls.date.MonthPanel
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.MutableDropdown
+import io.nacular.doodle.controls.list.HorizontalDynamicList
 import io.nacular.doodle.controls.list.HorizontalList
 import io.nacular.doodle.controls.list.HorizontalMutableList
 import io.nacular.doodle.controls.list.List
@@ -101,6 +103,7 @@ import org.kodein.di.DI
 import org.kodein.di.DI.Module
 import org.kodein.di.DirectDI
 import org.kodein.di.bind
+import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.erasedSet
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
@@ -202,7 +205,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             selectionColor       : Color?  = null,
             selectionBlurredColor: Color?  = null
         ): Module = basicThemeModule(name = "BasicHorizontalListBehavior") {
-            bindBehavior<HorizontalList<Any, ListModel<Any>>>(BTheme::class) {
+            val a: NoArgBindingDI<*>.(List<Any, *>) -> Unit = {
                 it.behavior = instance<BasicThemeConfig>().run {
                     horizontalBasicListBehavior(
                         focusManager          = instanceOrNull(),
@@ -211,10 +214,18 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         itemWidth             = itemWidth             ?: 20.0,
-                        numRows               = it.numRows
-                    )
-                }
+                        numRows               = when (it) {
+                            is HorizontalList        -> it.numRows
+                            is HorizontalDynamicList -> it.numRows
+                            is HorizontalMutableList -> it.numRows
+                            else                     -> 1
+                        }
+                    ) }
             }
+
+            bindBehavior<HorizontalList       <Any, ListModel       <Any>>>(BTheme::class, a)
+            bindBehavior<HorizontalDynamicList<Any, DynamicListModel<Any>>>(BTheme::class, a)
+            bindBehavior<HorizontalMutableList<Any, MutableListModel<Any>>>(BTheme::class, a)
         }
 
         public fun basicMutableListBehavior(
@@ -391,7 +402,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             borderWidth         = borderWidth         ?: 0.0,
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
                             insets              = insets              ?: 8.0,
-                            focusManager        = instanceOrNull()).apply {
+                            focusManager        = instanceOrNull()
+                    ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
                     }
