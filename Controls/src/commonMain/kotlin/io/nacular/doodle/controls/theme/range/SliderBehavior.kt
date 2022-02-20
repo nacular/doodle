@@ -3,14 +3,9 @@ package io.nacular.doodle.controls.theme.range
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.KeyText.Companion.ArrowDown
-import io.nacular.doodle.event.KeyText.Companion.ArrowLeft
-import io.nacular.doodle.event.KeyText.Companion.ArrowRight
-import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -44,6 +39,7 @@ public abstract class AbstractSliderBehavior<T>(
 
     private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
     private val enabledChanged: (View,      Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
+    private val styleChanged  : (View                       ) -> Unit = {           it.rerender() }
 
     protected var lastPointerPosition: Double = -1.0; private set
 
@@ -51,6 +47,7 @@ public abstract class AbstractSliderBehavior<T>(
         lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
+        view.styleChanged         += styleChanged
         view.pointerChanged       += this
         view.enabledChanged       += enabledChanged
         view.pointerMotionChanged += this
@@ -59,6 +56,7 @@ public abstract class AbstractSliderBehavior<T>(
     override fun uninstall(view: Slider<T>) {
         view.changed              -= changed
         view.keyChanged           -= this
+        view.styleChanged         -= styleChanged
         view.pointerChanged       -= this
         view.enabledChanged       -= enabledChanged
         view.pointerMotionChanged -= this
@@ -66,19 +64,25 @@ public abstract class AbstractSliderBehavior<T>(
 
     override fun pressed(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider      = event.source as Slider<T>
-        val scaleFactor = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
+        val slider         = event.source as Slider<T>
+        val scaleFactor    = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
+        val handleSize     = handleSize    (slider)
+        val handlePosition = handlePosition(slider)
 
         val offset = when (slider.orientation) {
             Horizontal -> event.location.x
             Vertical   -> event.location.y
         }
 
-        val barSize     = barSize(slider)
-        val barPosition = barPosition(slider)
+        if (offset < handlePosition || offset > handlePosition + handleSize) {
+            val handleCenter = handlePosition + handleSize / 2
 
-        if (offset < barPosition || offset > barPosition + barSize) {
-            slider.adjust(by = scaleFactor * (offset - (barPosition + barSize / 2)))
+            val adjustment = when (slider.orientation) {
+                Horizontal -> offset       - handleCenter
+                Vertical   -> handleCenter - offset
+            }
+
+            slider.adjust(by = scaleFactor * adjustment)
         }
 
         lastPointerPosition = offset
@@ -95,18 +99,9 @@ public abstract class AbstractSliderBehavior<T>(
 
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider    = event.source as Slider<T>
-        lastStart     = slider.value
-        val increment = slider.range.size.toDouble() / 100
-
-        val (incrementKey, decrementKey) = when (slider.contentDirection) {
-            LeftRight -> ArrowRight to ArrowLeft
-            else      -> ArrowLeft  to ArrowRight
-        }
-
-        when (event.key) {
-            ArrowUp,   incrementKey -> slider.adjust(by = increment)
-            ArrowDown, decrementKey -> slider.adjust(by =-increment)
+        (event.source as? Slider<T>)?.let {
+            lastStart = it.value
+            handleKeyPress(it, event)
         }
     }
 
@@ -115,8 +110,8 @@ public abstract class AbstractSliderBehavior<T>(
         val slider = event.source as Slider<T>
 
         val delta = when (slider.orientation) {
-            Horizontal -> event.location.x - lastPointerPosition
-            Vertical   -> event.location.y - lastPointerPosition
+            Horizontal -> event.location.x    - lastPointerPosition
+            Vertical   -> lastPointerPosition - event.location.y
         }
 
         slider.set(to = lastStart.toDouble() + delta / scaleFactor(slider))
@@ -125,12 +120,20 @@ public abstract class AbstractSliderBehavior<T>(
     }
 
     private fun scaleFactor(slider: Slider<T>): Float {
-        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
+        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - handleSize(slider)
 
         return if (!slider.range.isEmpty()) (size / slider.range.size.toDouble()).toFloat() else 0f
     }
 
-    protected fun barPosition(slider: Slider<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))
+    protected fun handlePosition(slider: Slider<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider)).let {
+        when (slider.orientation) {
+            Horizontal -> it
+            Vertical   -> slider.height - handleSize(slider) - it
+        }
+    }
 
-    protected fun barSize(slider: Slider<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun handleSize(slider: Slider<T>): Double = when (slider.orientation) {
+        Horizontal -> slider.height
+        else       -> slider.width
+    }
 }

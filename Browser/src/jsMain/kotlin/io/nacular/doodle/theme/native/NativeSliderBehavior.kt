@@ -49,4 +49,6 @@ internal class NativeSliderBehavior<T>(
     override fun dragged(event: PointerEvent) {
         event.consume()
     }
+
+    override fun clipCanvasToBounds(view: Slider<T>) = false
 }

@@ -36,7 +36,20 @@ public abstract class ValueSlider<T> internal constructor(
         set(new) {
             field = max(0, new)
 
-            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else 0.0
+            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else null
+        }
+
+    public var snapSize: Double? = null
+        private set(new) {
+            if (new == field) return
+
+            field = new
+
+            if (snapToTicks) {
+                value = value // update value to ensure snapped to the closest tick
+            }
+
+            ticksChanged()
         }
 
     public var model: ConfinedValueModel<T> = model
@@ -52,7 +65,12 @@ public abstract class ValueSlider<T> internal constructor(
     public var value: T
         get(   ) = model.value
         set(new) {
-            model.value = if (snapToTicks && snapSize > 0) cast((round(new.toDouble() / snapSize) * snapSize)) else new
+            val snapSize_ = snapSize
+
+            model.value = when {
+                snapToTicks && snapSize_ != null -> cast((range.start.toDouble() + round((new.toDouble() - range.start.toDouble()) / snapSize_) * snapSize_))
+                else                             -> new
+            }
         }
 
     public var range: ClosedRange<T>
@@ -81,14 +99,6 @@ public abstract class ValueSlider<T> internal constructor(
 
     private val limitsChanged: (ConfinedValueModel<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,old,new ->
         limitsChanged(old, new)
-    }
-
-    private var snapSize: Double by observable(0.0) { _,_ ->
-        if (snapToTicks) {
-            value = value // update value to ensure snapped to the closest tick
-        }
-
-        ticksChanged()
     }
 
     private fun cast(value: Double): T {

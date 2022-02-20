@@ -6,11 +6,8 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.utils.ChangeObservers
-import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
-import kotlin.js.JsName
 import kotlin.reflect.KClass
 
 public open class CircularRangeSlider<T>(
@@ -23,14 +20,8 @@ public open class CircularRangeSlider<T>(
     @Suppress("PrivatePropertyName")
     private val limitsChanged_ by lazy { PropertyObserversImpl<CircularRangeSlider<T>, ClosedRange<T>>(this) }
 
-    @Suppress("PrivatePropertyName")
-    private val ticksChanged_ by lazy { ChangeObserversImpl(this) }
-
     public val changed      : PropertyObservers<CircularRangeSlider<T>, ClosedRange<T>> = changed_
     public val limitsChanged: PropertyObservers<CircularRangeSlider<T>, ClosedRange<T>> = limitsChanged_
-
-    @JsName("ticksChangedEvent")
-    public val ticksChanged : ChangeObservers<CircularRangeSlider<T>> = ticksChanged_
 
     public var behavior: Behavior<CircularRangeSlider<T>>? by behavior()
 
@@ -49,7 +40,7 @@ public open class CircularRangeSlider<T>(
     }
 
     override fun ticksChanged() {
-        ticksChanged_()
+        styleChanged { true }
     }
 
     public companion object {

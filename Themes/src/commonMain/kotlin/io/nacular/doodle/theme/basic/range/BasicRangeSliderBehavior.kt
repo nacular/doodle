@@ -19,7 +19,7 @@ import kotlin.math.min
 public class BasicRangeSliderBehavior<T>(
         private val barFill             : (RangeSlider<T>) -> Paint,
         private val startKnobFill       : (RangeSlider<T>) -> Paint,
-        private val endKnobFill         : (RangeSlider<T>) -> Paint,
+        private val endKnobFill         : (RangeSlider<T>) -> Paint = startKnobFill,
         private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
                     grooveThicknessRatio: Float                     = 0.6f,
         private val showTicks           : TickPresentation?         = null,
@@ -35,25 +35,8 @@ public class BasicRangeSliderBehavior<T>(
             focusManager        : FocusManager?     = null): this(barFill = { barFill }, startKnobFill = { startKnobFill }, endKnobFill = { endKnobFill }, rangeFill = { rangeFill }, grooveThicknessRatio, showTicks, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
-    private val ticksChanged: (RangeSlider<T>) -> Unit = { it.rerender() }
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
-
-    override fun install(view: RangeSlider<T>) {
-        super.install(view)
-
-        if (showTicks != null) {
-            view.ticksChanged += ticksChanged
-        }
-    }
-
-    override fun uninstall(view: RangeSlider<T>) {
-        super.uninstall(view)
-
-        if (showTicks != null) {
-            view.ticksChanged -= ticksChanged
-        }
-    }
 
     override fun render(view: RangeSlider<T>, canvas: Canvas) {
         val grooveRect    : Rectangle
@@ -61,10 +44,10 @@ public class BasicRangeSliderBehavior<T>(
         val firstKnobRect : Rectangle
         val secondKnobRect: Rectangle
 
-        val barSize          = barSize(view)
-        val offset           = barSize / 2
-        val startBarPosition = startBarPosition(view)
-        val endBarPosition   = endBarPosition  (view)
+        val handleSize          = handleSize(view)
+        val offset              = handleSize / 2
+        val startHandlePosition = endHandlePosition(view)
+        val endHandlePosition   = startHandlePosition  (view)
 
         val grooveInset = (1 - grooveThicknessRatio) * when (view.orientation) {
             Horizontal -> view.height
@@ -73,32 +56,34 @@ public class BasicRangeSliderBehavior<T>(
 
         when (view.orientation) {
             Horizontal -> {
-                grooveRect     = Rectangle(offset,           grooveInset / 2, max(0.0, view.width - barSize),              max(0.0, view.height - grooveInset))
-                firstKnobRect  = Rectangle(startBarPosition, 0.0, barSize, barSize)
-                secondKnobRect = Rectangle(endBarPosition,   0.0, barSize, barSize)
-                rangeRect      = Rectangle(startBarPosition + firstKnobRect.width / 2, grooveRect.y,    max(0.0, endBarPosition - startBarPosition), grooveRect.height)
+                grooveRect     = Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize), max(0.0, view.height - grooveInset))
+                firstKnobRect  = Rectangle(startHandlePosition, 0.0, handleSize, handleSize)
+                secondKnobRect = Rectangle(endHandlePosition,   0.0, handleSize, handleSize)
+                rangeRect      = Rectangle(startHandlePosition + firstKnobRect.width / 2, grooveRect.y, max(0.0, endHandlePosition - startHandlePosition), grooveRect.height)
             }
             else       -> {
-                grooveRect     = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - barSize))
-                firstKnobRect  = Rectangle(0.0, startBarPosition, barSize, barSize)
-                secondKnobRect = Rectangle(0.0, endBarPosition,   barSize, barSize)
-                rangeRect      = Rectangle(grooveRect.x, startBarPosition + firstKnobRect.height / 2, grooveRect.width, max(0.0, endBarPosition - startBarPosition))
+                grooveRect     = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize))
+                firstKnobRect  = Rectangle(0.0, startHandlePosition, handleSize, handleSize)
+                secondKnobRect = Rectangle(0.0, endHandlePosition,   handleSize, handleSize)
+                rangeRect      = Rectangle(grooveRect.x, min(startHandlePosition, endHandlePosition) + firstKnobRect.height / 2, grooveRect.width, max(0.0, startHandlePosition - endHandlePosition))
             }
         }
 
-        when (val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, it) }) {
+        val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
+
+        when (val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, grooveRadius, it) }) {
             null -> {
-                canvas.rect(grooveRect, grooveRect.height / 2, adjust(view, barFill  (view)))
-                canvas.rect(rangeRect,                         adjust(view, rangeFill(view)))
+                canvas.rect(grooveRect, grooveRadius, adjust(view, barFill  (view)))
+                canvas.rect(rangeRect,                adjust(view, rangeFill(view)))
             }
             else -> canvas.clip(clipInfo.first) {
-                rect(grooveRect, grooveRect.height / 2, adjust(view, barFill  (view)))
-                rect(rangeRect,                         adjust(view, rangeFill(view)))
+                rect(grooveRect, grooveRadius, adjust(view, barFill  (view)))
+                rect(rangeRect,                adjust(view, rangeFill(view)))
             }
         }
 
-        canvas.circle(Circle(firstKnobRect.center,  firstKnobRect.width  / 2), adjust(view, startKnobFill(view)))
-        canvas.circle(Circle(secondKnobRect.center, secondKnobRect.width / 2), adjust(view, endKnobFill  (view)))
+        canvas.circle(Circle(firstKnobRect.center,  min(firstKnobRect.width,  firstKnobRect.height)  / 2), adjust(view, startKnobFill(view)))
+        canvas.circle(Circle(secondKnobRect.center, min(secondKnobRect.width, secondKnobRect.height) / 2), adjust(view, endKnobFill  (view)))
     }
 
     private fun adjust(view: RangeSlider<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)

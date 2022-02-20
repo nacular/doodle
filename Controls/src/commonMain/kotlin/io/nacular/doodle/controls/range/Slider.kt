@@ -6,13 +6,10 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.utils.ChangeObservers
-import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
-import kotlin.js.JsName
 import kotlin.reflect.KClass
 
 /**
@@ -23,9 +20,9 @@ import kotlin.reflect.KClass
  * @param orientation of the control
  */
 public open class Slider<T>(
-        model: ConfinedValueModel<T>,
+                   model      : ConfinedValueModel<T>,
         public val orientation: Orientation = Horizontal,
-        type: KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T>  {
+                   type       : KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T>  {
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<Slider<T>, T>(this) }
@@ -33,14 +30,8 @@ public open class Slider<T>(
     @Suppress("PrivatePropertyName")
     private val limitsChanged_ by lazy { PropertyObserversImpl<Slider<T>, ClosedRange<T>>(this) }
 
-    @Suppress("PrivatePropertyName")
-    private val ticksChanged_ by lazy { ChangeObserversImpl(this) }
-
     public val changed      : PropertyObservers<Slider<T>, T> = changed_
     public val limitsChanged: PropertyObservers<Slider<T>, ClosedRange<T>> = limitsChanged_
-
-    @JsName("ticksChangedEvent")
-    public val ticksChanged: ChangeObservers<Slider<T>> = ticksChanged_
 
     public var behavior: Behavior<Slider<T>>? by behavior()
 
@@ -63,7 +54,7 @@ public open class Slider<T>(
     }
 
     override fun ticksChanged() {
-        ticksChanged_()
+        styleChanged { true }
     }
 
     public companion object {

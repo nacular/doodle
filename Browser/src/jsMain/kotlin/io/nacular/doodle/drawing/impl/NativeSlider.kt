@@ -8,13 +8,17 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setBounds
+import io.nacular.doodle.dom.setMargin
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.setOrientation
+import io.nacular.doodle.utils.Orientation.Horizontal
+import io.nacular.doodle.utils.Orientation.Vertical
 import org.w3c.dom.HTMLElement
-import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
@@ -77,13 +81,13 @@ internal class NativeSlider<T> internal constructor(
     private val nativeEventHandler: NativeEventHandler
 
     private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
-        sliderElement.value = "${it.value.toDouble() / slider.range.size * 100}"
+        sliderElement.value = "${(it.value.toDouble() - it.range.start.toDouble()) / it.range.size * 100}"
     }
 
-    private val ticksChanged: (Slider<T>) -> Unit = {
+    private val styleChanged: (View) -> Unit = {
         sliderElement.step = when {
-            it.snapToTicks && it.ticks > 1 -> "${it.range.size / (it.ticks - 1) * 100}"
-            else                           -> "any"
+            slider.snapToTicks && slider.ticks > 1 -> "${100.0 / (slider.ticks - 1)}"
+            else                                   -> "any"
         }
     }
 
@@ -103,22 +107,17 @@ internal class NativeSlider<T> internal constructor(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
-        val width  = max(0.0, slider.width  - marginSize.width )
-        val height = max(0.0, slider.height - marginSize.height)
-
-        sliderElement.style.setBounds(Rectangle((new.width - width) / 2, (new.height - height) / 2, width, height))
+        sliderElement.style.setBounds(Rectangle(size = new.size))
     }
 
     private val sliderElement = htmlFactory.createInput().apply {
         type = "range"
-        style.setOverflow(Visible())
+        setOrientation   (slider.orientation)
+        style.setMargin  (0.0               )
+        style.setOverflow(Visible()         )
     }
 
     init {
-        changed     (slider, slider.value, slider.value) // update value
-        ticksChanged(slider                            ) // update step
-
-
         nativeEventHandler = handlerFactory(sliderElement, this).apply {
             registerFocusListener()
             registerInputListener()
@@ -126,16 +125,23 @@ internal class NativeSlider<T> internal constructor(
 
         slider.apply {
             changed             += this@NativeSlider.changed
-            ticksChanged        += this@NativeSlider.ticksChanged
+            styleChanged        += this@NativeSlider.styleChanged
             focusChanged        += this@NativeSlider.focusChanged
             boundsChanged       += this@NativeSlider.boundsChanged
             enabledChanged      += this@NativeSlider.enabledChanged
             focusabilityChanged += this@NativeSlider.focusableChanged
 
-            changed      (this, 0.0 as T,        value )
-            boundsChanged(this, Rectangle.Empty, bounds)
+            changed      (this, value, value )
+            styleChanged (this               )
+            boundsChanged(this, Empty, bounds)
 
-            height = this@NativeSlider.defaultSize.height + this@NativeSlider.marginSize.height
+            val size = when (orientation) {
+                Horizontal -> Size(defaultSize.width  + marginSize.width,  defaultSize.height + marginSize.height)
+                Vertical   -> Size(defaultSize.height + marginSize.height, defaultSize.width  + marginSize.width )
+            }
+
+            idealSize   = size
+            minimumSize = if (orientation == Horizontal) Size(0.0, size.height) else Size(size.width, 0.0)
         }
     }
 
@@ -147,7 +153,7 @@ internal class NativeSlider<T> internal constructor(
 
         slider.apply {
             changed             -= this@NativeSlider.changed
-            ticksChanged        -= this@NativeSlider.ticksChanged
+            styleChanged        -= this@NativeSlider.styleChanged
             focusChanged        -= this@NativeSlider.focusChanged
             boundsChanged       -= this@NativeSlider.boundsChanged
             enabledChanged      -= this@NativeSlider.enabledChanged
@@ -188,7 +194,7 @@ internal class NativeSlider<T> internal constructor(
 
     override fun onInput(event: Event): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
-            valueSetter(slider, slider.model.limits.start.toDouble() + (it / 100 * slider.model.limits.size))
+            valueSetter(slider, slider.range.start.toDouble() + (it / 100 * slider.range.size))
         }
 
         return true

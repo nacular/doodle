@@ -33,34 +33,17 @@ public class BasicSliderBehavior<T>(
             focusManager        : FocusManager?     = null): this(barFill = { barFill }, knobFill = { knobFill }, rangeFill = rangeFill?.let { f -> { f } }, grooveThicknessRatio, showTicks, focusManager)
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
-    private val ticksChanged: (Slider<T>) -> Unit = { it.rerender() }
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
-    override fun install(view: Slider<T>) {
-        super.install(view)
-
-        if (showTicks != null) {
-            view.ticksChanged += ticksChanged
-        }
-    }
-
-    override fun uninstall(view: Slider<T>) {
-        super.uninstall(view)
-
-        if (showTicks != null) {
-            view.ticksChanged -= ticksChanged
-        }
-    }
-
     override fun render(view: Slider<T>, canvas: Canvas) {
-        val grooveRect: Rectangle
-        var rangeRect : Rectangle? = null
-        val handleRect: Rectangle
+        val grooveRect  : Rectangle
+        var rangeRect   : Rectangle? = null
+        val handleRect  : Rectangle
 
-        val barSize     = barSize(view)
-        val offset      = barSize / 2
-        val barPosition = barPosition(view)
+        val handleSize     = handleSize(view)
+        val offset         = handleSize / 2
+        val handlePosition = handlePosition(view)
 
         val grooveInset = (1 - grooveThicknessRatio) * when (view.orientation) {
             Horizontal -> view.height
@@ -69,42 +52,44 @@ public class BasicSliderBehavior<T>(
 
         when (view.orientation) {
             Horizontal -> {
-                grooveRect = Rectangle(offset, grooveInset / 2, max(0.0, view.width - barSize), max(0.0, view.height - grooveInset))
-                handleRect = Rectangle(barPosition, 0.0, barSize, barSize)
+                grooveRect = Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize), max(0.0, view.height - grooveInset))
+                handleRect = Rectangle(handlePosition, 0.0, handleSize, handleSize)
 
                 if (rangeFill != null) {
-                    rangeRect = grooveRect.run { Rectangle(x, y, barPosition, height) }
+                    rangeRect = grooveRect.run { Rectangle(x, y, handlePosition, height) }
                 }
             }
             else       -> {
-                grooveRect = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - barSize))
-                handleRect = Rectangle(0.0, barPosition, barSize, barSize)
+                grooveRect = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize))
+                handleRect = Rectangle(0.0, handlePosition, handleSize, handleSize)
 
                 if (rangeFill != null) {
-                    rangeRect = grooveRect.run { Rectangle(x, y, height, barPosition) }
+                    rangeRect = grooveRect.run { Rectangle(x, handlePosition, width, view.height - handlePosition - handleSize / 2) }
                 }
             }
         }
 
-        val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, it) }
+        val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
+
+        val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, grooveRadius, it) }
 
         when (clipInfo) {
-            null -> canvas.rect(grooveRect, grooveRect.height / 2, adjust(view, barFill(view)))
+            null -> canvas.rect(grooveRect, grooveRadius, adjust(view, barFill(view)))
             else -> canvas.clip(clipInfo.first) {
-                rect(grooveRect, grooveRect.height / 2, adjust(view, barFill(view)))
+                rect(grooveRect, grooveRadius, adjust(view, barFill(view)))
             }
         }
 
         rangeRect?.let {
             when (clipInfo) {
-                null -> canvas.rect(rangeRect, rangeRect.height / 2, adjust(view, rangeFill!!((view))))
+                null -> canvas.rect(rangeRect, grooveRadius, adjust(view, rangeFill!!((view))))
                 else -> canvas.clip(clipInfo.first) {
-                    rect(rangeRect, rangeRect.height / 2, adjust(view, rangeFill!!((view))))
+                    rect(rangeRect, grooveRadius, adjust(view, rangeFill!!((view))))
                 }
             }
         }
 
-        canvas.circle(Circle(handleRect.center, handleRect.width / 2), adjust(view, knobFill(view)))
+        canvas.circle(Circle(handleRect.center, min(handleRect.width, handleRect.height) / 2), adjust(view, knobFill(view)))
     }
 
     private fun adjust(view: Slider<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)

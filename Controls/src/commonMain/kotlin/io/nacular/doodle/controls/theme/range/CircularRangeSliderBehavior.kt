@@ -3,14 +3,9 @@ package io.nacular.doodle.controls.theme.range
 import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.KeyText.Companion.ArrowDown
-import io.nacular.doodle.event.KeyText.Companion.ArrowLeft
-import io.nacular.doodle.event.KeyText.Companion.ArrowRight
-import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -50,6 +45,7 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
     private          var draggingFirst   = false
     private          val changed       : (CircularRangeSlider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { it,_,_ -> it.rerender() }
     private          val enabledChanged: (View,                   Boolean,        Boolean       ) -> Unit = { it,_,_ -> it.rerender() }
+    private          val styleChanged  : (View                                                  ) -> Unit = {           it.rerender() }
 
     private var lastPointerPosition: Point = Origin
 
@@ -60,6 +56,7 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
         lastEnd                    = view.value.endInclusive
         view.changed              += changed
         view.keyChanged           += this
+        view.styleChanged         += styleChanged
         view.pointerChanged       += this
         view.enabledChanged       += enabledChanged
         view.pointerMotionChanged += this
@@ -68,6 +65,7 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
     override fun uninstall(view: CircularRangeSlider<T>) {
         view.changed              -= changed
         view.keyChanged           -= this
+        view.styleChanged         -= styleChanged
         view.pointerChanged       -= this
         view.enabledChanged       -= enabledChanged
         view.pointerMotionChanged -= this
@@ -109,17 +107,10 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
 
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider    = event.source as CircularRangeSlider<T>
-        val increment = slider.range.size.toDouble() / 100
-
-        val (incrementKey, decrementKey) = when (slider.contentDirection) {
-            LeftRight -> ArrowRight to ArrowLeft
-            else      -> ArrowLeft  to ArrowRight
-        }
-
-        when (event.key) {
-            ArrowUp,   incrementKey -> slider.adjust(startBy =  increment, endBy =  increment)
-            ArrowDown, decrementKey -> slider.adjust(startBy = -increment, endBy = -increment)
+        (event.source as? CircularRangeSlider<T>)?.let {
+            lastStart = it.value.start
+            lastEnd   = it.value.endInclusive
+            handleKeyPress(it, event)
         }
     }
 

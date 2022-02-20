@@ -6,6 +6,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
 import io.nacular.doodle.utils.Orientation
+import io.nacular.doodle.utils.Orientation.Horizontal
 
 /**
  * Determines where ticks are shown for a slider with them shown.
@@ -25,26 +26,27 @@ public data class TickPresentation(val gap: Double = 1.0, val location: TickLoca
 internal fun getSnapClip(ticks           : Int,
                          orientation     : Orientation,
                          grooveRect      : Rectangle,
+                         grooveRadius    : Double,
                          tickPresentation: TickPresentation): Pair<Path, TickLocation>? = when {
     ticks < 1 -> null
     else      -> {
-        val snapSize  = grooveRect.width / (ticks - 1)
+        val snapSize  = if (orientation == Horizontal) grooveRect.width / (ticks - 1) else grooveRect.height / (ticks - 1)
         val tickInset = tickPresentation.gap / 2
 
         (0 until ticks).map {
             when (orientation) {
-                Orientation.Horizontal -> Rectangle(
+                Horizontal -> Rectangle(
                     x      = grooveRect.x + it * snapSize,
                     y      = grooveRect.y,
                     width  = snapSize,
                     height = grooveRect.height
-                ).inset(Insets(left = tickInset, right = tickInset)).toPath(grooveRect.height / 2)
-                else                   -> Rectangle(
+                ).inset(Insets(left = tickInset, right = tickInset)).toPath(grooveRadius)
+                else       -> Rectangle(
                     x      = grooveRect.x,
                     y      = grooveRect.y + it * snapSize,
                     width  = grooveRect.width,
                     height = snapSize
-                ).inset(Insets(top = tickInset, bottom = tickInset)).toPath(grooveRect.height / 2)
+                ).inset(Insets(top = tickInset, bottom = tickInset)).toPath(grooveRadius)
             }
 
         }.foldRight(Rectangle.Empty.toPath()) { a, b -> a + b } to tickPresentation.location

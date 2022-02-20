@@ -28,7 +28,20 @@ public abstract class RangeValueSlider<T> internal constructor(
         set(new) {
             field = max(0, new)
 
-            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else 0.0
+            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else null
+        }
+
+    public var snapSize: Double? = null
+        private set(new) {
+            if (new == field) return
+
+            field = new
+
+            if (snapToTicks) {
+                value = value // update value to ensure snapped to the closest tick
+            }
+
+            ticksChanged()
         }
 
     public var model: ConfinedRangeModel<T> = model
@@ -43,8 +56,10 @@ public abstract class RangeValueSlider<T> internal constructor(
     public var value: ClosedRange<T>
         get(   ) = model.range
         set(new) {
-            val s = if (snapToTicks && snapSize > 0) cast((round(new.start.toDouble()        / snapSize) * snapSize)) else new.start
-            val e = if (snapToTicks && snapSize > 0) cast((round(new.endInclusive.toDouble() / snapSize) * snapSize)) else new.endInclusive
+            val snapSize_ = snapSize
+
+            val s = if (snapToTicks && snapSize_ != null) cast((round(range.start.toDouble() + (new.start.toDouble       () - range.start.toDouble()) / snapSize_) * snapSize_)) else new.start
+            val e = if (snapToTicks && snapSize_ != null) cast((round(range.start.toDouble() + (new.endInclusive.toDouble() - range.start.toDouble()) / snapSize_) * snapSize_)) else new.endInclusive
 
             model.range = s..e
         }
@@ -75,14 +90,6 @@ public abstract class RangeValueSlider<T> internal constructor(
 
     private val limitsChanged: (ConfinedRangeModel<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,old,new ->
         limitsChanged(old, new)
-    }
-
-    private var snapSize: Double by observable(0.0) { _,_ ->
-        if (snapToTicks) {
-            value = value // update value to ensure snapped to the closest tick
-        }
-
-        ticksChanged()
     }
 
     private fun cast(value: Double): T {

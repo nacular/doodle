@@ -3,14 +3,9 @@ package io.nacular.doodle.controls.theme.range
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.KeyText.Companion.ArrowDown
-import io.nacular.doodle.event.KeyText.Companion.ArrowLeft
-import io.nacular.doodle.event.KeyText.Companion.ArrowRight
-import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -49,14 +44,17 @@ public abstract class AbstractRangeSliderBehavior<T>(
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
 
+    private val styleChanged: (View) -> Unit = { it.rerender() }
+
     override fun install(view: RangeSlider<T>) {
         lastStart                  = view.value.start
         lastEnd                    = view.value.endInclusive
         view.changed              += changed
         view.keyChanged           += this
+        view.styleChanged         += styleChanged
         view.pointerChanged       += this
-        view.pointerMotionChanged += this
         view.enabledChanged       += enabledChanged
+        view.pointerMotionChanged += this
     }
 
     override fun uninstall(view: RangeSlider<T>) {
@@ -65,6 +63,7 @@ public abstract class AbstractRangeSliderBehavior<T>(
         view.pointerChanged       -= this
         view.pointerMotionChanged -= this
         view.enabledChanged       -= enabledChanged
+        view.styleChanged         -= styleChanged
     }
 
     override fun pressed(event: PointerEvent) {
@@ -77,16 +76,37 @@ public abstract class AbstractRangeSliderBehavior<T>(
             Vertical   -> event.location.y
         }
 
-        val barSize          = barSize         (slider)
-        val rangeSize        = rangeSize       (slider)
-        val startBarPosition = startBarPosition(slider)
-        val endBarPosition   = endBarPosition  (slider)
+        val handleSize          = handleSize         (slider)
+        val rangeSize           = rangeSize          (slider)
+        val startHandlePosition = endHandlePosition  (slider)
+        val endHandlePosition   = startHandlePosition(slider)
 
-        draggingFirst = offset < startBarPosition + barSize + rangeSize / 2
+        draggingFirst = when (slider.orientation) {
+            Horizontal -> offset < startHandlePosition + handleSize + rangeSize / 2
+            Vertical   -> offset > startHandlePosition + handleSize + rangeSize / 2
+        }
 
         when {
-            draggingFirst -> slider.adjust(startBy = scaleFactor * (offset - (startBarPosition + barSize / 2)), endBy = 0.0)
-            else          -> slider.adjust(startBy = 0.0, endBy = scaleFactor * (offset - (endBarPosition + barSize / 2)))
+            draggingFirst -> {
+                val handleCenter = startHandlePosition + handleSize / 2
+
+                val adjustment = when (slider.orientation) {
+                    Horizontal -> offset       - handleCenter
+                    Vertical   -> handleCenter - offset
+                }
+
+                slider.adjust(startBy = scaleFactor * adjustment, endBy = 0.0)
+            }
+            else          -> {
+                val handleCenter = endHandlePosition + handleSize / 2
+
+                val adjustment = when (slider.orientation) {
+                    Horizontal -> offset       - handleCenter
+                    Vertical   -> handleCenter - offset
+                }
+
+                slider.adjust(startBy = 0.0, endBy = scaleFactor * adjustment)
+            }
         }
 
         lastPointerPosition = offset
@@ -104,19 +124,10 @@ public abstract class AbstractRangeSliderBehavior<T>(
 
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider    = event.source as RangeSlider<T>
-        lastStart     = slider.value.start
-        lastEnd       = slider.value.endInclusive
-        val increment = slider.range.size.toDouble() / 100
-
-        val (incrementKey, decrementKey) = when (slider.contentDirection) {
-            LeftRight -> ArrowRight to ArrowLeft
-            else      -> ArrowLeft  to ArrowRight
-        }
-
-        when (event.key) {
-            ArrowUp,   incrementKey -> slider.adjust(startBy =  increment, endBy =  increment)
-            ArrowDown, decrementKey -> slider.adjust(startBy = -increment, endBy = -increment)
+        (event.source as? RangeSlider<T>)?.let {
+            lastStart = it.value.start
+            lastEnd   = it.value.endInclusive
+            handleKeyPress(it, event)
         }
     }
 
@@ -125,8 +136,8 @@ public abstract class AbstractRangeSliderBehavior<T>(
         val slider = event.source as RangeSlider<T>
 
         val delta = when (slider.orientation) {
-            Horizontal -> event.location.x - lastPointerPosition
-            Vertical   -> event.location.y - lastPointerPosition
+            Horizontal -> event.location.x    - lastPointerPosition
+            Vertical   -> lastPointerPosition - event.location.y
         }
 
         when {
@@ -138,14 +149,19 @@ public abstract class AbstractRangeSliderBehavior<T>(
     }
 
     private fun scaleFactor(slider: RangeSlider<T>): Float {
-        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - barSize(slider)
+        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - handleSize(slider)
 
         return if (!slider.range.isEmpty()) (size / slider.range.size.toDouble()).toFloat() else 0f
     }
 
-    protected fun startBarPosition(slider: RangeSlider<T>): Double = round((slider.value.start.toDouble()        - slider.range.start.toDouble()) * scaleFactor(slider))
-    protected fun endBarPosition  (slider: RangeSlider<T>): Double = round((slider.value.endInclusive.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider))
+    protected fun endHandlePosition  (slider: RangeSlider<T>): Double = adjustWhenVertical(slider, round((slider.value.start.toDouble       () - slider.range.start.toDouble()) * scaleFactor(slider)))
+    protected fun startHandlePosition(slider: RangeSlider<T>): Double = adjustWhenVertical(slider, round((slider.value.endInclusive.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider)))
 
-    protected fun barSize  (slider: RangeSlider<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
-    protected fun rangeSize(slider: RangeSlider<T>): Double = endBarPosition(slider) - startBarPosition(slider)
+    protected fun handleSize(slider: RangeSlider<T>): Double = if (slider.orientation === Horizontal) slider.height else slider.width
+    protected fun rangeSize (slider: RangeSlider<T>): Double = startHandlePosition(slider) - endHandlePosition(slider)
+
+    private fun adjustWhenVertical(slider: RangeSlider<T>, position: Double): Double = when (slider.orientation) {
+        Horizontal -> position
+        Vertical   -> slider.height - handleSize(slider) - position
+    }
 }
