@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.Overflow.Hidden
 import io.nacular.doodle.dom.Overflow.Scroll
@@ -40,10 +41,13 @@ internal class NativeScrollPanel internal constructor(
     private val eventHandler: NativeEventHandler
     private val rootElement = graphicsDevice[panel].rootElement
 
+    private val contentChanged: (ScrollPanel, View?, View?) -> Unit = { _, old, new ->
+        new?.let { graphicsDevice[it].rootElement.style.willChange = "transform" }
+    }
+
     init {
         rootElement.apply {
             style.setOverflow(Scroll())
-            style.willChange = "transform"
 
             if (smoothScroll) {
                 style.scrollBehavior = "smooth"
@@ -55,9 +59,15 @@ internal class NativeScrollPanel internal constructor(
         eventHandler = handlerFactory(rootElement, this).apply {
             registerScrollListener()
         }
+
+        panel.content?.let { graphicsDevice[it].rootElement.style.willChange = "transform" }
+
+        panel.contentChanged += contentChanged
     }
 
     fun discard() {
+        panel.contentChanged -= contentChanged
+
         rootElement.apply {
             style.setOverflow(Hidden())
 
