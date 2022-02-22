@@ -15,6 +15,7 @@ kotlin {
     val log4jVersion     : String by project
     val kodeinVersion    : String by project
     val logbackVersion   : String by project
+    val dateTimeVersion  : String by project
     val coroutinesVersion: String by project
 
     sourceSets {
@@ -28,6 +29,7 @@ kotlin {
                 implementation(project(":animation"))
 
                 implementation("org.kodein.di:kodein-di:$kodeinVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:$dateTimeVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }

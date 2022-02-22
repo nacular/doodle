@@ -3,7 +3,6 @@ package io.nacular.doodle.controls.date
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
-import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.core.Behavior
@@ -31,6 +30,15 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlin.math.ceil
 
+public interface MonthPanelBehavior: Behavior<MonthPanel> {
+    /**
+     * Returns the visualizer to use for the given panel.
+     *
+     * @param of the panel in question
+     */
+    public fun itemVisualizer(of: MonthPanel): ItemVisualizer<LocalDate, MonthPanel>?
+}
+
 /**
  * A panel that displays the days of a month in a particular year.
  *
@@ -40,17 +48,8 @@ import kotlin.math.ceil
  * @param weekStart indicates which day should be used as the start of the week
  */
 public class MonthPanel(
-    date: LocalDate,
-    private val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel> = itemVisualizer { day, previous, panel ->
-        val text = "${day.dayOfMonth}"
-
-        when (previous) {
-            is Label -> previous.apply    { fitText = emptySet(); this.text = text }
-            else     -> Label(text).apply { fitText = emptySet()                   }
-        }.also {
-            it.enabled = day.month == panel.startDate.month
-        }
-    },
+                date          : LocalDate,
+    public  val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel>? = null,
     private val selectionModel: SelectionModel<LocalDate>? = null,
                 weekStart     : DayOfWeek = SUNDAY
 ): View(), Selectable<LocalDate> {
@@ -138,9 +137,13 @@ public class MonthPanel(
     /**
      * Behavior used to render the panel itself.
      */
-    public var behavior: Behavior<MonthPanel>? by behavior()
+    public var behavior: MonthPanelBehavior? by behavior(afterChange = { _,_ ->
+        update()
+    })
 
     private fun update() {
+        val visualizer = behavior?.itemVisualizer(this) ?: itemVisualizer ?: return
+
         numRows = when {
             showAdjacentMonths -> 6
             else               -> ceil((shiftDay(weekStart, startDate.dayOfWeek) + numDays).toDouble() / numColumns).toInt()
@@ -162,8 +165,8 @@ public class MonthPanel(
 
         sequence.forEachIndexed { index, day ->
             when {
-                index >= children.size -> children        += itemVisualizer(startDate + DatePeriod(days = day), null,            this)
-                else                   -> children[index]  = itemVisualizer(startDate + DatePeriod(days = day), children[index], this)
+                index >= children.size -> children        += visualizer(startDate + DatePeriod(days = day), null,            this)
+                else                   -> children[index]  = visualizer(startDate + DatePeriod(days = day), children[index], this)
             }
             ++numDays
         }

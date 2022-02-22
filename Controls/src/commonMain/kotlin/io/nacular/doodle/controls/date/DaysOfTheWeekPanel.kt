@@ -14,6 +14,15 @@ import kotlinx.datetime.DayOfWeek.MONDAY
 import kotlinx.datetime.DayOfWeek.SUNDAY
 import kotlinx.datetime.DayOfWeek.values
 
+public interface DaysOfTheWeekPanelBehavior: Behavior<DaysOfTheWeekPanel> {
+    /**
+     * Returns the visualizer to use for the given panel.
+     *
+     * @param of the panel in question
+     */
+    public fun itemVisualizer(of: DaysOfTheWeekPanel): ItemVisualizer<DayOfWeek, Unit>?
+}
+
 /**
  * Panel used to render the days of the week in a horizontal layout. This panel combines well with
  * [MonthPanel] to create calendar components.
@@ -21,9 +30,7 @@ import kotlinx.datetime.DayOfWeek.values
  * @param weekStart indicates which day should be used as the start of the week
  * @param itemVisualizer that maps [DayOfWeek] to [View] for each item in the panel
  */
-public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, itemVisualizer: ItemVisualizer<DayOfWeek, Unit>): View() {
-    private val weekStart by renderProperty(weekStart)
-
+public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null): View() {
     private inner class DaysLayout: Layout {
         override fun layout(container: PositionableContainer) {
             val columnWidth = container.width / numColumns
@@ -45,12 +52,21 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, itemVisualizer: I
     private val numColumns = values().size
 
     /**
+     * Indicates which day should be used as the start of the week.
+     */
+    public var weekStart: DayOfWeek by renderProperty(weekStart) { _,_ ->
+        relayout()
+    }
+
+    /**
      * Behavior used to render the panel itself.
      */
-    public var behavior: Behavior<DaysOfTheWeekPanel>? by behavior()
+    public var behavior: DaysOfTheWeekPanelBehavior? by behavior(afterChange = { _,_ ->
+        update()
+    })
 
     init {
-        children += values().map { itemVisualizer(it, null, Unit) }
+        update()
 
         layout = DaysLayout()
     }
@@ -59,5 +75,13 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, itemVisualizer: I
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
+    }
+
+    private fun update() {
+        children.clear()
+
+        val visualizer = behavior?.itemVisualizer(this) ?: itemVisualizer ?: return
+
+        children += values().map { visualizer(it, null, Unit) }
     }
 }

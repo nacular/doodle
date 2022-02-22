@@ -3,6 +3,7 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.DynamicListModel
+import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.ProgressBar
 import io.nacular.doodle.controls.ProgressIndicator
@@ -68,6 +69,8 @@ import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
+import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicMutableDropdownBehavior
 import io.nacular.doodle.theme.basic.list.horizontalBasicListBehavior
@@ -99,6 +102,7 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
+import kotlinx.datetime.DayOfWeek
 import org.kodein.di.DI
 import org.kodein.di.DI.Module
 import org.kodein.di.DirectDI
@@ -794,36 +798,21 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public fun basicMonthPanelBehavior(backgroundColor: Color? = null): Module = basicThemeModule(name = "BasicMonthPanelBehavior") {
+        public fun basicMonthPanelBehavior(background: Paint? = null): Module = basicThemeModule(name = "BasicMonthPanelBehavior") {
             bindBehavior<MonthPanel>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    object: Behavior<MonthPanel> {
-                        override fun install(view: MonthPanel) {
-                            super.install(view)
-                            view.rerender()
-                        }
-
-                        override fun render(view: MonthPanel, canvas: Canvas) {
-                            canvas.rect(view.bounds.atOrigin, fill = (backgroundColor ?: this@run.backgroundColor).paint)
-                        }
-                    }
+                    BasicMonthPanelBehavior(background ?: this@run.backgroundColor.paint)
                 }
             }
         }
 
-        public fun basicDaysOfTheWeekPanelBehavior(backgroundColor: Color?  = null): Module = basicThemeModule(name = "BasicDaysOfTheWeekPanelBehavior") {
+        public fun basicDaysOfTheWeekPanelBehavior(
+            background       : Paint? = null,
+            defaultVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null
+        ): Module = basicThemeModule(name = "BasicDaysOfTheWeekPanelBehavior") {
             bindBehavior<DaysOfTheWeekPanel>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    object: Behavior<DaysOfTheWeekPanel> {
-                        override fun install(view: DaysOfTheWeekPanel) {
-                            super.install(view)
-                            view.rerender()
-                        }
-
-                        override fun render(view: DaysOfTheWeekPanel, canvas: Canvas) {
-                            canvas.rect(view.bounds.atOrigin, fill = (backgroundColor ?: this@run.backgroundColor).paint)
-                        }
-                    }
+                    BasicDaysOfTheWeekPanelBehavior(background ?: this@run.backgroundColor.paint, defaultVisualizer)
                 }
             }
         }
