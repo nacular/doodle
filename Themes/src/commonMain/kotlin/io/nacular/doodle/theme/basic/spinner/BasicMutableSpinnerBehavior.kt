@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.spinner
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.MutableModel
+import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.MutableSpinnerBehavior
 import io.nacular.doodle.controls.spinner.Spinner
@@ -17,7 +17,7 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
 
-public class BasicMutableSpinnerBehavior<T, M: MutableModel<T>>(
+public class BasicMutableSpinnerBehavior<T, M: MutableSpinnerModel<T>>(
         textMetrics        : TextMetrics,
         backgroundColor    : Color,
         darkBackgroundColor: Color,

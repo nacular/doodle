@@ -21,7 +21,8 @@ import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.controls.spinner.Model
+import io.nacular.doodle.controls.spinner.ListSpinnerModel
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
@@ -682,7 +683,7 @@ public fun <T: Any> optionalDropDown(
  * @param itemVisualizer used to render the drop-down's box item
  * @param config used to control the resulting component
  */
-public fun <T, M: Model<T>> spinner(
+public fun <T, M: SpinnerModel<T>> spinner(
         model          : M,
         itemVisualizer : ItemVisualizer<T, Spinner<T, M>> = toString(TextVisualizer()),
         config         : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
@@ -717,9 +718,9 @@ public fun <T, M: Model<T>> spinner(
 public fun <T> spinner(
         first          : T,
         vararg rest    : T,
-        itemVisualizer : ItemVisualizer<T, Spinner<T, *>> = toString(TextVisualizer()),
+        itemVisualizer : ItemVisualizer<T, Spinner<T, *>>,
         config         : (Spinner<T, *>) -> Unit = {}): FieldVisualizer<T> = spinner(
-        io.nacular.doodle.controls.spinner.ListModel(listOf(first) + rest),
+        ListSpinnerModel(listOf(first) + rest),
         itemVisualizer,
         config
 )
@@ -738,10 +739,10 @@ public fun <T> spinner(
  * @param config used to control the resulting component
  */
 public fun <T> spinner(
-        first : T,
+        first        : T,
         vararg rest  : T,
-        label : (T) -> String = { it.toString() },
-        config: (Spinner<T, *>) -> Unit = {}
+        label        : (T) -> String = { it.toString() },
+        config       : (Spinner<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(TextVisualizer(), label), config = config)
 
 /**

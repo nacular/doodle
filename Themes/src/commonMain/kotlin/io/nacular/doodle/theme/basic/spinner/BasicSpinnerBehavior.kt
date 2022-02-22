@@ -1,11 +1,9 @@
 package io.nacular.doodle.theme.basic.spinner
 
-import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.dropdown.Dropdown
-import io.nacular.doodle.controls.spinner.Model
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
 import io.nacular.doodle.controls.toString
@@ -45,7 +43,7 @@ import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 
-public class BasicSpinnerBehavior<T, M: Model<T>>(
+public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,

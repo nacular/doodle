@@ -28,9 +28,10 @@ import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.MutableModel
+import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.Spinner
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.text.Label
@@ -42,7 +43,6 @@ import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -112,7 +112,6 @@ import org.kodein.di.singleton
 
 private typealias BTheme                 = BasicTheme
 private typealias ListModel<T>           = io.nacular.doodle.controls.ListModel<T>
-private typealias SpinnerModel<T>        = io.nacular.doodle.controls.spinner.Model<T>
 private typealias MutableTreeModel<T>    = io.nacular.doodle.controls.tree.MutableTreeModel<T>
 private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
@@ -501,9 +500,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 foregroundColor    : Color?  = null,
                 cornerRadius       : Double? = null,
                 buttonWidth        : Double? = null): Module = basicThemeModule(name = "BasicMutableSpinnerBehavior") {
-            bindBehavior<MutableSpinner<Any, MutableModel<Any>>>(BTheme::class) {
+            bindBehavior<MutableSpinner<Any, MutableSpinnerModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicMutableSpinnerBehavior<Any, MutableModel<Any>>(
+                    BasicMutableSpinnerBehavior<Any, MutableSpinnerModel<Any>>(
                             instance(),
                             buttonWidth         = buttonWidth         ?: 20.0,
                             cornerRadius        = cornerRadius        ?: this.cornerRadius,
