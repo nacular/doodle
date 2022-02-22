@@ -312,10 +312,8 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var maxRight                = 0.0
-    private var maxBottom               = 0.0
-    private var maxIdealRight: Double?  = null
-    private var maxIdealBottom: Double? = null
+    private var maxRight  = 0.0
+    private var maxBottom = 0.0
 
     private fun maxWithNull(first: Double?, second: Double?): Double? = when {
         first != null && second != null -> max(first, second)
@@ -327,14 +325,10 @@ public open class List<T, out M: ListModel<T>>(
         itemPositioner?.let {
             view.bounds = it.itemBounds(this, item, index, view)
 
-            maxRight       = max(maxRight,  view.bounds.right )
-            maxBottom      = max(maxBottom, view.bounds.bottom)
-            maxIdealRight  = maxWithNull(maxIdealRight,  view.x + (view.idealSize?.width  ?: 0.0))
-            maxIdealBottom = maxWithNull(maxIdealBottom, view.y + (view.idealSize?.height ?: 0.0))
-
-            minimumSize    = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
-            idealSize      = Size(maxOf(idealSize?.width  ?: 0.0, maxIdealRight  ?: 0.0, minimumSize.width ),
-                                  maxOf(idealSize?.height ?: 0.0, maxIdealBottom ?: 0.0, minimumSize.height))
+            maxRight    = max(maxRight,  view.bounds.right )
+            maxBottom   = max(maxBottom, view.bounds.bottom)
+            minimumSize = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
+            idealSize   = minimumSize
 
             if (Width in fitContent) {
                 width = minimumSize.width

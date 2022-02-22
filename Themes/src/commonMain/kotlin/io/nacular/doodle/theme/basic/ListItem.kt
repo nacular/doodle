@@ -172,7 +172,11 @@ public open class VerticalListPositioner(protected open val height: Double, numC
 
     public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.y - insets.top) / (height + spacing) * numColumns).toInt())
 
-    public fun minimumSize(numItems: Int, insets: Insets): Size = Size(0.0, ceil(numItems.toDouble() / numColumns) * height + insets.run { top + bottom })
+    public fun minimumSize(numItems: Int, insets: Insets): Size {
+        val rows = ceil(numItems.toDouble() / numColumns)
+
+        return Size(0.0, rows * height + (rows - 1) * spacing + insets.run { top + bottom })
+    }
 
     @Suppress("UNUSED_PARAMETER")
     public fun itemBounds(size: Size, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
@@ -188,7 +192,11 @@ public open class HorizontalListPositioner(protected open val width: Double, num
 
     public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.x - insets.left) / (width + spacing) * numRows).toInt())
 
-    public fun minimumSize(numItems: Int, insets: Insets): Size = Size(ceil(numItems.toDouble() / numRows) * width + insets.run { left + right }, 0.0)
+    public fun minimumSize(numItems: Int, insets: Insets): Size {
+        val cols = ceil(numItems.toDouble() / numRows)
+
+        return Size(cols * width + (cols - 1) * spacing + insets.run { left + right }, 0.0)
+    }
 
     @Suppress("UNUSED_PARAMETER")
     public fun itemBounds(size: Size, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
