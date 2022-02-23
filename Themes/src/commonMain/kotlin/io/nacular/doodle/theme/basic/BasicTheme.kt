@@ -73,10 +73,10 @@ import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
 import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicMutableDropdownBehavior
-import io.nacular.doodle.theme.basic.list.horizontalBasicListBehavior
-import io.nacular.doodle.theme.basic.list.horizontalBasicMutableListBehavior
-import io.nacular.doodle.theme.basic.list.verticalBasicListBehavior
-import io.nacular.doodle.theme.basic.list.verticalBasicMutableListBehavior
+import io.nacular.doodle.theme.basic.list.basicHorizontalListBehavior
+import io.nacular.doodle.theme.basic.list.basicHorizontalMutableListBehavior
+import io.nacular.doodle.theme.basic.list.basicVerticalListBehavior
+import io.nacular.doodle.theme.basic.list.basicVerticalMutableListBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
@@ -183,7 +183,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         ): Module = basicThemeModule(name = "BasicListBehavior") {
             bindBehavior<List<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    verticalBasicListBehavior(
+                    basicVerticalListBehavior(
                         focusManager          = instanceOrNull(),
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
@@ -210,7 +210,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         ): Module = basicThemeModule(name = "BasicHorizontalListBehavior") {
             val a: NoArgBindingDI<*>.(List<Any, *>) -> Unit = {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    horizontalBasicListBehavior(
+                    basicHorizontalListBehavior(
                         focusManager          = instanceOrNull(),
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
@@ -223,7 +223,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             is HorizontalMutableList -> it.numRows
                             else                     -> 1
                         }
-                    ) }
+                    )
+                }
             }
 
             bindBehavior<HorizontalList       <Any, ListModel       <Any>>>(BTheme::class, a)
@@ -240,7 +241,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         ): Module = basicThemeModule(name = "BasicMutableListBehavior") {
             bindBehavior<MutableList<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    verticalBasicMutableListBehavior(
+                    basicVerticalMutableListBehavior(
                         focusManager          = instanceOrNull(),
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
@@ -261,7 +262,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         ): Module = basicThemeModule(name = "BasicHorizontalMutableListBehavior") {
             bindBehavior<HorizontalMutableList<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    horizontalBasicMutableListBehavior(
+                    basicHorizontalMutableListBehavior(
                         focusManager          = instanceOrNull(),
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
@@ -269,7 +270,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         itemWidth             = itemWidth             ?: 20.0,
                         numRows               = it.numRows
-                    ) }
+                    )
+                }
             }
         }
 

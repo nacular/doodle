@@ -86,7 +86,7 @@ public open class BasicListBehavior<T>(
     }
 }
 
-public inline fun <T> verticalBasicListBehavior(
+public inline fun <T> basicVerticalListBehavior(
     focusManager : FocusManager?,
     generator    : ItemGenerator<T>,
     evenItemColor: Color?,
@@ -103,7 +103,7 @@ public inline fun <T> verticalBasicListBehavior(
     }
 )
 
-public inline fun <T> verticalBasicListBehavior(
+public inline fun <T> basicVerticalListBehavior(
     focusManager         : FocusManager? = null,
     evenItemColor        : Color?        = null,
     oddItemColor         : Color?        = null,
@@ -111,7 +111,7 @@ public inline fun <T> verticalBasicListBehavior(
     selectionBlurredColor: Color?        = null,
     numColumns           : Int           = 1,
     itemHeight           : Double
-): BasicListBehavior<T> = verticalBasicListBehavior(
+): BasicListBehavior<T> = basicVerticalListBehavior(
     focusManager  = focusManager,
     generator     = BasicItemGenerator(selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor),
     evenItemColor = evenItemColor,
@@ -120,7 +120,7 @@ public inline fun <T> verticalBasicListBehavior(
     itemHeight    = itemHeight
 )
 
-public inline fun <T> horizontalBasicListBehavior(
+public inline fun <T> basicHorizontalListBehavior(
     focusManager : FocusManager?,
     generator    : ItemGenerator<T>,
     evenItemColor: Color?,
@@ -137,7 +137,7 @@ public inline fun <T> horizontalBasicListBehavior(
     }
 )
 
-public inline fun <T> horizontalBasicListBehavior(
+public inline fun <T> basicHorizontalListBehavior(
     focusManager         : FocusManager? = null,
     evenItemColor        : Color?        = null,
     oddItemColor         : Color?        = null,
@@ -145,7 +145,7 @@ public inline fun <T> horizontalBasicListBehavior(
     selectionBlurredColor: Color?        = null,
     numRows              : Int           = 1,
     itemWidth            : Double
-): BasicListBehavior<T> = horizontalBasicListBehavior(
+): BasicListBehavior<T> = basicHorizontalListBehavior(
     focusManager  = focusManager,
     generator     = BasicItemGenerator(selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor),
     evenItemColor = evenItemColor,

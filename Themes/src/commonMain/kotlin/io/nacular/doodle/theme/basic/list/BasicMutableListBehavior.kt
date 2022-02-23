@@ -58,7 +58,7 @@ public open class BasicMutableListBehavior<T>(
     }
 }
 
-public inline fun <T> verticalBasicMutableListBehavior(
+public inline fun <T> basicVerticalMutableListBehavior(
     focusManager : FocusManager?,
     generator    : ItemGenerator<T>,
     evenItemColor: Color?,
@@ -74,14 +74,14 @@ public inline fun <T> verticalBasicMutableListBehavior(
     }
 )
 
-public inline fun <T> verticalBasicMutableListBehavior(
+public inline fun <T> basicVerticalMutableListBehavior(
     focusManager         : FocusManager? = null,
     evenItemColor        : Color?        = null,
     oddItemColor         : Color?        = null,
     selectionColor       : Color?        = null,
     selectionBlurredColor: Color?        = null,
     numColumns           : Int = 1,
-    itemHeight           : Double): BasicMutableListBehavior<T> = verticalBasicMutableListBehavior(
+    itemHeight           : Double): BasicMutableListBehavior<T> = basicVerticalMutableListBehavior(
     focusManager  = focusManager,
     generator     = BasicMutableItemGenerator(selectionColor, selectionBlurredColor),
     evenItemColor = evenItemColor,
@@ -90,7 +90,7 @@ public inline fun <T> verticalBasicMutableListBehavior(
     itemHeight    = itemHeight
 )
 
-public inline fun <T> horizontalBasicMutableListBehavior(
+public inline fun <T> basicHorizontalMutableListBehavior(
     focusManager : FocusManager?,
     generator    : ItemGenerator<T>,
     evenItemColor: Color?,
@@ -106,14 +106,14 @@ public inline fun <T> horizontalBasicMutableListBehavior(
     }
 )
 
-public inline fun <T> horizontalBasicMutableListBehavior(
+public inline fun <T> basicHorizontalMutableListBehavior(
     focusManager         : FocusManager? = null,
     evenItemColor        : Color?        = null,
     oddItemColor         : Color?        = null,
     selectionColor       : Color?        = null,
     selectionBlurredColor: Color?        = null,
     numRows              : Int = 1,
-    itemWidth            : Double): BasicMutableListBehavior<T> = horizontalBasicMutableListBehavior(
+    itemWidth            : Double): BasicMutableListBehavior<T> = basicHorizontalMutableListBehavior(
     focusManager  = focusManager,
     generator     = BasicMutableItemGenerator(selectionColor, selectionBlurredColor),
     evenItemColor = evenItemColor,
