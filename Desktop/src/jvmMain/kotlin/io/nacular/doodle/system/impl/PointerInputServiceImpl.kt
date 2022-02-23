@@ -41,7 +41,6 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkikoGestureEvent
-import org.jetbrains.skiko.SkikoInputModifiers
 import org.jetbrains.skiko.SkikoInputModifiers.Companion.ALT
 import org.jetbrains.skiko.SkikoInputModifiers.Companion.CONTROL
 import org.jetbrains.skiko.SkikoInputModifiers.Companion.META
@@ -150,7 +149,7 @@ internal class PointerInputServiceImpl(
             else             -> custom(skiaLayer.cursor.name, or = Default)
         }
         set(new) {
-            skiaLayer.cursor = new.swing()
+            new.swing()?.let { skiaLayer.cursor = it }
         }
 
     // FIXME: Implement
@@ -246,7 +245,7 @@ private val SkikoPointerEvent.type: Type get() = when (kind) {
 }
 
 internal fun SkikoPointerEvent.toDoodle(type: Type = this.type): SystemPointerEvent {
-    var buttons = when (this.buttons) {
+    var buttons = when (this.button) {
         SkikoMouseButtons.BUTTON_1 -> setOf(Button1)
         SkikoMouseButtons.BUTTON_2 -> setOf(Button2)
         SkikoMouseButtons.BUTTON_3 -> setOf(Button3)

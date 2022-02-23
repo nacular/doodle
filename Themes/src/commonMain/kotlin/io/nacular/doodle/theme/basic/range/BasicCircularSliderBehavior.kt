@@ -35,6 +35,12 @@ public class BasicCircularSliderBehavior<T>(
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
+    override fun install(view: CircularSlider<T>) {
+        super.install(view)
+
+        view.rerender()
+    }
+
     override fun render(view: CircularSlider<T>, canvas: Canvas) {
         val center      = Point(view.width / 2, view.height / 2)
         val outerRadius = minOf(view.width,     view.height) / 2

@@ -38,6 +38,12 @@ public class BasicRangeSliderBehavior<T>(
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
+    override fun install(view: RangeSlider<T>) {
+        super.install(view)
+
+        view.rerender()
+    }
+
     override fun render(view: RangeSlider<T>, canvas: Canvas) {
         val grooveRect    : Rectangle
         val rangeRect     : Rectangle
