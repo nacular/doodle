@@ -19,7 +19,7 @@ platform.
 Creating expressive, intuitive apps is natural with Doodle. It makes complex rendering easy with powerful, vector-oriented rendering,
 provides fully customizable layouts and simplifies pointer and keyboard handling.
 
-Simply define your View hierarchy, business logic and go.
+Simply define your View hierarchy and business logic, then go.
 
 ### Vector Oriented
 It is easy to build beautifully detailed UIs with Doodle. All rendering in Doodle is vector-oriented; so ellipses, paths,
