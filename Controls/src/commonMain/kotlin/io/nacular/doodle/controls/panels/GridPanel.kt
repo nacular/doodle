@@ -1,46 +1,55 @@
 package io.nacular.doodle.controls.panels
 
+import io.nacular.doodle.controls.panels.GridPanel.Companion.FitContent
 import io.nacular.doodle.controls.panels.SizingPolicy.OverlappingView
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.layout.fill
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.properties.ReadWriteProperty
 
 /**
- * Created by Nicholas Eddy on 5/1/20.
+ * Determines how rows or columns are sized within a [GridPanel].
  */
 public interface SizingPolicy {
+    /**
+     * Represents the dimensions of a View within a collection of cells in a [GridPanel].
+     *
+     * @param span indicating how many rows/columns the View occupies
+     * @param size of the View (width or height)
+     * @param idealSize of the View (width or height)
+     */
     public class OverlappingView(public val span: Int, public val size: Double, public val idealSize: Double?)
 
+    /**
+     * Generates a map between row/column number and width/height.
+     *
+     * @param panelSize of the GridPanel (width/height)
+     * @param spacing of the rows or columns in the panel
+     * @param views a mapping of the list of overlapping View items to a row / column
+     */
     public operator fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double>
 }
 
+/**
+ * Determines the spacing of a [GridPanel]'s rows or columns.
+ */
 public typealias SpacingPolicy = (panelSize: Double) -> Double
 
-private class FitContent: SizingPolicy {
-    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
-        var size = 0.0
-
-        entry.value.forEach {
-            size = max(size, (it.size - spacing * (it.span - 1)) / it.span)
-        }
-
-        size
-    }
-}
-
-private class FitPanel: SizingPolicy {
-    override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues {
-        max(0.0, (panelSize - spacing * (views.size - 1)) / views.size)
-    }
-}
-
+/**
+ * A control that manages a generic list of `View`s and displays them within a grid layout.
+ */
 public open class GridPanel: View() {
     private class Location(val row: Int, val column: Int) {
         override fun equals(other: Any?): Boolean {
@@ -84,14 +93,50 @@ public open class GridPanel: View() {
     private var rowDimensions    = mapOf<Int, Dimensions>()
     private var columnDimensions = mapOf<Int, Dimensions>()
 
-    public var cellAlignment     : Constraints.() -> Unit = fill //center
-    public var verticalSpacing   : SpacingPolicy          = { 0.0 }
-    public var horizontalSpacing : SpacingPolicy          = { 0.0 }
-    public var rowSizingPolicy   : SizingPolicy           = FitContent
-    public var columnSizingPolicy: SizingPolicy           = FitContent
+    /**
+     * Controls how items are aligned within the grid cells. Defaults to [fill].
+     */
+    public var cellAlignment: Constraints.() -> Unit by layoutProperty(fill)
+
+    /**
+     * Determines the space between rows. Defaults = `0.0`
+     */
+    public var rowSpacing: SpacingPolicy by layoutProperty({ 0.0 })
+
+    /**
+     * Determines the space between columns. Defaults = `0.0`
+     */
+    public var columnSpacing: SpacingPolicy by layoutProperty({ 0.0 })
+
+    /**
+     * Controls how rows are sized within the panel. Defaults = [FitContent]
+     */
+    public var rowSizingPolicy: SizingPolicy by layoutProperty(FitContent)
+
+    /**
+     * Controls how columns are sized within the panel. Defaults = [FitContent]
+     */
+    public var columnSizingPolicy: SizingPolicy by layoutProperty(FitContent)
+
+    /**
+     * Controls how the panel behaves. The panel delegates rendering to its behavior when
+     * specified.
+     */
+    public var behavior: Behavior<GridPanel>? by behavior()
 
     final override var layout: Layout? = GridLayout()
 
+    public override var insets: Insets get() = super.insets; set(new) { super.insets = new; relayout() }
+
+    /**
+     * Adds a View to the panel at the specified grid cells.
+     *
+     * @param child being added
+     * @param row in the panel to put the child
+     * @param column in the panel to put the child
+     * @param rowSpan number of rows the item will span in the panel
+     * @param columnSpan number of columns the item will span in the panel
+     */
     public fun add(child: View, row: Int = 0, column: Int = 0, rowSpan: Int = 1, columnSpan: Int = 1) {
         locations[child] = mutableSetOf<Location>().apply {
             repeat(rowSpan) { r ->
@@ -107,6 +152,9 @@ public open class GridPanel: View() {
         children += child
     }
 
+    /**
+     * @param child to remove from the panel.
+     */
     public fun remove(child: View) {
         locations   -= child
         rowSpans    -= child
@@ -114,11 +162,23 @@ public open class GridPanel: View() {
         children    -= child
     }
 
+    /**
+     * Clears all children from the panel.
+     */
     public fun clear() {
         locations.clear  ()
         rowSpans.clear   ()
         columnSpans.clear()
         children.clear   ()
+    }
+
+    override fun render(canvas: Canvas) {
+        behavior?.render(this, canvas)
+    }
+
+    private inline fun <T> layoutProperty(initial: T, noinline onChange: GridPanel.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<GridPanel, T> = observable(initial) { old, new ->
+        relayout()
+        onChange(old, new)
     }
 
     private inner class GridLayout: Layout {
@@ -146,11 +206,13 @@ public open class GridPanel: View() {
                 }
             }
 
-            val verticalSpacing   = verticalSpacing  (height)
-            val horizontalSpacing = horizontalSpacing(width )
+            val panelWidth        = width  - insets.run { left + right  }
+            val panelHeight       = height - insets.run { top  + bottom }
+            val verticalSpacing   = rowSpacing  (panelHeight)
+            val horizontalSpacing = columnSpacing(panelWidth)
 
-            rowDimensions    = rowSizingPolicy   (height, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }
-            columnDimensions = columnSizingPolicy(width,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }
+            rowDimensions    = rowSizingPolicy   (panelHeight, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }
+            columnDimensions = columnSizingPolicy(panelWidth,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }
 
             var offset = 0.0
             rowDimensions.entries.sortedBy { it.key }.forEach {
@@ -186,10 +248,10 @@ public open class GridPanel: View() {
 
                 constrain(child,
                         within = Rectangle(
-                                x ?: 0.0,
-                                y ?: 0.0,
-                                widths.map  { it.size }.sum() + horizontalSpacing * (widths.size  - 1),
-                                heights.map { it.size }.sum() + verticalSpacing   * (heights.size - 1)),
+                            (x ?: 0.0) + insets.left,
+                            (y ?: 0.0) + insets.top,
+                            widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
+                            heights.sumOf { it.size } + verticalSpacing   * (heights.size - 1)),
                         block = cellAlignment)
             }
 
@@ -198,7 +260,33 @@ public open class GridPanel: View() {
     }
 
     public companion object {
-        public val FitPanel  : SizingPolicy = FitPanel  ()
-        public val FitContent: SizingPolicy = FitContent()
+
+        private class FitContentImpl: SizingPolicy {
+            override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues { entry ->
+                var size = 0.0
+
+                entry.value.forEach {
+                    size = max(size, (it.size - spacing * (it.span - 1)) / it.span)
+                }
+
+                size
+            }
+        }
+
+        private class FitPanelImpl: SizingPolicy {
+            override fun invoke(panelSize: Double, spacing: Double, views: Map<Int, List<OverlappingView>>): Map<Int, Double> = views.mapValues {
+                max(0.0, (panelSize - spacing * (views.size - 1)) / views.size)
+            }
+        }
+
+        /**
+         * Computes row / column sizes, so they fit the [GridPanel]'s height / width (including insets)
+         */
+        public val FitPanel  : SizingPolicy = FitPanelImpl()
+
+        /**
+         * Computes row / column sizes, so they fit the largest View that overlaps them.
+         */
+        public val FitContent: SizingPolicy = FitContentImpl()
     }
 }

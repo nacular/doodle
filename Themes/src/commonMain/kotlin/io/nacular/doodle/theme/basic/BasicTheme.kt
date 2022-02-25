@@ -23,6 +23,7 @@ import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.list.VerticalDynamicList
 import io.nacular.doodle.controls.list.VerticalList
 import io.nacular.doodle.controls.list.VerticalMutableList
+import io.nacular.doodle.controls.panels.GridPanel
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
@@ -44,6 +45,7 @@ import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -819,6 +821,18 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        public fun basicGridPanelBehavior(background: Paint? = null): Module = basicThemeModule(name = "BasicGridPanelBehavior") {
+            bindBehavior<GridPanel>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    object: Behavior<GridPanel> {
+                        override fun render(view: GridPanel, canvas: Canvas) {
+                            canvas.rect(view.bounds.atOrigin, fill = (background ?: this@run.backgroundColor.paint))
+                        }
+                    }
+                }
+            }
+        }
+
         public val basicThemeBehaviors: kotlin.collections.List<Module> = listOf(
                 basicListBehavior(),
                 basicTreeBehavior(),
@@ -845,6 +859,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 basicMutableDropdownBehavior(),
                 basicMonthPanelBehavior(),
                 basicDaysOfTheWeekPanelBehavior(),
+                basicGridPanelBehavior(),
         )
     }
 }

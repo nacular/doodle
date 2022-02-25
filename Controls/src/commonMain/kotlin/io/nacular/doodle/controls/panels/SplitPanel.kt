@@ -14,9 +14,21 @@ import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Vertical
 import io.nacular.doodle.utils.observable
 
-
+/**
+ * A control that divides a region into two areas, each occupied by a [View]. It also allows the user to change the portion of its viewport
+ * dedicated to either view.
+ *
+ * The panel can hold up to 2 items. It will distribute the visible region between them based on [ratio]. A single item in the panel will
+ * get the entire region to itself; meaning [ratio] is effectively ignored in this case.
+ *
+ * @param orientation of the panel's items, and the divider that might separate them
+ * @param ratio of space given to [firstItem], must be within `0 .. 1`.
+ */
 public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f): View() {
 
+    /**
+     * Controls the look and behavior of the panel, including the divider it uses.
+     */
     public var behavior: SplitPanelBehavior? by behavior { _,new ->
         divider?.let { children -= it }
 
@@ -39,6 +51,9 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         }
     }
 
+    /**
+     * Item to one side of the divider.
+     */
     public var firstItem: View? by observable(null) { old,new ->
         old?.let { children -= it }
         new?.let { children += it }
@@ -47,6 +62,9 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         contentsChanged_()
     }
 
+    /**
+     * Item to the other side of the divider.
+     */
     public var lastItem: View? by observable(null) { old,new ->
         old?.let { children -= it }
         new?.let { children += it }
@@ -70,6 +88,9 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         orientationChanged_()
     }
 
+    /**
+     * The fraction of space given to [firstItem], if it is present.
+     */
     public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
     private var divider      = null as View?
