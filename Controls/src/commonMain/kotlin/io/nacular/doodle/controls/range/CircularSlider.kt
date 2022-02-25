@@ -10,6 +10,13 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.reflect.KClass
 
+/**
+ * Represents a selection slider that is circular.
+ *
+ * @constructor
+ * @param model containing range and value
+ * @param type class type of the slider
+ */
 public open class CircularSlider<T>(model: ConfinedValueModel<T>, type: KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T> {
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<CircularSlider<T>, T>(this) }

@@ -10,6 +10,13 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import kotlin.reflect.KClass
 
+/**
+ * Represents a range selection slider that is circular.
+ *
+ * @constructor
+ * @param model containing range and value
+ * @param type class type of the slider
+ */
 public open class CircularRangeSlider<T>(
     model: ConfinedRangeModel<T>,
     type: KClass<T>

@@ -18,6 +18,7 @@ import kotlin.reflect.KClass
  * @constructor
  * @param model containing range and value
  * @param orientation of the control
+ * @param type class type of the slider
  */
 public open class Slider<T>(
                    model      : ConfinedValueModel<T>,

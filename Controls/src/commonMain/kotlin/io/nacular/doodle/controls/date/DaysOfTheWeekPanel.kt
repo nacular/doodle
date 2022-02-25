@@ -14,6 +14,9 @@ import kotlinx.datetime.DayOfWeek.MONDAY
 import kotlinx.datetime.DayOfWeek.SUNDAY
 import kotlinx.datetime.DayOfWeek.values
 
+/**
+ * Determines how a [DaysOfTheWeekPanel] renders.
+ */
 public interface DaysOfTheWeekPanelBehavior: Behavior<DaysOfTheWeekPanel> {
     /**
      * Returns the visualizer to use for the given panel.

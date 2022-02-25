@@ -30,6 +30,9 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlin.math.ceil
 
+/**
+ * Determines how a [MonthPanel] renders
+ */
 public interface MonthPanelBehavior: Behavior<MonthPanel> {
     /**
      * Returns the visualizer to use for the given panel.
