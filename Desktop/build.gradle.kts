@@ -61,7 +61,7 @@ kotlin {
         jvm().compilations["main"].defaultSourceSet {
             dependencies {
                 api("org.kodein.di:kodein-di:$kodeinVersion")
-                implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
+                compileOnly("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
             }
         }
 
@@ -113,7 +113,7 @@ fun PublicationContainer.jvmOs(name: String, skikoArtifactId: String) {
                     appendNode("groupId",    "org.jetbrains.skiko")
                     appendNode("artifactId", skikoArtifactId      )
                     appendNode("version",    skikoVersion         )
-                    appendNode("scope",      "compile"            )
+                    appendNode("scope",      "runtime"            )
                 }
             }
         }
