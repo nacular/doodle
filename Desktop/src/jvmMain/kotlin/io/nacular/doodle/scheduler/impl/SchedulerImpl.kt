@@ -119,7 +119,7 @@ internal class DebounceEventQueue constructor(
     fun cancel() = job.cancel()
 
     fun post(event: () -> Unit) {
-        queue.offer(event)
+        queue.trySend(event)
     }
 }
 

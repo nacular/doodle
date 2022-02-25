@@ -10,6 +10,7 @@ import io.nacular.doodle.controls.list.DynamicList
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.SetPool
 
 /**
@@ -110,7 +111,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
 
             override val size get() = model.size
 
-            override fun get(index: Int) = model[index]?.let(extractor)
+            override fun get(index: Int): Result<A> = model[index].map(extractor)
 
             override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
 
@@ -123,7 +124,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
 
         override val view: DynamicList<R, *> = DynamicList(FieldModel(model, extractor), object: ItemVisualizer<R, IndexedItem> {
             override fun invoke(item: R, previous: View?, context: IndexedItem) = object: View() {}
-        }, selectionModelWrapper, fitContent = false).apply {
+        }, selectionModelWrapper, fitContent = emptySet()).apply {
             acceptsThemes = false
         }
     }

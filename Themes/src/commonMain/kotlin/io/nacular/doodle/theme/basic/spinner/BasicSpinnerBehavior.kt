@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.basic.spinner
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.spinner.Model
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
 import io.nacular.doodle.controls.toString
@@ -11,6 +11,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -42,7 +43,7 @@ import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 
-public class BasicSpinnerBehavior(
+public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         private val textMetrics        : TextMetrics,
         private val backgroundColor    : Color,
         private val darkBackgroundColor: Color,
@@ -50,7 +51,7 @@ public class BasicSpinnerBehavior(
         private val cornerRadius       : Double,
         private val buttonWidth        : Double = 20.0,
         private val focusManager       : FocusManager? = null,
-): SpinnerBehavior<Any, Model<Any>>(), KeyListener, PointerListener {
+): SpinnerBehavior<T, M>(), KeyListener, PointerListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
@@ -113,15 +114,15 @@ public class BasicSpinnerBehavior(
         }
     }
 
-    private val itemVisualizer by lazy { toString<Any, Any>(TextVisualizer()) }
+    private val itemVisualizer by lazy { toString<T, Any>(TextVisualizer()) }
 
-    override fun changed(spinner: Spinner<Any, Model<Any>>) {}
+    override fun changed(spinner: Spinner<T, M>) {}
 
-    override fun render(view: Spinner<Any, Model<Any>>, canvas: Canvas) {
+    override fun render(view: Spinner<T, M>, canvas: Canvas) {
         canvas.rect(view.bounds.atOrigin, cornerRadius, ColorPaint(backgroundColor))
     }
 
-    override fun install(view: Spinner<Any, Model<Any>>) {
+    override fun install(view: Spinner<T, M>) {
         super.install(view)
 
         val center = Container().apply { focusable = false }
@@ -183,7 +184,7 @@ public class BasicSpinnerBehavior(
         view.pointerChanged += this
     }
 
-    override fun uninstall(view: Spinner<Any, Model<Any>>) {
+    override fun uninstall(view: Spinner<T, M>) {
         super.uninstall(view)
 
         view.children.clear()
@@ -204,9 +205,9 @@ public class BasicSpinnerBehavior(
         focusManager?.requestFocus(event.source)
     }
 
-    internal val centerChanged: Pool<(Spinner<*, *>, View?, View) -> Unit> = SetPool()
+    internal val centerChanged: Pool<(Spinner<T, M>, View?, View) -> Unit> = SetPool()
 
-    internal fun updateCenter(spinner: Spinner<Any, Model<Any>>, oldCenter: View? = visualizedValue(spinner), newCenter: View = (spinner.itemVisualizer ?: itemVisualizer)(spinner.value, oldCenter, spinner)) {
+    internal fun updateCenter(spinner: Spinner<T, M>, oldCenter: View? = visualizedValue(spinner), newCenter: View = centerView(spinner, oldCenter)) {
         if (newCenter != oldCenter) {
             viewContainer(spinner)?.let { centerView ->
                 centerView.firstOrNull()?.let {
@@ -224,7 +225,12 @@ public class BasicSpinnerBehavior(
         }
     }
 
-    private fun updateAlignment(spinner: Spinner<Any, Model<Any>>, centerView: Container) {
+    private fun centerView(spinner: Spinner<T, M>, oldCenter: View?) = spinner.value.fold(
+        onSuccess = { (spinner.itemVisualizer ?: itemVisualizer)(it, oldCenter, spinner) },
+        onFailure = { view {  } }
+    )
+
+    private fun updateAlignment(spinner: Spinner<T, M>, centerView: Container) {
         val constrains: ConstraintBlockContext.(Constraints) -> Unit = {
             (spinner.cellAlignment ?: center)(it)
         }
@@ -237,8 +243,8 @@ public class BasicSpinnerBehavior(
         }
     }
 
-    private  fun viewContainer  (spinner: Spinner<Any, Model<Any>>): Container? =  spinner.children.firstOrNull { it !is PushButton } as? Container
-    internal fun visualizedValue(spinner: Spinner<Any, Model<Any>>): View?      = viewContainer(spinner)?.firstOrNull()
+    private  fun viewContainer  (spinner: Spinner<T, M>): Container? =  spinner.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(spinner: Spinner<T, M>): View?      = viewContainer(spinner)?.firstOrNull()
 
     public companion object {
         private const val INSET = 4.0

@@ -22,7 +22,6 @@ import io.nacular.doodle.utils.HorizontalAlignment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.Typeface
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
@@ -33,6 +32,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JPasswordField
 import javax.swing.JTextField.*
 import javax.swing.event.DocumentEvent
@@ -81,7 +81,7 @@ public interface NativeTextFieldBehaviorModifierBuilder {
 }
 
 internal class NativeTextFieldStylerImpl(
-        private val window              : SkiaWindow,
+        private val window              : JPanel,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
         private val defaultFont         : SkiaFont,
@@ -104,7 +104,7 @@ internal class NativeTextFieldStylerImpl(
 }
 
 private class NativeTextFieldBehaviorWrapper(
-                    window              : SkiaWindow,
+                    window              : JPanel,
                     appScope            : CoroutineScope,
                     uiDispatcher        : CoroutineContext,
                     defaultFont         : SkiaFont,
@@ -170,7 +170,7 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
 }
 
 internal open class NativeTextFieldBehavior(
-        private val window              : SkiaWindow,
+        private val window              : JPanel,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
         private val defaultFont         : SkiaFont,

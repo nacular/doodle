@@ -11,10 +11,8 @@ import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.Font.Style.Italic
 import io.nacular.doodle.drawing.Font.Style.Normal
 import io.nacular.doodle.drawing.Font.Style.Oblique
-import io.nacular.doodle.geometry.Circle
-import io.nacular.doodle.geometry.Ellipse
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
@@ -24,16 +22,16 @@ import io.nacular.doodle.text.TextDecoration.Line
 import io.nacular.doodle.text.TextDecoration.Line.Over
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
-import io.nacular.doodle.text.TextDecoration.ThickNess
-import io.nacular.doodle.text.TextDecoration.ThickNess.FromFont
-import io.nacular.doodle.text.TextDecoration.ThickNess.Percent
+import io.nacular.doodle.text.TextDecoration.Thickness
+import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
+import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.textDecorationThickness
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
-internal val defaultFontWeight = 500
-internal val defaultFontFamily = "monospace"
-internal val defaultFontSize   = 13
+internal const val defaultFontWeight = 500
+internal const val defaultFontFamily = "monospace"
+internal const val defaultFontSize   = 13
 
 private typealias Style = CSSStyleDeclaration
 
@@ -59,18 +57,10 @@ internal fun Style.setBounds(value: Rectangle) {
     }
 }
 
-internal fun Style.setClipPath(value: Polygon?) {
+internal fun Style.setClipPath(value: Path?) {
     clipPath = when (value) {
         null -> ""
-        else -> "polygon(${value.points.joinToString(",") { "${it.x}px ${it.y}px" }})"
-    }
-}
-
-internal fun Style.setClipPath(value: Ellipse?) {
-    clipPath = when (value) {
-        null      -> ""
-        is Circle -> "circle(${value.radius}px at ${value.center.x}px ${value.center.y}px"
-        else      -> "ellipse(${value.xRadius}px ${value.yRadius}px at ${value.center.x}px ${value.center.y}px"
+        else -> "path('${value.data}')"
     }
 }
 
@@ -109,7 +99,7 @@ internal fun Style.setTextDecoration(value: TextDecoration?) {
             textDecorationThickness = when (val t = value.thickness) {
                 FromFont              -> "from-font"
                 is Percent            -> "${t.value}%"
-                is ThickNess.Absolute -> em(t.value)
+                is Thickness.Absolute -> em(t.value)
                 null                  -> ""
             }
         }
@@ -209,10 +199,10 @@ internal fun Style.setTransform(transform: AffineTransform? = null) {
 //internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }
 
 internal sealed class Display(val value: String)
-internal class None       : io.nacular.doodle.dom.Display("none"        )
-internal class Block      : io.nacular.doodle.dom.Display("block"       )
-internal class Inline     : io.nacular.doodle.dom.Display("inline"      )
-internal class InlineBlock: io.nacular.doodle.dom.Display("inline-block")
+internal class None       : Display("none"        )
+internal class Block      : Display("block"       )
+internal class Inline     : Display("inline"      )
+internal class InlineBlock: Display("inline-block")
 
 internal sealed class Position(val value: String)
 internal class Absolute: Position("absolute")

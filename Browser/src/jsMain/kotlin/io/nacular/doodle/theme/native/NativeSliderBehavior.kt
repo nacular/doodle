@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeSliderFactory
 import io.nacular.doodle.event.PointerEvent
@@ -12,14 +12,17 @@ import io.nacular.doodle.system.Cursor.Companion.Default
 /**
  * Created by Nicholas Eddy on 11/20/18.
  */
-internal class NativeSliderBehavior(nativeSliderFactory: NativeSliderFactory, slider: Slider): Behavior<Slider>, PointerListener, PointerMotionListener {
-    private val nativePeer by lazy { nativeSliderFactory(slider) }
+internal class NativeSliderBehavior<T>(
+        nativeSliderFactory: NativeSliderFactory,
+        slider             : Slider<T>
+): SliderBehavior<T>, PointerListener, PointerMotionListener where T: Number, T: Comparable<T> {
+    private val nativePeer by lazy { nativeSliderFactory(slider) { slider, value -> slider.set(value) } }
 
-    override fun render(view: Slider, canvas: Canvas) {
+    override fun render(view: Slider<T>, canvas: Canvas) {
         nativePeer.render(canvas)
     }
 
-    override fun install(view: Slider) {
+    override fun install(view: Slider<T>) {
         super.install(view)
 
         view.cursor              = Default
@@ -29,7 +32,7 @@ internal class NativeSliderBehavior(nativeSliderFactory: NativeSliderFactory, sl
         view.rerender()
     }
 
-    override fun uninstall(view: Slider) {
+    override fun uninstall(view: Slider<T>) {
         super.uninstall(view)
 
         nativePeer.discard()
@@ -46,4 +49,6 @@ internal class NativeSliderBehavior(nativeSliderFactory: NativeSliderFactory, sl
     override fun dragged(event: PointerEvent) {
         event.consume()
     }
+
+    override fun clipCanvasToBounds(view: Slider<T>) = false
 }

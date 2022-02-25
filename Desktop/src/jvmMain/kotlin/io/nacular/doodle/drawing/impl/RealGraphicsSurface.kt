@@ -3,21 +3,20 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsSurface
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.skia.skia
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
-import org.jetbrains.skia.ClipMode
+import org.jetbrains.skia.ClipMode.INTERSECT
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Picture
 import org.jetbrains.skia.PictureRecorder
 import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaLayer
-import org.jetbrains.skiko.SkiaWindow
 import kotlin.properties.ReadWriteProperty
 import org.jetbrains.skia.Canvas as SkiaCanvas
 
@@ -25,12 +24,11 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class RealGraphicsSurface(
-                    window        : SkiaWindow,
+        private val layer         : SkiaLayer,
         private val defaultFont   : Font,
         private val fontCollection: FontCollection,
         private val parent        : RealGraphicsSurface?): GraphicsSurface {
 
-    private var layer           =  window.layer as SkiaLayer?
     private var picture         =  null as Picture?
     private val children        =  mutableListOf<RealGraphicsSurface>()
     private var renderBlock     by redrawProperty<((Canvas) -> Unit)?>(null)
@@ -52,14 +50,14 @@ internal class RealGraphicsSurface(
                 it.needsRerender()
             }
         }
-    override var zOrder             by parentRedrawProperty    (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
-    override var visible            by redrawProperty          (true                       )
-    override var opacity            by redrawProperty          (0.5f                       )
-    override var position           by observable              (Origin                     ) { _,new -> updateTransform         (new     ) }
-    override var mirrored           by observable              (false                      ) { _,_   -> updateTransform         (position) }
-    override var transform          by observable              (Identity                   ) { _,_   -> updateTransform         (position) }
-    override var childrenClipPoly   by redrawProperty<Polygon?>(null                       )
-    override var clipCanvasToBounds by redrawProperty          (true                       )
+    override var zOrder             by parentRedrawProperty (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
+    override var visible            by redrawProperty       (true                       )
+    override var opacity            by redrawProperty       (0.5f                       )
+    override var position           by observable           (Origin                     ) { _,new -> updateTransform         (new     ) }
+    override var mirrored           by observable           (false                      ) { _,_   -> updateTransform         (position) }
+    override var transform          by observable           (Identity                   ) { _,_   -> updateTransform         (position) }
+    override var childrenClipPath   by redrawProperty<Path?>(null                       )
+    override var clipCanvasToBounds by redrawProperty       (true                       )
 
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block
@@ -71,7 +69,6 @@ internal class RealGraphicsSurface(
         if (!released) {
             released = true
 
-            layer    = null
             picture?.close()
             pictureRecorder.close()
 
@@ -132,7 +129,7 @@ internal class RealGraphicsSurface(
             }
 
             if (clipCanvasToBounds) {
-                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
             }
 
             skiaCanvas.save()
@@ -143,14 +140,14 @@ internal class RealGraphicsSurface(
 
             if (!clipCanvasToBounds) {
                 // Need to do this explicitly if skipped above to ensure child clipping to bounds at least
-                skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
             }
 
-            childrenClipPoly?.let {
+            childrenClipPath?.let {
                 if (!clipCanvasToBounds) {
-                    skiaCanvas.clipRect(bounds.atOrigin.skia(), ClipMode.INTERSECT)
+                    skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
                 }
-                skiaCanvas.clipPath(it.skia(), ClipMode.INTERSECT)
+                skiaCanvas.clipPath(it.skia(), INTERSECT)
             }
 
             children.forEach {

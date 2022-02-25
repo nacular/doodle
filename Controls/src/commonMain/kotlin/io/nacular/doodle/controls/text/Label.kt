@@ -1,7 +1,7 @@
 package io.nacular.doodle.controls.text
 
-import io.nacular.doodle.controls.text.TextFit.Height
-import io.nacular.doodle.controls.text.TextFit.Width
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -10,6 +10,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.VerticalAlignment
@@ -23,16 +24,17 @@ public interface LabelBehavior: Behavior<Label> {
     public fun measureText(label: Label): Size
 }
 
-public open class Label(styledText         : StyledText          = StyledText(""),
-                 verticalAlignment  : VerticalAlignment   = Middle,
-                 horizontalAlignment: HorizontalAlignment = Center): View() {
+public open class Label(
+    styledText         : StyledText          = StyledText(""),
+    verticalAlignment  : VerticalAlignment   = Middle,
+    horizontalAlignment: HorizontalAlignment = Center): View() {
 
     public constructor(
             text               : String,
             verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment = Center): this(StyledText(text), verticalAlignment, horizontalAlignment)
 
-    public var fitText: Set<TextFit> = setOf(Width, Height)
+    public var fitText: Set<Dimension> = setOf(Width, Height)
         set(new) {
             field = new
             measureText()
@@ -48,7 +50,7 @@ public open class Label(styledText         : StyledText          = StyledText(""
         set(value) {
             field = value
             foregroundColor?.invoke { field }
-            font?.invoke { field }
+            font?.invoke            { field }
         }
 
     // this is the styled-text that is set by a caller
@@ -63,7 +65,7 @@ public open class Label(styledText         : StyledText          = StyledText(""
         }
 
     public var styledText: StyledText
-        get() = visibleStyledText
+        get(   ) = visibleStyledText
         set(new) {
             actualStyledText = new
         }

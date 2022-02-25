@@ -227,7 +227,7 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
      * @param inset amount to resize by
      * @return adjusted Rectangle
      */
-    public infix fun inset(inset: Insets): Rectangle = Rectangle(x + inset.left, y + inset.top, max(0.0, width  - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
+    public infix fun inset(inset: Insets): Rectangle = Rectangle(x + inset.left, y + inset.top, max(0.0, width - (inset.left + inset.right)), max(0.0, height - (inset.top + inset.bottom)))
 
     /**
      * Checks whether the given point is within the boundaries of this Rectangle

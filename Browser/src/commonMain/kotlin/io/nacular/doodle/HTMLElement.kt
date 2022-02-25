@@ -6,6 +6,7 @@ import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.WheelEvent
+import io.nacular.doodle.utils.Orientation
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
@@ -81,7 +82,8 @@ internal expect var CSSStyleDeclaration.willChange             : String
 internal expect var CSSStyleDeclaration.scrollBehavior         : String
 internal expect var CSSStyleDeclaration.textDecorationThickness: String
 
-internal expect var CSSStyleDeclaration.touchAction: String
+internal expect var CSSStyleDeclaration.touchAction            : String
+internal expect var CSSStyleDeclaration._webkit_appearance     : String
 
 public expect class DOMRect {
     internal var x     : Double
@@ -155,6 +157,9 @@ internal expect var HTMLElement.role: String?
 
 internal expect fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit)
 internal expect fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit)
+
+internal expect var HTMLInputElement.orient: String?
+internal expect fun HTMLInputElement.setOrientation(orientation: Orientation)
 
 public expect interface ElementCreationOptions
 

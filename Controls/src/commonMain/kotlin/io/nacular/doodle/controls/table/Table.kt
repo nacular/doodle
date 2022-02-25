@@ -14,6 +14,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
@@ -21,6 +22,7 @@ import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
@@ -88,7 +90,7 @@ public open class Table<T, M: ListModel<T>>(
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
 
-            override fun get(index: Int) = model[index]?.let(extractor)
+            override fun get(index: Int) = model[index].map(extractor)
 
             override fun section(range: ClosedRange<Int>) = model.section(range).map(extractor)
 
@@ -99,15 +101,15 @@ public open class Table<T, M: ListModel<T>>(
 
         override val view: io.nacular.doodle.controls.list.List<R, *> = io.nacular.doodle.controls.list.List(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel, scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModel, scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, row, index, object: ItemVisualizer<R, IndexedItem> {
+                    override val generator get() = object: ListBehavior.ItemGenerator<R> {
+                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, item, index, object: ItemVisualizer<R, IndexedItem> {
                             override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<R> {
                                 override val column         = this@InternalListColumn
                                 override val index          = index
@@ -116,12 +118,10 @@ public open class Table<T, M: ListModel<T>>(
                         }, current)
                     }
 
-                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@Table, model[index]!!, index).run { Rectangle(0.0, y, of.width, height) }
-
-                        override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.row(this@Table, atY)
-
-                        override fun totalRowHeight(of: io.nacular.doodle.controls.list.List<R, *>) = it.rowPositioner.totalRowHeight(this@Table)
+                    override val positioner get() = object: ListBehavior.ItemPositioner<R> {
+                        override fun itemBounds (of: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, view: View?) = it.rowPositioner.rowBounds  (this@Table, model[index].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
+                        override fun item       (of: io.nacular.doodle.controls.list.List<R, *>, at: Point                       ) = it.rowPositioner.row        (this@Table, at)
+                        override fun minimumSize(of: io.nacular.doodle.controls.list.List<R, *>                                  ) = it.rowPositioner.minimumSize(this@Table)
                     }
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
@@ -134,7 +134,7 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
-    override val numRows: Int   get() = model.size
+    override val numItems: Int   get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
     public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
@@ -245,7 +245,7 @@ public open class Table<T, M: ListModel<T>>(
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
 
-    public operator fun get(index: Int): T? = model[index]
+    public operator fun get(index: Int): Result<T> = model[index]
 
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }

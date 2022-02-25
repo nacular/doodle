@@ -133,19 +133,31 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             updateTransform()
         }
 
-    init {
-        rootElement.onresize = ::onResize
+    private var ignoreNextContentDirection = false
 
-        // TODO: How can changes to this be detected?
-        if (rootElement.dir == "rtl") {
-            contentDirection = RightLeft
+    internal fun updateContentDirection(fromConstructor: Boolean = false) {
+        if (ignoreNextContentDirection) {
+            ignoreNextContentDirection = false
+            return
         }
+
+        contentDirection = when (rootElement.dir) {
+            "rtl" -> RightLeft
+            else  -> LeftRight
+        }
+
+        ignoreNextContentDirection = !fromConstructor
 
         // currently need to force left-to-right since we handle content direction
         // TODO: Need a better way to do this to avoid compromising browser/accessibility integrations
-        rootElement.dir = "ltr"
+        rootElement.dir = ""
+    }
 
-        onResize()
+    init {
+        rootElement.onresize = ::onResize
+
+        updateContentDirection(fromConstructor = true)
+        onResize              ()
 
         canvasElement.style.setWidthPercent (100.0)
         canvasElement.style.setHeightPercent(100.0)

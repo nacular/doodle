@@ -12,13 +12,13 @@ import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.DropdownBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
-import io.nacular.doodle.controls.list.ListBehavior.RowPositioner
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.plusAssign
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -52,11 +52,12 @@ import io.nacular.doodle.layout.fill
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.ConstraintWrapper
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
-import io.nacular.doodle.theme.basic.list.BasicListPositioner
+import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetPool
@@ -171,7 +172,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
                         index         : Int,
                         itemVisualizer: ItemVisualizer<T, IndexedItem>,
             private val cornerRadius  : Double,
-    ): ListRow<T>(list,
+    ): ListItem<T>(list,
             row,
             index,
             itemVisualizer,
@@ -196,14 +197,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.RowGenerator<T> {
+    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.ItemGenerator<T> {
         @Suppress("UNCHECKED_CAST")
-        override fun invoke(list: List<T, *>, row: T, index: Int, current: View?): View = when (current) {
-            is ListRow<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, row, index) }
-            else          -> CustomListRow(
+        override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
+            is ListItem<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
+            else           -> CustomListRow(
                     dropdown       = dropdown,
                     list           = list,
-                    row            = row,
+                    row            = item,
                     index          = index,
                     cornerRadius   = cornerRadius,
                     itemVisualizer = list.itemVisualizer ?: toString(TextVisualizer())
@@ -243,11 +244,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(focusManager, ItemGenerator(dropdown), null, 0.0) {
-        override val positioner: RowPositioner<T> = object: BasicListPositioner<T>(0.0) {
+    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(
+        focusManager = focusManager,
+        generator    = ItemGenerator(dropdown),
+        fill         = null,
+        positioner   = object: BasicVerticalListPositioner<T>(0.0) {
             override val height get() = max(0.0, dropdown.height - 2 * INSET)
         }
-
+    ) {
         override fun render(view: List<T, *>, canvas: Canvas) {
             canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
         }
@@ -256,7 +260,12 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     override fun install(view: Dropdown<T, M>) {
         super.install(view)
 
-        view.list = List(view.model, selectionModel = SingleItemSelectionModel(), itemVisualizer = view.listItemVisualizer).apply {
+        view.list = List(
+            view.model,
+            selectionModel = SingleItemSelectionModel(),
+            itemVisualizer = view.listItemVisualizer,
+            fitContent     = setOf(Height)
+        ).apply {
             insets        = Insets(INSET)
             behavior      = listBehavior(view)
             acceptsThemes = false
@@ -347,12 +356,13 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     }
 
     override fun pressed(event: PointerEvent) {
-        focusManager?.requestFocus(event.source)
+        // FIXME: This caused an issue on mobile where the list would not show. Need to figure out why that happens
+//        focusManager?.requestFocus(event.source)
     }
 
     internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()
 
-    internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = (dropdown.boxItemVisualizer ?: itemVisualizer)(dropdown.value, null, SimpleIndexedItem(dropdown.selection, true))) {
+    internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = centerView(dropdown)) {
         viewContainer(dropdown)?.let { centerView ->
             centerView.firstOrNull()?.let {
                 (centerView.layout as? ConstraintLayout)?.unconstrain(it)
@@ -365,6 +375,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             updateAlignment(dropdown, centerView)
         }
     }
+
+    private fun centerView(dropdown: Dropdown<T, M>) = dropdown.value.fold(
+        onSuccess = { (dropdown.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(dropdown.selection, true)) },
+        onFailure = { view {  } }
+    )
 
     private  fun viewContainer  (dropdown: Dropdown<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container
     internal fun visualizedValue(dropdown: Dropdown<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()

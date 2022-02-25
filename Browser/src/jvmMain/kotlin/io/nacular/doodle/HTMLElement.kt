@@ -6,6 +6,7 @@ import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.WheelEvent
+import io.nacular.doodle.utils.Orientation
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
@@ -80,16 +81,18 @@ public actual abstract class CSSStyleDeclaration {
 
     internal var clipPath_: String                  = ""
     internal var willChange_: String                = ""
-    internal val scrollBehavior_: String            = ""
+    internal var scrollBehavior_: String            = ""
     internal var textDecorationThickness_: String   = ""
-    internal var touchAction_: String = ""
+    internal var touchAction_ : String              = ""
+    internal var _webkit_appearance_: String        = ""
 }
 
 public actual var CSSStyleDeclaration.clipPath: String get() = clipPath_; set(new) { clipPath_ = new }
 public actual var CSSStyleDeclaration.willChange: String get() = willChange_; set(new) { willChange_ = new }
-public actual var CSSStyleDeclaration.scrollBehavior: String get() = scrollBehavior; set(new) { scrollBehavior = new }
+public actual var CSSStyleDeclaration.scrollBehavior: String get() = scrollBehavior_; set(new) { scrollBehavior_ = new }
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
 public actual var CSSStyleDeclaration.touchAction: String get() = touchAction_; set(new) { touchAction_ = new }
+public actual var CSSStyleDeclaration._webkit_appearance: String get() = _webkit_appearance_; set(new) { _webkit_appearance_ = new }
 
 public actual class DOMRect {
     public actual var x: Double      = 0.0
@@ -161,6 +164,9 @@ public actual var HTMLElement.role: String? get() = role_; set(new) { role_ = ne
 public actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) {}
 public actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) {}
 
+internal actual var HTMLInputElement.orient: String? get() = orient_; set(new) { orient_ = new }
+internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) {}
+
 public actual interface ElementCreationOptions
 
 public actual class Document {
@@ -185,8 +191,11 @@ public actual abstract class HTMLImageElement: HTMLElement() {
     public actual val complete: Boolean = false
 }
 
-public actual abstract class HTMLHeadElement  : HTMLElement()
-public actual abstract class HTMLInputElement : HTMLElement()
+public actual abstract class HTMLHeadElement : HTMLElement()
+public actual abstract class HTMLInputElement: HTMLElement() {
+    internal var orient_ = "" as String?
+}
+
 public actual abstract class HTMLButtonElement: HTMLElement() {
     public actual var disabled: Boolean = false
 }

@@ -63,6 +63,8 @@ private class TestCanvas: Canvas {
 
     override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {}
 
+    override fun clip(path: Path, block: Canvas.() -> Unit) {}
+
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {}
 
     override fun clear() {}

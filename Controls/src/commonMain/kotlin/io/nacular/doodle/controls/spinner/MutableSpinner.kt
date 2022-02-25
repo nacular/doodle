@@ -6,7 +6,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Editable
 
 
-public interface MutableModel<T>: Model<T> {
+public interface MutableSpinnerModel<T>: SpinnerModel<T> {
     public override var value: T
 }
 
@@ -18,15 +18,16 @@ public inline fun <T> spinnerEditor(crossinline block: (spinner: MutableSpinner<
     override fun edit(spinner: MutableSpinner<T, *>, value: T, current: View): EditOperation<T> = block(spinner, value, current)
 }
 
-public abstract class MutableSpinnerBehavior<T, M: MutableModel<T>>: SpinnerBehavior<T, M>() {
+public abstract class MutableSpinnerBehavior<T, M: MutableSpinnerModel<T>>: SpinnerBehavior<T, M>() {
     /**
      * Called whenever editing begins for the MutableSpinner. This lets the behavior reconfigure
      * the Spinner accordingly.
      *
      * @param spinner being edited
+     * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(spinner: MutableSpinner<T, M>): EditOperation<T>?
+    public abstract fun editingStarted(spinner: MutableSpinner<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the MutableSpinner. This lets the behavior reconfigure
@@ -37,11 +38,10 @@ public abstract class MutableSpinnerBehavior<T, M: MutableModel<T>>: SpinnerBeha
     public abstract fun editingEnded(spinner: MutableSpinner<T, M>)
 }
 
-
-public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = null): Spinner<T, M>(model, itemVisualizer), Editable {
-    override var value: T
-        get(   ) = super.value
-        set(new) { model.value = new }
+public class MutableSpinner<T, M: MutableSpinnerModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, Spinner<T, M>>? = null): Spinner<T, M>(model, itemVisualizer), Editable {
+    public fun set(value: T) {
+        model.value = value
+    }
 
     private var editOperation = null as EditOperation<T>?
 
@@ -52,18 +52,19 @@ public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: Ite
     public fun startEditing() {
         cancelEditing()
 
-        editor?.let {
-            editOperation = (behavior as? MutableSpinnerBehavior<T,M>)?.editingStarted(this)
+        value.onSuccess { value ->
+            editor?.let {
+                editOperation = (behavior as? MutableSpinnerBehavior<T,M>)?.editingStarted(this, value)
+            }
         }
     }
 
     public override fun completeEditing() {
         editOperation?.let { operation ->
-            val result = operation.complete() ?: return
-
-            cleanupEditing()
-
-            model.value = result
+            operation.complete().onSuccess {
+                cleanupEditing()
+                model.value = it
+            }
         }
     }
 
@@ -81,6 +82,6 @@ public class MutableSpinner<T, M: MutableModel<T>>(model: M, itemVisualizer: Ite
     }
 
     public companion object {
-        public operator fun <T> invoke(values: List<T>, itemVisualizer: ItemVisualizer<T, Any>?   = null): MutableSpinner<T, MutableListModel<T>> = MutableSpinner(MutableListModel(values), itemVisualizer)
+        public operator fun <T> invoke(values: List<T>, itemVisualizer: ItemVisualizer<T, Any>?   = null): MutableSpinner<T, MutableListSpinnerModel<T>> = MutableSpinner(MutableListSpinnerModel(values), itemVisualizer)
     }
 }

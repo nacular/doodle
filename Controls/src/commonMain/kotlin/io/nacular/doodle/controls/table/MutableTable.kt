@@ -9,12 +9,14 @@ import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.utils.Editable
+import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SortOrder
 import io.nacular.doodle.utils.SortOrder.Ascending
 import io.nacular.doodle.utils.SortOrder.Descending
 import io.nacular.doodle.utils.observable
+import kotlin.Result.Companion.failure
 
 /**
  * Created by Nicholas Eddy on 5/19/19.
@@ -46,11 +48,11 @@ public class MutableTable<T, M: MutableListModel<T>>(
     ): InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
 
         private inner class FieldModel<A>(model: M, extractor: Extractor<T, A>): InternalListColumn<R>.FieldModel<A>(model, extractor), MutableListModel<A> {
-            override fun set        (index  : Int, value : A            ): A? = this[index] // This is essential to allow MutableList to handle edits that result in the content being unchanged
+            override fun set        (index  : Int, value : A            ): Result<A> = this[index] // This is essential to allow MutableList to handle edits that result in the content being unchanged
             override fun add        (              value : A            ) { /*NO-OP*/ }
             override fun add        (index  : Int, value : A            ) { /*NO-OP*/ }
             override fun remove     (              value : A            ) { /*NO-OP*/ }
-            override fun removeAt   (index  : Int                       ): A? = null // NO-OP
+            override fun removeAt   (index  : Int                       ): Result<A> = failure(UnsupportedOperationException()) // NO-OP
             override fun addAll     (              values: Collection<A>) { /*NO-OP*/ }
             override fun addAll     (index  : Int, values: Collection<A>) { /*NO-OP*/ }
             override fun removeAll  (              values: Collection<A>) { /*NO-OP*/ }
@@ -68,11 +70,11 @@ public class MutableTable<T, M: MutableListModel<T>>(
         }
 
         private inner class ListEditorAdapter(private val editor: TableEditor<T>): ListEditor<R> {
-            override fun edit(list: MutableList<R, *>, row: R, index: Int, current: View) = editor(this@MutableTable, model[index]!!, this@MutableInternalListColumn, index, current).let {
+            override fun edit(list: MutableList<R, *>, item: R, index: Int, current: View): EditOperation<R> = editor(this@MutableTable, model[index].getOrNull()!!, this@MutableInternalListColumn, index, current).let {
                 object: EditOperation<R> {
-                    override fun invoke  () = it.invoke()
-                    override fun complete() = it.complete()?.also { model[index] = it; editingColumn = null }?.let(extractor)
-                    override fun cancel  () = it.cancel()
+                    override fun invoke  () = it.invoke  ()
+                    override fun complete() = it.complete().map { r -> model[index] = r; editingColumn = null; extractor(r) }
+                    override fun cancel  () = it.cancel  ()
                 }
             }
         }
@@ -90,7 +92,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
         override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
 
             this@MutableInternalListColumn.editor?.let {
@@ -129,14 +131,14 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
     public operator fun set(index: Int, value: T) { model[index] = value }
 
-    public fun add      (value : T                         ): Unit = model.add      (value        )
-    public fun add      (index : Int, values: T            ): Unit = model.add      (index, values)
-    public fun remove   (value : T                         ): Unit = model.remove   (value        )
-    public fun removeAt (index : Int                       ): T?   = model.removeAt (index        )
-    public fun addAll   (values: Collection<T>             ): Unit = model.addAll   (values       )
-    public fun addAll   (index : Int, values: Collection<T>): Unit = model.addAll   (index, values)
-    public fun removeAll(values: Collection<T>             ): Unit = model.removeAll(values       )
-    public fun retainAll(values: Collection<T>             ): Unit = model.retainAll(values       )
+    public fun add      (value : T                         ): Unit      = model.add      (value        )
+    public fun add      (index : Int, values: T            ): Unit      = model.add      (index, values)
+    public fun remove   (value : T                         ): Unit      = model.remove   (value        )
+    public fun removeAt (index : Int                       ): Result<T> = model.removeAt (index        )
+    public fun addAll   (values: Collection<T>             ): Unit      = model.addAll   (values       )
+    public fun addAll   (index : Int, values: Collection<T>): Unit      = model.addAll   (index, values)
+    public fun removeAll(values: Collection<T>             ): Unit      = model.removeAll(values       )
+    public fun retainAll(values: Collection<T>             ): Unit      = model.retainAll(values       )
 
     public fun clear(): Unit = model.clear()
 

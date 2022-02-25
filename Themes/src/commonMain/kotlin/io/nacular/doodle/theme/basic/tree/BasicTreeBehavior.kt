@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.basic.tree
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit.Width
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
@@ -31,14 +31,17 @@ import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
 import io.nacular.doodle.theme.basic.TreeRowIcon
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment.Left
+import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.RelativePositionMonitor
 import kotlin.math.max
@@ -62,11 +65,11 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
         }
     }
 
-    override fun row(of: Tree<T, *>, atY: Double): Int {
-        return max(0, ((atY - of.insets.top) / height).toInt())
+    override fun row(of: Tree<T, *>, at: Point): Int {
+        return max(0, ((at.y - of.insets.top) / height).toInt())
     }
 
-    override fun height(of: Tree<T, *>, below: Path<Int>) = of.rowsBelow(below) * height + of.insets.run { top + bottom }
+    override fun minimumSize(of: Tree<T, *>, below: Path<Int>) = Size(0.0, of.rowsBelow(below) * height + of.insets.run { top + bottom })
 }
 
 public open class BasicTreeRowGenerator<T>(
@@ -196,7 +199,7 @@ public open class TextEditOperation<T>(
     }
 
     init {
-        text                = encoder.to(node).getOrDefault("")
+        text                = encoder.encode(node).getOrDefault("")
         fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
         bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Origin))
         borderVisible       = false
@@ -240,7 +243,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.from(text).getOrNull().also {
+    override fun complete(): Result<T> = encoder.decode(text).also {
         cancel()
     }
 
@@ -258,11 +261,6 @@ public class TreeTextEditor<T>(
     override fun edit(tree: MutableTree<T, *>, node: T, path: Path<Int>, contentBounds: Rectangle, current: View): EditOperation<T> = TextEditOperation(focusManager, encoder, display, positionMonitor, tree, node, path, contentBounds, current)
 
     public companion object {
-        public operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> {
-            return TreeTextEditor(focusManager, object: Encoder<String, String> {
-                override fun decode(b: String) = b
-                override fun encode(a: String) = a
-            }, display, positionMonitor)
-        }
+        public operator fun invoke(focusManager: FocusManager?, display: Display, positionMonitor: RelativePositionMonitor): TreeTextEditor<String> = TreeTextEditor(focusManager, PassThroughEncoder(), display, positionMonitor)
     }
 }

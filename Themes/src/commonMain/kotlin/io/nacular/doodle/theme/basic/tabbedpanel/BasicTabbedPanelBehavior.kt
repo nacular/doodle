@@ -215,7 +215,7 @@ public open class BasicTab<T>(
             lineTo     (Point(width - radius,     height - radius                               )).
             quadraticTo(Point(width,              height         ), Point(width - radius, height)).
             close      ().also {
-        childrenClipPoly = Rectangle(Point(2 * radius, 0.0), Size(max(0.0, width - 4 * radius), height))
+        childrenClipPath = PolyClipPath(Rectangle(Point(2 * radius, 0.0), Size(max(0.0, width - 4 * radius), height)))
     }
 }
 

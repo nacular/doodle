@@ -17,7 +17,7 @@ import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -44,14 +44,15 @@ import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.ListPositioner
-import io.nacular.doodle.theme.basic.ListRow
+import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
+import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetObserver
+import kotlin.Result.Companion.success
 
 /**
  * Created by Nicholas Eddy on 4/8/19.
@@ -64,7 +65,7 @@ private class TableListRow<T>(
                     index                : Int,
                     itemVisualizer       : ItemVisualizer<T, IndexedItem>,
                     selectionColor       : Color? = Blue,
-                    selectionBlurredColor: Color? = selectionColor): ListRow<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
+                    selectionBlurredColor: Color? = selectionColor): ListItem<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
 
     private val alignmentChanged: (Column<*>) -> Unit = {
         it.cellAlignment?.let { positioner = it }
@@ -120,11 +121,11 @@ public open class BasicTableBehavior<T>(
     }
 
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T> {
-        private val delegate = ListPositioner(rowHeight)
+        private val delegate = VerticalListPositioner(rowHeight)
 
-        override fun rowBounds(of: Table<T, *>, row: T, index: Int) = delegate.rowBounds(of.width, of.insets, index)
-        override fun row(of: Table<T, *>, y: Double)                = delegate.rowFor(of.insets,  y                )
-        override fun totalRowHeight(of: Table<T, *>)                = delegate.totalHeight(of.numRows, of.insets   )
+        override fun rowBounds  (of: Table<T, *>, row: T, index: Int) = delegate.itemBounds (of.size,   of.insets, index)
+        override fun row        (of: Table<T, *>, at: Point         ) = delegate.itemFor    (of.insets,  at              )
+        override fun minimumSize(of: Table<T, *>                    ) = delegate.minimumSize(of.numItems, of.insets       )
     }
 
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
@@ -132,7 +133,7 @@ public open class BasicTableBehavior<T>(
     }
 
     override val overflowColumnConfig: OverflowColumnConfig<Table<T, *>> = object: OverflowColumnConfig<Table<T, *>> {
-        override fun body(table: Table<T, *>): View? = object: View() {
+        override fun body(table: Table<T, *>): View = object: View() {
             init {
                 pointerChanged += object: PointerListener {
                     private var pointerOver    = false
@@ -152,9 +153,9 @@ public open class BasicTableBehavior<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pointerPressed) {
-                            val index = rowPositioner.row(table, event.location.y)
+                            val index = rowPositioner.row(table, event.location)
 
-                            if (index >= table.numRows) {
+                            if (index >= table.numItems) {
                                 return
                             }
 
@@ -191,8 +192,8 @@ public open class BasicTableBehavior<T>(
         if (color != null) {
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
-                row?.let {
-                    canvas.rect(rowPositioner.rowBounds(table, row, index).inset(Insets(top = 1.0)), ColorPaint(color))
+                row.onSuccess {
+                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(Insets(top = 1.0)), ColorPaint(color))
                 }
             }
         }
@@ -300,8 +301,8 @@ public open class TextEditOperation<T>(
     }
 
     init {
-        text                = encoder.to(row).getOrDefault("")
-        fitText             = setOf(TextFit.Width, TextFit.Height)
+        text                = encoder.encode(row).getOrDefault("")
+        fitText             = setOf(Dimension.Width, Dimension.Height)
         borderVisible       = false
         foregroundColor     = current.foregroundColor
         backgroundColor     = Transparent
@@ -346,7 +347,7 @@ public open class TextEditOperation<T>(
         }
     }
 
-    override fun complete(): T? = encoder.from(text).getOrNull().also { cancel() }
+    override fun complete(): Result<T> = encoder.decode(text).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged
@@ -394,7 +395,7 @@ public open class ColorEditOperation<T>(
         colorPicker.focusChanged += focusChanged
     }
 
-    override fun complete(): Color = colorPicker.color.also {
+    override fun complete(): Result<Color> = success(colorPicker.color).also {
         cancel()
     }
 
@@ -451,7 +452,7 @@ public open class BooleanEditOperation<T>(
 
     override fun invoke(): View? = this
 
-    override fun complete(): Boolean = checkBox.selected.also { cancel() }
+    override fun complete(): Result<Boolean> = success(checkBox.selected).also { cancel() }
 
     override fun cancel() {
         table.selectionChanged -= tableSelectionChanged

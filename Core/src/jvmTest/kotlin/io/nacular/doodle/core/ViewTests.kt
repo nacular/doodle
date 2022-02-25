@@ -8,6 +8,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
 import io.nacular.doodle.core.ContentDirection.LeftRight
@@ -15,6 +16,8 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.View.SizePreferences
+import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
@@ -49,6 +52,8 @@ import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
@@ -97,7 +102,7 @@ class ViewTests {
                 View::backgroundColor                  to null,
                 View::contentDirection                 to LeftRight,
                 View::isFocusCycleRoot_                to false,
-                View::childrenClipPoly_                to null,
+                View::childrenClipPath_                to null,
                 View::accessibilityLabel               to null,
                 View::clipCanvasToBounds_              to true,
                 View::mirrorWhenRightLeft              to true,
@@ -308,7 +313,7 @@ class ViewTests {
         val parent = object: View() {
             init {
                 children_        += child
-                childrenClipPoly  = Rectangle(6, 6)
+                childrenClipPath  = PolyClipPath(Rectangle(6, 6))
             }
         }
 
@@ -368,7 +373,7 @@ class ViewTests {
         val parent = object: View() {
             init {
                 children_        += child
-                childrenClipPoly  = Rectangle(3, 3)
+                childrenClipPath  = PolyClipPath(Rectangle(3, 3))
             }
         }
 
@@ -469,32 +474,47 @@ class ViewTests {
 
     @Test @JsName("minSizeTriggersSizePreferenceEvent")
     fun `min size triggers size preference event`() {
-        val view     = object: View() {}
-        val observer = mockk<PropertyObserver<View, SizePreferences>>()
+        val view          = object: View() {}
+        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
 
         view.sizePreferencesChanged += observer
 
         val newSize      = Size(100, 100)
         view.minimumSize = newSize
 
-        verify(exactly = 1) {
+        verifyOrder {
+            renderManager.sizePreferencesChanged(view,
+                match { it.minimumSize == Size.Empty && it.idealSize == null },
+                match { it.minimumSize == newSize    && it.idealSize == null })
+
+
             observer(view,
-                    match { it.minimumSize == Size.Empty && it.idealSize == null },
-                    match { it.minimumSize == newSize    && it.idealSize == null })
+                match { it.minimumSize == Size.Empty && it.idealSize == null },
+                match { it.minimumSize == newSize    && it.idealSize == null })
         }
     }
 
     @Test @JsName("idealSizeTriggersSizePreferenceEvent")
     fun `ideal size triggers size preference event`() {
-        val view     = object: View() {}
-        val observer = mockk<PropertyObserver<View, SizePreferences>>()
+        val view          = object: View() {}
+        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
 
         view.sizePreferencesChanged += observer
 
         val newSize    = Size(100, 100)
         view.idealSize = newSize
 
-        verify(exactly = 1) {
+        verifyOrder {
+            renderManager.sizePreferencesChanged(view,
+                    match { it.minimumSize == Size.Empty && it.idealSize == null },
+                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
+
             observer(view,
                     match { it.minimumSize == Size.Empty && it.idealSize == null },
                     match { it.minimumSize == Size.Empty && it.idealSize == newSize })
@@ -680,7 +700,7 @@ class ViewTests {
 
     @Test @JsName("boundsChangedWorks")
     fun `bounds changed works`() {
-        val view    = object: View() {}
+        val view     = object: View() {}
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = view.bounds
         val newValue = slot<Rectangle>()
@@ -690,14 +710,91 @@ class ViewTests {
             }
         }
 
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
         view.bounds         = new
+        view.x              = 67.0
 
-        verify(exactly = 1) { observer(view, old, new) }
+        verifyOrder {
+            renderManager.boundsChanged(view, old, new)
+            observer(view, old, new)
+            renderManager.boundsChanged(view, new, new.at(x = 67.0))
+            observer(view, new, new.at(x = 67.0))
+        }
+    }
 
-        view.x = 67.0
+    @Test @JsName("opacityChangedWorks")
+    fun `opacity changed works`() {
+        val view     = object: View() {}
+        val old      = 1f
+        val new      = 0.5f
+        val newValue = slot<Float>()
+        val observer = mockk<PropertyObserver<View, Float>>().apply {
+            every { this@apply.invoke(view, any<Float>(), capture(newValue)) } answers {
+                expect(newValue.captured) { view.opacity }
+            }
+        }
 
-        verify(exactly = 1) { observer(view, new, new.at(x = 67.0)) }
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.opacityChanged += observer
+        view.opacity         = new
+
+        verifyOrder {
+            renderManager.opacityChanged(view, old, new)
+            observer(view, old, new)
+        }
+    }
+
+    @Test @JsName("transformChangedWorks")
+    fun `transform changed works`() {
+        val view     = object: View() {}
+        val old      = Identity
+        val new      = Identity.rotate(90 * degrees)
+        val newValue = slot<AffineTransform>()
+        val observer = mockk<PropertyObserver<View, AffineTransform>>().apply {
+            every { this@apply.invoke(view, any<AffineTransform>(), capture(newValue)) } answers {
+                expect(newValue.captured) { view.transform }
+            }
+        }
+
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.transformChanged += observer
+        view.transform         = new
+
+        verifyOrder {
+            renderManager.transformChanged(view, old, new)
+            observer(view, old, new)
+        }
+    }
+
+    @Test @JsName("visibilityChangedWorks")
+    fun `visibility changed works`() {
+        val view     = object: View() {}
+        val old      = true
+        val new      = false
+        val newValue = slot<Boolean>()
+        val observer = mockk<PropertyObserver<View, Boolean>>().apply {
+            every { this@apply.invoke(view, any<Boolean>(), capture(newValue)) } answers {
+                expect(newValue.captured) { view.visible }
+            }
+        }
+
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.visibilityChanged += observer
+        view.visible            = new
+
+        verifyOrder {
+            renderManager.visibilityChanged(view, old, new)
+            observer(view, old, new)
+        }
     }
 
     @Test @JsName("cursorChangedWorks")
@@ -785,7 +882,7 @@ class ViewTests {
     }
 
     @Test @JsName("accessibilityRoleChangeWorks")
-    fun `accessiblit role change works`() {
+    fun `accessibility role change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -852,16 +949,22 @@ class ViewTests {
 
     @Test @JsName("zOrderChangeWorks")
     fun `z-order change works`() {
-        val view    = object: View() {}
-        val observer = mockk<PropertyObserver<View, Int>>()
-        val new      = 35
-        val old      = view.zOrder
+        val view          = object: View() {}
+        val observer      = mockk<PropertyObserver<View, Int>>()
+        val new           = 35
+        val old           = view.zOrder
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
 
         view.zOrderChanged += observer
         view.zOrder         = new
         view.zOrder         = new
 
-        verify(exactly = 1) { observer(view, old, new) }
+        verifyOrder {
+            renderManager.zOrderChanged(view, old, new)
+            observer(view, old, new)
+        }
     }
 
     @Test @JsName("containsChildWorks")

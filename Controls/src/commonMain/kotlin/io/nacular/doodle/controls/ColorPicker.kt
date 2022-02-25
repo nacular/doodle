@@ -41,8 +41,6 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Created by Nicholas Eddy on 1/9/19.
- *
  * Control for selecting a [Color] from within a palette.
  *
  * @constructor

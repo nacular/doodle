@@ -7,13 +7,13 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.skiko.SkiaWindow
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.net.URI
 import javax.swing.JLabel
+import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
 internal class NativeHyperLinkStylerImpl: NativeHyperLinkStyler {
@@ -91,7 +91,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
 
 internal class NativeHyperLinkBehavior(
-        window                   : SkiaWindow,
+        window                   : JPanel,
         appScope                 : CoroutineScope,
         uiDispatcher             : CoroutineContext,
         swingGraphicsFactory     : SwingGraphicsFactory,

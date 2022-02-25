@@ -21,11 +21,11 @@ import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.controls.spinner.Model
+import io.nacular.doodle.controls.spinner.ListSpinnerModel
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.text.TextFit.Width
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
@@ -47,6 +47,8 @@ import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.observable
@@ -72,7 +74,7 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
 /**
  * Creates a [TextField] control that is bounded to a [Field].
  * The associated field will only be valid if the text field's input matches
- * [pattern] and [encoder.from][Encoder.from] produces a valid [T] from it.
+ * [pattern] and [encoder.decode][Encoder.decode] produces a valid [T] from it.
  *
  * @param T is the type of the bounded field
  * @param pattern used to validate input to the field
@@ -95,7 +97,7 @@ public fun <T> textField(
     fun validate(field: Field<T>, value: String, notify: Boolean = true) {
         when {
             pattern.matches(value) -> {
-                encoder.from(value).onSuccess { decoded ->
+                encoder.decode(value).onSuccess { decoded ->
                     when {
                         validator(decoded) -> {
                             field.state = Valid(decoded)
@@ -125,7 +127,7 @@ public fun <T> textField(
         config(configObject)
 
         when {
-            initial is Valid && validator(initial.value) -> encoder.to(initial.value).getOrNull()?.let { text = it }
+            initial is Valid && validator(initial.value) -> encoder.encode(initial.value).getOrNull()?.let { text = it }
             else                                         -> validate(field, text, notify = false)
         }
     }
@@ -407,10 +409,10 @@ public fun <T, M: ListModel<T>> dropDown(
         }
 
         dropdown.changed += {
-            state = Valid(dropdown.value)
+            state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
         }
 
-        state = Valid(dropdown.value)
+        state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
     }.also(config)
 }
 
@@ -503,16 +505,16 @@ public fun <T: Any> dropDown(
         }
 
         changed += {
-            state = when (val v = value) {
-                null -> Invalid( )
-                else -> Valid  (v)
-            }
+            state = value.fold(
+                onSuccess = { it?.let { Valid(it) } ?: Invalid() },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = when (val v = value) {
-            null -> Invalid( )
-            else -> Valid  (v)
-        }
+        state = value.fold(
+                onSuccess = { it?.let { Valid(it) } ?: Invalid() },
+                onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -572,10 +574,16 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
             unselectedListItemVisualizer = unselectedListItemVisualizer,
             initialValue                 = initial.fold({it}, null)).apply {
         changed += {
-            state = Valid(value)
+            state = value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(value)
+        state = value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -623,10 +631,16 @@ public fun <T: Any> optionalDropDown(
         }
 
         changed += {
-            state = Valid(value)
+            state = value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(value)
+        state = value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
 
         config(this)
     }
@@ -669,16 +683,22 @@ public fun <T: Any> optionalDropDown(
  * @param itemVisualizer used to render the drop-down's box item
  * @param config used to control the resulting component
  */
-public fun <T, M: Model<T>> spinner(
+public fun <T, M: SpinnerModel<T>> spinner(
         model          : M,
         itemVisualizer : ItemVisualizer<T, Spinner<T, M>> = toString(TextVisualizer()),
         config         : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
     Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
         spinner.changed += {
-            state = Valid(spinner.value)
+            state = spinner.value.fold(
+                onSuccess = { Valid(it) },
+                onFailure = { Invalid() }
+            )
         }
 
-        state = Valid(spinner.value)
+        state = spinner.value.fold(
+            onSuccess = { Valid(it) },
+            onFailure = { Invalid() }
+        )
     }.also(config)
 }
 
@@ -698,9 +718,9 @@ public fun <T, M: Model<T>> spinner(
 public fun <T> spinner(
         first          : T,
         vararg rest    : T,
-        itemVisualizer : ItemVisualizer<T, Spinner<T, *>> = toString(TextVisualizer()),
+        itemVisualizer : ItemVisualizer<T, Spinner<T, *>>,
         config         : (Spinner<T, *>) -> Unit = {}): FieldVisualizer<T> = spinner(
-        io.nacular.doodle.controls.spinner.ListModel(listOf(first) + rest),
+        ListSpinnerModel(listOf(first) + rest),
         itemVisualizer,
         config
 )
@@ -719,10 +739,10 @@ public fun <T> spinner(
  * @param config used to control the resulting component
  */
 public fun <T> spinner(
-        first : T,
+        first        : T,
         vararg rest  : T,
-        label : (T) -> String = { it.toString() },
-        config: (Spinner<T, *>) -> Unit = {}
+        label        : (T) -> String = { it.toString() },
+        config       : (Spinner<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(TextVisualizer(), label), config = config)
 
 /**
@@ -740,13 +760,13 @@ public fun <T> spinner(
 public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
-        fitContents   : Boolean = false,
+        fitContents   : Set<Dimension> = setOf(Height),
         config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
-            model,
-            itemVisualizer,
-            selectionModel = MultiSelectionModel(),
-            fitContent     = fitContents
+        model,
+        itemVisualizer,
+        selectionModel = MultiSelectionModel(),
+        fitContent     = fitContents
     ).apply {
         var itemIndex = 0
         val items            = model.asIterable().iterator()
@@ -769,13 +789,13 @@ public fun <T, M: ListModel<T>> list(
             }
         }
 
-        state            = Valid(initialSelection.map { this[it] as T })
+        state            = Valid(initialSelection.mapNotNull { this[it].getOrNull() })
         isFocusCycleRoot = false
 
         setSelection(initialSelection.toSet())
 
         selectionChanged += { _,_,_ ->
-            state = Valid(selection.sorted().map { this[it] as T })
+            state = Valid(selection.sorted().mapNotNull { this[it].getOrNull() })
         }
 
         config(this)
@@ -798,7 +818,7 @@ public fun <T> list(
                first: T,
         vararg rest : T,
                itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
-               fitContents   : Boolean = false,
+               fitContents   : Set<Dimension> = setOf(Height),
                config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
@@ -819,7 +839,7 @@ public fun <T> list(
 public fun list(
         progression   : IntProgression,
         itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
-        fitContents   : Boolean = false,
+        fitContents   : Set<Dimension> = setOf(Height),
         config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
     IntProgressionModel(progression),
     itemVisualizer,

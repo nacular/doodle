@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.utils.Extractor
 
 public interface ColumnBuilder {
     public var width          : Double?
@@ -36,8 +37,6 @@ public interface CellInfo<T>: IndexedItem {
 
 public typealias CellVisualizer<T> = ItemVisualizer<T, CellInfo<T>>
 
-@Deprecated(message = "Use io.nacular.doodle.utils.Extractor instead")
-public typealias Extractor<T, R>  = T.() -> R
 public typealias Sorter<T, S>     = Extractor<T, S> //T.() -> S
 
 public interface ColumnFactory<T> {

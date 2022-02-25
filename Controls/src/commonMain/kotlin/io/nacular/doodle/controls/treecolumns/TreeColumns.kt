@@ -14,9 +14,12 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
+import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.Path
@@ -42,7 +45,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
                       selectionModel: SelectionModel<Path<Int>>?      = null): View(), Selectable<Path<Int>>, Focusable {
 
     protected class FilteringSelectionModel(delegate: SelectionModel<Path<Int>>): SelectionModel<Path<Int>> by delegate {
-        public var root: Path<Int>? = null as Path<Int>?
+        public var root: Path<Int>? = null
         public val children: kotlin.collections.MutableList<Int> = mutableListOf()
 
         init {
@@ -150,11 +153,11 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private class CustomMutableList<T>(
-            model         : SimpleMutableListModel<T>,
-            itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
-            val localSelectionModel: LocalSelectionModel?  = null,
-            fitContent    : Boolean                   = true,
-            scrollCache   : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {
+            model              : SimpleMutableListModel<T>,
+            itemGenerator      : ItemVisualizer<T, IndexedItem>? = null,
+        val localSelectionModel: LocalSelectionModel?            = null,
+            fitContent         : Set<Dimension>                  = setOf(Width, Height),
+            scrollCache        : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {
         public override val model = super.model
 
         fun enable() {
@@ -198,28 +201,28 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private fun installBehavior(column: Column<T>, behavior: TreeColumnsBehavior<T>) {
         column.list.behavior = object: ListBehavior<T> {
-            override val generator = object: ListBehavior.RowGenerator<T> {
-                override fun invoke(list: List<T, *>, row: T, index: Int, current: View?) = behavior.generator(
+            override val generator = object: ListBehavior.ItemGenerator<T> {
+                override fun invoke(list: List<T, *>, item: T, index: Int, current: View?) = behavior.generator(
                         this@TreeColumns,
-                        row,
+                        item,
                         column.path + index,
                         index
                 )
             }
 
-            override val positioner = object: ListBehavior.RowPositioner<T> {
-                override fun rowBounds(of: List<T, *>, row: T, index: Int, view: View?) = behavior.positioner.rowBounds(
+            override val positioner = object: ListBehavior.ItemPositioner<T> {
+                override fun itemBounds(of: List<T, *>, item: T, index: Int, view: View?) = behavior.positioner.rowBounds(
                         this@TreeColumns,
                         of.width,
                         column.path + index,
-                        row,
+                        item,
                         index,
                         view
                 )
 
-                override fun row(of: List<T, *>, atY: Double) = behavior.positioner.row(this@TreeColumns, column.path, atY)
+                override fun item(of: List<T, *>, at: Point) = behavior.positioner.row(this@TreeColumns, column.path, at)
 
-                override fun totalRowHeight(of: List<T, *>) = behavior.positioner.totalRowHeight(this@TreeColumns, column.path)
+                override fun minimumSize(of: List<T, *>) = behavior.positioner.minimumSize(this@TreeColumns, column.path)
             }
 
             override fun render(view: List<T, *>, canvas: Canvas) {
@@ -311,9 +314,9 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
-    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
-    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): Result<T> = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int       = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int       = model.indexOfChild(parent, child)
 
     override fun selected(item: Path<Int>): Boolean = selectionModel?.contains(item) ?: false
 
@@ -391,7 +394,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             SimpleMutableListModel(model.children(node).asSequence().toList()),
             itemVisualizer,
             selectionModel?.let { LocalSelectionModel(node, it) },
-            fitContent  = false,
+            fitContent  = setOf(Height),
             scrollCache = 10
         ).apply {
             acceptsThemes = false

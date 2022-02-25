@@ -37,12 +37,6 @@ public abstract class ConstraintLayout: Layout {
     public abstract fun constrain(a: View, b: View, vararg others: View, block: ConstraintBlockContext.(List<Constraints>) -> Unit): ConstraintLayout
 
     public abstract fun unconstrain(a: View, vararg others: View): ConstraintLayout
-
-    @Deprecated(message = "Will be replaced with version that requires at least 1 View")
-    public abstract fun unconstrain(views: Array<View>): ConstraintLayout
-
-    @Deprecated(message = "You will need to provide at least 1 View to unconstrain in an upcoming version.")
-    public fun unconstrain(): ConstraintLayout = unconstrain(views = emptyArray())
 }
 
 private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): ConstraintLayout() {
@@ -81,12 +75,6 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
     override fun unconstrain(a: View, vararg others: View): ConstraintLayout {
         constraints.remove(a)
         others.forEach { constraints.remove(it) }
-
-        return this
-    }
-
-    override fun unconstrain(views: Array<View>): ConstraintLayout {
-        views.forEach { constraints.remove(it) }
 
         return this
     }
@@ -228,7 +216,12 @@ public open class Constraint(internal val target: View, dependencies: Set<View> 
     internal operator fun invoke() = block(target)
 }
 
-public class VerticalConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
+public class VerticalConstraint(
+    target      : View,
+    dependencies: Set<View> = emptySet(),
+    default     : Boolean   = true,
+    block       : (View) -> Double
+): Constraint(target, dependencies, default, block), Comparable<VerticalConstraint> {
     public operator fun plus(value: Number): VerticalConstraint = plus { value }
 
     public operator fun plus(value: () -> Number): VerticalConstraint = VerticalConstraint(target, dependencies) {
@@ -277,10 +270,17 @@ public class VerticalConstraint(target: View, dependencies: Set<View> = emptySet
         block(it) / value()
     }
 
+    override fun compareTo(other: VerticalConstraint): Int = invoke().compareTo(other())
+
 //    override fun toString(): String = "V ($default) <- $dependencies"
 }
 
-public class HorizontalConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
+public class HorizontalConstraint(
+    target      : View,
+    dependencies: Set<View> = emptySet(),
+    default     : Boolean   = true,
+    block       : (View) -> Double
+): Constraint(target, dependencies, default, block), Comparable<HorizontalConstraint> {
     public operator fun plus(value: Number): HorizontalConstraint = plus { value }
 
     public operator fun plus(value: () -> Number): HorizontalConstraint = HorizontalConstraint(target, dependencies) {
@@ -329,6 +329,8 @@ public class HorizontalConstraint(target: View, dependencies: Set<View> = emptyS
         block(it) / value()
     }
 
+    override fun compareTo(other: HorizontalConstraint): Int = invoke().compareTo(other())
+
 //    override fun toString(): String = "H ($default) <- $dependencies"
 }
 
@@ -348,7 +350,12 @@ private open class NullableMagnitudeConstraint(private val target: View, private
     }
 }
 
-public open class MagnitudeConstraint(target: View, dependencies: Set<View> = emptySet(), default: Boolean = true, block: (View) -> Double): Constraint(target, dependencies, default, block) {
+public open class MagnitudeConstraint(
+    target      : View,
+    dependencies: Set<View> = emptySet(),
+    default     : Boolean   = true,
+    block       : (View) -> Double
+): Constraint(target, dependencies, default, block), Comparable<MagnitudeConstraint> {
     public operator fun plus(value: Number): MagnitudeConstraint = plus { value }
 
     public operator fun plus(value: () -> Number): MagnitudeConstraint = MagnitudeConstraint(target, dependencies) {
@@ -388,6 +395,8 @@ public open class MagnitudeConstraint(target: View, dependencies: Set<View> = em
     public operator fun div(value: MagnitudeConstraint): MagnitudeConstraint = MagnitudeConstraint(target, dependencies + value.dependencies){
         block(it) / value()
     }
+
+    override fun compareTo(other: MagnitudeConstraint): Int = invoke().compareTo(other())
 
 //    override fun toString(): String = "H ($default) <- $dependencies"
 }

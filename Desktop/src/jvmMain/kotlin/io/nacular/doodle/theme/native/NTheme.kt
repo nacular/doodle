@@ -94,7 +94,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<Slider>(NTheme::class) { it.behavior = NativeSliderBehavior(
+            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(
                     window                    = instance(),
                     appScope                  = instance(),
                     uiDispatcher              = Dispatchers.Swing,

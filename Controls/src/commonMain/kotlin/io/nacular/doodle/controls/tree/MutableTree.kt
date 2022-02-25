@@ -53,25 +53,25 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
         set(new) {
             field       = new?.also { selectionModel?.replaceAll(setOf(it)) }
             editingRect = field?.let { path ->
-                this[path]?.let { node ->
+                this[path].fold(onSuccess =  { node ->
                     val row = rowFromPath(path)!!
 
                     rowPositioner?.rowBounds(this, node, path, row)
-                }
+                }, onFailure = { null })
             }
 
             preEditValue = new?.let { model[it] }
         }
 
-    private var preEditValue = null as T?
+    private var preEditValue = null as Result<T>?
 
     private var editingRect   = null as Rectangle?
     private var editOperation = null as EditOperation<T>?
 
-    public fun add     (path: Path<Int>, values: T            ): Unit = model.add     (path, values)
-    public fun removeAt(path: Path<Int>                       ): T?   = model.removeAt(path        )
-    public fun addAll  (path: Path<Int>, values: Collection<T>): Unit = model.addAll  (path, values)
-    public fun clear   (                                      ): Unit = model.clear   (            )
+    public fun add     (path: Path<Int>, values: T            ): Unit      = model.add     (path, values)
+    public fun removeAt(path: Path<Int>                       ): Result<T> = model.removeAt(path        )
+    public fun addAll  (path: Path<Int>, values: Collection<T>): Unit      = model.addAll  (path, values)
+    public fun clear   (                                      ): Unit      = model.clear   (            )
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         super.handleDisplayRectEvent(old, new)
@@ -91,7 +91,7 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
         cancelEditing()
 
         editor?.let {
-            model[path]?.let { item ->
+            model[path].onSuccess { item ->
                 rowFromPath(path)?.let { row ->
                     val i = row % children.size
 
@@ -109,17 +109,16 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
     public override fun completeEditing() {
         editOperation?.let { operation ->
             editingPath?.let { path ->
-                val result = operation.complete() ?: return
-
-                cleanupEditing()
-
-                updateModel(path, result)
+                operation.complete().onSuccess {
+                    cleanupEditing()
+                    updateModel(path, it)
+                }
             }
         }
     }
 
     public override fun cancelEditing() {
-        preEditValue?.let { oldValue -> cleanupEditing()?.let { path -> updateModel(path, oldValue) } }
+        preEditValue?.onSuccess { oldValue -> cleanupEditing()?.let { path -> updateModel(path, oldValue) } }
     }
 
     private fun updateModel(path: Path<Int>, value: T) {

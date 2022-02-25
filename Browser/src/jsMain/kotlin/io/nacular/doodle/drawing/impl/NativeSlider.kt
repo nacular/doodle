@@ -8,20 +8,23 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setBounds
+import io.nacular.doodle.dom.setMargin
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.utils.size
+import io.nacular.doodle.setOrientation
+import io.nacular.doodle.utils.Orientation.Horizontal
+import io.nacular.doodle.utils.Orientation.Vertical
 import org.w3c.dom.HTMLElement
-import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
  */
 internal interface NativeSliderFactory {
-    operator fun invoke(slider: Slider): NativeSlider
+    operator fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit): NativeSlider<T> where T: Number, T: Comparable<T>
 }
 
 internal class NativeSliderFactoryImpl internal constructor(
@@ -52,39 +55,40 @@ internal class NativeSliderFactoryImpl internal constructor(
         })
     }
 
-    override fun invoke(slider: Slider) = NativeSlider(
+    override fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit) where T: Number, T: Comparable<T> = NativeSlider(
             htmlFactory,
             nativeEventHandlerFactory,
             focusManager,
             defaultSize,
             sizeDifference,
-            slider
+            slider,
+            valueSetter
     )
 }
 
-internal class NativeSlider internal constructor(
+internal class NativeSlider<T> internal constructor(
                     htmlFactory   : HtmlFactory,
                     handlerFactory: NativeEventHandlerFactory,
         private val focusManager  : FocusManager?,
         private val defaultSize   : Size,
         private val marginSize    : Size,
-        private val slider        : Slider
-): NativeEventListener {
+        private val slider        : Slider<T>,
+        private val valueSetter   : (Slider<T>, Double) -> Unit
+): NativeEventListener where T: Number, T: Comparable<T> {
 
     private val oldSliderHeight = slider.height
 
     private val nativeEventHandler: NativeEventHandler
 
-    private val sliderElement = htmlFactory.createInput().apply {
-        type  = "range"
-        step  = "any"
-        value = slider.value.toString()
-
-        style.setOverflow(Visible())
+    private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
+        sliderElement.value = "${(it.value.toDouble() - it.range.start.toDouble()) / it.range.size * 100}"
     }
 
-    private val changed: (Slider, Double, Double) -> Unit = { it,_,_ ->
-        sliderElement.value = "${it.value / slider.model.limits.size * 100}"
+    private val styleChanged: (View) -> Unit = {
+        sliderElement.step = when {
+            slider.snapToTicks && slider.ticks > 1 -> "${100.0 / (slider.ticks - 1)}"
+            else                                   -> "any"
+        }
     }
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
@@ -103,10 +107,14 @@ internal class NativeSlider internal constructor(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,_,new ->
-        val width  = max(0.0, slider.width  - marginSize.width )
-        val height = max(0.0, slider.height - marginSize.height)
+        sliderElement.style.setBounds(Rectangle(size = new.size))
+    }
 
-        sliderElement.style.setBounds(Rectangle((new.width - width) / 2, (new.height - height) / 2, width, height))
+    private val sliderElement = htmlFactory.createInput().apply {
+        type = "range"
+        setOrientation   (slider.orientation)
+        style.setMargin  (0.0               )
+        style.setOverflow(Visible()         )
     }
 
     init {
@@ -117,15 +125,23 @@ internal class NativeSlider internal constructor(
 
         slider.apply {
             changed             += this@NativeSlider.changed
+            styleChanged        += this@NativeSlider.styleChanged
             focusChanged        += this@NativeSlider.focusChanged
             boundsChanged       += this@NativeSlider.boundsChanged
             enabledChanged      += this@NativeSlider.enabledChanged
             focusabilityChanged += this@NativeSlider.focusableChanged
 
-            changed      (this, 0.0,             value )
-            boundsChanged(this, Rectangle.Empty, bounds)
+            changed      (this, value, value )
+            styleChanged (this               )
+            boundsChanged(this, Empty, bounds)
 
-            height = this@NativeSlider.defaultSize.height + this@NativeSlider.marginSize.height
+            val size = when (orientation) {
+                Horizontal -> Size(defaultSize.width  + marginSize.width,  defaultSize.height + marginSize.height)
+                Vertical   -> Size(defaultSize.height + marginSize.height, defaultSize.width  + marginSize.width )
+            }
+
+            idealSize   = size
+            minimumSize = if (orientation == Horizontal) Size(0.0, size.height) else Size(size.width, 0.0)
         }
     }
 
@@ -137,6 +153,7 @@ internal class NativeSlider internal constructor(
 
         slider.apply {
             changed             -= this@NativeSlider.changed
+            styleChanged        -= this@NativeSlider.styleChanged
             focusChanged        -= this@NativeSlider.focusChanged
             boundsChanged       -= this@NativeSlider.boundsChanged
             enabledChanged      -= this@NativeSlider.enabledChanged
@@ -177,9 +194,11 @@ internal class NativeSlider internal constructor(
 
     override fun onInput(event: Event): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
-            slider.value = slider.model.limits.start + (it / 100 * slider.model.limits.size)
+            valueSetter(slider, slider.range.start.toDouble() + (it / 100 * slider.range.size))
         }
 
         return true
     }
+
+    internal val <T> ClosedRange<T>.size: Double where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble())
 }

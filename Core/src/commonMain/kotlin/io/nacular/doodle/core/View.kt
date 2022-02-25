@@ -4,6 +4,7 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
@@ -28,12 +29,16 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType
+import io.nacular.doodle.geometry.Circle
+import io.nacular.doodle.geometry.Ellipse
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
@@ -69,6 +74,44 @@ private typealias ZOrderObservers = PropertyObservers<View, Int>
  * @constructor
  */
 public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
+    /**
+     * Defines a clipping path for a View's children.
+     *
+     * @constructor
+     * @property path used for clipping
+     */
+    public abstract class ClipPath(public val path: Path) {
+        /**
+         * Indicates whether [point] falls within [path]
+         *
+         * @param point being checked
+         */
+        public abstract operator fun contains(point: Point): Boolean
+    }
+
+    /**
+     * [ClipPath] based on a [Polygon]. The contains check defaults to [Polygon.contains].
+     *
+     * @constructor
+     * @param polygon used for clipping
+     */
+    public class PolyClipPath(private val polygon: Polygon): ClipPath(polygon.toPath()) {
+        override fun contains(point: Point): Boolean = point in polygon
+    }
+
+    /**
+     * [ClipPath] based on a [Ellipse]. The contains check defaults to [Ellipse.contains].
+     *
+     * @constructor
+     * @param polygon used for clipping
+     */
+    public class EllipseClipPath(private val ellipse: Ellipse): ClipPath(ellipse.toPath()) {
+        public constructor(center: Point,  radius: Double                 ): this(Circle(center, radius))
+        public constructor(center: Point, xRadius: Double, yRadius: Double): this(Ellipse(center, xRadius, yRadius))
+
+        override fun contains(point: Point): Boolean = point in ellipse
+    }
+
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
         operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
     }
@@ -119,32 +162,32 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // region Bounds
 
     /** Left edge of [bounds] */
-    override var x: Double
+    final override var x: Double
         get( ) = bounds.x
         set(x) = setBounds(x, y, width, height)
 
     /** Top edge of [bounds] */
-    override var y: Double
+    final override var y: Double
         get( ) = bounds.y
         set(y) = setBounds(x, y, width, height)
 
     /** Top-left corner of [bounds] */
-    override var position: Point
+    final override var position: Point
         get(        ) = bounds.position
         set(position) = setBounds(position.x, position.y, width, height)
 
     /** Horizontal extent of [bounds] */
-    override var width: Double
+    final override var width: Double
         get(     ) = bounds.width
         set(width) = setBounds(x, y, width, height)
 
     /** Vertical extent of [bounds] */
-    override var height: Double
+    final override var height: Double
         get(      ) = bounds.height
         set(height) = setBounds(x, y, width, height)
 
     /** Width-height of [bounds]*/
-    override var size: Size
+    final override var size: Size
         get(    ) = bounds.size
         set(size) = setBounds(x, y, size.width, size.height)
 
@@ -155,8 +198,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { _, new ->
+    final override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { old, new ->
         boundingBox = transform(new).boundingRectangle
+        renderManager?.boundsChanged(this, old, new)
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
@@ -171,14 +215,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected var clipCanvasToBounds: Boolean by renderProperty(true)
 
     /**
-     * A [Polygon] used to further clip the View's children within its [bounds]. The View's children cannot extend
+     * A [Path] used to further clip the View's children within its [bounds]. The View's children cannot extend
      * beyond its [bounds], so specifying a value larger than it will not enable that.
      *
      * The default is `null`.
      */
-    protected var childrenClipPoly: Polygon? by renderProperty(null)
+    protected var childrenClipPath: ClipPath? by renderProperty(null)
 
-    internal val childrenClipPoly_ get() = childrenClipPoly
+    internal var childrenClipPath_ get() = childrenClipPath; set(new) { childrenClipPath = new }
 
     /** Notifies changes to [transform] */
     public val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl(this) }
@@ -189,35 +233,34 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
-    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { _, new ->
+    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { old, new ->
         boundingBox = new(bounds).boundingRectangle
+        renderManager?.transformChanged(this, old, new)
     }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set
 
     /** Size that would best display this View, or `null` if no preference */
-    override var idealSize: Size? = null
+    final override var idealSize: Size? = null
         get(   ) = layout?.idealSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
             val old = field
             field = new
-            (sizePreferencesChanged as PropertyObserversImpl).forEach {
-                it(this, SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
-            }
+
+            notifySizePreferencesChanged(SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
         }
 
     /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
-    override var minimumSize: Size = Size.Empty
+    final override var minimumSize: Size = Size.Empty
         get(   ) = layout?.minimumSize(positionableWrapper, field) ?: field
         set(new) {
             if (field == new) return
             val old = field
             field = new
-            (sizePreferencesChanged as PropertyObserversImpl).forEach {
-                it(this, SizePreferences(idealSize, old), SizePreferences(idealSize, new))
-            }
+
+            notifySizePreferencesChanged(SizePreferences(idealSize, old), SizePreferences(idealSize, new))
         }
 
     /** Indicates the minimum and ideal sizes for a View. */
@@ -241,13 +284,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
-    public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>)
+    public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>) { old, new ->
+        renderManager?.zOrderChanged(this, old, new)
+    }
 
     /** Notifies changes to [visible] */
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible. The default is `true`. */
-    override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { _,_ ->
+    final override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+        renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
     }
 
@@ -259,7 +305,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * [visible] might still be `true`). This property also does not affect how events (i.e.
      * pointer and keyboard) are sent to the View.
      */
-    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>)
+    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>) { old, new ->
+        renderManager?.opacityChanged(this, old, new)
+    }
 
     /** Notifies changes to [enabled] */
     public val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
@@ -439,7 +487,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
-    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>)
+    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+        renderManager?.displayRectHandlingChanged(this, old, new)
+    }
 
     /**
      * Indicates the direction of content within the View; used to support right-to-left locales.
@@ -559,7 +609,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Layout responsible for positioning of this View's children */
     protected open var layout: Layout? by observable(null) { _,_ ->
-        // TODO: Have RenderManager manage the layout?
         relayout()
     }
 
@@ -583,6 +632,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                     it.parent = this@View
                 }
 
+                renderManager?.childrenChanged(this@View, removed, added, moved)
                 (childrenChanged_ as ChildObserversImpl).invoke(removed, added, moved)
             }
         }
@@ -670,7 +720,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return The child (`null` if no child contains the given point)
      */
     protected open fun child(at: Point): View? = when {
-        false == childrenClipPoly?.contains(at) -> null
+        false == childrenClipPath?.contains(at) -> null
         else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
             null, Ignored -> {
                 var child     = null as View?
@@ -977,6 +1027,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
 
+    private fun notifySizePreferencesChanged(old: SizePreferences, new: SizePreferences) {
+        renderManager?.sizePreferencesChanged(this, old, new)
+
+        (sizePreferencesChanged as PropertyObserversImpl).forEach {
+            it(this, old, new)
+        }
+    }
+
     public companion object {
         /**
          * Delegate for properties that should trigger [View.styleChanged] when changed.
@@ -1041,6 +1099,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
     override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
 
     override operator fun setValue(thisRef: T, property: KProperty<*>, value: B?) {
+        thisRef.childrenClipPath_    = null
         thisRef.clipCanvasToBounds_  = true
         thisRef.mirrorWhenRightLeft_ = true
 
@@ -1052,6 +1111,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
 
         behavior = value?.also { behavior ->
             behavior.install(thisRef)
+            thisRef.childrenClipPath_    = behavior.childrenClipPath     (thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
         }
@@ -1080,3 +1140,18 @@ public class ViewBuilder internal constructor(): View() {
  * @param block used to configure the View
  */
 public fun view(block: ViewBuilder.() -> Unit): View = ViewBuilder().also(block)
+
+/**
+ * Scrolls the View to the given region if it is within a [ScrollPanel].
+ *
+ * @param rectangle within the View's coordinate space
+ */
+public fun View.scrollTo(rectangle: Rectangle) {
+    val ancestor = if (parent is ScrollPanel) this else mostRecentAncestor { it.parent is ScrollPanel }
+
+    ancestor?.let {
+        val pointInAncestor = it.toLocal(rectangle.position, from = this)
+
+        (it.parent as? ScrollPanel)?.scrollToVisible(rectangle.at(pointInAncestor))
+    }
+}

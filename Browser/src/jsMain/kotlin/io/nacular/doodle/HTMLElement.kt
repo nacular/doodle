@@ -1,6 +1,8 @@
 package io.nacular.doodle
 
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.utils.Orientation
+import io.nacular.doodle.utils.Orientation.Vertical
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -20,6 +22,7 @@ internal actual var CSSStyleDeclaration.willChange             : String by Dynam
 internal actual var CSSStyleDeclaration.scrollBehavior         : String by DynamicProperty("scroll-behavior"          ) { "" }
 internal actual var CSSStyleDeclaration.textDecorationThickness: String by DynamicProperty("text-decoration-thickness") { "" }
 internal actual var CSSStyleDeclaration.touchAction            : String by DynamicProperty("touch-action"             ) { "" }
+internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
 
 internal actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle
 
@@ -55,13 +58,38 @@ internal actual fun HTMLElement.stopMonitoringSize() {
 internal actual var HTMLElement.role: String? get() = getAttribute("role")
     set(new) {
         when (new) {
-            null -> removeAttribute("role"           )
-            else -> setAttribute   ("role", new ?: "")
+            null -> removeAttribute("role"     )
+            else -> setAttribute   ("role", new)
         }
     }
 
 internal actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) = this.addEventListener   (to, listener, jsObject { passive = false })
 internal actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) = this.removeEventListener(to, listener, jsObject { passive = false })
+
+
+
+internal actual var HTMLInputElement.orient: String? get() = getAttribute("orient")
+    set(new) {
+        when (new) {
+            null -> removeAttribute("orient"     )
+            else -> setAttribute   ("orient", new)
+        }
+    }
+
+internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) {
+    when (orientation) {
+        Vertical -> {
+            orient                   = "vertical"
+            style.writingMode        = "bt-lr"
+            style._webkit_appearance = "slider-vertical"
+        }
+        else -> {
+            orient                   = null
+            style.writingMode        = ""
+            style._webkit_appearance = ""
+        }
+    }
+}
 
 internal actual typealias ElementCreationOptions = org.w3c.dom.ElementCreationOptions
 

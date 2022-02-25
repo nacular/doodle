@@ -49,9 +49,11 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.math.max
@@ -242,12 +244,12 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setClipPath(polygon)
-    }
+    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) = clip(polygon.toPath(), block)
 
-    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setClipPath(ellipse)
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = clip(ellipse.toPath(), block)
+
+    override fun clip(path: Path, block: Canvas.() -> Unit) = subFrame(block) {
+        it.style.setClipPath(path)
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
@@ -354,30 +356,32 @@ internal open class CanvasImpl(
             it.clear()
         }
 
-        it.style.setTransform()
         it.style.filter = ""
+        it.style.setClipPath    (null)
+        it.style.setTransform   (    )
+        it.style.setBorderRadius(null)
     }
 
     private fun getRect(rectangle: Rectangle): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
         getRectElement().also {
             // This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
 
+            var width     = rectangle.width
+            var height    = rectangle.height
             var transform = Identity.translate(rectangle.position)
-            var width = rectangle.width
-            var height = rectangle.height
 
             if (rectangle.height < 1) {
-                height *= 2
-                transform = transform.scale(y = 0.5)
+                height    *= 2
+                transform  = transform.scale(y = 0.5)
             }
 
             if (rectangle.width < 1) {
-                width *= 2
-                transform = transform.scale(x = 0.5)
+                width     *= 2
+                transform  = transform.scale(x = 0.5)
             }
 
-            it.style.setSize(Size(width, height))
-            it.style.setTransform(transform)
+            it.style.setSize        (Size(width, height))
+            it.style.setTransform   (transform          )
         }
     }
 
@@ -405,6 +409,7 @@ internal open class CanvasImpl(
                 is Text -> element.style.textShadow += shadow
                 else    -> {
                     element.style.filter += "drop-shadow($shadow)"
+                    element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
                     element.style.setOverflow(Visible())
                 }
             }
@@ -478,8 +483,9 @@ internal open class CanvasImpl(
             result = image.cloneNode(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
-            result.src = image.src
-            result.style.filter = ""
+            result.src              = image.src
+            result.style.filter     = ""
+            result.style.willChange = ""
         }
 
         return result as HTMLImageElement

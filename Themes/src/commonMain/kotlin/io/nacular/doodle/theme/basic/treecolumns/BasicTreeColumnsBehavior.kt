@@ -26,11 +26,12 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.ListPositioner
+import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.utils.Path
 
 /**
@@ -71,12 +72,12 @@ public class BasicTreeColumnsBehavior<T>(
             iconFactory          : () -> TreeColumnRowIcon = { SimpleTreeColumnRowIcon() }
     ): this(BasicTreeColumnRowGenerator(focusManager, selectionColor, selectionBlurredColor, iconFactory), columnSeparatorColor, backgroundColor, rowHeight)
 
-    private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): ListPositioner(height, spacing), RowPositioner<T> {
-        override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.rowBounds(columnWidth, Insets(right = VERTICAL_LINE_THICKNESS), index, current)
+    private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): VerticalListPositioner(height, spacing = spacing), RowPositioner<T> {
+        override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.itemBounds(Size(columnWidth, height), Insets(right = VERTICAL_LINE_THICKNESS), index, current)
 
-        override fun row(of: TreeColumns<T, *>, path: Path<Int>, y: Double) = super.rowFor(Insets.None, y)
+        override fun row(of: TreeColumns<T, *>, path: Path<Int>, at: Point) = super.itemFor(Insets.None, at)
 
-        override fun totalRowHeight(of: TreeColumns<T, *>, path: Path<Int>) = super.totalHeight(of.numChildren(path), Insets.None)
+        override fun minimumSize(of: TreeColumns<T, *>, path: Path<Int>) = super.minimumSize(of.numChildren(path), Insets.None)
     }
 
     override val positioner: RowPositioner<T> = BasicTreeColumnPositioner(rowHeight)

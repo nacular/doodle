@@ -371,6 +371,7 @@ public fun <S, T> observable(initial: T, onChange: S.(old: T, new: T) ->Unit): R
 public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
     observers.forEach { it(thisRef, old, new) }
 }
+
 public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
     onChange(old, new)
     observers.forEach { it(thisRef, old, new) }

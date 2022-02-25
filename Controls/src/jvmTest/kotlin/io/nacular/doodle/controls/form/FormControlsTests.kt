@@ -439,8 +439,8 @@ class FormControlsTests {
         val onInvalid = mockk<(         ) -> Unit>(relaxed = true)
 
         Form { this (
-                listOf(1, 3, 23, 5) to list(1, 2, 3, 4, 5),
-                onInvalid = onInvalid
+            listOf(1, 3, 23, 5) to list(1, 2, 3, 4, 5),
+            onInvalid = onInvalid
         ) {
             onValid(it)
         } }

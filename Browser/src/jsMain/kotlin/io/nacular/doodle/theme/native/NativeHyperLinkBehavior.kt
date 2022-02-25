@@ -10,9 +10,6 @@ import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.focus.FocusManager
 
-@Deprecated("Replace with `NativeHyperLinkStyler`", replaceWith = ReplaceWith("NativeHyperLinkStyler"))
-public typealias NativeHyperLinkBehaviorBuilder = NativeHyperLinkStyler
-
 internal class NativeHyperLinkStylerImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
         NativeHyperLinkStyler {
     override fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink> = NativeHyperLinkBehaviorWrapper(

@@ -15,11 +15,8 @@ import io.nacular.doodle.layout.ConstraintBlockContext
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.HorizontalFlowLayout
 import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.utils.Extractor
 import kotlin.math.max
-
-// FIXME: Centralize
-@Deprecated(message = "Use io.nacular.doodle.utils.Extractor instead")
-public typealias Extractor<T, R> = T.() -> R
 
 public abstract class Field<T>: Positionable
 

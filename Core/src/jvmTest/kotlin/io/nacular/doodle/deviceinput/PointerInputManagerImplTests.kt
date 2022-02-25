@@ -212,33 +212,51 @@ class PointerInputManagerImplTests {
 
         manager.changed(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 0) { child.handlePointerEvent_(any()) }
+        verify(exactly = 0) {
+            child.filterPointerEvent_(any())
+            child.handlePointerEvent_(any())
+        }
     }
 
     @Test @JsName("pointerDownDisabledGoesToParent")
     fun `pointer down, disabled goes to parent`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
+        val grandParent  = spyk(Container())
         val parent       = spyk(Container())
         val child        = spyk(view())
 
-        every { display.child(any()) } returns parent
-        every { parent.child (any()) } returns child
-        every { child.parent         } returns parent
-        every { child.enabled        } returns false
+        every { display.child     (any()) } returns grandParent
+        every { grandParent.child (any()) } returns parent
+        every { parent.child      (any()) } returns child
+        every { parent.parent             } returns grandParent
+        every { child.parent              } returns parent
+        every { parent.enabled            } returns false
+        every { child.enabled             } returns false
 
-        parent.children  += child
-        display.children += parent
+        parent.children      += child
+        grandParent.children += parent
+        display.children     += grandParent
 
         val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
 
         manager.changed(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
-        verify(exactly = 0) { child.handlePointerEvent_(any()) }
+        verify(exactly = 0) {
+            child.filterPointerEvent_ (any())
+            child.handlePointerEvent_ (any())
+        }
+        verify(exactly = 0) {
+            parent.filterPointerEvent_(any())
+            parent.handlePointerEvent_(any())
+        }
 
         verify(ORDERED) {
-            parent.handlePointerEvent_(pointerEvent(parent, parent, id = 0, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
-            parent.handlePointerEvent_(pointerEvent(parent, parent, id = 0, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
+            grandParent.filterPointerEvent_(pointerEvent(grandParent, grandParent, id = 0, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
+            grandParent.handlePointerEvent_(pointerEvent(grandParent, grandParent, id = 0, Enter, Point(10.0, 10.0), Button1, 1, emptySet()))
+
+            grandParent.filterPointerEvent_(pointerEvent(grandParent, grandParent, id = 0, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
+            grandParent.handlePointerEvent_(pointerEvent(grandParent, grandParent, id = 0, Down,  Point(10.0, 10.0), Button1, 1, emptySet()))
         }
     }
 
@@ -292,7 +310,10 @@ class PointerInputManagerImplTests {
         verify(atLeast = 1) { inputService.toolTipText = "" }
 
         verify(ORDERED) {
+            parent.filterPointerEvent_(pointerEvent(parent, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
             parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+
+            parent.filterPointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
             parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
@@ -481,7 +502,6 @@ class PointerInputManagerImplTests {
         }
     }
 
-    // FIXME: Tried converting to pure mockk for child, but had internal jvm failures (likely issue /w mocck)
     @Test @Ignore @JsName("pointersCleanedUpWhenViewDisabled")
     fun `pointers cleaned up when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()

@@ -2,7 +2,7 @@ package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.LabelBehavior
-import io.nacular.doodle.controls.text.TextFit
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -109,13 +109,13 @@ public open class CommonLabelBehavior(
 
     override fun measureText(label: Label): Size {
         val height = when {
-            TextFit.Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width) else textMetrics.height(label.styledText)
-            else                                                  -> 0.0
+            Dimension.Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width) else textMetrics.height(label.styledText)
+            else                                                                -> 0.0
         }
 
         val width = when {
-            TextFit.Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width) else textMetrics.width(label.styledText)
-            else                                                    -> 0.0
+            Dimension.Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width) else textMetrics.width(label.styledText)
+            else                                                                  -> 0.0
         }
 
         return Size(width, height)

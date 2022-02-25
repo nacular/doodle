@@ -85,7 +85,7 @@ public open class Dropdown<T, M: ListModel<T>>(
     /**
      * Currently selected value
      */
-    public open val value: T get() = model[selection] as T // FIXME: Change ListModel so it just returns T and throws IndexOutOfBounds
+    public open val value: Result<T> get() = model[selection]
 
     /**
      * Defines how the contents within the drop-down box should be aligned.

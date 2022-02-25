@@ -56,7 +56,6 @@ import java.awt.font.TextAttribute.POSTURE_OBLIQUE
 import java.awt.font.TextAttribute.POSTURE_REGULAR
 import java.awt.font.TextAttribute.SIZE
 import java.awt.font.TextAttribute.WEIGHT
-import javax.swing.JComponent
 import org.jetbrains.skia.Font as SkiaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont
@@ -117,16 +116,20 @@ internal fun MouseEvent.update(target: Component, location: java.awt.Point): Mou
     else -> MouseEvent(target, id, `when`, modifiersEx, location.x, location.y, clickCount, isPopupTrigger)
 }
 
+private const val MAX_SKIA_FONT_WEIGHT = 1000f
+
 internal fun AwtFont.skiaStyle(): FontStyle {
-    val weight = when (val w = attributes[WEIGHT] as? Float?) {
-        null -> when (style) {
+    val w = attributes[WEIGHT] as? Float?
+
+    val weight = when {
+        w == null || w > 1f -> when (style) {
             AwtFont.PLAIN                 -> FontStyle.NORMAL
             AwtFont.BOLD                  -> FontStyle.BOLD
             AwtFont.ITALIC                -> FontStyle.ITALIC
             AwtFont.BOLD + AwtFont.ITALIC -> FontStyle.BOLD_ITALIC
             else                          -> FontStyle.NORMAL
         }.weight
-        else -> (w * 1000).toInt()
+        else -> (w * MAX_SKIA_FONT_WEIGHT).toInt()
     }
 
     return FontStyle(weight, size, (attributes[POSTURE] as? Float).let {
@@ -140,7 +143,7 @@ internal fun AwtFont.skiaStyle(): FontStyle {
 internal fun SkiaFont.toAwt() = AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to typefaceOrDefault.familyName,
-        WEIGHT  to typefaceOrDefault.fontStyle.weight / 1000f,
+        WEIGHT  to typefaceOrDefault.fontStyle.weight / MAX_SKIA_FONT_WEIGHT,
         POSTURE to typefaceOrDefault.fontStyle.slant.run {
             when (this) {
                 ITALIC  -> POSTURE_OBLIQUE
@@ -155,7 +158,7 @@ internal fun Font?.toAwt(default: SkiaFont) = when (this) {
     else -> AwtFont(mutableMapOf(
         SIZE    to size,
         FAMILY  to family,
-        WEIGHT  to weight / 1000f,
+        WEIGHT  to weight / MAX_SKIA_FONT_WEIGHT,
         POSTURE to style.run {
             when (this) {
                 Normal     -> POSTURE_REGULAR

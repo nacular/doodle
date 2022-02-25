@@ -66,10 +66,10 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
 
     override fun render(view: Dropdown<T, M>, canvas: Canvas) { delegate.render(view, canvas) }
 
-    override fun editingStarted(dropdown: MutableDropdown<T, M>): EditOperation<T>? {
+    override fun editingStarted(dropdown: MutableDropdown<T, M>, value: T): EditOperation<T>? {
         val center = delegate.visualizedValue(dropdown)!!
 
-        return dropdown.editor?.edit(dropdown, dropdown.value, center)?.also { operation ->
+        return dropdown.editor?.edit(dropdown, value, center)?.also { operation ->
             operation()?.let { delegate.updateCenter(dropdown, it) }
         }
     }

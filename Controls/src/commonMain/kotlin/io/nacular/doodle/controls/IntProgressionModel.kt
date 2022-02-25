@@ -5,7 +5,7 @@ import kotlin.collections.List
 internal class IntProgressionModel(private val progression: IntProgression): ListModel<Int> {
     override val size: Int = progression.run { (last - first) / step }
 
-    override fun get(index: Int): Int? = progression.elementAtOrNull(index)
+    override fun get(index: Int): Result<Int> = runCatching { progression.elementAt(index) }
 
     override fun section(range: ClosedRange<Int>): List<Int> = progression.asSequence().drop(range.start).take(range.endInclusive - range.start).toList()
 

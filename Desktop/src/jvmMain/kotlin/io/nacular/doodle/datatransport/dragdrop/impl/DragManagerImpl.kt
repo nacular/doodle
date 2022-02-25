@@ -20,8 +20,8 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.swing.location
-import io.nacular.doodle.system.PointerInputService
-import io.nacular.doodle.system.impl.toDoodle
+import io.nacular.doodle.system.SystemInputEvent
+import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.measured.units.BinarySize.Companion.bytes
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
@@ -30,7 +30,7 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaWindow
+import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.toBufferedImage
 import java.awt.Cursor
 import java.awt.datatransfer.DataFlavor
@@ -64,7 +64,7 @@ import java.awt.Point as AwtPoint
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-        private val window             : SkiaWindow,
+        private val skiaLayer          : SkiaLayer,
         private val viewFinder         : ViewFinder,
         private val defaultFont        : Font,
         private val fontCollection     : FontCollection): DragManager, DragGestureListener {
@@ -169,9 +169,9 @@ internal class DragManagerImpl(
     }
 
     init {
-        dragSource.createDefaultDragGestureRecognizer(window.layer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
+        dragSource.createDefaultDragGestureRecognizer(skiaLayer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
 
-        window.layer.transferHandler = object: TransferHandler() {
+        skiaLayer.transferHandler = object: TransferHandler() {
             override fun canImport(support: TransferSupport): Boolean {
                 (dragOperation?.bundle ?: createBundle(support)).let {
                     if (currentDropHandler == null) {
@@ -222,13 +222,13 @@ internal class DragManagerImpl(
         }
 
         val mouseEvent = event.triggerEvent as? MouseEvent
-        val location   = mouseEvent?.location(window) ?: return
+        val location   = mouseEvent?.location(skiaLayer) ?: return
 
         viewFinder.find(location).let {
             var view = it
 
             while (view != null) {
-                if (tryDrag(view, PointerEvent(view, mouseEvent.toDoodle(window)), event)) {
+                if (tryDrag(view, PointerEvent(view, mouseEvent.toDoodle(skiaLayer)), event)) {
                     break
                 }
 
@@ -374,5 +374,46 @@ internal class DragManagerImpl(
         }
 
         return if (handler != null && current != null) current to handler else null
+    }
+
+    private val MouseEvent.type: SystemPointerEvent.Type
+        get() = when (id) {
+            MouseEvent.MOUSE_ENTERED  -> SystemPointerEvent.Type.Enter
+            MouseEvent.MOUSE_EXITED   -> SystemPointerEvent.Type.Exit
+            MouseEvent.MOUSE_PRESSED  -> SystemPointerEvent.Type.Down
+            MouseEvent.MOUSE_RELEASED -> SystemPointerEvent.Type.Up
+            MouseEvent.MOUSE_CLICKED  -> SystemPointerEvent.Type.Click
+            MouseEvent.MOUSE_DRAGGED  -> SystemPointerEvent.Type.Drag
+            else                      -> SystemPointerEvent.Type.Move
+        }
+
+    private fun MouseEvent.toDoodle(window: SkiaLayer, type: SystemPointerEvent.Type = this.type): SystemPointerEvent {
+        var buttons = when (button) {
+            1    -> setOf(SystemPointerEvent.Button.Button1)
+            2    -> setOf(SystemPointerEvent.Button.Button2)
+            3    -> setOf(SystemPointerEvent.Button.Button3)
+            else -> emptySet()
+        }
+
+        // FIXME: Change browser behavior to track released button instead of doing this
+        if (type == SystemPointerEvent.Type.Up) {
+            buttons = emptySet()
+        }
+
+        val modifiers = mutableSetOf<SystemInputEvent.Modifier>()
+
+        if (isShiftDown  ) modifiers += SystemInputEvent.Modifier.Shift
+        if (isAltDown    ) modifiers += SystemInputEvent.Modifier.Alt
+        if (isMetaDown   ) modifiers += SystemInputEvent.Modifier.Meta
+        if (isControlDown) modifiers += SystemInputEvent.Modifier.Ctrl
+
+        return SystemPointerEvent(
+                id                = 0,
+                type              = type,
+                location          = location(window),
+                buttons           = buttons,
+                clickCount        = clickCount,
+                modifiers         = modifiers,
+                nativeScrollPanel = false)
     }
 }

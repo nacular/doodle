@@ -18,6 +18,7 @@ import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 4/25/19.
@@ -33,7 +34,7 @@ private class BasicCheckBoxIcon(
         private val disabledColorMapper: ColorMapper
 ): Icon<CheckBox> {
 
-    override fun size(view: CheckBox) = size_(view) //Size(maxOf(0.0, minOf(view.height * (1 - iconInset), view.width * (1 - iconInset))))
+    override fun size(view: CheckBox) = size_(view)
 
     private fun fillColor(view: CheckBox): Color {
         val model       = view.model
@@ -96,18 +97,18 @@ private class BasicCheckBoxIcon(
     }
 }
 
-public class BasicCheckBoxBehavior private constructor(
+public class BasicCheckBoxBehavior(
         textMetrics        : TextMetrics,
-        foregroundColor    : Color,
-        backgroundColor    : Color,
-        darkBackgroundColor: Color,
-        cornerRadius       : Double,
-        iconSpacing        : Double,
-        checkInset         : (CheckBox) -> Float,
-        size               : (CheckBox) -> Size = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-        hoverColorMapper   : ColorMapper,
-        disabledColorMapper: ColorMapper,
-        focusManager       : FocusManager? = null,
+        foregroundColor    : Color               = Black,
+        backgroundColor    : Color               = Lightgray,
+        darkBackgroundColor: Color               = backgroundColor.darker(),
+        cornerRadius       : Double              = 4.0,
+        iconSpacing        : Double              = 8.0,
+        checkInset         : (CheckBox) -> Float = { 0.5f },
+        iconSize           : (CheckBox) -> Size  = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+        hoverColorMapper   : ColorMapper         = { it.darker(0.1f) },
+        disabledColorMapper: ColorMapper         = { it.lighter()    },
+        focusManager       : FocusManager?       = null,
 ): CheckRadioButtonBehavior<CheckBox>(
         textMetrics,
         foregroundColor,
@@ -117,7 +118,7 @@ public class BasicCheckBoxBehavior private constructor(
                 darkBackgroundColor = darkBackgroundColor,
                 cornerRadius        = cornerRadius,
                 checkInset          = checkInset,
-                size_               = size,
+                size_               = iconSize,
                 hoverColorMapper    = hoverColorMapper,
                 disabledColorMapper = disabledColorMapper
         ),
@@ -125,85 +126,11 @@ public class BasicCheckBoxBehavior private constructor(
         disabledColorMapper,
         focusManager
 ) {
-    @Deprecated("Use constructor with size instead")
-    public constructor(
-            textMetrics        : TextMetrics,
-            foregroundColor    : Color         = Black,
-            backgroundColor    : Color         = Lightgray,
-            darkBackgroundColor: Color         = backgroundColor.darker(),
-            cornerRadius       : Double        = 4.0,
-            iconSpacing        : Double        = 8.0,
-            checkInset         : Float         = 0.5f,
-            iconInset          : Float         = 0.0f,
-            hoverColorMapper   : ColorMapper   = { it.darker(0.1f) },
-            disabledColorMapper: ColorMapper   = { it.lighter() },
-            focusManager       : FocusManager? = null) : this(
-            textMetrics         = textMetrics,
-            foregroundColor     = foregroundColor,
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            cornerRadius        = cornerRadius,
-            iconSpacing         = iconSpacing,
-            checkInset          = { checkInset },
-            size                = { Size(maxOf(0.0, minOf(it.height * (1 - iconInset), it.width * (1 - iconInset)))) },
-            hoverColorMapper    = hoverColorMapper,
-            disabledColorMapper = disabledColorMapper,
-            focusManager        = focusManager
-    )
-
     override fun mirrorWhenRightToLeft(view: CheckBox): Boolean = false
 
-    public companion object {
-        public operator fun invoke(
-            textMetrics        : TextMetrics,
-            foregroundColor    : Color         = Black,
-            backgroundColor    : Color         = Lightgray,
-            darkBackgroundColor: Color         = backgroundColor.darker(),
-            cornerRadius       : Double        = 4.0,
-            iconSpacing        : Double        = 8.0,
-            checkInset         : Float         = 0.5f,
-            iconInset          : Float         = 0.0f,
-            hoverColorMapper   : ColorMapper   = { it.darker(0.1f) },
-            disabledColorMapper: ColorMapper   = { it.lighter() },
-            focusManager       : FocusManager? = null,
-        ): BasicCheckBoxBehavior = BasicCheckBoxBehavior(
-                textMetrics,
-                foregroundColor,
-                backgroundColor,
-                darkBackgroundColor,
-                cornerRadius,
-                iconSpacing,
-                checkInset,
-                iconInset,
-                hoverColorMapper,
-                disabledColorMapper,
-                focusManager
-        )
+    override fun install(view: CheckBox) {
+        super.install(view)
 
-        public operator fun invoke(
-            textMetrics        : TextMetrics,
-            foregroundColor    : Color               = Black,
-            backgroundColor    : Color               = Lightgray,
-            darkBackgroundColor: Color               = backgroundColor.darker(),
-            cornerRadius       : Double              = 4.0,
-            iconSpacing        : Double              = 8.0,
-            checkInset         : (CheckBox) -> Float = { 0.5f },
-            size               : (CheckBox) -> Size  = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-            hoverColorMapper   : ColorMapper         = { it.darker(0.1f) },
-            disabledColorMapper: ColorMapper         = { it.lighter()    },
-            focusManager       : FocusManager?       = null,
-        ): BasicCheckBoxBehavior = BasicCheckBoxBehavior(
-                textMetrics,
-                foregroundColor,
-                backgroundColor,
-                darkBackgroundColor,
-                cornerRadius,
-                iconSpacing,
-                checkInset,
-                size,
-                hoverColorMapper,
-                disabledColorMapper,
-                focusManager
-        )
+        view.idealSize = view.idealSize?.run { Size(max(16.0, width), max(16.0, height)) }
     }
 }

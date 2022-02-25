@@ -16,16 +16,19 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constant
 import io.nacular.doodle.layout.constrain
 import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import kotlin.Result.Companion.failure
 
 /**
  * Created by Nicholas Eddy on 5/5/19.
@@ -45,7 +48,7 @@ private class TreePathIterator(private val tree: TreeLike): Iterator<Path<Int>> 
 private class TreeModelIterator<T>(private val model: TreeModel<T>, private val iterator: TreePathIterator): Iterator<T> {
     override fun hasNext() = iterator.hasNext()
 
-    override fun next() = model[iterator.next()]!!
+    override fun next() = model[iterator.next()].getOrNull()!!
 }
 
 public fun <T, R> Iterator<T>.map(mapper: (T) -> R): Iterator<R> = object: Iterator<R> {
@@ -57,7 +60,7 @@ public fun <T, R> Iterator<T>.map(mapper: (T) -> R): Iterator<R> = object: Itera
 public fun <T, R: Any> Iterator<T>.mapNotNull(mapper: (T) -> R?): Iterator<R> = this.asSequence().mapNotNull(mapper).iterator()
 
 public fun <T, R> TreeModel<T>.map(mapper: (T) -> R): TreeModel<R> = object: TreeModel<R> {
-    override fun get(path: Path<Int>): R? = this@map[path]?.let(mapper)
+    override fun get(path: Path<Int>): Result<R> = this@map[path].map(mapper)
 
     override fun isEmpty() = this@map.isEmpty()
 
@@ -65,7 +68,7 @@ public fun <T, R> TreeModel<T>.map(mapper: (T) -> R): TreeModel<R> = object: Tre
 
     override fun isLeaf(node: Path<Int>) = this@map.isLeaf(node)
 
-    override fun child(of: Path<Int>, path: Int) = this@map.child(of, path)?.let(mapper)
+    override fun child(of: Path<Int>, path: Int) = this@map.child(of, path).map(mapper)
 
     override fun numChildren(of: Path<Int>) = this@map.numChildren(of)
 
@@ -127,9 +130,9 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     public fun children(parent: Path<Int>): Iterator<T> = model.children(parent)
 
-    public fun child       (of    : Path<Int>, path : Int): T?  = model.child       (of,     path )
-    public fun numChildren (of    : Path<Int>            ): Int = model.numChildren (of           )
-    public fun indexOfChild(parent: Path<Int>, child: T  ): Int = model.indexOfChild(parent, child)
+    public fun child       (of    : Path<Int>, path : Int): Result<T> = model.child       (of,     path )
+    public fun numChildren (of    : Path<Int>            ): Int       = model.numChildren (of           )
+    public fun indexOfChild(parent: Path<Int>, child: T  ): Int       = model.indexOfChild(parent, child)
 
     override fun expanded(path: Path<Int>): Boolean = tree.expanded(path)
     override fun collapse(path: Path<Int>): Unit    = tree.collapse(path)
@@ -148,7 +151,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     override fun next           (after : Path<Int>     ): Path<Int>? = tree.next           (after )
     override fun previous       (before: Path<Int>     ): Path<Int>? = tree.previous       (before)
 
-    override val selection      : Set<Path<Int>> get() = tree.selection
+    override val selection      : Set<Path<Int>> get() = tree.selection.toSet()
     override val lastSelection  : Path<Int>?     get() = tree.lastSelection
     override val firstSelection : Path<Int>?     get() = tree.firstSelection
     override val selectionAnchor: Path<Int>?     get() = tree.selectionAnchor
@@ -272,13 +275,13 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                     }
 
                     override val positioner get() = object: TreeBehavior.RowPositioner<R>() {
-                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path]!!, index).run { Rectangle(0.0, y, tree.width, height) }
+                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path].getOrNull()!!, index).run { Rectangle(0.0, y, tree.width, height) }
 
                         override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = rowBounds(tree, node, path, index, current) // FIXME
 
-                        override fun row(of: Tree<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
+                        override fun row(of: Tree<R, *>, at: Point) = it.rowPositioner.row(this@TreeTable, at)
 
-                        override fun height(of: Tree<R, *>, below: Path<Int>) = it.rowPositioner.height(this@TreeTable, below)
+                        override fun minimumSize(of: Tree<R, *>, below: Path<Int>) = it.rowPositioner.size(this@TreeTable, below)
                     }
 
                     override fun render(view: Tree<R, *>, canvas: Canvas) {
@@ -321,7 +324,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
                     // FIXME: This is way too expensive for large trees
                     changed.forEach {
-                        it(this, emptyMap(), added.associate { rowFromPath(it)!! to extractor(model[it]!!) }, emptyMap())
+                        it(this, emptyMap(), added.associate { rowFromPath(it)!! to extractor(model[it].getOrNull()!!) }, emptyMap())
                     }
                 }
 
@@ -334,7 +337,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
                     // FIXME: This is way too expensive for large trees
                     changed.forEach {
-                        it(this, removed.associate { (index, path) -> index to extractor(model[path]!!) }, emptyMap(), emptyMap())
+                        it(this, removed.associate { (index, path) -> index to extractor(model[path].getOrNull()!!) }, emptyMap(), emptyMap())
                     }
                 }
             }
@@ -343,7 +346,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
             override val size get() = numRows
 
-            override fun get(index: Int) = pathFromRow(index)?.let { model[it]?.let(extractor) }
+            override fun get(index: Int) = pathFromRow(index)?.let { model[it].map(extractor) } ?: failure(IndexOutOfBoundsException())
 
             override fun section(range: ClosedRange<Int>) = iterator().asSequence().toList().subList(range.start, range.endInclusive + 1)
 
@@ -355,15 +358,15 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
         override val view = DynamicList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
             override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache, fitContent = false).apply {
+        }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache, fitContent = emptySet()).apply {
             acceptsThemes = false
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.RowGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, row, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
+                    override val generator get() = object: ListBehavior.ItemGenerator<R> {
+                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
                             override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
                                 override val column = this@InternalListColumn
                                 override val index = index
@@ -372,12 +375,10 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                         }, current)
                     }
 
-                    override val positioner get() = object: ListBehavior.RowPositioner<R> {
-                        override fun rowBounds(of: io.nacular.doodle.controls.list.List<R, *>, row: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!]!!, index).run { Rectangle(0.0, y, of.width, height) }
-
-                        override fun row(of: io.nacular.doodle.controls.list.List<R, *>, atY: Double) = it.rowPositioner.rowFor(this@TreeTable, atY)
-
-                        override fun totalRowHeight(of: io.nacular.doodle.controls.list.List<R, *>) = it.rowPositioner.height(this@TreeTable, below = Path())
+                    override val positioner get() = object: ListBehavior.ItemPositioner<R> {
+                        override fun itemBounds (of: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
+                        override fun item       (of: io.nacular.doodle.controls.list.List<R, *>, at: Point                       ) = it.rowPositioner.row      (this@TreeTable, at)
+                        override fun minimumSize(of: io.nacular.doodle.controls.list.List<R, *>                                  ) = it.rowPositioner.size     (this@TreeTable, below = Path())
                     }
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
@@ -395,9 +396,9 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     override val numRows: Int get() = tree.numRows
 
-    public operator fun get(path: Path<Int>): T? = model[path]
+    public operator fun get(path: Path<Int>): Result<T> = model[path]
 
-    public operator fun get(row: Int): T? = pathFromRow(row)?.let { model[it] }
+    public operator fun get(row: Int): Result<T> = pathFromRow(row)?.let { model[it] } ?: failure(IndexOutOfBoundsException())
 
     override fun pathFromRow(index: Int): Path<Int>? = tree.pathFromRow(index)
 

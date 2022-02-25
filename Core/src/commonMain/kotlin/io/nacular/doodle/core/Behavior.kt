@@ -1,6 +1,8 @@
 package io.nacular.doodle.core
 
+import io.nacular.doodle.core.View.ClipPath
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 
 /**
@@ -15,6 +17,14 @@ public interface Behavior<in T: View> {
      * @see View.clipCanvasToBounds
      */
     public fun clipCanvasToBounds(view: T): Boolean = view.clipCanvasToBounds_
+
+    /**
+     * Allows the Behavior to override the View's [View.childrenClipPath] property.
+     *
+     * @param view being controlled
+     * @see View.childrenClipPath
+     */
+    public fun childrenClipPath(view: T): ClipPath? = view.childrenClipPath_
 
     /**
      * Allows the Behavior to override the View's [View.mirrorWhenRightLeft] property.
