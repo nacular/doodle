@@ -113,7 +113,7 @@ fun PublicationContainer.jvmOs(name: String, skikoArtifactId: String) {
                     appendNode("groupId",    "org.jetbrains.skiko")
                     appendNode("artifactId", skikoArtifactId      )
                     appendNode("version",    skikoVersion         )
-                    appendNode("scope",      "runtime"            )
+                    appendNode("scope",      "compile"            )
                 }
             }
         }
