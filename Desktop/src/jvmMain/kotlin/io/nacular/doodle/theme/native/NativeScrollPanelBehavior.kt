@@ -73,7 +73,7 @@ internal class NativeScrollPanelBehavior(
             public override fun paintComponent(g: Graphics) {}
         }
 
-        var corner       = JPanel().apply {
+        var corner = JPanel().apply {
             background = horizontalScrollBar.background ?: this@JScrollPanePeer.background
         }
         var viewPortView = ViewPortComponent()
