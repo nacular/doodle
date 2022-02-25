@@ -53,6 +53,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.math.max
@@ -408,6 +409,7 @@ internal open class CanvasImpl(
                 is Text -> element.style.textShadow += shadow
                 else    -> {
                     element.style.filter += "drop-shadow($shadow)"
+                    element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
                     element.style.setOverflow(Visible())
                 }
             }
@@ -481,8 +483,9 @@ internal open class CanvasImpl(
             result = image.cloneNode(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
-            result.src = image.src
-            result.style.filter = ""
+            result.src              = image.src
+            result.style.filter     = ""
+            result.style.willChange = ""
         }
 
         return result as HTMLImageElement
