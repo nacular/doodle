@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.panels
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -55,9 +56,13 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  */
 @Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
+    private val parentChanged: (View, View?, View?) -> Unit = { view,old,new ->
+        if (old == this) this.content = null
+        if (new == this) this.content = view
+    }
+
     private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
         if (matchContentIdealSize) idealSize = new.idealSize
-        relayout()
     }
 
     /** The content being shown within the panel */
@@ -72,8 +77,9 @@ public open class ScrollPanel(content: View? = null): View() {
             }
 
             field?.let {
-                children -= it
+                it.parentChange           -= parentChanged
                 it.sizePreferencesChanged -= sizePreferencesListener
+                children -= it
                 (layout as? ViewLayout)?.clearConstrains()
             }
 
@@ -82,6 +88,7 @@ public open class ScrollPanel(content: View? = null): View() {
 
             field?.let {
                 children += it
+                it.parentChange           +=  parentChanged
                 it.sizePreferencesChanged += sizePreferencesListener
                 (layout as? ViewLayout)?.updateConstraints()
             }
@@ -251,6 +258,8 @@ public open class ScrollPanel(content: View? = null): View() {
         init {
             updateConstraints()
         }
+
+        override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = new.idealSize != old.idealSize && matchContentIdealSize
 
         override fun layout(container: PositionableContainer) {
             delegate?.layout(container)

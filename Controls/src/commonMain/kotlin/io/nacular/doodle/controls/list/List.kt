@@ -201,6 +201,7 @@ public open class List<T, out M: ListModel<T>>(
         val oldSize = minimumSize
 
         minimumSize = itemPositioner?.minimumSize(this) ?: minimumSize
+        idealSize   = minimumSize
 
         if (oldSize == minimumSize) {
             // FIXME: This reset logic could be handled better
@@ -230,6 +231,18 @@ public open class List<T, out M: ListModel<T>>(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        sizePreferencesChanged += { _,old,new ->
+            if (new.minimumSize != old.minimumSize) {
+                if (Width in fitContent) {
+                    width = new.minimumSize.width
+                }
+
+                if (Height in fitContent) {
+                    height = new.minimumSize.height
                 }
             }
         }
@@ -288,6 +301,10 @@ public open class List<T, out M: ListModel<T>>(
                 model[lastVisibleItem].onSuccess { maxVisiblePoint = positioner.itemBounds(this, it, lastVisibleItem).run { Point(right, bottom) } }
             }
 
+            // reset size info
+            maxRight  = 0.0
+            maxBottom = 0.0
+
             if (oldFirst > firstVisibleItem) {
                 val end = min(oldFirst, lastVisibleItem)
 
@@ -327,16 +344,10 @@ public open class List<T, out M: ListModel<T>>(
 
             maxRight    = max(maxRight,  view.bounds.right )
             maxBottom   = max(maxBottom, view.bounds.bottom)
-            minimumSize = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
-            idealSize   = minimumSize
 
-            if (Width in fitContent) {
-                width = minimumSize.width
-            }
-
-            if (Height in fitContent) {
-                height = minimumSize.height
-            }
+            val mSize   = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
+            idealSize   = mSize
+            minimumSize = mSize
         }
     }
 
