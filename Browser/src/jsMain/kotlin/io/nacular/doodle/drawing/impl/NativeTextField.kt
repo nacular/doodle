@@ -298,8 +298,6 @@ internal class NativeTextField(
     override fun onInput(event: Event) = true.also { syncTextField() }
 
     override fun onFocusGained(event: Event) = true.also {
-        println("onFocusGained")
-
         elementFocused = true
 
         mobileKeyboardManager.hide()
