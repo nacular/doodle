@@ -75,6 +75,8 @@ internal open class CanvasImpl(
         override var renderPosition get() = this@CanvasImpl.renderPosition
             set(new) { this@CanvasImpl.renderPosition = new }
 
+        override val isRawData get() = this@CanvasImpl.isRawData
+
         override fun markDirty() { vectorRenderDirty = true }
     }
 
@@ -82,6 +84,7 @@ internal open class CanvasImpl(
     private val shadows           = mutableListOf<Shadow>()
     private var renderRegion      = renderParent
     private var renderPosition    = null as Node?
+    private var isRawData         = false
     private val vectorRenderer    by lazy { rendererFactory(Context()) }
 
     private var innerShadowCount  = 0
@@ -216,6 +219,7 @@ internal open class CanvasImpl(
 
         vectorRenderDirty = false
         vectorRenderer.clear()
+        isRawData = false // HACK: must be reset after vectorRenderer clear
     }
 
     override fun flush() {
@@ -265,23 +269,23 @@ internal open class CanvasImpl(
     }
 
     override fun addData(elements: List<HTMLElement>, at: Point) = elements.forEach { element ->
+        isRawData = true // HACK: to communicate to vectorRenderer that it should not dig into the current element
         updateRenderPosition()
 
         if (at.y != 0.0 ) element.style.setTop (element.top  + at.y)
         if (at.x != 0.0 ) element.style.setLeft(element.left + at.x)
 
-        if (renderPosition != null) {
-            renderPosition?.let {
-                val nextSibling = it.nextSibling
+        when (val position = renderPosition) {
+            null -> renderRegion.add(element)
+            else -> {
+                val nextSibling = position.nextSibling
 
-                if (element !== it) {
-                    renderRegion.replaceChild(element, it)
+                if (element !== position) {
+                    renderRegion.replaceChild(element, position)
                 }
 
                 renderPosition = nextSibling
             }
-        } else {
-            renderRegion.add(element)
         }
     }.also {
         vectorRenderer.flush()

@@ -225,7 +225,8 @@ internal open class VectorRendererSvg constructor(
         svgElement          = null
         shadows.clear()
 
-        if (renderPosition != null) {
+        // HACK: to avoid interpreting the contents of an 'opaque' element
+        if (renderPosition != null && !context.isRawData) {
             findSvgDepthFirst(context.renderRegion)?.let {
                 rootSvgElement      = it
                 svgElement          = it
@@ -838,6 +839,7 @@ internal open class VectorRendererSvg constructor(
                     override var renderPosition: Node? = pattern
                     override val shadows get() = context.shadows
                     override fun markDirty() = context.markDirty()
+                    override val isRawData get() = context.isRawData
                 }, svgFactory, htmlFactory, textMetrics, idGenerator, pattern))
 
                 return pattern

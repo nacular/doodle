@@ -13,6 +13,7 @@ internal interface CanvasContext {
     val shadows       : List<Shadow>
     val renderRegion  : Node
     var renderPosition: Node?
+    val isRawData     : Boolean
 
     fun markDirty()
 }
