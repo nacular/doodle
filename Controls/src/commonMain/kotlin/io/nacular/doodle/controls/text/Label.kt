@@ -1,7 +1,5 @@
 package io.nacular.doodle.controls.text
 
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -11,10 +9,13 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.utils.Dimension
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
+import io.nacular.doodle.utils.dimensionSetProperty
 import io.nacular.doodle.utils.observable
 
 
@@ -34,11 +35,7 @@ public open class Label(
             verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment = Center): this(StyledText(text), verticalAlignment, horizontalAlignment)
 
-    public var fitText: Set<Dimension> = setOf(Width, Height)
-        set(new) {
-            field = new
-            measureText()
-        }
+    public var fitText: Set<Dimension> by dimensionSetProperty(setOf(Width, Height)) { _,_ -> measureText() }
 
     public var text: String get() = styledText.text
         set(new) {

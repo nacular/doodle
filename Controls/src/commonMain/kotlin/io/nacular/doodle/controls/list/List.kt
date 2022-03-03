@@ -15,6 +15,7 @@ import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -34,6 +35,7 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.addOrAppend
+import io.nacular.doodle.utils.dimensionSetProperty
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
@@ -130,7 +132,7 @@ public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Int>?            = null,
-        private        val fitContent    : Set<Dimension>                  = setOf(Width, Height),
+                           fitContent    : Set<Dimension>                  = setOf(Width, Height),
         private        val scrollCache   : Int                             = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
@@ -148,10 +150,17 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
+    private val fitContent: Set<Dimension> by dimensionSetProperty(fitContent)
+
     private   var itemGenerator : ItemGenerator <T>? = null
     private   var itemPositioner: ItemPositioner<T>? = null
-    private   var minVisiblePoint  = Origin
-    private   var maxVisiblePoint  = Origin
+
+    private   var maxRight           = 0.0
+    private   var maxBottom          = 0.0
+    private   var minVisiblePoint    = Origin
+    private   var maxVisiblePoint    = Origin
+    private   var handlingRectChange = false
+
 
     protected var firstVisibleItem: Int =  0
     protected var lastVisibleItem : Int = -1
@@ -222,6 +231,9 @@ public open class List<T, out M: ListModel<T>>(
         monitorsDisplayRect = true
 
         layout = object: Layout {
+            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle,       new: Rectangle      ) = !handlingRectChange
+            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = !handlingRectChange
+
             override fun layout(container: PositionableContainer) {
                 (firstVisibleItem .. lastVisibleItem).forEach {
                     if (it < model.size) {
@@ -305,6 +317,8 @@ public open class List<T, out M: ListModel<T>>(
             maxRight  = 0.0
             maxBottom = 0.0
 
+            handlingRectChange = true
+
             if (oldFirst > firstVisibleItem) {
                 val end = min(oldFirst, lastVisibleItem)
 
@@ -326,11 +340,10 @@ public open class List<T, out M: ListModel<T>>(
                     update(children, it)
                 }
             }
+
+            handlingRectChange = false
         }
     }
-
-    private var maxRight  = 0.0
-    private var maxBottom = 0.0
 
     private fun maxWithNull(first: Double?, second: Double?): Double? = when {
         first != null && second != null -> max(first, second)

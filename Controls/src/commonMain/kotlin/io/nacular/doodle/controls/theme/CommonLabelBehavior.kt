@@ -2,7 +2,6 @@ package io.nacular.doodle.controls.theme
 
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.LabelBehavior
-import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -15,6 +14,8 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.TextDecoration
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.HorizontalAlignment.Right
@@ -109,13 +110,13 @@ public open class CommonLabelBehavior(
 
     override fun measureText(label: Label): Size {
         val height = when {
-            Dimension.Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width) else textMetrics.height(label.styledText)
-            else                                                                -> 0.0
+            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width) else textMetrics.height(label.styledText)
+            else                                                      -> 0.0
         }
 
         val width = when {
-            Dimension.Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width) else textMetrics.width(label.styledText)
-            else                                                                  -> 0.0
+            Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width) else textMetrics.width(label.styledText)
+            else                                                        -> 0.0
         }
 
         return Size(width, height)
