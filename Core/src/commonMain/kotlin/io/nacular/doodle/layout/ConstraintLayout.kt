@@ -166,35 +166,35 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
 
     private fun constraints(child: View, vararg others: View): List<Constraints> {
         child.parent?.let {
-                val parent = ParentConstraintsImpl(it)
+            val parent = ParentConstraintsImpl(it)
 
-                val children = arrayOf(child) + others
+            val children = arrayOf(child) + others
 
-                val constraints = children.filter { it.parent == parent.target }.map {
-                    it.parentChange += parentChanged_
+            val constraints = children.filter { it.parent == parent.target }.map {
+                it.parentChange += parentChanged_
 
-                    constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
-                }
+                constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
+            }
 
-                if (constraints.size != children.size) {
-                    throw Exception("Must all share same parent")
-                }
+            if (constraints.size != children.size) {
+                throw Exception("Must all share same parent")
+            }
 
             return constraints
         } ?: child.display?.let { display ->
-                val parent = displayConstraints ?: DisplayConstraints(display).also { displayConstraints = it }
+            val parent = displayConstraints ?: DisplayConstraints(display).also { displayConstraints = it }
 
-                val children = arrayOf(child) + others
+            val children = arrayOf(child) + others
 
-                val constraints = children.filter { it.parent == null && it.displayed }.map {
-                    it.parentChange += parentChanged_
+            val constraints = children.filter { it.parent == null && it.displayed }.map {
+                it.parentChange += parentChanged_
 
-                    constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
-                }
+                constraints.getOrPut(it) { ConstraintsImpl(it, parent) }
+            }
 
-                if (constraints.size != children.size) {
-                    throw Exception("Must all be displayed")
-                }
+            if (constraints.size != children.size) {
+                throw Exception("Must all be displayed")
+            }
 
             return constraints
         } ?: throw Exception("Must all share same parent")
@@ -211,7 +211,7 @@ private class ConstraintLayoutImpl(vararg constraints: ConstraintsImpl): Constra
 }
 
 public open class Constraint(internal val target: View, dependencies: Set<View> = emptySet(), internal val default: Boolean = true, internal var block: (View) -> Double) {
-    internal val dependencies by lazy { mutableSetOf(target) + dependencies }
+    internal val dependencies: Set<View> by lazy { HashSet(dependencies).apply { add(target) } }
 
     internal operator fun invoke() = block(target)
 }
