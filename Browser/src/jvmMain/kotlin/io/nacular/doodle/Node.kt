@@ -35,6 +35,7 @@ public actual abstract class Node {
     public actual fun replaceChild(node: Node, child: Node): Node = child
 
     public actual val nextSibling: Node? = null
+    public actual var textContent: String? = ""
 }
 
 public actual fun Node.clear() {}

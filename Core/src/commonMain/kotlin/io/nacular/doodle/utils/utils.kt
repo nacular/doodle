@@ -110,7 +110,7 @@ public fun Regex.splitMatches(input: CharSequence, limit: Int = 0): MatchResult 
     var lastStart = 0
 
     for (match in matches) {
-        chunks.add(MatchedChunk(input.subSequence(lastStart, match.range.first).toString(), match.value))
+        chunks.add(MatchedChunk("${input.subSequence(lastStart, match.range.first)}", match.value))
         lastStart = match.range.last + 1
     }
 

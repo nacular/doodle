@@ -162,7 +162,7 @@ public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>
     }
 
     public companion object {
-        public operator fun <T: Comparable<T>> invoke(                       ): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }          )
-        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSetJs<T> = TreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
+        public operator fun <T: Comparable<T>> invoke(                       ): TreeSetJs<T> = TreeSetJs { a, b -> a.compareTo(b) }
+        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): TreeSetJs<T> = TreeSetJs({ a, b -> a.compareTo(b) }, elements)
     }
 }

@@ -252,7 +252,7 @@ public class AffineTransform internal constructor(internal val matrix: AffineMat
         else       -> this(polygon.points).let { ConvexPolygon(it[0], it[1], it[2], *it.subList(3, it.size).toTypedArray()) }
     }
 
-    override fun toString(): String = matrix.toString()
+    override fun toString(): String = "$matrix"
 
     override fun hashCode(): Int = matrix.hashCode()
 

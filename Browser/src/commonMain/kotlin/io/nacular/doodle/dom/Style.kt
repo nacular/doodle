@@ -71,18 +71,14 @@ internal fun Style.setPosition(point: Point) {
     }
 }
 
-internal inline fun Style.setTopPercent   (percent: Double        ) { top    = "$percent%" }
-internal inline fun Style.setLeftPercent  (percent: Double        ) { left   = "$percent%" }
-internal inline fun Style.setRightPercent (percent: Double        ) { right  = "$percent%" }
 internal inline fun Style.setWidthPercent (percent: Double? = null) { width  = percent?.let { "$it%" } ?: "" }
 internal inline fun Style.setHeightPercent(percent: Double? = null) { height = percent?.let { "$it%" } ?: "" }
-internal inline fun Style.setBottomPercent(percent: Double        ) { bottom = "$percent%" }
 
 internal fun rgba(color: Color) = color.run { "rgba($red,$green,$blue,$opacity)" }
 
-internal inline fun Style.setColor  (value: Color?      ) { color   = value?.let { rgba(it) } ?: "" }
-internal inline fun Style.setCursor (value: Cursor?     ) { cursor  = value?.let { "$it" } ?: "" }
-internal inline fun Style.setOpacity(value: kotlin.Float) { opacity = if (value != 1f) value.toString() else "" }
+internal inline fun Style.setColor  (value: Color? ) { color   = value?.let { rgba(it) } ?: "" }
+internal inline fun Style.setCursor (value: Cursor?) { cursor  = value?.let { "$it" } ?: "" }
+internal inline fun Style.setOpacity(value: Float  ) { opacity = if (value != 1f) "$value" else "" }
 
 internal fun Style.setTextDecoration(value: TextDecoration?) {
     when (value) {
@@ -144,41 +140,18 @@ internal inline fun Style.setOverflow (overflow: Overflow? = null) { overflow.al
 internal inline fun Style.setOverflowX(overflow: Overflow? = null) { overflowX = overflow?.value ?: "" }
 internal inline fun Style.setOverflowY(overflow: Overflow? = null) { overflowY = overflow?.value ?: "" }
 
-//internal inline fun Style.setVisibility(value: Visibility) { visibility = value.value }
-//
 internal inline fun Style.setBackgroundImage(image: Image? = null) { backgroundImage = image?.let { "url(${it.source})" } ?: "none" }
 internal inline fun Style.setBackgroundSize(size: Size? = null) { backgroundSize = size?.let { "${em(it.width)} ${em(it.height)}" } ?: "" }
 
 internal inline fun Style.setBackgroundColor(color: Color? = null) { backgroundColor = color?.let { rgba(it) } ?: ""     }
 
-//internal inline fun Style.setBackgroundRepeat(repeat: Repeat) { backgroundRepeat = repeat.value }
-//
-//internal inline fun Style.setBackgroundPosition(x: Double, y: Double) { backgroundPosition = "$x $y" }
-//
 internal inline fun Style.setOutlineWidth(value: Double?          ) { outlineWidth = value?.let { em(value, true) } ?: "" }
 internal inline fun Style.setBorderWidth (value: Double?          ) { borderWidth  = value?.let { em(it, true) } ?: "" }
 internal inline fun Style.setBorderRadius(value: Double?          ) { borderRadius = value?.let { em(it) } ?: "" }
 internal inline fun Style.setBorderRadius(x    : Double, y: Double) { borderRadius = "${em(x, true)} / ${em(y, true)}" }
-internal inline fun Style.setBorderColor (color: Color? = null    ) { borderColor  = color?.let { rgba(it)} ?: "" }
 internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyle  = style.value }
 
-//internal inline fun Style.setBorderTop   (value: Double) { borderTop    = value.toString() }
-//internal inline fun Style.setBorderLeft  (value: Double) { borderLeft   = value.toString() }
-//internal inline fun Style.setBorderRight (value: Double) { borderRight  = value.toString() }
-//internal inline fun Style.setBorderBottom(value: Double) { borderBottom = value.toString() }
-
-internal inline fun Style.setMargin      (value: Double) { margin       = value.toString() }
-//internal inline fun Style.setMarginTop   (value: Double) { marginTop    = value.toString() }
-//internal inline fun Style.setMarginLeft  (value: Double) { marginLeft   = value.toString() }
-//internal inline fun Style.setMarginRight (value: Double) { marginRight  = value.toString() }
-//internal inline fun Style.setMarginBottom(value: Double) { marginBottom = value.toString() }
-
-
-//internal inline fun Style.setTextAlignment(alignment: TextAlignment) { textAlign = alignment.value }
-//
-//internal inline fun Style.setVerticalAlignment(alignment: VerticalAlign) { verticalAlign = alignment.value }
-//
-//internal inline fun Style.setFloat(float: Float? = null) { cssFloat = float?.value ?: "" }
+internal inline fun Style.setMargin      (value: Double           ) { margin       = "$value" }
 
 internal fun Style.translate(to: Point) = translate(to.x, to.y)
 internal fun Style.translate(x: Double, y: Double) {
@@ -196,8 +169,6 @@ internal fun Style.setTransform(transform: AffineTransform? = null) {
     }
 }
 
-//internal inline fun Style.setBoxSizing(boxSizing: BoxSizing) { this.boxSizing = boxSizing.value }
-
 internal sealed class Display(val value: String)
 internal class None       : Display("none"        )
 internal class Block      : Display("block"       )
@@ -205,20 +176,7 @@ internal class Inline     : Display("inline"      )
 internal class InlineBlock: Display("inline-block")
 
 internal sealed class Position(val value: String)
-internal class Absolute: Position("absolute")
-internal class Relative: Position("relative")
 internal class Static  : Position("static"  )
-
-internal sealed class Float(val value: String)
-internal class Left : Float("left" )
-internal class Right: Float("right")
-
-internal sealed class Repeat(val value: String) {
-    internal class RepeatAll: Repeat("repeat"   )
-    internal class RepeatX  : Repeat("repeat_x" )
-    internal class RepeatY  : Repeat("repeat_y" )
-    internal class NoRepeat : Repeat("no_repeat")
-}
 
 internal sealed class Overflow(val value: String) {
     internal class Scroll : Overflow("scroll" )
@@ -226,28 +184,6 @@ internal sealed class Overflow(val value: String) {
     internal class Visible: Overflow("visible")
 }
 
-internal sealed class Visibility(val value: String) {
-    internal class Hidden : Visibility("hidden" )
-    internal class Visible: Visibility("visible")
-}
-
 internal sealed class BorderStyle(val value: String) {
-    internal class None  : BorderStyle("none"  )
-    internal class Dotted: BorderStyle("dotted")
-    internal class Dashed: BorderStyle("dashed")
-    internal class Solid : BorderStyle("solid" )
-}
-
-internal sealed class TextAlignment(val value: String) {
-    internal class Right : TextAlignment("right" )
-    internal class Center: TextAlignment("center")
-}
-
-internal sealed class VerticalAlign(val value: String) {
-    internal class Middle : VerticalAlign("middle")
-}
-
-internal sealed class BoxSizing(val value: String) {
-    internal class Content: BoxSizing("content-box")
-    internal class Border : BoxSizing("border-box" )
+    internal class None: BorderStyle("none")
 }

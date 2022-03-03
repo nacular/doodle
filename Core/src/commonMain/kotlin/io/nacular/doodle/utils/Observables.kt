@@ -34,13 +34,13 @@ public expect open class SetPool<T>(delegate: MutableSet<T>): Pool<T>, Set<T> {
 public expect class ChangeObserversImpl<S>(source: S, mutableSet: MutableSet<ChangeObserver<S>>): SetPool<ChangeObserver<S>> {
     public constructor(source: S)
 
-    public operator fun invoke(): Unit
+    public operator fun invoke()
 }
 
 public expect class PropertyObserversImpl<S, T>(source: S, mutableSet: MutableSet<PropertyObserver<S, T>>): SetPool<PropertyObserver<S, T>> {
     public constructor(source: S)
 
-    public operator fun invoke(old: T, new: T): Unit
+    public operator fun invoke(old: T, new: T)
 }
 
 public interface ObservableList<E>: MutableList<E> {
@@ -223,7 +223,7 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 internal data class DiffResult<T>(val removed: Map<Int, T>, val added: Map<Int, T>, val moved: Map<Int, Pair<Int, T>>)
 
 private class Move<T>(var from: Int, var to:Int, var value: T) {
-    override fun toString() = (from to to to value).toString()
+    override fun toString() = "${from to to to value}"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -87,12 +87,12 @@ public actual abstract class CSSStyleDeclaration {
     internal var _webkit_appearance_: String        = ""
 }
 
-public actual var CSSStyleDeclaration.clipPath: String get() = clipPath_; set(new) { clipPath_ = new }
-public actual var CSSStyleDeclaration.willChange: String get() = willChange_; set(new) { willChange_ = new }
-public actual var CSSStyleDeclaration.scrollBehavior: String get() = scrollBehavior_; set(new) { scrollBehavior_ = new }
+public actual var CSSStyleDeclaration.clipPath               : String get() = clipPath_;                set(new) { clipPath_ = new }
+public actual var CSSStyleDeclaration.willChange             : String get() = willChange_;              set(new) { willChange_ = new }
+public actual var CSSStyleDeclaration.scrollBehavior         : String get() = scrollBehavior_;          set(new) { scrollBehavior_ = new }
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
-public actual var CSSStyleDeclaration.touchAction: String get() = touchAction_; set(new) { touchAction_ = new }
-public actual var CSSStyleDeclaration._webkit_appearance: String get() = _webkit_appearance_; set(new) { _webkit_appearance_ = new }
+public actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_ = new }
+public actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_ = new }
 
 public actual class DOMRect {
     public actual var x: Double      = 0.0
@@ -102,10 +102,9 @@ public actual class DOMRect {
 }
 
 public actual abstract class Element: Node() {
-    public actual open var id: String         = ""
-    public actual open var className: String  = ""
-    public actual open var innerHTML: String  = ""
-    public actual open var scrollTop: Double  = 0.0
+    public actual open var id        : String = ""
+    public actual open var className : String = ""
+    public actual open var scrollTop : Double = 0.0
     public actual open var scrollLeft: Double = 0.0
 
     public actual fun getBoundingClientRect(): DOMRect = DOMRect()

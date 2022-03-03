@@ -30,7 +30,6 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.utils.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?

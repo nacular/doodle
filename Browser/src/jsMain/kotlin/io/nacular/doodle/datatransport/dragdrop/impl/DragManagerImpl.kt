@@ -168,7 +168,7 @@ internal class DragManagerImpl(
     }
 
     private fun getFiles(dataTransfer: DataTransfer, mimeType: Files): List<LocalFile> {
-        val mimeTypes = mimeType.types.map { it.toString() }
+        val mimeTypes = mimeType.types.map { "$it" }
 
         return (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.filter { it.type in mimeTypes }.mapNotNull {
             it.getAsFile()?.let { SimpleFile(it) }
@@ -188,7 +188,7 @@ internal class DragManagerImpl(
             return true
         }
 
-        val mimeTypes = mimeType.types.map { it.toString() }
+        val mimeTypes = mimeType.types.map { "$it" }
 
         return mimeTypes.isEmpty() || (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.find { it.type in mimeTypes } != null
     }
@@ -205,7 +205,7 @@ internal class DragManagerImpl(
 
             override fun <T> contains(type: MimeType<T>) = when (type) {
                 is Files -> contains(transfer, type)
-                else     -> type.toString() in transfer.types
+                else     -> "$type" in transfer.types
             }
 
             override val includedTypes: List<MimeType<*>> by lazy {
@@ -425,7 +425,7 @@ internal class DragManagerImpl(
         return when (val string = builder.toString()) {
             "copyLinkMove" -> "all"
             ""             -> "none"
-            else           -> string.decapitalize()
+            else           -> string.replaceFirstChar { it.lowercase() }
         }.also {
             allowedActions = it
         }

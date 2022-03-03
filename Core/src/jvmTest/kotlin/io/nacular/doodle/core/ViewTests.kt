@@ -698,6 +698,27 @@ class ViewTests {
         verify(exactly = 1) { observer(view, true, false) }
     }
 
+    @Test @JsName("boundsChangedSameValueIngored")
+    fun `bounds changed same value ignored`() {
+        val bounds   = Rectangle(5.6, 3.7, 900.0, 1.2)
+        val view     = object: View() {}.apply { this.bounds = bounds }
+        val observer = mockk<PropertyObserver<View, Rectangle>>()
+
+        val renderManager = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.boundsChanged += observer
+        view.bounds         = bounds
+
+        verify (exactly = 0) {
+            observer(any(), any(), any())
+        }
+
+        verify (exactly = 0) {
+            renderManager.boundsChanged(any(), any(), any())
+        }
+    }
+
     @Test @JsName("boundsChangedWorks")
     fun `bounds changed works`() {
         val view     = object: View() {}

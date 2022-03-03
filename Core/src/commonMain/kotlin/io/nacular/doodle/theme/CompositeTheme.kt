@@ -13,7 +13,7 @@ public class CompositeTheme(vararg themes: Theme): Theme {
 
     public operator fun plus(other: Theme): CompositeTheme = this.apply { themes.plusAssign(other) }
 
-    override fun toString(): String = themes.joinToString(" + ") { it.toString() }
+    override fun toString(): String = themes.joinToString(" + ") { "$it" }
 }
 
 public operator fun Theme.plus(other: Theme): CompositeTheme = CompositeTheme(this, other)

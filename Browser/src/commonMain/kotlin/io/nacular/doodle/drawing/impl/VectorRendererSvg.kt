@@ -358,9 +358,8 @@ internal open class VectorRendererSvg constructor(
     }
 
     private fun makeText(text: String, font: Font?, at: Point, fill: Paint?) = createOrUse<SVGElement>("text").apply {
-        if (innerHTML != text) {
-            innerHTML = ""
-            add(htmlFactory.createText(text))
+        if (textContent != text) {
+            textContent = text
         }
 
         setPosition         (at            )
@@ -405,9 +404,8 @@ internal open class VectorRendererSvg constructor(
     }
 
     private fun makeTextSegment(text: String, style: Style) = createOrUse<SVGElement>("tspan").apply {
-        if (innerHTML != text) {
-            innerHTML = ""
-            add(htmlFactory.createText(text))
+        if (textContent != text) {
+            textContent = text
         }
 
         setFill            (null          )

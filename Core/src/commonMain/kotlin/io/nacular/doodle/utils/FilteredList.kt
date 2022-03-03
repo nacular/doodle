@@ -156,7 +156,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         }
     }
 
-    override fun toString(): String = indexToSource.map { source[it] }.toString() //source.filter { filter?.invoke(it) ?: true }.toString()
+    override fun toString(): String = "${indexToSource.map { source[it] }}"
 
     private fun refilter() {
         val oldIndexes: MutableList<Int> = mutableListOf(*indexToSource.toTypedArray())

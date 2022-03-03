@@ -200,7 +200,7 @@ private open class ApplicationHolderImpl protected constructor(
 
         val idPrefix = when (root) {
             document.body -> ""
-            else          -> root.id.takeIf { it.isNotBlank() } ?: Random.nextInt().toString()
+            else          -> root.id.takeIf { it.isNotBlank() } ?: "${Random.nextInt()}"
         }
 
         bindInstance                                               { window }

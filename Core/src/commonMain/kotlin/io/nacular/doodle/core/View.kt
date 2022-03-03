@@ -103,7 +103,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * [ClipPath] based on a [Ellipse]. The contains check defaults to [Ellipse.contains].
      *
      * @constructor
-     * @param polygon used for clipping
+     * @param ellipse used for clipping
      */
     public class EllipseClipPath(private val ellipse: Ellipse): ClipPath(ellipse.toPath()) {
         public constructor(center: Point,  radius: Double                 ): this(Circle(center, radius))
@@ -426,10 +426,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Optional color that the View could use for its foreground (i.e. text) */
-    public var foregroundColor: Color? = null; set(new) { field = new; styleChanged { it.foregroundColor == null } }
+    public var foregroundColor: Color? by styleProperty(null) { it.foregroundColor == null }
 
     /** Optional color that the View could use for its background */
-    public var backgroundColor: Color? = null; set(new) { field = new; styleChanged { it.backgroundColor == null } }
+    public var backgroundColor: Color? by styleProperty(null) { it.backgroundColor == null }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
     public val styleChanged: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }

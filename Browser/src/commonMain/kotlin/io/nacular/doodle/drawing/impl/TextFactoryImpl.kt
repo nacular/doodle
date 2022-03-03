@@ -26,9 +26,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     override fun create(text: String, font: Font?, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse(TEXT_ELEMENT, possible)
 
-        if (element.innerHTML != text) {
-            element.innerHTML = ""
-            element.add(htmlFactory.createText(text))
+        if (element.textContent != text) {
+            element.textContent = text
         }
 
         font?.let {

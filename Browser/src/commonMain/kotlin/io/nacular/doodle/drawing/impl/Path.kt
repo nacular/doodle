@@ -11,7 +11,7 @@ internal abstract class Path constructor(
 
     private val pathString = StringBuilder()
 
-    val data: String get() = pathString.toString().trim { it <= ' ' }
+    val data: String get() = "$pathString".trim { it <= ' ' }
 
     fun moveTo(point: Point) = operation(moveTo, point)
     fun lineTo(point: Point) = operation(lineTo, point)

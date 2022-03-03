@@ -26,4 +26,5 @@ public expect abstract class Node {
     public val parentNode : Node?
     public val childNodes : NodeList
     public val nextSibling: Node?
+    public var textContent: String?
 }

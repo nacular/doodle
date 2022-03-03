@@ -254,7 +254,7 @@ public class OptionListConfig<T> internal constructor() {
     /**
      * Provides a label for each item in the list. This is short-hand for using [visualizer].
      */
-    public var label: (T) -> String by observable({ it.toString() }) { _,new ->
+    public var label: (T) -> String by observable({ "$it" }) { _,new ->
         visualizer = { Label(new(it)) }
     }
 
@@ -458,7 +458,7 @@ public fun <T> dropDown(
 public fun <T> dropDown(
                first : T,
         vararg rest  : T,
-               label : (T) -> String = { it.toString() },
+               label : (T) -> String = { "$it" },
                config: (Dropdown<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = dropDown(first, *rest, boxItemVisualizer = toString(TextVisualizer(), label), config = config)
 
@@ -536,7 +536,7 @@ public fun <T: Any> dropDown(
 public fun <T: Any> dropDown(
         first          : T,
         vararg rest    : T,
-        label          : (T) -> String = { it.toString() },
+        label          : (T) -> String = { "$it" },
         unselectedLabel: String,
         config         : (Dropdown<T?, *>) -> Unit = {}
 ): FieldVisualizer<T> = dropDown(
@@ -661,7 +661,7 @@ public fun <T: Any> optionalDropDown(
 public fun <T: Any> optionalDropDown(
         first          : T,
         vararg rest    : T,
-        label          : (T) -> String = { it.toString() },
+        label          : (T) -> String = { "$it" },
         unselectedLabel: String,
         config         : (Dropdown<T?, *>) -> Unit = {}
 ): FieldVisualizer<T?> = optionalDropDown(
@@ -741,7 +741,7 @@ public fun <T> spinner(
 public fun <T> spinner(
         first        : T,
         vararg rest  : T,
-        label        : (T) -> String = { it.toString() },
+        label        : (T) -> String = { "$it" },
         config       : (Spinner<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(TextVisualizer(), label), config = config)
 

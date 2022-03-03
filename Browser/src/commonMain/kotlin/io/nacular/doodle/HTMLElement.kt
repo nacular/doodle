@@ -99,7 +99,6 @@ public expect interface ElementCSSInlineStyle {
 public expect abstract class Element: Node {
     public open var id        : String
     public open var className : String
-    public open var innerHTML : String
     public open var scrollTop : Double
     public open var scrollLeft: Double
 
