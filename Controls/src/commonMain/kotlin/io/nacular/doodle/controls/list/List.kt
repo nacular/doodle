@@ -322,7 +322,7 @@ public open class List<T, out M: ListModel<T>>(
             if (oldFirst > firstVisibleItem) {
                 val end = min(oldFirst, lastVisibleItem)
 
-                (firstVisibleItem until end).forEach { insert(children, it) }
+                (firstVisibleItem .. end).forEach { insert(children, it) }
             }
 
             if (oldLast < lastVisibleItem) {
