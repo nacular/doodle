@@ -156,7 +156,7 @@ public class MonthPanel(
 
         // Handle adjacent months
         if (showAdjacentMonths) {
-            previousDays      = shiftDay(weekStart, startDate.dayOfWeek)
+            previousDays  = shiftDay(weekStart, startDate.dayOfWeek)
             val previousMonthDays = (-previousDays until 0).asSequence()
 
             sequence = previousMonthDays + sequence
@@ -178,7 +178,10 @@ public class MonthPanel(
             children.removeAt(children.size - 1)
         }
 
-        relayout()
+        // Layout should not have changed if not showing adjacent months
+        if (!showAdjacentMonths) {
+            relayout()
+        }
     }
 
     private fun shiftDay(weekStart: DayOfWeek, dayOfWeek: DayOfWeek): Int {
