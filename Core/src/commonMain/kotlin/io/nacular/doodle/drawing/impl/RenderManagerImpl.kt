@@ -7,6 +7,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.height
+import io.nacular.doodle.core.minusAssign
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -435,10 +436,9 @@ public open class RenderManagerImpl(
     }
 
     private fun childAdded(parent: View?, child: View) {
-        if (parent == null) {
-            // Avoid edge case where a View is added to the Display
-            // after it is already withing another View
-            child.parent?.children_?.remove(child)
+        when {
+            parent == null            -> child.parent?.children_?.remove(child) // View is moved to the Display after it is already withing another View
+            child in display.children -> display -= child                       // View is moved to a new parent after it is already within the Display
         }
 
         removeFromCleanupList(parent, child)

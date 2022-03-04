@@ -10,7 +10,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import io.mockk.verifyOrder
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
@@ -18,6 +17,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.minusAssign
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
@@ -152,7 +152,7 @@ class RenderManagerImplTests {
 
         verify(exactly = 0) { child.render(any()) }
 
-        display.children += child
+        display += child
 
         verifyChildAddedProperly(renderManager, display, child)
 
@@ -175,7 +175,7 @@ class RenderManagerImplTests {
 
         verifyChildAddedProperly(renderManager, display, container)
 
-        display.children.remove(container)
+        display -= container
 
         scheduler.runJobs()
 
@@ -299,7 +299,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, container)
 
         val firstChild = container.children.first()
-        container.children -= firstChild
+        container -= firstChild
 
         scheduler.runJobs()
 
@@ -399,7 +399,7 @@ class RenderManagerImplTests {
         val container = container()
         val child     = spyk(view())
 
-        container.children += child
+        container += child
 
         val display = display(container)
 
@@ -413,14 +413,14 @@ class RenderManagerImplTests {
         val container = container()
         val child     = spyk(view())
 
-        container.children += child
+        container += child
 
         val display = display(container)
 
         val renderManager = renderManager(display)
 
-        container.children -= child
-        container.children += child
+        container -= child
+        container += child
 
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
@@ -434,12 +434,12 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display)
 
-        container.children += view()
-        container.children += view()
+        container += view()
+        container += view()
 
         verify(exactly = 0) { child.render(any()) }
 
-        container.children += child
+        container += child
 
         verifyChildAddedProperly(renderManager, display, child)
     }
@@ -454,8 +454,8 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display, graphicsDevice = device)
 
-        container.children += view()
-        container.children += view()
+        container += view()
+        container += view()
 
         verify(exactly = 0) { child.render(any()) }
 
@@ -506,7 +506,7 @@ class RenderManagerImplTests {
 
         verify(exactly = 0) { container.revalidate_() }
 
-        container.children += child
+        container += child
 
         verify(exactly = 1) { container.revalidate_() }
     }
@@ -543,7 +543,7 @@ class RenderManagerImplTests {
         val container = spyk<Container> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = spyk<View>(     ).apply { bounds = Rectangle(size = Size( 10.0,  10.0)) }
 
-        container.children += child
+        container += child
 
         val parentSurface  = mockk<GraphicsSurface>  ()
         val childSurface   = mockk<GraphicsSurface>  ()
@@ -587,7 +587,7 @@ class RenderManagerImplTests {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.children += child
+        container += child
 
         val display      = display(container)
         val themeManager = mockk<InternalThemeManager>()
@@ -603,7 +603,7 @@ class RenderManagerImplTests {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.children += child
+        container += child
 
         val display      = display(container)
         val themeManager = mockk<InternalThemeManager>()
@@ -613,8 +613,8 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(container) }
         verify(exactly = 1) { themeManager.update(child    ) }
 
-        container.children -= child
-        container.children += child
+        container -= child
+        container += child
 
         verify(exactly = 2) { themeManager.update(child    ) }
     }
@@ -629,15 +629,57 @@ class RenderManagerImplTests {
 
         scheduler.runJobs()
 
-        display.children -= child
+        display -= child
 
         // Add happens before next render
 
-        display.children += child
+        display += child
 
         scheduler.runJobs()
 
         verifyChildAddedProperly(renderManager, display, child, 2)
+    }
+
+    @Test @JsName("removesViewFromOldContainerWhenMovedToDisplay")
+    fun `removes view from old container when moved to display`() {
+        val child     = spyk(view())
+        val container = container()
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
+
+        container += child
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        display += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, child, 2)
+
+        expect(true) { container.children.isEmpty() }
+    }
+
+    @Test @JsName("removesViewFromDisplayWhenMovedToContainer")
+    fun `removes view from display when moved to container`() {
+        val child     = spyk(view())
+        val container = container()
+        val display   = display(child, container)
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        container += child
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, child, 2)
+
+        expect(1) { display.children.size }
     }
 
     @Test @JsName("rendersMovedFromParentToDisplay")
@@ -645,7 +687,7 @@ class RenderManagerImplTests {
         val child     = spyk(view())
         val container = container()
 
-        container.children += child
+        container += child
 
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -670,7 +712,7 @@ class RenderManagerImplTests {
         val child     = spyk(view())
         val container = container()
 
-        container.children += child
+        container += child
 
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -681,11 +723,11 @@ class RenderManagerImplTests {
 
         verifyChildAddedProperly(renderManager, display, child)
 
-        container.children -= child
+        container -= child
 
         // Add happens before next render
 
-        container.children += child
+        container += child
 
         scheduler.runJobs()
 
@@ -703,7 +745,7 @@ class RenderManagerImplTests {
         val display   = display()
         val scheduler = ManualAnimationScheduler()
 
-        display.children += listOf<View>(container1, container2)
+        display += listOf<View>(container1, container2)
 
         val renderManager = renderManager(display, scheduler = scheduler)
 
@@ -741,8 +783,8 @@ class RenderManagerImplTests {
 
         // Add happens before next render
 
-        display.children -= container1
-        display.children += container2
+        display -= container1
+        display += container2
 
         scheduler.runJobs()
 
@@ -952,8 +994,8 @@ class RenderManagerImplTests {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
-        container.layout    = layout
-        container.children += child
+        container.layout = layout
+        container        += child
 
         renderManager(display(container))
 
@@ -987,7 +1029,7 @@ class RenderManagerImplTests {
     private fun doesNotRenderChild(view: View) {
         val container = spyk<Container>("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
-        container.children += view
+        container += view
 
         renderManager(display(container))
 

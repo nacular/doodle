@@ -27,6 +27,9 @@ import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.PropertyObserver
 import JsName
+import io.mockk.verifyOrder
+import io.nacular.doodle.core.ChildObserver
+import io.nacular.doodle.core.minusAssign
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -110,6 +113,56 @@ class DisplayImplTests {
         verify { cursorObserver(display, null, Cursor.Grab) }
 
         expect(Cursor.Grab) { display.cursor!! }
+    }
+
+    @Test @JsName("notifiesChildAdded") fun `notifies child added`() {
+        val observer = mockk<ChildObserver<Display>>()
+
+        val display = display().apply { childrenChanged += observer }
+
+        val view = view().apply { x += 10.0; y += 12.0 }
+        display += view
+
+        verify (exactly = 1) {
+            observer(display, emptyMap(), mapOf(0 to view), emptyMap())
+        }
+    }
+
+    @Test @JsName("notifiesChildRemoved") fun `notifies child removed`() {
+        val observer = mockk<ChildObserver<Display>>()
+
+        val display = display()
+
+        val view = view().apply { x += 10.0; y += 12.0 }
+        display += view
+
+        display.childrenChanged += observer
+
+        display -= view
+
+        verifyOrder {
+            observer(display, mapOf(0 to view), emptyMap(), emptyMap())
+        }
+    }
+
+    @Test @JsName("notifiesChildMoved") fun `notifies child moved`() {
+        val observer = mockk<ChildObserver<Display>>()
+
+        val display = display()
+
+        val view1 = view().apply { x += 10.0; y += 12.0 }
+        val view2 = view().apply { x += 10.0; y += 12.0 }
+        val view3 = view().apply { x += 10.0; y += 12.0 }
+
+        display += listOf(view1, view2, view3)
+
+        display.childrenChanged += observer
+
+        display.children.move(view2, 0)
+
+        verifyOrder {
+            observer(display, emptyMap(), emptyMap(), mapOf(0 to (1 to view2)))
+        }
     }
 
     @Test @JsName("childAtNoLayoutWorks") fun `child at (no layout) works`() {
