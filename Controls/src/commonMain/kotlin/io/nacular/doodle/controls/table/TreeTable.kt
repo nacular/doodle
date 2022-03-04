@@ -119,7 +119,7 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
 
 public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                            protected val selectionModel: SelectionModel<Path<Int>>? = null,
-                           private   val scrollCache   : Int                        = 10,
+                           private   val scrollCache   : Int                        = 0,
                                          block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
 
     override val rootVisible: Boolean get() = tree.rootVisible

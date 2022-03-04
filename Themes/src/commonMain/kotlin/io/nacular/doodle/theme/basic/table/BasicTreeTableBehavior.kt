@@ -122,8 +122,8 @@ public open class BasicTreeTableBehavior<T>(
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T>() {
         private val delegate = VerticalListPositioner(rowHeight)
 
-        override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.itemBounds  (of.size, of.insets, index)
-        override fun row      (of: TreeTable<T, *>, at: Point)                           = delegate.itemFor     (of.insets, at)
+        override fun rowBounds(of: TreeTable<T, *>, path: Path<Int>, row: T, index: Int) = delegate.itemBounds (of.size, of.insets, index)
+        override fun row      (of: TreeTable<T, *>, at: Point)                           = delegate.itemFor    (of.size, of.insets,    at)
         override fun size     (of: TreeTable<T, *>, below: Path<Int>)                    = delegate.minimumSize(of.rowsBelow(below), of.insets)
     }
 

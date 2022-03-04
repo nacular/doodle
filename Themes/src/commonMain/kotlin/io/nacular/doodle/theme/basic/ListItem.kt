@@ -170,7 +170,8 @@ public open class ListItem<T>(
 public open class VerticalListPositioner(protected open val height: Double, numColumns: Int = 1, protected open val spacing: Double = 0.0) {
     protected val numColumns: Int = max(1, numColumns)
 
-    public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.y - insets.top) / (height + spacing) * numColumns).toInt())
+    public fun itemFor(size: Size, insets: Insets, at: Point): Int = max(0,
+        ((at.y - insets.top) / (height + spacing)).toInt() * numColumns + (at.x / columnWidth(size, insets)).toInt())
 
     public fun minimumSize(numItems: Int, insets: Insets): Size {
         val rows = ceil(numItems.toDouble() / numColumns)
@@ -182,15 +183,18 @@ public open class VerticalListPositioner(protected open val height: Double, numC
     public fun itemBounds(size: Size, insets: Insets, index: Int, current: View? = null): Rectangle = Rectangle(
         x      = insets.left + (index % numColumns) * size.width / numColumns,
         y      = insets.top  + (index / numColumns) * height + (index / numColumns + 1) * spacing,
-        width  = max(0.0, size.width / numColumns - insets.run { left + right }),
+        width  = columnWidth(size, insets),
         height = height
     )
+
+    private fun columnWidth(size: Size, insets: Insets) = max(0.0, size.width / numColumns - insets.run { left + right })
 }
 
 public open class HorizontalListPositioner(protected open val width: Double, numRows: Int = 1, protected open val spacing: Double = 0.0) {
     protected val numRows: Int = max(1, numRows)
 
-    public fun itemFor(insets: Insets, at: Point): Int = max(0, ((at.x - insets.left) / (width + spacing) * numRows).toInt())
+    public fun itemFor(size: Size, insets: Insets, at: Point): Int = max(0,
+        ((at.x - insets.left) / (width + spacing)).toInt() * numRows + (at.y / rowHeight(size, insets)).toInt())
 
     public fun minimumSize(numItems: Int, insets: Insets): Size {
         val cols = ceil(numItems.toDouble() / numRows)
@@ -203,6 +207,8 @@ public open class HorizontalListPositioner(protected open val width: Double, num
         x      = insets.left + (index / numRows) * width + (index / numRows + 1) * spacing,
         y      = insets.top  + (index % numRows) * size.height / numRows,
         width  = width,
-        height = max(size.height / numRows - insets.run { top + bottom }, 0.0)
+        height = rowHeight(size, insets)
     )
+
+    private fun rowHeight(size: Size, insets: Insets) = max(size.height / numRows - insets.run { top + bottom }, 0.0)
 }

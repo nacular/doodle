@@ -30,7 +30,7 @@ import io.nacular.doodle.utils.SetPool
 public open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
-        private   val scrollCache   : Int                  = 10,
+        private   val scrollCache   : Int                  = 0,
                       block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
@@ -282,7 +282,7 @@ public open class Table<T, M: ListModel<T>>(
         public operator fun <T> invoke(
                        values        : List<T>,
                        selectionModel: SelectionModel<Int>? = null,
-                       scrollCache   : Int                  = 10,
+                       scrollCache   : Int                  = 0,
                        block         : ColumnFactory<T>.() -> Unit): Table<T, ListModel<T>> = Table(SimpleListModel(values), selectionModel, scrollCache, block)
     }
 }

@@ -123,8 +123,8 @@ public open class BasicTableBehavior<T>(
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T> {
         private val delegate = VerticalListPositioner(rowHeight)
 
-        override fun rowBounds  (of: Table<T, *>, row: T, index: Int) = delegate.itemBounds (of.size,   of.insets, index)
-        override fun row        (of: Table<T, *>, at: Point         ) = delegate.itemFor    (of.insets,  at              )
+        override fun rowBounds  (of: Table<T, *>, row: T, index: Int) = delegate.itemBounds (of.size,     of.insets, index)
+        override fun row        (of: Table<T, *>, at: Point         ) = delegate.itemFor    (of.size,     of.insets,  at  )
         override fun minimumSize(of: Table<T, *>                    ) = delegate.minimumSize(of.numItems, of.insets       )
     }
 

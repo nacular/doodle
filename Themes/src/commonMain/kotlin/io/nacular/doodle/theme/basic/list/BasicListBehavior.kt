@@ -155,13 +155,13 @@ public inline fun <T> basicHorizontalListBehavior(
 )
 
 public open class BasicVerticalListPositioner<T>(height: Double, numColumns: Int = 1, spacing: Double = 0.0): VerticalListPositioner(height, numColumns, spacing), ItemPositioner<T> {
-    override fun item       (of: List<T, *>, at: Point                       ): Int       = itemFor    (of.insets, at)
+    override fun item       (of: List<T, *>, at: Point                       ): Int       = itemFor    (of.size, of.insets, at)
     override fun minimumSize(of: List<T, *>                                  ): Size      = minimumSize(of.numItems, of.insets)
     override fun itemBounds (of: List<T, *>, item: T, index: Int, view: View?): Rectangle = itemBounds (of.size, of.insets, index, view)
 }
 
 public open class BasicHorizontalListPositioner<T>(width: Double, numRows: Int = 1, spacing: Double = 0.0): HorizontalListPositioner(width, numRows, spacing), ItemPositioner<T> {
-    override fun item       (of: List<T, *>, at: Point                       ): Int       = itemFor    (of.insets, at)
+    override fun item       (of: List<T, *>, at: Point                       ): Int       = itemFor    (of.size, of.insets, at)
     override fun minimumSize(of: List<T, *>                                  ): Size      = minimumSize(of.numItems, of.insets)
     override fun itemBounds (of: List<T, *>, item: T, index: Int, view: View?): Rectangle = itemBounds (of.size, of.insets, index, view)
 }

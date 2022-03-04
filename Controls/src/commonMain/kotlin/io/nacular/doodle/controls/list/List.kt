@@ -133,7 +133,7 @@ public open class List<T, out M: ListModel<T>>(
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Int>?            = null,
                            fitContent    : Set<Dimension>                  = setOf(Width, Height),
-        private        val scrollCache   : Int                             = 10): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val scrollCache   : Int                             = 0): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
@@ -160,7 +160,6 @@ public open class List<T, out M: ListModel<T>>(
     private   var minVisiblePoint    = Origin
     private   var maxVisiblePoint    = Origin
     private   var handlingRectChange = false
-
 
     protected var firstVisibleItem: Int =  0
     protected var lastVisibleItem : Int = -1
@@ -424,7 +423,7 @@ public open class List<T, out M: ListModel<T>>(
             itemVisualizer: ItemVisualizer<Int, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>       = setOf(Width, Height),
-            scrollCache   : Int                  = 10): List<Int, ListModel<Int>> =
+            scrollCache   : Int                  = 0): List<Int, ListModel<Int>> =
             List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun <T> invoke(
@@ -432,14 +431,14 @@ public open class List<T, out M: ListModel<T>>(
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>       = setOf(Width, Height),
-            scrollCache   : Int                  = 10): List<T, ListModel<T>> =
+            scrollCache   : Int                  = 0): List<T, ListModel<T>> =
             List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>       = setOf(Width, Height),
-            scrollCache   : Int                  = 10): List<View, ListModel<View>> =
+            scrollCache   : Int                  = 0): List<View, ListModel<View>> =
             List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
 
         public operator fun <T, M: ListModel<T>>invoke(
@@ -447,7 +446,7 @@ public open class List<T, out M: ListModel<T>>(
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
             fitContent    : Set<Dimension>                  = setOf(Width, Height),
-            scrollCache   : Int                             = 10): List<T, M> =
+            scrollCache   : Int                             = 0): List<T, M> =
             List(model, itemGenerator, selectionModel, fitContent, scrollCache)
     }
 }

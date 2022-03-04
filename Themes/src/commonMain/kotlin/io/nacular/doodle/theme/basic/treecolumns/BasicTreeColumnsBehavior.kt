@@ -75,7 +75,7 @@ public class BasicTreeColumnsBehavior<T>(
     private class BasicTreeColumnPositioner<T>(height: Double, spacing: Double = 0.0): VerticalListPositioner(height, spacing = spacing), RowPositioner<T> {
         override fun rowBounds(treeColumns: TreeColumns<T, *>, columnWidth: Double, path: Path<Int>, row: T, index: Int, current: View?) = super.itemBounds(Size(columnWidth, height), Insets(right = VERTICAL_LINE_THICKNESS), index, current)
 
-        override fun row(of: TreeColumns<T, *>, path: Path<Int>, at: Point) = super.itemFor(Insets.None, at)
+        override fun row(of: TreeColumns<T, *>, path: Path<Int>, at: Point) = super.itemFor(of.size, Insets.None, at)
 
         override fun minimumSize(of: TreeColumns<T, *>, path: Path<Int>) = super.minimumSize(of.numChildren(path), Insets.None)
     }

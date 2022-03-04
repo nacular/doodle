@@ -28,7 +28,7 @@ class ListPositionerTests {
                     Insets(top = 3.0) to Point(0.0, 14.0) to 0,
                     Insets(top = 3.0) to Point(0.0, 15.0) to 1
             ).forEach { (data, expected) ->
-                expect(expected, "$data -> $expected") { itemFor(insets = data.first, at = data.second) }
+                expect(expected, "$data -> $expected") { itemFor(Size(100), insets = data.first, at = data.second) }
             }
         }
     }
@@ -64,7 +64,7 @@ class ListPositionerTests {
                     Insets(top = 3.0) to 0 to Rectangle(0.0, 3.0 + spacing,            width, height),
                     Insets(top = 3.0) to 1 to Rectangle(0.0, height + 2 * spacing + 3, width, height)
             ).forEach { (data, expected) ->
-                val row = itemFor(data.first, expected.position)
+                val row = itemFor(Size.Empty, data.first, expected.position)
 
                 expect(data.second) { row }
                 expect(expected) { itemBounds(size = Size(width, height), insets = data.first, index = row) }

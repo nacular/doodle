@@ -75,7 +75,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Path<Int>>?     = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-        private        val scrollCache   : Int                            = 10): View(TreeRole()), TreeLike {
+        private        val scrollCache   : Int                            = 0): View(TreeRole()), TreeLike {
 
     override var rootVisible: Boolean = false
         set(new) {

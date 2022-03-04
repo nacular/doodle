@@ -65,7 +65,7 @@ internal class SelectionModelWrapper(private val delegate: SelectionModel<Int>):
 public open class DynamicTable<T, M: DynamicListModel<T>>(
         model         : M,
         selectionModel: SelectionModel<Int>? = null,
-        scrollCache   : Int                  = 10,
+        scrollCache   : Int                  = 0,
         block         : ColumnFactory<T>.() -> Unit
 ): Table<T, M>(model, selectionModel, scrollCache, block) {
 
@@ -135,7 +135,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
         public inline operator fun <reified T> invoke(
                 values        : List<T>,
                 selectionModel: SelectionModel<Int>? = null,
-                scrollCache   : Int                  = 10,
+                scrollCache   : Int                  = 0,
                 noinline block: ColumnFactory<T>.() -> Unit
         ): DynamicTable<T, MutableListModel<T>> = DynamicTable(mutableListModelOf(*values.toTypedArray()), selectionModel, scrollCache, block)
     }

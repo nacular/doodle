@@ -29,7 +29,7 @@ public interface TableEditor<T> {
 public class MutableTable<T, M: MutableListModel<T>>(
                       model         : M,
                       selectionModel: SelectionModel<Int>? = null,
-        private   val scrollCache   : Int                  = 10,
+        private   val scrollCache   : Int                  = 0,
                       block         : MutableColumnFactory<T>.() -> Unit
 ): DynamicTable<T, M>(model, selectionModel, scrollCache, {}), Editable {
 
