@@ -2,6 +2,7 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.core.View
+import io.nacular.doodle.dom.Block
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.None
 import io.nacular.doodle.dom.Overflow.Visible
@@ -215,6 +216,34 @@ internal class RealGraphicsSurface private constructor(
     internal val rootElement     = canvasElement
     private  var childrenElement = rootElement
 
+    private var inNativeScroll = false
+
+    internal fun addedToNativeScroll() {
+        if (inNativeScroll) return
+
+        inNativeScroll = true
+
+        val stickyDiv = htmlFactory.create<HTMLElement>().apply {
+            style.top      = "0px"
+            style.left     = "0px"
+            style.position = "sticky"
+            style.setDisplay(Block())
+        }
+
+        stickyDiv.add(rootElement)
+    }
+
+    internal fun removedFromNativeScroll() {
+        if (!inNativeScroll) return
+
+        inNativeScroll = false
+
+        val parent = rootElement.parent as? HTMLElement
+
+        parent?.remove(rootElement)
+        parent?.parent?.remove(parent)
+    }
+
     override var position: Point by observable(Origin) { old,new ->
         updateTransform(new)
     }
@@ -302,13 +331,19 @@ internal class RealGraphicsSurface private constructor(
             setupChildrenClipPath()
         }
 
-        childrenElement.add(child.rootElement)
+        when {
+            child.inNativeScroll -> child.rootElement.parent?.let { sticky -> childrenElement.add(sticky) }
+            else                 -> childrenElement.add(child.rootElement)
+        }
     }
 
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
             try {
-                childrenElement.remove(child.rootElement)
+                when {
+                    child.inNativeScroll -> child.rootElement.parent?.let { sticky -> childrenElement.remove(sticky) }
+                    else                 -> childrenElement.remove(child.rootElement)
+                }
             } catch (ignore: Throwable) {}
 
             child.parent = null
