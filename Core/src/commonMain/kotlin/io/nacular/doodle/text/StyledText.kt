@@ -20,7 +20,7 @@ public class TextDecoration(
         public val style    : Style      = Solid,
         public val thickness: Thickness? = null
 ) {
-    public enum class Line { Under, Over, Through }
+    public enum class Line  { Under, Over, Through }
     public enum class Style { Solid, Double, Dotted, Dashed, Wavy }
 
     public sealed class Thickness {
@@ -32,6 +32,26 @@ public class TextDecoration(
     public companion object {
         public val UnderLine  : TextDecoration = TextDecoration(lines = setOf(Under  ))
         public val LineThrough: TextDecoration = TextDecoration(lines = setOf(Through))
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TextDecoration) return false
+
+        if (lines     != other.lines    ) return false
+        if (color     != other.color    ) return false
+        if (style     != other.style    ) return false
+        if (thickness != other.thickness) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = lines.hashCode()
+        result = 31 * result + (color?.hashCode() ?: 0)
+        result = 31 * result + style.hashCode()
+        result = 31 * result + (thickness?.hashCode() ?: 0)
+        return result
     }
 }
 
@@ -118,9 +138,9 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     }
 
     internal data class StyleImpl(
-            override var font      : Font? = null,
-            override var foreground: Paint? = null,
-            override var background: Paint? = null,
+            override var font      : Font?           = null,
+            override var foreground: Paint?          = null,
+            override var background: Paint?          = null,
             override var decoration: TextDecoration? = null
     ): Style {
         constructor(other: Style): this(other.font, other.foreground, other.background, other.decoration)
