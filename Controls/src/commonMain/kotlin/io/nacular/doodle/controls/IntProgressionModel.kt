@@ -3,7 +3,7 @@ package io.nacular.doodle.controls
 import kotlin.collections.List
 
 internal class IntProgressionModel(private val progression: IntProgression): ListModel<Int> {
-    override val size: Int = progression.run { (last - first) / step }
+    override val size: Int = progression.run { (last - first + 1) / step }
 
     override fun get(index: Int): Result<Int> = runCatching { progression.elementAt(index) }
 
