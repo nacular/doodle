@@ -42,7 +42,7 @@ public abstract class CommonSplitPanelBehavior(private val divider: View = objec
         divider.pointerMotionChanged += this
     }
 
-    override fun divider(panel: SplitPanel): View? = divider
+    override fun divider(panel: SplitPanel): View = divider
 
     override fun install(view: SplitPanel) {
         splitPanel  = view
@@ -65,6 +65,8 @@ public abstract class CommonSplitPanelBehavior(private val divider: View = objec
                 Horizontal -> event.location.y
             }
         }
+
+        event.consume()
     }
 
     override fun dragged(event: PointerEvent) {

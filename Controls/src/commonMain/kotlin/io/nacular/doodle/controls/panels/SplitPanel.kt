@@ -29,27 +29,9 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
     /**
      * Controls the look and behavior of the panel, including the divider it uses.
      */
-    public var behavior: SplitPanelBehavior? by behavior { _,new ->
-        divider?.let { children -= it }
-
-        new?.also { behavior ->
-            divider = behavior.divider(this)
-
-            divider?.let {
-                if (behavior.dividerVisible) {
-                    panelSpacing = it.width
-                }
-
-                children += it
-
-                it.zOrder = 1
-            }
-
-            if (divider != null) {
-                updateLayout()
-            }
-        }
-    }
+    public var behavior: SplitPanelBehavior? by behavior(afterChange = { _,new ->
+        divider = new?.divider(this)
+    })
 
     /**
      * Item to one side of the divider.
@@ -93,8 +75,16 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
      */
     public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
 
-    private var divider      = null as View?
-    private var panelSpacing = 0.0
+    private var divider: View? by observable(null) { old, new ->
+        old?.let { children -= it }
+
+        new?.also {
+            children += it
+            it.zOrder = 1
+
+            updateLayout()
+        }
+    }
 
     @Suppress("PrivatePropertyName")
     private val changed_ = ChangeObserversImpl(this)
@@ -115,6 +105,16 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
 
     override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
 
+    private fun panelSpacing(): Double = when (behavior?.dividerVisible) {
+        true -> divider?.let {
+            when (orientation) {
+                Vertical -> it.width
+                else     -> it.height
+            }
+        } ?: 0.0
+        else -> 0.0
+    }
+
     @Suppress("NAME_SHADOWING")
     private fun updateLayout() {
         val first   = firstItem
@@ -129,18 +129,18 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                             first.top    = parent.top    + { insets.top    }
                             first.left   = parent.left   + { insets.left   }
                             first.bottom = parent.bottom - { insets.bottom }
-                            first.right  = first.left + (parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
+                            first.right  = first.left + (parent.width - { panelSpacing() + insets.right }) * { ratio }
                             last.top     = first.top
-                            last.left    = first.right + { panelSpacing }
+                            last.left    = first.right + { panelSpacing() }
                             last.bottom  = first.bottom
                             last.right   = parent.right - { insets.right }
                         }
                         else -> {
                             first.top    = parent.top    + { insets.top    }
                             first.left   = parent.left   + { insets.left   }
-                            first.bottom = first.top + (parent.height - { panelSpacing + insets.top + insets.bottom }) * { ratio }
+                            first.bottom = first.top + (parent.height - { panelSpacing() + insets.bottom }) * { ratio }
                             first.right  = parent.right - { insets.right }
-                            last.top     = first.bottom + { panelSpacing }
+                            last.top     = first.bottom + { panelSpacing() }
                             last.left    = first.left
                             last.right   = first.right
                             last.bottom  = parent.bottom - { insets.bottom }
@@ -161,12 +161,12 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                         Vertical -> {
                             divider.top     = first.top
                             divider.bottom  = first.bottom
-                            divider.centerX = parent.left + { insets.left } + (divider.parent.width - { panelSpacing + insets.left + insets.right }) * { ratio }
+                            divider.centerX = first.right + { panelSpacing() / 2 }
                         }
                         else -> {
                             divider.left    = first.left
                             divider.right   = first.right
-                            divider.centerY = parent.top + { insets.top } + (divider.parent.height - { panelSpacing + insets.top + insets.bottom }) * { ratio }
+                            divider.centerY = first.bottom + { panelSpacing() / 2 }
                         }
                     }
                 }

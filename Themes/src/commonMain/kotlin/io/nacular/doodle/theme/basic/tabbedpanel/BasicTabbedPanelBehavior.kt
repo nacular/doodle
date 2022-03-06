@@ -21,6 +21,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -609,6 +610,6 @@ public open class BasicTabbedPanelBehavior<T>(
     }
 
     override fun render(view: TabbedPanel<T>, canvas: Canvas) {
-        canvas.rect(view.bounds.atOrigin, ColorPaint(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, backgroundColor.paint)
     }
 }

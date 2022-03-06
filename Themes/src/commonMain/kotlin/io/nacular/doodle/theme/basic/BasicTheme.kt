@@ -597,9 +597,18 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public fun basicSplitPanelBehavior(): Module = basicThemeModule(name = "BasicSplitPanelBehavior") {
+        public fun basicSplitPanelBehavior(
+            showDivider      : Boolean = false,
+            background       : Paint?  = null,
+            dividerBackground: Paint?  = null
+        ): Module = basicThemeModule(name = "BasicSplitPanelBehavior") {
             bindBehavior<SplitPanel>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run { BasicSplitPanelBehavior() }
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicSplitPanelBehavior(
+                        background        = background        ?: this.backgroundColor.paint,
+                        dividerBackground = dividerBackground ?: if (showDivider) this.backgroundColor.paint else null,
+                    )
+                }
             }
         }
 
@@ -737,9 +746,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicTabbedPanelBehavior(
                         tabProducer ?: BasicTabProducer(
-                                tabColor            = backgroundColor ?: this.backgroundColor,
-                                hoverColorMapper    = this@run.hoverColorMapper,
-                                selectedColorMapper = { foregroundColor.inverted }
+                            tabColor            = backgroundColor ?: this.backgroundColor,
+                            hoverColorMapper    = this@run.hoverColorMapper,
+                            selectedColorMapper = { foregroundColor.inverted }
                         ),
                         backgroundColor ?: this.backgroundColor,
                         tabContainer?.let {
