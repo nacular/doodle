@@ -8,7 +8,6 @@ import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
-import io.nacular.measured.units.abs
 import io.nacular.measured.units.normalize
 import io.nacular.measured.units.sign
 import io.nacular.measured.units.times
@@ -114,19 +113,23 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
 /**
  * Converts [Rectangle] with radius to [Path].
  */
-public fun Rectangle.toPath(radius: Double): Path = PathBuilderImpl(points[0] + Point(radius, 0.0)).apply {
-    lineTo(points[1] - Point(radius, 0.0))
-    arcTo (points[1] + Point(0.0, radius), radius, largeArch = false, sweep = true)
+public fun Rectangle.toPath(radius: Double): Path {
+    val sanitizedRadius = minOf(width / 2, height / 2, radius)
 
-    lineTo(points[2] - Point(0.0, radius))
-    arcTo (points[2] - Point(radius, 0.0), radius, largeArch = false, sweep = true)
+    return PathBuilderImpl(points[0] + Point(sanitizedRadius, 0.0)).apply {
+        lineTo(points[1] - Point(sanitizedRadius, 0.0))
+        arcTo (points[1] + Point(0.0, sanitizedRadius), sanitizedRadius, largeArch = false, sweep = true)
 
-    lineTo(points[3] + Point(radius, 0.0))
-    arcTo (points[3] - Point(0.0, radius), radius, largeArch = false, sweep = true)
+        lineTo(points[2] - Point(0.0, sanitizedRadius))
+        arcTo (points[2] - Point(sanitizedRadius, 0.0), sanitizedRadius, largeArch = false, sweep = true)
 
-    lineTo(points[0] + Point(0.0, radius))
-    arcTo (points[0] + Point(radius, 0.0), radius, largeArch = false, sweep = true)
-}.close()
+        lineTo(points[3] + Point(sanitizedRadius, 0.0))
+        arcTo (points[3] - Point(0.0, sanitizedRadius), sanitizedRadius, largeArch = false, sweep = true)
+
+        lineTo(points[0] + Point(0.0, sanitizedRadius))
+        arcTo (points[0] + Point(sanitizedRadius, 0.0), sanitizedRadius, largeArch = false, sweep = true)
+    }.close()
+}
 
 
 /**
