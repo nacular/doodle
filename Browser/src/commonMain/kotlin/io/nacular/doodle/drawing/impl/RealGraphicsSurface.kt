@@ -169,6 +169,19 @@ internal class RealGraphicsSurface private constructor(
         rootElement.parent?.let {
             rootElement.style.setSize(new)
 
+            if (!clipCanvasToBounds) {
+                when {
+                    old.empty && !new.empty -> {
+                        rootElement.style.setOverflow(Visible())
+                        canvasElement.style.setOverflow(Visible())
+                    }
+                    !old.empty && new.empty -> {
+                        rootElement.style.setOverflow(null)
+                        canvasElement.style.setOverflow(null)
+                    }
+                }
+            }
+
             canvas.size = new
 
             refreshAugmentedTransform() // Need to incorporate new size in transform calculation

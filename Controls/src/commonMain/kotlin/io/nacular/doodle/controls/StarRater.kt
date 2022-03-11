@@ -104,7 +104,7 @@ public class StarRater(max: Int = 5, private val displayRounded: Float = 0f): Vi
         fillBounds = when(max) {
             1    -> Rectangle(width, height)
             else -> {
-                val fillWidth = (width - starWidth * max) / (2 * (max - 1)) * 2 + starWidth
+                val fillWidth = max(0.0, (width - starWidth) / (max - 1))
                 Rectangle(-(fillWidth - starWidth) / 2, 0.0, fillWidth, height)
             }
         }

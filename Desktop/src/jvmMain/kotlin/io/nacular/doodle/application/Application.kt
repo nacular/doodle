@@ -58,6 +58,7 @@ import org.kodein.di.singleton
 import java.awt.Dimension
 import javax.swing.JFrame
 import javax.swing.JFrame.EXIT_ON_CLOSE
+import javax.swing.UIManager
 
 /**
  * Created by Nicholas Eddy on 5/14/21.
@@ -151,6 +152,8 @@ private open class ApplicationHolderImpl protected constructor(
     private var application = null as Application?
 
     init {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+
         System.setProperty("skiko.vsync.enabled", "false")
 //        System.setProperty("skiko.fps.enabled",   "true" )
 //        System.setProperty("skiko.renderApi", "OPENGL")
