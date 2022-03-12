@@ -19,9 +19,9 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Direction.East
-import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -156,8 +156,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             model              : SimpleMutableListModel<T>,
             itemGenerator      : ItemVisualizer<T, IndexedItem>? = null,
         val localSelectionModel: LocalSelectionModel?            = null,
-            fitContent         : Set<Dimension>                  = setOf(Width, Height),
-            scrollCache        : Int): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent, scrollCache) {
+            fitContent         : Set<Dimension>                  = setOf(Width, Height)
+    ): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent) {
         public override val model = super.model
 
         fun enable() {
@@ -169,6 +169,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         }
 
         override fun addedToDisplay() {
+            super.addedToDisplay()
             enable()
         }
 
@@ -302,7 +303,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
                 }
 
                 if (width > 0) {
-                    width = max(container.width, width + container.insets.run { left + right })
+                    this@TreeColumns.width = max(container.width, width + container.insets.run { left + right })
                 }
             }
         }
@@ -377,14 +378,15 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         contentWidthConstraints  = { parent.width }
         contentHeightConstraints = { max(minHeight, parent.height) }
 
-        sizePreferencesChanged += { _,_,_ ->
-            idealSize?.let { width = it.width }
-        }
+//        sizePreferencesChanged += { _,_,_ ->
+//            idealSize?.let { width = it.width }
+//        }
 
         // FIXME: REMOVE
+        width = 200.0
         Resizer(this).apply {
             movable = false
-            directions = setOf(East, West)
+            directions = setOf(East)
         }
     }
 
@@ -394,8 +396,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             SimpleMutableListModel(model.children(node).asSequence().toList()),
             itemVisualizer,
             selectionModel?.let { LocalSelectionModel(node, it) },
-            fitContent  = setOf(Height),
-            scrollCache = 10
+            fitContent  = setOf(Height)
         ).apply {
             acceptsThemes = false
         }
