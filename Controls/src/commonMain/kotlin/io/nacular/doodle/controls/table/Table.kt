@@ -141,7 +141,9 @@ public open class Table<T, M: ListModel<T>>(
         set(new) {
             field = new
 
-            doLayout()
+            if (behavior != null) {
+                doLayout()
+            }
         }
 
     public var behavior: TableBehavior<T>? by behavior(
@@ -183,14 +185,14 @@ public open class Table<T, M: ListModel<T>>(
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top = header.parent.top + y
+                        header.top    = parent.top + y
                         header.height = constant(height)
                     }
 
-                    panel.top = header.bottom
-                    panel.left = panel.parent.left
-                    panel.right = panel.parent.right
-                    panel.bottom = panel.parent.bottom
+                    panel.top    = header.bottom
+                    panel.left   = parent.left
+                    panel.right  = parent.right
+                    panel.bottom = parent.bottom
                 }
             }
         }

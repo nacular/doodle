@@ -84,7 +84,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
             }
 
             override fun pressed(event: PointerEvent) {
-                pointerDown       = true
+                pointerDown     = true
                 initialPosition = toLocal(event.location, event.target)
 
                 if (overHandle(initialPosition!!)) {
