@@ -21,6 +21,7 @@ import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.focus.impl.FocusTraversalPolicyImpl
 import io.nacular.doodle.focus.impl.FocusabilityChecker
 import io.nacular.doodle.image.ImageLoader
+import io.nacular.doodle.image.impl.Base64Decoder
 import io.nacular.doodle.image.impl.ImageLoaderImpl
 import io.nacular.doodle.image.impl.UrlDecoder
 import io.nacular.doodle.system.KeyInputService
@@ -37,6 +38,7 @@ import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 import org.kodein.di.singleton
 import java.net.URLDecoder
+import java.util.Base64
 
 /**
  * Created by Nicholas Eddy on 5/20/21.
@@ -86,9 +88,14 @@ public class Modules {
 
         public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
             bindSingleton<ImageLoader>{
-                ImageLoaderImpl(object: UrlDecoder {
-                    override fun decode(string: String, encoding: String) = URLDecoder.decode(string, encoding)
-                })
+                ImageLoaderImpl(
+                    urlDecoder = object: UrlDecoder {
+                        override fun decode(string: String, encoding: String) = URLDecoder.decode(string, encoding)
+                    },
+                    base64Decoder = object: Base64Decoder {
+                        override fun decode(string: String) = Base64.getDecoder().decode(string)
+                    }
+                )
             }
         }
     }

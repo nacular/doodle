@@ -12,10 +12,14 @@ public interface UrlDecoder {
     public fun decode(string: String, encoding: String): String
 }
 
+public interface Base64Decoder {
+    public fun decode(string: String): ByteArray
+}
+
 /**
  * Created by Nicholas Eddy on 5/20/21.
  */
-public class ImageLoaderImpl(private val urlDecoder: UrlDecoder): ImageLoader {
+public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val base64Decoder: Base64Decoder): ImageLoader {
     private val loadedImages   = mutableMapOf<String, Image>()
     private val dataImageRegex = Regex("^\\s*data:(?<mediaType>(?<mimeType>[a-z\\-+/]+/[a-z\\-+]+)(?<params>(;[a-z\\-]+=[a-z\\-]+)*))?;(?<encoding>[^,]*)?,(?<data>[a-zA-Z0-9!$&',()*+;=\\-._~:@/?%\\s]*\\s*)")
 
@@ -38,11 +42,11 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder): ImageLoader {
                             "image/svg+xml" -> {
                                 SvgImage(SVGDOM(Data.makeFromBytes(urlDecoder.decode(data, encoding).toByteArray())))
                             }
-                            else -> data.let { ImageImpl(SkiaImage.makeFromEncoded(it.encodeToByteArray()), source) }
+                            else -> data.let { ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(it)), source) }
                         }
                     } ?:
 
-                    ImageImpl(SkiaImage.makeFromEncoded(source.encodeToByteArray()), source)
+                    ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(source)), source)
                 }
                 else -> ImageImpl(SkiaImage.makeFromEncoded(file.readBytes()), source)
             }
