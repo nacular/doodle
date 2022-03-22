@@ -65,7 +65,14 @@ internal class RealGraphicsSurface private constructor(
     override var index = 0
         set(new) {
             field = new
-            parent?.setIndex(this, new)
+
+            when (val p = parent) {
+                null           -> {
+                    htmlFactory.root.remove(rootElement       )
+                    htmlFactory.root.insert(rootElement, index)
+                }
+                else -> p.setIndex(this, new)
+            }
         }
 
     override var zOrder = 0
@@ -224,7 +231,6 @@ internal class RealGraphicsSurface private constructor(
             clipCanvasToBounds = oldClipping
         }
 
-//    private  var indexSet        = MutableTreeSet<Int>()
     private  var indexStart      = 0
     internal val rootElement     = canvasElement
     private  var childrenElement = rootElement
@@ -268,10 +274,9 @@ internal class RealGraphicsSurface private constructor(
             canvas = canvasFactory(rootElement)
         }
 
-        if (parent != null) {
-            parent?.add(this)
-        } else if (addToRootIfNoParent) {
-            htmlFactory.root.add(rootElement)
+        when {
+            parent != null      -> parent?.add(this)
+            addToRootIfNoParent -> htmlFactory.root.add(rootElement)
         }
     }
 

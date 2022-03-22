@@ -306,6 +306,10 @@ public open class RenderManagerImpl(
                 graphicsSurface.transform = view.transform
                 graphicsSurface.opacity   = view.opacity
                 graphicsSurface.zOrder    = view.zOrder
+                graphicsSurface.index     = when (val parent = view.parent) {
+                    null -> display.indexOf         (view)
+                    else -> parent.children_.indexOf(view)
+                }
             }
 
             if (view in pendingBoundsChange) {
@@ -443,11 +447,12 @@ public open class RenderManagerImpl(
 
         removeFromCleanupList(parent, child)
 
-        if (child.visible) {
-            record(child)
-        } else {
-            addedInvisible += child
-            child.visibilityChanged += ::visibilityChanged
+        when {
+            child.visible -> record(child)
+            else          -> {
+                addedInvisible          += child
+                child.visibilityChanged += ::visibilityChanged
+            }
         }
     }
 

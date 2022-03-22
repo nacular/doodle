@@ -207,6 +207,71 @@ class RenderManagerImplTests {
         }
     }
 
+    @Test @JsName("handlesChildSwapped")
+    fun `handles child swapped`() {
+        val child1   = spyk(view())
+        val child2   = spyk(view())
+        val child3   = spyk(view())
+        val child4   = spyk(view())
+        val parent   = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2, child3) }
+        val display  = display(parent)
+        val surface1 = mockk<GraphicsSurface>()
+        val surface2 = mockk<GraphicsSurface>()
+        val surface3 = mockk<GraphicsSurface>()
+        val surface4 = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(
+            display        = display,
+            graphicsDevice = graphicsDevice(mapOf(child1 to surface1, child2 to surface2, child3 to surface3, child4 to surface4))
+        )
+
+        verifyChildAddedProperly(renderManager, display, parent)
+
+        parent.children[1] = child4
+
+        verify(exactly = 1) { surface4.index = 1 }
+
+        listOf(child1, child3).forEach {
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
+            verify(exactly = 1) { it.render             (any()) }
+        }
+
+        verify(exactly = 1) { child2.removedFromDisplay_() }
+    }
+
+    @Test @JsName("handlesChildSwappedTopLevel")
+    fun `handles child swapped top-level`() {
+        val child1   = spyk(view())
+        val child2   = spyk(view())
+        val child3   = spyk(view())
+        val child4   = spyk(view())
+        val display  = display(child1, child2, child3)
+        val surface1 = mockk<GraphicsSurface>()
+        val surface2 = mockk<GraphicsSurface>()
+        val surface3 = mockk<GraphicsSurface>()
+        val surface4 = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(
+            display        = display,
+            graphicsDevice = graphicsDevice(mapOf(child1 to surface1, child2 to surface2, child3 to surface3, child4 to surface4))
+        )
+
+        listOf(child1, child2, child3).forEach {
+            verifyChildAddedProperly(renderManager, display, it)
+        }
+
+        display.children[1] = child4
+
+        verify(exactly = 1) { surface4.index = 1 }
+
+        listOf(child1, child3).forEach {
+            verify(exactly = 0) { it.removedFromDisplay_(     ) }
+            verify(exactly = 1) { it.render             (any()) }
+        }
+
+        verify(exactly = 1) { child2.removedFromDisplay_() }
+    }
+
     @Test @JsName("handlesIndexChange")
     fun `handles index change`() {
         val child1   = spyk(view())
