@@ -61,7 +61,7 @@ public interface Canvas: Renderer {
      *
      * ```kotlin
      * canvas.scale(around = Point(5, 5), x = 2.0, y = 2.0)  {
-     *  rect(Rectangle(10, 10)) // Draws rectangle: -5, -5, 20, 20
+     *    rect(Rectangle(10, 10)) // Draws rectangle: -5, -5, 20, 20
      * }
      * ```
      *
@@ -72,11 +72,7 @@ public interface Canvas: Renderer {
      */
     public fun scale(around: Point, x: Double = 1.0, y: Double = 1.0, block: Canvas.() -> Unit): Unit = when {
         x == 1.0 && y == 1.0 -> block()
-        else                 -> {
-            val point = around - (size / 2.0).run { Point(width, height) }
-
-            transform(Identity.translate(point).scale(x, y).translate(-point), block)
-        }
+        else                 -> transform(Identity.translate(around).scale(x, y).translate(-around), block)
     }
 
     /**
