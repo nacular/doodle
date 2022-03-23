@@ -54,16 +54,8 @@ public open class DynamicTree<T, M: MutableTreeModel<T>>(model: M, itemVisualize
 
     public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
 
-    override fun addedToDisplay() {
+    init {
         model.changed += modelChanged
-
-        super.addedToDisplay()
-    }
-
-    override fun removedFromDisplay() {
-        model.changed -= modelChanged
-
-        super.removedFromDisplay()
     }
 
     private fun itemsAdded(values: Map<Path<Int>, T>) {
