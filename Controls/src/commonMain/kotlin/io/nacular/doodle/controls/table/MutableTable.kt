@@ -36,7 +36,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
                         header         : View?,
                         headerAlignment: (Constraints.() -> Unit)? = null,
-                        cellGenerator  : CellVisualizer<R>,
+                        cellGenerator  : CellVisualizer<T, R>,
                         cellAlignment  : (Constraints.() -> Unit)? = null,
                         preferredWidth : Double? = null,
                         minWidth       : Double  = 0.0,
@@ -102,7 +102,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     }
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
+        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
             builder(this)
 
             MutableInternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {

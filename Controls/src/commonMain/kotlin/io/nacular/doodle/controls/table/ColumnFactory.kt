@@ -30,12 +30,13 @@ internal class MutableColumnBuilderImpl<T>: ColumnBuilderImpl(), MutableColumnBu
     override var editor: TableEditor<T>? = null
 }
 
-public interface CellInfo<T>: IndexedItem {
+public interface CellInfo<T, R>: IndexedItem {
     // TODO: Include Table/TreeTable?
-    public val column: Column<T>
+    public val column: Column<R>
+    public val item  : T
 }
 
-public typealias CellVisualizer<T> = ItemVisualizer<T, CellInfo<T>>
+public typealias CellVisualizer<Item, Field> = ItemVisualizer<Field, CellInfo<Item, Field>>
 
 public typealias Sorter<T, S>     = Extractor<T, S> //T.() -> S
 
@@ -43,26 +44,26 @@ public interface ColumnFactory<T> {
     public fun <R> column(
             header        : View?,
             extractor     : Extractor<T, R>,
-            cellVisualizer: CellVisualizer<R>,
+            cellVisualizer: CellVisualizer<T, R>,
             builder       : ColumnBuilder.() -> Unit): Column<R>
 
     public fun column(
             header       : View?,
-            cellGenerator: CellVisualizer<Unit>,
+            cellGenerator: CellVisualizer<T, Unit>,
             builder      : ColumnBuilder.() -> Unit): Column<Unit> = column(header, {}, cellGenerator, builder)
 }
 
 public interface MutableColumnFactory<T> {
     public fun column(
             header       : View?,
-            cellGenerator: CellVisualizer<Unit>,
+            cellGenerator: CellVisualizer<T, Unit>,
             builder      : MutableColumnBuilder<T>.() -> Unit): Column<Unit> = column(header, {}, cellGenerator, builder)
 
 
     public fun <R, S: Comparable<S>> column(
             header        : View?,
             extractor     : Extractor<T, R>,
-            cellVisualizer: CellVisualizer<R>,
+            cellVisualizer: CellVisualizer<T, R>,
             editor        : TableEditor<T>? = null,
             sorter        : Sorter<T, S>? = null,
             builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R>
@@ -70,13 +71,13 @@ public interface MutableColumnFactory<T> {
     public fun <R> column(
             header        : View?,
             extractor     : Extractor<T, R>,
-            cellVisualizer: CellVisualizer<R>,
+            cellVisualizer: CellVisualizer<T, R>,
             builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header, extractor, cellVisualizer, null, null as Sorter<T, Int>?, builder)
 
     public fun <R: Comparable<R>> column(
             header        : View?,
             extractor     : Extractor<T, R>,
-            cellVisualizer: CellVisualizer<R>,
+            cellVisualizer: CellVisualizer<T, R>,
             editor        : TableEditor<T>? = null,
             sortable      : Boolean = false,
             builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header, extractor, cellVisualizer, editor, if (sortable) extractor else null, builder)

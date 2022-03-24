@@ -117,10 +117,11 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     }
 }
 
-public open class TreeTable<T, M: TreeModel<T>>(model        : M,
-                           protected val selectionModel: SelectionModel<Path<Int>>? = null,
-                           private   val scrollCache   : Int                        = 0,
-                                         block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
+public open class TreeTable<T, M: TreeModel<T>>(
+                   model        : M,
+    protected val selectionModel: SelectionModel<Path<Int>>? = null,
+    private   val scrollCache   : Int                        = 0,
+                  block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
 
     override val rootVisible: Boolean get() = tree.rootVisible
 
@@ -168,7 +169,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     }
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             if (!::tree.isInitialized) {
@@ -211,15 +212,15 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     }
 
     private inner class TableLikeBehaviorWrapper(val delegate: TreeTableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveStart(table.delegate, internalColumn)
         }
 
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveEnd(table.delegate, internalColumn)
         }
 
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoved(table.delegate, internalColumn)
         }
 
@@ -229,19 +230,20 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     private inner class InternalTreeColumn<R>(
             header        : View?,
             headerPosition: (Constraints.() -> Unit)?,
-            cellGenerator : CellVisualizer<R>,
+            cellGenerator : CellVisualizer<T, R>,
             cellPosition  : (Constraints.() -> Unit)?,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
         override val view = Tree(
                 model.map(extractor),
                 object : ItemVisualizer<R, IndexedItem> {
-                    override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
-                        override val column = this@InternalTreeColumn
-                        override val index get() = context.index
+                    override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                        override val item     get() = this@TreeTable[index].getOrThrow()
+                        override val index    get() = context.index
+                        override val column   get() = this@InternalTreeColumn
                         override val selected get() = context.selected
                     })
                 },
@@ -266,9 +268,10 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                 view.behavior = object: TreeBehavior<R> {
                     override val generator get() = object: TreeBehavior.RowGenerator<R> {
                         override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, object : ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
-                                override val column = this@InternalTreeColumn
-                                override val index = index
+                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                                override val item     get() = this@TreeTable[path].getOrThrow()
+                                override val index    get() = index
+                                override val column   get() = this@InternalTreeColumn
                                 override val selected get() = context.selected
                             })
                         }, current)
@@ -305,12 +308,12 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
     private inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
-            cellGenerator  : CellVisualizer<R>,
+            cellGenerator  : CellVisualizer<T, R>,
             cellAlignment  : (Constraints.() -> Unit)? = null,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
         /**
          * Returns all rows below the given [[Path]]; even if path is collapsed/invisible
          */
@@ -367,9 +370,10 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.ItemGenerator<R> {
                         override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object : CellInfo<R> {
-                                override val column = this@InternalListColumn
-                                override val index = index
+                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                                override val item     get() = this@TreeTable[index].getOrThrow()
+                                override val index    get() = index
+                                override val column   get() = this@InternalListColumn
                                 override val selected get() = context.selected
                             })
                         }, current)
@@ -428,7 +432,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
         },
         afterChange = { _, new ->
             new?.also { behavior ->
-                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
                     it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
@@ -533,13 +537,13 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     public val selectionChanged: Pool<SetObserver<TreeTable<T, M>, Path<Int>>> = SetPool()
 
-    private val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
+    private val internalColumns = mutableListOf<InternalColumn<*,*,*,*>>()
 
     protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
     private var block: (ColumnFactory<T>.() -> Unit)? = block
 
-    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*, *, *>>()
+    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
 
     private val header by lazy {
         TableHeader(internalColumns) { canvas ->
@@ -571,7 +575,7 @@ public open class TreeTable<T, M: TreeModel<T>>(model        : M,
 
     internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
-    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*, *, *>)?.view?.rerender() }
+    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
 
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }

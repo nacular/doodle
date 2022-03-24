@@ -70,7 +70,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
 ): Table<T, M>(model, selectionModel, scrollCache, block) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also { internalColumns += it }
@@ -80,7 +80,7 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
     internal open inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
-            cellGenerator  : CellVisualizer<R>,
+            cellGenerator  : CellVisualizer<T, R>,
             cellAlignment  : (Constraints.() -> Unit)? = null,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,

@@ -9,7 +9,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import kotlin.math.max
 
-internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
+internal class TableHeader(columns: List<InternalColumn<*,*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
     init {
         focusable = false
         layout = object: Layout {
@@ -36,7 +36,7 @@ internal class TableHeader(columns: List<InternalColumn<*,*,*>>, private val ren
     public override fun doLayout() = super.doLayout()
 }
 
-internal class TablePanel(columns: List<InternalColumn<*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
+internal class TablePanel(columns: List<InternalColumn<*,*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
     init {
         focusable = false
         children += columns.map { it.view }

@@ -15,9 +15,9 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 9/15/19.
  */
 internal interface TableLikeBehavior<T: TableLike> {
-    fun <B: TableLikeBehavior<T>, R> columnMoveStart(table: T, internalColumn: InternalColumn<T, B, R>)
-    fun <B: TableLikeBehavior<T>, R> columnMoveEnd  (table: T, internalColumn: InternalColumn<T, B, R>)
-    fun <B: TableLikeBehavior<T>, R> columnMoved    (table: T, internalColumn: InternalColumn<T, B, R>)
+    fun <B: TableLikeBehavior<T>, F, R> columnMoveStart(table: T, internalColumn: InternalColumn<T, B, F, R>)
+    fun <B: TableLikeBehavior<T>, F, R> columnMoveEnd  (table: T, internalColumn: InternalColumn<T, B, F, R>)
+    fun <B: TableLikeBehavior<T>, F, R> columnMoved    (table: T, internalColumn: InternalColumn<T, B, F, R>)
     fun moveColumn(table: T, function: (Float) -> Unit): Completable?
 }
 
@@ -25,7 +25,7 @@ internal interface TableLike {
     val width           : Double
     val columns         : List<Column<*>>
     var resizingCol     : Int?
-    val internalColumns : MutableList<InternalColumn<*, *, *>>
+    val internalColumns : MutableList<InternalColumn<*, *, *, *>>
     val columnSizePolicy: ColumnSizePolicy
     val header          : Container
 
@@ -34,12 +34,12 @@ internal interface TableLike {
     fun relayout()
 }
 
-internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>(
+internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F, R>(
         private   val table          : T,
         private   val behavior       : B?,
         override  val header         : View?,
                       headerAlignment: (Constraints.() -> Unit)? = null,
-        protected val cellGenerator  : CellVisualizer<R>,
+        protected val cellGenerator  : CellVisualizer<F, R>,
                       cellAlignment  : (Constraints.() -> Unit)? = null,
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
@@ -223,8 +223,8 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, R>
     abstract fun behavior(behavior: B?)
 }
 
-internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit>(table, null, null, null, object: CellVisualizer<Unit> {
-    override fun invoke(item: Unit, previous: View?, context: CellInfo<Unit>) = previous ?: object: View() {}
+internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit, Unit>(table, null, null, null, object: CellVisualizer<Unit, Unit> {
+    override fun invoke(item: Unit, previous: View?, context: CellInfo<Unit, Unit>) = previous ?: object: View() {}
 }, null, null, 0.0, null) {
     override val view = view ?: object: View() {
         override fun contains(point: Point) = false

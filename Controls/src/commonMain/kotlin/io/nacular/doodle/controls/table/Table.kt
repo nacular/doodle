@@ -34,7 +34,7 @@ public open class Table<T, M: ListModel<T>>(
                       block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
             InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
@@ -62,15 +62,15 @@ public open class Table<T, M: ListModel<T>>(
     }
 
     internal inner class TableLikeBehaviorWrapper(val delegate: TableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
-        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveStart(table.delegate, internalColumn)
         }
 
-        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveEnd(table.delegate, internalColumn)
         }
 
-        override fun <B: TableLikeBehavior<TableLikeWrapper>, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoved(table.delegate, internalColumn)
         }
 
@@ -80,12 +80,12 @@ public open class Table<T, M: ListModel<T>>(
     internal open inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (Constraints.() -> Unit)? = null,
-            itemVisualizer : CellVisualizer<R>,
+            itemVisualizer : CellVisualizer<T, R>,
             cellAlignment  : (Constraints.() -> Unit)? = null,
             preferredWidth : Double?                   = null,
             minWidth       : Double                    = 0.0,
             maxWidth       : Double?                   = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
@@ -110,9 +110,10 @@ public open class Table<T, M: ListModel<T>>(
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = object: ListBehavior.ItemGenerator<R> {
                         override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, item, index, object: ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<R> {
-                                override val column         = this@InternalListColumn
-                                override val index          = index
+                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<T, R> {
+                                override val item     get() = this@Table[index].getOrThrow()
+                                override val index    get() = index
+                                override val column   get() = this@InternalListColumn
                                 override val selected get() = context.selected
                             })
                         }, current)
@@ -163,7 +164,7 @@ public open class Table<T, M: ListModel<T>>(
         },
         afterChange = { _, new ->
             new?.also { behavior ->
-                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
+                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
                     it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
@@ -204,13 +205,13 @@ public open class Table<T, M: ListModel<T>>(
 
     public fun contains(value: T): Boolean = value in model
 
-    internal val internalColumns = mutableListOf<InternalColumn<*, *, *>>()
+    internal val internalColumns = mutableListOf<InternalColumn<*,*,*,*>>()
 
     protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
     private var block: (ColumnFactory<T>.() -> Unit)? = block
 
-    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*>>()
+    private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
 
     private val header by lazy {
         TableHeader(internalColumns) { canvas ->
@@ -245,7 +246,7 @@ public open class Table<T, M: ListModel<T>>(
 
     internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
-    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*>)?.view?.rerender() }
+    internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
 
     public operator fun get(index: Int): Result<T> = model[index]
 
