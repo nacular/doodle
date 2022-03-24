@@ -27,17 +27,17 @@ public open class PathIcon<in T: View>(
     private val pathSize = pathMetrics.size(path)
     override fun size(view: T): Size = size ?: pathSize
 
-    private val stroke   = outline?.let { Stroke       (it) }
-    private val fill = fill?.let    { ColorPaint(it) }
+    private val stroke = outline?.let { Stroke    (it) }
+    private val fill   = fill?.let    { ColorPaint(it) }
 
     override fun render(view: T, canvas: Canvas, at: Point) {
         val fill = this.fill ?: view.foregroundColor?.let { ColorPaint(it) }
-        val size  = size(view)
+        val size = size(view)
 
         canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
             translate(at) {
                 when (stroke) {
-                    null -> path(path,      fill!!, fillRule)
+                    null -> fill?.let { path(path, fill, fillRule) }
                     else -> when (fill) {
                         null -> path(path, stroke                 )
                         else -> path(path, stroke, fill, fillRule)

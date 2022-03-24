@@ -139,10 +139,11 @@ internal class NativeHyperLink internal constructor(
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
-            customCanvas?.apply {
-                clear()
-                customRenderer?.let { it(hyperLink, this) }
-                flush()
+            customCanvas?.also { customCanvas ->
+                customCanvas.size = canvas.size
+                customCanvas.clear()
+                customRenderer?.let { it(hyperLink, customCanvas) }
+                customCanvas.flush()
             }
 
             canvas.addData(listOf(linkElement))
