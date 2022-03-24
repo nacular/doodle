@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -13,14 +14,12 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.geometry.div
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
-import JsName
 import kotlin.test.Test
 
 /**
@@ -143,9 +142,7 @@ class CanvasTests {
 
         canvas.scale(around = around, x = x, y = y, block = block)
 
-        val point = around - (Size(457) / 2.0).run { Point(width, height) }
-
-        verify { canvas.transform(Identity.translate(point).scale(x, y).translate(-point), block) }
+        verify { canvas.transform(Identity.translate(around).scale(x, y).translate(-around), block) }
     }
 
     @Test @JsName("rotate")
