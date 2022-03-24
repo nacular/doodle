@@ -70,7 +70,12 @@ internal class RealGraphicsSurface(
             released = true
 
             picture?.close()
+            picture = null
             pictureRecorder.close()
+
+            children.forEach {
+                it.release()
+            }
 
             // FIXME: Should always be true
             if (parent?.released == false) {
@@ -110,11 +115,14 @@ internal class RealGraphicsSurface(
     }
 
     private fun needsRerender() {
-        picture?.close()
+        try {
+            picture?.close()
+        } catch (ignore: Throwable) {}
+
         picture = null
 
         when (parent) {
-            null -> layer?.needRedraw   ()
+            null -> layer.needRedraw    ()
             else -> parent.needsRerender()
         }
     }
@@ -177,6 +185,10 @@ internal class RealGraphicsSurface(
 
     private fun <T> parentRedrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
         onChange(old, new)
-        parent?.needsRerender()
+
+        when (parent) {
+            null -> layer.needRedraw    ()
+            else -> parent.needsRerender()
+        }
     }
 }
