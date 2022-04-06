@@ -139,6 +139,10 @@ private class NativeTextFieldBehaviorWrapper(
         super<NativeTextFieldBehavior>.uninstall(view)
         delegate.uninstall(view)
     }
+
+    override fun mirrorWhenRightToLeft(view: TextField): Boolean {
+        return delegate.mirrorWhenRightToLeft(view)
+    }
 }
 
 private class PlaceHolderLabel(text: String, private val component: JTextComponent): JLabel(), DocumentListener {

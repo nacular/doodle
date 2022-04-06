@@ -318,6 +318,7 @@ internal class AccessibilityManagerImpl(
         }
     }
 
+    @Suppress("USELESS_IS_CHECK")
     private fun view(target: EventTarget?) = when (target) {
         is HTMLElement -> elementToView[target]
         else           -> null
