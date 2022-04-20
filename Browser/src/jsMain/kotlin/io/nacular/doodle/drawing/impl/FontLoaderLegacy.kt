@@ -69,7 +69,7 @@ internal class FontLoaderLegacy(
                             val size2 = elementRuler.size(text2)
                             val size3 = elementRuler.size(text3)
 
-                            size1 == size2 || size1 == size3 || size2 == size3
+                            size1 == size2 && size1 == size3 && size2 == size3
                         }
 
                         fonts[hash] = Found

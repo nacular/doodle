@@ -635,7 +635,7 @@ internal open class VectorRendererSvg constructor(
 
     private fun fillElement(element: SVGElement, fill: Paint, clearOutline: Boolean = true) {
         when (fill) {
-            is ColorPaint   -> SolidFillHandler.fill     (this, element, fill)
+            is ColorPaint          -> SolidFillHandler.fill     (this, element, fill)
             is PatternPaint        -> canvasFillHandler.fill    (this, element, fill)
             is LinearGradientPaint -> LinearFillHandler  ().fill(this, element, fill)
             is RadialGradientPaint -> GradientFillHandler().fill(this, element, fill)
