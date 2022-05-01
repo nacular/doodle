@@ -234,7 +234,8 @@ public class AffineTransform internal constructor(internal val matrix: AffineMat
         isIdentity -> points
         else       -> points.map {
             val list    = listOf(listOf(it.x), listOf(it.y), listOf(1.0))
-            val point   = matrixOf(3, 1) { col, row -> list[row][col] }
+            val l: (Int, Int) -> Double = { col, row -> list[row][col] }
+            val point   = matrixOf(3, 1, l)
             val product = matrix * point
 
             Point(product[0, 0], product[1, 0])

@@ -2,6 +2,8 @@
 
 package io.nacular.doodle.utils
 
+import kotlin.jvm.JvmName
+
 
 /**
  * An NxM [Matrix](https://en.wikipedia.org/wiki/Matrix_(mathematics)).
@@ -21,9 +23,9 @@ public interface Matrix<out T: Number> {
  * A square (NxN) [Matrix].
  *
  * @constructor creates a new matrix from numbers
- * @param values must be a square 2d list of list of values
+ * @param values must be a square 2d array of values
  */
-public open class SquareMatrix<T: Number> internal constructor(values: List<List<T>>): MatrixImpl<T>(values) {
+public open class SquareMatrix<T: Number> internal constructor(values: Array<Array<T>>): MatrixImpl<T>(values) {
     /**
      * `true` if this matrix is equal to the [Identity Matrix](https://en.wikipedia.org/wiki/Matrix_(mathematics)#Identity_matrix):
      *
@@ -62,7 +64,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: List<List
      */
     public val inverse: SquareMatrix<Double>? by lazy {
         when {
-            isIdentity         -> this.map { it.toDouble() } // TODO: This shouldn't require any copy
+            isIdentity         -> SquareMatrix(values.map { it.map { it.toDouble() }.toTypedArray() }.toTypedArray()) // TODO: This shouldn't require any copy
             determinant == 0.0 -> null
             else               -> {
                 val cofactors = values.mapIndexed { r, values ->
@@ -71,8 +73,11 @@ public open class SquareMatrix<T: Number> internal constructor(values: List<List
                             (r + c).isOdd -> -1
                             else          ->  1
                         }
-                    }
-                }.let { squareMatrixOf(numRows) { col, row -> it[row][col] } }
+                    }.toTypedArray()
+                }.toTypedArray().let {
+                    val l: (Int, Int) -> Double = { col, row -> it[row][col] }
+                    squareMatrixOf(numRows, l)
+                }
 
                 val transposed = cofactors.transpose()
 
@@ -100,7 +105,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: List<List
     }
 
     private fun determinant(row: Int, col: Int): Double {
-        val subData = values.filterIndexed { r, _ -> r != row }.map { it.filterIndexed { c, _ -> c != col } }
+        val subData = values.filterIndexed { r, _ -> r != row }.map { it.filterIndexed { c, _ -> c != col }.map { it.toDouble() }.toTypedArray() }.toTypedArray()
 
         return SquareMatrix(subData).determinant
     }
@@ -131,10 +136,10 @@ public class AffineMatrix3D(
         translateX: Double,
         shearY    : Double,
         scaleY    : Double,
-        translateY: Double): SquareMatrix<Double>(listOf(
-            listOf(scaleX, shearX, translateX),
-            listOf(shearY, scaleY, translateY),
-            listOf(   0.0,    0.0,        1.0)))
+        translateY: Double): SquareMatrix<Double>(arrayOf(
+            arrayOf(scaleX, shearX, translateX),
+            arrayOf(shearY, scaleY, translateY),
+            arrayOf(   0.0,    0.0,        1.0)))
 
 /**
  * Creates an NxN [SquareMatrix], where N == [size].
@@ -142,7 +147,31 @@ public class AffineMatrix3D(
  * @param size of N
  * @param init operation to get each value at [row, col]
  */
-public fun <T: Number> squareMatrixOf(size: Int, init: (row: Int, col: Int) -> T): SquareMatrix<T> = SquareMatrix(List(size) { row -> List(size) { col -> init(col, row) } })
+@JvmName("squareMatrixOfI") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Int): SquareMatrix<Int> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+
+/**
+ * Creates an NxN [SquareMatrix], where N == [size].
+ *
+ * @param size of N
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("squareMatrixOfF") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Float): SquareMatrix<Float> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+
+/**
+ * Creates an NxN [SquareMatrix], where N == [size].
+ *
+ * @param size of N
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("squareMatrixOfD") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Double): SquareMatrix<Double> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+
+/**
+ * Creates an NxN [SquareMatrix], where N == [size].
+ *
+ * @param size of N
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("squareMatrixOfL") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Long): SquareMatrix<Long> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
 
 /**
  * Creates an NxM [Matrix], where N == [rows] and M == [cols].
@@ -151,8 +180,44 @@ public fun <T: Number> squareMatrixOf(size: Int, init: (row: Int, col: Int) -> T
  * @param cols of the matrix
  * @param init operation to get each value at [row, col]
  */
-public fun <T: Number> matrixOf(rows: Int, cols: Int, init: (Int, Int) -> T): Matrix<T> = when {
-    rows != cols -> MatrixImpl(List(rows) { row -> List(cols) { col -> init(col, row) } })
+@JvmName("matrixOfI") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Int): Matrix<Int> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+    else         -> squareMatrixOf(rows, init)
+}
+
+/**
+ * Creates an NxM [Matrix], where N == [rows] and M == [cols].
+ *
+ * @param rows of the matrix
+ * @param cols of the matrix
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("matrixOfD") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Double): Matrix<Double> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+    else         -> squareMatrixOf(rows, init)
+}
+
+/**
+ * Creates an NxM [Matrix], where N == [rows] and M == [cols].
+ *
+ * @param rows of the matrix
+ * @param cols of the matrix
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("matrixOfF") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Float): Matrix<Float> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+    else         -> squareMatrixOf(rows, init)
+}
+
+/**
+ * Creates an NxM [Matrix], where N == [rows] and M == [cols].
+ *
+ * @param rows of the matrix
+ * @param cols of the matrix
+ * @param init operation to get each value at [row, col]
+ */
+@JvmName("matrixOfL") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Long): Matrix<Long> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
     else         -> squareMatrixOf(rows, init)
 }
 
@@ -160,15 +225,17 @@ public fun <T: Number> matrixOf(rows: Int, cols: Int, init: (Int, Int) -> T): Ma
  * Gives the [transposition](https://en.wikipedia.org/wiki/Transpose) of a [SquareMatrix].
  */
 public fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
-    val values = MutableList(numRows){ MutableList<T?>(numColumns) { null } }
+    val values = this.values.copyOf() // shallow copy
 
     for (row in 0 until numRows) {
+        values[row] = this.values[row].copyOf() // need to make copies of each row as well
+
         for (col in 0 until numColumns) {
             values[row][col] = this[col, row]
         }
     }
 
-    return SquareMatrix(values.map { it.mapNotNull { it } })
+    return SquareMatrix(values)
 }
 
 /**
@@ -177,7 +244,7 @@ public fun <T: Number> SquareMatrix<T>.transpose(): SquareMatrix<T> {
 public operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> {
     require (other.numRows == numColumns) { "matrix column and row counts do not match" }
 
-    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+    val values = Array(numRows) { Array(other.numColumns) { 0.0 } }
 
     for (r1 in 0 until numRows) {
         for (c2 in 0 until other.numColumns) {
@@ -194,7 +261,7 @@ public operator fun Matrix<Double>.times(other: Matrix<Double>): Matrix<Double> 
 public operator fun Matrix<Double>.minus(other: Matrix<Double>): Matrix<Double> {
     require (other.numRows == numColumns) { "matrix column and row counts do not match" }
 
-    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+    val values = Array(numRows) { Array(other.numColumns) { 0.0 } }
 
     for (row in 0 until numRows) {
         for (col in 0 until numColumns) {
@@ -211,7 +278,7 @@ public operator fun Matrix<Double>.minus(other: Matrix<Double>): Matrix<Double> 
 public operator fun Matrix<Double>.plus(other: Matrix<Double>): Matrix<Double> {
     require (other.numRows == numColumns) { "matrix column and row counts do not match" }
 
-    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+    val values = Array(numRows) { Array(other.numColumns) { 0.0 } }
 
     for (row in 0 until numRows) {
         for (col in 0 until numColumns) {
@@ -243,7 +310,25 @@ public operator fun Matrix<Double>.times(other: SquareMatrix<Double>): Matrix<Do
  *     |An1 An2 ... Ann|   |λAn1 λAn2 ... λAnn|
  * ```
  */
-public operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Double> = value.map { toDouble() * it.toDouble() }
+@JvmName("timesII") public operator fun Int.times(value: SquareMatrix<Int>   ): SquareMatrix<Int>    { val l: (Int   ) -> Int    = { this * it }; return value.map(l) }
+@JvmName("timesIF") public operator fun Int.times(value: SquareMatrix<Float> ): SquareMatrix<Float>  { val l: (Float ) -> Float  = { this * it }; return value.map(l) }
+@JvmName("timesID") public operator fun Int.times(value: SquareMatrix<Double>): SquareMatrix<Double> { val l: (Double) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesIL") public operator fun Int.times(value: SquareMatrix<Long>  ): SquareMatrix<Long>   { val l: (Long  ) -> Long   = { this * it }; return value.map(l) }
+
+@JvmName("timesFI") public operator fun Float.times(value: SquareMatrix<Int>   ): SquareMatrix<Float>  { val l: (Int   ) -> Float  = { this * it }; return value.map(l) }
+@JvmName("timesFF") public operator fun Float.times(value: SquareMatrix<Float> ): SquareMatrix<Float>  { val l: (Float ) -> Float  = { this * it }; return value.map(l) }
+@JvmName("timesFD") public operator fun Float.times(value: SquareMatrix<Double>): SquareMatrix<Double> { val l: (Double) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesFL") public operator fun Float.times(value: SquareMatrix<Long>  ): SquareMatrix<Float>  { val l: (Long  ) -> Float  = { this * it }; return value.map(l) }
+
+@JvmName("timesDI") public operator fun Double.times(value: SquareMatrix<Int>   ): SquareMatrix<Double> { val l: (Int   ) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesDF") public operator fun Double.times(value: SquareMatrix<Float> ): SquareMatrix<Double> { val l: (Float ) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesDD") public operator fun Double.times(value: SquareMatrix<Double>): SquareMatrix<Double> { val l: (Double) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesDL") public operator fun Double.times(value: SquareMatrix<Long>  ): SquareMatrix<Double> { val l: (Long  ) -> Double = { this * it }; return value.map(l) }
+
+@JvmName("timesLI") public operator fun Long.times(value: SquareMatrix<Int>   ): SquareMatrix<Long>   { val l: (Int   ) -> Long   = { this * it }; return value.map(l) }
+@JvmName("timesLF") public operator fun Long.times(value: SquareMatrix<Float> ): SquareMatrix<Float>  { val l: (Float ) -> Float  = { this * it }; return value.map(l) }
+@JvmName("timesLD") public operator fun Long.times(value: SquareMatrix<Double>): SquareMatrix<Double> { val l: (Double) -> Double = { this * it }; return value.map(l) }
+@JvmName("timesLL") public operator fun Long.times(value: SquareMatrix<Long>  ): SquareMatrix<Long>   { val l: (Long  ) -> Long   = { this * it }; return value.map(l) }
 
 /**
  * Right [Scalar multiplication](https://en.wikipedia.org/wiki/Scalar_multiplication) of a [SquareMatrix].
@@ -255,7 +340,25 @@ public operator fun <T: Number> T.times(value: SquareMatrix<T>): SquareMatrix<Do
  * |An1 An2 ... Ann|       |An1λ An2λ ... Annλ|
  * ```
  */
-public operator fun <T: Number> SquareMatrix<T>.times(value: Number): SquareMatrix<Double> = map { it.toDouble() * value.toDouble() }
+@JvmName("timesII") public inline operator fun SquareMatrix<Int>.times(value: Int   ): SquareMatrix<Int>    = value * this
+@JvmName("timesIF") public inline operator fun SquareMatrix<Int>.times(value: Float ): SquareMatrix<Float>  = value * this
+@JvmName("timesID") public inline operator fun SquareMatrix<Int>.times(value: Double): SquareMatrix<Double> = value * this
+@JvmName("timesIL") public inline operator fun SquareMatrix<Int>.times(value: Long  ): SquareMatrix<Long>   = value * this
+
+@JvmName("timesFI") public inline operator fun SquareMatrix<Float>.times(value: Int   ): SquareMatrix<Float>  = value * this
+@JvmName("timesFF") public inline operator fun SquareMatrix<Float>.times(value: Float ): SquareMatrix<Float>  = value * this
+@JvmName("timesFD") public inline operator fun SquareMatrix<Float>.times(value: Double): SquareMatrix<Double> = value * this
+@JvmName("timesFL") public inline operator fun SquareMatrix<Float>.times(value: Long  ): SquareMatrix<Float>  = value * this
+
+@JvmName("timesDI") public inline operator fun SquareMatrix<Double>.times(value: Int   ): SquareMatrix<Double> = value * this
+@JvmName("timesDF") public inline operator fun SquareMatrix<Double>.times(value: Float ): SquareMatrix<Double> = value * this
+@JvmName("timesDD") public inline operator fun SquareMatrix<Double>.times(value: Double): SquareMatrix<Double> = value * this
+@JvmName("timesDL") public inline operator fun SquareMatrix<Double>.times(value: Long  ): SquareMatrix<Double> = value * this
+
+@JvmName("timesLI") public inline operator fun SquareMatrix<Long>.times(value: Int   ): SquareMatrix<Long>   = value * this
+@JvmName("timesLF") public inline operator fun SquareMatrix<Long>.times(value: Float ): SquareMatrix<Float>  = value * this
+@JvmName("timesLD") public inline operator fun SquareMatrix<Long>.times(value: Double): SquareMatrix<Double> = value * this
+@JvmName("timesLL") public inline operator fun SquareMatrix<Long>.times(value: Long  ): SquareMatrix<Long>   = value * this
 
 /**
  * [Matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication) of two [SquareMatrix]es.
@@ -269,7 +372,7 @@ public operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): Squ
         return other
     }
 
-    val values = MutableList(numRows) { MutableList(other.numColumns) { 0.0 } }
+    val values = Array(numRows) { Array(other.numColumns) { 0.0 } }
 
     for (c2 in 0 until other.numColumns) {
         for (r1 in 0 until numRows) {
@@ -324,11 +427,13 @@ public operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D 
         return other
     }
 
-    val values = mutableListOf<Double>()//MutableList(numRows - 1) { MutableList(other.numColumns) { 0.0 } }
+    val values = Array(size = (numRows - 1) * other.numColumns) { 0.0 }
+
+    var i = 0
 
     for (r1 in 0 until numRows - 1) {
         for (c2 in 0 until other.numColumns) {
-            values += (0 until other.numRows).sumByDouble { this[r1, it] * other[it, c2] }
+            values[i++] = (0 until other.numRows).sumOf { this[r1, it] * other[it, c2] }
         }
     }
 
@@ -341,21 +446,41 @@ public operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D 
  *
  * @param transform operation to map elements
  */
-public fun <T: Number, R: Number> SquareMatrix<T>.map(transform: (T) -> R): SquareMatrix<R> = SquareMatrix(values.map { it.map { transform(it) } })
+@JvmName("mapII") public fun SquareMatrix<Int>.map(transform: (Int) -> Int   ): SquareMatrix<Int>    = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapID") public fun SquareMatrix<Int>.map(transform: (Int) -> Double): SquareMatrix<Double> = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapIF") public fun SquareMatrix<Int>.map(transform: (Int) -> Float ): SquareMatrix<Float>  = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapIL") public fun SquareMatrix<Int>.map(transform: (Int) -> Long  ): SquareMatrix<Long>   = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+
+@JvmName("mapDI") public fun SquareMatrix<Double>.map(transform: (Double) -> Int   ): SquareMatrix<Int>    = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapDD") public fun SquareMatrix<Double>.map(transform: (Double) -> Double): SquareMatrix<Double> = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapDF") public fun SquareMatrix<Double>.map(transform: (Double) -> Float ): SquareMatrix<Float>  = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapDL") public fun SquareMatrix<Double>.map(transform: (Double) -> Long  ): SquareMatrix<Long>   = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+
+@JvmName("mapFI") public fun SquareMatrix<Float>.map(transform: (Float) -> Int   ): SquareMatrix<Int>    = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapFD") public fun SquareMatrix<Float>.map(transform: (Float) -> Double): SquareMatrix<Double> = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapFF") public fun SquareMatrix<Float>.map(transform: (Float) -> Float ): SquareMatrix<Float>  = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapFL") public fun SquareMatrix<Float>.map(transform: (Float) -> Long  ): SquareMatrix<Long>   = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+
+@JvmName("mapLI") public fun SquareMatrix<Long>.map(transform: (Long) -> Int   ): SquareMatrix<Int>    = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapLD") public fun SquareMatrix<Long>.map(transform: (Long) -> Double): SquareMatrix<Double> = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapLF") public fun SquareMatrix<Long>.map(transform: (Long) -> Float ): SquareMatrix<Float>  = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
+@JvmName("mapLL") public fun SquareMatrix<Long>.map(transform: (Long) -> Long  ): SquareMatrix<Long>   = SquareMatrix(values.map { it.map { transform(it) }.toTypedArray() }.toTypedArray())
 
 /**
  * Like [map], but with [col, row] given for each item during tranformation.
  */
-public fun <T: Number, R: Number> SquareMatrix<T>.mapIndexed(transform: (col: Int, row: Int, T) -> R): SquareMatrix<R> = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) } })
-
+@JvmName("mapIndexedI") public fun SquareMatrix<Int   >.mapIndexed(transform: (col: Int, row: Int, Int   ) -> Int   ): SquareMatrix<Int>    = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) }.toTypedArray() }.toTypedArray())
+@JvmName("mapIndexedD") public fun SquareMatrix<Double>.mapIndexed(transform: (col: Int, row: Int, Double) -> Double): SquareMatrix<Double> = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) }.toTypedArray() }.toTypedArray())
+@JvmName("mapIndexedF") public fun SquareMatrix<Float >.mapIndexed(transform: (col: Int, row: Int, Float ) -> Float ): SquareMatrix<Float>  = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) }.toTypedArray() }.toTypedArray())
+@JvmName("mapIndexedL") public fun SquareMatrix<Long  >.mapIndexed(transform: (col: Int, row: Int, Long  ) -> Long  ): SquareMatrix<Long>   = SquareMatrix(values.mapIndexed { row, rows -> rows.mapIndexed { col, value -> transform(col, row, value) }.toTypedArray() }.toTypedArray())
 
 /**
  * An (NxM) [Matrix].
  *
  * @constructor creates a new matrix from numbers
- * @param values must be a square 2d list of list of values
+ * @param values must be a square 2d array of values
  */
-public open class MatrixImpl<T: Number> internal constructor(internal val values: List<List<T>>): Matrix<T> {
+public open class MatrixImpl<T: Number> internal constructor(internal val values: Array<Array<T>>): Matrix<T> {
 
     final override val numRows   : Int = values.size
     final override val numColumns: Int = if (numRows > 0) values[0].size else 0

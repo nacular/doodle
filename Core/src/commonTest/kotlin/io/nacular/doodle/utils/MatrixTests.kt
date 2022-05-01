@@ -7,19 +7,12 @@ import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
-
-/**
- * Created by Nicholas Eddy on 3/2/18.
- */
-
-
 private typealias m<T> = MatrixImpl<T>
 private typealias s<T> = SquareMatrix<T>
 
-private fun parse(text: String): Matrix<Double> = MatrixImpl(text.lines().map {
-    it.trim().split(" ").map { it.toDouble() }
-})
-
+/**
+ * Tests for MatrixImpl and SquareMatrix.
+ */
 class MatrixTests {
     @Test @JsName("identityWorks") fun `identity works`() {
         listOf(
@@ -128,6 +121,35 @@ class MatrixTests {
         }
     }
 
+    @Test @JsName("transposeWorks") fun `transpose works`() {
+        listOf(
+            s(this[
+              this[1.0          ]]) to
+            s(this[
+              this[1.0          ]]),
+
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]) to
+            s(this[
+              this[1.0, 0.0, 0.0],
+              this[0.0, 1.0, 0.0],
+              this[0.0, 0.0, 1.0]]),
+
+            s(this[
+              this[1.0, 2.0, 3.0],
+              this[4.0, 5.0, 6.0],
+              this[7.0, 8.0, 9.0]]) to
+            s(this[
+              this[1.0, 4.0, 7.0],
+              this[2.0, 5.0, 8.0],
+              this[3.0, 6.0, 9.0]]),
+        ).forEach {
+            expect(it.second, "\n${it.first} \ntranspose") { it.first.transpose() }
+        }
+    }
+
     @Test @JsName("nonInvertibleReturnsNull") fun `non-invertible returns null`() {
         listOf(
             s(this[
@@ -214,7 +236,7 @@ class MatrixTests {
     }
 
     @Test @JsName("emptyThrows") fun `empty throws`() {
-        assertFailsWith(IllegalArgumentException::class) { m(listOf<List<Double>>()) }
+        assertFailsWith(IllegalArgumentException::class) { m(arrayOf<Array<Double>>()) }
     }
 
     @Test @JsName("equalsWorks") fun `equals works`() {
@@ -420,6 +442,13 @@ class MatrixTests {
         }
     }
 
-    operator fun <T: Number> get(vararg values: T      ) = values.toList()
-    operator fun <T: Number> get(vararg values: List<T>) = values.toList()
+    operator fun get(vararg values: Int   ) = values.toList().toTypedArray()
+    operator fun get(vararg values: Float ) = values.toList().toTypedArray()
+    operator fun get(vararg values: Double) = values.toList().toTypedArray()
+    operator fun get(vararg values: Long  ) = values.toList().toTypedArray()
+
+    operator fun get(vararg values: Array<Int>   ) = values.map { it }.toTypedArray()
+    operator fun get(vararg values: Array<Float> ) = values.map { it }.toTypedArray()
+    operator fun get(vararg values: Array<Double>) = values.map { it }.toTypedArray()
+    operator fun get(vararg values: Array<Long>  ) = values.map { it }.toTypedArray()
 }
