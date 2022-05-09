@@ -58,11 +58,11 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.math.max
 
-
 internal open class CanvasImpl(
         private val renderParent   : HTMLElement,
         private val htmlFactory    : HtmlFactory,
         private val textFactory    : TextFactory,
+        private val useShadowHack  : Boolean,
                     rendererFactory: VectorRendererFactory): NativeCanvas {
 
     private inner class Context: CanvasContext {
@@ -413,7 +413,9 @@ internal open class CanvasImpl(
                 is Text -> element.style.textShadow += shadow
                 else    -> {
                     element.style.filter += "drop-shadow($shadow)"
-                    element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
+                    if (useShadowHack) {
+                        element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
+                    }
                     element.style.setOverflow(Visible())
                 }
             }

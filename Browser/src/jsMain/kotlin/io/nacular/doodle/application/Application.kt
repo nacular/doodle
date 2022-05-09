@@ -203,6 +203,9 @@ private open class ApplicationHolderImpl protected constructor(
             else          -> root.id.takeIf { it.isNotBlank() } ?: "${Random.nextInt()}"
         }
 
+        val userAgent = window.navigator.userAgent
+        val isSafari  = "Safari" in userAgent && "Chrome" !in userAgent
+
         bindInstance                                               { window }
 
         bindSingleton<Timer>                                       { PerformanceTimer          (window.performance                                                    ) }
