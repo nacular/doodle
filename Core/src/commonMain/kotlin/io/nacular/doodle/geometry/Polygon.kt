@@ -253,16 +253,9 @@ private class PointRelationShip(
         val isRight : Boolean
 )
 
-private class Vector(val x: Double, val y: Double) {
-    operator fun plus (other: Vector) = Vector(x + other.x, y + other.y)
-    operator fun minus(other: Vector) = Vector(x - other.x, y - other.y)
+internal val Vector2d.magnitude: Double get() =  sqrt(x*x + y*y)
+internal operator fun Vector2d.times(other: Vector2d) = x * other.x + y * other.y
 
-    operator fun times(other: Vector) = x * other.x + y * other.y
-
-    val magnitude by lazy { sqrt(x*x + y*y) }
-}
-
-private fun Point.asVector() = Vector(x, y)
 
 private fun colinearPoint(
         previous        : Point,
@@ -274,8 +267,8 @@ private fun colinearPoint(
 ): PointRelationShip {
     if (point == previous || point == next) return PointRelationShip(point, point, point, 0.0, 0 * degrees, true)
 
-    val distancePrevious = point.distanceFrom(previous)
-    val distanceNext     = point.distanceFrom(next    )
+    val distancePrevious = point distanceFrom previous
+    val distanceNext     = point distanceFrom next
 
     val left             = when {
         distance + previousDistance > distancePrevious -> distancePrevious / (distance + previousDistance) * distance
@@ -292,16 +285,16 @@ private fun colinearPoint(
     val scalePrevious = radius / distancePrevious
     val scaleNext     = radius / distanceNext
 
-    val vector1 = point.asVector() - previous.asVector()
-    val vector2 = next.asVector () - point.asVector   ()
+    val vector1 = point - previous
+    val vector2 = next  - point
 
     // interior angle := cos(α) = a·b / (|a|·|b|)
     val angle = 180 * degrees - acos(vector1 * vector2 / (vector1.magnitude * vector2.magnitude)) * Angle.radians
 
     val direction = vector1.x * vector2.y - vector1.y * vector2.x
 
-    val newPrevious = Identity.scale(around = point, x = scalePrevious, y = scalePrevious).invoke(previous)
-    val newNext     = Identity.scale(around = point, x = scaleNext,     y = scaleNext    ).invoke(next    )
+    val newPrevious = Identity.scale(around = point, x = scalePrevious, y = scalePrevious).invoke(previous).as2d()
+    val newNext     = Identity.scale(around = point, x = scaleNext,     y = scaleNext    ).invoke(next    ).as2d()
 
     return PointRelationShip(
             previous = newPrevious,

@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsSurface
@@ -12,6 +13,7 @@ import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
 import org.jetbrains.skia.ClipMode.INTERSECT
 import org.jetbrains.skia.Font
+import org.jetbrains.skia.Matrix44
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Picture
 import org.jetbrains.skia.PictureRecorder
@@ -50,14 +52,15 @@ internal class RealGraphicsSurface(
                 it.needsRerender()
             }
         }
-    override var zOrder             by parentRedrawProperty (0                          ) { _,_ ->   updateParentChildrenSort(        ) }
-    override var visible            by redrawProperty       (true                       )
-    override var opacity            by redrawProperty       (0.5f                       )
-    override var position           by observable           (Origin                     ) { _,new -> updateTransform         (new     ) }
-    override var mirrored           by observable           (false                      ) { _,_   -> updateTransform         (position) }
-    override var transform          by observable           (Identity                   ) { _,_   -> updateTransform         (position) }
-    override var childrenClipPath   by redrawProperty<Path?>(null                       )
-    override var clipCanvasToBounds by redrawProperty       (true                       )
+    override var zOrder             by parentRedrawProperty (0                  ) { _,_ ->   updateParentChildrenSort(        ) }
+    override var visible            by redrawProperty       (true               )
+    override var opacity            by redrawProperty       (0.5f               )
+    override var position           by observable           (Origin             ) { _,new -> updateTransform         (new     ) }
+    override var mirrored           by observable           (false              ) { _,_   -> updateTransform         (position) }
+    override var transform          by observable           (Identity           ) { _,_   -> updateTransform         (position) }
+    override var childrenClipPath   by redrawProperty<Path?>(null               )
+    override var clipCanvasToBounds by redrawProperty       (true               )
+    override var camera             by parentRedrawProperty (Camera(Origin, 0.0))
 
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block
@@ -92,7 +95,20 @@ internal class RealGraphicsSurface(
         }
 
         skiaCanvas.save()
-        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(finalTransform.skia()))
+
+        if (finalTransform.is3d) {
+            val matrix = (camera.projection * finalTransform).matrix
+
+            skiaCanvas.concat(Matrix44(
+                matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
+                matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
+                matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
+                matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat(),
+            ))
+        } else {
+            skiaCanvas.concat(finalTransform.skia())
+        }
+
         skiaCanvas.drawPicture(picture!!)
         skiaCanvas.restore()
     }

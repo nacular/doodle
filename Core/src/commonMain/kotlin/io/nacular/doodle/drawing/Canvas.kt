@@ -10,7 +10,6 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.geometry.div
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.measured.units.Angle

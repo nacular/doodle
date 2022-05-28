@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic.tree
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
@@ -39,6 +38,7 @@ import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
 import io.nacular.doodle.theme.basic.TreeRowIcon
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.PassThroughEncoder

@@ -3,9 +3,9 @@ package io.nacular.doodle.theme.basic.spinner
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerBehavior
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon

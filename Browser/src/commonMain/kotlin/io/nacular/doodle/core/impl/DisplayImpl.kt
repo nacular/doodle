@@ -206,7 +206,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at) ?: at).let { point ->
+    override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at)?.as2d() ?: at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
             null, Ignored -> {
                 var child     = null as View?
@@ -230,9 +230,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     private var layingOut = false
 
-    override fun toAbsolute(point: Point) = resolvedTransform(point)
+    override fun toAbsolute(point: Point) = resolvedTransform(point).as2d()
 
-    override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point) ?: point
+    override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point)?.as2d() ?: point
 
     override fun relayout() {
         if (!layingOut) {

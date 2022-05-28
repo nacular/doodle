@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.tabbedpanel
 
-import io.nacular.doodle.accessibility.TabRole
 import io.nacular.doodle.accessibility.TabListRole
+import io.nacular.doodle.accessibility.TabRole
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.fixedSpeedLinear
 import io.nacular.doodle.animation.fixedTimeLinear
@@ -588,9 +588,7 @@ public open class BasicTabbedPanelBehavior<T>(
             dirty += it
         }
 
-        (panel.children.getOrNull(0) as? TabContainer<T>)?.let {
-            it.selectionChanged(panel, newIndex, oldIndex)
-        }
+        (panel.children.getOrNull(0) as? TabContainer<T>)?.selectionChanged(panel, newIndex, oldIndex)
     }
 
     override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {

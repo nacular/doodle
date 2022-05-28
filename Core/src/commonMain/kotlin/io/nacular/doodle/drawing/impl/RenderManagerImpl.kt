@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.PositionableContainer
@@ -304,6 +305,7 @@ public open class RenderManagerImpl(
         graphicsSurface?.let {
             if (view in neverRendered) {
                 graphicsSurface.transform = view.transform
+                graphicsSurface.camera    = view.camera
                 graphicsSurface.opacity   = view.opacity
                 graphicsSurface.zOrder    = view.zOrder
                 graphicsSurface.index     = when (val parent = view.parent) {
@@ -596,6 +598,11 @@ public open class RenderManagerImpl(
     @Suppress("UNUSED_PARAMETER")
     override fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
         graphicsDevice[view].transform = new
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    override fun cameraChanged(view: View, old: Camera, new: Camera) {
+        graphicsDevice[view].camera = new
     }
 
     private fun registerDisplayRectMonitoring(view: View) {

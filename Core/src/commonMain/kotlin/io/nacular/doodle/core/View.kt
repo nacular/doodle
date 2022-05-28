@@ -20,6 +20,8 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.drawing.Renderable
+import io.nacular.doodle.drawing.invoke
+import io.nacular.doodle.drawing.is3d
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyState
@@ -30,14 +32,19 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType
 import io.nacular.doodle.geometry.Circle
+import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Path
+import io.nacular.doodle.geometry.Plane
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
+import io.nacular.doodle.geometry.Ray
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Vector3d
+import io.nacular.doodle.geometry.minus
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
@@ -199,7 +206,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     final override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { old, new ->
-        boundingBox = transform(new).boundingRectangle
+        boundingBox = getBoundingBox(new)
         renderManager?.boundsChanged(this, old, new)
     }
 
@@ -234,9 +241,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The default is [Identity]
      */
     public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { old, new ->
-        boundingBox = new(bounds).boundingRectangle
+        boundingBox = getBoundingBox(bounds)
         renderManager?.transformChanged(this, old, new)
     }
+
+    public val cameraChanged: PropertyObservers<View, Camera> by lazy { PropertyObserversImpl(this) }
+
+    /**
+     * Camera within the View's parent that affects how it is projected onto the screen.
+     */
+    public var camera: Camera by observable(Camera(Origin, 0.0), cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set
@@ -274,6 +288,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * but **NOT** cousins (siblings, anywhere in the hierarchy)
      */
     public val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Empty
+
+    private val plane: Plane get() {
+        val rect = resolvedTransform.invoke(bounds.points.map { it.as3d() })
+        return Plane(rect[0], (rect[1] - rect[0] cross rect[2] - rect[1]))
+    }
 
     // endregion
 
@@ -767,9 +786,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: PointerEvent): String = toolTipText
 
+    // TODO: Cache this?
     private val resolvedTransform get() = when {
         needsMirrorTransform -> transform.flipHorizontally(at = center.x)
         else                 -> transform
+    }.let {
+        when {
+            it.is3d -> ((camera.projection * it).matrix)
+            else    -> it.matrix
+        }
     }
 
     /**
@@ -779,7 +804,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param point The point to check
      * @return `true` IFF the point falls within the View
      */
-    override operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(point)?.let { it in bounds } ?: false
+    override operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(toPlane(point))?.let { it.as2d() in bounds } ?: false
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.
@@ -814,7 +839,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public fun toLocal(point: Point, from: View?): Point = when {
         from ==  null        -> fromAbsolute(point)
         from === this        -> point
-        from === this.parent -> (resolvedTransform.inverse?.invoke(point) ?: point) - position
+        from === this.parent -> (resolvedTransform.inverse?.invoke(toPlane(point))?.as2d() ?: point) - position
         else                 -> fromAbsolute(from.toAbsolute(point))
     }
 
@@ -824,7 +849,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    public fun toAbsolute(point: Point): Point = resolvedTransform(point + position).let { parent?.toAbsolute(it) ?: display?.toAbsolute(it) ?: it }
+    public fun toAbsolute(point: Point): Point = resolvedTransform(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
@@ -836,7 +861,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             parent?.fromAbsolute (point) ?:
             display?.fromAbsolute(point) ?:
             point
-    ).let { resolvedTransform.inverse?.invoke(it) ?: it } - position
+    ).let { resolvedTransform.inverse?.invoke(toPlane(it))?.as2d() ?: it } - position
 
     /**
      * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from
@@ -1023,6 +1048,18 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     private fun setBounds(x: Double, y: Double, width: Double, height: Double) {
         bounds = Rectangle(x, y, width, height)
+    }
+
+    private fun toPlane(point: Point): Vector3d = when {
+        // TODO: Cache this to make it more efficient
+        resolvedTransform.is3d -> (plane intersection Ray(point.as3d(), Vector3d(0.0, 0.0, -1.0))) ?: point.as3d()
+        else                   -> point.as3d()
+    }
+
+    private fun getBoundingBox(bounds: Rectangle): Rectangle {
+        val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
+
+        return ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
     }
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }

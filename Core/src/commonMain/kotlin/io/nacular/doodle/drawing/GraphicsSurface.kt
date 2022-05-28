@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
@@ -18,6 +19,7 @@ public interface GraphicsSurface {
     public var visible           : Boolean
     public var opacity           : Float
     public var transform         : AffineTransform
+    public var camera            : Camera
     public var mirrored          : Boolean
     public var clipCanvasToBounds: Boolean
     public var childrenClipPath  : Path?

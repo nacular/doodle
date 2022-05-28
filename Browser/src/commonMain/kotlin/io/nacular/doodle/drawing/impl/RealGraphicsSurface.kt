@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Block
 import io.nacular.doodle.dom.HtmlFactory
@@ -18,6 +19,7 @@ import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOverflow
+import io.nacular.doodle.dom.setPerspectiveTransform
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
@@ -26,6 +28,7 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsSurface
+import io.nacular.doodle.drawing.ProjectionTransform
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -87,19 +90,15 @@ internal class RealGraphicsSurface private constructor(
     private var numChildren   = 0
     private var canvasElement = canvasElement as HTMLElement?
 
-    override var transform = Identity
-        set (new) {
-            field = new
+    override var mirrored  by observable(false              ) { _,_ -> updateTransform(position)    }
+    override var transform by observable(Identity           ) { _,_ -> refreshAugmentedTransform () }
+    override var camera    by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
 
-            refreshAugmentedTransform()
-        }
+    private fun refreshProjectionTransform() {
+        projectionTransform = camera.projection(- Point(size.width/2, size.height/2))
+    }
 
-    override var mirrored = false
-        set(new) {
-            field = new
-
-            updateTransform(position)
-        }
+    private var projectionTransform by observable(ProjectionTransform.Identity) { _,_ -> updateTransform(position) }
 
     private fun setupChildrenClipPath() {
         val needsClipping = !(clipCanvasToBounds && childrenClipPath == null)
@@ -165,12 +164,7 @@ internal class RealGraphicsSurface private constructor(
             }
         }
 
-    private var augmentedTransform = Identity
-        set (new) {
-            field = new
-
-            updateTransform(position)
-        }
+    private var augmentedTransform by observable(Identity) { _,_ -> updateTransform(position) }
 
     override var size: Size by observable(Empty) { old,new ->
         rootElement.parent?.let {
@@ -191,7 +185,8 @@ internal class RealGraphicsSurface private constructor(
 
             canvas.size = new
 
-            refreshAugmentedTransform() // Need to incorporate new size in transform calculation
+            refreshAugmentedTransform () // Need to incorporate new size in transform calculation
+            refreshProjectionTransform() // Need to incorporate new size in transform calculation
         }
     }
 
@@ -301,7 +296,7 @@ internal class RealGraphicsSurface private constructor(
     }
 
     private fun refreshAugmentedTransform() {
-        val point          = -Point(canvas.size.width / 2, canvas.size.height / 2)
+        val point          = -Point(size.width / 2, size.height / 2)
         augmentedTransform = ((Identity translate point) * transform) translate -point
     }
 
@@ -326,7 +321,12 @@ internal class RealGraphicsSurface private constructor(
                             else     ->  augmentedTransform translate new
                         }
 
-                        rootElement.style.setTransform(transform)
+                        when {
+                            transform.is3d -> {
+                                rootElement.style.setPerspectiveTransform((projectionTransform * transform).matrix)
+                            }
+                            else           -> rootElement.style.setTransform(transform)
+                        }
                     }
                 }
             }

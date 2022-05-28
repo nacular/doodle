@@ -2,7 +2,9 @@
 
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.core.Internal
 import kotlin.jvm.JvmName
+import kotlin.math.max
 
 
 /**
@@ -75,7 +77,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
                         }
                     }.toTypedArray()
                 }.toTypedArray().let {
-                    val l: (Int, Int) -> Double = { col, row -> it[row][col] }
+                    val l: (Int, Int) -> Double = { row, col -> it[row][col] }
                     squareMatrixOf(numRows, l)
                 }
 
@@ -116,30 +118,53 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
  *
  * ```
  *
- * |scaleX shearX translateX|
- * |shearY scaleY translateY|
- * |0      0      1         |
+ * |m00 m01 m02 m03|
+ * |m10 m11 m12 m13|
+ * |m20 m21 m22 m23|
  *
  * ```
  *
  * @constructor creates a new instance
- * @param scaleX component of the matrix
- * @param shearX component of the matrix
- * @param translateX component of the matrix
- * @param shearY component of the matrix
- * @param scaleY component of the matrix
- * @param translateY component of the matrix
  */
-public class AffineMatrix3D(
-        scaleX    : Double,
-        shearX    : Double,
-        translateX: Double,
-        shearY    : Double,
-        scaleY    : Double,
-        translateY: Double): SquareMatrix<Double>(arrayOf(
-            arrayOf(scaleX, shearX, translateX),
-            arrayOf(shearY, scaleY, translateY),
-            arrayOf(   0.0,    0.0,        1.0)))
+public class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>): SquareMatrix<Double>(values) {
+    override operator fun get(row: Int, col: Int): Double = when {
+        row < numRows && col < numColumns -> super.get(row, col)
+        row == col                        -> 1.0
+        else                              -> 0.0
+    }
+
+    internal fun get(row: Int, col: Int, is3d: Boolean): Double {
+        var nCol = col
+
+        if (is3d && numColumns == 3 && row < 2) {
+            nCol = if (col == 2) 3 else if (col == 3) 2 else col
+        }
+
+        return this[row, nCol]
+    }
+
+    public companion object {
+        public operator fun invoke(
+            m00: Double, m01: Double, m02: Double,
+            m10: Double, m11: Double, m12: Double): AffineMatrix3D = AffineMatrix3D(
+            arrayOf(
+            arrayOf(m00, m01, m02),
+            arrayOf(m10, m11, m12),
+            arrayOf(0.0, 0.0, 1.0))
+        )
+
+        public operator fun invoke(
+            m00: Double, m01: Double, m02: Double, m03: Double,
+            m10: Double, m11: Double, m12: Double, m13: Double,
+            m20: Double, m21: Double, m22: Double, m23: Double): AffineMatrix3D = AffineMatrix3D(
+            arrayOf(
+                arrayOf(m00, m01, m02, m03),
+                arrayOf(m10, m11, m12, m13),
+                arrayOf(m20, m21, m22, m23),
+                arrayOf(0.0, 0.0, 0.0, 1.0))
+        )
+    }
+}
 
 /**
  * Creates an NxN [SquareMatrix], where N == [size].
@@ -147,7 +172,7 @@ public class AffineMatrix3D(
  * @param size of N
  * @param init operation to get each value at [row, col]
  */
-@JvmName("squareMatrixOfI") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Int): SquareMatrix<Int> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+@JvmName("squareMatrixOfI") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Int): SquareMatrix<Int> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(row, col) } })
 
 /**
  * Creates an NxN [SquareMatrix], where N == [size].
@@ -155,7 +180,7 @@ public class AffineMatrix3D(
  * @param size of N
  * @param init operation to get each value at [row, col]
  */
-@JvmName("squareMatrixOfF") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Float): SquareMatrix<Float> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+@JvmName("squareMatrixOfF") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Float): SquareMatrix<Float> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(row, col) } })
 
 /**
  * Creates an NxN [SquareMatrix], where N == [size].
@@ -163,7 +188,7 @@ public class AffineMatrix3D(
  * @param size of N
  * @param init operation to get each value at [row, col]
  */
-@JvmName("squareMatrixOfD") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Double): SquareMatrix<Double> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+@JvmName("squareMatrixOfD") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Double): SquareMatrix<Double> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(row, col) } })
 
 /**
  * Creates an NxN [SquareMatrix], where N == [size].
@@ -171,7 +196,7 @@ public class AffineMatrix3D(
  * @param size of N
  * @param init operation to get each value at [row, col]
  */
-@JvmName("squareMatrixOfL") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Long): SquareMatrix<Long> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(col, row) } })
+@JvmName("squareMatrixOfL") public fun squareMatrixOf(size: Int, init: (row: Int, col: Int) -> Long): SquareMatrix<Long> = SquareMatrix(Array(size) { row -> Array(size) { col -> init(row, col) } })
 
 /**
  * Creates an NxM [Matrix], where N == [rows] and M == [cols].
@@ -180,8 +205,8 @@ public class AffineMatrix3D(
  * @param cols of the matrix
  * @param init operation to get each value at [row, col]
  */
-@JvmName("matrixOfI") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Int): Matrix<Int> = when {
-    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+@JvmName("matrixOfI") public fun matrixOf(rows: Int, cols: Int, init: (row: Int, col: Int) -> Int): Matrix<Int> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(row, col) } })
     else         -> squareMatrixOf(rows, init)
 }
 
@@ -192,8 +217,8 @@ public class AffineMatrix3D(
  * @param cols of the matrix
  * @param init operation to get each value at [row, col]
  */
-@JvmName("matrixOfD") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Double): Matrix<Double> = when {
-    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+@JvmName("matrixOfD") public fun matrixOf(rows: Int, cols: Int, init: (row: Int, col: Int) -> Double): Matrix<Double> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(row, col) } })
     else         -> squareMatrixOf(rows, init)
 }
 
@@ -204,8 +229,8 @@ public class AffineMatrix3D(
  * @param cols of the matrix
  * @param init operation to get each value at [row, col]
  */
-@JvmName("matrixOfF") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Float): Matrix<Float> = when {
-    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+@JvmName("matrixOfF") public fun matrixOf(rows: Int, cols: Int, init: (row: Int, col: Int) -> Float): Matrix<Float> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(row, col) } })
     else         -> squareMatrixOf(rows, init)
 }
 
@@ -216,8 +241,8 @@ public class AffineMatrix3D(
  * @param cols of the matrix
  * @param init operation to get each value at [row, col]
  */
-@JvmName("matrixOfL") public fun matrixOf(rows: Int, cols: Int, init: (Int, Int) -> Long): Matrix<Long> = when {
-    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(col, row) } })
+@JvmName("matrixOfL") public fun matrixOf(rows: Int, cols: Int, init: (row: Int, col: Int) -> Long): Matrix<Long> = when {
+    rows != cols -> MatrixImpl(Array(rows) { row -> Array(cols) { col -> init(row, col) } })
     else         -> squareMatrixOf(rows, init)
 }
 
@@ -386,33 +411,57 @@ public operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): Squ
 }
 
 public operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
-    AffineMatrix3D(
+    when (numColumns) {
+        4 -> AffineMatrix3D(
+            this[0, 0] * it, this[0, 1] * it, this[0, 2] * it, this[0, 3] * it,
+            this[1, 0] * it, this[1, 1] * it, this[1, 2] * it, this[1, 3] * it,
+            this[2, 0] * it, this[2, 1] * it, this[2, 2] * it, this[2, 3] * it
+        )
+        else -> AffineMatrix3D(
             this[0, 0] * it, this[0, 1] * it, this[0, 2] * it,
-            this[1, 0] * it, this[1, 1] * it, this[1, 2] * it)
+            this[1, 0] * it, this[1, 1] * it, this[1, 2] * it
+        )
+    }
 }
 
 public operator fun AffineMatrix3D.div(value: Number): AffineMatrix3D = value.toDouble().let {
-    AffineMatrix3D(
-            this[0, 0] / it, this[0, 1] / it, this[0, 2] / it,
-            this[1, 0] / it, this[1, 1] / it, this[1, 2] / it)
+    when (numColumns) {
+        4 -> AffineMatrix3D(
+            this[0, 0] / it, this[0, 1] / it, this[0, 2] / it, this[0, 3] / it,
+            this[1, 0] / it, this[1, 1] / it, this[1, 2] / it, this[1, 3] / it,
+            this[2, 0] / it, this[2, 1] / it, this[2, 2] / it, this[2, 3] / it
+        )
+        else -> AffineMatrix3D(
+            this[0, 0] / it, this[0, 1] / it, this[0, 2] * it,
+            this[1, 0] / it, this[1, 1] / it, this[1, 2] * it
+        )
+    }
 }
 
 /**
  * @see plus
  */
 public operator fun AffineMatrix3D.plus(other: AffineMatrix3D): AffineMatrix3D {
-    return AffineMatrix3D(
-            this[0, 0] + other[0, 0], this[0, 1] + other[0, 1], this[0, 2] + other[0, 2],
-            this[1, 0] + other[1, 0], this[1, 1] + other[1, 1], this[1, 2] + other[1, 2])
+    val is3d = numColumns != other.numColumns
+
+    return AffineMatrix3D(Array(numRows) { row ->
+        Array(numColumns) { column ->
+            this.get(row, column, is3d) + other.get(row, column, is3d)
+        }
+    })
 }
 
 /**
  * @see minus
  */
 public operator fun AffineMatrix3D.minus(other: AffineMatrix3D): AffineMatrix3D {
-    return AffineMatrix3D(
-            this[0, 0] - other[0, 0], this[0, 1] - other[0, 1], this[0, 2] - other[0, 2],
-            this[1, 0] - other[1, 0], this[1, 1] - other[1, 1], this[1, 2] - other[1, 2])
+    val is3d = numColumns != other.numColumns
+
+    return AffineMatrix3D(Array(numRows) { row ->
+        Array(numColumns) { column ->
+            this.get(row, column, is3d) - other.get(row, column, is3d)
+        }
+    })
 }
 
 /**
@@ -427,18 +476,27 @@ public operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D 
         return other
     }
 
-    val values = Array(size = (numRows - 1) * other.numColumns) { 0.0 }
+    val is3d       = this.numColumns != other.numColumns
+    val numRows    = max(this.numRows,    other.numRows   )
+    val numColumns = max(this.numColumns, other.numColumns)
+
+    val values = Array(size = (numRows - 1) * numColumns) { 0.0 }
 
     var i = 0
 
     for (r1 in 0 until numRows - 1) {
-        for (c2 in 0 until other.numColumns) {
-            values[i++] = (0 until other.numRows).sumOf { this[r1, it] * other[it, c2] }
+        for (c2 in 0 until numColumns) {
+            values[i++] = (0 until numRows).sumOf { this.get(r1, it, is3d) * other.get(it, c2, is3d) }
         }
     }
 
-    return AffineMatrix3D(values[0], values[1], values[2],
-                          values[3], values[4], values[5])
+    return when (values.size) {
+        6 -> AffineMatrix3D(values[0], values[1], values[2],
+                            values[3], values[4], values[5])
+        else -> AffineMatrix3D(values[0], values[1], values[ 2], values[ 3],
+                               values[4], values[5], values[ 6], values[ 7],
+                               values[8], values[9], values[10], values[11])
+    }
 }
 
 /**

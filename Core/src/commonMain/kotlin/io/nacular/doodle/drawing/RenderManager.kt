@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
@@ -68,10 +69,19 @@ public abstract class RenderManager {
      * Notifies whenever a View's [transform][View.transform] changes
      *
      * @param view that is changing
-     * @param old bounds
-     * @param new bounds
+     * @param old value
+     * @param new value
      */
     internal abstract fun transformChanged(view: View, old: AffineTransform, new: AffineTransform)
+
+    /**
+     * Notifies whenever a View's [camera][View.camera] changes
+     *
+     * @param view that is changing
+     * @param old value
+     * @param new value
+     */
+    internal abstract fun cameraChanged(view: View, old: Camera, new: Camera)
 
     /**
      * Notifies whenever a View's [opacity][View.opacity] changes

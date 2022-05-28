@@ -26,6 +26,7 @@ import io.nacular.doodle.text.TextDecoration.Thickness
 import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
 import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.textDecorationThickness
+import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
@@ -163,9 +164,31 @@ internal fun Style.translate(x: Double, y: Double) {
 }
 
 internal fun Style.setTransform(transform: AffineTransform? = null) {
+    this.transform = when {
+        transform == null || transform == Identity -> ""
+        transform.is3d                             -> transform.run {
+            """matrix3d(
+            |$m00,$m10,$m20,0,
+            |$m01,$m11,$m21,0,
+            |$m02,$m12,$m22,0,
+            |$m03,$m13,$m23,1
+            |)""".trimMargin()
+        }
+        else                                       -> transform.run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+    }
+}
+
+internal fun Style.setPerspectiveTransform(transform: SquareMatrix<Double>? = null) {
     this.transform = when (transform) {
-        null, Identity -> ""
-        else           -> transform.run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+        null -> ""
+        else -> transform.run {
+            """matrix3d(
+            |${this[0, 0]},${this[1, 0]},${this[2, 0]},${this[3, 0]},
+            |${this[0, 1]},${this[1, 1]},${this[2, 1]},${this[3, 1]},
+            |${this[0, 2]},${this[1, 2]},${this[2, 2]},${this[3, 2]},
+            |${this[0, 3]},${this[1, 3]},${this[2, 3]},${this[3, 3]}
+            |)""".trimMargin()
+        }
     }
 }
 
