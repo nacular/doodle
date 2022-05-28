@@ -34,12 +34,12 @@ public open class PathIcon<in T: View>(
         val fill = this.fill ?: view.foregroundColor?.let { ColorPaint(it) }
         val size = size(view)
 
-        canvas.scale(size.width / pathSize.width, size.height / pathSize.height) {
-            translate(at) {
+        canvas.translate(at) {
+            scale(size.width / pathSize.width, size.height / pathSize.height) {
                 when (stroke) {
                     null -> fill?.let { path(path, fill, fillRule) }
                     else -> when (fill) {
-                        null -> path(path, stroke                 )
+                        null -> path(path, stroke)
                         else -> path(path, stroke, fill, fillRule)
                     }
                 }
