@@ -219,7 +219,7 @@ private open class ApplicationHolderImpl protected constructor(
         bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
         bindSingleton<ElementRuler>                                { ElementRulerImpl          (instance()                                                            ) }
         bindSingleton<SystemStyler>                                { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
-        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance()            ) }
+        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), isSafari ) }
         bindSingleton<RenderManager>                               { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
         bindSingleton<FontSerializer>                              { FontSerializerImpl        (instance()                                                            ) }
         bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance()                                                            ) } // FIXME: Provide fallback in case not supported

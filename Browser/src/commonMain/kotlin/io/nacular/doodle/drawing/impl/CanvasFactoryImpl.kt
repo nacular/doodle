@@ -9,12 +9,13 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.utils.IdGenerator
 
 
-internal class CanvasFactoryImpl(private val htmlFactory: HtmlFactory,
-                                 private val textFactory: TextFactory,
-                                 private val svgFactory : SvgFactory,
-                                 private val textMetrics: TextMetrics,
-                                 private val idGenerator: IdGenerator): CanvasFactory {
-    override operator fun invoke(region: HTMLElement) = CanvasImpl(region, htmlFactory, textFactory) {
+internal class CanvasFactoryImpl(private val htmlFactory  : HtmlFactory,
+                                 private val textFactory  : TextFactory,
+                                 private val svgFactory   : SvgFactory,
+                                 private val textMetrics  : TextMetrics,
+                                 private val idGenerator  : IdGenerator,
+                                 private val useShadowHack: Boolean): CanvasFactory {
+    override operator fun invoke(region: HTMLElement) = CanvasImpl(region, htmlFactory, textFactory, useShadowHack) {
         VectorRendererSvg(it, svgFactory, htmlFactory, textMetrics, idGenerator)
     }
 }
