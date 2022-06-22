@@ -37,7 +37,7 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.observable
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
-private fun canvasElement(view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
+private fun canvasElement(@Suppress("UNUSED_PARAMETER") view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
 
 internal class RealGraphicsSurface private constructor(
         private val htmlFactory        : HtmlFactory,
@@ -258,7 +258,7 @@ internal class RealGraphicsSurface private constructor(
         parent?.parent?.remove(parent)
     }
 
-    override var position: Point by observable(Origin) { old,new ->
+    override var position: Point by observable(Origin) { _,new ->
         updateTransform(new)
     }
 

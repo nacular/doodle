@@ -177,7 +177,7 @@ internal class AccessibilityManagerImpl(
 
     @Suppress("UNUSED_PARAMETER")
     override fun onClick(event: Event): Boolean {
-        if (event.target is HTMLButtonElement) {
+        if (event.target is HTMLButtonElement?) {
             view(event.target)?.let {
                 when (it) {
                     is Button -> it.click()
