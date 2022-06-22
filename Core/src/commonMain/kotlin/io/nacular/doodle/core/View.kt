@@ -762,7 +762,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal fun child_(at: Point) = child(at)
 
     /**
-     * Gives the View an opportunity to render itself to the given Canvas.
+     * Gives the View an opportunity to render itself (excludes any children) to the given Canvas.
      *
      * @param canvas The canvas upon which drawing will be done
      */
