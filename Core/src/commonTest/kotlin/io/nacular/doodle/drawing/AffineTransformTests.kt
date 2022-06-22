@@ -1,10 +1,7 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.core.center
-import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Vector3d
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -80,78 +77,6 @@ class AffineTransformTests {
                 transforms.first == transforms.second
             }
         }
-    }
-
-    @Test
-    fun foo() {
-//        val c = cos(45 * degrees)
-//        val s = sin(45 * degrees)
-//
-//        val matrix = AffineMatrix3D(
-//            1.0, 0.0, 0.0, 50.0,
-//            0.0, 1.0, 0.0, 50.0,
-//            0.0, 0.0, 1.0,  0.0
-//        ) * AffineMatrix3D(
-//              c, 0.0,   s, 0.0,
-//            0.0, 1.0, 0.0, 0.0,
-//             -s, 0.0,   c, 0.0,
-//        ) * AffineMatrix3D(
-//            1.0, 0.0, 0.0, 50.0,
-//            0.0, 1.0, 0.0, 50.0,
-//            0.0, 0.0, 1.0,  0.0
-//        ).inverse!!
-//
-//        val inverse = matrix.inverse
-//
-        val view = view { bounds = Rectangle(100, 100) }
-
-        view.transform = Identity.rotateY(around = view.center, 45 * degrees)
-
-        expect(false, "${Point(100, 0)} in $view") {
-            Point(100, 0) in view
-        }
-
-        expect(true, "${Point(40, 0)} in $view") {
-            Point(40, 0) in view
-        }
-
-//        val transform = Identity.rotateY(around = Point(50, 50), 45 * degrees)
-//        val rect      = transform(Rectangle(100, 100).points.map { Point3d(it.x, it.y, 1.0) })
-////        val point     = transform.inverse!!.invoke(Point(100, 0))
-//
-//        val plane = Plane(rect[0], (rect[1] - rect[0] cross rect[2] - rect[1]))
-//        val ray   = Ray  (Point3d(100.0, 0.0, 0.0), Point3d(0.0, 0.0, -1.0))
-//
-//        val intersection = plane intersection ray
-//
-//        val transformedPoint = intersection?.let { transform.inverse!!.invoke(it) }
-//
-//        val check     = transformedPoint!!.point2d in Rectangle(100, 100)
-//
-//        println(check)
-
-//        val m2 = MatrixImpl(arrayOf(
-//            arrayOf(1.0,0.0,0.0,0.0),
-//            arrayOf(0.0,1.0,0.0,0.0),
-//            arrayOf(0.0,0.0,0.0,1.0),
-//        )) * transform.matrix
-//
-//        val transform2 = AffineTransform(
-//            m2[0,0], m2[0,1], m2[0,2], m2[0,3],
-//            m2[1,0], m2[1,1], m2[1,2], m2[1,3],
-//            m2[2,0], m2[2,1], m2[2,2], m2[2,3],
-//        )
-//
-//        println(transform.matrix)
-//        println("================")
-//        println(m2)
-//        println("================")
-//        println(transform2)
-
-//        val point     = transform2.inverse!!.invoke(Point(100, 0))
-//        val check     = point in rect
-
-//        println("check: $check")
     }
 
     private fun testInversion(block: (AffineTransform) -> AffineTransform) {
