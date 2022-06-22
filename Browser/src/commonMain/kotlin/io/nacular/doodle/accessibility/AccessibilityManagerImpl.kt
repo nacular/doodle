@@ -310,10 +310,12 @@ internal class AccessibilityManagerImpl(
                 is TabListRole -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
+                else           -> {}
             }
 
             when (role) {
                 is SliderRole -> updateAttribute("aria-orientation", role.orientation?.name?.lowercase())
+                else          -> {}
             }
         }
     }
