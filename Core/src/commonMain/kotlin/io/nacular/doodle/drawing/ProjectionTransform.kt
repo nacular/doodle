@@ -89,6 +89,20 @@ public class ProjectionTransform internal constructor(@Internal public val matri
         else       -> this(polygon.points).let { ConvexPolygon(it[0].as2d(), it[1].as2d(), it[2].as2d(), *it.subList(3, it.size).map { it.as2d() }.toTypedArray()) }
     }
 
+    override fun toString(): String = "$matrix"
+
+    override fun hashCode(): Int = matrix.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other                ) return true
+        if (other !is ProjectionTransform ) return false
+        if (isIdentity && other.isIdentity) return true
+
+        if (matrix != other.matrix) return false
+
+        return true
+    }
+
     public companion object {
         /**
          * The **identity** transform
