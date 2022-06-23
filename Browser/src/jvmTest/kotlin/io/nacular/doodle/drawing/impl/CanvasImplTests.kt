@@ -769,7 +769,7 @@ class CanvasImplTests {
     private fun canvas(renderParent   : HTMLElement           = mockk(),
                        htmlFactory    : HtmlFactory           = mockk(),
                        textFactory    : TextFactory           = mockk(),
-                       rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(renderParent, htmlFactory, textFactory, rendererFactory)
+                       rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(renderParent, htmlFactory, textFactory, useShadowHack = false, rendererFactory)
 
     private fun <T> validateDefault(p: KProperty1<CanvasImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(canvas()) }

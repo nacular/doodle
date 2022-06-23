@@ -1057,9 +1057,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     private fun getBoundingBox(bounds: Rectangle): Rectangle {
-        val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
+        return when {
+            resolvedTransform.isIdentity -> bounds
+            else                         -> {
+                val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
 
-        return ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
+                ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
+            }
+        }
     }
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }

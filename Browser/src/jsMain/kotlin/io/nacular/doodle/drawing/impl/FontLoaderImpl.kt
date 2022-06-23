@@ -56,6 +56,7 @@ internal class FontLoaderImpl(private val document: Document, private val fontSe
         }
     }
 
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     private inline val Document.fonts: FontFaceSet get() = asDynamic().fonts as FontFaceSet
 
     private suspend fun <T> Promise<T>.await(): T = suspendCoroutine { cont ->

@@ -24,9 +24,11 @@ import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Renderable
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.scheduler.Scheduler
@@ -193,10 +195,11 @@ internal class DragManagerImpl(
         return mimeTypes.isEmpty() || (0 .. dataTransfer.items.length).mapNotNull { dataTransfer.items[it] }.find { it.type in mimeTypes } != null
     }
 
-    private val mimeRegex by lazy { Regex("(application|audio|font|example|image|message|model|multipart|text|video|\\*|x-(?:[0-9A-Za-z!#\$%&'*+.^_`|~-]+))\\/([0-9A-Za-z!#\$%&'*+.^_`|~-]+)((?:[ \\t]*;[ \\t]*[0-9A-Za-z!#\$%&'*+.^_`|~-]+=(?:[0-9A-Za-z!#\$%&'*+.^_`|~-]+|\"(?:[^\"\\\\]|\\\\.)*\"))*)") }
+    private val mimeRegex by lazy { Regex("(application|audio|font|example|image|message|model|multipart|text|video|\\*|x-[\\dA-Za-z!#$%&'*+.^_`|~-]+)/([\\dA-Za-z!#\$%&'*+.^_`|~-]+)((?:[ \\t]*;[ \\t]*[\\dA-Za-z!#\$%&'*+.^_`|~-]+=(?:[\\dA-Za-z!#\$%&'*+.^_`|~-]+|\"(?:[^\"\\\\]|\\\\.)*\"))*)") }
 
     private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let { transfer ->
         object: DataBundle {
+            @Suppress("UNCHECKED_CAST")
             override fun <T> get(type: MimeType<T>) = when (type) {
                 is Files -> getFiles(transfer, type) as? T
                 in this  -> transfer.getData(type.toString()) as? T
@@ -211,10 +214,10 @@ internal class DragManagerImpl(
             override val includedTypes: List<MimeType<*>> by lazy {
                 (0 .. transfer.items.length).mapNotNull {
                     transfer.items[it]?.type?.let {
-                        mimeRegex.matchEntire(it)?.let { match ->
-                            val primary   = match.groups[1]?.value ?: return@let null
-                            val secondary = match.groups[2]?.value ?: return@let null
-                            val params    = match.groups[3]?.value ?: return@let null
+                        mimeRegex.matchEntire(it)?.let innerLet@ { match ->
+                            val primary   = match.groups[1]?.value ?: return@innerLet null
+                            val secondary = match.groups[2]?.value ?: return@innerLet null
+                            val params    = match.groups[3]?.value ?: return@innerLet null
                             val splits    = params.split(";").map { it.trim() }.filter { it.isNotBlank() }.map {
                                 it.split("=").let { it[0].trim() to it[1].trim() }
                             }

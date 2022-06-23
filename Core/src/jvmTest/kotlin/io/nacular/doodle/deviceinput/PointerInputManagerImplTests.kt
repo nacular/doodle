@@ -502,16 +502,14 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @Ignore @JsName("pointersCleanedUpWhenViewDisabled")
+    @Test @JsName("pointersCleanedUpWhenViewDisabled")
     fun `pointers cleaned up when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()
         val display        = display()
         val inputService   = mockk<PointerInputService>()
-        val child          = spyk(view()).apply {
+        val child          = focusableView().apply {
             every { this@apply.enabledChanged += capture(enabledChanged) } just Runs
         }
-
-        child.position = Point(9.0, 9.0)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -523,13 +521,9 @@ class PointerInputManagerImplTests {
         manager.changed(SystemPointerEvent(0, Enter, Point(10.0, 10.0), emptySet(), 0, emptySet()))
         manager.changed(SystemPointerEvent(0, Down,  Point(10.0, 10.0), emptySet(), 0, emptySet()))
 
-        child.enabled = false
-
         enabledChanged.captured(child, true, false)
 
         manager.changed(SystemPointerEvent(0, Type.Move, Point( 9.0,  9.0), emptySet(), 0, emptySet()))
-
-        child.enabled = true
 
         enabledChanged.captured(child, false, true)
 
@@ -542,6 +536,16 @@ class PointerInputManagerImplTests {
         }
     }
 
+    private fun focusableView() = mockk<View>().apply {
+        every { parent                } returns null
+        every { enabled               } returns true
+        every { visible               } returns true
+        every { focusable             } returns true
+        every { focusCycleRoot_       } returns null
+        every { shouldYieldFocus()    } returns true
+        every { focusTraversalPolicy_ } returns null
+    }
+
     private fun display(cursor: Cursor? = null) = mockk<Display>().apply {
         every { this@apply.cursor } returns cursor
     }
@@ -552,7 +556,7 @@ class PointerInputManagerImplTests {
     }
 
     private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, button: Button, clickCount: Int, modifiers: Set<Modifier>) = pointerEvent(
-            source, target, id, type, location, setOf(button), clickCount, modifiers
+        source, target, id, type, location, setOf(button), clickCount, modifiers
     )
 
     private fun pointerEvent(source: View, target: View, id: Int, type: Type, location: Point, buttons: Set<Button>, clickCount: Int, modifiers: Set<Modifier>): PointerEvent {

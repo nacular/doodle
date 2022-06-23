@@ -119,25 +119,37 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
             bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                      ) }
 
-            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button> }
+            bindBehavior<HyperLink>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeHyperLinkBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
+            }
         }
 
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
-            bindBehavior<CheckBox>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button> }
+            bindBehavior<CheckBox>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeCheckBoxBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
+            }
         }
 
         public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
-            bindBehavior<RadioButton>(NTheme::class) { it.behavior = NativeRadioButtonBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button> }
+            bindBehavior<RadioButton>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeRadioButtonBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
+            }
         }
 
         public fun nativeSwitchBehavior(): Module = Module(name = "NativeSwitchBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
-            bindBehavior<Switch>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button> }
+            bindBehavior<Switch>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeCheckBoxBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
+            }
         }
 
         public val nativeThemeBehaviors: List<Module> = listOf(
