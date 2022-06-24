@@ -2,7 +2,7 @@ package io.nacular.doodle.drawing
 
 import io.mockk.mockk
 import io.mockk.verify
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.PatternTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
@@ -41,7 +41,7 @@ class PatternPaintTests {
 
     @Test @JsName("fillCorrect")
     fun `fill correct`() {
-        listOf<(Canvas) -> Unit>(
+        listOf<(PatternCanvas) -> Unit>(
             {                                },
             { it.rect(Rectangle(), Stroke()) }
         ).forEach {
@@ -63,8 +63,8 @@ class PatternPaintTests {
     @Test @JsName("transformCorrect")
     fun `transform correct`() {
         listOf(
-                Identity,
-                Identity.rotate(30 * degrees)
+            Identity,
+            Identity.rotate(30 * degrees)
         ).forEach {
             expect(it) { PatternPaint(size = Empty, transform = it) {}.transform }
         }
@@ -89,15 +89,15 @@ class PatternPaintTests {
 
     @Test @JsName("stripesRendersCorrectly")
     fun `stripes renders correctly`() {
-        data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: AffineTransform)
+        data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: PatternTransform)
 
         listOf(
-                Attributes(45.6, Red, Green, Identity                     ),
-                Attributes( 0.6, Red,  null, Identity.rotate(30 * degrees)),
-                Attributes( 0.6, null,  Red, Identity                     ),
-                Attributes( 0.0, Red, Green, Identity.rotate(30 * degrees))
+            Attributes(45.6, Red, Green, Identity                     ),
+            Attributes( 0.6, Red,  null, Identity.rotate(30 * degrees)),
+            Attributes( 0.6, null,  Red, Identity                     ),
+            Attributes( 0.0, Red, Green, Identity.rotate(30 * degrees))
         ).forEach { test ->
-            val canvas = mockk<Canvas>()
+            val canvas = mockk<PatternCanvas>()
 
             stripedPaint(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
                 expect(transform) { test.transform }
@@ -122,12 +122,12 @@ class PatternPaintTests {
         data class Attributes(val rowHeight: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
-                Attributes(45.6, Red, Green),
-                Attributes( 0.6, Red,  null),
-                Attributes( 0.6, null,  Red),
-                Attributes( 0.0, Red, Green)
+            Attributes(45.6, Red, Green),
+            Attributes( 0.6, Red,  null),
+            Attributes( 0.6, null,  Red),
+            Attributes( 0.0, Red, Green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>()
+            val canvas = mockk<PatternCanvas>()
 
             horizontalStripedPaint(rowHeight = test.rowHeight, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(paint)
@@ -144,12 +144,12 @@ class PatternPaintTests {
         data class Attributes(val colWidth: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
-                Attributes(45.6, Red, Green),
-                Attributes( 0.6, Red,  null),
-                Attributes( 0.6, null,  Red),
-                Attributes( 0.0, Red, Green)
+            Attributes(45.6, Red, Green),
+            Attributes( 0.6, Red,  null),
+            Attributes( 0.6, null,  Red),
+            Attributes( 0.0, Red, Green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>()
+            val canvas = mockk<PatternCanvas>()
 
             verticalStripedPaint(colWidth = test.colWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor).apply {
                 canvas.apply(paint)
@@ -183,12 +183,12 @@ class PatternPaintTests {
         data class Attributes(val checkerSize: Size, val firstColor: Color?, val secondColor: Color?)
 
         listOf(
-                Attributes(Size(45.6), Red, Green),
-                Attributes(Size( 0.6), Red,  null),
-                Attributes(Size( 0.6), null,  Red)//,
-//                Attributes(Size( 0.0), red, green)
+            Attributes(Size(45.6), Red, Green),
+            Attributes(Size( 0.6), Red,  null),
+            Attributes(Size( 0.6), null,  Red)//,
+//            Attributes(Size( 0.0), red, green)
         ).forEach { test ->
-            val canvas = mockk<Canvas>()
+            val canvas = mockk<PatternCanvas>()
 
             checkerPaint(checkerSize = test.checkerSize, firstColor = test.firstColor, secondColor = test.secondColor).apply {
                 canvas.apply(paint)

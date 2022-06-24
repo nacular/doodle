@@ -50,9 +50,21 @@ public class PatternTransform private constructor(internal val delegate: AffineT
 
     public fun flipVertically(at: Double): PatternTransform = this.translate(y = at).flipVertically().translate(y = -at)
 
-    public fun flipHorizontally(): PatternTransform = scale(-1.0,  1.0)
+    public fun flipHorizontally(): PatternTransform = scale(-1.0, 1.0)
 
     public fun flipHorizontally(at: Double): PatternTransform = this.translate(x = at).flipHorizontally().translate(x = -at)
+
+    override fun hashCode(): Int = delegate.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other                ) return true
+        if (other !is PatternTransform    ) return false
+        if (isIdentity && other.isIdentity) return true
+
+        if (delegate != other.delegate) return false
+
+        return true
+    }
 
     public companion object {
         public val Identity: PatternTransform = PatternTransform(AffineTransform.Identity)
