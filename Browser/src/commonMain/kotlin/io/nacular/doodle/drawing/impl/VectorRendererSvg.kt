@@ -24,6 +24,7 @@ import io.nacular.doodle.dom.removeTransform
 import io.nacular.doodle.dom.setBorderRadius
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setCircle
+import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setDefaultFill
 import io.nacular.doodle.dom.setDominantBaseline
 import io.nacular.doodle.dom.setEllipse
@@ -75,6 +76,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.get
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
@@ -193,7 +195,7 @@ internal open class VectorRendererSvg constructor(
     protected fun add(shadow: Shadow) {
         shadows.plusAssign(shadow)
 
-        pushClip(Rectangle(size = context.size))
+        pushClip(Rectangle(size = context.size).toPath())
 
         when (shadow) {
             is InnerShadow -> innerShadow(shadow)
@@ -252,12 +254,11 @@ internal open class VectorRendererSvg constructor(
         setStroke(null  )
     }
 
-    protected fun pushClip(rectangle: Rectangle, radius: Double = 0.0) {
+    protected fun pushClip(path: io.nacular.doodle.geometry.Path) {
         val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
-            // Here to ensure nested SVG has correct size
-            addIfNotPresent(makeRect(rectangle, radius), 0)
+            style.setClipPath(path)
 
             // FIXME: Support rounding
             renderPosition = renderPosition?.nextSibling
@@ -469,8 +470,8 @@ internal open class VectorRendererSvg constructor(
 
     private fun drawPath(data: String, stroke: Stroke?, fill: Paint?, fillRule: FillRule?) = present(stroke, fill ) {
         when {
-            !data.isBlank() -> makePath(data).also { it.setFillRule(fillRule) }
-            else            -> null
+            data.isNotBlank() -> makePath(data).also { it.setFillRule(fillRule) }
+            else              -> null
         }
     }
 
@@ -908,21 +909,27 @@ internal open class VectorRendererSvg constructor(
         }
 
         override fun clip(rectangle: Rectangle, radius: Double, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            pushClip(rectangle, radius)
-            block   (this             )
-            popClip (                 )
+            pushClip(rectangle.toPath(radius))
+            block   (this                    )
+            popClip (                        )
         }
 
         override fun clip(polygon: Polygon, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            pushClip(polygon.toPath())
+            block   (this            )
+            popClip (                )
         }
 
         override fun clip(ellipse: Ellipse, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            pushClip(ellipse.toPath())
+            block   (this            )
+            popClip (                )
         }
 
         override fun clip(path: io.nacular.doodle.geometry.Path, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            pushClip(path)
+            block   (this)
+            popClip (    )
         }
 
         override fun shadow(shadow: Shadow, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {

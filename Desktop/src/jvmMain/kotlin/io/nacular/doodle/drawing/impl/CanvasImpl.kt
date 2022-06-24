@@ -406,7 +406,7 @@ internal class CanvasImpl(
 
     private fun clip(path: SkiaPath, block: Canvas.() -> Unit) {
         skiaCanvas.save()
-        skiaCanvas.clipPath(path)
+        skiaCanvas.clipPath(path, antiAlias = true)
         block(this)
         skiaCanvas.restore()
     }

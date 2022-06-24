@@ -207,7 +207,6 @@ internal class SkiaGraphics2D(
     private var clip                   = null as Shape?
     private val coords                 = DoubleArray(6)
     private val fontRenderContext      = FontRenderContext(null, false, true)
-    private val initialCanvasTransform = canvas.localToDeviceAsMatrix33
 
     private lateinit var line          : Line2D
     private lateinit var rectangle     : Rectangle2D
@@ -559,7 +558,7 @@ internal class SkiaGraphics2D(
         setTransform(getTransform())
         clip = transform.createTransformedShape(shape)
         if (shape != null) {
-            canvas.clipPath(shape.path)
+            canvas.clipPath(shape.path, antiAlias = true)
         }
     }
 
@@ -581,7 +580,7 @@ internal class SkiaGraphics2D(
                 val area = Area(shape)
                 area.intersect(Area(getClip()!!))
                 setClip(Path2D.Double(area))
-                canvas.clipPath(shape.path)
+                canvas.clipPath(shape.path, antiAlias = true)
             }
         }
     }

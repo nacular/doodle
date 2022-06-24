@@ -173,7 +173,7 @@ internal class RealGraphicsSurface(
                 if (!clipCanvasToBounds) {
                     skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
                 }
-                skiaCanvas.clipPath(it.skia(), INTERSECT)
+                skiaCanvas.clipPath(it.skia(), INTERSECT, antiAlias = true)
             }
 
             children.forEach {
