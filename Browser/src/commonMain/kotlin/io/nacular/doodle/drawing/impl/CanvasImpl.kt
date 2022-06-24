@@ -5,6 +5,7 @@ import io.nacular.doodle.HTMLImageElement
 import io.nacular.doodle.Node
 import io.nacular.doodle.Text
 import io.nacular.doodle.clear
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
@@ -23,6 +24,7 @@ import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setLeft
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOverflow
+import io.nacular.doodle.dom.setPerspectiveTransform
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
@@ -205,11 +207,21 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
-        true -> block()
-        else -> subFrame(block) {
+    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when {
+        transform.isIdentity -> block()
+        else                 -> subFrame(block) {
             val point = -Point(size.width / 2, size.height / 2)
             it.style.setTransform(((Identity translate point) * transform) translate -point)
+            it.style.setOverflow(Visible())
+        }
+    }
+
+    override fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit) = when {
+        transform.isIdentity -> block()
+        else                 -> subFrame(block) {
+            val point = -Point(size.width / 2, size.height / 2)
+            val modifiedTransform = ((Identity translate point) * transform) translate -point
+            it.style.setPerspectiveTransform((camera.projection(point) * modifiedTransform).matrix)
             it.style.setOverflow(Visible())
         }
     }

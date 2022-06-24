@@ -5,6 +5,7 @@ package io.nacular.doodle.core
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
 import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.core.Camera.Companion.Orthographic
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
@@ -250,7 +251,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
      */
-    public var camera: Camera by observable(Camera(Origin, 0.0), cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
+    public var camera: Camera by observable(Orthographic, cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set

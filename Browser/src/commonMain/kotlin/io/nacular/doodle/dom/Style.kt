@@ -179,9 +179,9 @@ internal fun Style.setTransform(transform: AffineTransform? = null) {
 }
 
 internal fun Style.setPerspectiveTransform(transform: SquareMatrix<Double>? = null) {
-    this.transform = when (transform) {
-        null -> ""
-        else -> transform.run {
+    this.transform = when {
+        transform == null || transform.isIdentity -> ""
+        else                                      -> transform.run {
             """matrix3d(
             |${this[0, 0]},${this[1, 0]},${this[2, 0]},${this[3, 0]},
             |${this[0, 1]},${this[1, 1]},${this[2, 1]},${this[3, 1]},

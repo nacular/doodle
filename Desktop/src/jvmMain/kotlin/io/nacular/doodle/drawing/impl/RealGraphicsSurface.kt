@@ -9,6 +9,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.skia.skia
+import io.nacular.doodle.skia.skia33
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
 import org.jetbrains.skia.ClipMode.INTERSECT
@@ -96,17 +97,18 @@ internal class RealGraphicsSurface(
 
         skiaCanvas.save()
 
-        if (finalTransform.is3d) {
-            val matrix = (camera.projection * finalTransform).matrix
+        when {
+            finalTransform.is3d -> {
+                val matrix = (camera.projection * finalTransform).matrix
 
-            skiaCanvas.concat(Matrix44(
-                matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
-                matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
-                matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
-                matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat(),
-            ))
-        } else {
-            skiaCanvas.concat(finalTransform.skia())
+                skiaCanvas.concat(Matrix44(
+                    matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
+                    matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
+                    matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
+                    matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat(),
+                ))
+            }
+            else                -> skiaCanvas.concat(finalTransform.skia33())
         }
 
         skiaCanvas.drawPicture(picture!!)

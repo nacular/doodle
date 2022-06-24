@@ -1,6 +1,5 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.Node
 import io.nacular.doodle.SVGCircleElement
 import io.nacular.doodle.SVGElement
@@ -19,7 +18,6 @@ import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.addIfNotPresent
 import io.nacular.doodle.dom.defaultFontSize
-import io.nacular.doodle.dom.left
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
@@ -37,7 +35,6 @@ import io.nacular.doodle.dom.setFloodColor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setGradientUnits
 import io.nacular.doodle.dom.setId
-import io.nacular.doodle.dom.setLeft
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setPathData
 import io.nacular.doodle.dom.setPatternTransform
@@ -46,7 +43,6 @@ import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setRX
 import io.nacular.doodle.dom.setRY
 import io.nacular.doodle.dom.setRadius
-import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setStart
 import io.nacular.doodle.dom.setStopColor
 import io.nacular.doodle.dom.setStopOffset
@@ -54,15 +50,12 @@ import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setStrokeColor
 import io.nacular.doodle.dom.setStrokePattern
 import io.nacular.doodle.dom.setTextDecoration
-import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setX1
 import io.nacular.doodle.dom.setX2
 import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
-import io.nacular.doodle.dom.top
 import io.nacular.doodle.drawing.AffineTransform
-import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
@@ -864,7 +857,7 @@ internal open class VectorRendererSvg constructor(
             textMetrics   : TextMetrics,
             idGenerator   : IdGenerator,
             patternElement: SVGElement
-    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), NativeCanvas {
+    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
         private val contextWrapper = ContextWrapper(context)
 
         init {
@@ -873,9 +866,9 @@ internal open class VectorRendererSvg constructor(
 
         override var size get() = context.size; set(@Suppress("UNUSED_PARAMETER") value) {}
 
-        override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) = when (transform.isIdentity) {
-            true -> block(this)
-            else -> {
+        override fun transform(transform: AffineTransform, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) = when {
+            transform.isIdentity -> block(this)
+            else                 -> {
                 pushGroup()
 
                 svgElement?.setTransform(transform)
@@ -914,45 +907,28 @@ internal open class VectorRendererSvg constructor(
             }
         }
 
-        override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {
+        override fun clip(rectangle: Rectangle, radius: Double, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             pushClip(rectangle, radius)
             block   (this             )
             popClip (                 )
         }
 
-        override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
+        override fun clip(polygon: Polygon, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {
+        override fun clip(ellipse: Ellipse, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun clip(path: io.nacular.doodle.geometry.Path, block: Canvas.() -> Unit) {
+        override fun clip(path: io.nacular.doodle.geometry.Path, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
-        override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
+        override fun shadow(shadow: Shadow, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             contextWrapper.shadows += shadow
             block (this  )
             contextWrapper.shadows -= shadow
-        }
-
-        override fun addData(elements: List<HTMLElement>, at: Point) {
-            // FIXME: foreignObject doesn't seem to work when nested in pattern element
-
-            createOrUse<SVGElement>("foreignObject").apply {
-                setSize(size)
-
-                elements.asReversed().forEach {
-                    if (at.y != 0.0 ) it.style.setTop (it.top  + at.y)
-                    if (at.x != 0.0 ) it.style.setLeft(it.left + at.x)
-
-                    addIfNotPresent(it.cloneNode(true), 0)
-                }
-
-                completeOperation(this)
-            }
         }
 
         private fun createClip(rectangle: Rectangle, radius: Double = 0.0) = createOrUse<SVGElement>("clipPath").apply {

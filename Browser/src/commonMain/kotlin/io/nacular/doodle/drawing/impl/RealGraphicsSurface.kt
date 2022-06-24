@@ -95,7 +95,7 @@ internal class RealGraphicsSurface private constructor(
     override var camera    by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
 
     private fun refreshProjectionTransform() {
-        projectionTransform = camera.projection(- Point(size.width/2, size.height/2))
+        projectionTransform = camera.projection(-Point(size.width/2, size.height/2))
     }
 
     private var projectionTransform by observable(ProjectionTransform.Identity) { _,_ -> updateTransform(position) }

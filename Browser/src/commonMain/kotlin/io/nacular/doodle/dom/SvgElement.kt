@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package io.nacular.doodle.dom
 
 import io.nacular.doodle.SVGCircleElement
@@ -11,6 +13,7 @@ import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.PatternTransform
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
@@ -89,7 +92,7 @@ internal fun SVGElement.setStopColor(color: Color) {
     }
 }
 
-internal fun SVGElement.setStopOffset(value: kotlin.Float) {
+internal fun SVGElement.setStopOffset(value: Float) {
     setStopOffsetInternal(min(1f, max(0f, value)))
 }
 
@@ -98,18 +101,9 @@ internal fun SVGGradientElement.setGradientRotation(value: Measure<Angle>) { set
 internal fun SVGGradientElement.setSpreadMethod (value: String) { setAttribute("spreadMethod",  value) }
 internal fun SVGGradientElement.setGradientUnits(value: String) { setAttribute("gradientUnits", value) }
 
-
-private fun SVGElement.setStopColor         (value: String      ) { setAttribute("stop-color",     value ) }
-private fun SVGElement.setStopOpacity       (value: kotlin.Float) { setAttribute("stop-opacity", "$value") }
-private fun SVGElement.setStopOffsetInternal(value: kotlin.Float) { setAttribute("offset",       "$value") }
-
-//var SVGElement.shapeRendering
-//    get() = when(getAttribute("shape-rendering")) {
-//        CrispEdges.value -> CrispEdges
-//        else             -> Auto
-//    }
-//    set(value) = setAttribute("shape-rendering", value.value)
-
+private fun SVGElement.setStopColor         (value: String) { setAttribute("stop-color",     value ) }
+private fun SVGElement.setStopOpacity       (value: Float ) { setAttribute("stop-opacity", "$value") }
+private fun SVGElement.setStopOffsetInternal(value: Float ) { setAttribute("offset",       "$value") }
 
 internal fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     null -> none
@@ -122,7 +116,7 @@ internal inline fun SVGElement.setDominantBaseline(value: DominantBaseline) {
 
 internal fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
-    color?.let { setAttribute("fill-opacity", "${it.opacity}") }
+    color?.let { c -> setAttribute("fill-opacity", "${c.opacity}") }
 }
 
 internal inline fun SVGElement.setDefaultFill() {
@@ -186,29 +180,31 @@ internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
     }
 }
 
-internal fun SVGPatternElement.setPatternTransform(transform: AffineTransform?) = when(transform) {
-    null -> removeAttribute("patternTransform")
-    else -> setAttribute("patternTransform", transform.matrixString)
+internal fun SVGPatternElement.setPatternTransform(transform: PatternTransform?) = when {
+    transform == null || transform.isIdentity -> removeAttribute("patternTransform")
+    else                                      -> setAttribute   ("patternTransform", transform.matrixString)
 }
 
-private val AffineTransform.matrixString get() = run { "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)" }
+private val AffineTransform.matrixString get() = run {
+    "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)"
+}
 
-internal fun SVGElement.setTransform(transform: AffineTransform?) = when(transform) {
-    null -> removeTransform()
-    else -> setTransform(transform.matrixString)
+private val PatternTransform.matrixString get() = run {
+    "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)"
+}
+
+internal inline fun SVGElement.setTransform(transform: AffineTransform?) = when {
+    transform == null || transform.isIdentity -> removeTransform()
+    transform.is3d                            -> { removeAttribute("transform"); style.setTransform(transform) }
+    else                                      -> { setTransform(transform.matrixString); style.setTransform(null) }
 }
 
 internal inline fun SVGElement.setTransform(transform: String) = setAttribute("transform", transform)
 
-internal inline fun SVGElement.removeTransform() = removeAttribute("transform")
+internal inline fun SVGElement.removeTransform() { removeAttribute("transform"); style.setTransform(null) }
 
 internal enum class DominantBaseline(val value: String) {
     TextBeforeEdge("text-before-edge")
-}
-
-internal enum class ShapeRendering(val value: String) {
-    CrispEdges("crispEdges"),
-    Auto      ("auto"      )
 }
 
 private const val none = "none"

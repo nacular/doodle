@@ -2,6 +2,7 @@ package io.nacular.doodle.core
 
 import io.nacular.doodle.drawing.ProjectionTransform
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.doodle.utils.times
 
@@ -22,7 +23,7 @@ public data class Camera(val position: Point, val distance: Double) {
      * This is helpful when trying to compute the location of a point in
      * the "world" from the Camera's perspective.
      */
-    public val projection: ProjectionTransform by lazy { projection(offset = Point.Origin) }
+    public val projection: ProjectionTransform by lazy { projection(offset = Origin) }
 
     @Internal public fun projection(offset: Point): ProjectionTransform = when (distance) {
         0.0  -> ProjectionTransform.Identity
@@ -46,5 +47,9 @@ public data class Camera(val position: Point, val distance: Double) {
                 arrayOf(0.0, 0.0, 0.0,  1.0))
             ))
         }
+    }
+
+    public companion object {
+        public val Orthographic: Camera = Camera(Origin, Double.MAX_VALUE)
     }
 }

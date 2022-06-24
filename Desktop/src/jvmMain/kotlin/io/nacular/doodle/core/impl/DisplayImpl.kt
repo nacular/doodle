@@ -22,7 +22,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.skia.skia
+import io.nacular.doodle.skia.skia33
+import io.nacular.doodle.skia.skia44
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -142,10 +143,14 @@ internal class DisplayImpl(
             requestRender()
         }
 
-    private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, nano: Long) {
+    private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, @Suppress("UNUSED_PARAMETER") nano: Long) {
         skiaCanvas.save     ()
         skiaCanvas.scale    (skiaLayer.contentScale, skiaLayer.contentScale)
-        skiaCanvas.setMatrix(skiaCanvas.localToDeviceAsMatrix33.makeConcat(resolvedTransform.skia()))
+
+        when {
+            resolvedTransform.is3d -> skiaCanvas.concat(resolvedTransform.skia44())
+            else                   -> skiaCanvas.concat(resolvedTransform.skia33())
+        }
 
         fill?.let {
             CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {

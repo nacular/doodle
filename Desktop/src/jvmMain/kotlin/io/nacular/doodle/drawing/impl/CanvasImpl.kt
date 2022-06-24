@@ -1,18 +1,21 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.drawing.AffineTransform
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.CommonCanvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
+import io.nacular.doodle.drawing.PatternCanvas
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.PatternPaint
+import io.nacular.doodle.drawing.PatternTransform
 import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
@@ -34,8 +37,12 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.image.impl.SvgImage
 import io.nacular.doodle.skia.rrect
 import io.nacular.doodle.skia.skia
+import io.nacular.doodle.skia.skia33
+import io.nacular.doodle.skia.skia44
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.text.TextDecoration.Line.*
+import io.nacular.doodle.text.TextDecoration.Line.Over
+import io.nacular.doodle.text.TextDecoration.Line.Through
+import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Style
 import io.nacular.doodle.theme.native.textStyle
 import io.nacular.doodle.utils.isOdd
@@ -47,12 +54,18 @@ import org.jetbrains.skia.FilterBlurMode.NORMAL
 import org.jetbrains.skia.FilterTileMode.REPEAT
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.MaskFilter
+import org.jetbrains.skia.Matrix44
 import org.jetbrains.skia.PathEffect
-import org.jetbrains.skia.PathFillMode.*
+import org.jetbrains.skia.PathFillMode.EVEN_ODD
+import org.jetbrains.skia.PathFillMode.WINDING
 import org.jetbrains.skia.SamplingMode.Companion.MITCHELL
 import org.jetbrains.skia.Shader
 import org.jetbrains.skia.paragraph.BaselineMode.IDEOGRAPHIC
-import org.jetbrains.skia.paragraph.DecorationLineStyle.*
+import org.jetbrains.skia.paragraph.DecorationLineStyle.DASHED
+import org.jetbrains.skia.paragraph.DecorationLineStyle.DOTTED
+import org.jetbrains.skia.paragraph.DecorationLineStyle.DOUBLE
+import org.jetbrains.skia.paragraph.DecorationLineStyle.SOLID
+import org.jetbrains.skia.paragraph.DecorationLineStyle.WAVY
 import org.jetbrains.skia.paragraph.DecorationStyle
 import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skia.paragraph.Paragraph
@@ -64,18 +77,30 @@ import org.jetbrains.skia.paragraph.TextStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 import org.jetbrains.skia.Canvas as SkiaCanvas
-import org.jetbrains.skia.Font   as SkiaFont
-import org.jetbrains.skia.Paint  as SkiaPaint
-import org.jetbrains.skia.Path   as SkiaPath
+import org.jetbrains.skia.Font  as SkiaFont
+import org.jetbrains.skia.Paint as SkiaPaint
+import org.jetbrains.skia.Path  as SkiaPath
 
+internal class PatternCanvasWrapper(private val canvas: Canvas): PatternCanvas, CommonCanvas by canvas {
+    override fun transform(transform: AffineTransform, block: PatternCanvas.() -> Unit) = canvas.transform(transform) { block(this@PatternCanvasWrapper) }
 
+    override fun clip(rectangle: Rectangle, radius: Double, block: PatternCanvas.() -> Unit)  = canvas.clip(rectangle, radius) { block(this@PatternCanvasWrapper) }
+
+    override fun clip(polygon: Polygon, block: PatternCanvas.() -> Unit) = canvas.clip(polygon) { block(this@PatternCanvasWrapper) }
+
+    override fun clip(ellipse: Ellipse, block: PatternCanvas.() -> Unit) = canvas.clip(ellipse) { block(this@PatternCanvasWrapper) }
+
+    override fun clip(path: Path, block: PatternCanvas.() -> Unit) = canvas.clip(path) { block(this@PatternCanvasWrapper) }
+
+    override fun shadow(shadow: Shadow, block: PatternCanvas.() -> Unit) = canvas.shadow(shadow) { block(this@PatternCanvasWrapper) }
+}
 /**
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class CanvasImpl(
-        internal val skiaCanvas    : SkiaCanvas,
-        private  val defaultFont   : SkiaFont,
-        private  val fontCollection: FontCollection
+    internal val skiaCanvas    : SkiaCanvas,
+    private  val defaultFont   : SkiaFont,
+    private  val fontCollection: FontCollection
 ): Canvas {
     private fun Paint.skia(): SkiaPaint {
         val result = SkiaPaint()
@@ -93,9 +118,11 @@ internal class CanvasImpl(
 
                 val bitmapCanvas = SkiaCanvas(bitmap)
 
-                paint(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size })
+                paint(PatternCanvasWrapper(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size }))
 
-                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, (Identity.translate(bounds.x, bounds.y) * transform).skia())
+                val matrix = (PatternTransform.Identity.translate(bounds.x, bounds.y) * transform).skia33()
+
+                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, matrix)
             }
         }
 
@@ -125,13 +152,33 @@ internal class CanvasImpl(
     override var size: Size = Size.Empty
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
-        val oldMatrix = skiaCanvas.localToDeviceAsMatrix33
+        val oldMatrix = skiaCanvas.localToDevice
 
-        skiaCanvas.setMatrix(oldMatrix.makeConcat(transform.skia()))
+        when {
+            transform.is3d -> skiaCanvas.concat(transform.skia44())
+            else           -> skiaCanvas.concat(transform.skia33())
+        }
 
         block(this)
 
-        skiaCanvas.setMatrix(oldMatrix)
+        skiaCanvas.resetMatrix().concat(oldMatrix)
+    }
+
+    override fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit) {
+        val oldMatrix = skiaCanvas.localToDevice
+
+        val matrix = (camera.projection * transform).matrix
+
+        skiaCanvas.concat(Matrix44(
+            matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
+            matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
+            matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
+            matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat()
+        ))
+
+        block(this)
+
+        skiaCanvas.resetMatrix().concat(oldMatrix)
     }
 
     override fun rect(rectangle: Rectangle, fill: Paint) {

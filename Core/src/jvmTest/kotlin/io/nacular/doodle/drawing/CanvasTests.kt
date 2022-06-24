@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -29,6 +30,8 @@ private class TestCanvas: Canvas {
     override var size = Empty
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {}
+
+    override fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit) {}
 
     override fun rect(rectangle: Rectangle, fill: Paint) {}
 
