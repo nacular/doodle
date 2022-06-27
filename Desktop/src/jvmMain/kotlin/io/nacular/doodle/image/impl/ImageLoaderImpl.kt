@@ -21,7 +21,7 @@ public interface Base64Decoder {
  */
 public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val base64Decoder: Base64Decoder): ImageLoader {
     private val loadedImages   = mutableMapOf<String, Image>()
-    private val dataImageRegex = Regex("^\\s*data:(?<mediaType>(?<mimeType>[a-z\\-+/]+/[a-z\\-+]+)(?<params>(;[a-z\\-]+=[a-z\\-]+)*))?;(?<encoding>[^,]*)?,(?<data>[a-zA-Z0-9!$&',()*+;=\\-._~:@/?%\\s]*\\s*)")
+    private val dataImageRegex = Regex("^\\s*data:(?<mediaType>(?<mimeType>[a-z\\-+/]+/[a-z\\-+]+)(?<params>(;[a-z\\-]+=[a-z\\-]+)*))?;(?<encoding>[^,]*)?,(?<data>[a-zA-Z\\d!$&',()*+;=\\-._~:@/?%\\s]*\\s*)")
 
     override suspend fun load(source: String): Image? {
         loadedImages[source]?.let { return it }
@@ -42,7 +42,7 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val bas
                             "image/svg+xml" -> {
                                 SvgImage(SVGDOM(Data.makeFromBytes(urlDecoder.decode(data, encoding).toByteArray())))
                             }
-                            else -> data.let { ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(it)), source) }
+                            else -> ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(data)), source)
                         }
                     } ?:
 
@@ -55,12 +55,13 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val bas
         return loadedImages[source]
     }
 
-    override suspend fun load(file: LocalFile): Image? {
+    override suspend fun load(file: LocalFile): Image? = file.read()?.let { data ->
         try {
-            return ImageImpl(SkiaImage.makeFromEncoded(file.read()), file.name)
-        } catch (ignored: Throwable) { ignored.printStackTrace() }
-
-        return null
+            ImageImpl(SkiaImage.makeFromEncoded(data), file.name)
+        } catch (ignored: Throwable) {
+            ignored.printStackTrace()
+            null
+        }
     }
 
     override fun unload(image: Image) {
