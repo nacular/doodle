@@ -5,7 +5,6 @@ package io.nacular.doodle.core
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
 import io.nacular.doodle.controls.panels.ScrollPanel
-import io.nacular.doodle.core.Camera.Companion.Orthographic
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
@@ -251,7 +250,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
      */
-    public var camera: Camera by observable(Orthographic, cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
+    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set
@@ -799,13 +798,29 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /**
-     * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds.  This check accounts for [transforms][AffineTransform]
-     * within the View's hierarchy as well.
+     * Checks whether a point (relative to [parent] or [Display] if top-level) is within the View's bounds. This method must account for
+     * any [transform] and [camera] applied to the View. The default implementation does this and delegates to [intersects].
      *
-     * @param point The point to check
+     * @param point within the View's parent
      * @return `true` IFF the point falls within the View
      */
-    override operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(toPlane(point))?.let { it.as2d() in bounds } ?: false
+    override operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(toPlane(point))?.let { intersects(it.as2d()) } ?: false
+
+    /**
+     * Checks whether a point on the View's plane, but relative to its parent, intersects (is "touching") the View. This enables custom
+     * hit detection logic for Views that have non-rectangular shapes.
+     *
+     * The given [point] is already modified to account for the View's [transform] and [camera], so implementations can simply work
+     * with the point directly. The default implementation checks:
+     *
+     * ```kotlin
+     * point in bounds
+     * ```
+     *
+     * @param point on the View's plane
+     * @return `true` IFF the point falls within the View
+     */
+    public open infix fun intersects(point: Point): Boolean = point in bounds
 
     /**
      * Gets the set of keys used to trigger this type of focus traversal.

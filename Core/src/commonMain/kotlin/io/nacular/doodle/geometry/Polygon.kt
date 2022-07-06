@@ -131,6 +131,11 @@ public abstract class ConvexPolygon: Polygon() {
     }
 }
 
+/**
+ * Create a new [ConvexPolygon] with the same points, but in reversed order.
+ */
+public fun ConvexPolygon.reversed(): ConvexPolygon = ConvexPolygonImpl(points.reversed())
+
 private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon() {
     constructor(first: Point, second: Point, third: Point, vararg remaining: Point): this(listOf(first, second, third) + remaining)
 }

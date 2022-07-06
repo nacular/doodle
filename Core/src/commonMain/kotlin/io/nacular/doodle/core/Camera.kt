@@ -26,8 +26,8 @@ public data class Camera(val position: Point, val distance: Double) {
     public val projection: ProjectionTransform by lazy { projection(offset = Origin) }
 
     @Internal public fun projection(offset: Point): ProjectionTransform = when (distance) {
-        0.0  -> ProjectionTransform.Identity
-        else -> {
+        0.0, Double.MAX_VALUE -> ProjectionTransform.Identity
+        else                  -> {
             val p = position + offset
 
             ProjectionTransform(SquareMatrix(arrayOf(
@@ -50,6 +50,6 @@ public data class Camera(val position: Point, val distance: Double) {
     }
 
     public companion object {
-        public val Orthographic: Camera = Camera(Origin, Double.MAX_VALUE)
+        public val Identity: Camera = Camera(Origin, Double.MAX_VALUE)
     }
 }

@@ -163,6 +163,39 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface setProperty "transform" value transform }
     }
 
+    @Test @JsName("handlesBecomingInvisibleBeforeFirstRender")
+    fun `handles becoming invisible before first render`() {
+        val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
+        val scheduler = ManualAnimationScheduler()
+        val display   = display(view)
+
+        view.visible = true
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        view.visible = false
+
+        verify(exactly = 0) { view.render(any()) }
+
+        scheduler.runJobs()
+
+        verify(exactly = 0) { view.render(any()) }
+
+        scheduler.runJobs()
+
+        verify(exactly = 0) { view.render(any()) }
+
+        view.visible = true
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, view)
+
+        scheduler.runJobs()
+
+        verify(exactly = 1) { view.render(any()) }
+    }
+
     @Test @JsName("removesTopLevelViews")
     fun `removes top-level views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }

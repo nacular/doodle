@@ -500,6 +500,7 @@ public open class RenderManagerImpl(
                 }
             } else {
                 graphicsDevice[view].visible = false
+                pendingBoundsChange -= view
             }
         }
 

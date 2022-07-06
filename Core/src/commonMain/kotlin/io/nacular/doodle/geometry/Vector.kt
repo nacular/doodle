@@ -163,17 +163,17 @@ public abstract class Vector3d protected constructor(public val x: Double = 0.0,
      * @param other vector
      */
     public infix fun cross(other: Vector3d): Vector3d {
-        val a1 = x
-        val a2 = y
-        val a3 = z
-        val b1 = other.x
-        val b2 = other.y
-        val b3 = other.z
+        val aX = x
+        val aY = y
+        val aZ = z
+        val bX = other.x
+        val bY = other.y
+        val bZ = other.z
 
         return VectorImpl(
-            x =   a2 * b3 - a3 * b2,
-            y = -(a1 * b3 - a3 * b1),
-            z =   a1 * b2 - a2 * b1
+            x =   aY * bZ - aZ * bY,
+            y = -(aX * bZ - aZ * bX),
+            z =   aX * bY - aY * bX
         )
     }
 

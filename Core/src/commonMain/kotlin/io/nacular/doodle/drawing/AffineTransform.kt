@@ -158,7 +158,7 @@ public class AffineTransform internal constructor(internal val matrix: AffineMat
                 else -> AffineMatrix3D(
                       x, 0.0, 0.0, 0.0,
                     0.0,   y, 0.0, 0.0,
-                    0.0, 0.0,   z, 1.0)
+                    0.0, 0.0,   z, 0.0)
             }
     )
 
@@ -342,9 +342,7 @@ public class AffineTransform internal constructor(internal val matrix: AffineMat
     /**
      * Appends a rotation (around the y-axis) operation to this transform.
      *
-     * @param around this point
      * @param by this angle
-     * @see rotateZ
      * @return a new transform
      */
     public infix fun rotateY(by: Measure<Angle>): AffineTransform {

@@ -245,11 +245,11 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
      * @return `true` IFF the given rectangle intersects this Rectangle
      */
     override fun intersects(rectangle: Rectangle): Boolean = !(empty                      ||
-                                                      rectangle.empty            ||
-                                                      x      >= rectangle.right  ||
-                                                      y      >= rectangle.bottom ||
-                                                      right  <= rectangle.x      ||
-                                                      bottom <= rectangle.y)
+                                                               rectangle.empty            ||
+                                                               x      >= rectangle.right  ||
+                                                               y      >= rectangle.bottom ||
+                                                               right  <= rectangle.x      ||
+                                                               bottom <= rectangle.y)
 
     override fun toString(): String = "[$x,$y,$width,$height]"
 

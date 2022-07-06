@@ -22,12 +22,30 @@ public interface PointerMotionListener {
     public fun dragged(event: PointerEvent) {}
 
     public companion object {
-        public inline fun moved(crossinline block: (event: PointerEvent) -> Unit): PointerMotionListener = object: PointerMotionListener {
-            override fun moved(event: PointerEvent) = block(event)
+        /**
+         * Creates a listener that delegates to the provided lambdas for each event type.
+         *
+         * @param moved invoked on pointer-moved
+         * @param dragged invoked on pointer-dragged
+         */
+        public fun on(
+            moved  : (PointerEvent) -> Unit = {},
+            dragged: (PointerEvent) -> Unit = {},
+        ): PointerMotionListener = object: PointerMotionListener {
+            inline override fun moved   (event: PointerEvent) = moved  (event)
+            inline override fun dragged (event: PointerEvent) = dragged(event)
         }
 
-        public inline fun dragged(crossinline block: (event: PointerEvent) -> Unit): PointerMotionListener = object: PointerMotionListener {
-            override fun dragged(event: PointerEvent) = block(event)
-        }
+        /**
+         * @param block invoked on pointer-moved
+         * @return a listener that calls [block] on pointer-moved.
+         */
+        public inline fun moved(noinline block: (event: PointerEvent) -> Unit): PointerMotionListener = on(moved = block)
+
+        /**
+         * @param block invoked on pointer-dragged
+         * @return a listener that calls [block] on pointer-dragged.
+         */
+        public inline fun dragged(noinline block: (event: PointerEvent) -> Unit): PointerMotionListener = on(dragged = block)
     }
 }

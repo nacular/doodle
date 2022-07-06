@@ -44,43 +44,56 @@ public interface PointerListener {
 
     public companion object {
         /**
-         * @param block invoked on pointer-exited
-         * @return a Listener that calls [block] on pointer-exited.
+         * Creates a listener that delegates to the provided lambdas for each event type.
+         *
+         * @param entered invoked on pointer-entered
+         * @param exited invoked on pointer-exited
+         * @param pressed invoked on pointer-exited
+         * @param released invoked on pointer-released
+         * @param clicked invoked on pointer-clicked
          */
-        public inline fun exited(crossinline block: (event: PointerEvent) -> Unit): PointerListener = object: PointerListener {
-            override fun exited(event: PointerEvent) = block(event)
+        public fun on(
+            entered : (PointerEvent) -> Unit = {},
+            exited  : (PointerEvent) -> Unit = {},
+            pressed : (PointerEvent) -> Unit = {},
+            released: (PointerEvent) -> Unit = {},
+            clicked : (PointerEvent) -> Unit = {},
+        ): PointerListener = object: PointerListener {
+            inline override fun entered (event: PointerEvent) = entered (event)
+            inline override fun exited  (event: PointerEvent) = exited  (event)
+            inline override fun pressed (event: PointerEvent) = pressed (event)
+            inline override fun released(event: PointerEvent) = released(event)
+            inline override fun clicked (event: PointerEvent) = clicked (event)
         }
+
+        /**
+         * @param block invoked on pointer-exited
+         * @return a listener that calls [block] on pointer-exited.
+         */
+        public inline fun exited(noinline block: (event: PointerEvent) -> Unit): PointerListener = on(exited = block)
 
         /**
          * @param block invoked on pointer-entered
-         * @return a Listener that calls [block] on pointer-entered.
+         * @return a listener that calls [block] on pointer-entered.
          */
-        public inline fun entered(crossinline block: (event: PointerEvent) -> Unit): PointerListener = object: PointerListener {
-            override fun entered(event: PointerEvent) = block(event)
-        }
+        public inline fun entered(noinline block: (event: PointerEvent) -> Unit): PointerListener = on(entered = block)
 
         /**
          * @param block invoked on pointer-pressed
-         * @return a Listener that calls [block] on pointer-pressed.
+         * @return a listener that calls [block] on pointer-pressed.
          */
-        public inline fun pressed(crossinline block: (event: PointerEvent) -> Unit): PointerListener = object: PointerListener {
-            override fun pressed(event: PointerEvent) = block(event)
-        }
+        public inline fun pressed(noinline block: (event: PointerEvent) -> Unit): PointerListener = on(pressed = block)
 
         /**
          * @param block invoked on pointer-released
-         * @return a Listener that calls [block] on pointer-released.
+         * @return a listener that calls [block] on pointer-released.
          */
-        public inline fun released(crossinline block: (event: PointerEvent) -> Unit): PointerListener = object: PointerListener {
-            override fun released(event: PointerEvent) = block(event)
-        }
+        public inline fun released(noinline block: (event: PointerEvent) -> Unit): PointerListener = on(released = block)
 
         /**
          * @param block invoked on pointer-clicked
-         * @return a Listener that calls [block] on pointer-clicked.
+         * @return a listener that calls [block] on pointer-clicked.
          */
-        public inline fun clicked(crossinline block: (event: PointerEvent) -> Unit): PointerListener = object: PointerListener {
-            override fun clicked(event: PointerEvent) = block(event)
-        }
+        public inline fun clicked(noinline block: (event: PointerEvent) -> Unit): PointerListener = on(clicked = block)
     }
 }
