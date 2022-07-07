@@ -69,12 +69,12 @@ internal class RealGraphicsSurface private constructor(
         set(new) {
             field = new
 
-            when (val p = parent) {
-                null           -> {
+            when {
+                parent == null && rootElement.parentNode == htmlFactory.root -> {
                     htmlFactory.root.remove(rootElement       )
                     htmlFactory.root.insert(rootElement, index)
                 }
-                else -> p.setIndex(this, new)
+                else -> parent?.setIndex(this, new)
             }
         }
 
