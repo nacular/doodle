@@ -134,24 +134,12 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
     override fun iterator(): MutableIterator<E> = when (filter) {
         null -> source.iterator()
         else -> {
-            source.iterator().let {
-                object: MutableIterator<E> by it {
-                    private var index = 0
+            object: MutableIterator<E> {
+                private var index = 0
 
-                    override fun next() = source[index]
-
-                    override fun hasNext(): Boolean {
-                        while (index < source.size && index !in indexToSource) {
-                            ++index
-                        }
-
-                        return index < source.size
-                    }
-
-                    override fun remove() {
-                        it.remove()
-                    }
-                }
+                override fun next   () = source[indexToSource[index++]]
+                override fun hasNext() = index < indexToSource.size
+                override fun remove () = source.removeAt(indexToSource[index]).let {}
             }
         }
     }

@@ -29,6 +29,14 @@ class FilteredListTests {
         expect(listOf(0,1,2,3,4,5)) { source }
 
         expect(filteredList) { listOf(0,2,4) }
+
+        var count = 0
+        for (item in filteredList) {
+            count++
+        }
+
+        expect(3) { count }
+
 //        expect(listOf(0,2,4)) { filteredList }
     }
 
