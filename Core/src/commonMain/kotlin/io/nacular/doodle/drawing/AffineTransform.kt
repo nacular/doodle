@@ -8,9 +8,6 @@ import io.nacular.doodle.geometry.Vector3d
 import io.nacular.doodle.geometry.times
 import io.nacular.doodle.geometry.unaryMinus
 import io.nacular.doodle.utils.AffineMatrix3D
-import io.nacular.doodle.utils.div
-import io.nacular.doodle.utils.minus
-import io.nacular.doodle.utils.plus
 import io.nacular.doodle.utils.times
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.acos
@@ -24,9 +21,8 @@ import kotlin.math.atan
 import kotlin.math.sqrt
 
 /**
- * Represents an [Affine Transformation](https://en.wikipedia.org/wiki/Affine_transformation).
- *
- * @see AffineMatrix3D to see the underlying matrix used for such a transform.
+ * Represents an [Affine Transformation](https://en.wikipedia.org/wiki/Affine_transformation) that
+ * supports 3D.
  */
 @Suppress("ReplaceSingleLineLet")
 public class AffineTransform internal constructor(internal val matrix: AffineMatrix3D) {
@@ -573,11 +569,3 @@ public fun AffineTransform.computeAngle(): Measure<Angle> {
         else                             -> angle
     }
 }
-
-public operator fun AffineTransform.times(value: Number): AffineTransform = AffineTransform(matrix * value)
-
-public operator fun AffineTransform.div(value: Number): AffineTransform = AffineTransform(matrix / value)
-
-public operator fun AffineTransform.plus(other: AffineTransform): AffineTransform = AffineTransform(matrix + other.matrix)
-
-public operator fun AffineTransform.minus(other: AffineTransform): AffineTransform = AffineTransform(matrix - other.matrix)

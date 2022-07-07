@@ -126,7 +126,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
  *
  * @constructor creates a new instance
  */
-public class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>): SquareMatrix<Double>(values) {
+internal class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>): SquareMatrix<Double>(values) {
     override operator fun get(row: Int, col: Int): Double = when {
         row < numRows && col < numColumns -> super.get(row, col)
         row == col                        -> 1.0
@@ -143,8 +143,8 @@ public class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>):
         return this[row, nCol]
     }
 
-    public companion object {
-        public operator fun invoke(
+    companion object {
+        operator fun invoke(
             m00: Double, m01: Double, m02: Double,
             m10: Double, m11: Double, m12: Double): AffineMatrix3D = AffineMatrix3D(
             arrayOf(
@@ -153,7 +153,7 @@ public class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>):
             arrayOf(0.0, 0.0, 1.0))
         )
 
-        public operator fun invoke(
+        operator fun invoke(
             m00: Double, m01: Double, m02: Double, m03: Double,
             m10: Double, m11: Double, m12: Double, m13: Double,
             m20: Double, m21: Double, m22: Double, m23: Double): AffineMatrix3D = AffineMatrix3D(
@@ -410,7 +410,7 @@ public operator fun SquareMatrix<Double>.times(other: SquareMatrix<Double>): Squ
     return SquareMatrix(values)
 }
 
-public operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
+internal operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.toDouble().let {
     when (numColumns) {
         4 -> AffineMatrix3D(
             this[0, 0] * it, this[0, 1] * it, this[0, 2] * it, this[0, 3] * it,
@@ -424,7 +424,7 @@ public operator fun AffineMatrix3D.times(value: Number): AffineMatrix3D = value.
     }
 }
 
-public operator fun AffineMatrix3D.div(value: Number): AffineMatrix3D = value.toDouble().let {
+internal operator fun AffineMatrix3D.div(value: Number): AffineMatrix3D = value.toDouble().let {
     when (numColumns) {
         4 -> AffineMatrix3D(
             this[0, 0] / it, this[0, 1] / it, this[0, 2] / it, this[0, 3] / it,
@@ -441,7 +441,7 @@ public operator fun AffineMatrix3D.div(value: Number): AffineMatrix3D = value.to
 /**
  * @see plus
  */
-public operator fun AffineMatrix3D.plus(other: AffineMatrix3D): AffineMatrix3D {
+internal operator fun AffineMatrix3D.plus(other: AffineMatrix3D): AffineMatrix3D {
     val is3d = numColumns != other.numColumns
 
     return AffineMatrix3D(Array(numRows) { row ->
@@ -454,7 +454,7 @@ public operator fun AffineMatrix3D.plus(other: AffineMatrix3D): AffineMatrix3D {
 /**
  * @see minus
  */
-public operator fun AffineMatrix3D.minus(other: AffineMatrix3D): AffineMatrix3D {
+internal operator fun AffineMatrix3D.minus(other: AffineMatrix3D): AffineMatrix3D {
     val is3d = numColumns != other.numColumns
 
     return AffineMatrix3D(Array(numRows) { row ->
@@ -467,7 +467,7 @@ public operator fun AffineMatrix3D.minus(other: AffineMatrix3D): AffineMatrix3D 
 /**
  * @see times
  */
-public operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
+internal operator fun AffineMatrix3D.times(other: AffineMatrix3D): AffineMatrix3D {
     if (other.isIdentity) {
         return this
     }
