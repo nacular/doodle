@@ -1,11 +1,9 @@
 package io.nacular.doodle.drawing
 
 import io.nacular.doodle.core.Internal
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
-import io.nacular.doodle.drawing.AffineTransform.Companion.invoke
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Vector3d
+import io.nacular.doodle.geometry.Vector3D
 import io.nacular.doodle.geometry.times
 import io.nacular.doodle.utils.AffineMatrix3D
 import io.nacular.doodle.utils.SquareMatrix
@@ -52,29 +50,48 @@ public class ProjectionTransform internal constructor(@Internal public val matri
      */
     public operator fun times(other: ProjectionTransform): ProjectionTransform = ProjectionTransform(matrix * other.matrix)
 
-    public inline operator fun invoke(point: Point): Vector3d = this(point.as3d())
+    public inline operator fun invoke(point: Point): Vector3D = this(point.as3d())
 
-    public operator fun invoke(point: Vector3d): Vector3d = this(listOf(point)).first()
+    public operator fun invoke(point: Vector3D): Vector3D = this(points = arrayOf(point)).first()
 
     /**
-     * Transforms the given set of points.
+     * Transforms the given points.
      *
      * @param points that will be transformed
      * @return a list of points transformed by this object
      * @see invoke
      */
-    @JvmName("call") public operator fun invoke(points: List<Point>): List<Vector3d> = this(points.map { it.as3d() })
+    public operator fun invoke(vararg points: Point): List<Vector3D> = this(points = points.map { it.as3d() }.toTypedArray())
 
     /**
-     * Transforms the given set of points.
+     * Transforms the given points.
      *
      * @param points that will be transformed
      * @return a list of points transformed by this object
      * @see invoke
      */
-    public operator fun invoke(points: List<Vector3d>): List<Vector3d> = when {
-        isIdentity -> points
-        else       -> matrix(points)
+    @JvmName("callPoint")
+    public fun invoke(points: List<Point>): List<Vector3D> = this(points = points.toTypedArray())
+
+    /**
+     * Transforms the given points.
+     *
+     * @param points that will be transformed
+     * @return a list of points transformed by this object
+     * @see invoke
+     */
+    public fun invoke(points: List<Vector3D>): List<Vector3D> = this(points = points.toTypedArray())
+
+    /**
+     * Transforms the given points.
+     *
+     * @param points that will be transformed
+     * @return a list of points transformed by this object
+     * @see invoke
+     */
+    public operator fun invoke(vararg points: Vector3D): List<Vector3D> = when {
+        isIdentity -> points.toList()
+        else       -> matrix(points = points)
     }
 
     /**
@@ -86,7 +103,7 @@ public class ProjectionTransform internal constructor(@Internal public val matri
      */
     public operator fun invoke(polygon: ConvexPolygon): ConvexPolygon = when {
         isIdentity -> polygon
-        else       -> this(polygon.points).let { ConvexPolygon(it[0].as2d(), it[1].as2d(), it[2].as2d(), *it.subList(3, it.size).map { it.as2d() }.toTypedArray()) }
+        else       -> this(points = polygon.points.toTypedArray()).let { ConvexPolygon(it[0].as2d(), it[1].as2d(), it[2].as2d(), *it.subList(3, it.size).map { it.as2d() }.toTypedArray()) }
     }
 
     override fun toString(): String = "$matrix"
@@ -125,17 +142,23 @@ public class ProjectionTransform internal constructor(@Internal public val matri
     }
 }
 
+public operator fun AffineTransform2D.times(transform: ProjectionTransform): ProjectionTransform = when {
+    isIdentity -> transform
+    else       -> ProjectionTransform(as3d().matrix * transform.matrix)
+}
+
 public operator fun AffineTransform.times(transform: ProjectionTransform): ProjectionTransform = when {
     isIdentity -> transform
-    is3d       -> ProjectionTransform(matrix        * transform.matrix)
-    else       -> ProjectionTransform(as3d().matrix * transform.matrix)
+    else       -> ProjectionTransform(matrix * transform.matrix)
 }
 
 internal val SquareMatrix<Double>.is3d: Boolean get() = !isIdentity && numColumns > 3
 
-internal operator fun SquareMatrix<Double>.invoke(point: Vector3d): Vector3d = this(listOf(point)).first()
+internal operator fun SquareMatrix<Double>.invoke(point: Vector3D): Vector3D = this(points = arrayOf(point)).first()
 
-internal operator fun SquareMatrix<Double>.invoke(points: List<Vector3d>): List<Vector3d> = when {
+internal operator fun SquareMatrix<Double>.invoke(vararg points: Vector3D): List<Vector3D> = this(points.toList())
+
+internal operator fun SquareMatrix<Double>.invoke(points: List<Vector3D>): List<Vector3D> = when {
     isIdentity -> points
     else       -> points.map {
         val list    = arrayOf(arrayOf(it.x), arrayOf(it.y), if (is3d) arrayOf(it.z) else arrayOf(1.0), arrayOf(1.0))
@@ -144,8 +167,8 @@ internal operator fun SquareMatrix<Double>.invoke(points: List<Vector3d>): List<
         val product = this * point
 
         when (val w = product[numRows - 1, 0]) {
-            1.0, 0.0 -> Vector3d(product[0, 0],     product[1, 0],     product[2, 0]    )
-            else     -> Vector3d(product[0, 0] / w, product[1, 0] / w, product[2, 0] / w)
+            1.0, 0.0 -> Vector3D(product[0, 0],     product[1, 0],     product[2, 0]    )
+            else     -> Vector3D(product[0, 0] / w, product[1, 0] / w, product[2, 0] / w)
         }
     }
 }

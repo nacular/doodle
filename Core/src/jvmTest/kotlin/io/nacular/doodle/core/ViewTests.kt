@@ -16,8 +16,9 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.View.SizePreferences
-import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.AffineTransform2D
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
@@ -775,9 +776,9 @@ class ViewTests {
         val view     = object: View() {}
         val old      = Identity
         val new      = Identity.rotate(90 * degrees)
-        val newValue = slot<AffineTransform>()
+        val newValue = slot<AffineTransform2D>()
         val observer = mockk<PropertyObserver<View, AffineTransform>>().apply {
-            every { this@apply.invoke(view, any<AffineTransform>(), capture(newValue)) } answers {
+            every { this@apply.invoke(view, any<AffineTransform2D>(), capture(newValue)) } answers {
                 expect(newValue.captured) { view.transform }
             }
         }

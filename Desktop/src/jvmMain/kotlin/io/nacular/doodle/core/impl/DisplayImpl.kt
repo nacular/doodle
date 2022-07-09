@@ -12,6 +12,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -136,7 +137,7 @@ internal class DisplayImpl(
         requestRender()
     }
 
-    override var transform = Identity
+    override var transform: AffineTransform = Identity
         set (new) {
             field = new
 

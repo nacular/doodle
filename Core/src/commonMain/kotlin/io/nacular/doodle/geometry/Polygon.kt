@@ -258,8 +258,8 @@ private class PointRelationShip(
         val isRight : Boolean
 )
 
-internal val Vector2d.magnitude: Double get() =  sqrt(x*x + y*y)
-internal operator fun Vector2d.times(other: Vector2d) = x * other.x + y * other.y
+internal val Vector2D.magnitude: Double get() =  sqrt(x*x + y*y)
+internal operator fun Vector2D.times(other: Vector2D) = x * other.x + y * other.y
 
 
 private fun colinearPoint(

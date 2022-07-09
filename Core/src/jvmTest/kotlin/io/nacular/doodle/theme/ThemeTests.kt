@@ -9,7 +9,6 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
-import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
@@ -22,6 +21,8 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.PropertyObservers
 import JsName
+import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -56,19 +57,19 @@ class ThemeTests {
 
     private val dummyDisplay = object: Display {
         override var cursor = null as Cursor?
-        override val size                    = Size.Empty
-        override var layout                  = null as Layout?
-        override var insets                  = Insets.None
-        override var transform               = AffineTransform.Identity
-        override val children                = ObservableList<View>()
-        override val cursorChanged           = mockk<PropertyObservers<Display, Cursor?>>()
-        override val sizeChanged             = mockk<PropertyObservers<Display, Size>>()
-        override var focusTraversalPolicy    = null as FocusTraversalPolicy?
-        override val contentDirectionChanged = mockk<Pool<ChangeObserver<Display>>>()
-        override var contentDirection        = ContentDirection.LeftRight
-        override var mirrorWhenRightLeft     = true
-        override val mirroringChanged        = mockk<Pool<ChangeObserver<Display>>>()
-        override val childrenChanged         = mockk<Pool<ChildObserver<Display>>>()
+        override val size                       = Size.Empty
+        override var layout                     = null as Layout?
+        override var insets                     = Insets.None
+        override var transform: AffineTransform = Identity
+        override val children                   = ObservableList<View>()
+        override val cursorChanged              = mockk<PropertyObservers<Display, Cursor?>>()
+        override val sizeChanged                = mockk<PropertyObservers<Display, Size>>()
+        override var focusTraversalPolicy       = null as FocusTraversalPolicy?
+        override val contentDirectionChanged    = mockk<Pool<ChangeObserver<Display>>>()
+        override var contentDirection           = ContentDirection.LeftRight
+        override var mirrorWhenRightLeft        = true
+        override val mirroringChanged           = mockk<Pool<ChangeObserver<Display>>>()
+        override val childrenChanged            = mockk<Pool<ChildObserver<Display>>>()
 
         override fun toAbsolute(point: Point) = point
 

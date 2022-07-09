@@ -2,7 +2,6 @@ package io.nacular.doodle.skia
 
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.PatternTransform
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
@@ -26,18 +25,6 @@ internal fun Point.skia() = org.jetbrains.skia.Point(x.toFloat(), y.toFloat())
 internal fun Path.skia() = org.jetbrains.skia.Path.makeFromSVGString(data)
 
 internal fun AffineTransform.skia33() = Matrix33(
-        scaleX.toFloat    (),
-        shearX.toFloat    (),
-        translateX.toFloat(),
-        shearY.toFloat    (),
-        scaleY.toFloat    (),
-        translateY.toFloat(),
-        0f,
-        0f,
-        1f
-)
-
-internal fun PatternTransform.skia33() = Matrix33(
         scaleX.toFloat    (),
         shearX.toFloat    (),
         translateX.toFloat(),

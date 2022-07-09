@@ -15,63 +15,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 
 /**
- * A 2D affine transform used with [PatternPaint]. Support for full 3D transforms is inconsistent on Web, so this
- * ensures callers are only able to perform 2D transformations on patterns.
- *
- * @see [AffineTransform]
- */
-public class PatternTransform private constructor(internal val delegate: AffineTransform) {
-    public val isIdentity: Boolean = delegate.isIdentity
-
-    public val scaleX    : Double get() = delegate.scaleX
-    public val shearY    : Double get() = delegate.shearY
-    public val shearX    : Double get() = delegate.shearX
-    public val scaleY    : Double get() = delegate.scaleY
-    public val translateX: Double get() = delegate.translateX
-    public val translateY: Double get() = delegate.translateY
-
-    public operator fun times(other: PatternTransform): PatternTransform = PatternTransform(delegate * other.delegate)
-
-    public fun scale(x: Double = 1.0, y: Double = 1.0): PatternTransform = PatternTransform(delegate.scale(x, y))
-
-    public inline fun scale(around: Point, x: Double = 1.0, y: Double = 1.0): PatternTransform = (this translate around).scale(x, y) translate -around
-
-    public inline infix fun translate(by: Point): PatternTransform = translate(by.x, by.y)
-
-    public fun translate(x: Double = 0.0, y: Double = 0.0): PatternTransform = PatternTransform(delegate.translate(x, y))
-
-    public fun skew(x: Double = 0.0, y: Double = 0.0): PatternTransform = PatternTransform(delegate.skew(x, y))
-
-    public infix fun rotate(by: Measure<Angle>): PatternTransform = PatternTransform(delegate.rotate(by))
-
-    public inline fun rotate(around: Point, by: Measure<Angle>): PatternTransform = this translate around rotate by translate -around
-
-    public fun flipVertically(): PatternTransform = scale(1.0, -1.0)
-
-    public fun flipVertically(at: Double): PatternTransform = this.translate(y = at).flipVertically().translate(y = -at)
-
-    public fun flipHorizontally(): PatternTransform = scale(-1.0, 1.0)
-
-    public fun flipHorizontally(at: Double): PatternTransform = this.translate(x = at).flipHorizontally().translate(x = -at)
-
-    override fun hashCode(): Int = delegate.hashCode()
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other                ) return true
-        if (other !is PatternTransform    ) return false
-        if (isIdentity && other.isIdentity) return true
-
-        if (delegate != other.delegate) return false
-
-        return true
-    }
-
-    public companion object {
-        public val Identity: PatternTransform = PatternTransform(AffineTransform.Identity)
-    }
-}
-
-/**
  * A Canvas used within [PatternPaint] that does not support perspective rendering. This is done because support
  * for patterns with perspective is very inconsistent for Web.
  *
@@ -133,15 +76,15 @@ public interface PatternCanvas: CommonCanvas {
  * @property transform applied to the fill
  * @property paint operations for the Canvas
  */
-public class PatternPaint(public val bounds: Rectangle, public val transform: PatternTransform = PatternTransform.Identity, public val paint: PatternCanvas.() -> Unit): Paint() {
-    public constructor(size: Size, transform: PatternTransform = PatternTransform.Identity, fill: PatternCanvas.() -> Unit): this(Rectangle(size = size), transform, fill)
+public class PatternPaint(public val bounds: Rectangle, public val transform: AffineTransform2D = Identity, public val paint: PatternCanvas.() -> Unit): Paint() {
+    public constructor(size: Size, transform: AffineTransform2D = Identity, fill: PatternCanvas.() -> Unit): this(Rectangle(size = size), transform, fill)
 
     public val size: Size get() = bounds.size
 
     override val visible: Boolean = !bounds.empty
 
     public companion object {
-        public operator fun invoke(bounds: Rectangle, transform: PatternTransform = PatternTransform.Identity, fill: PatternCanvas.() -> Unit): PatternPaint =
+        public operator fun invoke(bounds: Rectangle, transform: AffineTransform2D = Identity, fill: PatternCanvas.() -> Unit): PatternPaint =
                 PatternPaint(bounds, transform, paint = fill)
     }
 }
@@ -156,7 +99,7 @@ public class PatternPaint(public val bounds: Rectangle, public val transform: Pa
 public fun stripedPaint(stripeWidth : Double,
         evenRowColor: Color? = null,
         oddRowColor : Color? = null,
-        transform   : PatternTransform = PatternTransform.Identity): PatternPaint = PatternPaint(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
+        transform   : AffineTransform2D = Identity): PatternPaint = PatternPaint(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
     evenRowColor?.let { rect(Rectangle(                  stripeWidth, stripeWidth), ColorPaint(it)) }
     oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorPaint(it)) }
 }
@@ -180,7 +123,7 @@ public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
 public fun verticalStripedPaint(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedPaint(
-        colWidth, evenRowColor, oddRowColor, PatternTransform.Identity.rotate(270 * degrees)
+        colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees)
 )
 
 /**

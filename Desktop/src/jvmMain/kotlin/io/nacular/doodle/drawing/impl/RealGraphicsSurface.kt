@@ -2,6 +2,7 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.geometry.Path
@@ -32,11 +33,11 @@ internal class RealGraphicsSurface(
         private val fontCollection: FontCollection,
         private val parent        : RealGraphicsSurface?): GraphicsSurface {
 
-    private var picture         =  null as Picture?
-    private val children        =  mutableListOf<RealGraphicsSurface>()
-    private var renderBlock     by redrawProperty<((Canvas) -> Unit)?>(null)
-    private var finalTransform  by parentRedrawProperty(Identity)
-    private val pictureRecorder =  PictureRecorder()
+    private var picture                         =  null as Picture?
+    private val children                        =  mutableListOf<RealGraphicsSurface>()
+    private var renderBlock                     by redrawProperty<((Canvas) -> Unit)?>(null)
+    private var finalTransform: AffineTransform by parentRedrawProperty(Identity)
+    private val pictureRecorder                 =  PictureRecorder()
 
     internal var postRender: ((Canvas) -> Unit)? = null
 
@@ -53,15 +54,15 @@ internal class RealGraphicsSurface(
                 it.needsRerender()
             }
         }
-    override var zOrder             by parentRedrawProperty (0                  ) { _,_ ->   updateParentChildrenSort(        ) }
-    override var visible            by redrawProperty       (true               )
-    override var opacity            by redrawProperty       (0.5f               )
-    override var position           by observable           (Origin             ) { _,new -> updateTransform         (new     ) }
-    override var mirrored           by observable           (false              ) { _,_   -> updateTransform         (position) }
-    override var transform          by observable           (Identity           ) { _,_   -> updateTransform         (position) }
-    override var childrenClipPath   by redrawProperty<Path?>(null               )
-    override var clipCanvasToBounds by redrawProperty       (true               )
-    override var camera             by parentRedrawProperty (Camera(Origin, 0.0))
+    override var zOrder                     by parentRedrawProperty (0                  ) { _,_ ->   updateParentChildrenSort(        ) }
+    override var visible                    by redrawProperty       (true               )
+    override var opacity                    by redrawProperty       (0.5f               )
+    override var position                   by observable           (Origin             ) { _,new -> updateTransform         (new     ) }
+    override var mirrored                   by observable           (false              ) { _,_   -> updateTransform         (position) }
+    override var transform: AffineTransform by observable           (Identity           ) { _,_   -> updateTransform         (position) }
+    override var childrenClipPath           by redrawProperty<Path?>(null               )
+    override var clipCanvasToBounds         by redrawProperty       (true               )
+    override var camera                     by parentRedrawProperty (Camera(Origin, 0.0))
 
     override fun render(block: (Canvas) -> Unit) {
         renderBlock = block

@@ -24,11 +24,9 @@ import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Renderable
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
-import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.scheduler.Scheduler

@@ -29,6 +29,7 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.ImagePaint
@@ -119,14 +120,14 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val positionableWrapper = PositionableWrapper()
     private var fill                = null as Paint?
 
-    override var transform = Identity
+    override var transform: AffineTransform = Identity
         set (new) {
             field = new
 
             refreshAugmentedTransform()
         }
 
-    private var augmentedTransform = Identity
+    private var augmentedTransform: AffineTransform = Identity
         set (new) {
             field = new
 

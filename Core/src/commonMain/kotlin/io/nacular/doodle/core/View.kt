@@ -43,8 +43,7 @@ import io.nacular.doodle.geometry.Ray
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.geometry.Vector3d
-import io.nacular.doodle.geometry.minus
+import io.nacular.doodle.geometry.Vector3D
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
@@ -291,7 +290,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private val plane: Plane get() {
         val rect = resolvedTransform.invoke(bounds.points.map { it.as3d() })
-        return Plane(rect[0], (rect[1] - rect[0] cross rect[2] - rect[1]))
+        return Plane(rect[0], (rect[1] - rect[0]) cross (rect[2] - rect[1]))
     }
 
     // endregion
@@ -1066,9 +1065,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         bounds = Rectangle(x, y, width, height)
     }
 
-    private fun toPlane(point: Point): Vector3d = when {
+    private fun toPlane(point: Point): Vector3D = when {
         // TODO: Cache this to make it more efficient
-        resolvedTransform.is3d -> (plane intersection Ray(point.as3d(), Vector3d(0.0, 0.0, -1.0))) ?: point.as3d()
+        resolvedTransform.is3d -> (plane intersection Ray(point.as3d(), Vector3D(0.0, 0.0, -1.0))) ?: point.as3d()
         else                   -> point.as3d()
     }
 

@@ -25,6 +25,7 @@ import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.translate
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsSurface
@@ -90,9 +91,9 @@ internal class RealGraphicsSurface private constructor(
     private var numChildren   = 0
     private var canvasElement = canvasElement as HTMLElement?
 
-    override var mirrored  by observable(false              ) { _,_ -> updateTransform(position)    }
-    override var transform by observable(Identity           ) { _,_ -> refreshAugmentedTransform () }
-    override var camera    by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
+    override var mirrored                   by observable(false              ) { _,_ -> updateTransform(position)    }
+    override var transform: AffineTransform by observable(Identity           ) { _,_ -> refreshAugmentedTransform () }
+    override var camera                     by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
 
     private fun refreshProjectionTransform() {
         projectionTransform = camera.projection(-Point(size.width/2, size.height/2))
@@ -164,7 +165,7 @@ internal class RealGraphicsSurface private constructor(
             }
         }
 
-    private var augmentedTransform by observable(Identity) { _,_ -> updateTransform(position) }
+    private var augmentedTransform: AffineTransform by observable(Identity) { _,_ -> updateTransform(position) }
 
     override var size: Size by observable(Empty) { old,new ->
         rootElement.parent?.let {

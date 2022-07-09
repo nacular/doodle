@@ -11,9 +11,9 @@ import io.nacular.doodle.SVGLinearGradientElement
 import io.nacular.doodle.SVGPatternElement
 import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
+import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.PatternTransform
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.geometry.Circle
@@ -180,16 +180,12 @@ internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
     }
 }
 
-internal fun SVGPatternElement.setPatternTransform(transform: PatternTransform?) = when {
+internal fun SVGPatternElement.setPatternTransform(transform: AffineTransform2D?) = when {
     transform == null || transform.isIdentity -> removeAttribute("patternTransform")
     else                                      -> setAttribute   ("patternTransform", transform.matrixString)
 }
 
 private val AffineTransform.matrixString get() = run {
-    "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)"
-}
-
-private val PatternTransform.matrixString get() = run {
     "matrix($scaleX,$shearY,$shearX,$scaleY,$translateX,$translateY)"
 }
 

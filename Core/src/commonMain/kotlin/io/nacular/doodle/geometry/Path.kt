@@ -15,7 +15,7 @@ import io.nacular.measured.units.times
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
  */
-public interface Path {
+public sealed interface Path {
     public operator fun plus(other: Path): Path
 
     /** command string */
@@ -25,7 +25,7 @@ public interface Path {
 /**
  * Provides a way to create [Path]s programmatically.
  */
-public interface PathBuilder {
+public sealed interface PathBuilder {
     /**
      * Draws a line from the current point to this one.
      *

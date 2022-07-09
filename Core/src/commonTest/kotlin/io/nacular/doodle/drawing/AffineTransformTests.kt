@@ -2,7 +2,7 @@ package io.nacular.doodle.drawing
 
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Vector3d
+import io.nacular.doodle.geometry.Vector3D
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
@@ -17,7 +17,7 @@ import kotlin.test.expect
 class AffineTransformTests {
     @Test @JsName("defaults")
     fun `defaults valid`() {
-        val transform = AffineTransform()
+        val transform = AffineTransform2D()
 
         transform.apply {
             expect(true) { isIdentity }
@@ -43,10 +43,10 @@ class AffineTransformTests {
     @Test @JsName("pointTransformsWork")
     fun `point transforms work`() {
         listOf(
-                Point(1, 1) to Vector3d( 1, 1, 0) to Identity,
-                Point(1, 1) to Vector3d( 2, 1, 1) to Identity.scale           (x = 2.0),
-                Point(1, 1) to Vector3d( 1,-1, 1) to Identity.flipVertically  (       ),
-                Point(1, 1) to Vector3d(-1, 1, 1) to Identity.flipHorizontally(       ),
+                Point(1, 1) to Vector3D( 1, 1, 0) to Identity,
+                Point(1, 1) to Vector3D( 2, 1, 1) to Identity.scale           (x = 2.0),
+                Point(1, 1) to Vector3D( 1,-1, 1) to Identity.flipVertically  (       ),
+                Point(1, 1) to Vector3D(-1, 1, 1) to Identity.flipHorizontally(       ),
         ).forEach { (points, transform) ->
             expect(points.second) {
                 transform(points.first)
@@ -61,7 +61,7 @@ class AffineTransformTests {
         val cos   = cos(angle)
         val sin   = sin(angle)
 
-        expect(point.run { Vector3d(x * cos - y * sin, x * sin + y * cos, 1.0) }) {
+        expect(point.run { Vector3D(x * cos - y * sin, x * sin + y * cos, 1.0) }) {
             Identity.rotate(angle)(point)
         }
     }
@@ -77,6 +77,11 @@ class AffineTransformTests {
                 transforms.first == transforms.second
             }
         }
+    }
+
+    @Test @JsName("foo")
+    fun foo() {
+        expect(Vector3D(5, 5, 3)) { Vector3D(10, 10, 6) / 2 }
     }
 
     private fun testInversion(block: (AffineTransform) -> AffineTransform) {

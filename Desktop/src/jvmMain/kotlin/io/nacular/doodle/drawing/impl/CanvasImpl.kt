@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.core.Camera
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -10,12 +11,11 @@ import io.nacular.doodle.drawing.CommonCanvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
-import io.nacular.doodle.drawing.PatternCanvas
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.PatternCanvas
 import io.nacular.doodle.drawing.PatternPaint
-import io.nacular.doodle.drawing.PatternTransform
 import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
@@ -120,7 +120,7 @@ internal class CanvasImpl(
 
                 paint(PatternCanvasWrapper(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size }))
 
-                val matrix = (PatternTransform.Identity.translate(bounds.x, bounds.y) * transform).skia33()
+                val matrix = (Identity.translate(bounds.x, bounds.y) * transform).skia33()
 
                 result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, matrix)
             }

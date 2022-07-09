@@ -2,7 +2,6 @@ package io.nacular.doodle.drawing
 
 import io.mockk.mockk
 import io.mockk.verify
-import io.nacular.doodle.drawing.PatternTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
@@ -14,6 +13,7 @@ import io.nacular.doodle.geometry.times
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
 import JsName
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -89,7 +89,7 @@ class PatternPaintTests {
 
     @Test @JsName("stripesRendersCorrectly")
     fun `stripes renders correctly`() {
-        data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: PatternTransform)
+        data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: AffineTransform2D)
 
         listOf(
             Attributes(45.6, Red, Green, Identity                     ),
