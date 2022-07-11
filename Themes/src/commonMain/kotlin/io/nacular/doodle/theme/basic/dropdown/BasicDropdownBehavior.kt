@@ -180,7 +180,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             backgroundSelectionBlurredColor = null) {
         init {
             pointerFilter += clicked {
-                dropdown.selection = index
+                dropdown.selection = this.index
                 hideList(dropdown)
             }
         }
