@@ -16,6 +16,7 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.swing.doodle
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
@@ -316,6 +317,11 @@ internal class NativeScrollPanelBehavior(
                 target != nativePeer.viewport &&
                 target != nativePeer.corner ) {
                 event.consume()
+            }
+
+            // Reset cursor to whatever the scrollbars have if they are being touched
+            if (target == nativePeer.verticalScrollBar || target == nativePeer.horizontalScrollBar) {
+                event.target.cursor = (if (target.isCursorSet) target.cursor else java.awt.Cursor.getDefaultCursor()).doodle()
             }
         }
     }

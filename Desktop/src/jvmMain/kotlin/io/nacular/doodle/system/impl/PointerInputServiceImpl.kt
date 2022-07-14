@@ -4,6 +4,7 @@ import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.core.View
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.swing.doodle
 import io.nacular.doodle.swing.location
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
@@ -20,7 +21,6 @@ import io.nacular.doodle.system.Cursor.Companion.SwResize
 import io.nacular.doodle.system.Cursor.Companion.Text
 import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.system.Cursor.Companion.Wait
-import io.nacular.doodle.system.Cursor.Companion.custom
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Listener
 import io.nacular.doodle.system.PointerInputService.Preprocessor
@@ -131,26 +131,8 @@ internal class PointerInputServiceImpl(
     }
 
     override var cursor: Cursor?
-        get() = when (skiaLayer.cursor.type) {
-            TEXT_CURSOR      -> Text
-            WAIT_CURSOR      -> Wait
-            MOVE_CURSOR      -> Move
-            HAND_CURSOR      -> Grab
-            DEFAULT_CURSOR   -> Default
-            N_RESIZE_CURSOR  -> NResize
-            S_RESIZE_CURSOR  -> SResize
-            E_RESIZE_CURSOR  -> EResize
-            W_RESIZE_CURSOR  -> WResize
-            NE_RESIZE_CURSOR -> NeResize
-            NW_RESIZE_CURSOR -> NwResize
-            SE_RESIZE_CURSOR -> SeResize
-            SW_RESIZE_CURSOR -> SwResize
-            CROSSHAIR_CURSOR -> Crosshair
-            else             -> custom(skiaLayer.cursor.name, or = Default)
-        }
-        set(new) {
-            skiaLayer.cursor = new.swing()
-        }
+        get(   ) = skiaLayer.cursor.doodle()
+        set(new) { skiaLayer.cursor = new.swing() }
 
     // FIXME: Implement
     override var toolTipText: String
