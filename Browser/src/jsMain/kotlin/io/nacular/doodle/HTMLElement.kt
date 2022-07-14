@@ -3,6 +3,7 @@ package io.nacular.doodle
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Vertical
+import org.w3c.dom.Node
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -126,4 +127,26 @@ private class DynamicProperty<T, V>(private val name: String, private val onErro
             thisRef.asDynamic()[name] = value
         } catch (ignored: Throwable) {}
     }
+}
+
+public actual open external class ResizeObserver actual constructor(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
+    public actual fun observe(target: Node, options: ResizeObserverInit)
+    public actual fun unobserve(target: Node)
+}
+
+public actual external interface ResizeObserverInit {
+    public actual var box: String? get() = definedExternally; set(value) = definedExternally
+}
+
+public actual abstract external class ResizeObserverEntry {
+    public actual open val contentRect: DOMRect
+}
+
+
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@kotlin.internal.InlineOnly
+public inline fun ResizeObserverInit(box: String? = undefined): ResizeObserverInit {
+    val o = js("({})")
+    o["box"] = box
+    return o
 }

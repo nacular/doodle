@@ -203,6 +203,7 @@ internal class Static  : Position("static"  )
 
 internal sealed class Overflow(val value: String) {
     internal class Scroll : Overflow("scroll" )
+    internal class Auto   : Overflow("auto"   )
     internal class Hidden : Overflow("hidden" )
     internal class Visible: Overflow("visible")
 }

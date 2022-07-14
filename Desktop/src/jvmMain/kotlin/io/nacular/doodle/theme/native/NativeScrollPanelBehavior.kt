@@ -2,6 +2,8 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior
+import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType
+import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.*
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult
 import io.nacular.doodle.core.PositionableContainer
@@ -26,6 +28,8 @@ import kotlinx.coroutines.launch
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseWheelEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -47,48 +51,80 @@ internal class NativeScrollPanelBehavior(
         private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?): ScrollPanelBehavior {
 
-    private inner class JScrollPanePeer(scrollPanel: ScrollPanel): JScrollPane() {
-        private val scrollPanel: ScrollPanel? = scrollPanel
+    private class ViewPortComponent(scrollPanel: ScrollPanel?): JComponent(), Scrollable {
+        init {
+            scrollPanel?.content?.let {
+                bounds        = java.awt.Rectangle(it.x.toInt(), it.y.toInt(), it.width.toInt(), it.height.toInt())
+                preferredSize = size
 
-        inner class ViewPortComponent: JComponent(), Scrollable {
-            init {
-                scrollPanel?.content?.let {
-                    bounds        = java.awt.Rectangle(it.x.toInt(), it.y.toInt(), it.width.toInt(), it.height.toInt())
-                    preferredSize = size
+                it.boundsChanged += { _,old,new ->
+                    if (old.size != new.size) {
+                        bounds        = java.awt.Rectangle(new.x.toInt(), new.y.toInt(), new.width.toInt(), new.height.toInt())
+                        preferredSize = size
+                    }
                 }
             }
-
-            override fun getPreferredScrollableViewportSize(): Dimension = preferredSize
-            override fun getScrollableUnitIncrement        (visibleRect: java.awt.Rectangle?, orientation: Int, direction: Int) =  1
-            override fun getScrollableBlockIncrement       (visibleRect: java.awt.Rectangle?, orientation: Int, direction: Int) = 10
-            override fun getScrollableTracksViewportWidth  () = false
-            override fun getScrollableTracksViewportHeight () = false
         }
+
+        override fun getPreferredScrollableViewportSize(): Dimension = preferredSize
+        override fun getScrollableUnitIncrement        (visibleRect: java.awt.Rectangle?, orientation: Int, direction: Int) =  1
+        override fun getScrollableBlockIncrement       (visibleRect: java.awt.Rectangle?, orientation: Int, direction: Int) = 10
+        override fun getScrollableTracksViewportWidth  () = false
+        override fun getScrollableTracksViewportHeight () = false
+    }
+
+    private inner class JScrollPanePeer(scrollPanel: ScrollPanel): JScrollPane(ViewPortComponent(scrollPanel)) {
+        private val scrollPanel: ScrollPanel? = scrollPanel
 
         inner class TransparentViewport: JViewport() {
             init {
                 this.isOpaque = false
             }
 
-            public override fun paintComponent(g: Graphics) {}
+            public override fun paintComponent(g: Graphics) {
+                // no-op
+            }
         }
 
         var corner = JPanel().apply {
             background = horizontalScrollBar.background ?: this@JScrollPanePeer.background
         }
-        var viewPortView = ViewPortComponent()
+
+        inner class ScrollBarMonitor(private val type: ScrollBarType): ComponentAdapter() {
+            val extractor: (Component) -> Double = {
+                when (type) {
+                    Vertical -> it.width
+                    else     -> it.height
+                }.toDouble()
+            }
+
+            override fun componentResized(e: ComponentEvent) {
+                scrollBarSizeChanged?.invoke(type, extractor(e.component))
+            }
+
+            override fun componentShown(e: ComponentEvent) {
+                scrollBarSizeChanged?.invoke(type, extractor(e.component))
+            }
+
+            override fun componentHidden(e: ComponentEvent?) {
+                scrollBarSizeChanged?.invoke(type, 0.0)
+            }
+        }
 
         init {
             border = null
-            setViewport(TransparentViewport())
-            setViewportView(viewPortView)
 
             setCorner(LOWER_RIGHT_CORNER, corner)
 
             viewport.addChangeListener {
                 onScroll?.invoke(Point(horizontalScrollBar.value, verticalScrollBar.value))
             }
+
+            verticalScrollBar.addComponentListener  (ScrollBarMonitor(Vertical  ))
+            horizontalScrollBar.addComponentListener(ScrollBarMonitor(Horizontal))
         }
+
+        override fun createViewport() = TransparentViewport()
 
         override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
             scrollPanel?.rerender()
@@ -115,7 +151,8 @@ internal class NativeScrollPanelBehavior(
         nativePeer.actuallyPaintChildren(graphics2D)
     }
 
-    override var onScroll: ((Point) -> Unit)? = null
+    override var onScroll            : ((Point                ) -> Unit)? = null
+    override var scrollBarSizeChanged: ((ScrollBarType, Double) -> Unit)? = null
 
     override fun scrollTo(panel: ScrollPanel, point: Point) {
         // no-op
@@ -138,9 +175,9 @@ internal class NativeScrollPanelBehavior(
     }
 
     private fun updateNativePeerScroll(bounds: Rectangle) {
-        nativePeer.viewPortView.location      = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
-        nativePeer.viewPortView.preferredSize = bounds.size.run     { Dimension(width.toInt(), height.toInt()) }
-        nativePeer.viewPortView.revalidate()
+        nativePeer.viewport.view.location      = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
+        nativePeer.viewport.view.preferredSize = bounds.size.run     { Dimension(width.toInt(), height.toInt()) }
+        nativePeer.viewport.view.revalidate()
         window.revalidate()
     }
 
@@ -160,8 +197,8 @@ internal class NativeScrollPanelBehavior(
             }
 
             return when (target) {
-                null, nativePeer.viewport, nativePeer.viewPortView, nativePeer -> super.child(of, at)
-                else                                                           -> LookupResult.Empty
+                null, nativePeer.viewport, nativePeer.viewport.view, nativePeer -> super.child(of, at)
+                else                                                            -> LookupResult.Empty
             }
         }
     }

@@ -106,6 +106,8 @@ public actual abstract class Element: Node() {
     public actual open var className : String = ""
     public actual open var scrollTop : Double = 0.0
     public actual open var scrollLeft: Double = 0.0
+    public actual open val clientWidth: Int = 0
+    public actual open val clientHeight: Int = 0
 
     public actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
@@ -227,4 +229,17 @@ public actual abstract class HTMLStyleElement: HTMLElement() {
 public actual abstract class HTMLMetaElement: HTMLElement() {
     public actual var name: String = ""
     public actual var content: String = ""
+}
+
+public actual open class ResizeObserver actual constructor(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
+    public actual fun observe(target: Node, options: ResizeObserverInit) {}
+    public actual fun unobserve(target: Node) {}
+}
+
+public actual interface ResizeObserverInit {
+    public actual var box: String? get() = ""; set(new) {}
+}
+
+public actual abstract class ResizeObserverEntry {
+    public actual open val contentRect   : DOMRect        get() = TODO("Not yet implemented")
 }

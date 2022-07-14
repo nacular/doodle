@@ -9,8 +9,6 @@ import kotlin.math.min
 /**
  * A rectangular [ConvexPolygon] with 4 sides at right-angles.
  *
- * @author Nicholas Eddy
- *
  * ```
  *        x
  *(0,0)  ──▶
@@ -28,6 +26,7 @@ import kotlin.math.min
  *                     width
  *```
  *
+ * @author Nicholas Eddy
  * @constructor
  * @property position The top-left corner (x,y)
  * @property size The width-height

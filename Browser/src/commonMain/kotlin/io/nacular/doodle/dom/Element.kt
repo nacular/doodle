@@ -34,8 +34,7 @@ internal inline val HTMLElement.left   get() = offsetLeft.toDouble  ()
 internal inline val HTMLElement.width  get() = offsetWidth.toDouble ()
 internal inline val HTMLElement.height get() = offsetHeight.toDouble()
 
-internal inline val HTMLElement.hasAutoOverflow   get() = style.run { overflowX.isNotEmpty() || overflowY.isNotEmpty() }
-internal inline val HTMLElement.hasScrollOverflow get() = style.run { overflowX == "scroll"  || overflowY == "scroll"  }
+internal inline val HTMLElement.hasScrollOverflow get() = style.run { overflowX.isNotEmpty() || overflowY.isNotEmpty()  }
 
 internal fun HTMLElement.scrollTo(point: Point) {
     try {

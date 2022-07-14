@@ -9,7 +9,7 @@ import io.nacular.doodle.dom.None
 import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
-import io.nacular.doodle.dom.hasAutoOverflow
+import io.nacular.doodle.dom.hasScrollOverflow
 import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.parent
@@ -307,7 +307,7 @@ internal class RealGraphicsSurface private constructor(
         }
 
         when {
-            (rootElement.parent as HTMLElement).hasAutoOverflow -> {
+            (rootElement.parent as HTMLElement).hasScrollOverflow -> {
                 when {
                     mirrored -> rootElement.style.setTransform(Identity.flipHorizontally())
                     else     -> rootElement.style.setTransform(null)

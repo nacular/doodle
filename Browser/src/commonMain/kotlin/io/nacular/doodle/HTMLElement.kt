@@ -102,6 +102,9 @@ public expect abstract class Element: Node {
     public open var scrollTop : Double
     public open var scrollLeft: Double
 
+    public open val clientWidth : Int
+    public open val clientHeight: Int
+
     public fun getBoundingClientRect(): DOMRect
 
     public fun setAttribute   (                    qualifiedName: String, value: String)
@@ -205,4 +208,17 @@ public expect abstract class HTMLHeadElement  : HTMLElement
 public expect abstract class HTMLInputElement : HTMLElement
 public expect abstract class HTMLButtonElement: HTMLElement {
     internal var disabled: Boolean
+}
+
+public expect open class ResizeObserver(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
+    public fun observe(target: Node, options: ResizeObserverInit)
+    public fun unobserve(target: Node)
+}
+
+public expect interface ResizeObserverInit {
+    public open var box: String?
+}
+
+public expect abstract class ResizeObserverEntry {
+    public open val contentRect: DOMRect
 }

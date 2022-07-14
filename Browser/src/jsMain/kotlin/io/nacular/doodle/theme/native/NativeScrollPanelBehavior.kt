@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior
+import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeScrollPanelFactory
 import io.nacular.doodle.geometry.Point
@@ -22,8 +23,10 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
 
     override var onScroll: ((Point) -> Unit)? = null
 
+    override var scrollBarSizeChanged: ((ScrollBarType, Double) -> Unit)? = null
+
     private val nativePeer by lazy {
-        nativeScrollPanelFactory(scrollPanel) {
+        nativeScrollPanelFactory(scrollPanel, barChanged = { type, size -> scrollBarSizeChanged?.invoke(type, size) }) {
             onScroll?.invoke(it)
         }
     }
