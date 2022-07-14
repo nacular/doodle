@@ -127,7 +127,7 @@ internal class PointerInputServiceImpl(
         Crosshair -> AwtCursor(CROSSHAIR_CURSOR)
 //        ColResize ->
 //        RowResize ->
-        else      -> null
+        else      -> AwtCursor(DEFAULT_CURSOR)
     }
 
     override var cursor: Cursor?
@@ -149,7 +149,7 @@ internal class PointerInputServiceImpl(
             else             -> custom(skiaLayer.cursor.name, or = Default)
         }
         set(new) {
-            new.swing()?.let { skiaLayer.cursor = it }
+            skiaLayer.cursor = new.swing()
         }
 
     // FIXME: Implement
