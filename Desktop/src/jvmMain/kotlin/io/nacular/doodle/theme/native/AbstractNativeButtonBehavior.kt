@@ -80,7 +80,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
 
         nativePeer = createPeer(view)
 
-        nativePointerPreprocessor?.set(view, object: NativeMouseHandler {
+        nativePointerPreprocessor?.set(view, object: NativePointerHandler {
             override fun invoke(event: PointerEvent) {
                 nativePeer.ignoreSelectionChange = event.type == Type.Up
                 nativePeer.handleMouseEvent(event.toAwt(nativePeer))

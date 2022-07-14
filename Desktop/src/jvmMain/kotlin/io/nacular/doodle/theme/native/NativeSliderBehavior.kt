@@ -163,7 +163,7 @@ internal class NativeSliderBehavior<T>(
 
         nativePeer = JSliderPeer(view)
 
-        nativePointerPreprocessor?.set(view, object: NativeMouseHandler {
+        nativePointerPreprocessor?.set(view, object: NativePointerHandler {
             override fun invoke(event: PointerEvent) {
                 nativePeer.processMouseEvent(event.toAwt(nativePeer))
 

@@ -236,7 +236,7 @@ internal class NativeScrollPanelBehavior(
             }
         })
 
-        nativePointerPreprocessor?.set(view, object: NativeMouseHandler {
+        nativePointerPreprocessor?.set(view, object: NativePointerHandler {
             override fun invoke(event: PointerEvent) {
                 processPointerEvent(event)
             }
@@ -300,7 +300,7 @@ internal class NativeScrollPanelBehavior(
                 Click -> target
                 Down  -> target
                 Up    -> null
-                else       -> clickedTarget
+                else  -> clickedTarget
             }
 
             val at = when (target) {
@@ -308,9 +308,13 @@ internal class NativeScrollPanelBehavior(
                 else       -> Point(event.location.x - target.x, event.location.y - target.y)
             }
 
-            target.dispatchEvent(event.toAwt(target, at))
+            val awtEvent = event.toAwt(target, at)
+            target.dispatchEvent(awtEvent)
 
-            if (target != nativePeer && target != nativePeer.viewport && target != nativePeer.corner) {
+            if (awtEvent.isConsumed           ||
+                target != nativePeer          &&
+                target != nativePeer.viewport &&
+                target != nativePeer.corner ) {
                 event.consume()
             }
         }
