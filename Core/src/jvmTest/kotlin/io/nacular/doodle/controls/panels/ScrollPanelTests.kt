@@ -284,6 +284,7 @@ class ScrollPanelTests {
     fun `disconnects old behavior on-scroll`() {
         val behavior = object: ScrollPanelBehavior {
             override var onScroll: ((Point) -> Unit)? = null
+            override var scrollBarSizeChanged: ((ScrollPanelBehavior.ScrollBarType, Double) -> Unit)? = null
 
             override fun scrollTo(panel: ScrollPanel, point: Point) {}
         }
