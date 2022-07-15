@@ -722,7 +722,7 @@ internal class SkiaGraphics2D(
 
     override fun dispose() {
         // TODO: Figure out why this can throw an error
-//        canvas.restoreToCount(restoreCount)
+        canvas.restoreToCount(restoreCount)
     }
 
     private val Shape.path: Path get() {
