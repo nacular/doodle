@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.*
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import kotlin.coroutines.CoroutineContext
@@ -37,8 +38,9 @@ internal class JRadioButtonPeer(focusManager: FocusManager?, button: ToggleButto
         button?.rerender()
     }
 
-    override fun handleMouseEvent(e: MouseEvent?) {
-        processMouseEvent(e)
+    override fun handleMouseEvent(e: MouseEvent?) = when (e?.id) {
+        MOUSE_MOVED, MOUSE_DRAGGED -> processMouseMotionEvent(e)
+        else                       -> processMouseEvent      (e)
     }
 }
 

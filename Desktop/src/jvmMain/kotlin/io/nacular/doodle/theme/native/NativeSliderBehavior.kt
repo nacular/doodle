@@ -18,9 +18,12 @@ import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.MOUSE_DRAGGED
+import java.awt.event.MouseEvent.MOUSE_MOVED
 import javax.swing.BoundedRangeModel
 import javax.swing.JPanel
 import javax.swing.JSlider
+import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.pow
@@ -40,9 +43,17 @@ internal class NativeSliderBehavior<T>(
             private val setValue: (Slider<T>, Double) -> Unit,
             private val setRange: (Slider<T>, ClosedRange<Double>) -> Unit
     ): BoundedRangeModel where T: Number, T: Comparable<T> {
-        private val listeners = mutableListOf<ChangeListener>()
+        private val listeners      = mutableListOf<ChangeListener>()
+        private val multiplier     = 10.0.pow(precision.toDouble())
         private var valueAdjusting = false
-        private val multiplier = 10.0.pow(precision.toDouble())
+
+        fun notifyChanged() {
+            val event = ChangeEvent(this)
+
+            listeners.forEach {
+                it.stateChanged(event)
+            }
+        }
 
         override fun getMinimum() = (delegate.range.start.toDouble() * multiplier).toInt()
 
@@ -95,13 +106,18 @@ internal class NativeSliderBehavior<T>(
             slider: Slider<T>,
             precision: Int = 2,
             setValue: (Slider<T>, Double) -> Unit,
-            setRange: (Slider<T>, ClosedRange<Double>) -> Unit
-    ): JSlider(ModelAdapter(slider, precision, setValue, setRange)) where T: Number, T: Comparable<T> {
+            setRange: (Slider<T>, ClosedRange<Double>) -> Unit,
+            val model: ModelAdapter<T> = ModelAdapter(slider, precision, setValue, setRange)
+    ): JSlider(model) where T: Number, T: Comparable<T> {
         init {
             this.orientation = when (slider.orientation) {
                 Orientation.Vertical -> VERTICAL
                 else                 -> HORIZONTAL
             }
+        }
+
+        fun notifyChange() {
+            model.notifyChanged()
         }
     }
 
@@ -111,7 +127,7 @@ internal class NativeSliderBehavior<T>(
         init {
             focusTraversalKeysEnabled = false
 
-            addFocusListener(object : FocusListener {
+            addFocusListener(object: FocusListener {
                 override fun focusGained(e: FocusEvent?) {
                     focusManager?.requestFocus(slider)
                 }
@@ -126,8 +142,9 @@ internal class NativeSliderBehavior<T>(
             slider?.rerender()
         }
 
-        public override fun processMouseEvent(e: MouseEvent?) {
-            super.processMouseEvent(e)
+        public fun handleMouseEvent(e: MouseEvent) = when (e.id) {
+            MOUSE_MOVED, MOUSE_DRAGGED -> super.processMouseMotionEvent(e)
+            else                       -> super.processMouseEvent(e)
         }
     }
 
@@ -154,6 +171,9 @@ internal class NativeSliderBehavior<T>(
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
+    private val changeListener      : (Slider<T>, T,              T             ) -> Unit = { _,_,_ -> nativePeer.notifyChange() }
+    private val limitsChangeListener: (Slider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,_,_ -> nativePeer.notifyChange() }
+
     override fun render(view: Slider<T>, canvas: Canvas) {
         nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
     }
@@ -165,11 +185,9 @@ internal class NativeSliderBehavior<T>(
 
         nativePointerPreprocessor?.set(view, object: NativePointerHandler {
             override fun invoke(event: PointerEvent) {
-                nativePeer.processMouseEvent(event.toAwt(nativePeer))
-
-//                if (event.type == Down || event.type == Drag) {
-//                    event.consume()
-//                }
+                if (event.source == view) {
+                    nativePeer.handleMouseEvent(event.toAwt(nativePeer))
+                }
             }
         })
 
@@ -178,6 +196,8 @@ internal class NativeSliderBehavior<T>(
             boundsChanged       += this@NativeSliderBehavior.boundsChanged
             enabledChanged      += this@NativeSliderBehavior.enabledChanged
             focusabilityChanged += this@NativeSliderBehavior.focusableChanged
+            changed             += this@NativeSliderBehavior.changeListener
+            limitsChanged       += this@NativeSliderBehavior.limitsChangeListener
         }
 
         appScope.launch(uiDispatcher) {
@@ -207,6 +227,8 @@ internal class NativeSliderBehavior<T>(
             boundsChanged       -= this@NativeSliderBehavior.boundsChanged
             enabledChanged      -= this@NativeSliderBehavior.enabledChanged
             focusabilityChanged -= this@NativeSliderBehavior.focusableChanged
+            changed             -= this@NativeSliderBehavior.changeListener
+            limitsChanged       -= this@NativeSliderBehavior.limitsChangeListener
         }
 
         appScope.launch(uiDispatcher) {

@@ -11,7 +11,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.SystemPointerEvent.Button.Button2
+import io.nacular.doodle.system.SystemPointerEvent.Button.Button3
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
@@ -72,9 +73,9 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     }
 
     val button = when (buttons) {
-        setOf(SystemPointerEvent.Button.Button2) -> BUTTON2
-        setOf(SystemPointerEvent.Button.Button3) -> BUTTON3
-        else -> BUTTON1
+        setOf(Button2) -> BUTTON2
+        setOf(Button3) -> BUTTON3
+        else           -> BUTTON1
     }
 
     // FIXME: Inject

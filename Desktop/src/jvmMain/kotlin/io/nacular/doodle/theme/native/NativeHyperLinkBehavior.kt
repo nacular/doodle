@@ -11,6 +11,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.*
 import java.net.URI
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -84,8 +85,9 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
         button?.rerender()
     }
 
-    override fun handleMouseEvent(e: MouseEvent?) {
-        processMouseEvent(e)
+    override fun handleMouseEvent(e: MouseEvent?) = when (e?.id) {
+        MOUSE_MOVED, MOUSE_DRAGGED -> processMouseMotionEvent(e)
+        else                       -> processMouseEvent      (e)
     }
 }
 
