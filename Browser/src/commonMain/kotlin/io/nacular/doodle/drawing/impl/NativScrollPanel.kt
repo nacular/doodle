@@ -217,9 +217,7 @@ internal class NativeScrollPanel internal constructor(
     }
 
     private fun updateScroll() {
-        scheduler.now {
-            updateStickySize()
-        }
+        updateStickySize()
     }
 
     private fun updateStickySize() {
