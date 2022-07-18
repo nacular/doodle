@@ -24,7 +24,6 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Pool
-import kotlin.Double.Companion.MAX_VALUE
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
@@ -62,9 +61,9 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
         }
 
         fun newCursor() = when {
-            column.width > column.minWidth && column.width < (column.maxWidth ?: MAX_VALUE) -> EWResize
-            column.width < (column.maxWidth ?: MAX_VALUE)                                   -> EResize
-            else                                                                            -> WResize
+            column.width > column.minWidth && column.width < (column.maxWidth ?: Double.MAX_VALUE) -> EWResize
+            column.width < (column.maxWidth ?: Double.MAX_VALUE)                                   -> EResize
+            else                                                                                   -> WResize
         }
 
         fun overHandle(pointerLocation: Point) = pointerLocation.x in width - 5.0..width
