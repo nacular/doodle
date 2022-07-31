@@ -136,18 +136,17 @@ public open class ListItem<T>(
     }
 
     public fun update(list: ListLike, item: T, index: Int) {
-        this.item  = item
-        this.index = index
+        this.item     = item
+        this.index    = index
 
         role.index    = index
         role.listSize = list.numItems
 
-        children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
+        children[0]   = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
+        idealSize     = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
+        layout        = constrainLayout(children[0])
 
-        idealSize = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
-        layout    = constrainLayout(children[0])
-
-        this.list  = list
+        this.list     = list
     }
 
     override fun render(canvas: Canvas) {

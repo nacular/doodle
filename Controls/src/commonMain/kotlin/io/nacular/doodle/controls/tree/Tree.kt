@@ -23,12 +23,14 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
 
@@ -116,6 +118,17 @@ public open class Tree<T, out M: TreeModel<T>>(
     public val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
     public val selectionChanged: Pool<SetObserver<Tree<T, M>, Path<Int>>> by lazy { SetPool() }
 
+    /**
+     * Defines how the contents of an item should be aligned within it.
+     */
+    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_ ->
+        children.batch {
+            (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it) }.forEach {
+                update(this, it)
+            }
+        }
+    }
+
     override val firstSelection : Path<Int>?     get() = selectionModel?.first
     override val lastSelection  : Path<Int>?     get() = selectionModel?.last
     override val selectionAnchor: Path<Int>?     get() = selectionModel?.anchor
@@ -125,7 +138,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     private   var generator    : RowGenerator<T>? = null
     protected var rowPositioner: RowPositioner<T>? = null
-    private   val expandedPaths      = mutableSetOf<Path<Int>>()
+    private   val expandedPaths      = mutableSetOf<Path<Int>>(Path())
     private   val rowToPath          = mutableMapOf<Int, Path<Int>>()
     private   var minVisiblePosition = Origin
     private   var maxVisiblePosition = Origin
@@ -275,7 +288,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     override fun expand(path: Path<Int>): Unit = expand(setOf(path))
 
     public fun expand(paths: Set<Path<Int>>) {
-        val pathSet = paths.asSequence().filter { it.depth > 0 && !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
+        val pathSet = paths.asSequence().filter { !expanded(it) }.sortedWith(PathComparator.then(DepthComparator)).toSet()
 
         val pathsToUpdate = mutableSetOf<Path<Int>>()
 
@@ -327,7 +340,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     override fun collapse(path : Path<Int>): Unit = collapse(setOf(path))
     public fun collapse(paths: Set<Path<Int>>) {
         var empty   = true
-        val pathSet = paths.asSequence().filter { it.depth > 0 && expanded(it) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
+        val pathSet = paths.asSequence().filter { expanded(it) && (it.depth > 0 || rootVisible) }.sortedWith(PathComparator.thenDescending(DepthComparator)).toSet()
 
         children.batch {
             expandedPaths -= pathSet
@@ -343,7 +356,7 @@ public open class Tree<T, out M: TreeModel<T>>(
                 updateNumRows()
 
                 // FIXME: This should be handled better
-                minHeight = rowPositioner?.minimumSize(this@Tree, below = Path())?.height ?: 0.0
+                minHeight = getMinHeight()
 
                 if (maxVisiblePosition.y < displayRect.bottom || maxVisiblePosition.x < displayRect.right) {
                     // TODO: Can this be done better?  It feels a bit hacky
@@ -423,7 +436,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     override fun visible(path: Path<Int>): Boolean = when (path.depth) {
         0    -> rootVisible
-        1    -> true
+        1    -> expanded(path.parent!!)
         else -> {
             val parent = path.parent
 
@@ -515,11 +528,10 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     protected fun refreshAll() {
-//        val root      = Path<Int>()
         val oldHeight = minHeight
 
         // FIXME: Move to better location; handle rootVisible case
-        minHeight = rowPositioner?.minimumSize(this, below = Path())?.height ?: 0.0 //heightBelow(root) + insets.run { top + bottom }
+        minHeight = getMinHeight()
 
         if (oldHeight == minHeight) {
             // FIXME: This reset logic could be handled better
@@ -533,6 +545,14 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         updateNumRows()
     }
+
+    private fun getMinHeight() = rowPositioner?.let {
+        val root       = Path<Int>()
+        val rootValue  = get(root).getOrNull()
+        val rootHeight = if (rootVisible && rootValue != null) it.rowBounds(this, rootValue, root, 0).height else 0.0
+
+        it.minimumSize(this, below = root).height + rootHeight
+    } ?: 0.0 //heightBelow(root) + insets.run { top + bottom }
 
     private fun insertChildren(children: MutableList<View>, parent: Path<Int>, parentIndex: Int? = rowFromPath(parent)): Int? {
         var index: Int? = (parentIndex ?: -1) + 1
@@ -579,7 +599,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
                 result = result?.let { it + 1 }
 
-                if (path.depth == 0 || expanded) {
+                if (expanded) {
                     result = insertChildren(children, path, index)
                 }
             }
@@ -615,12 +635,9 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     private fun rowExpanded(index: Int) = pathFromRow(index)?.let { expanded(it) } ?: false
 
-    override fun pathFromRow(index: Int): Path<Int>? {
-        if (model.isEmpty()) {
-            return null
-        }
-
-        return if (index < 0 && !rootVisible) null else {
+    override fun pathFromRow(index: Int): Path<Int>? = when {
+        model.isEmpty() || (index < 0 && !rootVisible) -> null
+        else                                           -> {
             rowToPath.getOrElse(index) {
                 addRowsToPath(Path(), index + if (!rootVisible) 1 else 0)?.first?.also {
                     rowToPath[index] = it
@@ -669,7 +686,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     internal fun rowsBelow(path: Path<Int>): Int {
         var numRows = 0
 
-        if (path.depth == 0 || (expanded(path) && visible(path))) {
+        if (expanded(path) && (path.depth == 0 || visible(path))) {
             val numChildren = numChildren(path)
 
             (0 until numChildren).asSequence().map { path + it }.forEach { numRows += rowsBelow(it) + 1 }
