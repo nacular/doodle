@@ -54,7 +54,7 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
         var node = success(root) as Result<TreeNode<T>>
 
         path.forEach { index ->
-            node = node.map { it.children[index] }
+            node = node.mapCatching { it.children[index] }
 
 //            node = node.onSuccess { it.children.getOrNull(index)?.let { success(it) } ?: failure(IllegalArgumentException()) }
 
@@ -70,7 +70,7 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
 
     override fun isLeaf(node: Path<Int>): Boolean = node(node).getOrNull()?.children?.isEmpty() ?: true
 
-    override fun child(of: Path<Int>, path: Int): Result<T> = node(of).map { it.children[path].value }
+    override fun child(of: Path<Int>, path: Int): Result<T> = node(of).mapCatching { it.children[path].value }
 
     override fun numChildren(of: Path<Int>): Int = node(of).getOrNull()?.children?.size ?: -1
 

@@ -127,8 +127,8 @@ public class TreeRow<T>(
             }
         }
 
-    private  val iconWidth   = 20.0
-    private  var pointerOver = false
+    private val iconWidth   = 20.0
+    private var pointerOver = false
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (tree.selected(path)) {

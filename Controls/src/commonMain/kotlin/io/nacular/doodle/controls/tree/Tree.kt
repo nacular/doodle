@@ -541,9 +541,9 @@ public open class Tree<T, out M: TreeModel<T>>(
             lastVisibleRow     = -1
         }
 
-        handleDisplayRectEvent(Empty, displayRect)
-
         updateNumRows()
+
+        handleDisplayRectEvent(Empty, displayRect)
     }
 
     private fun getMinHeight() = rowPositioner?.let {

@@ -6,37 +6,45 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.scheduler.Scheduler
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 
 public class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
 
-    private val loading = mutableMapOf<String, HTMLImageElement>()
+    private val loading           = mutableMapOf<String, HTMLImageElement>()
+    private val pendingCoroutines = mutableMapOf<String, MutableList<Continuation<Image?>>>()
 
     override suspend fun load(source: String): Image? = suspendCoroutine { coroutine ->
         when (source) {
-            in images   -> coroutine.resume(images[source])
-            !in loading -> {
-                val img = htmlFactory.createImage(source)
+            in images  -> coroutine.resume(images[source])
+            in loading -> pendingCoroutines.getOrPut(source) { mutableListOf() }.plusAssign(coroutine)
+            else       -> {
+                loading[source] = htmlFactory.createImage(source).apply {
+                    onload = {
+                        loading        -= source
+                        images[source]  = ImageImpl(this)
+                        notify(source, coroutine)
+                        removeListeners(this)
+                    }
 
-                loading[source] = img
-
-                img.onload = {
-                    loading        -= source
-                    images[source]  = ImageImpl(img)
-                    removeListeners(img)
-                    coroutine.resume(images[source])
-                }
-
-                img.onerror = { _,_,_,_,_ ->
-                    loading -= source
-                    removeListeners(img)
-                    coroutine.resume(null)
+                    onerror = { _,_,_,_,_ ->
+                        loading -= source
+                        removeListeners(this)
+                        notify(source, coroutine)
+                    }
                 }
             }
-            else        -> coroutine.resume(images[source])
         }
+    }
+
+    private fun notify(source: String, current: Continuation<Image?>) {
+        val image = images[source]
+
+        current.resume(image)
+        pendingCoroutines[source]?.forEach { it.resume(image) }
+        pendingCoroutines.remove(source)
     }
 
     override suspend fun load(file: LocalFile): Image? = file.readBase64()?.let { load("data:*/*;base64,$it")  }
