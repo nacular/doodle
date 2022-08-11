@@ -564,14 +564,16 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         ): Module = basicThemeModule(name = "BasicRadioButtonBehavior") {
             bindBehavior<RadioButton>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
-                        instance(),
-                        iconSpacing         = iconSpacing         ?: 8.0,
-                        iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
-                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                        innerCircleInset    = innerCircleInset    ?: { 4.0 },
-                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
-                        focusManager        = instanceOrNull(),
+                    instance(),
+                    iconSpacing         = iconSpacing         ?: 8.0,
+                    iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+                    backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                    foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                    innerCircleInset    = innerCircleInset    ?: { 4.0 },
+                    darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                    hoverColorMapper    = this@run.hoverColorMapper,
+                    disabledColorMapper = this@run.disabledColorMapper,
+                    focusManager        = instanceOrNull(),
                 ) as Behavior<Button> }
             }
         }
