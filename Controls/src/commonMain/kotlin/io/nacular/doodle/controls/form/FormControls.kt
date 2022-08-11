@@ -888,7 +888,7 @@ public class Always(text: StyledText): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String): this(StyledText(text))
+    public constructor(text: String = "*"): this(StyledText(text))
 }
 
 /**
@@ -901,7 +901,7 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String): this(StyledText(text))
+    public constructor(text: String = "*"): this(StyledText(text))
 }
 
 /**
@@ -914,7 +914,7 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  */
 public fun <T> labeled(
         name        : StyledText,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid(" *"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val label         = UninteractiveLabel(name)
@@ -953,7 +953,7 @@ public fun <T> labeled(
  */
 public fun <T> labeled(
         name        : String,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
 
 /**
@@ -993,7 +993,7 @@ public class LabeledConfig internal constructor(public val name: Label, public v
 public fun <T> labeled(
         name        : StyledText,
         help        : StyledText,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val nameLabel     = UninteractiveLabel(name)
@@ -1035,7 +1035,7 @@ public fun <T> labeled(
 public fun <T> labeled(
         name        : String,
         help        : String,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(
         StyledText(name),
         StyledText(help),
