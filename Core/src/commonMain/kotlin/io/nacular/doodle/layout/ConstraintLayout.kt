@@ -14,7 +14,7 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 11/1/17.
  */
 
-public val center              : (Constraints.() -> Unit) = { center = parent.center                                                             }
+public val center              : (Constraints.() -> Unit) = { center = parent.center                                                                }
 public val fill                : (Constraints.() -> Unit) = { top    = parent.top; left = parent.left; width = parent.width; height = parent.height }
 public fun fill(insets: Insets): (Constraints.() -> Unit) = {
     top    = parent.top    + insets.top
