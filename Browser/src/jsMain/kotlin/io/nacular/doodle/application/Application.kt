@@ -239,7 +239,7 @@ private open class ApplicationHolderImpl protected constructor(
     private var isShutdown  = false
     private var application = null as Application?
 
-    private fun onUnload(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
+    private fun onPageHide(@Suppress("UNUSED_PARAMETER") event: Event? = null) {
         shutdown()
     }
 
@@ -248,7 +248,7 @@ private open class ApplicationHolderImpl protected constructor(
     private var focusListener: ((FocusManager, View?, View?) -> Unit)? = null
 
     protected fun run() {
-        window.addEventListener("unload", ::onUnload)
+        window.addEventListener("pagehide", ::onPageHide)
 
         root.parentNode?.let { parent ->
             mutations = MutationObserver { mutations, _ ->
@@ -313,7 +313,7 @@ private open class ApplicationHolderImpl protected constructor(
 
         application?.shutdown()
 
-        window.removeEventListener("unload", ::onUnload)
+        window.removeEventListener("unload", ::onPageHide)
 
         mutations?.disconnect()
 
