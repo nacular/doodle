@@ -55,6 +55,7 @@ import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
 import io.nacular.doodle.utils.IdGenerator
 import io.nacular.doodle.utils.SimpleIdGenerator
+import io.nacular.doodle.utils.observable
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.kodein.di.Copy
@@ -351,21 +352,31 @@ private open class ApplicationHolderImpl protected constructor(
         isShutdown = true
     }
 
-    private class AsyncAppWrapper(previousInjector: DirectDI, allowDefaultDarkMode: Boolean= false, modules: List<Module> = emptyList()): Application {
-        private  var jobId : Int
+    private class AsyncAppWrapper(previousInjector: DirectDI, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
+        private  var jobId : Int? by observable(null) {old,_ ->
+            old?.let { window.clearTimeout(it) }
+        }
+
         lateinit var holder: ApplicationHolderImpl
 
         init {
-            jobId = window.setTimeout({
-                holder = ApplicationHolderImpl(previousInjector, document.body!!, allowDefaultDarkMode, modules)
-                holder.run()
-            })
+            start(previousInjector, allowDefaultDarkMode, modules)
+        }
+
+        private fun start(previousInjector: DirectDI, allowDefaultDarkMode: Boolean, modules: List<Module>) {
+            when {
+                document.body != null -> {
+                    holder = ApplicationHolderImpl(previousInjector, document.body!!, allowDefaultDarkMode, modules)
+                    holder.run()
+                }
+                else                  -> jobId = window.setTimeout({ start(previousInjector, allowDefaultDarkMode, modules) })
+            }
         }
 
         override fun shutdown() {
             when {
                 ::holder.isInitialized -> holder.shutdown()
-                else                   -> window.clearTimeout(jobId)
+                else                   -> jobId?.let { window.clearTimeout(it) }
             }
         }
     }
