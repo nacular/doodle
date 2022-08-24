@@ -362,10 +362,8 @@ internal class Solver {
     }
 
     private fun removeConstraintEffects(constraint: Constraint, tag: Tag) {
-        when {
-            tag.marker.type == Error -> removeMarkerEffects(tag.marker, constraint.strength)
-            tag.other.type  == Error -> removeMarkerEffects(tag.other,  constraint.strength)
-        }
+        if (tag.marker.type == Error) removeMarkerEffects(tag.marker, constraint.strength)
+        if (tag.other.type  == Error) removeMarkerEffects(tag.other,  constraint.strength)
     }
 
     private fun removeMarkerEffects(marker: Symbol, strength: Strength) {
