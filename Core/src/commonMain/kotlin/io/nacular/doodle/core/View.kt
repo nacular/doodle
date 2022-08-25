@@ -170,12 +170,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Left edge of [bounds] */
     final override var x: Double
         get( ) = bounds.x
-        set(x) = setBounds(x, y, width, height)
+        set(x) { if (x != bounds.x) setBounds(x, y, width, height) }
 
     /** Top edge of [bounds] */
     final override var y: Double
         get( ) = bounds.y
-        set(y) = setBounds(x, y, width, height)
+        set(y) { if (y != bounds.y) setBounds(x, y, width, height) }
 
     /** Top-left corner of [bounds] */
     final override var position: Point
@@ -185,12 +185,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Horizontal extent of [bounds] */
     final override var width: Double
         get(     ) = bounds.width
-        set(width) = setBounds(x, y, width, height)
+        set(width) { if (width != bounds.width) setBounds(x, y, width, height) }
 
     /** Vertical extent of [bounds] */
     final override var height: Double
         get(      ) = bounds.height
-        set(height) = setBounds(x, y, width, height)
+        set(height) { if (height != bounds.height) setBounds(x, y, width, height) }
 
     /** Width-height of [bounds]*/
     final override var size: Size
@@ -1071,14 +1071,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         else                   -> point.as3d()
     }
 
-    private fun getBoundingBox(bounds: Rectangle): Rectangle {
-        return when {
-            resolvedTransform.isIdentity -> bounds
-            else                         -> {
-                val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
+    private fun getBoundingBox(bounds: Rectangle): Rectangle = when {
+        resolvedTransform.isIdentity -> bounds
+        else                         -> {
+            val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
 
-                ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
-            }
+            ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
         }
     }
 

@@ -54,12 +54,7 @@ public value class Strength private constructor(public val value: Int): Comparab
  * @property operator defining the relationship between the elements of [expression]
  * @property strength that determines the degree to which the relationship is enforced
  */
-public class Constraint internal constructor(expression: Expression, internal val operator: Operator, strength: Strength = Required) {
-    public constructor(other: Constraint, strength: Strength): this(other.expression, other.operator, strength)
-
-    internal val expression: Expression = reduce(expression)
-    internal var strength  : Strength = strength; internal set
-
+public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, internal var strength: Strength = Required) {
     override fun toString(): String = "$expression $operator ~ $strength"
 
     override fun equals(other: Any?): Boolean {
@@ -80,22 +75,5 @@ public class Constraint internal constructor(expression: Expression, internal va
         result = 31 * result + expression.hashCode()
         result = 31 * result + strength.hashCode()
         return result
-    }
-
-    private fun reduce(expr: Expression): Expression {
-        val vars = mutableMapOf<Variable, Double>()
-        for (term in expr.terms) {
-            var value = vars[term.variable]
-            if (value == null) {
-                value = 0.0
-            }
-            value += term.coefficient
-            vars[term.variable] = value
-        }
-        val reducedTerms = mutableListOf<Term>()
-        for (variable in vars.keys) {
-            reducedTerms.add(Term(variable, vars[variable]!!))
-        }
-        return Expression(*reducedTerms.toTypedArray(), constant = expr.constant)
     }
 }

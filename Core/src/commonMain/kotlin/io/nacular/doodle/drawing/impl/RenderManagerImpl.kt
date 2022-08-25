@@ -326,7 +326,7 @@ public open class RenderManagerImpl(
                 this.visibilityChanged -= view
             }
 
-            if (recursivelyVisible && !view.bounds.empty) {
+            if (recursivelyVisible && !view.size.empty) {
                 val viewList = pendingCleanup[view]
 
                 viewList?.forEach {

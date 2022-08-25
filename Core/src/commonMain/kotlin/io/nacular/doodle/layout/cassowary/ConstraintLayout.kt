@@ -9,10 +9,15 @@ import io.nacular.doodle.layout.cassowary.Operator.EQ
 import io.nacular.doodle.layout.cassowary.Operator.GE
 import io.nacular.doodle.layout.cassowary.Operator.LE
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
+import io.nacular.doodle.layout.cassowary.impl.BoundsImpl
 import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl
-import io.nacular.doodle.layout.cassowary.impl.ConstraintsImpl
-import io.nacular.doodle.layout.cassowary.impl.RectangleConstraints
+import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.BlockInfo
+import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.setupSolver
+import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.solve
+import io.nacular.doodle.layout.cassowary.impl.RectangleBounds
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -30,120 +35,163 @@ import kotlin.math.max
  */
 public abstract class ConstraintLayout: Layout {
     /**
-     * Add constraints for a single View.
+     * Add constraints for [view].
      *
-     * @param a View being constrained
-     * @param block with constraint details
+     * @param view being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public abstract fun constrain(a: View, block: ConstraintDslContext.(Constraints) -> Unit): ConstraintLayout
+    public abstract fun constrain(view: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for [view] that were created by [constraints].
+     *
+     * @param view being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(view: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout
 
     /**
      * Add constraints for 2 Views.
      *
-     * @param a first View being constrained
-     * @param b second View being constrained
-     * @param block with constraint details
+     * @param first being constrained
+     * @param second being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public fun constrain(a: View, b: View, block: ConstraintDslContext.(Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, others = emptyArray()) { (a, b) -> block(a, b) }
+    public abstract fun constrain(first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout
 
     /**
      * Add constraints for 3 Views.
      *
-     * @param a first View being constrained
-     * @param b second View being constrained
-     * @param c third View being constrained
-     * @param block with constraint details
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param third View being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public fun constrain(a: View, b: View, c: View, block: ConstraintDslContext.(Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c) { (a, b, c) -> block(a, b, c) }
+    public abstract fun constrain(first: View, second: View, third: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
 
     /**
      * Add constraints for 4 Views.
      *
-     * @param a first View being constrained
-     * @param b second View being constrained
-     * @param c third View being constrained
-     * @param d fourth View being constrained
-     * @param block with constraint details
+     * @param first first View being constrained
+     * @param second second View being constrained
+     * @param third third View being constrained
+     * @param fourth fourth View being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public fun constrain(a: View, b: View, c: View, d: View, block: ConstraintDslContext.(Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c, d) { (a, b, c, d) -> block(a, b, c, d) }
+    public abstract fun constrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param fourth View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
 
     /**
      * Add constraints for 5 Views.
      *
-     * @param a first View being constrained
-     * @param b second View being constrained
-     * @param c third View being constrained
-     * @param d fourth View being constrained
-     * @param e fifth View being constrained
-     * @param block with constraint details
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param third View being constrained
+     * @param fourth View being constrained
+     * @param fifth View being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintDslContext.(Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c, d, e) { (a, b, c, d, e) -> block(a, b, c, d, e) }
+    public abstract fun constrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param fourth View being unconstrained
+     * @param fifth View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
 
     /**
      * Add constraints for several Views.
      *
-     * @param a first View being constrained
-     * @param b remaining View being constrained
-     * @param block with constraint details
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param others Views being constrained
+     * @param constraints being applied
      * @return Layout with additional constraints
      */
-    public abstract fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Constraints>) -> Unit): ConstraintLayout
+    public abstract fun constrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout
 
     /**
-     * Remove all constrains that refer to a given View.
+     * Remove all constraints for the given Views that were created by [constraints].
      *
-     * @param view being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(view: View): ConstraintLayout
-
-    /**
-     * Adds a single constraint
-     *
-     * @param constraint being added
-     * @return Layout with constraint added
-     */
-    public abstract fun add(constraint: Constraint, vararg others: Constraint): ConstraintLayout
-
-    /**
-     * Adds a series of constraints
-     *
-     * @param constraints being added
-     * @return Layout with constraints added
-     */
-    public abstract fun add(constraints: Iterable<Constraint>): ConstraintLayout
-
-    /**
-     * Removes a single constraint
-     *
-     * @param constraint being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun remove(constraint: Constraint, vararg others: Constraint): ConstraintLayout
-
-    /**
-     * Removes a series of constraints
-     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param others being unconstrained
      * @param constraints being removed
      * @return Layout with constraints removed
      */
-    public abstract fun remove(constraints: Iterable<Constraint>): ConstraintLayout
+    public abstract fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout
 }
 
 /**
- * Simple value within a [Constraints] set.
+ * Simple value within a [Bounds] set.
  */
-public abstract class Property internal constructor()
+public abstract class Property internal constructor() {
+    /**
+     * Provides the Property's value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Property won't be
+     * altered to try and satisfy the constraint.
+     */
+    public abstract val readOnly: Double
+
+    internal abstract fun toTerm(): Term
+}
 
 /**
- * 2-Dimensional value within a [Constraints] set.
+ * 2-Dimensional value within a [Bounds] set.
  */
-public class Position internal constructor(internal val top: Expression, internal val left: Expression)
+public class Position internal constructor(internal val left: Expression, internal val top: Expression) {
+    /**
+     * Provides the Position's value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Position won't be
+     * altered to try and satisfy the constraint.
+     */
+    public val readOnly: Point get() = Point(x = left.value, y = top.value)
+}
 
 /**
  * External boundaries of a constrained item.
@@ -153,12 +201,23 @@ public class Edges internal constructor(
     internal val left  : Expression? = null,
     internal val right : Expression,
     internal val bottom: Expression
-)
+) {
+    /**
+     * Provides the Edges' value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Edges won't be
+     * altered to try and satisfy the constraint.
+     */
+    public val readOnly: Rectangle get() {
+        val x = left?.value ?: 0.0
+        val y = top?.value  ?: 0.0
+        return Rectangle(x = x, y = y, width = right.value - x, height = bottom.value - y)
+    }
+}
 
 /**
- * Common constrain properties
+ * Common bounding properties
  */
-public interface BasConstraints {
+public interface BaseBounds {
     /** The rectangle's vertical extent */
     public val height: Property
 
@@ -185,14 +244,14 @@ public interface BasConstraints {
 }
 
 /**
- * [Constraints] the refer to the external, bounding rectangle for a View that is being constrained.
+ * [Bounds] the refer to the external, bounding rectangle for a View that is being constrained.
  */
-public interface ParentConstraints: BasConstraints
+public interface ParentBounds: BaseBounds
 
 /**
  * The rectangular bounds for a View that is being constrained.
  */
-public interface Constraints: BasConstraints {
+public interface Bounds: BaseBounds {
     /** The rectangle's top edge */
     public val top: Property
 
@@ -208,59 +267,49 @@ public class ConstraintDslContext internal constructor() {
     /**
      * The common parent of all Views being constrained
      */
-    public lateinit var parent: ParentConstraints internal set
+    @Suppress("PropertyName")
+    internal var parent_: View? by observable(null) {_,_ ->
+        constraints.clear()
+    }
+
+    public lateinit var parent: ParentBounds internal set
 
     internal val constraints = mutableListOf<Constraint>()
 
     private var strength = Required
 
-    private fun add(constraint: Constraint) {
-        constraints += constraint
+    private fun add(constraint: Constraint) = when {
+        constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint))
+        else                             -> Result.success(constraint).also { constraints += constraint }
     }
 
     public operator fun Property.plus(expression: Expression): Expression = expression + this
     public operator fun Property.plus(term      : Term      ): Expression = term + this
-    public operator fun Property.plus(other     : Property  ): Expression = Term(this as Variable) + other
-    public operator fun Property.plus(constant  : Number    ): Expression = Term(this as Variable) + constant.toDouble()
+    public operator fun Property.plus(other     : Property  ): Expression = this.toTerm() + other
+    public operator fun Property.plus(constant  : Number    ): Expression = this.toTerm() + constant.toDouble()
 
     public operator fun Property.minus(expression: Expression): Expression = this + -expression
     public operator fun Property.minus(term      : Term      ): Expression = this + -term
     public operator fun Property.minus(other     : Property  ): Expression = this + -other
     public operator fun Property.minus(constant  : Number    ): Expression = this + -constant.toDouble()
 
-    public operator fun Property.times     (coefficient: Number): Term = Term(this as Variable, coefficient.toDouble())
+    public operator fun Property.times     (coefficient: Number): Term = this.toTerm() * coefficient.toDouble()
     public operator fun Property.div       (denominator: Number): Term = this * 1.0 / denominator
     public operator fun Property.unaryMinus(                   ): Term = this * -1.0
 
-    private data class MaxProperty(val a: Variable, val b: Variable): Property(), Variable {
-        override val name get() = "max(${a.name}, ${b.name})"
+    public        fun min(a: Property, b: Property  ): Term       = min(a.toTerm(), b.toTerm())
+    public inline fun min(a: Property, b: Term      ): Term       = min(1 * a, b)
+    public inline fun min(a: Property, b: Expression): Expression = min(1 * a, b)
+    public        fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
 
-        override fun invoke() = max(a.invoke(), b.invoke())
-
-        override fun invoke(value: Double) {
-            when {
-                a() >= b() -> a(value)
-                else       -> b(value)
-            }
-        }
-
-        override fun toString() = name
-    }
-
-    public fun max(a: Property, b: Property): Property = when {
-        a is Variable && b is Variable -> {
-            MaxProperty(a, b)
-        }
-        else -> a
-    }
-
+    public        fun max(a: Property, b: Property  ): Term       = max(a.toTerm(), b.toTerm())
     public inline fun max(a: Property, b: Term      ): Term       = max(1 * a, b)
     public inline fun max(a: Property, b: Expression): Expression = max(1 * a, b)
     public        fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
 
     public operator fun Term.plus(expression: Expression): Expression = expression + this
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
-    public operator fun Term.plus(property  : Property  ): Expression = this + Term(property as Variable)
+    public operator fun Term.plus(property  : Property  ): Expression = this + property.toTerm()
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
 
     public operator fun Term.minus(expression: Expression): Expression = -expression + this
@@ -268,18 +317,23 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Term.minus(property  : Property  ): Expression = this + -property
     public operator fun Term.minus(constant  : Number    ): Expression = this + -constant.toDouble()
 
-    public operator fun Term.times     (constant   : Number): Term = Term(variable, coefficient * constant.toDouble())
+//    public operator fun Term.times     (constant   : Number): Term = Term(variable, coefficient * constant.toDouble())
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
-    public        fun max(a: Term, b: Term      ): Term       = Term(MaxProperty(a.variable, b.variable), max(a.coefficient, b.coefficient))
+//    public        fun max(a: Term, b: Term      ): Term       = Term(MaxProperty(a.variable, b.variable), max(a.coefficient, b.coefficient))
+    public inline fun min(a: Term, b: Property  ): Term       = min(a, 1 * b)
+    public inline fun min(a: Term, b: Expression): Expression = min(a + 0, b)
+    public        fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+
+//    public        fun max(a: Term, b: Term      ): Term       = Term(MaxProperty(a.variable, b.variable), max(a.coefficient, b.coefficient))
     public inline fun max(a: Term, b: Property  ): Term       = max(a, 1 * b)
     public inline fun max(a: Term, b: Expression): Expression = max(a + 0, b)
     public        fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
 
     public operator fun Expression.plus(other   : Expression): Expression = Expression(*(terms.asList() + other.terms).toTypedArray(), constant = constant + other.constant) // TODO do we need to copy term objects?
     public operator fun Expression.plus(term    : Term      ): Expression = Expression(*(terms.asList() + term       ).toTypedArray(), constant = constant                 ) // TODO do we need to copy term objects?
-    public operator fun Expression.plus(property: Property  ): Expression = this + Term(property as Variable)
+    public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
     public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms, constant = this.constant + constant.toDouble())
 
     public operator fun Expression.minus(other   : Expression): Expression = this + -other
@@ -301,6 +355,28 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
+
+    public fun min(a: Term, b: Term): Term = object: Term() {
+        override val value      : Double get() = min(a.value, b.value)
+        override val coefficient: Double get() = if(a.value < b.value) a.coefficient else b.coefficient
+        override fun times(value: Number) = min(a * value, b * value)
+    }
+
+    public fun min(a: Expression, b: Expression): Expression = object: Expression() {
+        override val value: Double get() = min(a.value, b.value)
+        override val isConstant get() = a.isConstant && b.isConstant
+        override fun toString  () = "min($a, $b)"
+    }
+
+    public inline fun min(a: Expression, b: Term    ): Expression = min(a, b + 0)
+    public inline fun min(a: Expression, b: Property): Expression = min(a, 1 * b)
+    public        fun min(a: Expression, b: Number  ): Expression = min(a, Expression(constant = b.toDouble()))
+
+    public fun max(a: Term, b: Term): Term = object: Term() {
+        override val value      : Double get() = max(a.value, b.value)
+        override val coefficient: Double get() = if(a.value > b.value) a.coefficient else b.coefficient
+        override fun times(value: Number) = max(a * value, b * value)
+    }
 
     public fun max(a: Expression, b: Expression): Expression = object: Expression() {
         override val value: Double get() = max(a.value, b.value)
@@ -324,9 +400,9 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.times(term      : Term      ): Term       = term       * this.toDouble()
     public operator fun Number.times(variable  : Property  ): Term       = variable   * this.toDouble()
 
-    public inline infix fun Number.eq(expression: Expression): Constraint = expression eq this
-    public inline infix fun Number.eq(term      : Term      ): Constraint = term       eq this
-    public inline infix fun Number.eq(variable  : Property  ): Constraint = variable   eq this
+    public inline infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
+    public inline infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
+    public inline infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
 
     public inline fun max(a: Number, b: Property  ): Expression = max(b, a)
     public inline fun max(a: Number, b: Term      ): Expression = max(b, a)
@@ -334,63 +410,63 @@ public class ConstraintDslContext internal constructor() {
 
     public class NonlinearExpressionException: Exception()
 
-    public infix fun Expression.eq(other   : Expression): Constraint = Constraint(this - other, EQ, strength).also { add(it) }
-    public infix fun Expression.eq(term    : Term      ): Constraint = this eq Expression(term    )
-    public infix fun Expression.eq(property: Property  ): Constraint = this eq Term      (property as Variable)
-    public infix fun Expression.eq(constant: Number    ): Constraint = this eq Expression(constant = constant.toDouble())
+    public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, strength))
+    public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
+    public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
+    public infix fun Expression.eq(constant: Number    ): Result<Constraint> = this eq Expression(constant = constant.toDouble())
 
-    public infix fun Expression.lessEq(second  : Expression): Constraint = Constraint(this - second, LE, strength).also { add(it) }
-    public infix fun Expression.lessEq(term    : Term      ): Constraint = this lessEq Expression(term    )
-    public infix fun Expression.lessEq(property: Property  ): Constraint = this lessEq Term      (property as Variable)
-    public infix fun Expression.lessEq(constant: Number    ): Constraint = this lessEq Expression(constant = constant.toDouble())
+    public infix fun Expression.lessEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, LE, strength))
+    public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
+    public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
+    public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
 
-    public infix fun Expression.greaterEq(second  : Expression): Constraint = Constraint(this - second, GE, strength).also { add(it) }
-    public infix fun Expression.greaterEq(term    : Term      ): Constraint = this greaterEq Expression(term    )
-    public infix fun Expression.greaterEq(property: Property  ): Constraint = this greaterEq Term      (property as Variable)
-    public infix fun Expression.greaterEq(constant: Number    ): Constraint = this greaterEq Expression(constant = constant.toDouble())
+    public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, strength))
+    public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
+    public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
+    public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
 
-    public infix fun Term.eq(expression: Expression): Constraint = expression       eq this
-    public infix fun Term.eq(term      : Term      ): Constraint = Expression(this) eq term
-    public infix fun Term.eq(variable  : Property  ): Constraint = Expression(this) eq variable
-    public infix fun Term.eq(constant  : Number    ): Constraint = Expression(this) eq constant.toDouble()
+    public infix fun Term.eq(expression: Expression): Result<Constraint> = expression       eq this
+    public infix fun Term.eq(term      : Term      ): Result<Constraint> = Expression(this) eq term
+    public infix fun Term.eq(variable  : Property  ): Result<Constraint> = Expression(this) eq variable
+    public infix fun Term.eq(constant  : Number    ): Result<Constraint> = Expression(this) eq constant.toDouble()
 
-    public infix fun Term.lessEq(expression: Expression): Constraint = Expression(this) lessEq expression
-    public infix fun Term.lessEq(term      : Term      ): Constraint = Expression(this) lessEq term
-    public infix fun Term.lessEq(property  : Property  ): Constraint = Expression(this) lessEq property
-    public infix fun Term.lessEq(constant  : Number    ): Constraint = Expression(this) lessEq constant.toDouble()
+    public infix fun Term.lessEq(expression: Expression): Result<Constraint> = Expression(this) lessEq expression
+    public infix fun Term.lessEq(term      : Term      ): Result<Constraint> = Expression(this) lessEq term
+    public infix fun Term.lessEq(property  : Property  ): Result<Constraint> = Expression(this) lessEq property
+    public infix fun Term.lessEq(constant  : Number    ): Result<Constraint> = Expression(this) lessEq constant.toDouble()
 
-    public infix fun Term.greaterEq(expression: Expression): Constraint = Expression(this) greaterEq expression
-    public infix fun Term.greaterEq(second    : Term      ): Constraint = Expression(this) greaterEq second
-    public infix fun Term.greaterEq(property  : Property  ): Constraint = Expression(this) greaterEq property
-    public infix fun Term.greaterEq(constant  : Number    ): Constraint = Expression(this) greaterEq constant.toDouble()
+    public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
+    public infix fun Term.greaterEq(second    : Term      ): Result<Constraint> = Expression(this) greaterEq second
+    public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
+    public infix fun Term.greaterEq(constant  : Number    ): Result<Constraint> = Expression(this) greaterEq constant.toDouble()
 
-    public infix fun Property.eq(expression: Expression): Constraint = expression eq this
-    public infix fun Property.eq(term      : Term      ): Constraint = term       eq this
-    public infix fun Property.eq(property  : Property  ): Constraint = Term(this as Variable) eq property
-    public infix fun Property.eq(constant  : Number    ): Constraint = Term(this as Variable) eq constant.toDouble()
+    public infix fun Property.eq(expression: Expression): Result<Constraint> = expression eq this
+    public infix fun Property.eq(term      : Term      ): Result<Constraint> = term       eq this
+    public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
+    public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
 
 //    @Suppress("INVALID_CHARACTERS") @JvmName("lessEq1") @JsName("lessEq1")
 //    public infix fun Property.`<=`(expression: Expression               ): Constraint = Term(this as Variable) lessEq expression
 
-    public infix fun Property.lessEq(expression: Expression): Constraint = Term(this as Variable) lessEq expression
-    public infix fun Property.lessEq(term      : Term      ): Constraint = Term(this as Variable) lessEq term
-    public infix fun Property.lessEq(second    : Property  ): Constraint = Term(this as Variable) lessEq second
-    public infix fun Property.lessEq(constant  : Number    ): Constraint = Term(this as Variable) lessEq constant.toDouble()
+    public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
+    public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
+    public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
+    public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
 
-    public infix fun Property.greaterEq(expression: Expression): Constraint = Term(this as Variable) greaterEq expression
-    public infix fun Property.greaterEq(term      : Term      ): Constraint = term                   greaterEq this
-    public infix fun Property.greaterEq(second    : Property  ): Constraint = Term(this as Variable) greaterEq second
-    public infix fun Property.greaterEq(constant  : Number    ): Constraint = Term(this as Variable) greaterEq constant.toDouble()
+    public infix fun Property.greaterEq(expression: Expression): Result<Constraint> = this.toTerm() greaterEq expression
+    public infix fun Property.greaterEq(term      : Term      ): Result<Constraint> = this.toTerm() greaterEq term
+    public infix fun Property.greaterEq(second    : Property  ): Result<Constraint> = this.toTerm() greaterEq second
+    public infix fun Property.greaterEq(constant  : Number    ): Result<Constraint> = this.toTerm() greaterEq constant.toDouble()
 
-    public infix fun Position.eq(other: Position) {
-        top  eq other.top
+    public infix fun Position.eq(other: Position): List<Result<Constraint>> = listOf(
+        top  eq other.top,
         left eq other.left
-    }
+    )
 
-    public infix fun Position.eq(point: Point) {
-        top  eq point.y
+    public infix fun Position.eq(point: Point): List<Result<Constraint>> = listOf(
+        top  eq point.y,
         left eq point.x
-    }
+    )
 
     public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(  value.toDouble() )
@@ -402,45 +478,47 @@ public class ConstraintDslContext internal constructor() {
         bottom - insets.bottom
     )
 
-    public infix fun Edges.eq(other: Edges) {
+    public infix fun Edges.eq(other: Edges): List<Result<Constraint>> {
+        val result = mutableListOf<Result<Constraint>>()
+
         if (top != null) {
             when (other.top) {
-                null -> top eq 0
-                else -> top eq other.top
+                null -> (top eq 0        ).also { result += it }
+                else -> (top eq other.top).also { result += it }
             }
         }
         if (left != null) {
             when (other.left) {
-                null -> left eq 0
-                else -> left eq other.left
+                null -> (left eq 0         ).also { result += it }
+                else -> (left eq other.left).also { result += it }
             }
         }
 
-        right  eq other.right
-        bottom eq other.bottom
+        (right  eq other.right ).also { result += it }
+        (bottom eq other.bottom).also { result += it }
+
+        return result
     }
 
-    public infix fun Double.eq(expression: Expression): Constraint = expression eq this
-    public infix fun Double.eq(term      : Term      ): Constraint = term       eq this
-    public infix fun Double.eq(property  : Property  ): Constraint = property   eq this
+    public infix fun Double.eq(expression: Expression): Result<Constraint> = expression eq this
+    public infix fun Double.eq(term      : Term      ): Result<Constraint> = term       eq this
+    public infix fun Double.eq(property  : Property  ): Result<Constraint> = property   eq this
 
-    public infix fun Double.lessEq(expression: Expression): Constraint = Expression(constant = this) lessEq expression
-    public infix fun Double.lessEq(term      : Term      ): Constraint = this                        lessEq Expression(term                )
-    public infix fun Double.lessEq(property  : Property  ): Constraint = this                        lessEq Term      (property as Variable)
+    public infix fun Double.lessEq(expression: Expression): Result<Constraint> = Expression(constant = this) lessEq expression
+    public infix fun Double.lessEq(term      : Term      ): Result<Constraint> = this                        lessEq Expression(term)
+    public infix fun Double.lessEq(property  : Property  ): Result<Constraint> = this                        lessEq property.toTerm()
 
-    public infix fun Double.greaterEq(expression: Expression): Constraint = expression                  lessEq    this
-    public infix fun Double.greaterEq(term    : Term        ): Constraint = Expression(constant = this) greaterEq term
-    public infix fun Double.greaterEq(property: Property    ): Constraint = this                        greaterEq Term(property as Variable)
+    public infix fun Double.greaterEq(expression: Expression): Result<Constraint> = expression                  lessEq    this
+    public infix fun Double.greaterEq(term    : Term        ): Result<Constraint> = Expression(constant = this) greaterEq term
+    public infix fun Double.greaterEq(property: Property    ): Result<Constraint> = this                        greaterEq property.toTerm()
 
-    public fun capture(block: () -> Unit): List<Constraint> {
-        val initialSize = constraints.size
-        block()
-
-        return listOf(*constraints.subList(initialSize, constraints.size).toTypedArray())
+    public operator fun Result<Constraint>.rangeTo(strength: Strength): Result<Constraint> {
+        this.getOrNull()?.strength = strength
+        return this
     }
 
-    public operator fun Constraint.rangeTo(strength: Strength): Constraint {
-        this.strength = strength
+    public operator fun List<Result<Constraint>>.rangeTo(strength: Strength): List<Result<Constraint>> {
+        this.forEach { it.getOrNull()?.strength = strength }
         return this
     }
 }
@@ -452,7 +530,7 @@ public class ConstraintDslContext internal constructor() {
  * @param block with constraint details
  * @return Layout that constrains the given view
  */
-public fun constrain(a: View, block: ConstraintDslContext.(Constraints) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a) { (a) -> block(a) }
+public fun constrain(a: View, block: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a) { (a) -> block(a) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 2 Views.
@@ -462,7 +540,7 @@ public fun constrain(a: View, block: ConstraintDslContext.(Constraints) -> Unit)
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, crossinline block: ConstraintDslContext.(Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, others = emptyArray()) { (a, b) -> block(a, b) }
+public inline fun constrain(a: View, b: View, crossinline block: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, others = emptyArray()) { (a, b) -> block(a, b) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 3 Views.
@@ -473,7 +551,7 @@ public inline fun constrain(a: View, b: View, crossinline block: ConstraintDslCo
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, crossinline block: ConstraintDslContext.(Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c) { (a, b, c) -> block(a, b, c) }
+public inline fun constrain(a: View, b: View, c: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c) { (a, b, c) -> block(a, b, c) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 4 Views.
@@ -485,7 +563,7 @@ public inline fun constrain(a: View, b: View, c: View, crossinline block: Constr
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, d: View, crossinline block: ConstraintDslContext.(Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c, d) { (a, b, c, d) -> block(a, b, c, d) }
+public inline fun constrain(a: View, b: View, c: View, d: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c, d) { (a, b, c, d) -> block(a, b, c, d) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 5 Views.
@@ -498,7 +576,7 @@ public inline fun constrain(a: View, b: View, c: View, d: View, crossinline bloc
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, d: View, e: View, crossinline block: ConstraintDslContext.(Constraints, Constraints, Constraints, Constraints, Constraints) -> Unit): ConstraintLayout = constrain(a, b, c, d, e) { (a, b, c, d, e) -> block(a, b, c, d, e) }
+public inline fun constrain(a: View, b: View, c: View, d: View, e: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c, d, e) { (a, b, c, d, e) -> block(a, b, c, d, e) }
 
 /**
  * Creates a [ConstraintLayout] that constrains several Views.
@@ -508,7 +586,7 @@ public inline fun constrain(a: View, b: View, c: View, d: View, e: View, crossin
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Constraints>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), block = block)
+public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), block = block)
 
 /**
  * Creates a [ConstraintLayout] that constrains a View within a Rectangle.
@@ -519,19 +597,19 @@ public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDsl
  * @return Layout that constrains the given view
  */
 //@kotlin.contracts.ExperimentalContracts
-public fun constrain(view: View, within: Rectangle, block: ConstraintDslContext.(Constraints) -> Unit) {
+public fun constrain(view: View, within: Rectangle, block: ConstraintDslContext.(Bounds) -> Unit) {
 //    contract {
 //        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
 //    }
 
     val solver      = Solver()
     val context     = ConstraintDslContext()
-    val constraints = listOf(ConstraintsImpl(view, context))
+    val constraints = listOf(BoundsImpl(view, context))
 
-    context.parent = RectangleConstraints(within, context)
+    context.parent = RectangleBounds(within, context)
 
-    ConstraintLayoutImpl.setupSolver(solver, mutableSetOf(), context, constraints) { (a) -> block(a) }
-    ConstraintLayoutImpl.solve(solver, context.parent, mutableSetOf())
+    setupSolver(solver, context, blocks = listOf(BlockInfo(constraints) { (a) -> block(a) }))
+    solve(solver, context)
 
     view.position += within.position
 }

@@ -3,6 +3,7 @@ package io.nacular.doodle.layout.cassowary
 import io.nacular.doodle.layout.cassowary.Operator.*
 import io.nacular.doodle.layout.cassowary.Solver.Type.*
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
+import kotlin.math.abs
 
 internal class InternalSolverError(val string: String): kotlin.Error()
 
@@ -34,9 +35,9 @@ internal class Solver {
         override fun toString() = "$type"
     }
 
-    private class Row {
-        var constant: Double
-        var cells   = mutableMapOf<Symbol, Double>()
+    private inner class Row {
+        var cells   = mutableMapOf<Symbol, Double>(); private set
+        var constant: Double; private set
 
         constructor(constant: Double = 0.0) {
             this.constant = constant
@@ -90,11 +91,11 @@ internal class Solver {
                 val newCoefficient = value * coefficient
 
                 //changes start here
-                cells.getOrPut(symbol) { 0.0 }
                 val temp = cells.getOrPut(symbol) { 0.0 } + newCoefficient
-                cells[symbol] = temp
-                if (nearZero(temp)) {
-                    cells.remove(symbol)
+
+                when {
+                    nearZero(temp) -> cells.remove(symbol)
+                    else           -> cells[symbol] = temp
                 }
             }
         }
@@ -161,10 +162,7 @@ internal class Solver {
          *
          * @return
          */
-        fun coefficientFor(symbol: Symbol) = when {
-            cells.containsKey(symbol) -> cells[symbol]!!
-            else                      -> 0.0
-        }
+        fun coefficientFor(symbol: Symbol) = cells[symbol] ?: 0.0
 
         /**
          * Substitute a symbol with the data from another row.
@@ -192,7 +190,17 @@ internal class Solver {
     private var artificial     = null as Row?
 
     internal val variables: Set<Variable> get() = vars.keys
-    internal val variableToConstraints = mutableMapOf<Variable, MutableSet<Constraint>>()
+
+    fun addConstraints(constraint: Constraint, vararg others: Constraint) {
+        addConstraint(constraint)
+        others.forEach { addConstraint(it) }
+    }
+
+    fun addConstraints(constraints: Iterable<Constraint>) {
+        for (item in constraints) {
+            addConstraint(item)
+        }
+    }
 
     /**
      * Add a constraint to the solver.
@@ -201,8 +209,7 @@ internal class Solver {
      * @throws DuplicateConstraintException The given constraint has already been added to the solver.
      * @throws UnsatisfiableConstraintException The given constraint is required and cannot be satisfied.
      */
-    @Throws(DuplicateConstraintException::class, UnsatisfiableConstraintException::class)
-    fun addConstraint(constraint: Constraint) {
+    private fun addConstraint(constraint: Constraint) {
         if (constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
@@ -234,30 +241,22 @@ internal class Solver {
         optimize(objective)
     }
 
-    fun remove(variable: Variable) {
-        variableToConstraints.remove(variable)?.let {
-            it.forEach {
-                removeConstraint(it)
-            }
+    fun removeConstraints(constraint: Constraint, vararg others: Constraint) {
+        removeConstraint(constraint)
+        others.forEach { removeConstraint(it) }
+    }
+
+    fun removeConstraints(constraints: Iterable<Constraint>) {
+        for (item in constraints) {
+            removeConstraint(item)
         }
     }
 
-    @Throws(UnknownConstraintException::class, InternalSolverError::class)
-    fun removeConstraint(constraint: Constraint) {
+    private fun removeConstraint(constraint: Constraint) {
         val tag = constraints[constraint] ?: throw UnknownConstraintException(constraint)
+
         constraints.remove(constraint)
         removeConstraintEffects(constraint, tag)
-
-        variableToConstraints.iterator().let {
-            while (it.hasNext()) {
-                val (variable, constraints) = it.next()
-                constraints -= constraint
-                if (constraints.isEmpty()) {
-                    it.remove()
-                    vars.remove(variable)
-                }
-            }
-        }
 
         var row = rows[tag.marker]
 
@@ -284,7 +283,15 @@ internal class Solver {
         optimize(objective)
     }
 
-    @Throws(DuplicateEditVariableException::class, RequiredFailureException::class)
+    fun reset() {
+        rows.clear()
+        vars.clear()
+        edits.clear()
+        constraints.clear()
+        infeasibleRows.clear()
+        artificial = null
+    }
+
     fun addEditVariable(variable: Variable, strength: Strength) {
         if (edits.containsKey(variable)) {
             throw DuplicateEditVariableException()
@@ -294,14 +301,13 @@ internal class Solver {
             throw RequiredFailureException()
         }
 
-        val constraint = Constraint(Expression(Term(variable)), EQ, strength)
+        val constraint = Constraint(Expression(VariableTerm(variable)), EQ, strength)
 
         addConstraint(constraint)
 
         edits[variable] = EditInfo(constraint, constraints[constraint]!!, 0.0)
     }
 
-    @Throws(UnknownEditVariableException::class)
     fun removeEditVariable(variable: Variable) {
         val edit = edits[variable] ?: throw UnknownEditVariableException()
 
@@ -311,13 +317,15 @@ internal class Solver {
     }
 
     fun clearEditVariables() {
-        edits.values.forEach {
-            removeConstraint(it.constraint)
+        try {
+            removeConstraints(edits.values.map { it.constraint })
+        } catch (ignore: UnknownConstraintException) {
+
         }
+
         edits.clear()
     }
 
-    @Throws(UnknownEditVariableException::class)
     fun suggestValue(variable: Variable, value: Double) {
         val info  = edits[variable] ?: throw UnknownEditVariableException()
         val delta = value - info.constant
@@ -355,7 +363,7 @@ internal class Solver {
     fun updateVariables() {
         for ((variable, symbol) in vars) {
             when (val row = rows[symbol]) {
-                null -> variable(0.0)
+                null -> {} //variable(0.0)
                 else -> variable(row.constant)
             }
         }
@@ -429,18 +437,12 @@ internal class Solver {
      * for tracking the movement of the constraint in the tableau.
      */
     private fun createRow(constraint: Constraint, tag: Tag): Row {
-        val expression = constraint.expression
-        val row        = Row(expression.constant)
+        val expression = constraint.expression.reduce()
+        val row        = Row(expression.terms.filterIsInstance<ConstTerm>().sumOf { it.value } + expression.constant)
 
-        for (term in expression.terms) {
+        for (term in expression.terms.filterIsInstance<VariableTerm>()) {
             if (!nearZero(term.coefficient)) {
                 val symbol = getVarSymbol(term.variable)
-
-                val constraints = variableToConstraints.getOrPut(term.variable) {
-                    mutableSetOf()
-                }
-
-                constraints += constraint
 
                 when (val otherRow = rows[symbol]) {
                     null -> row.insert(symbol,   term.coefficient)
@@ -712,8 +714,6 @@ internal class Solver {
             it.key
         } ?: Symbol()
 
-        private const val EPS = 1.0e-8
-
-        private fun nearZero(value: Double): Boolean = if (value < 0.0) -value < EPS else value < EPS
+        private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
     }
 }
