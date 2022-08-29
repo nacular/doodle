@@ -153,7 +153,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
 
         updateIndexes()
 
-        diffLists(oldIndexes, indexToSource)?.let { diffs ->
+        diffLists(oldIndexes, indexToSource, { a,b -> a == b})?.let { diffs ->
             changed_.forEach {
                 it(this,
                    diffs.removed.mapValues { source[it.value] },

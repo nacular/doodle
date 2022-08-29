@@ -16,8 +16,6 @@ import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.se
 import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.solve
 import io.nacular.doodle.layout.cassowary.impl.RectangleBounds
 import io.nacular.doodle.utils.observable
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -331,8 +329,8 @@ public class ConstraintDslContext internal constructor() {
     public inline fun max(a: Term, b: Expression): Expression = max(a + 0, b)
     public        fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
 
-    public operator fun Expression.plus(other   : Expression): Expression = Expression(*(terms.asList() + other.terms).toTypedArray(), constant = constant + other.constant) // TODO do we need to copy term objects?
-    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*(terms.asList() + term       ).toTypedArray(), constant = constant                 ) // TODO do we need to copy term objects?
+    public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant)
+    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
     public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
     public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms, constant = this.constant + constant.toDouble())
 
@@ -348,7 +346,7 @@ public class ConstraintDslContext internal constructor() {
         else             -> throw NonlinearExpressionException()
     }
 
-    public operator fun Expression.div  (denominator: Double    ): Expression = this * (1.0 / denominator)
+    public operator fun Expression.div  (denominator: Number    ): Expression = this * (1.0 / denominator.toDouble())
     public operator fun Expression.div  (other      : Expression): Expression = when {
         other.isConstant -> this / other.constant
         else             -> throw NonlinearExpressionException()
@@ -356,32 +354,28 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    public fun min(a: Term, b: Term): Term = object: Term() {
-        override val value      : Double get() = min(a.value, b.value)
-        override val coefficient: Double get() = if(a.value < b.value) a.coefficient else b.coefficient
-        override fun times(value: Number) = min(a * value, b * value)
+    public fun min(a: Term, b: Term): Term = when {
+        a.value < b.value -> a
+        else              -> b
     }
 
-    public fun min(a: Expression, b: Expression): Expression = object: Expression() {
-        override val value: Double get() = min(a.value, b.value)
-        override val isConstant get() = a.isConstant && b.isConstant
-        override fun toString  () = "min($a, $b)"
+    public fun min(a: Expression, b: Expression): Expression = when {
+        a.value < b.value -> a
+        else              -> b
     }
 
     public inline fun min(a: Expression, b: Term    ): Expression = min(a, b + 0)
     public inline fun min(a: Expression, b: Property): Expression = min(a, 1 * b)
     public        fun min(a: Expression, b: Number  ): Expression = min(a, Expression(constant = b.toDouble()))
 
-    public fun max(a: Term, b: Term): Term = object: Term() {
-        override val value      : Double get() = max(a.value, b.value)
-        override val coefficient: Double get() = if(a.value > b.value) a.coefficient else b.coefficient
-        override fun times(value: Number) = max(a * value, b * value)
+    public fun max(a: Term, b: Term): Term = when {
+        a.value > b.value -> a
+        else              -> b
     }
 
-    public fun max(a: Expression, b: Expression): Expression = object: Expression() {
-        override val value: Double get() = max(a.value, b.value)
-        override val isConstant get() = a.isConstant && b.isConstant
-        override fun toString  () = "max($a, $b)"
+    public fun max(a: Expression, b: Expression): Expression = when {
+        a.value > b.value -> a
+        else              -> b
     }
 
     public inline fun max(a: Expression, b: Term    ): Expression = max(a, b + 0)
@@ -400,9 +394,9 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.times(term      : Term      ): Term       = term       * this.toDouble()
     public operator fun Number.times(variable  : Property  ): Term       = variable   * this.toDouble()
 
-    public inline infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
-    public inline infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
-    public inline infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
+    public inline fun min(a: Number, b: Property  ): Expression = min(b, a)
+    public inline fun min(a: Number, b: Term      ): Expression = min(b, a)
+    public inline fun min(a: Number, b: Expression): Expression = min(b, a)
 
     public inline fun max(a: Number, b: Property  ): Expression = max(b, a)
     public inline fun max(a: Number, b: Term      ): Expression = max(b, a)
@@ -500,17 +494,17 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
-    public infix fun Double.eq(expression: Expression): Result<Constraint> = expression eq this
-    public infix fun Double.eq(term      : Term      ): Result<Constraint> = term       eq this
-    public infix fun Double.eq(property  : Property  ): Result<Constraint> = property   eq this
+    public inline infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
+    public inline infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
+    public inline infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
 
-    public infix fun Double.lessEq(expression: Expression): Result<Constraint> = Expression(constant = this) lessEq expression
-    public infix fun Double.lessEq(term      : Term      ): Result<Constraint> = this                        lessEq Expression(term)
-    public infix fun Double.lessEq(property  : Property  ): Result<Constraint> = this                        lessEq property.toTerm()
+    public infix fun Number.lessEq(expression: Expression): Result<Constraint> = Expression(constant = this.toDouble()) lessEq expression
+    public infix fun Number.lessEq(term      : Term      ): Result<Constraint> = this                                   lessEq Expression(term)
+    public infix fun Number.lessEq(property  : Property  ): Result<Constraint> = this                                   lessEq property.toTerm()
 
-    public infix fun Double.greaterEq(expression: Expression): Result<Constraint> = expression                  lessEq    this
-    public infix fun Double.greaterEq(term    : Term        ): Result<Constraint> = Expression(constant = this) greaterEq term
-    public infix fun Double.greaterEq(property: Property    ): Result<Constraint> = this                        greaterEq property.toTerm()
+    public inline infix fun Number.greaterEq(expression: Expression): Result<Constraint> = expression                             lessEq    this
+    public        infix fun Number.greaterEq(term    : Term        ): Result<Constraint> = Expression(constant = this.toDouble()) greaterEq term
+    public        infix fun Number.greaterEq(property: Property    ): Result<Constraint> = this                                   greaterEq property.toTerm()
 
     public operator fun Result<Constraint>.rangeTo(strength: Strength): Result<Constraint> {
         this.getOrNull()?.strength = strength

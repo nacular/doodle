@@ -55,6 +55,13 @@ public value class Strength private constructor(public val value: Int): Comparab
  * @property strength that determines the degree to which the relationship is enforced
  */
 public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, internal var strength: Strength = Required) {
+    private val hashCode by lazy {
+        var result = operator.hashCode()
+        result = 31 * result + expression.hashCode()
+        result = 31 * result + strength.hashCode()
+        result
+    }
+
     override fun toString(): String = "$expression $operator ~ $strength"
 
     override fun equals(other: Any?): Boolean {
@@ -70,10 +77,5 @@ public class Constraint internal constructor(internal val expression: Expression
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = operator.hashCode()
-        result = 31 * result + expression.hashCode()
-        result = 31 * result + strength.hashCode()
-        return result
-    }
+    override fun hashCode(): Int = hashCode
 }

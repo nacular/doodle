@@ -189,8 +189,6 @@ internal class Solver {
     private val objective      = Row()
     private var artificial     = null as Row?
 
-    internal val variables: Set<Variable> get() = vars.keys
-
     fun addConstraints(constraint: Constraint, vararg others: Constraint) {
         addConstraint(constraint)
         others.forEach { addConstraint(it) }
@@ -283,14 +281,7 @@ internal class Solver {
         optimize(objective)
     }
 
-    fun reset() {
-        rows.clear()
-        vars.clear()
-        edits.clear()
-        constraints.clear()
-        infeasibleRows.clear()
-        artificial = null
-    }
+    fun containsEditVariable(variable: Variable) = variable in edits
 
     fun addEditVariable(variable: Variable, strength: Strength) {
         if (edits.containsKey(variable)) {
@@ -314,16 +305,6 @@ internal class Solver {
         removeConstraint(edit.constraint)
 
         edits.remove(variable)
-    }
-
-    fun clearEditVariables() {
-        try {
-            removeConstraints(edits.values.map { it.constraint })
-        } catch (ignore: UnknownConstraintException) {
-
-        }
-
-        edits.clear()
     }
 
     fun suggestValue(variable: Variable, value: Double) {

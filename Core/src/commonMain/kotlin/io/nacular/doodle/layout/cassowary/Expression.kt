@@ -13,7 +13,7 @@ public open class Expression internal constructor(internal vararg val terms: Ter
     /**
      * Computed value of this expression
      */
-    internal open val value: Double get() = terms.filterIsInstance<VariableTerm>().sumOf { it.value } + constant
+    internal open val value: Double get() = terms.sumOf { it.value } + constant
 
     /**
      * `true` if the expression has no terms

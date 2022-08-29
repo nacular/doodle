@@ -21,9 +21,11 @@ import io.nacular.doodle.layout.cassowary.Strength
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Weak
 import io.nacular.doodle.layout.cassowary.Term
+import io.nacular.doodle.layout.cassowary.UnknownEditVariableException
 import io.nacular.doodle.layout.cassowary.Variable
 import io.nacular.doodle.layout.cassowary.VariableTerm
 import io.nacular.doodle.utils.ObservableList
+import io.nacular.doodle.utils._removeAll
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
 
@@ -201,13 +203,14 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
     override fun constrain  (first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit) = constrain  (listOf(first, second), constraintBlock = constraints, block = constraints)
     override fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit) = unconstrain(listOf(first, second) + others, constraints)
 
-    private fun constrain  (views: List<View>, constraintBlock: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout {
+    private fun constrain(views: List<View>, constraintBlock: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout {
         val newConstraints = constraints(views)
         blocks      += block
         blockTracker[views to constraintBlock] = BlockInfo(newConstraints, block)
 
         return this
     }
+
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
         blockTracker.remove(views to constraintBlock)?.let {
             blocks -= it.block
@@ -230,24 +233,38 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
     internal companion object {
 
         fun setupSolver(solver: Solver, context: ConstraintDslContext, updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(), blocks: List<BlockInfo>) {
-            // FIXME NEED FASTER DIFFING
-            val oldConstraints = ObservableList(context.constraints).apply {
+            val oldConstraints = ObservableList(context.constraints) { a, b -> a.hashCode() == b.hashCode() }.apply {
                 changed += { _, removed, added, _ ->
 //                    println("updating solver")
                     solver.removeConstraints(removed.values)
-                    solver.addConstraints(added.values)
 
-                    solver.variables.filter { it.name == "width" || it.name == "height" }.forEach {
+                    removed.values.flatMap {
+                        it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable }
+                    }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
                         try {
-                            val constraint = Constraint(Expression(VariableTerm(it, 1.0)), GE, Required)
-                            solver.addConstraints(constraint)
+                            val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
+                            solver.removeConstraints(constraint)
+                            // FIXME: Track synthetic constraints
+                            println("- synthetic constraint: $constraint")
                         } catch (ignored: Exception) {
                         }
                     }
 
+                    solver.addConstraints(added.values)
+
                     val addedVariables = added.values.flatMap { it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable } }.toSet()
 
                     addedVariables.forEach { variable ->
+                        if (variable.name == "width" || variable.name == "height") {
+                            try {
+                                val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
+                                solver.addConstraints(constraint)
+                                // FIXME: Track synthetic constraints
+                                println("+ synthetic constraint: $constraint")
+                            } catch (ignored: Exception) {
+                            }
+                        }
+
                         val strength = when {
                             variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
                             variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
@@ -266,16 +283,13 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
                     }
                 }
             }
-
             context.constraints.clear()
 
             blocks.forEach {
                 it.block(context, it.constraints)
             }
 
-//        if (context.constraints.size != oldConstraints.size) {
             oldConstraints.replaceAll(context.constraints)
-//        }
         }
 
         fun solve(solver: Solver, context: ConstraintDslContext, activeBounds: MutableSet<ReflectionVariable> = mutableSetOf(), updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf()) {
@@ -304,9 +318,13 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
 
             activeBounds.addAll(updatedBounds)
 
-            (context.parent.width as? Variable )?.let {
+            (context.parent.width as? Variable)?.let {
                 try {
-                    solver.suggestValue(it, context.parent.width.readOnly).apply { "SUGGEST Parent.width: ${context.parent.width.readOnly}" }
+                    if (solver.containsEditVariable(it)) {
+                        solver.suggestValue(it, context.parent.width.readOnly).apply { "SUGGEST Parent.width: ${context.parent.width.readOnly}" }
+                    }
+                } catch (ignore: UnknownEditVariableException) {
+//                    ignore.printStackTrace()
                 } catch (ignore: Exception) {
                     ignore.printStackTrace()
                 }
@@ -314,7 +332,11 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
 
             (context.parent.height as? Variable)?.let {
                 try {
-                    solver.suggestValue(it, context.parent.height.readOnly).apply { "SUGGEST parent.height: ${context.parent.height.readOnly}" }
+                    if (solver.containsEditVariable(it)) {
+                        solver.suggestValue(it, context.parent.height.readOnly).apply { "SUGGEST parent.height: ${context.parent.height.readOnly}" }
+                    }
+                } catch (ignore: UnknownEditVariableException) {
+//                    ignore.printStackTrace()
                 } catch (ignore: Exception) {
                     ignore.printStackTrace()
                 }
@@ -325,16 +347,4 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
             updatedBounds.clear()
         }
     }
-}
-
-@Suppress("FunctionName")
-private fun <E> MutableIterable<E>._removeAll(predicate: (E) -> Boolean): List<E> {
-    val result = mutableListOf<E>()
-    this.removeAll {
-        val r = predicate(it)
-        if (r) { result += it }
-        r
-    }
-
-    return result
 }
