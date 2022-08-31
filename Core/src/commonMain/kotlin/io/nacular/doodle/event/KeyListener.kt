@@ -23,19 +23,29 @@ public interface KeyListener {
 
     public companion object {
         /**
+         * Creates a listener that delegates to the provided lambdas for each event type.
+         *
+         * @param pressed invoked on pointer-exited
+         * @param released invoked on pointer-released
+         */
+        public fun on(
+            pressed : (KeyEvent) -> Unit = {},
+            released: (KeyEvent) -> Unit = {},
+        ): KeyListener = object: KeyListener {
+            inline override fun pressed (event: KeyEvent) = pressed (event)
+            inline override fun released(event: KeyEvent) = released(event)
+        }
+
+        /**
          * @param block invoked on key-pressed
          * @return a Listener that calls [block] on key-pressed.
          */
-        public inline fun pressed(crossinline block: (event: KeyEvent) -> Unit): KeyListener = object: KeyListener {
-            override fun pressed(event: KeyEvent) = block(event)
-        }
+        public inline fun pressed(noinline block: (event: KeyEvent) -> Unit): KeyListener = on(pressed = block)
 
         /**
          * @param block invoked on key-released
          * @return a Listener that calls [block] on key-released.
          */
-        public inline fun released(crossinline block: (event: KeyEvent) -> Unit): KeyListener = object: KeyListener {
-            override fun released(event: KeyEvent) = block(event)
-        }
+        public inline fun released(noinline block: (event: KeyEvent) -> Unit): KeyListener = on(released = block)
     }
 }
