@@ -25,9 +25,6 @@ internal class NativeEventHandlerImpl(
         element.ondblclick    = null
     }
 
-    override fun startConsumingSelectionEvents() { element.onselect = { muteEvent(it) } }
-    override fun stopConsumingSelectionEvents () { element.onselect = null              }
-
     override fun registerFocusListener  () {
         element.onblur  = { onBlur (it) }
         element.onfocus = { onFocus(it) }
@@ -76,6 +73,9 @@ internal class NativeEventHandlerImpl(
     override fun registerInputListener   () { element.oninput  = { onInput(it) } }
     override fun unregisterInputListener () { element.oninput  = null            }
 
+    override fun registerSelectionListener  () { element.onselect = { onSelect(it) } }
+    override fun unregisterSelectionListener() { element.onselect = null }
+
     private fun muteEvent(event: Event, onlySelf: Boolean = false): Boolean {
         if (onlySelf && event.target != element) {
             return true
@@ -95,6 +95,7 @@ internal class NativeEventHandlerImpl(
     private fun onScroll  (event: Event) = true.also { listener.onScroll     (event) }
     private fun onChange  (event: Event) = true.also { listener.onChange     (event) }
     private fun onInput   (event: Event) = true.also { listener.onInput      (event) }
+    private fun onSelect  (event: Event) = true.also { listener.onSelect     (event) }
 
     private fun onFocusIn (event: Event) = true.also { focusManager?.hasFocusOwner = true;  listener.onFocusGained(event) }
     private fun onFocusOut(event: Event) = true.also { focusManager?.hasFocusOwner = false; listener.onFocusLost  (event) }
