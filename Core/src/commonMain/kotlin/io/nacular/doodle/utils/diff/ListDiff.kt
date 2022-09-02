@@ -6,8 +6,9 @@ import io.nacular.doodle.utils.diff.Operation.Insert
 import kotlin.math.min
 
 /**
- * Created by Nicholas Eddy on 8/25/22.
+ * Classes are derived works from [https://github.com/danielearwicker/ListDiff]
  */
+
 internal enum class Operation {
     Delete, Insert, Equal;
 

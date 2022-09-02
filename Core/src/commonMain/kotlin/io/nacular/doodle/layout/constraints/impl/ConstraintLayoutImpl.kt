@@ -1,28 +1,26 @@
-package io.nacular.doodle.layout.cassowary.impl
+package io.nacular.doodle.layout.constraints.impl
 
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.PositionableContainerWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.cassowary.Bounds
-import io.nacular.doodle.layout.cassowary.ConstTerm
-import io.nacular.doodle.layout.cassowary.Constraint
-import io.nacular.doodle.layout.cassowary.ConstraintDslContext
-import io.nacular.doodle.layout.cassowary.ConstraintLayout
-import io.nacular.doodle.layout.cassowary.DuplicateEditVariableException
-import io.nacular.doodle.layout.cassowary.Edges
-import io.nacular.doodle.layout.cassowary.Expression
-import io.nacular.doodle.layout.cassowary.Operator.GE
-import io.nacular.doodle.layout.cassowary.ParentBounds
-import io.nacular.doodle.layout.cassowary.Position
-import io.nacular.doodle.layout.cassowary.Property
-import io.nacular.doodle.layout.cassowary.Solver
-import io.nacular.doodle.layout.cassowary.Strength
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Weak
-import io.nacular.doodle.layout.cassowary.Term
-import io.nacular.doodle.layout.cassowary.Variable
-import io.nacular.doodle.layout.cassowary.VariableTerm
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstTerm
+import io.nacular.doodle.layout.constraints.Constraint
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.Edges
+import io.nacular.doodle.layout.constraints.Expression
+import io.nacular.doodle.layout.constraints.Operator.GE
+import io.nacular.doodle.layout.constraints.ParentBounds
+import io.nacular.doodle.layout.constraints.Position
+import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.Strength
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
+import io.nacular.doodle.layout.constraints.Term
+import io.nacular.doodle.layout.constraints.Variable
+import io.nacular.doodle.layout.constraints.VariableTerm
 import io.nacular.doodle.utils._removeAll
 import io.nacular.doodle.utils.diff.Operation.Delete
 import io.nacular.doodle.utils.diff.Operation.Insert
@@ -139,7 +137,7 @@ internal class ReflectionVariable(
     override fun hashCode() = hashCode
 }
 
-internal class ConstraintLayoutImpl(view: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
+internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLambda: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
     @Suppress("PrivatePropertyName")
     private val parentChanged_ = ::parentChanged
 
@@ -172,7 +170,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
     private val blockTracker = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
 
     init {
-        constrain(listOf(view) + others, block, block)
+        constrain(listOf(view) + others, originalLambda, block)
     }
 
     override fun layout(container: PositionableContainer) {
@@ -188,10 +186,10 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
         solve      (solver, context, activeBounds, updatedBounds)
     }
 
-    override fun constrain  (view: View, constraints: ConstraintDslContext.(Bounds) -> Unit) = constrain  (listOf(view), constraintBlock = constraints) { (a) -> constraints(a) }
+    override fun constrain  (view: View, constraints: ConstraintDslContext.(Bounds) -> Unit) = constrain  (listOf(view), originalLambda = constraints) { (a) -> constraints(a) }
     override fun unconstrain(view: View, constraints: ConstraintDslContext.(Bounds) -> Unit) = unconstrain(listOf(view), constraints)
 
-    override fun constrain  (first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit) = constrain  (listOf(first, second), constraintBlock = constraints) { (a, b) -> constraints(a, b) }
+    override fun constrain  (first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit) = constrain  (listOf(first, second), originalLambda = constraints) { (a, b) -> constraints(a, b) }
     override fun unconstrain(first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit) = unconstrain(listOf(first, second), constraints)
 
     override fun constrain  (first: View, second: View, third: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit) = constrain  (listOf(first, second, third), constraints) { (a, b, c) -> constraints(a, b, c) }
@@ -203,13 +201,13 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
     override fun constrain  (first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit) = constrain  (listOf(first, second, third, fourth, fifth), constraints) { (a, b, c, d, e) -> constraints(a, b, c, d, e) }
     override fun unconstrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit) = unconstrain(listOf(first, second, third, fourth, fifth), constraints)
 
-    override fun constrain  (first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit) = constrain  (listOf(first, second), constraintBlock = constraints, block = constraints)
+    override fun constrain  (first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit) = constrain  (listOf(first, second), originalLambda = constraints, block = constraints)
     override fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit) = unconstrain(listOf(first, second) + others, constraints)
 
-    private fun constrain(views: List<View>, constraintBlock: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout {
+    private fun constrain(views: List<View>, originalLambda: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout {
         val newConstraints = constraints(views)
         blocks      += block
-        blockTracker[views to constraintBlock] = BlockInfo(newConstraints, block)
+        blockTracker[views to originalLambda] = BlockInfo(newConstraints, block)
 
         return this
     }

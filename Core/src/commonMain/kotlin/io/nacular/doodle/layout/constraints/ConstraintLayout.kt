@@ -1,20 +1,22 @@
-package io.nacular.doodle.layout.cassowary
+package io.nacular.doodle.layout.constraints
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.cassowary.Operator.EQ
-import io.nacular.doodle.layout.cassowary.Operator.GE
-import io.nacular.doodle.layout.cassowary.Operator.LE
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
-import io.nacular.doodle.layout.cassowary.impl.BoundsImpl
-import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl
-import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.BlockInfo
-import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.setupSolver
-import io.nacular.doodle.layout.cassowary.impl.ConstraintLayoutImpl.Companion.solve
-import io.nacular.doodle.layout.cassowary.impl.RectangleBounds
+import io.nacular.doodle.layout.constraints.Operator.EQ
+import io.nacular.doodle.layout.constraints.Operator.GE
+import io.nacular.doodle.layout.constraints.Operator.LE
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.impl.BoundsImpl
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.BlockInfo
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
+import io.nacular.doodle.layout.constraints.impl.RectangleBounds
+import io.nacular.doodle.layout.constraints.impl.Solver
+import io.nacular.doodle.layout.constraints.impl.UnsatisfiableConstraintException
 import io.nacular.doodle.utils.observable
 
 /**
@@ -524,7 +526,7 @@ public class ConstraintDslContext internal constructor() {
  * @param block with constraint details
  * @return Layout that constrains the given view
  */
-public fun constrain(a: View, block: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a) { (a) -> block(a) }
+public fun constrain(a: View, block: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, originalLambda = block) { (a) -> block(a) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 2 Views.
@@ -534,7 +536,7 @@ public fun constrain(a: View, block: ConstraintDslContext.(Bounds) -> Unit): Con
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, crossinline block: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, others = emptyArray()) { (a, b) -> block(a, b) }
+public fun constrain(a: View, b: View, block: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, originalLambda = block) { (a, b) -> block(a, b) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 3 Views.
@@ -545,7 +547,7 @@ public inline fun constrain(a: View, b: View, crossinline block: ConstraintDslCo
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c) { (a, b, c) -> block(a, b, c) }
+public fun constrain(a: View, b: View, c: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, originalLambda = block) { (a, b, c) -> block(a, b, c) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 4 Views.
@@ -557,7 +559,7 @@ public inline fun constrain(a: View, b: View, c: View, crossinline block: Constr
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, d: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c, d) { (a, b, c, d) -> block(a, b, c, d) }
+public fun constrain(a: View, b: View, c: View, d: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, originalLambda = block) { (a, b, c, d) -> block(a, b, c, d) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 5 Views.
@@ -570,7 +572,7 @@ public inline fun constrain(a: View, b: View, c: View, d: View, crossinline bloc
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public inline fun constrain(a: View, b: View, c: View, d: View, e: View, crossinline block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = constrain(a, b, c, d, e) { (a, b, c, d, e) -> block(a, b, c, d, e) }
+public fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, e, originalLambda = block) { (a, b, c, d, e) -> block(a, b, c, d, e) }
 
 /**
  * Creates a [ConstraintLayout] that constrains several Views.
@@ -580,7 +582,7 @@ public inline fun constrain(a: View, b: View, c: View, d: View, e: View, crossin
  * @param block with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), block = block)
+public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = block, block = block)
 
 /**
  * Creates a [ConstraintLayout] that constrains a View within a Rectangle.

@@ -1,4 +1,4 @@
-package io.nacular.doodle.layout.cassowary
+package io.nacular.doodle.layout.constraints
 
 import kotlin.math.abs
 

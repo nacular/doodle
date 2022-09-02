@@ -1,4 +1,4 @@
-package io.nacular.doodle.layout
+package io.nacular.doodle.layout.constraints
 
 import io.mockk.every
 import io.mockk.mockk
@@ -18,12 +18,9 @@ import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.cassowary.Bounds
-import io.nacular.doodle.layout.cassowary.Constraint
-import io.nacular.doodle.layout.cassowary.ConstraintDslContext
-import io.nacular.doodle.layout.cassowary.Solver
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Medium
-import io.nacular.doodle.layout.cassowary.constrain
+import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.constraints.impl.Solver
+import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
@@ -40,7 +37,7 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 3/8/22.
  */
-class CassowaryTests {
+class ConstraintLayoutTests {
     @Test fun basic() {
         val child1 = view {}.apply { height = 10.0 }
         val child2 = view {} //.apply { size = Size(50) }
@@ -156,26 +153,12 @@ class CassowaryTests {
         child1.width = 200.0
         container.layout?.layout(container)
 
-        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
 
         child3.x = 500.0
         container.layout?.layout(container)
 
-        expect(200.0, 300.0, 700.0) { listOf(child1, child2, child3).map { it.width } }
-
-        val scheduler = ManualAnimationScheduler()
-
-        renderManager(display = display(container), scheduler = scheduler)
-
-        child2.x -= 10
-//        container.layout?.layout(container)
-
-        scheduler.runJobs()
-
-        child2.x += 100
-//        container.layout?.layout(container)
-
-        scheduler.runJobs()
+        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
     }
 
     @Test fun `display constraints work`() {
@@ -188,7 +171,7 @@ class CassowaryTests {
                 it.top     greaterEq 10,
                 it.left    greaterEq 10,
                 it.right   lessEq    parent.right  - 10,
-                (it.bottom lessEq    parent.bottom - 10).also { println("constraint: $it") },
+                (it.bottom lessEq    parent.bottom - 10),
 
                 (it.width  eq 500) .. Medium,
                 (it.height eq 500) .. Medium).takeLast(1).map { it.getOrThrow() }
@@ -224,7 +207,7 @@ class CassowaryTests {
         expect(Rectangle(10 + 2, 10, 100, 100)) { view.bounds }
     }
 
-    @Test fun `stack issue`() {
+    @Test fun `layout using render manager`() {
         val child1 = NamedView("child1").apply { width = 400.0 }
         val child2 = NamedView("child2").apply { width = 400.0 }
 
@@ -278,7 +261,7 @@ class CassowaryTests {
         val view2 = NamedView("view2")
         val view3 = NamedView("view3")
 
-        container {
+        val container = container {
             this += listOf(view1, view2, view3)
         }
 
@@ -291,12 +274,36 @@ class CassowaryTests {
             v3.width eq 100
         }
 
-        val layout = constrain(view1, view2, view3, constraints)
+        container.layout = constrain(view1, view2, view3, constraints)
 
-        layout.unconstrain(view1, view2, view3, constraints)
+        view1.x      = 67.0
+        view1.height = 67.0
+        view2.y      = 67.0
+        view3.width  = 67.0
+
+        container.layout?.layout(container)
+
+        expect( 23.0) { view1.x      }
+        expect(100.0) { view1.height }
+        expect(100.0) { view2.y      }
+        expect(100.0) { view3.width  }
+
+        (container.layout as ConstraintLayout).unconstrain(view1, view2, view3, constraints)
+
+        view1.x      = 67.0
+        view1.height = 67.0
+        view2.y      = 67.0
+        view3.width  = 67.0
+
+        container.layout?.layout(container)
+
+        expect(67.0) { view1.x      }
+        expect(67.0) { view1.height }
+        expect(67.0) { view2.y      }
+        expect(67.0) { view3.width  }
     }
 
-    @Test fun `foo`() {
+    @Test fun `edges with inset`() {
         val view = view {}
 
         val align: ConstraintDslContext.(Bounds) -> Unit = {

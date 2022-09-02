@@ -1,6 +1,6 @@
-package io.nacular.doodle.layout.cassowary
+package io.nacular.doodle.layout.constraints
 
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import kotlin.jvm.JvmInline
 import kotlin.math.max
 import kotlin.math.min

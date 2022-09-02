@@ -1,8 +1,14 @@
-package io.nacular.doodle.layout.cassowary
+package io.nacular.doodle.layout.constraints.impl
 
-import io.nacular.doodle.layout.cassowary.Operator.*
-import io.nacular.doodle.layout.cassowary.Solver.Type.*
-import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.ConstTerm
+import io.nacular.doodle.layout.constraints.Constraint
+import io.nacular.doodle.layout.constraints.Expression
+import io.nacular.doodle.layout.constraints.Operator.*
+import io.nacular.doodle.layout.constraints.Strength
+import io.nacular.doodle.layout.constraints.impl.Solver.Type.*
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Variable
+import io.nacular.doodle.layout.constraints.VariableTerm
 import kotlin.math.abs
 
 internal class InternalSolverError(val string: String): kotlin.Error()
