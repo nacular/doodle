@@ -744,7 +744,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 var child     = null as View?
                 var topZOrder = 0
 
-                children.reversed().forEach {
+                children.asReversed().forEach {
                     if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
                         child = it
                         topZOrder = it.zOrder
@@ -783,7 +783,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param for The pointer event to generate a tool-tip for
      * @return The text
      */
-    public open fun toolTipText(@Suppress("UNUSED_PARAMETER") `for`: PointerEvent): String = toolTipText
+    public open fun toolTipText(`for`: PointerEvent): String = toolTipText
 
     // TODO: Cache this?
     private val resolvedTransform get() = when {
@@ -898,7 +898,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param old the old display rectangle
      * @param new the new display rectangle
      */
-    @Suppress("UNUSED_PARAMETER")
     protected open fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {}
 
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)

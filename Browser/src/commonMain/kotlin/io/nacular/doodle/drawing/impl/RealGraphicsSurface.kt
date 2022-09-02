@@ -66,24 +66,22 @@ internal class RealGraphicsSurface private constructor(
             rootElement.style.setOpacity(new)
         }
 
-    override var index = 0
-        set(new) {
-            field = new
+    override var index = 0; set(new) {
+        field = new
 
-            when {
-                parent == null && rootElement.parentNode == htmlFactory.root -> {
-                    htmlFactory.root.remove(rootElement       )
-                    htmlFactory.root.insert(rootElement, index)
-                }
-                else -> parent?.setIndex(this, new)
+        when {
+            parent == null && rootElement.parentNode == htmlFactory.root -> {
+                htmlFactory.root.remove(rootElement       )
+                htmlFactory.root.insert(rootElement, index)
             }
+            else -> parent?.setIndex(this, new)
         }
+    }
 
-    override var zOrder = 0
-        set(new) {
-            field = new
-            rootElement.style.zIndex = if (new == 0) "" else "$new"
-        }
+    override var zOrder = 0; set(new) {
+        field = new
+        rootElement.style.zIndex = if (new == 0) "" else "$new"
+    }
 
     lateinit var canvas: Canvas
         private set
@@ -344,7 +342,7 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    private fun add(@Suppress("UNUSED_PARAMETER") child: RealGraphicsSurface) {
+    private fun add(child: RealGraphicsSurface) {
         if (++numChildren == 1) {
             isContainer = true
             setupChildrenClipPath()

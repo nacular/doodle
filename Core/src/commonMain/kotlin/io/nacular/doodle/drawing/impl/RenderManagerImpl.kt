@@ -24,7 +24,7 @@ import io.nacular.doodle.utils.MutableTreeSet
 import io.nacular.doodle.utils.ifTrue
 
 @Internal
-@Suppress("PrivatePropertyName", "NestedLambdaShadowedImplicitParameter")
+@Suppress("NestedLambdaShadowedImplicitParameter")
 public open class RenderManagerImpl(
         private val display             : InternalDisplay,
         private val scheduler           : AnimationScheduler,
@@ -94,7 +94,7 @@ public open class RenderManagerImpl(
     }
 
     override fun renderNow(view: View) {
-        if (view in views && !view.bounds.empty && display ancestorOf view) {
+        if (view in views && !view.bounds.empty && view.displayed) {
             dirtyViews += view
 
             if (view in pendingLayout) {
@@ -118,7 +118,7 @@ public open class RenderManagerImpl(
     }
 
     override fun layoutNow(view: View) {
-        if (layingOut !== view && view.children_.isNotEmpty() && view in views && !view.bounds.empty && display ancestorOf view) {
+        if (layingOut !== view && view.children_.isNotEmpty() && view in views && !view.bounds.empty && view.displayed) {
             pendingLayout += view
             performLayout(view)
         }
@@ -207,7 +207,7 @@ public open class RenderManagerImpl(
         }
     }
 
-    private fun prepareRender(view: View, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !view.bounds.empty) && view in views && display ancestorOf view).ifTrue {
+    private fun prepareRender(view: View, ignoreEmptyBounds: Boolean) = ((ignoreEmptyBounds || !view.bounds.empty) && view in views && view.displayed).ifTrue {
         dirtyViews    += view
         pendingRender += view
     }
@@ -299,7 +299,7 @@ public open class RenderManagerImpl(
         val visibilityChanged  = view in visibilityChanged
         val recursivelyVisible = recursivelyVisible(view)
 
-        val renderable      = (recursivelyVisible || visibilityChanged) && display ancestorOf view
+        val renderable      = (recursivelyVisible || visibilityChanged) && view.displayed
         val graphicsSurface = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
@@ -465,7 +465,6 @@ public open class RenderManagerImpl(
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun visibilityChanged(view: View, old: Boolean, new: Boolean) {
         val parent            = view.parent
         val wasAddedInvisible = view in addedInvisible
@@ -509,17 +508,14 @@ public open class RenderManagerImpl(
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun opacityChanged(view: View, old: Float, new: Float) {
         graphicsDevice[view].opacity = new
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun zOrderChanged(view: View, old: Int, new: Int) {
         graphicsDevice[view].zOrder = new
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean) {
         when (new) {
             true -> registerDisplayRectMonitoring  (view)
@@ -596,12 +592,10 @@ public open class RenderManagerImpl(
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
         graphicsDevice[view].transform = new
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun cameraChanged(view: View, old: Camera, new: Camera) {
         graphicsDevice[view].camera = new
     }
