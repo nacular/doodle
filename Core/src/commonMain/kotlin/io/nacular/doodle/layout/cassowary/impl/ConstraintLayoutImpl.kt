@@ -21,11 +21,12 @@ import io.nacular.doodle.layout.cassowary.Strength
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Required
 import io.nacular.doodle.layout.cassowary.Strength.Companion.Weak
 import io.nacular.doodle.layout.cassowary.Term
-import io.nacular.doodle.layout.cassowary.UnknownEditVariableException
 import io.nacular.doodle.layout.cassowary.Variable
 import io.nacular.doodle.layout.cassowary.VariableTerm
-import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils._removeAll
+import io.nacular.doodle.utils.diff.Operation.Delete
+import io.nacular.doodle.utils.diff.Operation.Insert
+import io.nacular.doodle.utils.diff.compare
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
 
@@ -104,6 +105,12 @@ internal class ReflectionVariable(
     private val term    : ReflectionVariable.() -> Term = { VariableTerm(this) },
     private val mapper  : (Double) -> Double = { it }
 ): Property(), Variable {
+    private val hashCode by lazy {
+        var result = target?.hashCode() ?: 0
+        result = 31 * result + id
+        result
+    }
+
     override val name get() = delegate.name
     override fun invoke() = delegate()
 
@@ -129,11 +136,7 @@ internal class ReflectionVariable(
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = target?.hashCode() ?: 0
-        result = 31 * result + id
-        return result
-    }
+    override fun hashCode() = hashCode
 }
 
 internal class ConstraintLayoutImpl(view: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
@@ -233,112 +236,116 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, block: Cons
     internal companion object {
 
         fun setupSolver(solver: Solver, context: ConstraintDslContext, updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(), blocks: List<BlockInfo>) {
-            val oldConstraints = ObservableList(context.constraints) { a, b -> a.hashCode() == b.hashCode() }.apply {
-                changed += { _, removed, added, _ ->
-//                    println("updating solver")
-                    solver.removeConstraints(removed.values)
-
-                    removed.values.flatMap {
-                        it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable }
-                    }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
-                        try {
-                            val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
-                            solver.removeConstraints(constraint)
-                            // FIXME: Track synthetic constraints
-                            println("- synthetic constraint: $constraint")
-                        } catch (ignored: Exception) {
-                        }
-                    }
-
-                    solver.addConstraints(added.values)
-
-                    val addedVariables = added.values.flatMap { it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable } }.toSet()
-
-                    addedVariables.forEach { variable ->
-                        if (variable.name == "width" || variable.name == "height") {
-                            try {
-                                val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
-                                solver.addConstraints(constraint)
-                                // FIXME: Track synthetic constraints
-                                println("+ synthetic constraint: $constraint")
-                            } catch (ignored: Exception) {
-                            }
-                        }
-
-                        val strength = when {
-                            variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
-                            variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
-                            else                                                                  -> Weak
-                        }
-
-                        try {
-                            solver.addEditVariable(variable, strength)
-                        } catch (ignore: DuplicateEditVariableException) {
-//                        ignore.printStackTrace()
-                        }
-
-                        if (variable() != 0.0) {
-                            solver.suggestValue(variable, variable())//.apply { println("SETUP - SUGGESTING: $it -> ${variable()} ~$strength") }
-                        }
-                    }
-                }
-            }
-            context.constraints.clear()
+            val oldConstraints = context.constraints
+            context.constraints = mutableListOf()
 
             blocks.forEach {
                 it.block(context, it.constraints)
             }
 
-            oldConstraints.replaceAll(context.constraints)
+            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach {
+                when (it.operation) {
+                    Delete -> {
+                        solver.removeConstraints(it.items)
+
+                        it.items.flatMap {
+                            it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable }
+                        }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
+                            try {
+                                val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
+                                solver.removeConstraints(constraint)
+//                                    println("- synthetic constraint: $constraint")
+                            } catch (ignored: Exception) {}
+                        }
+                    }
+                    Insert -> {
+                        solver.addConstraints(it.items)
+
+                        val addedVariables = it.items.flatMap { it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable } }.toSet()
+
+                        addedVariables.forEach { variable ->
+
+                            if (variable.name == "width" || variable.name == "height") {
+                                try {
+                                    val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
+                                    solver.addConstraints(constraint)
+//                                        println("+ synthetic constraint: $constraint")
+                                } catch (ignored: Exception) {}
+                            }
+
+                            val strength = when {
+                                variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
+                                variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
+                                else                                                                  -> Weak
+                            }
+
+                            try {
+                                solver.addEditVariable(variable, strength)
+                            } catch (ignore: DuplicateEditVariableException) {}
+
+                            if (variable() != 0.0) {
+                                solver.suggestValue(variable, variable())
+                            }
+                        }
+                    }
+                    else             -> {}
+                }
+            }
         }
 
         fun solve(solver: Solver, context: ConstraintDslContext, activeBounds: MutableSet<ReflectionVariable> = mutableSetOf(), updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf()) {
+            val suggestAll = false
+
             activeBounds._removeAll { it !in updatedBounds }.forEach {
-//                println("resetting edit: $it")
-                solver.removeEditVariable(it)
+                try {
+                    println("revert edit: $it")
+                    solver.removeEditVariable(it)
+                } catch (ignore: Exception) {}
+
                 solver.addEditVariable(it, Weak)
-                solver.suggestValue(it, it())
+                if (!suggestAll) {
+                    solver.suggestValue(it, it())
+                }
             }
 
             updatedBounds.filter { it !in activeBounds }.forEach {
-//                println("adding edit: $it")
-
                 try {
                     solver.removeEditVariable(it)
-                } catch (ignore: Exception) {
-
-                }
+                } catch (ignore: Exception) {}
 
                 solver.addEditVariable(it, Strength(100))
             }
 
-            updatedBounds.forEach {
-                solver.suggestValue(it, it())//.apply { println("SOLVE - SUGGESTING: $it -> ${it()}") }
+            if (!suggestAll) {
+                updatedBounds.forEach {
+                    solver.suggestValue(it, it())
+                }
             }
 
             activeBounds.addAll(updatedBounds)
 
-            (context.parent.width as? Variable)?.let {
-                try {
-                    if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.width.readOnly).apply { "SUGGEST Parent.width: ${context.parent.width.readOnly}" }
-                    }
-                } catch (ignore: UnknownEditVariableException) {
-//                    ignore.printStackTrace()
-                } catch (ignore: Exception) {
-                    ignore.printStackTrace()
+            if (!suggestAll) {
+                (context.parent.width as? Variable)?.let {
+                    try {
+                        if (solver.containsEditVariable(it)) {
+                            solver.suggestValue(it, context.parent.width.readOnly)
+                        }
+                    } catch (ignore: Exception) {}
+                }
+
+                (context.parent.height as? Variable)?.let {
+                    try {
+                        if (solver.containsEditVariable(it)) {
+                            solver.suggestValue(it, context.parent.height.readOnly)
+                        }
+                    } catch (ignore: Exception) {}
                 }
             }
 
-            (context.parent.height as? Variable)?.let {
-                try {
-                    if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.height.readOnly).apply { "SUGGEST parent.height: ${context.parent.height.readOnly}" }
-                    }
-                } catch (ignore: UnknownEditVariableException) {
-//                    ignore.printStackTrace()
-                } catch (ignore: Exception) {
-                    ignore.printStackTrace()
+            if (suggestAll) {
+                // TODO: Figure out how to retain current state w/o doing this
+                solver.editVariables.forEach {
+                    solver.suggestValue(it, it())
                 }
             }
 

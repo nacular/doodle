@@ -18,7 +18,7 @@ public open class Expression internal constructor(internal vararg val terms: Ter
     /**
      * `true` if the expression has no terms
      */
-    internal open val isConstant: Boolean get() = terms.filterIsInstance<VariableTerm>().isEmpty()
+    internal open val isConstant: Boolean by lazy { terms.filterIsInstance<VariableTerm>().isEmpty() }
 
     /**
      * Provides the Expression's value directly, and does not treat its contents as

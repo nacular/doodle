@@ -36,6 +36,7 @@ internal class Solver {
     }
 
     private inner class Row {
+        var symbol  = null as Symbol?
         var cells   = mutableMapOf<Symbol, Double>(); private set
         var constant: Double; private set
 
@@ -46,7 +47,14 @@ internal class Solver {
         constructor(other: Row) {
             cells.putAll(other.cells)
             constant = other.constant
+
+            cells.keys.forEach {
+                registerSymbol(it)
+            }
         }
+
+        private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { mutableSetOf() }.add(this) }
+        private fun unregisterSymbol(symbol: Symbol) { rowsWithSymbol[symbol]?.remove(this) }
 
         /**
          * Add a constant value to the row constant.
@@ -64,14 +72,13 @@ internal class Solver {
          * is zero, the symbol will be removed from the row
          */
         fun insert(symbol: Symbol, coefficient: Double = 1.0) {
-            var newCoefficient = coefficient
-
-            cells[symbol]?.let {
-                newCoefficient += it
-            }
+            val newCoefficient = cells.getOrPut(symbol) {
+                registerSymbol(symbol)
+                0.0
+            } + coefficient
 
             when {
-                nearZero(newCoefficient) -> cells.remove(symbol)
+                nearZero(newCoefficient) -> cells.remove(symbol).also { unregisterSymbol(symbol) }
                 else                     -> cells[symbol] = newCoefficient
             }
         }
@@ -88,15 +95,7 @@ internal class Solver {
             constant += other.constant * coefficient
 
             for ((symbol, value) in other.cells) {
-                val newCoefficient = value * coefficient
-
-                //changes start here
-                val temp = cells.getOrPut(symbol) { 0.0 } + newCoefficient
-
-                when {
-                    nearZero(temp) -> cells.remove(symbol)
-                    else           -> cells[symbol] = temp
-                }
+                insert(symbol, value * coefficient)
             }
         }
 
@@ -105,12 +104,9 @@ internal class Solver {
          */
         fun reverseSign() {
             constant = -constant
-            val newCells: MutableMap<Symbol, Double> = LinkedHashMap()
-            for (s in cells.keys) {
-                val value = -cells[s]!!
-                newCells[s] = value
+            for ((symbol,value) in cells) {
+                cells[symbol] = -value
             }
-            cells = newCells
         }
 
         /**
@@ -127,14 +123,11 @@ internal class Solver {
          */
         fun solveFor(symbol: Symbol) {
             val coefficient = -1.0 / cells[symbol]!!
-            cells.remove(symbol)
+            cells.remove(symbol).also { unregisterSymbol(symbol) }
             constant *= coefficient
-            val newCells = mutableMapOf<Symbol, Double>()
-            for (s in cells.keys) {
-                val value = cells[s]!! * coefficient
-                newCells[s] = value
+            for ((key, value) in cells) {
+                cells[key] = value * coefficient
             }
-            cells = newCells
         }
 
         /**
@@ -173,9 +166,8 @@ internal class Solver {
          * If the symbol does not exist in the row, this is a no-op.
          */
         fun substitute(symbol: Symbol, row: Row) {
-            if (cells.containsKey(symbol)) {
-                val coefficient = cells[symbol]!!
-                cells.remove(symbol)
+            cells.remove(symbol)?.let { coefficient ->
+                unregisterSymbol(symbol)
                 insert(row, coefficient)
             }
         }
@@ -188,6 +180,9 @@ internal class Solver {
     private val infeasibleRows = mutableListOf<Symbol>()
     private val objective      = Row()
     private var artificial     = null as Row?
+    private val rowsWithSymbol = mutableMapOf<Symbol, MutableSet<Row>>()
+
+    val editVariables get() = edits.keys
 
     fun addConstraints(constraint: Constraint, vararg others: Constraint) {
         addConstraint(constraint)
@@ -230,7 +225,7 @@ internal class Solver {
             else    -> {
                 row.solveFor(subject)
                 substitute(subject, row)
-                rows[subject] = row
+                registerRow(subject, row)
             }
         }
 
@@ -259,7 +254,7 @@ internal class Solver {
         var row = rows[tag.marker]
 
         when {
-            row != null -> rows.remove(tag.marker)
+            row != null -> unregisterRow(tag.marker)
             else        -> {
                 row = getMarkerLeavingRow(tag.marker) ?: throw InternalSolverError("internal solver error")
 
@@ -272,7 +267,7 @@ internal class Solver {
                 if (leaving == null) {
                     throw InternalSolverError("internal solver error")
                 }
-                rows.remove(leaving)
+                unregisterRow(leaving)
                 row.solveFor(leaving, tag.marker)
                 substitute(tag.marker, row)
             }
@@ -329,12 +324,16 @@ internal class Solver {
             dualOptimize()
             return
         }
-        for ((symbol, currentRow) in rows) {
-            val coefficient = currentRow.coefficientFor(info.tag.marker)
-            if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && symbol.type != External) {
-                infeasibleRows.add(symbol)
+
+        rowsWithSymbol[info.tag.marker]?.forEach {
+            if (it.symbol != null) { // FIXME: REMOVE
+                val coefficient = it.coefficientFor(info.tag.marker)
+                if (coefficient != 0.0 && it.add(delta * coefficient) < 0.0 && it.symbol!!.type != External) {
+                    infeasibleRows.add(it.symbol!!)
+                }
             }
         }
+
         dualOptimize()
     }
 
@@ -343,9 +342,8 @@ internal class Solver {
      */
     fun updateVariables() {
         for ((variable, symbol) in vars) {
-            when (val row = rows[symbol]) {
-                null -> {} //variable(0.0)
-                else -> variable(row.constant)
+            rows[symbol]?.let {
+                variable(it.constant)
             }
         }
     }
@@ -475,6 +473,14 @@ internal class Solver {
         return row
     }
 
+    private fun registerRow(symbol: Symbol, row: Row) {
+        rows[symbol] = row.also { it.symbol = symbol }
+    }
+
+    private fun unregisterRow(symbol: Symbol) {
+        rows.remove(symbol)?.let { it.symbol = null }
+    }
+
     /**
      * Add the row to the tableau using an artificial variable.
      *
@@ -486,7 +492,7 @@ internal class Solver {
 
         // Create and add the artificial variable to the tableau
         val art    = Symbol(Slack)
-        rows[art]  = Row(row)
+        registerRow(art, row)
         artificial = Row(row)
 
         // Optimize the artificial objective. This is successful
@@ -506,7 +512,7 @@ internal class Solver {
             val deleteQueue = rows.filter { (_,row) -> row == artificialRow }.map { it.key }
 
             deleteQueue.forEach {
-                rows.remove(it)
+                unregisterRow(it)
             }
 
             if (artificialRow.cells.isEmpty()) {
@@ -521,7 +527,7 @@ internal class Solver {
 
             artificialRow.solveFor(art, entering)
             substitute(entering, artificialRow)
-            rows[entering] = artificialRow
+            registerRow(entering, artificialRow)
         }
 
         // Remove the artificial variable from the tableau.
@@ -540,12 +546,14 @@ internal class Solver {
      * in the tableau and the objective function with the given row.
      */
     private fun substitute(symbol: Symbol, row: Row) {
-        for ((key, value) in rows) {
-            value.substitute(symbol, row)
-            if (key.type != External && value.constant < 0.0) {
+        rowsWithSymbol[symbol]?.filter { it.symbol != null }?.forEach {
+            val key = it.symbol!!
+            it.substitute(symbol, row)
+            if (key.type != External && it.constant < 0.0) {
                 infeasibleRows.add(key)
             }
         }
+
         objective.substitute(symbol, row)
         artificial?.substitute(symbol, row)
     }
@@ -566,10 +574,10 @@ internal class Solver {
             }
             val (leaving, row) = getLeavingRow(entering) ?: throw InternalSolverError("The objective is unbounded.")
 
-            rows.remove(leaving)
+            unregisterRow(leaving)
             row.solveFor(leaving, entering)
             substitute(entering, row)
-            rows[entering] = row
+            registerRow(entering, row)
         }
     }
 
@@ -583,10 +591,10 @@ internal class Solver {
                 if (entering.type == Invalid) {
                     throw InternalSolverError("Dual optimize failed")
                 }
-                rows.remove(leaving)
+                unregisterRow(leaving)
                 row.solveFor(leaving, entering)
                 substitute(entering, row)
-                rows[entering] = row
+                registerRow(entering, row)
             }
         }
     }

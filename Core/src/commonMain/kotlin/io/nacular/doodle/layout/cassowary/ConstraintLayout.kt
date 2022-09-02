@@ -272,7 +272,7 @@ public class ConstraintDslContext internal constructor() {
 
     public lateinit var parent: ParentBounds internal set
 
-    internal val constraints = mutableListOf<Constraint>()
+    internal var constraints = mutableListOf<Constraint>()
 
     private var strength = Required
 
@@ -339,7 +339,7 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Expression.minus(property: Property  ): Expression = this + -property
     public operator fun Expression.minus(value   : Number    ): Expression = this + -value.toDouble()
 
-    public operator fun Expression.times(coefficient: Number    ): Expression = Expression(*terms.map { it * coefficient.toDouble() }.toTypedArray(), constant = constant * coefficient.toDouble()) // TODO Do we need to make a copy of the term objects in the array?
+    public operator fun Expression.times(coefficient: Number    ): Expression = Expression(*Array(terms.size) { terms[it] * coefficient.toDouble() }, constant = constant * coefficient.toDouble()) // TODO Do we need to make a copy of the term objects in the array?
     public operator fun Expression.times(other      : Expression): Expression = when {
         isConstant       -> constant       * other
         other.isConstant -> other.constant * this
