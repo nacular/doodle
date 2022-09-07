@@ -523,20 +523,20 @@ public class ConstraintDslContext internal constructor() {
  * Creates a [ConstraintLayout] that constrains a single View.
  *
  * @param a View being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given view
  */
-public fun constrain(a: View, block: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, originalLambda = block) { (a) -> block(a) }
+public fun constrain(a: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, originalLambda = constraints) { (a) -> constraints(a) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 2 Views.
  *
  * @param a first View being constrained
  * @param b second View being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, block: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, originalLambda = block) { (a, b) -> block(a, b) }
+public fun constrain(a: View, b: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, originalLambda = constraints) { (a, b) -> constraints(a, b) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 3 Views.
@@ -544,10 +544,10 @@ public fun constrain(a: View, b: View, block: ConstraintDslContext.(Bounds, Boun
  * @param a first View being constrained
  * @param b second View being constrained
  * @param c third View being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, c: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, originalLambda = block) { (a, b, c) -> block(a, b, c) }
+public fun constrain(a: View, b: View, c: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, originalLambda = constraints) { (a, b, c) -> constraints(a, b, c) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 4 Views.
@@ -556,10 +556,10 @@ public fun constrain(a: View, b: View, c: View, block: ConstraintDslContext.(Bou
  * @param b second View being constrained
  * @param c third View being constrained
  * @param d fourth View being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, c: View, d: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, originalLambda = block) { (a, b, c, d) -> block(a, b, c, d) }
+public fun constrain(a: View, b: View, c: View, d: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, originalLambda = constraints) { (a, b, c, d) -> constraints(a, b, c, d) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 5 Views.
@@ -569,42 +569,40 @@ public fun constrain(a: View, b: View, c: View, d: View, block: ConstraintDslCon
  * @param c third View being constrained
  * @param d fourth View being constrained
  * @param e fifth View being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, c: View, d: View, e: View, block: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, e, originalLambda = block) { (a, b, c, d, e) -> block(a, b, c, d, e) }
+public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, e, originalLambda = constraints) { (a, b, c, d, e) -> constraints(a, b, c, d, e) }
 
 /**
  * Creates a [ConstraintLayout] that constrains several Views.
  *
  * @param a first View being constrained
  * @param b remaining Views being constrained
- * @param block with constraint details
+ * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain(a: View, b: View, vararg others: View, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = block, block = block)
+public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
- * Creates a [ConstraintLayout] that constrains a View within a Rectangle.
+ * Applies the given constraints to the View as though the View's parent were the given rectangle.
  *
  * @param view being constrained
  * @param within this rectangle
- * @param block with constraint details
- * @return Layout that constrains the given view
+ * @param constraints to be applied
  */
 //@kotlin.contracts.ExperimentalContracts
-public fun constrain(view: View, within: Rectangle, block: ConstraintDslContext.(Bounds) -> Unit) {
+public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
 //    contract {
 //        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
 //    }
 
-    val solver      = Solver()
-    val context     = ConstraintDslContext()
-    val constraints = listOf(BoundsImpl(view, context))
+    val solver  = Solver()
+    val context = ConstraintDslContext()
 
     context.parent = RectangleBounds(within, context)
 
-    setupSolver(solver, context, blocks = listOf(BlockInfo(constraints) { (a) -> block(a) }))
+    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) }))
     solve(solver, context)
 
     view.position += within.position

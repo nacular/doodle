@@ -178,7 +178,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             parent = when (container) {
                 is View                         -> ParentBoundsImpl(container,      this).also { parent_ = container      }
                 is PositionableContainerWrapper -> ParentBoundsImpl(container.view, this).also { parent_ = container.view }
-                else                            -> DisplayBonds  (container, this)
+                else                            -> DisplayBonds    (container,      this)
             }
         }
 
@@ -296,7 +296,6 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
 
             activeBounds._removeAll { it !in updatedBounds }.forEach {
                 try {
-                    println("revert edit: $it")
                     solver.removeEditVariable(it)
                 } catch (ignore: Exception) {}
 
