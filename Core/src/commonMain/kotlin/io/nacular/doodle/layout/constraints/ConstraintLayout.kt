@@ -297,6 +297,15 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Property.div       (denominator: Number): Term = this * 1.0 / denominator
     public operator fun Property.unaryMinus(                   ): Term = this * -1.0
 
+    /**
+     * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
+     *
+     * ```
+     * this eq this.readOnly
+     * ```
+     */
+    public val Property.preserve: Result<Constraint> get() = this eq this.readOnly
+
     public        fun min(a: Property, b: Property  ): Term       = min(a.toTerm(), b.toTerm())
     public inline fun min(a: Property, b: Term      ): Term       = min(1 * a, b)
     public inline fun min(a: Property, b: Expression): Expression = min(1 * a, b)
@@ -317,16 +326,13 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Term.minus(property  : Property  ): Expression = this + -property
     public operator fun Term.minus(constant  : Number    ): Expression = this + -constant.toDouble()
 
-//    public operator fun Term.times     (constant   : Number): Term = Term(variable, coefficient * constant.toDouble())
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
-//    public        fun max(a: Term, b: Term      ): Term       = Term(MaxProperty(a.variable, b.variable), max(a.coefficient, b.coefficient))
     public inline fun min(a: Term, b: Property  ): Term       = min(a, 1 * b)
     public inline fun min(a: Term, b: Expression): Expression = min(a + 0, b)
     public        fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
 
-//    public        fun max(a: Term, b: Term      ): Term       = Term(MaxProperty(a.variable, b.variable), max(a.coefficient, b.coefficient))
     public inline fun max(a: Term, b: Property  ): Term       = max(a, 1 * b)
     public inline fun max(a: Term, b: Expression): Expression = max(a + 0, b)
     public        fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
@@ -441,9 +447,6 @@ public class ConstraintDslContext internal constructor() {
     public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
     public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
 
-//    @Suppress("INVALID_CHARACTERS") @JvmName("lessEq1") @JsName("lessEq1")
-//    public infix fun Property.`<=`(expression: Expression               ): Constraint = Term(this as Variable) lessEq expression
-
     public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
     public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
     public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
@@ -492,6 +495,22 @@ public class ConstraintDslContext internal constructor() {
 
         (right  eq other.right ).also { result += it }
         (bottom eq other.bottom).also { result += it }
+
+        return result
+    }
+
+    public infix fun Edges.eq(rectangle: Rectangle): List<Result<Constraint>> {
+        val result = mutableListOf<Result<Constraint>>()
+
+        if (top != null) {
+            (top eq rectangle.y).also { result += it }
+        }
+        if (left != null) {
+            (left eq rectangle.x).also { result += it }
+        }
+
+        (right  eq rectangle.right ).also { result += it }
+        (bottom eq rectangle.bottom).also { result += it }
 
         return result
     }
@@ -602,7 +621,7 @@ public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslCo
 
     context.parent = RectangleBounds(within, context)
 
-    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) }))
+    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) })) {}
     solve(solver, context)
 
     view.position += within.position
