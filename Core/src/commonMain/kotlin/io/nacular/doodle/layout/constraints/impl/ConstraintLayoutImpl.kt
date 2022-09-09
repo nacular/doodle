@@ -268,7 +268,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                                     val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
                                     solver.addConstraints(constraint)
 //                                        println("+ synthetic constraint: $constraint")
-                                } catch (ignored: Exception) {}
+                                } catch (ignore: Exception) {}
                             }
 
                             val strength = when {
@@ -279,7 +279,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
 
                             try {
                                 solver.addEditVariable(variable, strength)
-                            } catch (ignore: DuplicateEditVariableException) {}
+                            } catch (ignore: Exception) {}
 
                             if (variable() != 0.0) {
                                 solver.suggestValue(variable, variable())
@@ -291,18 +291,20 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
         }
 
-        fun solve(solver: Solver, context: ConstraintDslContext, activeBounds: MutableSet<ReflectionVariable> = mutableSetOf(), updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf()) {
-            val suggestAll = false
-
+        fun solve(solver       : Solver,
+                  context      : ConstraintDslContext,
+                  activeBounds : MutableSet<ReflectionVariable> = mutableSetOf(),
+                  updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf()
+        ) {
             activeBounds._removeAll { it !in updatedBounds }.forEach {
                 try {
                     solver.removeEditVariable(it)
                 } catch (ignore: Exception) {}
 
-                solver.addEditVariable(it, Weak)
-                if (!suggestAll) {
+                try {
+                    solver.addEditVariable(it, Weak)
                     solver.suggestValue(it, it())
-                }
+                } catch (ignore: Exception) {}
             }
 
             updatedBounds.filter { it !in activeBounds }.forEach {
@@ -310,44 +312,47 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                     solver.removeEditVariable(it)
                 } catch (ignore: Exception) {}
 
-                solver.addEditVariable(it, Strength(100))
+                try {
+                    solver.addEditVariable(it, Strength(100))
+                } catch (ignore: Exception) {}
             }
 
-            if (!suggestAll) {
-                updatedBounds.forEach {
+            updatedBounds.forEach {
+                try {
                     solver.suggestValue(it, it())
-                }
+                } catch (ignore: Exception) {}
             }
 
             activeBounds.addAll(updatedBounds)
 
-            if (!suggestAll) {
-                (context.parent.width as? Variable)?.let {
-                    try {
-                        if (solver.containsEditVariable(it)) {
-                            solver.suggestValue(it, context.parent.width.readOnly)
-                        }
-                    } catch (ignore: Exception) {}
-                }
-
-                (context.parent.height as? Variable)?.let {
-                    try {
-                        if (solver.containsEditVariable(it)) {
-                            solver.suggestValue(it, context.parent.height.readOnly)
-                        }
-                    } catch (ignore: Exception) {}
-                }
+            (context.parent.width as? Variable)?.let {
+                try {
+                    if (solver.containsEditVariable(it)) {
+                        solver.suggestValue(it, context.parent.width.readOnly)
+                    }
+                } catch (ignore: Exception) {}
             }
 
-            if (suggestAll) {
-                // TODO: Figure out how to retain current state w/o doing this
-                solver.editVariables.forEach {
-                    solver.suggestValue(it, it())
-                }
+            (context.parent.height as? Variable)?.let {
+                try {
+                    if (solver.containsEditVariable(it)) {
+                        solver.suggestValue(it, context.parent.height.readOnly)
+                    }
+                } catch (ignore: Exception) {}
             }
+
+            updatedBounds.clear()
 
             solver.updateVariables()
 
+            // Hold anything that changes. These should all have Weak strength
+            updatedBounds.filter { it !in activeBounds }.forEach {
+                try {
+                    solver.suggestValue(it, it())
+                } catch (ignore: Exception) {}
+            }
+
+            // Cleanup holds
             updatedBounds.clear()
         }
     }

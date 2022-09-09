@@ -40,30 +40,17 @@ import kotlin.test.expect
 class ConstraintLayoutTests {
     @Test fun basic() {
         val child1 = view {}.apply { height = 10.0 }
-        val child2 = view {} //.apply { size = Size(50) }
+        val child2 = view {}
         val container = container {
             this += listOf(child1, child2)
         }
 
         container.layout = constrain(child1, child2) { a, b ->
-//            a.bottom eq parent.bottom - 10
-//            a.right  eq parent.right  - 10
-
-//            (a.width eq 100) .. Weak
-
-//            a.width lessEq parent.width
-
             a.width    eq parent.width  - 10
             a.height   eq parent.height - 10
             b.width    eq 50
             b.height   eq 50
             b.centerX  eq parent.centerX
-
-//            b.top `<=` parent.bottom
-
-//            b.width      lessEq     a.width
-//            b.width      greaterEq                  10
-//            parent.width eq                         50
         }
 
         container.size = Size(200)
