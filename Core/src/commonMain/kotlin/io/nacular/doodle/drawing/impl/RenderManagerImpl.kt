@@ -103,12 +103,9 @@ public open class RenderManagerImpl(
 
             val parent = view.parent
 
-            if (parent != null && (parent in neverRendered || parent in dirtyViews)) {
-                renderNow(parent)
-            } else {
-                performRender(view).rendered.ifTrue {
-                    pendingRender -= view
-                }
+            when {
+                parent != null && (parent in neverRendered || parent in dirtyViews) -> renderNow(parent)
+                performRender(view).rendered                                        -> pendingRender -= view
             }
         }
     }
@@ -303,7 +300,7 @@ public open class RenderManagerImpl(
         val graphicsSurface = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
-            if (view in neverRendered) {
+            if (recursivelyVisible && !view.size.empty && view in neverRendered) {
                 graphicsSurface.transform = view.transform
                 graphicsSurface.camera    = view.camera
                 graphicsSurface.opacity   = view.opacity
@@ -424,9 +421,7 @@ public open class RenderManagerImpl(
 
         if (view !in pendingRender) {
             moved.forEach {
-                val surface = graphicsDevice[it.value.second]
-
-                surface.index = it.key
+                graphicsDevice[it.value.second].index = it.key
             }
         }
 
