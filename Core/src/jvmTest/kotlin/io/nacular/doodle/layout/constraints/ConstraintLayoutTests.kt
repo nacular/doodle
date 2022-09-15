@@ -56,10 +56,6 @@ class ConstraintLayoutTests {
         container.size = Size(200)
         container.layout?.layout(container)
 
-        println(container.bounds)
-        println(child1.bounds)
-        println(child2.bounds)
-
         expect(Size ( 50   )) { child2.size }
         expect(Point( 75, 0)) { child2.position }
         expect(Size (200   )) { container.size }
@@ -140,12 +136,12 @@ class ConstraintLayoutTests {
         child1.width = 200.0
         container.layout?.layout(container)
 
-        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
 
         child3.x = 500.0
         container.layout?.layout(container)
 
-        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
     }
 
     @Test fun `display constraints work`() {
@@ -173,8 +169,8 @@ class ConstraintLayoutTests {
 
         val solver = Solver()
         repeat(1) {
-            solver.addConstraints(c)
-            solver.removeConstraints(c)
+            c.forEach { solver.addConstraint   (it) }
+            c.forEach { solver.removeConstraint(it) }
         }
 
         expect(80.0) { view.height }
@@ -387,7 +383,6 @@ class ConstraintLayoutTests {
         fun runJobs() {
             while (tasks.isNotEmpty()) {
                 val running = ArrayList(tasks)
-                println("tasks.length: ${tasks.size}")
                 tasks.clear()
 
                 running.forEach {
@@ -395,11 +390,6 @@ class ConstraintLayoutTests {
                     it.second(0 * Time.milliseconds)
                 }
             }
-
-//            tasks.forEach {
-//                it.first.completed = true
-//                it.second(0 * Time.milliseconds)
-//            }
         }
 
         override fun onNextFrame(job: (Measure<Time>) -> Unit): Task {
