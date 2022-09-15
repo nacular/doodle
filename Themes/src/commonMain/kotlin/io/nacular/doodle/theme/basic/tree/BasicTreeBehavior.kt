@@ -48,10 +48,11 @@ import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T>() {
     override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = Rectangle(
-            tree.insets.left,
-            tree.insets.top + index * height,
-            max(tree.width - tree.insets.run { left + right }, contentBounds(tree, node, path, index, current).right),
-            height)
+        tree.insets.left,
+        tree.insets.top + index * height,
+        max(0.0, tree.width - tree.insets.run { left + right }),
+        height
+    )
 
     override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = when (current) {
         is TreeRow<*> -> current.content.bounds.let { it.at(y = it.y + index * height) }
@@ -59,7 +60,7 @@ private class BasicTreeRowPositioner<T>(private val height: Double): RowPosition
             // FIXME: Centralize
             val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
             val indent   = height * (1 + depth)
-            val maxWidth = tree.width - tree.insets.run { left + right } - indent
+            val maxWidth = max(0.0, tree.width - tree.insets.run { left + right } - indent)
 
             Rectangle(tree.insets.left + indent, tree.insets.top + index * height, maxWidth, height)
         }
@@ -87,6 +88,8 @@ public open class BasicTreeRowGenerator<T>(
                 }
             }
         }
+    }.apply {
+        tree.cellAlignment?.let { positioner = it }
     }
 }
 

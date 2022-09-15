@@ -13,4 +13,5 @@ internal interface NativeEventListener {
     fun onScroll     (event: Event) = true
     fun onChange     (event: Event) = true
     fun onInput      (event: Event) = true
+    fun onSelect     (event: Event) = true
 }

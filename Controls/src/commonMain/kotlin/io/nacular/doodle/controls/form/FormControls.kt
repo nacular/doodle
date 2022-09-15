@@ -8,6 +8,7 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.SimpleListModel
+import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
 import io.nacular.doodle.controls.buttons.CheckBox
@@ -747,6 +748,225 @@ public fun <T> spinner(
 
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select a single option from a list. This control lets a user ignore selection entirely,
+ * which would result in a `null` value. This is behaves like [optionalRadioList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param model for the list
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun <T, M: ListModel<T>> optionalSingleChoiceList(
+    model         : M,
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<T?> = field {
+    io.nacular.doodle.controls.list.List(
+        model,
+        itemVisualizer,
+        selectionModel = SingleItemSelectionModel(),
+        fitContent     = fitContents
+    ).apply {
+        var itemIndex = 0
+        val items     = model.asIterable().iterator()
+
+        initial.fold({it}, null)?.let { value ->
+            while (items.hasNext()) {
+                val item = items.next()
+
+                if (item == value) {
+                    setSelection(setOf(itemIndex))
+                    break
+                }
+
+                itemIndex += 1
+            }
+        }
+
+        state            = Valid(selection.minOfOrNull { it }?.let { this[it].getOrNull() })
+        isFocusCycleRoot = false
+
+        selectionChanged += { _,_,_ ->
+            state = Valid(selection.minOfOrNull { it }?.let { this[it].getOrNull() })
+        }
+
+        config(this)
+    }
+}
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select a single option from a list. This control lets a user ignore selection entirely,
+ * which would result in a `null` value. This is behaves like [optionalRadioList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun <T> optionalSingleChoiceList(
+    first: T,
+    vararg rest : T,
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSingleChoiceList(
+    SimpleListModel(listOf(first) + rest),
+    itemVisualizer,
+    fitContents,
+    config
+)
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select a single option from a list. This control lets a user ignore selection entirely,
+ * which would result in a `null` value. This is behaves like [optionalRadioList].
+ *
+ * @param progression to use for values
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun optionalSingleChoiceList(
+    progression   : IntProgression,
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int?> = optionalSingleChoiceList(
+    IntProgressionModel(progression),
+    itemVisualizer,
+    fitContents,
+    config
+)
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select a single option from a list. This is behaves like [radioList].
+ *
+ * @param T is the type of the items in the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun <T, M: ListModel<T>> singleChoiceList(
+    first: T,
+    vararg rest : T,
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = singleChoiceList(
+    SimpleListModel(listOf(first) + rest),
+    itemVisualizer,
+    fitContents,
+    config
+)
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
+ * lets a user select a single option from a list.
+ *
+ * @param progression to use for values
+ * @param itemVisualizer used to render items in the list
+ * @param fitContents signaling whether the list should scale with its contents
+ * @param config used to control the resulting component
+ */
+public fun singleChoiceList(
+    progression: IntProgression,
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int> = singleChoiceList(
+    IntProgressionModel(progression),
+    itemVisualizer,
+    fitContents,
+    config
+)
+private fun <T, M: ListModel<T>> singleChoiceList(
+    model         : M,
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    fitContents   : Set<Dimension> = setOf(Height),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+
+    class ForcedSingleItemSelectionModel<T>: MultiSelectionModel<T>() {
+        override fun add(item: T): Boolean {
+            var result = false
+
+            observableSet.batch {
+                clear()
+                result = add(item)
+            }
+
+            return result
+        }
+
+        override fun addAll(items: Collection<T>): Boolean {
+            if (observableSet.firstOrNull() in items) {
+                return false
+            }
+
+            return items.lastOrNull()?.let { add(it) } ?: false
+        }
+
+        override fun replaceAll(items: Collection<T>): Boolean = items.lastOrNull()?.let { super.replaceAll(listOf(it)) } ?: false
+
+        override fun toggle(items: Collection<T>): Boolean {
+            if (observableSet.firstOrNull() in items) {
+                return false
+            }
+
+            var result = false
+
+            observableSet.batch {
+                items.forEach {
+                    result = remove(it)
+                    if (!result) {
+                        clear()
+                        result = add(it)
+                    }
+                }
+            }
+
+            return result
+        }
+    }
+
+    io.nacular.doodle.controls.list.List(
+        model,
+        itemVisualizer,
+        selectionModel = ForcedSingleItemSelectionModel(),
+        fitContent     = fitContents
+    ).apply {
+        val items = model.asIterable().iterator()
+
+        initial.fold({it}, null)?.let { value ->
+            var itemIndex = 0
+
+            while (items.hasNext()) {
+                val item = items.next()
+
+                if (item == value) {
+                    setSelection(setOf(itemIndex))
+                    break
+                }
+
+                itemIndex += 1
+            }
+        }
+
+        state            = selection.firstOrNull()?.let { Valid(this[it].getOrThrow()) } ?: Invalid()
+        isFocusCycleRoot = false
+
+        selectionChanged += { _,_,_ ->
+            state = Valid(this[selection.first()].getOrThrow())
+        }
+
+        config(this)
+    }
+}
+
+/**
+ * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
  * which would result in an empty list. It is similar to a [checkList].
  *
@@ -756,7 +976,6 @@ public fun <T> spinner(
  * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
-@Suppress("UNCHECKED_CAST")
 public fun <T, M: ListModel<T>> list(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
@@ -852,13 +1071,19 @@ public fun list(
  */
 public class NamedConfig internal constructor(public val label: Label) {
     /**
-     * Defines the layout for the named container.
+     * @param spacing that determines the space between the label and field
+     * @return the default layout
      */
-    public var layout: (container: View, field: View) -> Layout? = { container,_ ->
+    public fun defaultLayout(spacing: Double = DEFAULT_SPACING): (container: View, field: View) -> Layout? = { container,_ ->
         label.fitText = setOf(Width)
 
-        ExpandingVerticalLayout(container, DEFAULT_SPACING, DEFAULT_HEIGHT)
+        ExpandingVerticalLayout(container, spacing, DEFAULT_HEIGHT)
     }
+
+    /**
+     * Defines the layout for the named container.
+     */
+    public var layout: (container: View, field: View) -> Layout? = defaultLayout()
 
     /**
      * Specifies named container insets.
@@ -888,7 +1113,7 @@ public class Always(text: StyledText): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String): this(StyledText(text))
+    public constructor(text: String = "*"): this(StyledText(text))
 }
 
 /**
@@ -901,7 +1126,7 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String): this(StyledText(text))
+    public constructor(text: String = "*"): this(StyledText(text))
 }
 
 /**
@@ -914,7 +1139,7 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  */
 public fun <T> labeled(
         name        : StyledText,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid(" *"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val label         = UninteractiveLabel(name)
@@ -953,7 +1178,7 @@ public fun <T> labeled(
  */
 public fun <T> labeled(
         name        : String,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
 
 /**
@@ -993,7 +1218,7 @@ public class LabeledConfig internal constructor(public val name: Label, public v
 public fun <T> labeled(
         name        : StyledText,
         help        : StyledText,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
         val nameLabel     = UninteractiveLabel(name)
@@ -1035,7 +1260,7 @@ public fun <T> labeled(
 public fun <T> labeled(
         name        : String,
         help        : String,
-        showRequired: RequiredIndicatorStyle? = WhenInvalid("*"),
+        showRequired: RequiredIndicatorStyle? = WhenInvalid(),
         visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(
         StyledText(name),
         StyledText(help),

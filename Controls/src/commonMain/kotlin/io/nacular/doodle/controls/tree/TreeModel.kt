@@ -23,9 +23,13 @@ public interface TreeModel<T> {
     public fun indexOfChild(parent: Path<Int>, child: T  ): Int
 }
 
-public typealias ModelObserver<T> = (source: MutableTreeModel<T>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
+public typealias ModelObserver<T> = (source: DynamicTreeModel<T>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
 
-public interface MutableTreeModel<T>: TreeModel<T> {
+public interface DynamicTreeModel<T>: TreeModel<T> {
+    public val changed: Pool<ModelObserver<T>>
+}
+
+public interface MutableTreeModel<T>: DynamicTreeModel<T> {
     public operator fun set(path: Path<Int>, value: T): Result<T>
 
     public fun add        (path : Path<Int>, values: T            )
@@ -34,8 +38,6 @@ public interface MutableTreeModel<T>: TreeModel<T> {
     public fun removeAllAt(paths: Collection<Path<Int>>           )
 
     public fun clear()
-
-    public val changed: Pool<ModelObserver<T>>
 }
 
 public open class TreeNode<T>(public open val value: T, public open val children: List<TreeNode<T>> = emptyList()) {
@@ -52,7 +54,7 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
         var node = success(root) as Result<TreeNode<T>>
 
         path.forEach { index ->
-            node = node.map { it.children[index] }
+            node = node.mapCatching { it.children[index] }
 
 //            node = node.onSuccess { it.children.getOrNull(index)?.let { success(it) } ?: failure(IllegalArgumentException()) }
 
@@ -68,13 +70,12 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
 
     override fun isLeaf(node: Path<Int>): Boolean = node(node).getOrNull()?.children?.isEmpty() ?: true
 
-    override fun child(of: Path<Int>, path: Int): Result<T> = node(of).map { it.children[path].value }
+    override fun child(of: Path<Int>, path: Int): Result<T> = node(of).mapCatching { it.children[path].value }
 
     override fun numChildren(of: Path<Int>): Int = node(of).getOrNull()?.children?.size ?: -1
 
     override fun indexOfChild(parent: Path<Int>, child: T): Int = node(parent).getOrNull()?.children?.map { it.value }?.indexOf(child) ?: -1
 }
-
 
 public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeModel<T, MutableTreeNode<T>>(root), MutableTreeModel<T> {
     override operator fun set(path: Path<Int>, value: T): Result<T> {

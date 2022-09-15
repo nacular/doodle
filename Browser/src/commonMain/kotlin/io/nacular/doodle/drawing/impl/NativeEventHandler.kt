@@ -12,9 +12,6 @@ internal interface NativeEventHandler {
     fun startConsumingPointerPressEvents()
     fun stopConsumingPointerPressEvents ()
 
-    fun startConsumingSelectionEvents()
-    fun stopConsumingSelectionEvents ()
-
     fun registerFocusListener  ()
     fun unregisterFocusListener()
 
@@ -35,4 +32,7 @@ internal interface NativeEventHandler {
 
     fun registerInputListener  ()
     fun unregisterInputListener()
+
+    fun registerSelectionListener  ()
+    fun unregisterSelectionListener()
 }

@@ -62,6 +62,9 @@ public interface ObservableList<E>: MutableList<E> {
         public operator fun <E> invoke(             ): ObservableList<E> = ObservableListImpl(mutableListOf     ())
         public operator fun <E> invoke(list: List<E>): ObservableList<E> = ObservableListImpl(list.toMutableList())
 
+        internal operator fun <E> invoke(               equality: (E, E) -> Boolean = { a, b -> a == b }): ObservableList<E> = ObservableListImpl(mutableListOf     (), equality)
+        internal operator fun <E> invoke(list: List<E>, equality: (E, E) -> Boolean = { a, b -> a == b }): ObservableList<E> = ObservableListImpl(list.toMutableList(), equality)
+
         internal fun <E> wrap(list: MutableList<E>): ObservableList<E> = ObservableListImpl(list)
     }
 }
@@ -74,7 +77,7 @@ public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>
     batch { sortWith(comparator.reversed()) }
 }
 
-public open class ObservableListImpl<E> internal constructor(private val list: MutableList<E>): ObservableList<E>, MutableList<E> by list {
+public open class ObservableListImpl<E> internal constructor(private val list: MutableList<E>, private val equality: (E, E) -> Boolean = { a, b -> a == b }): ObservableList<E>, MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
     public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
@@ -142,29 +145,6 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
     public override fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
 
-    private class Move<T>(val from: Int, val to:Int, val value: T) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Move<*>) return false
-
-//            if (value != other.value) return false
-
-            if (from !in listOf(other.from, other.to  )) return false
-            if (to   !in listOf(other.to,   other.from)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            val first = min(from, to)
-            val last  = max(from, to)
-
-            var result = first
-            result = 31 * result + last
-            return result
-        }
-    }
-
     public override fun <T> batch(block: MutableList<E>.() -> T): T = if (changed_.isEmpty()) {
         list.run(block)
     } else {
@@ -172,7 +152,7 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
         val old = ArrayList(list)
 
         list.run(block).also {
-            diffLists(old, this)?.let { diffs ->
+            diffLists(old, this, equality)?.let { diffs ->
                 changed_.forEach {
                     it(this, diffs.removed, diffs.added, diffs.moved)
                 }
@@ -247,8 +227,18 @@ private class Move<T>(var from: Int, var to:Int, var value: T) {
     }
 }
 
-internal fun <T> diffLists(old: List<T>, new: List<T>): DiffResult<T>? {
-    if (old != new) {
+private fun <T> List<T>.isEqual(other: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Boolean {
+    if (size != other.size) return false
+
+    repeat(size - 1) { index ->
+        if (!by(this[index], other[index])) return false
+    }
+
+    return true
+}
+
+internal fun <T> diffLists(old: List<T>, new: List<T>, equality: (T, T) -> Boolean): DiffResult<T>? {
+    if (!old.isEqual(new, equality)) {
         val removed       = mutableMapOf<Int, T>()
         val added         = mutableMapOf<Int, T>()
         val uniqueMoved   = mutableListOf<Move<T>>()
@@ -256,7 +246,7 @@ internal fun <T> diffLists(old: List<T>, new: List<T>): DiffResult<T>? {
 
         old.forEachIndexed { index, item ->
             if (index >= new.size || new[index] != item) {
-                when (val newIndex = unusedIndexes.firstOrNull { new.getOrNull(it) == item }) {
+                when (val newIndex = unusedIndexes.firstOrNull { i -> new.getOrNull(i)?.let { equality(it, item) } ?: false }) {
                     null -> removed[index] = item
                     else -> {
                         uniqueMoved += Move(from = index, to = newIndex, value = item)
@@ -294,7 +284,7 @@ internal fun <T> diffLists(old: List<T>, new: List<T>): DiffResult<T>? {
         unusedIndexes.forEach {
             val item = new[it]
 
-            if (it >= old.size || old[it] != item) {
+            if (it >= old.size || !equality(old[it], item)) {
                 added[it] = item
 
                 // Adjust all the moves

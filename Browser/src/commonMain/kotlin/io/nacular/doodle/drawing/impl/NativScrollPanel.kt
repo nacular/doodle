@@ -217,15 +217,13 @@ internal class NativeScrollPanel internal constructor(
     }
 
     private fun updateScroll() {
-        updateStickySize()
-    }
+        scheduler.now {
+            val size = when (val content = panel.content) {
+                null -> panel.size
+                else -> Size(min(content.width, max(0.0, panel.width - barWidth)), min(content.height, max(0.0, panel.height - barHeight)))
+            }
 
-    private fun updateStickySize() {
-        val size = when (val content = panel.content) {
-            null -> panel.size
-            else -> Size(min(content.width, max(0.0, panel.width - barWidth)), min(content.height, max(0.0, panel.height - barHeight)))
+            (spacerDiv.firstChild as? HTMLElement)?.style?.setSize(size)
         }
-
-        (spacerDiv.firstChild as? HTMLElement)?.style?.setSize(size)
     }
 }

@@ -42,6 +42,7 @@ class LeastRecentlyUsedCacheTests {
         cache.addAndVerify("b", "B"); expect(2) { cache.size }
         cache.addAndVerify("c", "C"); expect(3) { cache.size }
         cache.addAndVerify("d", "D"); expect(3) { cache.size }
+        cache.addAndVerify("b", "B"); expect(3) { cache.size }
 
         expect(mapOf(
                 "b" to "B",

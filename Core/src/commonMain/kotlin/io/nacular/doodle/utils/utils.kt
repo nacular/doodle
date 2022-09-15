@@ -39,6 +39,18 @@ public fun <T> MutableList<T>.addOrAppend(at: Int, value: T): Unit = when {
     else      -> add(    value).run {}
 }
 
+@Suppress("FunctionName")
+internal fun <E> MutableIterable<E>._removeAll(predicate: (E) -> Boolean): List<E> {
+    val result = mutableListOf<E>()
+    this.removeAll {
+        val r = predicate(it)
+        if (r) { result += it }
+        r
+    }
+
+    return result
+}
+
 /**
  * Splits the character sequence based on a regex into a set of [MatchedChunk]s,
  * which indicates the match and the delimiter that separates it from its neighbor

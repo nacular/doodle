@@ -99,7 +99,6 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             textField)
 }
 
-@Suppress("PrivatePropertyName")
 internal class NativeTextField(
                     eventHandlerFactory  : NativeEventHandlerFactory,
         private val idGenerator          : IdGenerator,
@@ -237,10 +236,11 @@ internal class NativeTextField(
         }
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
-            registerKeyListener  ()
-            registerFocusListener()
-            registerClickListener()
-            registerInputListener()
+            registerKeyListener      ()
+            registerFocusListener    ()
+            registerClickListener    ()
+            registerInputListener    ()
+            registerSelectionListener()
         }
 
         textField.apply {
@@ -313,6 +313,14 @@ internal class NativeTextField(
         if (!ignoreSync && focusManager?.focusOwner == textField) {
             focusManager.clearFocus()
         }
+    }
+
+    override fun onSelect(event: Event) = true.also {
+        textField.select(selection)
+    }
+
+    override fun onClick(event: Event) = true.also {
+        textField.select(selection)
     }
 
     private fun select(range: ClosedRange<Int>) = inputElement.setSelectionRange(range.start, range.endInclusive)

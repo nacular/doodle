@@ -110,7 +110,7 @@ public class TreeRow<T>(
 
             field = new
 
-            layout = constrainLayout(children[0])
+            updateLayout()
         }
 
     private var icon    = null as TreeRowIcon?
@@ -127,8 +127,8 @@ public class TreeRow<T>(
             }
         }
 
-    private  val iconWidth   = 20.0
-    private  var pointerOver = false
+    private val iconWidth   = 20.0
+    private var pointerOver = false
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
         if (tree.selected(path)) {
@@ -139,9 +139,9 @@ public class TreeRow<T>(
     private lateinit var constraintLayout: ConstraintLayout
 
     init {
-        focusable     = false
-        children     += content
-        styleChanged += { rerender() }
+        focusable       = false
+        children       += content
+        styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
             private var pressed   = false
 
@@ -191,10 +191,12 @@ public class TreeRow<T>(
             // Override the parent for content to confine it within a smaller region
             ConstraintWrapper(content) { parent ->
                 object: ParentConstraintWrapper(parent) {
-                    override val top    = VerticalConstraint  (this@TreeRow) { insetTop }
-                    override val left   = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth) }
-                    override val width  = MagnitudeConstraint (this@TreeRow) { it.width - iconWidth * (1 + depth) }
-                    override val height = MagnitudeConstraint (this@TreeRow) { it.height - insetTop }
+                    override val top    = VerticalConstraint  (this@TreeRow) { insetTop                            }
+                    override val left   = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth)             }
+                    override val width  = MagnitudeConstraint (this@TreeRow) { it.width  - iconWidth * (1 + depth) }
+                    override val right  = HorizontalConstraint(this@TreeRow) { it.width  - iconWidth * (1 + depth) }
+                    override val height = MagnitudeConstraint (this@TreeRow) { it.height - insetTop                }
+                    override val bottom = VerticalConstraint  (this@TreeRow) { it.height - insetTop                }
                 }
             }
         )
@@ -213,15 +215,11 @@ public class TreeRow<T>(
         val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
 
         if (newDepth != depth) {
-            depth            = newDepth
-            constraintLayout = constrainLayout(content)
-
-            constrainIcon(icon)
-
-            layout = constraintLayout
+            depth = newDepth
+            updateLayout()
         }
 
-        if (tree.isLeaf(this.path)) {
+        if (tree.isLeaf(path)) {
             icon?.let {
                 this.children -= it
                 constraintLayout.unconstrain(it)
@@ -229,8 +227,8 @@ public class TreeRow<T>(
             icon = null
         } else  {
             icon = icon ?: iconFactory().apply {
-                width    = iconWidth
-                height   = width
+                width  = iconWidth
+                height = width
 
                 this@TreeRow.children += this
 
@@ -295,6 +293,14 @@ public class TreeRow<T>(
 
     override fun render(canvas: Canvas) {
         backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorPaint(it)) }
+    }
+
+    private fun updateLayout() {
+        constraintLayout = constrainLayout(content)
+
+        constrainIcon(icon)
+
+        layout = constraintLayout
     }
 
     private fun constrainIcon(icon: TreeRowIcon?) {

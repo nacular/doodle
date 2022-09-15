@@ -6,7 +6,9 @@ import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.intersect
 import io.nacular.doodle.utils.observable
+import io.nacular.doodle.utils.size
 import kotlin.math.max
 import kotlin.math.min
 
@@ -59,23 +61,32 @@ public abstract class TextInput(text: String = "", protected val role: TextBoxRo
         deleteSelected()
 
         insert(text, selection.start)
-
-        val selectionStart = min(selection.start + text.length, text.length)
-
-        select(selectionStart .. selectionStart)
     }
 
     public fun insert(text: String, at: Int) {
-        this.text = text.substring(0, at) + text + text.substring(at)
+        this.text = this.text.substring(0, at) + text + this.text.substring(at)
+
+        when {
+            at < selection.start -> select(selection.start + text.length .. selection.end + text.length)
+            at < selection.end   -> select(selection.start               .. selection.end + text.length)
+        }
     }
 
     public fun deleteSelected(): Unit = delete(selection.start .. selection.end)
 
     public fun delete(range: ClosedRange<Int>) {
-        if (range.start >= 0 && range.endInclusive <= text.length) {
+        if (range.size >= 0 && range.start >= 0 && range.endInclusive <= text.length) {
             val newText = text.substring(0, range.start) + text.substring(range.endInclusive)
 
-            select(min(newText.length, selection.position) .. min(newText.length, selection.anchor))
+            val leftShift = if (range.start < selection.start) {
+                min(selection.start, range.endInclusive) - range.start
+            } else 0
+
+            val selectionOverlap = (selection.start .. selection.end).intersect(range)
+
+            val selectStart = minOf(newText.length, selection.start - leftShift)
+
+            select(selectStart .. min(newText.length, selection.end - selectionOverlap.size - leftShift))
 
             text = newText
         }
@@ -86,10 +97,10 @@ public abstract class TextInput(text: String = "", protected val role: TextBoxRo
         val end   = range.endInclusive
 
         if (selection.position != start &&
-                start >= 0 &&
-                start <= text.length || selection.anchor != end &&
-                end   >= 0 &&
-                end   <= text.length) {
+            start              >= 0 &&
+            start              <= text.length || selection.anchor != end &&
+            end                >= 0 &&
+            end                <= text.length) {
 
             cursorVisible = true
             selection     = Selection(start, end)

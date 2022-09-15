@@ -154,21 +154,24 @@ public operator fun AffineTransform.times(transform: ProjectionTransform): Proje
 
 internal val SquareMatrix<Double>.is3d: Boolean get() = !isIdentity && numColumns > 3
 
-internal operator fun SquareMatrix<Double>.invoke(point: Vector3D): Vector3D = this(points = arrayOf(point)).first()
-
-internal operator fun SquareMatrix<Double>.invoke(vararg points: Vector3D): List<Vector3D> = this(points.toList())
-
-internal operator fun SquareMatrix<Double>.invoke(points: List<Vector3D>): List<Vector3D> = when {
-    isIdentity -> points
-    else       -> points.map {
-        val list    = arrayOf(arrayOf(it.x), arrayOf(it.y), if (is3d) arrayOf(it.z) else arrayOf(1.0), arrayOf(1.0))
+internal operator fun SquareMatrix<Double>.invoke(point: Vector3D): Vector3D = when {
+    isIdentity -> point
+    else       -> {
+        val list    = arrayOf(arrayOf(point.x), arrayOf(point.y), if (is3d) arrayOf(point.z) else arrayOf(1.0), arrayOf(1.0))
         val l: (Int, Int) -> Double = { row, col -> list[row][col] }
-        val point   = matrixOf(numRows, 1, l)
-        val product = this * point
+        val point_   = matrixOf(numRows, 1, l)
+        val product = this * point_
 
         when (val w = product[numRows - 1, 0]) {
             1.0, 0.0 -> Vector3D(product[0, 0],     product[1, 0],     product[2, 0]    )
             else     -> Vector3D(product[0, 0] / w, product[1, 0] / w, product[2, 0] / w)
         }
     }
+}
+
+internal operator fun SquareMatrix<Double>.invoke(vararg points: Vector3D): List<Vector3D> = points.map { invoke(it) }
+
+internal operator fun SquareMatrix<Double>.invoke(points: List<Vector3D>): List<Vector3D> = when {
+    isIdentity -> points
+    else       -> points.map { invoke(it) }
 }
