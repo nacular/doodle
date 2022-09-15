@@ -632,7 +632,7 @@ public fun constrain(a: View, b: View, vararg others: View, constraints: Constra
  * @throws ConstraintException
  */
 //@kotlin.contracts.ExperimentalContracts
-public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
+internal fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
 //    contract {
 //        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
 //    }
