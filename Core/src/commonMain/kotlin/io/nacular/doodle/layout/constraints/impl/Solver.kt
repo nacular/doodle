@@ -2,12 +2,15 @@ package io.nacular.doodle.layout.constraints.impl
 
 import io.nacular.doodle.layout.constraints.ConstTerm
 import io.nacular.doodle.layout.constraints.Constraint
+import io.nacular.doodle.layout.constraints.ConstraintException
+import io.nacular.doodle.layout.constraints.DuplicateConstraintException
 import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Dummy
@@ -54,12 +57,7 @@ import kotlin.math.abs
 /**
  * Unrecoverable error within the Solver.
  */
-internal class InternalSolverError(val string: String): kotlin.Error()
-
-/**
- * Thrown when a duplicate constraint is added to the Solver
- */
-internal class DuplicateConstraintException(val constraint: Constraint): Exception(constraint.toString())
+internal class InternalSolverError(message: String): ConstraintException(message)
 
 internal class DuplicateEditVariableException: Exception()
 
@@ -68,8 +66,6 @@ internal class RequiredFailureException: Exception()
 internal class UnknownConstraintException(val constraint: Constraint): Exception(constraint.toString())
 
 internal class UnknownEditVariableException: Exception()
-
-internal class UnsatisfiableConstraintException(constraint: Constraint): Exception(constraint.toString())
 
 internal class Solver {
     private class Tag {
@@ -247,19 +243,6 @@ internal class Solver {
     private var artificial     = null as Row?
     private val rowsWithSymbol = mutableMapOf<Symbol, MutableSet<Row>>()
 
-    val editVariables get() = edits.keys
-
-    fun addConstraints(constraint: Constraint, vararg others: Constraint) {
-        addConstraint(constraint)
-        others.forEach { addConstraint(it) }
-    }
-
-    fun addConstraints(constraints: Iterable<Constraint>) {
-        for (item in constraints) {
-            addConstraint(item)
-        }
-    }
-
     /**
      * Add a constraint to the solver.
      *
@@ -267,7 +250,7 @@ internal class Solver {
      * @throws DuplicateConstraintException The given constraint has already been added to the solver.
      * @throws UnsatisfiableConstraintException The given constraint is required and cannot be satisfied.
      */
-    private fun addConstraint(constraint: Constraint) {
+    fun addConstraint(constraint: Constraint) {
         if (constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
@@ -299,18 +282,7 @@ internal class Solver {
         optimize(objective)
     }
 
-    fun removeConstraints(constraint: Constraint, vararg others: Constraint) {
-        removeConstraint(constraint)
-        others.forEach { removeConstraint(it) }
-    }
-
-    fun removeConstraints(constraints: Iterable<Constraint>) {
-        for (item in constraints) {
-            removeConstraint(item)
-        }
-    }
-
-    private fun removeConstraint(constraint: Constraint) {
+    fun removeConstraint(constraint: Constraint) {
         val tag = constraints[constraint] ?: throw UnknownConstraintException(constraint)
 
         constraints.remove(constraint)

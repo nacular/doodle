@@ -16,7 +16,7 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
 import io.nacular.doodle.layout.constraints.impl.RectangleBounds
 import io.nacular.doodle.layout.constraints.impl.Solver
-import io.nacular.doodle.layout.constraints.impl.UnsatisfiableConstraintException
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.observable
 
 /**
@@ -165,6 +165,11 @@ public abstract class ConstraintLayout: Layout {
      * @return Layout with constraints removed
      */
     public abstract fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout
+
+    /**
+     * Notified whenever an unhandled [ConstraintException] is thrown during layout.
+     */
+    public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
 }
 
 /**
@@ -258,6 +263,21 @@ public interface Bounds: BaseBounds {
     /** The rectangle's left edge */
     public val left: Property
 }
+
+/**
+ * Any error that can be raised when applying constrains.
+ */
+public open class ConstraintException internal constructor(message: String?): Exception(message)
+
+/**
+ * Thrown when a duplicate [Constraint] is added.
+ */
+public class DuplicateConstraintException(public val constraint: Constraint): ConstraintException(constraint.toString())
+
+/**
+ * Indicates a [Constraint] is unsatisfiable.
+ */
+public class UnsatisfiableConstraintException(public val constraint: Constraint): ConstraintException(constraint.toString())
 
 /**
  * Block within which constraints can be defined and captured.
@@ -609,6 +629,7 @@ public fun constrain(a: View, b: View, vararg others: View, constraints: Constra
  * @param view being constrained
  * @param within this rectangle
  * @param constraints to be applied
+ * @throws ConstraintException
  */
 //@kotlin.contracts.ExperimentalContracts
 public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
@@ -621,8 +642,8 @@ public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslCo
 
     context.parent = RectangleBounds(within, context)
 
-    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) })) {}
-    solve(solver, context)
+    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) })) { throw  it }
+    solve(solver, context) { throw  it }
 
     view.position += within.position
 }

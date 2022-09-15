@@ -12,6 +12,7 @@ import io.mockk.verify
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.event.Interaction
 import io.nacular.doodle.event.Pointer
 import io.nacular.doodle.event.PointerEvent
@@ -36,13 +37,11 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.PropertyObserver
-import org.junit.Ignore
 import kotlin.test.Test
 
 /**
  * Created by Nicholas Eddy on 2/27/18.
  */
-@Suppress("FunctionName")
 class PointerInputManagerImplTests {
     @Test @JsName("correctDefaultCursorOnInit")
     fun `correct default cursor on init`() {
@@ -503,7 +502,7 @@ class PointerInputManagerImplTests {
     }
 
     @Test @JsName("pointersCleanedUpWhenViewDisabled")
-    fun `pointers cleaned up when view disabled`() {
+    fun `cleans up pointers when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()
         val display        = display()
         val inputService   = mockk<PointerInputService>()
@@ -533,6 +532,47 @@ class PointerInputManagerImplTests {
             child.handlePointerEvent_(pointerEvent(child, child, id = 0, Enter, Point(1.0, 1.0), emptySet(), 0, emptySet()))
             child.handlePointerEvent_(pointerEvent(child, child, id = 0, Down,  Point(1.0, 1.0), emptySet(), 0, emptySet()))
             child.handlePointerEvent_(pointerEvent(child, child, id = 1, Down,  Point(1.0, 1.0), emptySet(), 0, emptySet()))
+        }
+    }
+
+    @Test
+    fun `cleans up listeners on exit`() {
+        val cursorChanged    = slot<PropertyObserver<View, Cursor?>>()
+        val enabledChanged   = slot<PropertyObserver<View, Boolean>>()
+        val boundsChanged    = slot<PropertyObserver<View, Rectangle>>()
+        val transformChanged = slot<PropertyObserver<View, AffineTransform>>()
+        val display          = display()
+        val inputService     = mockk<PointerInputService>()
+        val child            = focusableView().apply {
+            every { this@apply.cursorChanged    += capture(cursorChanged   ) } just Runs
+            every { this@apply.enabledChanged   += capture(enabledChanged  ) } just Runs
+            every { this@apply.boundsChanged    += capture(boundsChanged   ) } just Runs
+            every { this@apply.transformChanged += capture(transformChanged) } just Runs
+        }
+
+        every { display.child(any()            ) } returns null
+        every { display.child(Point(10.0, 10.0)) } returns child
+
+        display.children += child
+
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl(display))
+
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
+
+        verify {
+            child.cursorChanged    += any()
+            child.enabledChanged   += any()
+            child.boundsChanged    += any()
+            child.transformChanged += any()
+        }
+
+        manager.changed(SystemPointerEvent(0, Type.Move, Point(20.0, 20.0), emptySet(), 0, emptySet()))
+
+        verify {
+            child.cursorChanged    -= cursorChanged.captured
+            child.enabledChanged   -= enabledChanged.captured
+            child.boundsChanged    -= boundsChanged.captured
+            child.transformChanged -= transformChanged.captured
         }
     }
 
