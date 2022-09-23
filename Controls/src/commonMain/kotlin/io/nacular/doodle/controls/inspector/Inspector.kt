@@ -11,10 +11,10 @@ import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.ConstraintBlockContext
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.HorizontalFlowLayout
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Extractor
 import kotlin.math.max
 
@@ -23,7 +23,7 @@ public abstract class Field<T>: Positionable
 public class NamedField<T, C>(private val name           : String,
                               private val nameVisualizer : ItemVisualizer<String, Any>,
                               private val valueVisualizer: ItemVisualizer<T, C>,
-                              private val layout         : (ConstraintBlockContext.(Constraints, Constraints) -> Unit)?
+                              private val layout         : (ConstraintDslContext.(Bounds, Bounds) -> Unit)?
 ): ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C): View = object: View() {
         init {

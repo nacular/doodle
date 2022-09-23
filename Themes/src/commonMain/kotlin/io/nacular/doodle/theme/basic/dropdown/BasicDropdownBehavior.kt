@@ -40,18 +40,16 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.ConstraintBlockContext
-import io.nacular.doodle.layout.ConstraintLayout
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.ParentConstraints
-import io.nacular.doodle.layout.center
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.fill
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
+import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
-import io.nacular.doodle.theme.basic.ConstraintWrapper
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
@@ -80,7 +78,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
-    internal var buttonAlignment: (Constraints.() -> Unit) = fill
+    internal var buttonAlignment: (ConstraintDslContext.(Bounds) -> Unit) = fill
 
     private inner class ButtonIcon(private val colors: (Button) -> Color): Icon<Button> {
         override fun size(view: Button) = Size(buttonWidth, max(0.0, view.height - 2 * INSET))
@@ -179,6 +177,8 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             backgroundSelectionColor        = hoverColorMapper(this@BasicDropdownBehavior.backgroundColor),
             backgroundSelectionBlurredColor = null) {
         init {
+            insetTop = 0.0
+
             pointerFilter += clicked {
                 dropdown.selection = this.index
                 hideList(dropdown)
@@ -306,10 +306,10 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         view.children += listOf(center, button)
         view.layout = constrain(center, button) { (center, button) ->
-            center.top    = parent.top    + INSET
-            center.left   = parent.left   + INSET
-            center.right  = parent.right  - constant(buttonWidth + INSET)
-            center.bottom = parent.bottom - INSET
+            center.top    eq INSET
+            center.left   eq INSET
+            center.right  eq parent.right  - (buttonWidth + INSET)
+            center.bottom eq parent.bottom - INSET
 
             buttonAlignment(button)
         }
@@ -364,10 +364,6 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = centerView(dropdown)) {
         viewContainer(dropdown)?.let { centerView ->
-            centerView.firstOrNull()?.let {
-                (centerView.layout as? ConstraintLayout)?.unconstrain(it)
-            }
-
             centerView.children.clear()
 
             centerView += newValue
@@ -385,13 +381,15 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     internal fun visualizedValue(dropdown: Dropdown<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()
 
     private fun updateAlignment(dropdown: Dropdown<T, M>, centerView: Container) {
-        val constrains: ConstraintBlockContext.(Constraints) -> Unit = {
-            (dropdown.boxCellAlignment ?: center)(it)
+        val constrains: ConstraintDslContext.(Bounds) -> Unit = {
+            withSizeInsets(width = INSET) {
+                (dropdown.boxCellAlignment ?: center)(it)
+            }
         }
 
         centerView.firstOrNull()?.let { child ->
             when (val l = centerView.layout) {
-                is ConstraintLayout -> { l.unconstrain(child); l.constrain(child, constrains) }
+                is ConstraintLayout -> { l.unconstrain(child, constrains); l.constrain(child, constrains) }
                 else                -> centerView.layout = constrain(child, constrains)
             }
         }
@@ -400,14 +398,9 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             val alignment = dropdown.listCellAlignment ?: dropdown.boxCellAlignment ?: center
 
             cellAlignment = {
-                alignment(ConstraintWrapper(this) { parent ->
-                    object: ParentConstraints by parent {
-                        override val width   = parent.width - buttonWidth
-                        override val centerX = left + width / 2
-                        override val center  = centerX to centerY
-                        override val right   = left + width
-                    }
-                })
+                withSizeInsets(width = buttonWidth + INSET) {
+                    alignment(it)
+                }
             }
         }
     }

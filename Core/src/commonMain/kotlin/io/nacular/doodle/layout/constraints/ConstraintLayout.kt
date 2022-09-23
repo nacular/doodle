@@ -1,5 +1,6 @@
 package io.nacular.doodle.layout.constraints
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
@@ -14,10 +15,16 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.BlockInfo
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
-import io.nacular.doodle.layout.constraints.impl.RectangleBounds
+import io.nacular.doodle.layout.constraints.impl.ImmutableSizeBounds
+import io.nacular.doodle.layout.constraints.impl.ReflectionVariable
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.observable
+
+
+public val center              : (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center         }
+public val fill                : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges          }
+public fun fill(insets: Insets): (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges + insets }
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -283,7 +290,7 @@ public class UnsatisfiableConstraintException(public val constraint: Constraint)
  * Block within which constraints can be defined and captured.
  */
 @Suppress("MemberVisibilityCanBePrivate", "NOTHING_TO_INLINE")
-public class ConstraintDslContext internal constructor() {
+public open class ConstraintDslContext internal constructor() {
     /**
      * The common parent of all Views being constrained
      */
@@ -295,8 +302,6 @@ public class ConstraintDslContext internal constructor() {
     public lateinit var parent: ParentBounds internal set
 
     internal var constraints = mutableListOf<Constraint>()
-
-    private var strength = Required
 
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint))
@@ -432,17 +437,17 @@ public class ConstraintDslContext internal constructor() {
 
     public class NonlinearExpressionException: Exception()
 
-    public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, strength))
+    public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, Required))
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
     public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
     public infix fun Expression.eq(constant: Number    ): Result<Constraint> = this eq Expression(constant = constant.toDouble())
 
-    public infix fun Expression.lessEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, LE, strength))
+    public infix fun Expression.lessEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, LE, Required))
     public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
     public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
     public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
 
-    public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, strength))
+    public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, Required))
     public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
     public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
     public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
@@ -556,6 +561,126 @@ public class ConstraintDslContext internal constructor() {
         this.forEach { it.getOrNull()?.strength = strength }
         return this
     }
+
+    public fun Bounds.withOffset(top: Double? = null, left: Double? = null): Bounds = when {
+        top == 0.0 && left == 0.0 -> this
+        else                      -> withOffset(top = top?.let { OffsetTransformer(it) }, left = left?.let { OffsetTransformer(it) })
+    }
+
+    private fun Bounds.withOffset(
+        top : Transformer<Double>? = null,
+        left: Transformer<Double>? = null,
+    ): Bounds = object: Bounds by this {
+        override val top  = adapter(this@withOffset.top  as ReflectionVariable, top )
+        override val left = adapter(this@withOffset.left as ReflectionVariable, left)
+
+        val t = this.top
+        val l = this.left
+
+        override val right   by lazy { with(this@ConstraintDslContext) { l + width      } }
+        override val centerX by lazy { with(this@ConstraintDslContext) { l + width  / 2 } }
+        override val bottom  by lazy { with(this@ConstraintDslContext) { t + height     } }
+        override val centerY by lazy { with(this@ConstraintDslContext) { t + height / 2 } }
+
+        override val center  by lazy { with(this@ConstraintDslContext) { Position(left = centerX, top = centerY) } }
+        override val edges   by lazy { with(this@ConstraintDslContext) { Edges(top = t + 0, left = l + 0, right = right, bottom = bottom) } }
+    }
+}
+
+internal interface Transformer<T> {
+    fun set(value: T): T
+    fun get(value: T): T
+}
+
+public class OffsetTransformer(private val offset: Double): Transformer<Double> {
+    public override fun set(value: Double): Double = value + offset
+    public override fun get(value: Double): Double = value - offset
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is OffsetTransformer) return false
+
+        if (offset != other.offset) return false
+
+        return true
+    }
+
+    override fun toString(): String = "+/- $offset"
+
+    override fun hashCode(): Int = offset.hashCode()
+}
+
+internal class PropertyWrapper(
+    internal val variable   : ReflectionVariable,
+    private  val transformer: Transformer<Double>,
+): Property(), Variable {
+    private val isConst      by lazy { variableTerm is ConstTerm }
+    private val variableTerm by lazy { variable.toTerm()         }
+
+    override val name     get() = variable.name
+    override val readOnly get() = invoke()
+
+    override fun toTerm() = when {
+        isConst -> ConstTerm   (this, variableTerm.coefficient)
+        else    -> VariableTerm(this, variableTerm.coefficient)
+    }
+    override fun invoke  (             ) = transformer.get(variable())
+    override fun invoke  (value: Double) = variable(transformer.set(value))
+    override fun equals  (other: Any?  ) = variable == other
+    override fun hashCode(             ) = variable.hashCode()
+    override fun toString(             ) = "$variable [$transformer]"
+}
+
+internal class ConstPropertyWrapper(
+    internal val variable   : ReflectionVariable,
+    private  val transformer: Transformer<Double>,
+): Property(), Variable {
+    override val name     get() = variable.name
+    override val readOnly get() = invoke()
+
+    override fun toTerm  (             ) = ConstTerm(this, variable.toTerm().coefficient)
+    override fun invoke  (             ) = transformer.get(variable())
+    override fun invoke  (value: Double) = variable(transformer.set(value))
+    override fun toString(             ) = "$variable [$transformer]"
+}
+
+private fun adapter(variable: ReflectionVariable, transformer: Transformer<Double>?, forceConst: Boolean = false): Property = transformer?.let {
+    if (forceConst) ConstPropertyWrapper(variable, transformer) else PropertyWrapper(variable, transformer)
+} ?: variable
+
+public fun ConstraintDslContext.withSizeInsets(
+    width : Double? = null,
+    height: Double? = null,
+    block : ConstraintDslContext.() -> Unit
+): Unit = when {
+    width == 0.0 && height == 0.0 -> block(this)
+    else                          -> this@withSizeInsets.withSizeInsets(width = width?.let { OffsetTransformer(it) }, height = height?.let { OffsetTransformer(it) }, block)
+}
+
+private fun ConstraintDslContext.withSizeInsets(
+    width : Transformer<Double>? = null,
+    height: Transformer<Double>? = null,
+    block : ConstraintDslContext.() -> Unit
+) {
+    this.apply {
+        val oldParent = parent
+        parent = object: ParentBounds {
+            override val width = adapter(this@withSizeInsets.parent.width as ReflectionVariable, width, forceConst = true)
+            override val right   by lazy { 0 + this.width }
+            override val centerX by lazy { 0 + this.width / 2 }
+
+            override val height = adapter(this@withSizeInsets.parent.height as ReflectionVariable, height, forceConst = true)
+            override val bottom  by lazy { 0 + this.height }
+            override val centerY by lazy { 0 + this.height / 2 }
+
+            override val center by lazy { Position(left = centerX, top = centerY) }
+            override val edges  by lazy { Edges(right = right, bottom = bottom) }
+        }
+
+        block(this)
+
+        parent = oldParent
+    }
 }
 
 /**
@@ -632,7 +757,8 @@ public fun constrain(a: View, b: View, vararg others: View, constraints: Constra
  * @throws ConstraintException
  */
 //@kotlin.contracts.ExperimentalContracts
-internal fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
+@Internal
+public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
 //    contract {
 //        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
 //    }
@@ -640,7 +766,8 @@ internal fun constrain(view: View, within: Rectangle, constraints: ConstraintDsl
     val solver  = Solver()
     val context = ConstraintDslContext()
 
-    context.parent = RectangleBounds(within, context)
+    context.parent  = ImmutableSizeBounds(width_ = within::width, height_ = within::height, context)
+    context.parent_ = view.parent
 
     setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) })) { throw  it }
     solve(solver, context) { throw  it }

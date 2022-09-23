@@ -16,8 +16,6 @@ import io.nacular.doodle.event.KeyListener.Companion.released
 import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.ParentConstraints
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.Encoder
@@ -26,12 +24,6 @@ import io.nacular.doodle.utils.HorizontalAlignment
 /**
  * Created by Nicholas Eddy on 6/23/20.
  */
-public class ConstraintWrapper(delegate: Constraints, parent: (ParentConstraints) -> ParentConstraints): Constraints by delegate {
-    override val parent: ParentConstraints = parent(delegate.parent)
-}
-
-public open class ParentConstraintWrapper(delegate: ParentConstraints): ParentConstraints by delegate
-
 public typealias ColorMapper = (Color) -> Color
 
 public open class GenericTextEditOperation<T, V>(

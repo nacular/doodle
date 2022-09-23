@@ -7,7 +7,8 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.core.View
-import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.PropertyObservers
@@ -35,9 +36,9 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
                         header         : View?,
-                        headerAlignment: (Constraints.() -> Unit)? = null,
+                        headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
                         cellGenerator  : CellVisualizer<T, R>,
-                        cellAlignment  : (Constraints.() -> Unit)? = null,
+                        cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
                         preferredWidth : Double? = null,
                         minWidth       : Double  = 0.0,
                         maxWidth       : Double? = null,

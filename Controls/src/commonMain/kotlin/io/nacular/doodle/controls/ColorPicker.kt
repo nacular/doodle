@@ -23,9 +23,7 @@ import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.max
-import io.nacular.doodle.layout.min
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
 import io.nacular.doodle.system.Cursor.Companion.Grab
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
@@ -172,9 +170,9 @@ public class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    = min(parent.right - handle.width, max(0.0, parent.left + parent.width * { this@Strip.ratio } - handle.width / 2))
-                it.centerY = parent.centerY
-                it.height  = it.parent.height
+                it.left    eq min(parent.right - handle.width, max(0.0, parent.width * this@Strip.ratio - handle.width / 2))
+                it.centerY eq parent.centerY
+                it.height  eq parent.height
             }
 
             pointerChanged += object: PointerListener {
@@ -320,7 +318,7 @@ public class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
             canvas.innerShadow(color = Color(0x808080u), blurRadius = 1.0) {
-                if (backgroundColor?.opacity ?: 0f < 1f) {
+                if ((backgroundColor?.opacity ?: 0f) < 1f) {
                     canvas.rect(bounds.atOrigin, 3.0, checkerPaint(Size(width * 2 / 3, height * 2 / 3) / 2, Lightgray, White))
                 }
 
@@ -370,21 +368,25 @@ public class ColorPicker(color: Color): View() {
         children += colorSquare
 
         layout = constrain(colorRect, hueStrip, opacityStrip, colorSquare) { colorRect, hueStrip, opacityStrip, colorSquare ->
-            colorRect.top        = colorRect.parent.top    + inset
-            colorRect.left       = colorRect.parent.left   + inset
-            colorRect.right      = colorRect.parent.right  - inset
-            colorRect.bottom     = hueStrip.top            - inset
+            colorRect.top        eq inset
+            colorRect.left       eq inset
+            colorRect.right      eq parent.right  - inset
+            colorRect.bottom     eq hueStrip.top  - inset
 
-            hueStrip.left        = hueStrip.parent.left   + inset
-            hueStrip.right       = colorSquare.left       - inset
-            hueStrip.bottom      = opacityStrip.top       - inset
+            hueStrip.left        eq inset
+            hueStrip.height.preserve
+            hueStrip.right       eq colorSquare.left - inset
+            hueStrip.bottom      eq opacityStrip.top - inset
 
-            opacityStrip.left    = hueStrip.parent.left   + inset
-            opacityStrip.right   = colorSquare.left       - inset
-            opacityStrip.bottom  = hueStrip.parent.bottom - inset
+            opacityStrip.left    eq inset
+            opacityStrip.height.preserve
+            opacityStrip.right   eq colorSquare.left - inset
+            opacityStrip.bottom  eq parent.bottom    - inset
 
-            colorSquare.right    = colorSquare.parent.right  - inset
-            colorSquare.bottom   = colorSquare.parent.bottom - inset
+            colorSquare.width.preserve
+            colorSquare.height.preserve
+            colorSquare.right    eq parent.right  - inset
+            colorSquare.bottom   eq parent.bottom - inset
         }
     }
 }

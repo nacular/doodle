@@ -5,7 +5,8 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Completable
 import kotlin.math.max
@@ -38,9 +39,9 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
         private   val table          : T,
         private   val behavior       : B?,
         override  val header         : View?,
-                      headerAlignment: (Constraints.() -> Unit)? = null,
+                      headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
         protected val cellGenerator  : CellVisualizer<F, R>,
-                      cellAlignment  : (Constraints.() -> Unit)? = null,
+                      cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
                       maxWidth       : Double? = null,
@@ -48,13 +49,13 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
 
     override val alignmentChanged = ChangeObserversImpl(this)
 
-    override  var headerAlignment: (Constraints.() -> Unit)? = headerAlignment
+    override  var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = headerAlignment
         set(value) {
             field = value
             alignmentChanged.forEach { it(this) }
         }
 
-    override  var cellAlignment  : (Constraints.() -> Unit)? = cellAlignment
+    override  var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = cellAlignment
         set(value) {
             field = value
             alignmentChanged.forEach { it(this) }

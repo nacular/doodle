@@ -3,15 +3,16 @@ package io.nacular.doodle.controls.table
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.View
-import io.nacular.doodle.layout.Constraints
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Extractor
 
 public interface ColumnBuilder {
     public var width          : Double?
     public var minWidth       : Double
     public var maxWidth       : Double?
-    public var cellAlignment  : (Constraints.() -> Unit)?
-    public var headerAlignment: (Constraints.() -> Unit)?
+    public var cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)?
+    public var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)?
 }
 
 public interface MutableColumnBuilder<T>: ColumnBuilder {
@@ -22,8 +23,8 @@ internal open class ColumnBuilderImpl: ColumnBuilder {
     override var width          : Double?                   = null
     override var minWidth       : Double                    = 0.0
     override var maxWidth       : Double?                   = null
-    override var cellAlignment  : (Constraints.() -> Unit)? = null
-    override var headerAlignment: (Constraints.() -> Unit)? = null
+    override var cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null
+    override var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null
 }
 
 internal class MutableColumnBuilderImpl<T>: ColumnBuilderImpl(), MutableColumnBuilder<T> {

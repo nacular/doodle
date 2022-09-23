@@ -14,7 +14,6 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.layout.constant
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior.Companion.INSET
@@ -41,10 +40,10 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
             focusManager
     ).apply {
         buttonAlignment = {
-            top    = parent.top
-            right  = parent.right
-            bottom = parent.bottom
-            width  = constant(buttonWidth + INSET)
+            it.top    eq 0
+            it.right  eq parent.right
+            it.bottom eq parent.bottom
+            it.width  eq buttonWidth + INSET
         }
         centerChanged += { dropdown, old, new ->
             (dropdown as? MutableDropdown<T, M>)?.let {

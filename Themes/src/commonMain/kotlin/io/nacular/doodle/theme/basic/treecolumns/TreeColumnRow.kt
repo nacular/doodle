@@ -16,18 +16,15 @@ import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.rounded
-import io.nacular.doodle.layout.ConstraintLayout
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.MagnitudeConstraint
-import io.nacular.doodle.layout.VerticalConstraint
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.ConstraintWrapper
-import io.nacular.doodle.theme.basic.ParentConstraintWrapper
 import io.nacular.doodle.utils.Path
 import kotlin.math.max
 
@@ -66,7 +63,7 @@ public class TreeColumnRow<T>(
 
     public var insetTop: Double = 1.0
 
-    public var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -100,8 +97,13 @@ public class TreeColumnRow<T>(
         backgroundColor = backgroundColor(treeColumns)
     }
 
+    private val iconConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+        it.right   eq parent.right - iconSpacing
+        it.width.preserve
+        it.centerY eq parent.centerY
+    }
+
     init {
-        children       += content
         styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
             private var pressed = false
@@ -148,17 +150,9 @@ public class TreeColumnRow<T>(
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
-        positioner(
-                // Override the parent for content to confine it within a smaller region
-                ConstraintWrapper(content) { parent ->
-                    object: ParentConstraintWrapper(parent) {
-                        override val top    = VerticalConstraint  (this@TreeColumnRow) { insetTop                                  }
-                        override val right  = HorizontalConstraint(this@TreeColumnRow) { it.width  - (iconWidth + 2 * iconSpacing) }
-                        override val width  = MagnitudeConstraint (this@TreeColumnRow) { it.width  - (iconWidth + 2 * iconSpacing) }
-                        override val height = MagnitudeConstraint (this@TreeColumnRow) { it.height - insetTop                      }
-                    }
-                }
-        )
+        withSizeInsets(width = iconWidth + 2 * iconSpacing, height = insetTop) {
+            positioner(content.withOffset(top = insetTop))
+        }
     }
 
     public fun update(tree: TreeColumns<T, *>, node: T, path: Path<Int>, index: Int) {
@@ -185,7 +179,7 @@ public class TreeColumnRow<T>(
         if (treeColumns.isLeaf(path)) {
             icon?.let {
                 this.children -= it
-                constraintLayout.unconstrain(it)
+                constraintLayout.unconstrain(it, iconConstraints)
             }
             icon = null
         } else  {
@@ -226,10 +220,7 @@ public class TreeColumnRow<T>(
 
     private fun constrainIcon(icon: View?) {
         icon?.let {
-            constraintLayout.constrain(it, content) { icon, content ->
-                icon.right   = parent.right - iconSpacing
-                icon.centerY = content.centerY
-            }
+            constraintLayout.constrain(it, iconConstraints)
         }
     }
 }

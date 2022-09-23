@@ -4,6 +4,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.PositionableContainerWrapper
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstTerm
 import io.nacular.doodle.layout.constraints.Constraint
@@ -16,6 +17,7 @@ import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.PropertyWrapper
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
@@ -34,6 +36,7 @@ import io.nacular.doodle.utils.diff.Operation.Insert
 import io.nacular.doodle.utils.diff.compare
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty0
 
 private open class ParentBoundsImpl(val target: View, private val context: ConstraintDslContext): ParentBounds {
     override val height  by lazy { ReflectionVariable(target, target::height, id = heightId) { max(0.0, it) } }
@@ -48,21 +51,9 @@ private open class ParentBoundsImpl(val target: View, private val context: Const
     override val edges  by lazy { Edges(right = right, bottom = bottom) }
 }
 
-private class DisplayBonds(container: PositionableContainer, private val context: ConstraintDslContext): ParentBounds {
-    override val width   = ReadOnlyProperty(container.width )
-    override val height  = ReadOnlyProperty(container.height)
-    override val right   by lazy { with(context) { 0 + width      } }
-    override val bottom  by lazy { with(context) { 0 + height     } }
-    override val centerX by lazy { with(context) { 0 + width  / 2 } }
-    override val centerY by lazy { with(context) { 0 + height / 2 } }
-
-    override val center  by lazy { Position(centerX, centerY) }
-    override val edges   by lazy { Edges(right = right, bottom = bottom) }
-}
-
-internal open class RectangleBounds(rectangle: Rectangle, private val context: ConstraintDslContext): ParentBounds {
-    override val width   = ReadOnlyProperty(rectangle.width )
-    override val height  = ReadOnlyProperty(rectangle.height )
+internal class ImmutableSizeBounds(width_: KProperty0<Double>, height_: KProperty0<Double>, private val context: ConstraintDslContext): ParentBounds {
+    override val width   = ReadOnlyProperty(width_ )
+    override val height  = ReadOnlyProperty(height_)
     override val right   by lazy { with(context) { 0 + width      } }
     override val bottom  by lazy { with(context) { 0 + height     } }
     override val centerX by lazy { with(context) { 0 + width  / 2 } }
@@ -96,8 +87,8 @@ internal open class BoundsImpl(private val target: View, private val context: Co
     override val edges   by lazy { with(context) { Edges(top + 0, left + 0, right, bottom) } }
 }
 
-internal data class ReadOnlyProperty(val value: Double): Property() {
-    override val readOnly: Double get() = value
+internal data class ReadOnlyProperty(val value: KProperty0<Double>): Property() {
+    override val readOnly: Double get() = value()
     override fun toTerm() = ConstTerm(this)
 
     override fun toString() = "$value"
@@ -131,9 +122,12 @@ internal class ReflectionVariable(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
 
-        other as ReflectionVariable
+        when (other) {
+            is ReflectionVariable -> {}
+            is PropertyWrapper    -> return other.variable == this
+            else                  -> return false
+        }
 
         if (target != other.target) return false
         if (id     != other.id    ) return false
@@ -191,9 +185,9 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
     override fun layout(container: PositionableContainer) {
         context.apply {
             parent = when (container) {
-                is View                         -> ParentBoundsImpl(container,      this).also { parent_ = container      }
-                is PositionableContainerWrapper -> ParentBoundsImpl(container.view, this).also { parent_ = container.view }
-                else                            -> DisplayBonds    (container,      this)
+                is View                         -> ParentBoundsImpl   (container,      this                                        ).also { parent_ = container      }
+                is PositionableContainerWrapper -> ParentBoundsImpl   (container.view, this                                        ).also { parent_ = container.view }
+                else                            -> ImmutableSizeBounds(width_ = container::width, height_ = container::height, this)
             }
         }
 
@@ -240,7 +234,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         it.boundsChanged += boundsChanged_
 
         if (it.x != 0.0 || it.y != 0.0 || it.width != 0.0 || it.height != 0.0) {
-            boundsChanged(it, Rectangle.Empty, it.bounds)
+            boundsChanged(it, Empty, it.bounds)
         }
 
         BoundsImpl(it, context)

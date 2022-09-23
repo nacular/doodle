@@ -15,11 +15,10 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.VerticalConstraint
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -63,7 +62,7 @@ public open class ListItem<T>(
     public var insetTop : Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
     public var insetLeft: Double = 0.0
 
-    public var positioner: Constraints.() -> Unit = { centerY = parent.centerY }
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -142,7 +141,16 @@ public open class ListItem<T>(
         role.index    = index
         role.listSize = list.numItems
 
-        children[0]   = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index)))
+        val offset    = Point(insetLeft, insetTop)
+        val oldChild  = children.firstOrNull()
+
+        children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index))).also { visualizer ->
+            if (visualizer != oldChild) {
+                oldChild?.let { it.position -= offset }
+                visualizer.position += offset
+            }
+        }
+
         idealSize     = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
         layout        = constrainLayout(children[0])
 
@@ -154,15 +162,7 @@ public open class ListItem<T>(
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
-        positioner(
-            // Override the parent for content to confine it within a smaller region
-            ConstraintWrapper(content) { parent ->
-                object: ParentConstraintWrapper(parent) {
-                    override val top  = VerticalConstraint  (this@ListItem) { insetTop  }
-                    override val left = HorizontalConstraint(this@ListItem) { insetLeft }
-                }
-            }
-        )
+        positioner(content.withOffset(left = insetLeft, top = insetTop))
     }
 }
 

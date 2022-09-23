@@ -14,9 +14,10 @@ import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.fill
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
@@ -69,7 +70,7 @@ public class MonthPanel(
                     y      = rowHeight   * row,
                     width  = columnWidth,
                     height = rowHeight
-                ), cellAlignment)
+                ), constraints = cellAlignment)
 
                 col = (col + 1) % numColumns
 
@@ -129,7 +130,7 @@ public class MonthPanel(
      * Defines how the View representing each day should be aligned within its cell.
      * The default is to have the View fill the cell.
      */
-    public var cellAlignment: (Constraints.() -> Unit) by observable(fill) { _,_ ->
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) by observable(fill) { _,_ ->
         relayout()
     }
 

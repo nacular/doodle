@@ -12,15 +12,11 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.ConstraintLayout
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.MagnitudeConstraint
-import io.nacular.doodle.layout.ParentConstraints
-import io.nacular.doodle.layout.VerticalConstraint
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -70,40 +66,6 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  */
 @Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
-    /**
-     * Constraints representing a parent [ScrollPanel].
-     */
-    public interface ScrollPanelConstraints: ParentConstraints {
-        /** The panel's scroll bar width */
-        public val scrollBarWidth: MagnitudeConstraint
-
-        /** The panel's scroll bar height */
-        public val scrollBarHeight: MagnitudeConstraint
-    }
-
-    /**
-     * Constraints representing the contents of a [ScrollPanel].
-     */
-    public interface ContentConstraints: ParentConstraints {
-        override var top    : VerticalConstraint
-        override var centerY: VerticalConstraint
-        override var bottom : VerticalConstraint
-        override var height : MagnitudeConstraint
-
-        override var left   : HorizontalConstraint
-        override var centerX: HorizontalConstraint
-        override var right  : HorizontalConstraint
-        override var width  : MagnitudeConstraint
-
-        override var center: Pair<HorizontalConstraint, VerticalConstraint> get() = centerX to centerY
-            set(value) {
-                centerX = value.first
-                centerY = value.second
-            }
-
-        public val parent: ScrollPanelConstraints
-    }
-
     private val parentChanged: (View, View?, View?) -> Unit = { view,old,new ->
         if (old == this) this.content = null
         if (new == this) this.content = view
@@ -151,7 +113,7 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ContentConstraints.() -> MagnitudeConstraint = { idealWidth or width }
+    public var contentWidthConstraints: ScrollPanelConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.width ?: it.width.readOnly }
         set(new) {
             field = new
 
@@ -159,7 +121,7 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ContentConstraints.() -> MagnitudeConstraint = { idealHeight or height }
+    public var contentHeightConstraints: ScrollPanelConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.height ?: it.height.readOnly }
         set(new) {
             field = new
 
@@ -199,6 +161,22 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _insets           get() = insets; set(new) { insets = new }
     internal var _layout           get() = layout; set(new) { layout = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
+
+    public inner class ScrollPanelConstraintDslContext internal constructor(delegate: ConstraintDslContext): ConstraintDslContext() {
+        public val scrollBarWith  : Double get() = this@ScrollPanel.verticalScrollBarSize
+        public val scrollBarHeight: Double get() = this@ScrollPanel.horizontalScrollBarSize
+
+        init {
+            parent      = delegate.parent
+            parent_     = delegate.parent_
+            constraints = delegate.constraints
+        }
+    }
+
+    private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+        it.width  eq max(0.0, contentWidthConstraints (ScrollPanelConstraintDslContext(this), it))
+        it.height eq max(0.0, contentHeightConstraints(ScrollPanelConstraintDslContext(this), it))
+    }
 
     init {
         mirrorWhenRightLeft = false
@@ -329,50 +307,13 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
         fun clearConstrains() {
-            content?.let { delegate?.unconstrain(it) }
+            content?.let { delegate?.unconstrain(it, contentConstraints) }
         }
 
         fun updateConstraints() {
             delegate = content?.let { content ->
-                constrain(content) {
-                    val width  = contentWidthConstraints (it.map())
-                    val height = contentHeightConstraints(it.map())
-
-                    it.width  = width
-                    it.height = height
-                }
+                constrain(content, contentConstraints)
             }
-        }
-
-        private fun Constraints.map() = object: ContentConstraints {
-            override var top         get() = this@map.top;     set(new) { this@map.top     = new }
-            override var centerY     get() = this@map.centerY; set(new) { this@map.centerY = new }
-            override var bottom      get() = this@map.bottom;  set(new) { this@map.bottom  = new }
-            override var height      get() = this@map.height;  set(new) { this@map.height  = new }
-            override var left        get() = this@map.left;    set(new) { this@map.left    = new }
-            override var centerX     get() = this@map.centerX; set(new) { this@map.centerX = new }
-            override var right       get() = this@map.right;   set(new) { this@map.right   = new }
-            override var width       get() = this@map.width;   set(new) { this@map.width   = new }
-            override val idealHeight get() = this@map.idealHeight
-            override val idealWidth  get() = this@map.idealWidth
-
-            override val parent  get() = this@map.parent.map()
-        }
-
-        private fun ParentConstraints.map() = object: ScrollPanelConstraints {
-            override val scrollBarWidth  get() = constant(0.0) + { verticalScrollBarSize   }
-            override val scrollBarHeight get() = constant(0.0) + { horizontalScrollBarSize }
-
-            override val top         get() = this@map.top
-            override val centerY     get() = this@map.centerY
-            override val bottom      get() = this@map.bottom
-            override val height      get() = this@map.height
-            override val left        get() = this@map.left
-            override val centerX     get() = this@map.centerX
-            override val right       get() = this@map.right
-            override val width       get() = this@map.width
-            override val idealHeight get() = this@map.idealHeight
-            override val idealWidth  get() = this@map.idealWidth
         }
     }
 }

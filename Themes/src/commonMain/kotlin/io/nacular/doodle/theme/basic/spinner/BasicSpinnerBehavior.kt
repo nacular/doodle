@@ -31,12 +31,11 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.ConstraintBlockContext
-import io.nacular.doodle.layout.ConstraintLayout
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.center
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.Anchor.Leading
@@ -162,20 +161,20 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         view.children += listOf(center, next, previous)
 
         view.layout = constrain(center, next, previous) { center, next, previous ->
-            center.top      = parent.top    + INSET
-            center.left     = parent.left   + INSET
-            center.right    = next.left     - INSET
-            center.bottom   = parent.bottom - INSET
+            center.top      eq INSET
+            center.left     eq INSET
+            center.right    eq next.left     - INSET
+            center.bottom   eq parent.bottom - INSET
 
-            next.top        = parent.top   + INSET
-            next.right      = parent.right - INSET
-            next.bottom     = parent.centerY
-            next.width      = constant(buttonWidth)
+            next.top        eq INSET
+            next.right      eq parent.right - INSET
+            next.bottom     eq parent.centerY
+            next.width      eq buttonWidth
 
-            previous.top    = next.bottom
-            previous.left   = next.left
-            previous.right  = next.right
-            previous.bottom = parent.bottom - INSET
+            previous.top    eq next.bottom
+            previous.left   eq next.left
+            previous.right  eq next.right
+            previous.bottom eq parent.bottom - INSET
         }
 
         updateCenter(view)
@@ -210,10 +209,6 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
     internal fun updateCenter(spinner: Spinner<T, M>, oldCenter: View? = visualizedValue(spinner), newCenter: View = centerView(spinner, oldCenter)) {
         if (newCenter != oldCenter) {
             viewContainer(spinner)?.let { centerView ->
-                centerView.firstOrNull()?.let {
-                    (centerView.layout as? ConstraintLayout)?.unconstrain(it)
-                }
-
                 centerView.children.clear()
 
                 centerView += newCenter
@@ -231,19 +226,19 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
     )
 
     private fun updateAlignment(spinner: Spinner<T, M>, centerView: Container) {
-        val constrains: ConstraintBlockContext.(Constraints) -> Unit = {
+        val constrains: ConstraintDslContext.(Bounds) -> Unit = {
             (spinner.cellAlignment ?: center)(it)
         }
 
         centerView.firstOrNull()?.let { child ->
             when (val l = centerView.layout) {
-                is ConstraintLayout -> { l.unconstrain(child); l.constrain(child, constrains) }
+                is ConstraintLayout -> { l.unconstrain(child, constrains); l.constrain(child, constrains) }
                 else                -> centerView.layout = constrain(child, constrains)
             }
         }
     }
 
-    private  fun viewContainer  (spinner: Spinner<T, M>): Container? =  spinner.children.firstOrNull { it !is PushButton } as? Container
+    private  fun viewContainer  (spinner: Spinner<T, M>): Container? = spinner.children.firstOrNull { it !is PushButton } as? Container
     internal fun visualizedValue(spinner: Spinner<T, M>): View?      = viewContainer(spinner)?.firstOrNull()
 
     public companion object {

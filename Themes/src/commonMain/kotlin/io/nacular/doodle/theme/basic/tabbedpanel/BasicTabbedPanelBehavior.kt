@@ -30,15 +30,13 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.path
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.MagnitudeConstraint
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.theme.basic.ColorMapper
-import io.nacular.doodle.theme.basic.ConstraintWrapper
-import io.nacular.doodle.theme.basic.ParentConstraintWrapper
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.measured.units.Time.Companion.milliseconds
@@ -96,26 +94,22 @@ public open class BasicTab<T>(
         role.selected = new == index
     }
 
-    public var cellAlignment: (Constraints.() -> Unit) = { left = parent.left; centerY = parent.centerY }
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = { it.centerY eq parent.centerY }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
-        cellAlignment(
-                // Override the parent for content to confine it within a smaller region
-                ConstraintWrapper(content) { parent ->
-                    object: ParentConstraintWrapper(parent) {
-                        override val left  = HorizontalConstraint(this@BasicTab) { 2 * radius }
-                        override val width = MagnitudeConstraint (this@BasicTab) { it.width - 4 * radius }
-                    }
-                }
-        )
+        withSizeInsets(width = 4 * radius) {
+            cellAlignment(content.withOffset(left = 2 * radius))
+        }
 
-        val width = content.width
-
-        content.width = io.nacular.doodle.layout.min(width, parent.width - 4 * radius)
+//        val width = content.width
+//
+//        content.width eq min(width, parent.width - 4 * radius)
     }
 
     init {
-        children += visualizer(panel[index]!!)
+        children += visualizer(panel[index]!!).also {
+            it.x = 2 * radius
+        }
 
         layout = constrainLayout(children[0])
 
@@ -193,6 +187,7 @@ public open class BasicTab<T>(
             selection != null && (index > selection || index < selection - 1) -> {
                 canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Stroke(Gray))
             }
+            else                                                              -> {}
         }
     }
 

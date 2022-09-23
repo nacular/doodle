@@ -17,7 +17,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.max
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
@@ -375,8 +374,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
-        contentWidthConstraints  = { parent.width }
-        contentHeightConstraints = { max(minHeight, parent.height) }
+        contentWidthConstraints  = { parent.width.readOnly }
+        contentHeightConstraints = { max(content?.minimumSize?.height ?: 0.0, parent.height.readOnly) }
 
 //        sizePreferencesChanged += { _,_,_ ->
 //            idealSize?.let { width = it.width }

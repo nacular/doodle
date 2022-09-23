@@ -40,7 +40,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -338,7 +338,7 @@ public open class TextEditOperation<T>(
             children += this@TextEditOperation
 
             layout = constrain(this@TextEditOperation) {
-                it.centerY = it.parent.centerY
+                it.centerY eq parent.centerY
             }
         }
 

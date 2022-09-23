@@ -3,7 +3,7 @@ package io.nacular.doodle.theme
 import io.nacular.doodle.controls.spinner.MutableListSpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.core.View
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.constrain
 
 /**
  * Created by Nicholas Eddy on 8/30/18.
@@ -30,10 +30,10 @@ public class ThemePicker(themeManager: ThemeManager): View() {
         children += spinner
 
         layout = constrain(spinner) {
-            it.top    = it.parent.top
-            it.left   = it.parent.left
-            it.right  = it.parent.right
-            it.bottom = it.parent.bottom
+            it.top    eq 0
+            it.left   eq 0
+            it.right  eq parent.right
+            it.bottom eq parent.bottom
         }
 
         spinner.changed += {

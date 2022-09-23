@@ -18,10 +18,10 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Path
@@ -229,9 +229,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     private inner class InternalTreeColumn<R>(
             header        : View?,
-            headerPosition: (Constraints.() -> Unit)?,
+            headerPosition: (ConstraintDslContext.(Bounds) -> Unit)?,
             cellGenerator : CellVisualizer<T, R>,
-            cellPosition  : (Constraints.() -> Unit)?,
+            cellPosition  : (ConstraintDslContext.(Bounds) -> Unit)?,
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
@@ -307,9 +307,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     private inner class InternalListColumn<R>(
             header         : View?,
-            headerAlignment: (Constraints.() -> Unit)? = null,
+            headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
             cellGenerator  : CellVisualizer<T, R>,
-            cellAlignment  : (Constraints.() -> Unit)? = null,
+            cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
             preferredWidth : Double? = null,
             minWidth       : Double  = 0.0,
             maxWidth       : Double? = null,
@@ -454,14 +454,14 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@TreeTable).apply {
-                        header.top    = header.parent.top + y
-                        header.height = constant(height)
+                        header.top    eq y
+                        header.height eq height
                     }
 
-                    panel.top    = header.bottom
-                    panel.left   = panel.parent.left
-                    panel.right  = panel.parent.right
-                    panel.bottom = panel.parent.bottom
+                    panel.top    eq header.bottom
+                    panel.left   eq 0
+                    panel.right  eq parent.right
+                    panel.bottom eq parent.bottom
                 }
             }
         }
@@ -566,7 +566,6 @@ public open class TreeTable<T, M: TreeModel<T>>(
         })
     }
 
-    @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)

@@ -26,8 +26,9 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Pool
@@ -135,7 +136,6 @@ public open class List<T, out M: ListModel<T>>(
                            fitContent    : Set<Dimension>                  = setOf(Width, Height),
         private        val scrollCache   : Int                             = 0): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
-    @Suppress("PropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         scrollToSelection() // FIXME: Avoid scrolling on selectAll, move to Behavior
 
@@ -175,7 +175,7 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Defines how the contents of an item should be aligned within it.
      */
-    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_ ->
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by observable(null) { _,_ ->
         children.batch {
             (firstVisibleItem .. lastVisibleItem).forEach {
                 update(this, it)

@@ -21,13 +21,12 @@ import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.rounded
-import io.nacular.doodle.layout.ConstraintLayout
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.HorizontalConstraint
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.MagnitudeConstraint
-import io.nacular.doodle.layout.VerticalConstraint
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -102,7 +101,7 @@ public class TreeRow<T>(
 
     public var insetTop: Double = 1.0
 
-    public var positioner: Constraints.() -> Unit = { left = parent.left; centerY = parent.centerY }
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
         set(new) {
             if (field == new) {
                 return
@@ -123,7 +122,6 @@ public class TreeRow<T>(
                     field = new
                     add(field)
                 }
-                depth = -1 // force layout
             }
         }
 
@@ -137,6 +135,12 @@ public class TreeRow<T>(
     }
 
     private lateinit var constraintLayout: ConstraintLayout
+
+    private val iconConstraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { icon, content ->
+        icon.width.preserve
+        icon.right   eq iconWidth * (1 + depth)
+        icon.centerY eq parent.centerY.readOnly
+    }
 
     init {
         focusable       = false
@@ -187,19 +191,9 @@ public class TreeRow<T>(
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
-        positioner(
-            // Override the parent for content to confine it within a smaller region
-            ConstraintWrapper(content) { parent ->
-                object: ParentConstraintWrapper(parent) {
-                    override val top    = VerticalConstraint  (this@TreeRow) { insetTop                            }
-                    override val left   = HorizontalConstraint(this@TreeRow) { iconWidth * (1 + depth)             }
-                    override val width  = MagnitudeConstraint (this@TreeRow) { it.width  - iconWidth * (1 + depth) }
-                    override val right  = HorizontalConstraint(this@TreeRow) { it.width  - iconWidth * (1 + depth) }
-                    override val height = MagnitudeConstraint (this@TreeRow) { it.height - insetTop                }
-                    override val bottom = VerticalConstraint  (this@TreeRow) { it.height - insetTop                }
-                }
-            }
-        )
+        withSizeInsets(width = iconWidth * (1 + depth), height = insetTop) {
+            positioner(content.withOffset(top = insetTop, left = iconWidth * (1 + depth)))
+        }
     }
 
     public fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
@@ -210,19 +204,26 @@ public class TreeRow<T>(
     }
 
     public fun update(content: View, tree: TreeLike) {
+        val oldDepth   = depth
+        val oldContent = this.content
+
+        if (oldDepth >= 0) {
+            this.content.position -= Point(iconWidth * (1 + oldDepth), insetTop)
+        }
+
+        depth = path.depth - if (!tree.rootVisible) 1 else 0
         this.content = content
 
-        val newDepth = (path.depth - if (!tree.rootVisible) 1 else 0)
+        this.content.position += Point(iconWidth * (1 + depth), insetTop)
 
-        if (newDepth != depth) {
-            depth = newDepth
+        if (oldDepth != depth || oldContent != this.content) {
             updateLayout()
         }
 
         if (tree.isLeaf(path)) {
             icon?.let {
                 this.children -= it
-                constraintLayout.unconstrain(it)
+                constraintLayout.unconstrain(it, content, iconConstraints)
             }
             icon = null
         } else  {
@@ -305,10 +306,7 @@ public class TreeRow<T>(
 
     private fun constrainIcon(icon: TreeRowIcon?) {
         icon?.let {
-            constraintLayout.constrain(it, content) { icon, content ->
-                icon.right   = content.left
-                icon.centerY = content.centerY
-            }
+            constraintLayout.constrain(it, content, iconConstraints)
         }
     }
 }

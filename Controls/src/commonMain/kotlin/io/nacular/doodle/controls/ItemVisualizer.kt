@@ -50,7 +50,7 @@ public open class TextVisualizer(private val fitText: Set<Dimension>? = null): I
 public open class BooleanVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean, Any> {
     override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
-        else        -> CheckBox().apply { enabled = false; selected = item                   }
+        else        -> CheckBox().apply { enabled = true;  selected = item; enabled = false; }
     }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 

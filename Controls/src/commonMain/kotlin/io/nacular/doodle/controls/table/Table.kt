@@ -16,16 +16,16 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.max
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import kotlin.math.max
 
 public open class Table<T, M: ListModel<T>>(
         protected val model         : M,
@@ -79,9 +79,9 @@ public open class Table<T, M: ListModel<T>>(
 
     internal open inner class InternalListColumn<R>(
             header         : View?,
-            headerAlignment: (Constraints.() -> Unit)? = null,
+            headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
             itemVisualizer : CellVisualizer<T, R>,
-            cellAlignment  : (Constraints.() -> Unit)? = null,
+            cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
             preferredWidth : Double?                   = null,
             minWidth       : Double                    = 0.0,
             maxWidth       : Double?                   = null,
@@ -186,14 +186,14 @@ public open class Table<T, M: ListModel<T>>(
 
                 layout = constrain(header, panel) { header, panel ->
                     behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top    = parent.top + y
-                        header.height = constant(height)
+                        header.top    eq y
+                        header.height eq height
                     }
 
-                    panel.top    = header.bottom
-                    panel.left   = parent.left
-                    panel.right  = parent.right
-                    panel.bottom = parent.bottom
+                    panel.top    eq header.bottom
+                    panel.left   eq 0
+                    panel.right  eq parent.right
+                    panel.bottom eq parent.bottom
                 }
             }
         }
@@ -232,12 +232,11 @@ public open class Table<T, M: ListModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints  = { max(idealWidth  or width,  parent.width ) }
-            contentHeightConstraints = { max(idealHeight or height, parent.height) }
+            contentWidthConstraints  = { max(content?.idealSize?.width  ?: it.width.readOnly,  parent.width.readOnly ) }
+            contentHeightConstraints = { max(content?.idealSize?.height ?: it.height.readOnly, parent.height.readOnly) }
         }
     }
 
-    @Suppress("PrivatePropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)

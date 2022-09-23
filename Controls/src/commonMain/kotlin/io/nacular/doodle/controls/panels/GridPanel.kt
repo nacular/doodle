@@ -10,10 +10,11 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.fill
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
@@ -96,7 +97,7 @@ public open class GridPanel: View() {
     /**
      * Controls how items are aligned within the grid cells. Defaults to [fill].
      */
-    public var cellAlignment: Constraints.() -> Unit by layoutProperty(fill)
+    public var cellAlignment: ConstraintDslContext.(Bounds) -> Unit by layoutProperty(fill)
 
     /**
      * Determines the space between rows. Defaults = `0.0`
@@ -252,7 +253,7 @@ public open class GridPanel: View() {
                             (y ?: 0.0) + insets.top,
                             widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
                             heights.sumOf { it.size } + verticalSpacing   * (heights.size - 1)),
-                        block = cellAlignment)
+                        constraints = cellAlignment)
             }
 
             container.idealSize = Size(idealWidth!!, idealHeight!!)

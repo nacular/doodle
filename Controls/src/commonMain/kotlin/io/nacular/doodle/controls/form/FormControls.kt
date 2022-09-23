@@ -45,8 +45,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
-import io.nacular.doodle.layout.constant
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.*
@@ -212,11 +211,12 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
         }
 
         layout = constrain(children[0], children[1]) { label, switch ->
-            switch.right   = parent.right
-            switch.centerY = parent.centerY
+            switch.width.preserve
+            switch.right   eq parent.right
+            switch.centerY eq parent.centerY
 
-            label.left     = parent.left
-            label.centerY  = switch.centerY
+            label.left     eq 0
+            label.centerY  eq switch.centerY
         }.then {
             idealSize = Size(width, children.maxOf { it.height })
         }
@@ -368,18 +368,23 @@ public fun <T> switchList(
         vararg rest: T,
         config     : OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<List<T>> = buildToggleList(
-        first,
-        rest = rest,
-        config,
-        layout = { switch, label -> constrain(label, switch) { label_, switch_ ->
-            switch_.width   = constant(30.0)
-            switch_.height  = constant(20.0)
-            switch_.right   = parent.right
-            switch_.centerY = parent.centerY
+        first  = first,
+        rest   = rest,
+        config = config,
+        layout = {
+            switch, label -> constrain(label, switch) { label_, switch_ ->
+                switch_.width   eq 30
+                switch_.height  eq 20
+                switch_.right   eq parent.right
+                switch_.centerY eq parent.centerY
 
-            label_.left     = parent.left
-            label_.centerY  = switch_.centerY
-        } }) { Switch() }
+                label_.left     eq 0
+                label_.centerY  eq switch_.centerY
+            }
+        }
+) {
+    Switch()
+}
 
 /**
  * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
@@ -1594,10 +1599,10 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
 }
 
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
-    button_.width  = parent.width
-    button_.height = parent.height
-    label_.left    = parent.left + labelOffset
-    label_.centerY = button_.centerY
+    button_.width  eq parent.width
+    button_.height eq parent.height
+    label_.left    eq labelOffset
+    label_.centerY eq button_.centerY
 }
 
 private const val DEFAULT_HEIGHT       = 32.0

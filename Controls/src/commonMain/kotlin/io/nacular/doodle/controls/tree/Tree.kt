@@ -23,8 +23,9 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.Constraints
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -121,7 +122,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     /**
      * Defines how the contents of an item should be aligned within it.
      */
-    public var cellAlignment: (Constraints.() -> Unit)? by observable(null) { _,_ ->
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by observable(null) { _,_ ->
         children.batch {
             (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it) }.forEach {
                 update(this, it)

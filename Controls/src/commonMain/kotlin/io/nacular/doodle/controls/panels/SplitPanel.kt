@@ -6,8 +6,8 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constrain
-import io.nacular.doodle.layout.fill
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Orientation
@@ -126,24 +126,24 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                 constrain(first, last) { first, last ->
                     when (orientation) {
                         Vertical -> {
-                            first.top    = parent.top    + { insets.top    }
-                            first.left   = parent.left   + { insets.left   }
-                            first.bottom = parent.bottom - { insets.bottom }
-                            first.right  = first.left + (parent.width - { panelSpacing() + insets.right }) * { ratio }
-                            last.top     = first.top
-                            last.left    = first.right + { panelSpacing() }
-                            last.bottom  = first.bottom
-                            last.right   = parent.right - { insets.right }
+                            first.top    eq                 insets.top
+                            first.left   eq                 insets.left
+                            first.bottom eq parent.bottom - insets.bottom
+                            first.right  eq first.left + (parent.width - (panelSpacing() + insets.right)) * ratio
+                            last.top     eq first.top
+                            last.left    eq first.right + panelSpacing()
+                            last.bottom  eq first.bottom
+                            last.right   eq parent.right - insets.right
                         }
                         else -> {
-                            first.top    = parent.top    + { insets.top    }
-                            first.left   = parent.left   + { insets.left   }
-                            first.bottom = first.top + (parent.height - { panelSpacing() + insets.bottom }) * { ratio }
-                            first.right  = parent.right - { insets.right }
-                            last.top     = first.bottom + { panelSpacing() }
-                            last.left    = first.left
-                            last.right   = first.right
-                            last.bottom  = parent.bottom - { insets.bottom }
+                            first.top    eq insets.top
+                            first.left   eq insets.left
+                            first.bottom eq first.top + (parent.height - (panelSpacing() + insets.bottom)) * ratio
+                            first.right  eq parent.right - insets.right
+                            last.top     eq first.bottom + panelSpacing()
+                            last.left    eq first.left
+                            last.right   eq first.right
+                            last.bottom  eq parent.bottom - insets.bottom
                         }
                     }
                 }
@@ -159,14 +159,14 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                 it.constrain(divider, first) { divider, first ->
                     when (orientation) {
                         Vertical -> {
-                            divider.top     = first.top
-                            divider.bottom  = first.bottom
-                            divider.centerX = first.right + { panelSpacing() / 2 }
+                            divider.top     eq first.top
+                            divider.bottom  eq first.bottom
+                            divider.centerX eq first.right + panelSpacing() / 2
                         }
                         else -> {
-                            divider.left    = first.left
-                            divider.right   = first.right
-                            divider.centerY = first.bottom + { panelSpacing() / 2 }
+                            divider.left    eq first.left
+                            divider.right   eq first.right
+                            divider.centerY eq first.bottom + panelSpacing() / 2
                         }
                     }
                 }

@@ -13,9 +13,10 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.layout.Constraints
-import io.nacular.doodle.layout.center
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.Cursor.Companion.EResize
 import io.nacular.doodle.system.Cursor.Companion.EWResize
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
@@ -30,7 +31,7 @@ import io.nacular.doodle.utils.Pool
  */
 public class TableHeaderCell(private val column: Column<*>, private val headerColor: Color?): View() {
 
-    private var positioner: Constraints.() -> Unit = column.headerAlignment ?: center
+    private var positioner: ConstraintDslContext.(Bounds) -> Unit = column.headerAlignment ?: center
         set(new) {
             if (field == new) {
                 return

@@ -20,7 +20,7 @@ import io.nacular.doodle.event.KeyText.Companion.Delete
 import io.nacular.doodle.event.PointerListener.Companion.released
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constrain
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.utils.Encoder
@@ -146,8 +146,8 @@ public open class TextEditOperation<T>(
             children += textField
 
             layout = constrain(textField) {
-                it.height = parent.height - 1
-                it.bottom = parent.bottom
+                it.height eq parent.height - 1
+                it.bottom eq parent.bottom
             }
         }
 
