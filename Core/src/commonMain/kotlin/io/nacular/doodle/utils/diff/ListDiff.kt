@@ -1,36 +1,112 @@
 package io.nacular.doodle.utils.diff
 
-import io.nacular.doodle.utils.diff.Operation.Delete
-import io.nacular.doodle.utils.diff.Operation.Equal
-import io.nacular.doodle.utils.diff.Operation.Insert
+import io.nacular.doodle.utils.diff.Operation.*
 import kotlin.math.min
 
 /**
  * Classes are derived works from [https://github.com/danielearwicker/ListDiff]
  */
 
-internal enum class Operation {
-    Delete, Insert, Equal;
+public sealed class Difference<T>(public var items: List<T>) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Difference<*>) return false
 
-    override fun toString(): String {
-        return when (this) {
-            Delete -> "-"
-            Insert -> "+"
-            Equal  -> "="
-        }
+        if (items != other.items) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return items.hashCode()
     }
 }
 
-internal data class Diff<T>(val operation: Operation, var items: List<T>) {
-    override fun toString(): String = "$operation $items"
+@Suppress("EqualsOrHashCode")
+public class Equal<T> (items: List<T>): Difference<T>(items) {
+    override fun toString(): String = "= $items"
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Equal<*>) return false
+        return super.equals(other)
+    }
 }
 
-internal fun <T> compare(first: List<T>, second: List<T>, dualThreshold: Int = 32, by: (T, T) -> Boolean = { a, b -> a == b }): Iterable<Diff<T>> = compareInternal(first, second, dualThreshold, by)
+public class Delete<T>(items: List<T>, destination: Int? = null): Difference<T>(items) {
+    public var destination: Int? = destination; internal set
 
-private fun <T> compareInternal(first: List<T>, second: List<T>, dualThreshold: Int, by: (T, T) -> Boolean): MutableList<Diff<T>> {
+    override fun toString(): String = "- $items"
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Delete<*>) return false
+
+        if (destination != other.destination) return false
+
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (destination ?: 0)
+        return result
+    }
+}
+
+public class Insert<T>(items: List<T>, origin: Int? = null): Difference<T>(items) {
+    public var origin: Int? = origin; internal set
+    override fun toString(): String = "+ $items"
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Insert<*>) return false
+
+        if (origin != other.origin) return false
+
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (origin ?: 0)
+        return result
+    }
+}
+
+public class Differences<T>(private val changes: List<Difference<T>>, private var movesComputed: Boolean = false): Iterable<Difference<T>> {
+
+    public fun computeMoves(): Differences<T> {
+        if (!movesComputed) {
+            movesComputed = true
+        }
+
+        return this
+    }
+
+    override fun iterator(): Iterator<Difference<T>> = changes.iterator()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Differences<*>) return false
+
+        if (changes != other.changes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return changes.hashCode()
+    }
+}
+
+internal enum class Operation {
+    Delete, Insert, Equal
+}
+
+internal fun <T> compare(first: List<T>, second: List<T>, dualThreshold: Int = 32, by: (T, T) -> Boolean = { a, b -> a == b }): Differences<T> = Differences(compareInternal(first, second, dualThreshold, by))
+
+private fun <T> compareInternal(first: List<T>, second: List<T>, dualThreshold: Int, by: (T, T) -> Boolean): MutableList<Difference<T>> {
     // Check for equality (speedup)
     if (first.isEqual(second, by)) {
-        return mutableListOf(Diff(Equal, first))
+        return mutableListOf()
     }
 
     // Trim off common prefix (speedup)
@@ -53,28 +129,28 @@ private fun <T> compareInternal(first: List<T>, second: List<T>, dualThreshold: 
 
     // Restore the prefix and suffix
     if (commonPrefix.isNotEmpty()) {
-        diffs.add(0, Diff(Equal, commonPrefix))
+        diffs.add(0, Equal(commonPrefix))
     }
     if (commonSuffix.isNotEmpty()) {
-        diffs.add(Diff(Equal, commonSuffix))
+        diffs.add(Equal(commonSuffix))
     }
 
     cleanupMerge(diffs)
     return diffs
 }
 
-private fun <T> compute(first: List<T>, second: List<T>, dualThreshold: Int, equality: (T, T) -> Boolean): MutableList<Diff<T>> {
+private fun <T> compute(first: List<T>, second: List<T>, dualThreshold: Int, equality: (T, T) -> Boolean): MutableList<Difference<T>> {
     if (first.isEmpty()) {
         // Just add some Items (speedup)
-        return mutableListOf(Diff(Insert, second))
+        return mutableListOf(Insert(second))
     }
 
     if (second.isEmpty()) {
         // Just delete some Items (speedup)
-        return mutableListOf(Diff(Delete, first))
+        return mutableListOf(Delete(first))
     }
 
-    var diffs = mutableListOf<Diff<T>>()
+    var diffs = mutableListOf<Difference<T>>()
 
     val longText  = if (first.size > second.size) first  else second
     val shortText = if (first.size > second.size) second else first
@@ -82,10 +158,10 @@ private fun <T> compute(first: List<T>, second: List<T>, dualThreshold: Int, equ
 
     if (i != -1) {
         // Shorter Items is inside the longer Items (speedup)
-        val op = if (first.size > second.size) Delete else Insert
-        diffs.add(Diff(op, longText.subListOfSize(0, i)))
-        diffs.add(Diff(Equal, shortText))
-        diffs.add(Diff(op, longText.subListOfSize(i + shortText.size)))
+        val isDelete = first.size > second.size
+        diffs.add(if (isDelete) Delete(longText.subListOfSize(0, i)) else Insert(longText.subListOfSize(0, i)))
+        diffs.add(Equal(shortText))
+        diffs.add(if (isDelete) Delete(longText.subListOfSize(i + shortText.size)) else Insert(longText.subListOfSize(i + shortText.size)))
         return diffs
     }
 
@@ -103,15 +179,15 @@ private fun <T> compute(first: List<T>, second: List<T>, dualThreshold: Int, equ
         val diffsB = compareInternal(text1B, text2B, dualThreshold, equality)
         // Merge the results.
         diffs = diffsA
-        diffs.add(Diff(Equal, midCommon))
+        diffs.add(Equal(midCommon))
         diffs.addAll(diffsB)
         return diffs
     }
 
-    return getMap(first, second, dualThreshold, equality) ?: mutableListOf(Diff(Delete, first), Diff(Insert, second))
+    return getMap(first, second, dualThreshold, equality) ?: mutableListOf(Delete(first), Insert(second))
 }
 
-private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: (T, T) -> Boolean): MutableList<Diff<T>>? {
+private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: (T, T) -> Boolean): MutableList<Difference<T>>? {
     // Cache the Items lengths to prevent multiple calls.
     val firstLength  = first.size
     val secondLength = second.size
@@ -227,8 +303,8 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
     return null
 }
 
-internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T>): MutableList<Diff<T>> {
-    val path = mutableListOf<Diff<T>>()
+internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T>): MutableList<Difference<T>> {
+    val path = mutableListOf<Difference<T>>()
     var x = first.size
     var y = second.size
     var lastOp = null as Operation?
@@ -239,7 +315,7 @@ internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T
                 x--
                 when (lastOp) {
                     Delete -> path.first().items = first.subListOfSize(x, 1) + path.first().items
-                    else   -> path.add(0, Diff(Delete, first.subListOfSize(x, 1)))
+                    else   -> path.add(0, Delete(first.subListOfSize(x, 1)))
                 }
                 lastOp = Delete
                 break
@@ -249,7 +325,7 @@ internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T
                 y--
                 when (lastOp) {
                     Insert -> path.first().items = second.subListOfSize(y, 1) + path.first().items
-                    else   -> path.add(0, Diff(Insert, second.subListOfSize(y, 1)))
+                    else   -> path.add(0, Insert(second.subListOfSize(y, 1)))
                 }
                 lastOp = Insert
                 break
@@ -259,7 +335,7 @@ internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T
             y--
             when (lastOp) {
                 Equal -> path.first().items = first.subListOfSize(x, 1) + path.first().items
-                else  -> path.add(0, Diff(Equal, first.subListOfSize(x, 1)))
+                else  -> path.add(0, Equal(first.subListOfSize(x, 1)))
             }
             lastOp = Equal
         }
@@ -267,8 +343,8 @@ internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T
     return path
 }
 
-internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T>): MutableList<Diff<T>> {
-    val path = mutableListOf<Diff<T>>()
+internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T>): MutableList<Difference<T>> {
+    val path = mutableListOf<Difference<T>>()
     var x = first.size
     var y = second.size
     var lastOp = null as Operation?
@@ -278,7 +354,7 @@ internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T
                 x--
                 when (lastOp) {
                     Delete -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
-                    else   -> path.add(Diff(Delete, first.subListOfSize(first.size - x - 1, 1)))
+                    else   -> path.add(Delete(first.subListOfSize(first.size - x - 1, 1)))
                 }
                 lastOp = Delete
                 break
@@ -288,7 +364,7 @@ internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T
                 y--
                 when (lastOp) {
                     Insert -> path.last().items = path.last().items + second.subListOfSize(second.size - y - 1, 1)
-                    else   -> path.add(Diff(Insert, second.subListOfSize(second.size - y - 1, 1)))
+                    else   -> path.add(Insert(second.subListOfSize(second.size - y - 1, 1)))
                 }
                 lastOp = Insert
                 break
@@ -300,7 +376,7 @@ internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T
             //      : "No diagonal.  Can't happen. (DiffPath2)";
             when (lastOp) {
                 Equal -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
-                else  -> path.add(Diff(Equal, first.subListOfSize(first.size - x - 1, 1)))
+                else  -> path.add(Equal(first.subListOfSize(first.size - x - 1, 1)))
             }
             lastOp = Equal
         }
@@ -400,9 +476,9 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     }
 }
 
-internal fun <T> cleanupMerge(diffs: MutableList<Diff<T>>) {
+internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
     while (true) {
-        diffs.add(Diff(Equal, emptyList())) // Add a dummy entry at the end.
+        diffs.add(Equal(emptyList())) // Add a dummy entry at the end.
         var pointer = 0
         var countDelete = 0
         var countInsert = 0
@@ -410,29 +486,29 @@ internal fun <T> cleanupMerge(diffs: MutableList<Diff<T>>) {
         var textInsert = emptyList<T>()
 
         while (pointer < diffs.size) {
-            when(diffs[pointer].operation) {
-                Insert -> {
+            when(diffs[pointer]) {
+                is Insert -> {
                     countInsert++
                     textInsert = textInsert + diffs[pointer].items
                     pointer++
                 }
-                Delete -> {
+                is Delete -> {
                     countDelete++
                     textDelete = textDelete + diffs[pointer].items
                     pointer++
                 }
-                Equal -> {
+                is Equal -> {
                     // Upon reaching an equality, check for prior redundancies.
                     if (countDelete != 0 || countInsert != 0) {
                         if (countDelete != 0 && countInsert != 0) {
                             // Factor out any common prefixes.
                             var commonLength = getCommonPrefix(textInsert, textDelete)
                             if (commonLength != 0) {
-                                if ((pointer - countDelete - countInsert) > 0 && diffs[pointer - countDelete - countInsert - 1].operation == Equal) {
+                                if ((pointer - countDelete - countInsert) > 0 && diffs[pointer - countDelete - countInsert - 1] is Equal) {
                                     val diff = diffs[pointer - countDelete - countInsert - 1]
                                     diff.items = diff.items + textInsert.subListOfSize(0, commonLength)
                                 } else {
-                                    diffs.add(0, Diff(Equal, textInsert.subListOfSize(0, commonLength)))
+                                    diffs.add(0, Equal(textInsert.subListOfSize(0, commonLength)))
                                     pointer++
                                 }
                                 textInsert = textInsert.subListOfSize(commonLength)
@@ -448,12 +524,12 @@ internal fun <T> cleanupMerge(diffs: MutableList<Diff<T>>) {
                         }
                         // Delete the offending records and add the merged ones.
                         when {
-                            countDelete == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Diff(Insert, textInsert))
-                            countInsert == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Diff(Delete, textDelete))
-                            else             -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Diff(Delete, textDelete), Diff(Insert, textInsert))
+                            countDelete == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Insert(textInsert))
+                            countInsert == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Delete(textDelete))
+                            else             -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Delete(textDelete), Insert(textInsert))
                         }
                         pointer = pointer - countDelete - countInsert + if(countDelete != 0)  1 else 0 + if(countInsert != 0)  1 else 0 + 1
-                    } else if (pointer != 0 && diffs[pointer - 1].operation == Equal) {
+                    } else if (pointer != 0 && diffs[pointer - 1] is Equal) {
                         // Merge this equality with the previous one.
                         diffs[pointer - 1].items = diffs[pointer - 1].items + diffs[pointer].items
                         diffs.removeAt(pointer)
@@ -479,7 +555,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Diff<T>>) {
         pointer = 1
         // Intentionally ignore the first and last element (don't need checking).
         while (pointer < (diffs.size - 1)) {
-            if (diffs[pointer - 1].operation == Equal && diffs[pointer + 1].operation == Equal) {
+            if (diffs[pointer - 1] is Equal && diffs[pointer + 1] is Equal) {
                 // This is a single edit surrounded by equalities.
                 if (diffs[pointer].items.endsWith(diffs[pointer - 1].items)) {
                     // Shift the edit over the previous equality.

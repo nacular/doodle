@@ -31,8 +31,8 @@ import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.yI
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils._removeAll
-import io.nacular.doodle.utils.diff.Operation.Delete
-import io.nacular.doodle.utils.diff.Operation.Insert
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.diff.compare
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
@@ -261,8 +261,8 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
 
             compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach {
-                when (it.operation) {
-                    Delete -> {
+                when (it) {
+                    is Delete -> {
                         it.items.forEach {
                             try {
                                 solver.removeConstraint(it)
@@ -279,7 +279,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                             } catch (ignore: Exception) {}
                         }
                     }
-                    Insert -> {
+                    is Insert -> {
                         it.items.forEach {
                             try {
                                 solver.addConstraint(it)

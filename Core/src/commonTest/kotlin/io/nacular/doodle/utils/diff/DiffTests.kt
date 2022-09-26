@@ -1,8 +1,6 @@
 package io.nacular.doodle.utils.diff
 
-import io.nacular.doodle.utils.diff.Operation.Delete
-import io.nacular.doodle.utils.diff.Operation.Equal
-import io.nacular.doodle.utils.diff.Operation.Insert
+import io.nacular.doodle.utils.diff.Operation.*
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -43,7 +41,7 @@ class DiffTests {
 
     @Test @JsName("cleanUpMerge") fun `clean up merge`() {
         // Cleanup a messy diff.
-        var diffs = mutableListOf<Diff<Char>>()
+        var diffs = mutableListOf<Difference<Char>>()
 
         cleanupMerge(diffs)
 
@@ -103,8 +101,6 @@ class DiffTests {
             setOf(getFootprint(0, 5), getFootprint(2, 5), getFootprint(4, 5), getFootprint(5, 0), getFootprint(6, 3), getFootprint(6, 5)),
             setOf(getFootprint(0, 6), getFootprint(2, 6), getFootprint(4, 6), getFootprint(6, 6), getFootprint(7, 5)),
         )
-
-        val makeDiff: (Operation, String) -> Diff<Char> = { o, s -> Diff(o, s.toList()) }
 
         var diffs = listOf(
             makeDiff(Insert, "W"),
@@ -173,23 +169,28 @@ class DiffTests {
     @Test fun compare() {
         var threshold = 32
 
-        val compare: (String, String) -> Iterable<Diff<Char>> = { x, y -> compare(x.toList(), y.toList(), threshold) }
+        val compare: (String, String) -> Iterable<Difference<Char>> = { x, y -> compare(x.toList(), y.toList(), threshold) }
 
-        expect(listOf(makeDiff(Equal,  "abc"  )                                                                                                                                                 ), "Compare: Null case."       ) { compare("abc",                 "abc"                         ) }
-        expect(listOf(makeDiff(Equal,  "ab"   ), makeDiff(Insert, "123"   ), makeDiff(Equal,  "c"      )                                                                                        ), "Compare: Simple Insertion.") { compare("abc",                 "ab123c"                      ) }
-        expect(listOf(makeDiff(Equal,  "a"    ), makeDiff(Delete, "123"   ), makeDiff(Equal,  "bc"     )                                                                                        ), "Compare: Simple deletion." ) { compare("a123bc",              "abc"                         ) }
-        expect(listOf(makeDiff(Equal,  "a"    ), makeDiff(Insert, "123"   ), makeDiff(Equal,  "b"      ), makeDiff(Insert, "456"), makeDiff(Equal,  "c"               )                         ), "Compare: Two insertions."  ) { compare("abc",                 "a123b456c"                   ) }
-        expect(listOf(makeDiff(Equal,  "a"    ), makeDiff(Delete, "123"   ), makeDiff(Equal,  "b"      ), makeDiff(Delete, "456"), makeDiff(Equal,  "c"               )                         ), "Compare: Two deletions."   ) { compare("a123b456c",           "abc"                         ) }
-        expect(listOf(makeDiff(Delete, "a"    ), makeDiff(Insert, "b"     )                                                                                                                     ), "Compare: Simple case #1."  ) { compare("a",                   "b"                           ) }
-        expect(listOf(makeDiff(Delete, "Apple"), makeDiff(Insert, "Banana"), makeDiff(Equal,  "s are a"), makeDiff(Insert, "lso"), makeDiff(Equal,  " fruit."         )                         ), "Compare: Simple case #2."  ) { compare("Apples are a fruit.", "Bananas are also fruit."     ) }
-        expect(listOf(makeDiff(Delete, "a"    ), makeDiff(Insert, "\u0680"), makeDiff(Equal,  "x"      ), makeDiff(Delete, "\t" ), makeDiff(Insert, Char(0).toString())                         ), "Compare: Simple case #3."  ) { compare("ax\t",                "\u0680x" + Char(0).toString()) }
-        expect(listOf(makeDiff(Delete, "1"    ), makeDiff(Equal,  "a"     ), makeDiff(Delete, "y"      ), makeDiff(Equal,  "b"  ), makeDiff(Delete, "2"               ), makeDiff(Insert, "xab")), "Compare: Overlap #1."      ) { compare("1ayb2",               "abxab"                       ) }
-        expect(listOf(makeDiff(Insert, "xaxcx"), makeDiff(Equal,  "abc"   ), makeDiff(Delete, "y"      )                                                                                        ), "Compare: Overlap #2."      ) { compare("abcy",                "xaxcxabc"                    ) }
+        expect(Differences(listOf(                                                                                                                                                                          )), "Compare: Null case."       ) { compare("abc",                 "abc"                         ) }
+        expect(Differences(listOf(makeDiff(Equal,  "ab"   ), makeDiff(Insert, "123"   ), makeDiff(Equal,  "c"      )                                                                                        )), "Compare: Simple Insertion.") { compare("abc",                 "ab123c"                      ) }
+        expect(Differences(listOf(makeDiff(Equal,  "a"    ), makeDiff(Delete, "123"   ), makeDiff(Equal,  "bc"     )                                                                                        )), "Compare: Simple deletion." ) { compare("a123bc",              "abc"                         ) }
+        expect(Differences(listOf(makeDiff(Equal,  "a"    ), makeDiff(Insert, "123"   ), makeDiff(Equal,  "b"      ), makeDiff(Insert, "456"), makeDiff(Equal,  "c"               )                         )), "Compare: Two insertions."  ) { compare("abc",                 "a123b456c"                   ) }
+        expect(Differences(listOf(makeDiff(Equal,  "a"    ), makeDiff(Delete, "123"   ), makeDiff(Equal,  "b"      ), makeDiff(Delete, "456"), makeDiff(Equal,  "c"               )                         )), "Compare: Two deletions."   ) { compare("a123b456c",           "abc"                         ) }
+        expect(Differences(listOf(makeDiff(Delete, "a"    ), makeDiff(Insert, "b"     )                                                                                                                     )), "Compare: Simple case #1."  ) { compare("a",                   "b"                           ) }
+        expect(Differences(listOf(makeDiff(Delete, "Apple"), makeDiff(Insert, "Banana"), makeDiff(Equal,  "s are a"), makeDiff(Insert, "lso"), makeDiff(Equal,  " fruit."         )                         )), "Compare: Simple case #2."  ) { compare("Apples are a fruit.", "Bananas are also fruit."     ) }
+        expect(Differences(listOf(makeDiff(Delete, "a"    ), makeDiff(Insert, "\u0680"), makeDiff(Equal,  "x"      ), makeDiff(Delete, "\t" ), makeDiff(Insert, Char(0).toString())                         )), "Compare: Simple case #3."  ) { compare("ax\t",                "\u0680x" + Char(0).toString()) }
+        expect(Differences(listOf(makeDiff(Delete, "1"    ), makeDiff(Equal,  "a"     ), makeDiff(Delete, "y"      ), makeDiff(Equal,  "b"  ), makeDiff(Delete, "2"               ), makeDiff(Insert, "xab"))), "Compare: Overlap #1."      ) { compare("1ayb2",               "abxab"                       ) }
+        expect(Differences(listOf(makeDiff(Insert, "xaxcx"), makeDiff(Equal,  "abc"   ), makeDiff(Delete, "y"      )                                                                                        )), "Compare: Overlap #2."      ) { compare("abcy",                "xaxcxabc"                    ) }
+        expect(Differences(listOf(makeDiff(Equal,  "a"    ), makeDiff(Insert, "c"     ), makeDiff(Equal,  "b"      ), makeDiff(Delete, "c"  )                                                               )), "Compare: Simple Move."     ) { compare("abc",                 "acb"                      ) }
 
         // Sub-optimal double-ended diff.
 //        threshold = 2
 //        expect(listOf(makeDiff(Insert, "x"), makeDiff(Equal, "a"), makeDiff(Delete, "b"), makeDiff(Insert, "x"), makeDiff(Equal, "c"), makeDiff(Delete, "y"), makeDiff(Insert, "xabc")), "Compare: Overlap #3.") { compare("abcy", "xaxcxabc") }
     }
 
-    private fun makeDiff(operation: Operation, string: String) = Diff(operation, string.toList())
+    private fun makeDiff(operation: Operation, string: String) = when(operation) {
+        Equal  -> Equal (string.toList())
+        Delete -> Delete(string.toList())
+        Insert -> Insert(string.toList())
+    }
 }
