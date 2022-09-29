@@ -7,7 +7,13 @@ import kotlin.math.min
  * Classes are derived works from [https://github.com/danielearwicker/ListDiff]
  */
 
+/**
+ * Base class for all differences types used in describing a change to a list via [compare].
+ */
 public sealed class Difference<T>(items: List<T>) {
+    /**
+     * The set of items in the list that "changed"
+     */
     public var items: List<T> = items; internal set
 
     override fun equals(other: Any?): Boolean {
@@ -18,14 +24,14 @@ public sealed class Difference<T>(items: List<T>) {
 
         return true
     }
-
-    override fun hashCode(): Int {
-        return items.hashCode()
-    }
+    override fun hashCode(): Int = items.hashCode()
 
     public abstract fun <R> map(block: (T) -> R): Difference<R>
 }
 
+/**
+ * Indicates that a region of the original list compared via [compare] is unchanged.
+ */
 @Suppress("EqualsOrHashCode")
 public class Equal<T>(items: List<T>): Difference<T>(items) {
     public constructor(vararg items: T): this(items.toList())
@@ -36,41 +42,19 @@ public class Equal<T>(items: List<T>): Difference<T>(items) {
     override fun <R> map(block: (T) -> R): Difference<R> = Equal(items.map(block))
 }
 
-public class Delete<T>(items: List<T>): Difference<T>(items) {
-    public constructor(vararg items: T): this(items.toList())
-
-    public fun destination(of: T): Int? = destinations?.get(of)
-
-    private var destinations: MutableMap<T, Int>? = null
-
-    internal fun setDestination(of: T, destination: Int) {
-        if (destinations == null) destinations = mutableMapOf()
-
-        destinations!![of] = destination
-    }
-
-    override fun toString(): String = "- $items"
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Delete<*>) return false
-
-        if (destinations != other.destinations) return false
-
-        return super.equals(other)
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + destinations.hashCode()
-        return result
-    }
-
-    override fun <R> map(block: (T) -> R): Difference<R> = Delete(items.map(block))
-}
-
+/**
+ * Indicates that a region of the original list compared via [compare] has items inserted.
+ */
 public class Insert<T>(items: List<T>): Difference<T>(items) {
     public constructor(vararg items: T): this(items.toList())
 
+    /**
+     * This method indicates if an inserted item was previously in the list at some index. It should be
+     * used along with [Differences.computeMoves] to check whether an item has actually been moved in the list.
+     * @param of the given item
+     * @return the original index of the provided item, or `null` if that item is new to the list, or moves weren't computed
+     * @see [Delete.destination]
+     */
     public fun origin(of: T): Int? = origins?.get(of)
 
     private var origins: MutableMap<T, Int>? = null
@@ -100,8 +84,58 @@ public class Insert<T>(items: List<T>): Difference<T>(items) {
     override fun <R> map(block: (T) -> R): Difference<R> = Insert(items.map(block))
 }
 
+/**
+ * Indicates that a region of the original list compared via [compare] has items removed.
+ */
+public class Delete<T>(items: List<T>): Difference<T>(items) {
+    public constructor(vararg items: T): this(items.toList())
+
+    /**
+     * This method indicates if a deleted item was re-added to the list at some index. It should be
+     * used along with [Differences.computeMoves] to check whether an item has actually been moved in the list.
+     * @param of the given item
+     * @return the destination index of the provided item, or `null` if that item does not remain in the list, or moves weren't computed
+     * @see [Insert.origin]
+     */
+    public fun destination(of: T): Int? = destinations?.get(of)
+
+    private var destinations: MutableMap<T, Int>? = null
+
+    internal fun setDestination(of: T, destination: Int) {
+        if (destinations == null) destinations = mutableMapOf()
+
+        destinations!![of] = destination
+    }
+
+    override fun toString(): String = "- $items"
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Delete<*>) return false
+
+        if (destinations != other.destinations) return false
+
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + destinations.hashCode()
+        return result
+    }
+
+    override fun <R> map(block: (T) -> R): Difference<R> = Delete(items.map(block))
+}
+
+/**
+ * The list of differences between two lists compared using [compare].
+ */
 public class Differences<T>(private val changes: List<Difference<T>>, private var movesComputed: Boolean = false): Iterable<Difference<T>> {
 
+    /**
+     * No "moves" ([Delete] followed by [Insert] or vice versa) are calculated by default to improve performance
+     * in cases where they are not needed. This method computes the moves and updates the [Insert], [Delete]
+     * pairs to point to their respective origin and destination indexes.
+     */
     public fun computeMoves(): Differences<T> {
         if (!movesComputed) {
             movesComputed = true
@@ -149,9 +183,12 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
         return changes.hashCode()
     }
 
-    override fun toString(): String = "$changes"
+    override fun toString(): String = changes.toString()
 
-    public fun <R> map(block: (T) -> R): Differences<R> = Differences(changes.map { it.map(block) })
+    /**
+     * @return a Differences with the [transform] applied to each element it contains.
+     */
+    public fun <R> map(transform: (T) -> R): Differences<R> = Differences(changes.map { it.map(transform) })
 }
 
 internal enum class Operation {
@@ -661,8 +698,7 @@ private fun <T> List<T>.endsWith(other: List<T>) = size >= other.size && takeLas
 
 private fun <T> List<T>.subListOfSize(start: Int, length: Int = size - start): List<T> = subList(start, start + length)
 
-private fun <T> List<T>.indexOf(other: List<T>, start: Int = 0, by: (T, T) -> Boolean): Int
-{
+private fun <T> List<T>.indexOf(other: List<T>, start: Int = 0, by: (T, T) -> Boolean): Int {
     for (i in start until size - other.size) {
         if (compareRange(i, other, 0, other.size, by)) {
             return i
