@@ -143,11 +143,10 @@ public class TabbedPanel<T>(
                     is Delete -> {
                         repeat(it.items.size) { index ->
                             selection = when {
-                                (selection ?: 0) > globalIndex + index -> selection?.let { it - 1 }
-                                selection == globalIndex               -> {
-                                    selection = -1; return@forEach
+                                (selection ?: 0) >= globalIndex + index -> selection?.let { it - 1 }
+                                selection == globalIndex                -> {
+                                    selection = null; return@forEach
                                 }
-
                                 else                                    -> selection
                             }
                         }
@@ -161,34 +160,6 @@ public class TabbedPanel<T>(
                     else      -> { globalIndex += it.items.size }
                 }
             }
-
-            // FIXME: Handle selection
-//            removed.forEach { (index, _) ->
-//                selection = when {
-//                    selection ?: 0 > index -> selection?.let { it - 1 }
-//                    selection == index     -> {
-//                        selection = -1; return@forEach
-//                    }
-//                    else -> selection
-//                }
-//            }
-//
-//            added.forEach { (index, _) ->
-//                selection = selection?.let { if (it >= index) it + 1 else it }
-//            }
-//
-//            moved.forEach { (new, old) ->
-//                val to   = new
-//                val from = old.first
-//
-//                selection = when (val s = selection) {
-//                    null                     -> s
-//                    in (from + 1) until to   -> s - 1
-//                    in (to   + 1) until from -> s + 1
-//                    from                     -> to
-//                    else                     -> s
-//                }
-//            }
 
             (itemsChanged as SetPool).forEach {
                 it(this, diffs)
@@ -233,7 +204,7 @@ public class TabbedPanel<T>(
     public operator fun get(index: Int): T? = items.getOrNull(index)
 
     /**
-     * Adds an item to the panel/
+     * Adds an item to the panel
      * @param item to add
      */
     public fun add(item: T): Boolean = items.add(item)

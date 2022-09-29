@@ -48,20 +48,34 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         val added   = mutableListOf<Int>()
         val moved   = mutableListOf<Int>()
 
-        var index = 0
+        var index            = 0
+        val selectionOffsets = mutableListOf<Pair<Int, Int>>()
 
         diffs.computeMoves().forEach { diff ->
             when (diff) {
                 is Insert -> {
+                    if (selectionModel != null) {
+                        (0 until diff.items.size).forEach {
+                            selectionOffsets += index + it to 1
+                        }
+                    }
+
                     diff.items.forEach {
                         when {
                             diff.origin(of = it) == null -> added += index
                             else                         -> moved += index
                         }
+
                         ++index
                     }
                 }
                 is Delete -> {
+                    if (selectionModel != null) {
+                        (0 until diff.items.size).forEach {
+                            selectionOffsets += index + it to -1
+                        }
+                    }
+
                     diff.items.forEach {
                         if (diff.destination(of = it) == null) {
                             removed += index
@@ -72,8 +86,23 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
             }
         }
 
-        // FIXME: Handle Selection updates
-//        itemsChanged(added = trueAdded, removed = trueRemoved, moved = moved)
+        // Update selection indexes
+        selectionModel?.let {
+            var delta            = 0
+            var offsetIndex      = 0
+            val currentSelection = it.sorted().toMutableList()
+
+            currentSelection.forEachIndexed { index, selection ->
+                while (offsetIndex < selectionOffsets.size && selectionOffsets[offsetIndex].first <= selection) {
+                    delta += selectionOffsets[offsetIndex].second
+                    ++offsetIndex
+                }
+
+                currentSelection[index] += delta
+            }
+
+            setSelection(currentSelection.toSet())
+        }
 
         val oldVisibleRange = firstVisibleItem..lastVisibleItem
 
@@ -110,42 +139,6 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
     init {
         model.changed += modelChanged
-    }
-
-    private fun itemsChanged(added: Map<Int, T>, removed: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
-        if (selectionModel != null) {
-
-            val effectiveAdded  : Map<Int, T> = added   + moved.values.associate { it.first to it.second }
-            val effectiveRemoved: Map<Int, T> = removed + moved.mapValues { it.value.second }
-
-            val updatedSelection = mutableSetOf<Int>()
-
-            for (selectionItem in selectionModel) {
-                var delta = 0
-
-                for (index in effectiveAdded.keys) {
-                    if (selectionItem >= index) {
-                        ++delta
-                    }
-                }
-
-                for (index in effectiveRemoved.keys) {
-                    if (selectionItem > index) {
-                        delta--
-                    }
-                }
-
-                if (delta != 0) {
-                    updatedSelection.add(selectionItem + delta)
-                }
-            }
-
-            removeSelection(removed.keys)
-
-            if (updatedSelection.isNotEmpty()) {
-                setSelection(updatedSelection)
-            }
-        }
     }
 
     public companion object {
